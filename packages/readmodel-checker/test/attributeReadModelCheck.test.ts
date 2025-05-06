@@ -142,7 +142,7 @@ describe("Check attribute readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const attribute1ForSQL: WithMetadata<Attribute> = {
+    const attribute1InPostgresDb: WithMetadata<Attribute> = {
       data: {
         ...attribute1.data,
         kind: attributeKind.declared,
@@ -153,8 +153,8 @@ describe("Check attribute readmodels", () => {
     await addOneAttribute(attribute1);
 
     await attributeReadModelServiceSQL.upsertAttribute(
-      attribute1ForSQL.data,
-      attribute1ForSQL.metadata.version
+      attribute1InPostgresDb.data,
+      attribute1InPostgresDb.metadata.version
     );
 
     const collectionAttributes =
@@ -178,7 +178,7 @@ describe("Check attribute readmodels", () => {
       metadata: { version: 1 },
     };
 
-    const attribute1ForSQL: WithMetadata<Attribute> = {
+    const attribute1InPostgresDb: WithMetadata<Attribute> = {
       data: attribute1.data,
       metadata: {
         version: 3,
@@ -188,8 +188,8 @@ describe("Check attribute readmodels", () => {
     await addOneAttribute(attribute1);
 
     await attributeReadModelServiceSQL.upsertAttribute(
-      attribute1ForSQL.data,
-      attribute1ForSQL.metadata.version
+      attribute1InPostgresDb.data,
+      attribute1InPostgresDb.metadata.version
     );
 
     const collectionAttributes =

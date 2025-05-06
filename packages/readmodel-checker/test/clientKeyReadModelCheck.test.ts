@@ -119,7 +119,7 @@ describe("Check client key readmodels", () => {
       data: getMockClientJWKKey(),
       metadata: { version: 1 },
     };
-    const clientKey1ForSQL: WithMetadata<ClientJWKKey> = {
+    const clientKey1InPostgresDb: WithMetadata<ClientJWKKey> = {
       data: { ...clientKey1.data, alg: "wrong-alg" },
       metadata: clientKey1.metadata,
     };
@@ -127,8 +127,8 @@ describe("Check client key readmodels", () => {
     await addOneClientJWKKey(clientKey1);
 
     await clientKeysReadModelServiceSQL.upsertClientJWKKey(
-      clientKey1ForSQL.data,
-      clientKey1ForSQL.metadata.version
+      clientKey1InPostgresDb.data,
+      clientKey1InPostgresDb.metadata.version
     );
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();
@@ -150,7 +150,7 @@ describe("Check client key readmodels", () => {
       data: getMockClientJWKKey(),
       metadata: { version: 1 },
     };
-    const clientKey1ForSQL: WithMetadata<ClientJWKKey> = {
+    const clientKey1InPostgresDb: WithMetadata<ClientJWKKey> = {
       data: clientKey1.data,
       metadata: { version: 3 },
     };
@@ -158,8 +158,8 @@ describe("Check client key readmodels", () => {
     await addOneClientJWKKey(clientKey1);
 
     await clientKeysReadModelServiceSQL.upsertClientJWKKey(
-      clientKey1ForSQL.data,
-      clientKey1ForSQL.metadata.version
+      clientKey1InPostgresDb.data,
+      clientKey1InPostgresDb.metadata.version
     );
 
     const collectionKeys = await readModelService.getAllReadModelClientJWKKey();

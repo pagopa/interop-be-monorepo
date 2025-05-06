@@ -12,6 +12,7 @@ export const serviceName = {
   API_GATEWAY: "api-gateway",
   DELEGATION_PROCESS: "delegation-process",
   ESERVICE_TEMPLATE_PROCESS: "eservice-template-process",
+  M2M_GATEWAY: "m2m-gateway",
 } as const;
 
 export const ServiceName = z.enum([
@@ -32,4 +33,5 @@ export const serviceErrorCode: Record<ServiceName, string> = {
   [serviceName.API_GATEWAY]: "009",
   [serviceName.DELEGATION_PROCESS]: "010",
   [serviceName.ESERVICE_TEMPLATE_PROCESS]: "011",
+  [serviceName.M2M_GATEWAY]: "012",
 };

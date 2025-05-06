@@ -18,7 +18,6 @@ import {
   EServiceEventV2,
   generateId,
   genericInternalError,
-  kafkaMessageProcessError,
   missingKafkaMessageDataError,
   PurposeEventEnvelopeV2,
   PurposeEventV2,
@@ -26,7 +25,10 @@ import {
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { config } from "./config/config.js";
-import { notificationEmailSenderServiceBuilder } from "./services/notificationEmailSenderService.js";
+import {
+  NotificationEmailSenderService,
+  notificationEmailSenderServiceBuilder,
+} from "./services/notificationEmailSenderService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 
 interface TopicHandlers {
@@ -40,22 +42,32 @@ const readModelService = readModelServiceBuilder(
 );
 const templateService = buildHTMLTemplateService();
 const interopFeBaseUrl = config.interopFeBaseUrl;
-const sesEmailManager: EmailManagerSES = initSesMailManager(config);
+
 const sesEmailsenderData = {
   label: config.senderLabel,
   mail: config.senderMail,
 };
 
-const notificationEmailSenderService = notificationEmailSenderServiceBuilder(
-  sesEmailManager,
-  sesEmailsenderData,
-  readModelService,
-  templateService,
-  interopFeBaseUrl
-);
+const buildNotificationEmailSenderService = (
+  logger: Logger
+): NotificationEmailSenderService => {
+  const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
+    logger,
+    skipTooManyRequestsError: true,
+  });
+
+  return notificationEmailSenderServiceBuilder(
+    sesEmailManager,
+    sesEmailsenderData,
+    readModelService,
+    templateService,
+    interopFeBaseUrl
+  );
+};
 
 export async function handleCatalogMessage(
   decodedMessage: EServiceEventEnvelopeV2,
+  notificationEmailSenderService: NotificationEmailSenderService,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -126,6 +138,7 @@ export async function handleCatalogMessage(
 
 export async function handlePurposeMessage(
   decodedMessage: PurposeEventEnvelopeV2,
+  notificationEmailSenderService: NotificationEmailSenderService,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -210,6 +223,7 @@ export async function handlePurposeMessage(
 
 export async function handleAgreementMessage(
   decodedMessage: AgreementEventEnvelopeV2,
+  notificationEmailSenderService: NotificationEmailSenderService,
   logger: Logger
 ): Promise<void> {
   await match(decodedMessage)
@@ -277,70 +291,61 @@ export async function handleAgreementMessage(
 
 function processMessage(topicHandlers: TopicHandlers) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
-    try {
-      const { catalogTopic, agreementTopic, purposeTopic } = topicHandlers;
+    const { catalogTopic, agreementTopic, purposeTopic } = topicHandlers;
 
-      const { decodedMessage, handleMessage } = match(messagePayload.topic)
-        .with(catalogTopic, () => {
-          const decodedMessage = decodeKafkaMessage(
-            messagePayload.message,
-            EServiceEventV2
-          );
+    const { decodedMessage, handleMessage } = match(messagePayload.topic)
+      .with(catalogTopic, () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          EServiceEventV2
+        );
 
-          const handleMessage = handleCatalogMessage.bind(null, decodedMessage);
+        const handleMessage = handleCatalogMessage.bind(null, decodedMessage);
 
-          return { decodedMessage, handleMessage };
-        })
-        .with(agreementTopic, () => {
-          const decodedMessage = decodeKafkaMessage(
-            messagePayload.message,
-            AgreementEventV2
-          );
+        return { decodedMessage, handleMessage };
+      })
+      .with(agreementTopic, () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          AgreementEventV2
+        );
 
-          const handleMessage = handleAgreementMessage.bind(
-            null,
-            decodedMessage
-          );
+        const handleMessage = handleAgreementMessage.bind(null, decodedMessage);
 
-          return { decodedMessage, handleMessage };
-        })
-        .with(purposeTopic, () => {
-          const decodedMessage = decodeKafkaMessage(
-            messagePayload.message,
-            PurposeEventV2
-          );
+        return { decodedMessage, handleMessage };
+      })
+      .with(purposeTopic, () => {
+        const decodedMessage = decodeKafkaMessage(
+          messagePayload.message,
+          PurposeEventV2
+        );
 
-          const handleMessage = handlePurposeMessage.bind(null, decodedMessage);
+        const handleMessage = handlePurposeMessage.bind(null, decodedMessage);
 
-          return { decodedMessage, handleMessage };
-        })
-        .otherwise(() => {
-          throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
-        });
-
-      const loggerInstance = logger({
-        serviceName: "notification-email-sender",
-        eventType: decodedMessage.type,
-        eventVersion: decodedMessage.event_version,
-        streamId: decodedMessage.stream_id,
-        streamVersion: decodedMessage.version,
-        correlationId: decodedMessage.correlation_id
-          ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
-          : generateId<CorrelationId>(),
+        return { decodedMessage, handleMessage };
+      })
+      .otherwise(() => {
+        throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
-      loggerInstance.info(
-        `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
-      );
 
-      await handleMessage(loggerInstance);
-    } catch (e) {
-      throw kafkaMessageProcessError(
-        messagePayload.topic,
-        messagePayload.partition,
-        messagePayload.message.offset,
-        e
-      );
-    }
+    const loggerInstance = logger({
+      serviceName: "notification-email-sender",
+      eventType: decodedMessage.type,
+      eventVersion: decodedMessage.event_version,
+      streamId: decodedMessage.stream_id,
+      streamVersion: decodedMessage.version,
+      correlationId: decodedMessage.correlation_id
+        ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
+        : generateId<CorrelationId>(),
+    });
+    loggerInstance.info(
+      `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
+    );
+
+    const notificationEmailSenderService =
+      buildNotificationEmailSenderService(loggerInstance);
+
+    await handleMessage(notificationEmailSenderService, loggerInstance);
   };
 }
 
