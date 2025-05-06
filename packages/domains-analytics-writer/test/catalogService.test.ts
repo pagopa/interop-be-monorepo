@@ -184,6 +184,9 @@ describe("Catalog Service - Batch Operations", () => {
   });
 
   describe("Delete Operations", () => {
+    beforeEach(async () => {
+      await resetCatalogTables(dbContext);
+    });
     describe("EService Delete", () => {
       it("should mark an eService and all its sub-objects as deleted", async () => {
         await resetCatalogTables(dbContext);

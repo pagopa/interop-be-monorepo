@@ -60,32 +60,6 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       }
     },
 
-    async insertDeletingRiskAnalysis(
-      t: ITask<unknown>,
-      pgp: IMain,
-      id: string
-    ): Promise<void> {
-      const mapping = {
-        id: () => id,
-        deleted: () => true,
-      };
-      const cs = buildColumnSet<{ id: string; deleted: boolean }>(
-        pgp,
-        mapping,
-        stagingDeletingTable
-      );
-      try {
-        await t.none(
-          pgp.helpers.insert({ id, deleted: true }, cs) +
-            " ON CONFLICT DO NOTHING"
-        );
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
-        );
-      }
-    },
-
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
@@ -109,6 +83,32 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning staging table ${stagingTable}: ${error}`
+        );
+      }
+    },
+
+    async insertDeleting(
+      t: ITask<unknown>,
+      pgp: IMain,
+      id: string
+    ): Promise<void> {
+      const mapping = {
+        id: () => id,
+        deleted: () => true,
+      };
+      const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+        pgp,
+        mapping,
+        stagingDeletingTable
+      );
+      try {
+        await t.none(
+          pgp.helpers.insert({ id, deleted: true }, cs) +
+            " ON CONFLICT DO NOTHING"
+        );
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

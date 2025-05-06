@@ -97,7 +97,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       }
     },
 
-    async insertDeletingByDescriptorId(
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
       id: string

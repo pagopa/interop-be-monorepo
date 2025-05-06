@@ -62,18 +62,6 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       }
     },
 
-    async updateEServiceDocument(
-      t: ITask<unknown>,
-      pgp: IMain,
-      record: Partial<EServiceDescriptorDocumentSQL>
-    ): Promise<void> {
-      const cs = new pgp.helpers.ColumnSet(Object.keys(record), {
-        table: `${config.dbSchemaName}.${CatalogDbTable.eservice_descriptor_document}_${config.mergeTableSuffix}`,
-      });
-      const query = pgp.helpers.insert(record, cs);
-      await t.none(query);
-    },
-
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
@@ -101,7 +89,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       }
     },
 
-    async deleteDocument(
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
       documentId: string

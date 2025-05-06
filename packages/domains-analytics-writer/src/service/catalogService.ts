@@ -351,7 +351,7 @@ export function catalogServiceBuilder(db: DBContext) {
       )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
-            await eserviceRepo.insertDeletingByEserviceId(t, dbContext.pgp, id);
+            await eserviceRepo.insertDeleting(t, dbContext.pgp, id);
           }
 
           genericLogger.info(
@@ -397,11 +397,7 @@ export function catalogServiceBuilder(db: DBContext) {
       )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
-            await descriptorRepo.insertDeletingByDescriptorId(
-              t,
-              dbContext.pgp,
-              id
-            );
+            await descriptorRepo.insertDeleting(t, dbContext.pgp, id);
           }
           genericLogger.info(
             `Staging deletion inserted for descriptorIds: ${batch.join(", ")}`
@@ -441,11 +437,7 @@ export function catalogServiceBuilder(db: DBContext) {
       )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
-            await riskAnalysisRepo.insertDeletingRiskAnalysis(
-              t,
-              dbContext.pgp,
-              id
-            );
+            await riskAnalysisRepo.insertDeleting(t, dbContext.pgp, id);
           }
           genericLogger.info(
             `Staging deletion inserted for riskAnalysisIds: ${batch.join(", ")}`
@@ -475,7 +467,7 @@ export function catalogServiceBuilder(db: DBContext) {
       )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
-            await documentRepo.deleteDocument(t, dbContext.pgp, id);
+            await documentRepo.insertDeleting(t, dbContext.pgp, id);
           }
           genericLogger.info(
             `Staging deletion inserted for documentIds: ${batch.join(", ")}`
@@ -483,12 +475,7 @@ export function catalogServiceBuilder(db: DBContext) {
         });
       }
       await dbContext.conn.tx(async (t) => {
-        await mergeDeletingById(
-          t,
-          "id",
-          [CatalogDbTable.eservice_descriptor_document],
-          DeletingDbTable.catalog_deleting_table
-        );
+        await documentRepo.mergeDeleting(t);
       });
       genericLogger.info(
         `Staging deletion merged into target tables for all documentIds`
@@ -508,7 +495,7 @@ export function catalogServiceBuilder(db: DBContext) {
       )) {
         await dbContext.conn.tx(async (t) => {
           for (const id of batch) {
-            await interfaceRepo.deleteInterface(t, dbContext.pgp, id);
+            await interfaceRepo.insertDeleting(t, dbContext.pgp, id);
           }
           genericLogger.info(
             `Staging deletion inserted for interface descriptorIds: ${batch.join(
@@ -518,18 +505,13 @@ export function catalogServiceBuilder(db: DBContext) {
         });
       }
       await dbContext.conn.tx(async (t) => {
-        await mergeDeletingById(
-          t,
-          "id",
-          [CatalogDbTable.eservice_descriptor_interface],
-          DeletingDbTable.catalog_deleting_table
-        );
+        await interfaceRepo.mergeDeleting(t);
       });
 
       genericLogger.info(
         `Staging deletion merged into target tables for all interface descriptorIds`
       );
-      await interfaceRepo.clean();
+      await interfaceRepo.cleanDeleting();
 
       genericLogger.info(`Staging deleting tables cleaned`);
     },

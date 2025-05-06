@@ -24,8 +24,8 @@ import { z } from "zod";
 export const readModelSetupEnv = {
   READMODEL_SQL_DB_HOST: "localhost",
   READMODEL_SQL_DB_PORT: "6002",
-  READMODEL_SQL_DB_USERNAME: "root",
-  READMODEL_SQL_DB_PASSWORD: "root",
+  READMODEL_SQL_DB_USERNAME: "",
+  READMODEL_SQL_DB_PASSWORD: "",
   READMODEL_SQL_DB_NAME: "root",
   READMODEL_SQL_DB_USE_SSL: "false",
   READMODEL_SQL_DB_SCHEMA_AGREEMENT: "readmodel_agreement",

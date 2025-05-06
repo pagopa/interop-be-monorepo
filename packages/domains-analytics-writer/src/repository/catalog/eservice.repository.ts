@@ -76,22 +76,6 @@ export function eserviceRepository(conn: DBConnection) {
       }
     },
 
-    async mergeDeleting(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeQuery = generateMergeDeleteQuery(
-          schemaName,
-          tableName,
-          stagingDeletingTable,
-          "id"
-        );
-        await t.none(mergeQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
-        );
-      }
-    },
-
     async clean(): Promise<void> {
       try {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
@@ -102,16 +86,7 @@ export function eserviceRepository(conn: DBConnection) {
       }
     },
 
-    async cleanDeleting(): Promise<void> {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
-        );
-      }
-    },
-    async insertDeletingByEserviceId(
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
       id: string
@@ -134,6 +109,32 @@ export function eserviceRepository(conn: DBConnection) {
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTable}: ${error}`
+        );
+      }
+    },
+
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
+      try {
+        const mergeQuery = generateMergeDeleteQuery(
+          schemaName,
+          tableName,
+          stagingDeletingTable,
+          "id"
+        );
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async cleanDeleting(): Promise<void> {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },
