@@ -16,7 +16,9 @@ import {
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import {
   aggregateAgreement,
+  aggregateAgreementArray,
   toAgreementAggregator,
+  toAgreementAggregatorArray,
 } from "./agreement/aggregators.js";
 import { checkMetadataVersion } from "./utils.js";
 
@@ -142,6 +144,54 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
       }
 
       return aggregateAgreement(toAgreementAggregator(queryResult));
+    },
+    async getAgreementsByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<Agreement>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select({
+          agreement: agreementInReadmodelAgreement,
+          stamp: agreementStampInReadmodelAgreement,
+          attribute: agreementAttributeInReadmodelAgreement,
+          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
+          contract: agreementContractInReadmodelAgreement,
+        })
+        .from(agreementInReadmodelAgreement)
+        .where(filter)
+        .leftJoin(
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementAttributeInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementAttributeInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementConsumerDocumentInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementConsumerDocumentInReadmodelAgreement.agreementId
+          )
+        )
+        .leftJoin(
+          agreementContractInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementContractInReadmodelAgreement.agreementId
+          )
+        );
+
+      return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));
     },
     async deleteAgreementById(
       agreementId: AgreementId,
