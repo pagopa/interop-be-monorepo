@@ -5,6 +5,7 @@ import {
   getMockContext,
   getMockEServiceTemplate,
   getMockTenant,
+  sortEServices,
 } from "pagopa-interop-commons-test";
 import {
   TenantId,
@@ -62,7 +63,7 @@ describe("get eservices", () => {
     const descriptor1: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
-      interface: mockDocument,
+      interface: getMockDocument(),
       state: descriptorState.published,
       attributes: attributesForDescriptor1and2,
     };
@@ -81,7 +82,7 @@ describe("get eservices", () => {
     const descriptor2: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
-      interface: mockDocument,
+      interface: getMockDocument(),
       state: descriptorState.published,
       attributes: attributesForDescriptor1and2,
     };
@@ -97,7 +98,7 @@ describe("get eservices", () => {
     const descriptor3: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
-      interface: mockDocument,
+      interface: getMockDocument(),
       state: descriptorState.published,
       attributes: attributesForDescriptor3,
     };
@@ -113,7 +114,7 @@ describe("get eservices", () => {
     const descriptor4: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
-      interface: mockDocument,
+      interface: getMockDocument(),
       state: descriptorState.archived,
       attributes: attributesForDescriptor4,
     };
@@ -130,7 +131,7 @@ describe("get eservices", () => {
     const descriptor5: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
-      interface: mockDocument,
+      interface: getMockDocument(),
       state: descriptorState.published,
     };
     eservice5 = {
@@ -145,7 +146,7 @@ describe("get eservices", () => {
     const descriptor6: Descriptor = {
       ...mockDescriptor,
       id: generateId(),
-      interface: mockDocument,
+      interface: getMockDocument(),
       state: descriptorState.archived,
     };
     eservice6 = {
@@ -203,7 +204,9 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eservice1, eservice2]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice2])
+    );
   });
   it("should get the eServices if they exist (parameters: producersIds)", async () => {
     const result = await catalogService.getEServices(
@@ -220,7 +223,9 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(3);
-    expect(result.results).toEqual([eservice1, eservice2, eservice3]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice2, eservice3])
+    );
   });
   it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds)", async () => {
     const delegatedOrganization1 = generateId<TenantId>();
@@ -270,13 +275,9 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(5);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-    ]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice2, eservice3, eservice4, eservice5])
+    );
   });
   it("should get the eServices if they exist (parameters: states)", async () => {
     const result = await catalogService.getEServices(
@@ -293,12 +294,9 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(4);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice5,
-    ]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice2, eservice3, eservice5])
+    );
   });
   it("should get the eServices if they exist (parameters: agreementStates)", async () => {
     const result1 = await catalogService.getEServices(
@@ -334,9 +332,13 @@ describe("get eservices", () => {
     );
 
     expect(result1.totalCount).toBe(2);
-    expect(result1.results).toEqual([eservice1, eservice3]);
+    expect(sortEServices(result1.results)).toEqual(
+      sortEServices([eservice1, eservice3])
+    );
     expect(result2.totalCount).toBe(3);
-    expect(result2.results).toEqual([eservice1, eservice3, eservice4]);
+    expect(sortEServices(result2.results)).toEqual(
+      sortEServices([eservice1, eservice3, eservice4])
+    );
   });
   it("should get the eServices if they exist (parameters: name)", async () => {
     const result = await catalogService.getEServices(
@@ -354,13 +356,9 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(5);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-    ]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice2, eservice3, eservice4, eservice5])
+    );
   });
   it("should get the eServices if they exist (parameters: delegated = true)", async () => {
     const delegatedOrganization1 = generateId<TenantId>();
@@ -407,7 +405,9 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eservice4, eservice5]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice4, eservice5])
+    );
   });
   it("should get the eServices if they exist (parameters: delegated = false)", async () => {
     const delegatedOrganization1 = generateId<TenantId>();
@@ -463,12 +463,9 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(4);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice6,
-    ]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice2, eservice3, eservice6])
+    );
   });
   it("should get the eServices if they exist (parameters: statestates, name)", async () => {
     const result = await catalogService.getEServices(
@@ -488,7 +485,9 @@ describe("get eservices", () => {
       })
     );
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eservice1, eservice3]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice3])
+    );
   });
   it("should not get the eServices if they don't exist (parameters: statestates, name)", async () => {
     const result = await catalogService.getEServices(
@@ -539,7 +538,7 @@ describe("get eservices", () => {
         {
           ...mockDescriptor,
           id: generateId(),
-          interface: mockDocument,
+          interface: getMockDocument(),
           state: descriptorState.published,
         },
       ],
@@ -554,7 +553,7 @@ describe("get eservices", () => {
         {
           ...mockDescriptor,
           id: generateId(),
-          interface: mockDocument,
+          interface: getMockDocument(),
           state: descriptorState.published,
         },
       ],
@@ -748,12 +747,9 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(4);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-    ]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice2, eservice3, eservice4])
+    );
   });
 
   it("should get the eServices if they exist (parameters: mode)", async () => {
@@ -792,10 +788,11 @@ describe("get eservices", () => {
       50,
       getMockContext({})
     );
-    expect(result1).toEqual({
-      totalCount: 2,
-      results: [eservice1, eservice4],
-    });
+
+    expect(result1.totalCount).toBe(2);
+    expect(sortEServices(result1.results)).toEqual(
+      sortEServices([eservice1, eservice4])
+    );
 
     const result2 = await catalogService.getEServices(
       {
@@ -811,10 +808,10 @@ describe("get eservices", () => {
       50,
       getMockContext({})
     );
-    expect(result2).toEqual({
-      totalCount: 4,
-      results: [eservice2, eservice3, eservice5, eservice6],
-    });
+    expect(result2.totalCount).toBe(4);
+    expect(sortEServices(result2.results)).toEqual(
+      sortEServices([eservice2, eservice3, eservice5, eservice6])
+    );
   });
 
   it("should get the eServices if they exist (parameters: producersIds, mode)", async () => {
@@ -832,10 +829,10 @@ describe("get eservices", () => {
       50,
       getMockContext({})
     );
-    expect(result).toEqual({
-      totalCount: 2,
-      results: [eservice4, eservice5],
-    });
+    expect(result.totalCount).toBe(2);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice4, eservice5])
+    );
   });
 
   it("should get the eServices if they exist (parameters: producersIds, mode, delegated = true)", async () => {
@@ -871,10 +868,8 @@ describe("get eservices", () => {
       50,
       getMockContext({})
     );
-    expect(result).toEqual({
-      totalCount: 1,
-      results: [eservice4],
-    });
+    expect(result.totalCount).toBe(1);
+    expect(sortEServices(result.results)).toEqual(sortEServices([eservice4]));
   });
 
   it("should get the eServices, including the ones with an active delegation, if they exist (parameters: producersIds, mode)", async () => {
@@ -996,10 +991,15 @@ describe("get eservices", () => {
       50,
       getMockContext({})
     );
-    expect(result).toEqual({
-      totalCount: 4,
-      results: [delegatedEService1, delegatedEService3, eservice4, eservice5],
-    });
+    expect(result.totalCount).toBe(4);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([
+        delegatedEService1,
+        delegatedEService3,
+        eservice4,
+        eservice5,
+      ])
+    );
   });
 
   it("should not get the eServices if they don't exist  (parameters: attributesIds)", async () => {
@@ -1036,7 +1036,7 @@ describe("get eservices", () => {
       getMockContext({})
     );
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([eservice1]);
+    expect(sortEServices(result.results)).toEqual(sortEServices([eservice1]));
   });
 
   it("should get the eServices if they exist (parameters: attributesIds, states)", async () => {
@@ -1058,7 +1058,7 @@ describe("get eservices", () => {
     );
 
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([eservice4]);
+    expect(sortEServices(result.results)).toEqual(sortEServices([eservice4]));
   });
 
   it("should get the eServices if they exist (parameters: attributesIdstates, producersIds)", async () => {
@@ -1078,7 +1078,7 @@ describe("get eservices", () => {
       })
     );
     expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([eservice1]);
+    expect(sortEServices(result.results)).toEqual(sortEServices([eservice1]));
   });
 
   it("should get the eServices if they exist (parameters: attributesIdstates, eservicesIds)", async () => {
@@ -1099,7 +1099,9 @@ describe("get eservices", () => {
       getMockContext({ authData: getMockAuthData(organizationId3) })
     );
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eservice1, eservice4]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eservice1, eservice4])
+    );
   });
 
   it("should not get the eServices if they don't exist (parameters: attributesIdstates)", async () => {
@@ -1127,16 +1129,19 @@ describe("get eservices", () => {
     const eserviceTemplate2 = getMockEServiceTemplate(templateId2);
     const eserviceInstance1: EService = {
       ...getMockEService(),
+      name: `${eserviceTemplate1.name}`,
       descriptors: [getMockDescriptor(descriptorState.published)],
       templateId: templateId1,
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
+      name: `${eserviceTemplate1.name} b`,
       descriptors: [getMockDescriptor(descriptorState.published)],
       templateId: templateId1,
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
+      name: `${eserviceTemplate2.name}`,
       descriptors: [getMockDescriptor(descriptorState.published)],
       templateId: templateId2,
     };
@@ -1161,7 +1166,9 @@ describe("get eservices", () => {
       getMockContext({ authData: getMockAuthData(organizationId3) })
     );
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([eserviceInstance1, eserviceInstance2]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([eserviceInstance1, eserviceInstance2])
+    );
   });
 
   it("should get the eServices if they exist (parameters: templatesIds, states)", async () => {
@@ -1239,15 +1246,17 @@ describe("get eservices", () => {
       })
     );
     expect(result.totalCount).toBe(7);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-      eservice7,
-    ]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+        eservice7,
+      ])
+    );
   });
   it("should not include eservices with no descriptors (requester is the producer, not admin nor api, nor support)", async () => {
     const eservice7: EService = {
@@ -1278,14 +1287,16 @@ describe("get eservices", () => {
       })
     );
     expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-    ]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+      ])
+    );
   });
   it("should not include eservices with no descriptors (requester is not the producer)", async () => {
     const eservice7: EService = {
@@ -1316,14 +1327,16 @@ describe("get eservices", () => {
       })
     );
     expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eservice1,
-      eservice2,
-      eservice3,
-      eservice4,
-      eservice5,
-      eservice6,
-    ]);
+    expect(sortEServices(result.results)).toEqual(
+      sortEServices([
+        eservice1,
+        eservice2,
+        eservice3,
+        eservice4,
+        eservice5,
+        eservice6,
+      ])
+    );
   });
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
     "should include eservices whose only descriptor is %s (requester is the producer, admin)",
@@ -1359,15 +1372,17 @@ describe("get eservices", () => {
         getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
-      expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice8,
-      ]);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices([
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+          eservice8,
+        ])
+      );
     }
   );
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
@@ -1413,15 +1428,17 @@ describe("get eservices", () => {
         getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
-      expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice9,
-      ]);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices([
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+          eservice9,
+        ])
+      );
     }
   );
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
@@ -1458,14 +1475,16 @@ describe("get eservices", () => {
         getMockContext({ authData })
       );
       expect(result.totalCount).toBe(6);
-      expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-      ]);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices([
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+        ])
+      );
     }
   );
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
@@ -1502,14 +1521,16 @@ describe("get eservices", () => {
         getMockContext({ authData })
       );
       expect(result.totalCount).toBe(6);
-      expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-      ]);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices([
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+        ])
+      );
     }
   );
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
@@ -1554,15 +1575,17 @@ describe("get eservices", () => {
         getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
-      expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice9,
-      ]);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices([
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+          eservice9,
+        ])
+      );
     }
   );
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
@@ -1607,15 +1630,17 @@ describe("get eservices", () => {
         getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
-      expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        { ...eservice9, descriptors: [descriptor9a] },
-      ]);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices([
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+          { ...eservice9, descriptors: [descriptor9a] },
+        ])
+      );
     }
   );
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
@@ -1660,15 +1685,17 @@ describe("get eservices", () => {
         getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
-      expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        { ...eservice9, descriptors: [descriptor9a] },
-      ]);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices([
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+          { ...eservice9, descriptors: [descriptor9a] },
+        ])
+      );
     }
   );
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
@@ -1720,15 +1747,17 @@ describe("get eservices", () => {
         getMockContext({ authData })
       );
       expect(result.totalCount).toBe(7);
-      expect(result.results).toEqual([
-        eservice1,
-        eservice2,
-        eservice3,
-        eservice4,
-        eservice5,
-        eservice6,
-        eservice9,
-      ]);
+      expect(sortEServices(result.results)).toEqual(
+        sortEServices([
+          eservice1,
+          eservice2,
+          eservice3,
+          eservice4,
+          eservice5,
+          eservice6,
+          eservice9,
+        ])
+      );
     }
   );
 });

@@ -33,12 +33,12 @@ describe("get eservice by id", () => {
   const mockDocument = getMockDocument();
   it("should get the eservice if it exists (requester is the producer, admin)", async () => {
     const descriptor1: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
+      interface: getMockDocument(),
       state: descriptorState.published,
     };
     const eservice1: EService = {
-      ...mockEService,
+      ...getMockEService(),
       id: generateId(),
       name: "eservice 001",
       descriptors: [descriptor1],
@@ -53,12 +53,12 @@ describe("get eservice by id", () => {
     };
 
     const descriptor2: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
+      interface: getMockDocument(),
       state: descriptorState.published,
     };
     const eservice2: EService = {
-      ...mockEService,
+      ...getMockEService(),
       id: generateId(),
       name: "eservice 002",
       descriptors: [descriptor2],
@@ -66,12 +66,12 @@ describe("get eservice by id", () => {
     await addOneEService(eservice2);
 
     const descriptor3: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
+      interface: getMockDocument(),
       state: descriptorState.published,
     };
     const eservice3: EService = {
-      ...mockEService,
+      ...getMockEService(),
       id: generateId(),
       name: "eservice 003",
       descriptors: [descriptor3],
@@ -82,7 +82,7 @@ describe("get eservice by id", () => {
       eservice1.id,
       getMockContext({ authData })
     );
-    expect(result).toEqual(eservice1);
+    expect(result).toStrictEqual(eservice1);
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
@@ -166,11 +166,13 @@ describe("get eservice by id", () => {
     "should filter out the %s descriptors if the eservice has both of that state and not (requester is not the producer)",
     async (state) => {
       const descriptorA: Descriptor = {
-        ...mockDescriptor,
+        ...getMockDescriptor(),
+        version: "1",
         state,
       };
       const descriptorB: Descriptor = {
-        ...mockDescriptor,
+        ...getMockDescriptor(),
+        version: "2",
         state: descriptorState.published,
         interface: mockDocument,
         publishedAt: new Date(),
@@ -195,11 +197,13 @@ describe("get eservice by id", () => {
     "should filter out the %s descriptors if the eservice has both of that state and not (requester is the producer but not admin nor api, nor support)",
     async (state) => {
       const descriptorA: Descriptor = {
-        ...mockDescriptor,
+        ...getMockDescriptor(),
+        version: "1",
         state,
       };
       const descriptorB: Descriptor = {
-        ...mockDescriptor,
+        ...getMockDescriptor(),
+        version: "2",
         state: descriptorState.published,
         interface: mockDocument,
         publishedAt: new Date(),
@@ -224,11 +228,13 @@ describe("get eservice by id", () => {
     "should not filter out the %s descriptors if the eservice has both of that state and not (requester is delegate)",
     async (state) => {
       const descriptorA: Descriptor = {
-        ...mockDescriptor,
+        ...getMockDescriptor(),
+        version: "1",
         state,
       };
       const descriptorB: Descriptor = {
-        ...mockDescriptor,
+        ...getMockDescriptor(),
+        version: "2",
         state: descriptorState.published,
         interface: mockDocument,
         publishedAt: new Date(),
@@ -259,11 +265,13 @@ describe("get eservice by id", () => {
   );
   it("should filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is not the producer)", async () => {
     const descriptorA: Descriptor = {
-      ...mockDescriptor,
+      ...getMockDescriptor(),
+      version: "1",
       state: descriptorState.draft,
     };
     const descriptorB: Descriptor = {
-      ...mockDescriptor,
+      ...getMockDescriptor(),
+      version: "2",
       state: descriptorState.published,
       interface: mockDocument,
       publishedAt: new Date(),
@@ -285,11 +293,13 @@ describe("get eservice by id", () => {
   });
   it("should filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is the producer but not admin nor api, nor support)", async () => {
     const descriptorA: Descriptor = {
-      ...mockDescriptor,
+      ...getMockDescriptor(),
+      version: "1",
       state: descriptorState.draft,
     };
     const descriptorB: Descriptor = {
-      ...mockDescriptor,
+      ...getMockDescriptor(),
+      version: "2",
       state: descriptorState.published,
       interface: mockDocument,
       publishedAt: new Date(),
@@ -311,11 +321,13 @@ describe("get eservice by id", () => {
   });
   it("should not filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is delegate)", async () => {
     const descriptorA: Descriptor = {
-      ...mockDescriptor,
+      ...getMockDescriptor(),
+      version: "1",
       state: descriptorState.draft,
     };
     const descriptorB: Descriptor = {
-      ...mockDescriptor,
+      ...getMockDescriptor(),
+      version: "2",
       state: descriptorState.published,
       interface: mockDocument,
       publishedAt: new Date(),

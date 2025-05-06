@@ -87,7 +87,6 @@ export const getMockEService = (): EService => ({
   producerId: generateId(),
   technology: technology.rest,
   descriptors: [],
-  attributes: undefined,
   mode: eserviceMode.deliver,
   riskAnalysis: [],
 });
@@ -113,7 +112,6 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
   ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
-  rejectionReasons: [],
 });
 
 export const getMockEServiceAttribute = (): EServiceAttribute => ({

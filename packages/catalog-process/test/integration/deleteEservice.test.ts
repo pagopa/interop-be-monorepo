@@ -41,7 +41,6 @@ import {
 
 describe("delete eservice", () => {
   const mockDescriptor = getMockDescriptor();
-  const mockDocument = getMockDocument();
   const mockEService = getMockEService();
   it("should write on event-store for the deletion of an eservice (eservice with no descriptors)", async () => {
     const eservice: EService = {
@@ -253,14 +252,16 @@ describe("delete eservice", () => {
 
   it("should throw eserviceNotInDraftState if the eservice has both draft and non-draft descriptors", async () => {
     const descriptor1: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
+      version: "1",
+      interface: getMockDocument(),
       state: descriptorState.published,
       publishedAt: new Date(),
     };
     const descriptor2: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
+      ...getMockDescriptor(),
+      version: "2",
+      interface: getMockDocument(),
       state: descriptorState.draft,
     };
     const eservice: EService = {
