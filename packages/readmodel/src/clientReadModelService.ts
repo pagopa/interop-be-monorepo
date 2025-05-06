@@ -1,10 +1,5 @@
-import { and, eq, lte, SQL } from "drizzle-orm";
-import {
-  Client,
-  ClientId,
-  genericInternalError,
-  WithMetadata,
-} from "pagopa-interop-models";
+import { and, eq, lte } from "drizzle-orm";
+import { Client, ClientId, WithMetadata } from "pagopa-interop-models";
 import {
   clientInReadmodelClient,
   clientKeyInReadmodelClient,
@@ -15,9 +10,7 @@ import {
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
   aggregateClient,
-  aggregateClientArray,
   toClientAggregator,
-  toClientAggregatorArray,
 } from "./authorization/clientAggregators.js";
 import { checkMetadataVersion } from "./utils.js";
 
@@ -33,44 +26,38 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
           client.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(clientInReadmodelClient)
+          .where(eq(clientInReadmodelClient.id, client.id));
+
+        const { clientSQL, usersSQL, purposesSQL, keysSQL } =
+          splitClientIntoObjectsSQL(client, metadataVersion);
+
+        await tx.insert(clientInReadmodelClient).values(clientSQL);
+
+        for (const userSQL of usersSQL) {
           await tx
-            .delete(clientInReadmodelClient)
-            .where(eq(clientInReadmodelClient.id, client.id));
+            .insert(clientUserInReadmodelClient)
+            .values(userSQL)
+            .onConflictDoNothing();
+        }
 
-          const { clientSQL, usersSQL, purposesSQL, keysSQL } =
-            splitClientIntoObjectsSQL(client, metadataVersion);
+        for (const purposeSQL of purposesSQL) {
+          await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+        }
 
-          await tx.insert(clientInReadmodelClient).values(clientSQL);
-
-          for (const userSQL of usersSQL) {
-            await tx.insert(clientUserInReadmodelClient).values(userSQL);
-          }
-
-          for (const purposeSQL of purposesSQL) {
-            await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
-          }
-
-          for (const keySQL of keysSQL) {
-            await tx.insert(clientKeyInReadmodelClient).values(keySQL);
-          }
+        for (const keySQL of keysSQL) {
+          await tx.insert(clientKeyInReadmodelClient).values(keySQL);
         }
       });
     },
     async getClientById(
       clientId: ClientId
     ): Promise<WithMetadata<Client> | undefined> {
-      return await this.getClientByFilter(
-        eq(clientInReadmodelClient.id, clientId)
-      );
-    },
-    async getClientByFilter(
-      filter: SQL | undefined
-    ): Promise<WithMetadata<Client> | undefined> {
-      if (filter === undefined) {
-        throw genericInternalError("Filter cannot be undefined");
-      }
-
       /*
         client -> 1 client_user
                -> 2 client_purpose
@@ -84,7 +71,7 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
           clientKey: clientKeyInReadmodelClient,
         })
         .from(clientInReadmodelClient)
-        .where(filter)
+        .where(eq(clientInReadmodelClient.id, clientId))
         .leftJoin(
           // 1
           clientUserInReadmodelClient,
@@ -109,44 +96,6 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
       }
 
       return aggregateClient(toClientAggregator(queryResult));
-    },
-    // TODO: delete if not used
-    async getClientsByFilter(
-      filter: SQL | undefined
-    ): Promise<Array<WithMetadata<Client>>> {
-      if (filter === undefined) {
-        throw genericInternalError("Filter cannot be undefined");
-      }
-
-      const queryResult = await db
-        .select({
-          client: clientInReadmodelClient,
-          clientUser: clientUserInReadmodelClient,
-          clientPurpose: clientPurposeInReadmodelClient,
-          clientKey: clientKeyInReadmodelClient,
-        })
-        .from(clientInReadmodelClient)
-        .where(filter)
-        .leftJoin(
-          // 1
-          clientUserInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
-        )
-        .leftJoin(
-          // 2
-          clientPurposeInReadmodelClient,
-          eq(
-            clientInReadmodelClient.id,
-            clientPurposeInReadmodelClient.clientId
-          )
-        )
-        .leftJoin(
-          // 3
-          clientKeyInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
-        );
-
-      return aggregateClientArray(toClientAggregatorArray(queryResult));
     },
     async deleteClientById(
       clientId: ClientId,

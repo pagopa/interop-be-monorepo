@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   getMockAttribute,
+  getMockContextM2M,
   getMockTenant,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
@@ -18,7 +19,6 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   attributeNotFound,
   attributeNotFoundInTenant,
@@ -48,6 +48,7 @@ describe("m2mRevokeCertifiedAttribute", () => {
       ...getMockTenant(),
       features: [{ certifierId, type: "PersistentCertifier" }],
     };
+
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.certified,
@@ -69,14 +70,16 @@ describe("m2mRevokeCertifiedAttribute", () => {
     await addOneTenant(requesterTenant);
     await addOneTenant(targetTenant);
 
-    await tenantService.m2mRevokeCertifiedAttribute({
-      organizationId: requesterTenant.id,
-      tenantOrigin: targetTenant.externalId.origin,
-      tenantExternalId: targetTenant.externalId.value,
-      attributeExternalId: mockAttribute.code!,
-      correlationId: generateId(),
-      logger: genericLogger,
-    });
+    await tenantService.m2mRevokeCertifiedAttribute(
+      {
+        tenantOrigin: targetTenant.externalId.origin,
+        tenantExternalId: targetTenant.externalId.value,
+        attributeExternalId: mockAttribute.code!,
+      },
+      getMockContextM2M({
+        organizationId: requesterTenant.id,
+      })
+    );
 
     const writtenEvent = await readLastTenantEvent(targetTenant.id);
     expect(writtenEvent).toBeDefined();
@@ -129,14 +132,16 @@ describe("m2mRevokeCertifiedAttribute", () => {
     await addOneTenant(targetTenant);
 
     expect(
-      tenantService.m2mRevokeCertifiedAttribute({
-        organizationId: requesterTenant.id,
-        tenantOrigin: targetTenant.externalId.origin,
-        tenantExternalId: targetTenant.externalId.value,
-        attributeExternalId: mockAttribute.code!,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      tenantService.m2mRevokeCertifiedAttribute(
+        {
+          tenantOrigin: targetTenant.externalId.origin,
+          tenantExternalId: targetTenant.externalId.value,
+          attributeExternalId: mockAttribute.code!,
+        },
+        getMockContextM2M({
+          organizationId: requesterTenant.id,
+        })
+      )
     ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
   });
   it("should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
@@ -166,14 +171,16 @@ describe("m2mRevokeCertifiedAttribute", () => {
     await addOneTenant(targetTenant);
 
     expect(
-      tenantService.m2mRevokeCertifiedAttribute({
-        organizationId: requesterTenant.id,
-        tenantOrigin: targetTenant.externalId.origin,
-        tenantExternalId: targetTenant.externalId.value,
-        attributeExternalId: mockAttribute.code!,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      tenantService.m2mRevokeCertifiedAttribute(
+        {
+          tenantOrigin: targetTenant.externalId.origin,
+          tenantExternalId: targetTenant.externalId.value,
+          attributeExternalId: mockAttribute.code!,
+        },
+        getMockContextM2M({
+          organizationId: requesterTenant.id,
+        })
+      )
     ).rejects.toThrowError(tenantIsNotACertifier(requesterTenant.id));
   });
   it("should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
@@ -203,14 +210,16 @@ describe("m2mRevokeCertifiedAttribute", () => {
     await addOneTenant(requesterTenant);
 
     expect(
-      tenantService.m2mRevokeCertifiedAttribute({
-        organizationId: requesterTenant.id,
-        tenantOrigin: targetTenant.externalId.origin,
-        tenantExternalId: targetTenant.externalId.value,
-        attributeExternalId: mockAttribute.code!,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      tenantService.m2mRevokeCertifiedAttribute(
+        {
+          tenantOrigin: targetTenant.externalId.origin,
+          tenantExternalId: targetTenant.externalId.value,
+          attributeExternalId: mockAttribute.code!,
+        },
+        getMockContextM2M({
+          organizationId: requesterTenant.id,
+        })
+      )
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
         targetTenant.externalId.origin,
@@ -245,14 +254,16 @@ describe("m2mRevokeCertifiedAttribute", () => {
     await addOneTenant(targetTenant);
 
     expect(
-      tenantService.m2mRevokeCertifiedAttribute({
-        organizationId: requesterTenant.id,
-        tenantOrigin: targetTenant.externalId.origin,
-        tenantExternalId: targetTenant.externalId.value,
-        attributeExternalId: mockAttribute.code!,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      tenantService.m2mRevokeCertifiedAttribute(
+        {
+          tenantOrigin: targetTenant.externalId.origin,
+          tenantExternalId: targetTenant.externalId.value,
+          attributeExternalId: mockAttribute.code!,
+        },
+        getMockContextM2M({
+          organizationId: requesterTenant.id,
+        })
+      )
     ).rejects.toThrowError(
       attributeNotFound(`${mockAttribute.origin}/${mockAttribute.code}`)
     );
@@ -279,14 +290,16 @@ describe("m2mRevokeCertifiedAttribute", () => {
     await addOneTenant(targetTenant);
 
     expect(
-      tenantService.m2mRevokeCertifiedAttribute({
-        organizationId: requesterTenant.id,
-        tenantOrigin: targetTenant.externalId.origin,
-        tenantExternalId: targetTenant.externalId.value,
-        attributeExternalId: mockAttribute.code!,
-        correlationId: generateId(),
-        logger: genericLogger,
-      })
+      tenantService.m2mRevokeCertifiedAttribute(
+        {
+          tenantOrigin: targetTenant.externalId.origin,
+          tenantExternalId: targetTenant.externalId.value,
+          attributeExternalId: mockAttribute.code!,
+        },
+        getMockContextM2M({
+          organizationId: requesterTenant.id,
+        })
+      )
     ).rejects.toThrowError(
       attributeNotFoundInTenant(mockAttribute.id, targetTenant.id)
     );

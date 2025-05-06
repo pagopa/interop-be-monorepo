@@ -90,7 +90,13 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
             )} - data ${JSON.stringify(data)} `
           );
         }
-        return results.data;
+        return results.data.map((client) => ({
+          ...client,
+          data: {
+            ...client.data,
+            users: [...new Set(client.data.users)],
+          },
+        }));
       }
     },
 
@@ -187,7 +193,7 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
           .safeParse(data);
         if (!results.success) {
           throw genericInternalError(
-            `Unable to parse eservice items: results ${JSON.stringify(
+            `Unable to parse tenant items: results ${JSON.stringify(
               results
             )} - data ${JSON.stringify(data)} `
           );

@@ -10,12 +10,12 @@ import {
   AgreementId,
   AttributeId,
   TenantId,
+  emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { tenantServiceBuilder } from "../services/tenantService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/errors.js";
 
 const tenantRouter = (

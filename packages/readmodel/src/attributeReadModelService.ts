@@ -31,18 +31,20 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
           attribute.id
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(attributeInReadmodelAttribute)
-            .where(eq(attributeInReadmodelAttribute.id, attribute.id));
-
-          const attributeSQL = splitAttributeIntoObjectsSQL(
-            attribute,
-            metadataVersion
-          );
-
-          await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
+        if (!shouldUpsert) {
+          return;
         }
+
+        await tx
+          .delete(attributeInReadmodelAttribute)
+          .where(eq(attributeInReadmodelAttribute.id, attribute.id));
+
+        const attributeSQL = splitAttributeIntoObjectsSQL(
+          attribute,
+          metadataVersion
+        );
+
+        await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
       });
     },
     async getAttributeById(
@@ -84,7 +86,6 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateAttributeArray(queryResult);
     },
-
     async deleteAttributeById(
       attributeId: AttributeId,
       metadataVersion: number

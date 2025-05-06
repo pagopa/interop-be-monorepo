@@ -187,7 +187,7 @@ describe("Check e-service template read models", () => {
       metadata: { version: 1 },
     };
 
-    const eserviceTemplate1ForSQL: WithMetadata<EServiceTemplate> = {
+    const eserviceTemplate1InPostgresDb: WithMetadata<EServiceTemplate> = {
       data: {
         ...eserviceTemplate1.data,
         name: "different name",
@@ -198,8 +198,8 @@ describe("Check e-service template read models", () => {
     await addOneEServiceTemplate(eserviceTemplate1);
 
     await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
-      eserviceTemplate1ForSQL.data,
-      eserviceTemplate1ForSQL.metadata.version
+      eserviceTemplate1InPostgresDb.data,
+      eserviceTemplate1InPostgresDb.metadata.version
     );
 
     const collectionEServiceTemplates =
@@ -233,7 +233,7 @@ describe("Check e-service template read models", () => {
       metadata: { version: 1 },
     };
 
-    const eserviceTemplate1ForSQL: WithMetadata<EServiceTemplate> = {
+    const eserviceTemplate1InPostgresDb: WithMetadata<EServiceTemplate> = {
       data: eserviceTemplate1.data,
       metadata: {
         version: 3,
@@ -243,8 +243,8 @@ describe("Check e-service template read models", () => {
     await addOneEServiceTemplate(eserviceTemplate1);
 
     await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
-      eserviceTemplate1ForSQL.data,
-      eserviceTemplate1ForSQL.metadata.version
+      eserviceTemplate1InPostgresDb.data,
+      eserviceTemplate1InPostgresDb.metadata.version
     );
 
     const collectionEServiceTemplates =
