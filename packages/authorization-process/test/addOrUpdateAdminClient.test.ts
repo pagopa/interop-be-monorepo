@@ -93,7 +93,7 @@ describe("setAdminToClient", () => {
       organizationNotAllowedOnClient(authData.organizationId, mockClient.id)
     );
   });
-  it("should throw clientAdminAlreadyAssignedToUser if adminId is already assigned to the client as admin", async () => {
+  it("should throw userAlreadyClientAdmin if adminId is already assigned to the client as admin", async () => {
     const mockClientWithAdmin: Client = {
       ...mockClient,
       adminId,

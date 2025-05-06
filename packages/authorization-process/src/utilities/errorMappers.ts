@@ -96,7 +96,7 @@ export const addClientAdminErrorMapper = (
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
-    .with("clientAdminAlreadyAssignedToUser", () => HTTP_STATUS_CONFLICT)
+    .with("userAlreadyClientAdmin", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientPurposeErrorMapper = (

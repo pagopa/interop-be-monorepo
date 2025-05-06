@@ -46,7 +46,7 @@ export const errorCodes = {
   clientKindNotAllowed: "0031",
   securityUserNotMember: "0032",
   clientAdminIdNotFound: "0033",
-  clientAdminAlreadyAssignedToUser: "0034",
+  userAlreadyClientAdmin: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -152,7 +152,7 @@ export function clientAdminAlreadyAssignedToUser(
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `User ${userId} is already assigned as admin to the client ${clientId}`,
-    code: "clientAdminAlreadyAssignedToUser",
+    code: "userAlreadyClientAdmin",
     title: "User already assigned as admin to the client",
   });
 }
