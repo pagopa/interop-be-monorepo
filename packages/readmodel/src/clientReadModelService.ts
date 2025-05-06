@@ -47,7 +47,10 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
         await tx.insert(clientInReadmodelClient).values(clientSQL);
 
         for (const userSQL of usersSQL) {
-          await tx.insert(clientUserInReadmodelClient).values(userSQL);
+          await tx
+            .insert(clientUserInReadmodelClient)
+            .values(userSQL)
+            .onConflictDoNothing();
         }
 
         for (const purposeSQL of purposesSQL) {

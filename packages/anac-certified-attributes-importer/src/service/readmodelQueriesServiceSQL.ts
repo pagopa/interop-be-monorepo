@@ -53,7 +53,6 @@ export function readModelQueriesBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -111,7 +110,6 @@ export function readModelQueriesBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -202,7 +200,6 @@ export function readModelQueriesBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
