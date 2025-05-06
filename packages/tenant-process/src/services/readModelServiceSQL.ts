@@ -51,9 +51,9 @@ import {
   isNull,
   or,
   sql,
-  SQL,
 } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
+import { ascLower, createListResult } from "pagopa-interop-commons";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
@@ -79,7 +79,7 @@ export function readModelServiceBuilderSQL(
       const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: sql`LOWER(${tenantInReadmodelTenant.name})`,
+          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -101,7 +101,7 @@ export function readModelServiceBuilderSQL(
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -121,12 +121,10 @@ export function readModelServiceBuilderSQL(
         .from(tenantInReadmodelTenant)
         .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
         .leftJoin(
-          // 1
           tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
-          // 2
           tenantCertifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -134,7 +132,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 3
           tenantDeclaredAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -142,7 +139,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 4
           tenantVerifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -150,7 +146,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 5
           tenantVerifiedAttributeVerifierInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -158,7 +153,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 6
           tenantVerifiedAttributeRevokerInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -166,21 +160,21 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
             tenantFeatureInReadmodelTenant.tenantId
           )
         )
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
+        .orderBy(ascLower(tenantInReadmodelTenant.name));
 
-      return {
-        results: aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
-          (tenantWithMetadata) => tenantWithMetadata.data
-        ),
-        totalCount: queryResult[0]?.totalCount || 0,
-      };
+      const tenants = aggregateTenantArray(
+        toTenantAggregatorArray(queryResult)
+      );
+      return createListResult(
+        tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+        queryResult[0]?.totalCount
+      );
     },
 
     async getTenantById(
@@ -252,7 +246,7 @@ export function readModelServiceBuilderSQL(
       const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: sql`LOWER(${tenantInReadmodelTenant.name})`,
+          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -278,7 +272,7 @@ export function readModelServiceBuilderSQL(
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -298,12 +292,10 @@ export function readModelServiceBuilderSQL(
         .from(tenantInReadmodelTenant)
         .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
         .leftJoin(
-          // 1
           tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
-          // 2
           tenantCertifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -311,7 +303,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 3
           tenantDeclaredAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -319,7 +310,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 4
           tenantVerifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -327,7 +317,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 5
           tenantVerifiedAttributeVerifierInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -335,7 +324,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 6
           tenantVerifiedAttributeRevokerInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -343,21 +331,21 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
             tenantFeatureInReadmodelTenant.tenantId
           )
         )
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
+        .orderBy(ascLower(tenantInReadmodelTenant.name));
 
-      return {
-        results: aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
-          (tenantWithMetadata) => tenantWithMetadata.data
-        ),
-        totalCount: queryResult[0]?.totalCount || 0,
-      };
+      const tenants = aggregateTenantArray(
+        toTenantAggregatorArray(queryResult)
+      );
+      return createListResult(
+        tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+        queryResult[0]?.totalCount
+      );
     },
 
     async getProducers({
@@ -372,7 +360,7 @@ export function readModelServiceBuilderSQL(
       const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: sql`LOWER(${tenantInReadmodelTenant.name})`,
+          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -393,7 +381,7 @@ export function readModelServiceBuilderSQL(
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -413,12 +401,10 @@ export function readModelServiceBuilderSQL(
         .from(tenantInReadmodelTenant)
         .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
         .leftJoin(
-          // 1
           tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
-          // 2
           tenantCertifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -426,7 +412,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 3
           tenantDeclaredAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -434,7 +419,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 4
           tenantVerifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -442,7 +426,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 5
           tenantVerifiedAttributeVerifierInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -450,7 +433,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 6
           tenantVerifiedAttributeRevokerInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -458,7 +440,6 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -466,14 +447,15 @@ export function readModelServiceBuilderSQL(
           )
         )
 
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
+        .orderBy(ascLower(tenantInReadmodelTenant.name));
 
-      return {
-        results: aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
-          (tenantWithMetadata) => tenantWithMetadata.data
-        ),
-        totalCount: queryResult[0]?.totalCount || 0,
-      };
+      const tenants = aggregateTenantArray(
+        toTenantAggregatorArray(queryResult)
+      );
+      return createListResult(
+        tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+        queryResult[0]?.totalCount
+      );
     },
 
     async getAttributesByExternalIds(
@@ -544,7 +526,7 @@ export function readModelServiceBuilderSQL(
         .selectDistinct({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
-          nameLowerCase: sql`LOWER(${tenantInReadmodelTenant.name})`,
+          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
           attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
           attributeName: attributeInReadmodelAttribute.name,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
@@ -571,21 +553,21 @@ export function readModelServiceBuilderSQL(
           )
         )
         .orderBy(
-          sql`LOWER(${tenantInReadmodelTenant.name})`,
+          ascLower(tenantInReadmodelTenant.name),
           attributeInReadmodelAttribute.name
         )
         .limit(limit)
         .offset(offset);
 
-      return {
-        results: res.map((row) => ({
+      return createListResult(
+        res.map((row) => ({
           id: row.id,
           name: row.name,
           attributeId: row.attributeId,
           attributeName: row.attributeName,
         })),
-        totalCount: res[0]?.totalCount || 0,
-      };
+        res[0]?.totalCount
+      );
     },
 
     async getOneCertifiedAttributeByCertifier({
@@ -618,7 +600,7 @@ export function readModelServiceBuilderSQL(
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedProducer
             )
-          ) as SQL
+          )
         );
 
       return delegationWithMetadata?.data;
@@ -635,7 +617,7 @@ export function readModelServiceBuilderSQL(
               delegationInReadmodelDelegation.kind,
               delegationKind.delegatedConsumer
             )
-          ) as SQL
+          )
         );
 
       return delegationWithMetadata?.data;
