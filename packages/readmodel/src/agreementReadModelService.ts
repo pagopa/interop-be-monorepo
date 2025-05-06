@@ -45,35 +45,35 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           agreement.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(agreementInReadmodelAgreement)
+          .where(eq(agreementInReadmodelAgreement.id, agreement.id));
+
+        await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
+
+        for (const stampSQL of stampsSQL) {
+          await tx.insert(agreementStampInReadmodelAgreement).values(stampSQL);
+        }
+
+        for (const attributeSQL of attributesSQL) {
           await tx
-            .delete(agreementInReadmodelAgreement)
-            .where(eq(agreementInReadmodelAgreement.id, agreement.id));
+            .insert(agreementAttributeInReadmodelAgreement)
+            .values(attributeSQL);
+        }
 
-          await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
-
-          for (const stampSQL of stampsSQL) {
-            await tx
-              .insert(agreementStampInReadmodelAgreement)
-              .values(stampSQL);
-          }
-
-          for (const attributeSQL of attributesSQL) {
-            await tx
-              .insert(agreementAttributeInReadmodelAgreement)
-              .values(attributeSQL);
-          }
-
-          for (const docSQL of consumerDocumentsSQL) {
-            await tx
-              .insert(agreementConsumerDocumentInReadmodelAgreement)
-              .values(docSQL);
-          }
-          if (contractSQL !== undefined) {
-            await tx
-              .insert(agreementContractInReadmodelAgreement)
-              .values(contractSQL);
-          }
+        for (const docSQL of consumerDocumentsSQL) {
+          await tx
+            .insert(agreementConsumerDocumentInReadmodelAgreement)
+            .values(docSQL);
+        }
+        if (contractSQL !== undefined) {
+          await tx
+            .insert(agreementContractInReadmodelAgreement)
+            .values(contractSQL);
         }
       });
     },
@@ -163,7 +163,6 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
         .from(agreementInReadmodelAgreement)
         .where(filter)
         .leftJoin(
-          // 1
           agreementStampInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -171,7 +170,6 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           agreementAttributeInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -179,7 +177,6 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           agreementConsumerDocumentInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -187,7 +184,6 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           agreementContractInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
