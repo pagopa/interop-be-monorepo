@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -80,6 +79,25 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
       );
 
       expect(res.status).toBe(400);
+    }
+  );
+
+  it.each([
+    { ...mockM2MDelegationResponse, kind: "invalidKind" },
+    { ...mockM2MDelegationResponse, invalidParam: "invalidValue" },
+    { ...mockM2MDelegationResponse, createdAt: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockDelegationService.rejectConsumerDelegation = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockApiDelegation.data.id, {
+        rejectionReason: "test reason",
+      });
+
+      expect(res.status).toBe(500);
     }
   );
 
