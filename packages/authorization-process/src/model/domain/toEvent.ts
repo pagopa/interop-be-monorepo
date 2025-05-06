@@ -140,23 +140,6 @@ export function toCreateEventClientAdminSet(
   correlationId: CorrelationId,
   oldAdminId: UserId | undefined
 ): CreateEvent<AuthorizationEventV2> {
-  if (oldAdminId) {
-    return {
-      streamId: client.id,
-      version,
-      event: {
-        type: "ClientAdminSet",
-        event_version: 2,
-        data: {
-          client: toClientV2(client),
-          adminId,
-          oldAdminId,
-        },
-      },
-      correlationId,
-    };
-  }
-
   return {
     streamId: client.id,
     version,
@@ -166,6 +149,7 @@ export function toCreateEventClientAdminSet(
       data: {
         client: toClientV2(client),
         adminId,
+        ...(oldAdminId && { oldAdminId }),
       },
     },
     correlationId,
