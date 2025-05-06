@@ -12,6 +12,7 @@ import {
   getMockAuthData,
   randomArrayItem,
   sortAgreementV2,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -51,10 +52,7 @@ import {
   readLastAgreementEvent,
   uploadDocument,
 } from "../integrationUtils.js";
-import {
-  getMockConsumerDocument,
-  getAMockDescriptorPublished,
-} from "../mockUtils.js";
+import { getMockConsumerDocument } from "../mockUtils.js";
 
 describe("agreement consumer document", () => {
   describe("get", () => {
@@ -100,7 +98,7 @@ describe("agreement consumer document", () => {
         ...getMockEService(),
         producerId: producer.id,
         consumerId: consumer.id,
-        descriptors: [getAMockDescriptorPublished()],
+        descriptors: [getMockDescriptorPublished()],
       };
       const agreement = {
         ...getMockAgreement(eservice.id),
@@ -208,7 +206,7 @@ describe("agreement consumer document", () => {
         ...getMockEService(),
         producerId: producer.id,
         consumerId: consumer.id,
-        descriptors: [getAMockDescriptorPublished()],
+        descriptors: [getMockDescriptorPublished()],
       };
       const agreement = {
         ...getMockAgreement(eservice.id),

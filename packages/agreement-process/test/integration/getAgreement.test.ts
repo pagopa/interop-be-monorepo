@@ -7,6 +7,7 @@ import {
   getMockTenant,
   getMockAuthData,
   sortAgreement,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -26,7 +27,6 @@ import {
   addOneTenant,
   agreementService,
 } from "../integrationUtils.js";
-import { getAMockDescriptorPublished } from "../mockUtils.js";
 
 describe("get agreement", () => {
   it(`should succeed when the requester is the consumer,
@@ -39,7 +39,7 @@ describe("get agreement", () => {
       ...getMockEService(),
       producerId: producer.id,
       consumerId: consumer.id,
-      descriptors: [getAMockDescriptorPublished()],
+      descriptors: [getMockDescriptorPublished()],
     };
     const agreement = {
       ...getMockAgreement(eservice.id),

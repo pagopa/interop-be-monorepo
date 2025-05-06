@@ -6,6 +6,7 @@ import {
   getMockDelegation,
   getMockAuthData,
   getMockContext,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Tenant,
@@ -31,7 +32,6 @@ import {
   expectSinglePageListResult,
   sortListAgreements,
 } from "../integrationUtils.js";
-import { getAMockDescriptorPublished } from "../mockUtils.js";
 
 describe("get agreements", () => {
   let tenant1: Tenant;
@@ -74,24 +74,24 @@ describe("get agreements", () => {
     delegateConsumer2 = getMockTenant();
 
     descriptor1 = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       state: descriptorState.suspended,
       publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     };
     descriptor2 = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       publishedAt: new Date(),
     };
     descriptor3 = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       publishedAt: new Date(Date.now()),
     };
     descriptor4 = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     };
-    descriptor5 = getAMockDescriptorPublished();
-    descriptor6 = getAMockDescriptorPublished();
+    descriptor5 = getMockDescriptorPublished();
+    descriptor6 = getMockDescriptorPublished();
     eservice1 = {
       ...getMockEService(generateId<EServiceId>(), tenant1.id, [
         descriptor1,

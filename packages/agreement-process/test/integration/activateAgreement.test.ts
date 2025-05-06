@@ -27,6 +27,7 @@ import {
   randomArrayItem,
   randomBoolean,
   sortAgreement,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -92,7 +93,6 @@ import {
   readLastAgreementEvent,
 } from "../integrationUtils.js";
 import {
-  getAMockDescriptorPublished,
   getAMockVerifiedTenantAttribute,
   RequesterIs,
   authDataAndDelegationsFromRequesterIs,
@@ -219,7 +219,7 @@ describe("activate agreement", () => {
         };
 
         const descriptor: Descriptor = {
-          ...getAMockDescriptorPublished(),
+          ...getMockDescriptorPublished(),
           state: randomArrayItem(agreementActivationAllowedDescriptorStates),
           attributes: {
             certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
@@ -519,7 +519,7 @@ describe("activate agreement", () => {
 
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
         attributes: {
           certified: [
@@ -640,7 +640,7 @@ describe("activate agreement", () => {
 
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
         attributes: {
           certified:
@@ -822,7 +822,7 @@ describe("activate agreement", () => {
         };
 
         const descriptor: Descriptor = {
-          ...getAMockDescriptorPublished(),
+          ...getMockDescriptorPublished(),
           state: randomArrayItem(agreementActivationAllowedDescriptorStates),
           attributes: {
             certified: [
@@ -979,7 +979,7 @@ describe("activate agreement", () => {
       const authData = getMockAuthData(consumerAndProducer.id);
 
       const descriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
         attributes: {
           certified: [
@@ -1138,7 +1138,7 @@ describe("activate agreement", () => {
         };
 
         const descriptor: Descriptor = {
-          ...getAMockDescriptorPublished(),
+          ...getMockDescriptorPublished(),
           state: randomArrayItem(agreementActivationAllowedDescriptorStates),
           attributes: {
             certified: [
@@ -1436,7 +1436,7 @@ describe("activate agreement", () => {
         };
 
         const descriptor: Descriptor = {
-          ...getAMockDescriptorPublished(),
+          ...getMockDescriptorPublished(),
           state: randomArrayItem(agreementActivationAllowedDescriptorStates),
           attributes: {
             certified:
@@ -1865,7 +1865,7 @@ describe("activate agreement", () => {
         const authData = getMockAuthData(producerId);
 
         const descriptor: Descriptor = {
-          ...getAMockDescriptorPublished(),
+          ...getMockDescriptorPublished(),
           state: descriptorState,
         };
 
@@ -1908,7 +1908,7 @@ describe("activate agreement", () => {
       const authData = getMockAuthData(producerId);
 
       const descriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
       };
 
@@ -1944,7 +1944,7 @@ describe("activate agreement", () => {
       const authData = getMockAuthData(producerId);
 
       const descriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
       };
 
@@ -1981,7 +1981,7 @@ describe("activate agreement", () => {
 
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
       };
 
@@ -2034,7 +2034,7 @@ describe("activate agreement", () => {
 
       const authData = getMockAuthData(producer.id);
       const descriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
         attributes: {
           certified: [

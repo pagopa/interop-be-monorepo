@@ -163,7 +163,7 @@ export const getMockDescriptorPublished = (
   declaredAttributes: EServiceAttribute[][] = [],
   verifiedAttributes: EServiceAttribute[][] = []
 ): Descriptor => ({
-  ...generateMock(Descriptor),
+  ...getMockDescriptor(descriptorState.published),
   id: descriptorId,
   state: descriptorState.published,
   attributes: {
@@ -354,6 +354,10 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
     verified: [],
     declared: [],
   },
+  ...(state === descriptorState.archived ? { archivedAt: new Date() } : {}),
+  ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
+  ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
+  ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
 });
 
 export const getMockDescriptorList = (length?: number): Descriptor[] => {

@@ -13,6 +13,7 @@ import {
   randomBoolean,
   getMockContextInternal,
   sortAgreementV2,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -38,7 +39,6 @@ import {
   agreementService,
   readLastAgreementEvent,
 } from "../integrationUtils.js";
-import { getAMockDescriptorPublished } from "../mockUtils.js";
 
 describe("compute Agreements state by attribute", () => {
   describe("when the given attribute is not satisfied", async () => {
@@ -60,7 +60,7 @@ describe("compute Agreements state by attribute", () => {
     };
 
     const descriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
         declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
@@ -262,7 +262,7 @@ describe("compute Agreements state by attribute", () => {
     };
 
     const descriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(tenantCertifiedAttribute.id)]],
         declared: [[getMockEServiceAttribute(tenantDeclaredAttribute.id)]],
@@ -456,7 +456,7 @@ describe("compute Agreements state by attribute", () => {
     };
 
     const descriptor1: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
         declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
@@ -470,7 +470,7 @@ describe("compute Agreements state by attribute", () => {
     };
 
     const descriptor2: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
         declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],

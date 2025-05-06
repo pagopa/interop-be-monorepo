@@ -7,6 +7,7 @@ import {
   getMockEServiceAttribute,
   getMockTenant,
   getMockAuthData,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   CertifiedTenantAttribute,
@@ -30,7 +31,6 @@ import {
   addOneTenant,
   agreementService,
 } from "../integrationUtils.js";
-import { getAMockDescriptorPublished } from "../mockUtils.js";
 
 describe("Verify Tenant Certified Attributes", () => {
   const attribute1: CertifiedTenantAttribute = {
@@ -51,7 +51,7 @@ describe("Verify Tenant Certified Attributes", () => {
     attribute2,
     attribute3,
   ]);
-  const mockDescriptor = getAMockDescriptorPublished(
+  const mockDescriptor = getMockDescriptorPublished(
     generateId<DescriptorId>(),
     [
       [

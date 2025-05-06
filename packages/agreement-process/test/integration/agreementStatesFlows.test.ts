@@ -8,6 +8,7 @@ import {
   getMockTenant,
   getMockVerifiedTenantAttribute,
   getMockAuthData,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   CertifiedTenantAttribute,
@@ -35,7 +36,6 @@ import {
   addOneTenant,
   agreementService,
 } from "../integrationUtils.js";
-import { getAMockDescriptorPublished } from "../mockUtils.js";
 
 describe("Agreeement states flows", () => {
   it("agreement for descriptor V1 >> suspended by consumer >> V2 with new verified attributes >> upgrade >> producer verifies attributes and activates >> should still be SUSPENDED by consumer", async () => {
@@ -77,7 +77,7 @@ describe("Agreeement states flows", () => {
 
     const descriptorId = generateId<DescriptorId>();
     const descriptorV1: Descriptor = {
-      ...getAMockDescriptorPublished(
+      ...getMockDescriptorPublished(
         descriptorId,
         [[validCertifiedEserviceAttribute]],
         [[validDeclaredEserviceAttribute]]
@@ -299,7 +299,7 @@ describe("Agreeement states flows", () => {
 
     const descriptorId = generateId<DescriptorId>();
     const descriptorV1: Descriptor = {
-      ...getAMockDescriptorPublished(
+      ...getMockDescriptorPublished(
         descriptorId,
         [[validCertifiedEserviceAttribute]],
         [[validDeclaredEserviceAttribute]]

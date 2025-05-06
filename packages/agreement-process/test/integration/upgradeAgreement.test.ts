@@ -26,6 +26,7 @@ import {
   randomArrayItem,
   randomBoolean,
   sortAgreementV2,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -87,7 +88,6 @@ import {
   getMockContract,
   getRandomPastStamp,
   requesterIs,
-  getAMockDescriptorPublished,
 } from "../mockUtils.js";
 
 describe("upgrade Agreement", () => {
@@ -127,7 +127,7 @@ describe("upgrade Agreement", () => {
       };
 
       const newPublishedDescriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         version: "2",
         attributes: {
           certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
@@ -137,7 +137,7 @@ describe("upgrade Agreement", () => {
       };
 
       const currentDescriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: descriptorState.deprecated,
         version: "1",
       };
@@ -367,7 +367,7 @@ describe("upgrade Agreement", () => {
           await addOneAttribute(certifiedAttribute);
 
           const newPublishedDescriptor: Descriptor = {
-            ...getAMockDescriptorPublished(),
+            ...getMockDescriptorPublished(),
             version: "2",
             attributes: {
               certified: [[getMockEServiceAttribute(certifiedAttribute.id)]],
@@ -377,7 +377,7 @@ describe("upgrade Agreement", () => {
           };
 
           const currentDescriptor: Descriptor = {
-            ...getAMockDescriptorPublished(),
+            ...getMockDescriptorPublished(),
             state: descriptorState.deprecated,
             version: "1",
           };
@@ -731,7 +731,7 @@ describe("upgrade Agreement", () => {
       await addOneAttribute(declaredAttribute);
 
       const newPublishedDescriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         version: "2",
         attributes: {
           certified: [
@@ -751,7 +751,7 @@ describe("upgrade Agreement", () => {
       };
 
       const currentDescriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         state: descriptorState.deprecated,
         version: "1",
       };
@@ -990,7 +990,7 @@ describe("upgrade Agreement", () => {
       (s) => s !== descriptorState.published
     );
     const nonPublishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       state: randomArrayItem(nonPublishedDescriptorState),
     };
     const eservice: EService = {
@@ -1022,7 +1022,7 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumerId);
 
     const publishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       version: "invalid-version-number",
     };
     const eservice: EService = {
@@ -1056,7 +1056,7 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumerId);
 
     const publishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       version: "2",
     };
 
@@ -1091,12 +1091,12 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumerId);
 
     const newPublishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       version: "2",
     };
 
     const currentDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
       version: "invalid-version-number",
     };
@@ -1132,12 +1132,12 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumerId);
 
     const newPublishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       version: "1",
     };
 
     const currentDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
       version: randomArrayItem(["1", "2"]),
     };
@@ -1173,12 +1173,12 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumerId);
 
     const newPublishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       version: "2",
     };
 
     const currentDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
       version: "1",
     };
@@ -1213,12 +1213,12 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumer.id);
 
     const newPublishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       version: "2",
     };
 
     const currentDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
       version: "1",
     };
@@ -1264,7 +1264,7 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumer.id);
 
     const newPublishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       version: "2",
       attributes: {
         certified: [
@@ -1276,7 +1276,7 @@ describe("upgrade Agreement", () => {
     };
 
     const currentDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
       version: "1",
     };
@@ -1317,7 +1317,7 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumer.id);
 
     const newPublishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       version: "2",
       attributes: {
         certified: [],
@@ -1327,7 +1327,7 @@ describe("upgrade Agreement", () => {
     };
 
     const currentDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
       version: "1",
     };
@@ -1377,7 +1377,7 @@ describe("upgrade Agreement", () => {
     const authData = getMockAuthData(consumer.id);
 
     const newPublishedDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       version: "2",
       attributes: {
         certified: [],
@@ -1389,7 +1389,7 @@ describe("upgrade Agreement", () => {
     };
 
     const currentDescriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       state: descriptorState.deprecated,
       version: "1",
     };

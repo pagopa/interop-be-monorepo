@@ -13,6 +13,7 @@ import {
   getMockVerifiedTenantAttribute,
   getMockAuthData,
   randomArrayItem,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -53,10 +54,7 @@ import {
   readLastAgreementEvent,
   sortAgreementAttributes,
 } from "../integrationUtils.js";
-import {
-  getAMockDescriptorPublished,
-  getAMockVerifiedTenantAttribute,
-} from "../mockUtils.js";
+import { getAMockVerifiedTenantAttribute } from "../mockUtils.js";
 
 describe("reject agreement", () => {
   it.each([
@@ -161,7 +159,7 @@ describe("reject agreement", () => {
         ],
       };
       const descriptor: Descriptor = {
-        ...getAMockDescriptorPublished(),
+        ...getMockDescriptorPublished(),
         attributes: {
           // I add also some attributes not matching with tenant attributes
           // to test that they are not kept in the agreement
@@ -359,7 +357,7 @@ describe("reject agreement", () => {
   it("should throw a tenantNotFound error when the consumer does not exist", async () => {
     await addOneTenant(getMockTenant());
 
-    const descriptor = getAMockDescriptorPublished();
+    const descriptor = getMockDescriptorPublished();
 
     const eservice: EService = {
       ...getMockEService(),
@@ -390,7 +388,7 @@ describe("reject agreement", () => {
   it("should throw a descriptorNotFound error when the descriptor does not exist", async () => {
     const eservice: EService = {
       ...getMockEService(),
-      descriptors: [getAMockDescriptorPublished()],
+      descriptors: [getMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
     const agreement = {
@@ -419,7 +417,7 @@ describe("reject agreement", () => {
   it("should throw organizationIsNotTheDelegateProducer when the requester is the producer and there is an active delegation", async () => {
     const eservice: EService = {
       ...getMockEService(),
-      descriptors: [getAMockDescriptorPublished()],
+      descriptors: [getMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
     const delegate = getMockTenant();
@@ -462,7 +460,7 @@ describe("reject agreement", () => {
   it("should throw a organizationIsNotTheProducer error when the requester is the delegate but the delegation in not active", async () => {
     const eservice: EService = {
       ...getMockEService(),
-      descriptors: [getAMockDescriptorPublished()],
+      descriptors: [getMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
     const agreement = {

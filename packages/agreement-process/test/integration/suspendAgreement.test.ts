@@ -20,6 +20,7 @@ import {
   randomBoolean,
   sortAgreementV2,
   sortAgreement,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -57,10 +58,7 @@ import {
   agreementService,
   readLastAgreementEvent,
 } from "../integrationUtils.js";
-import {
-  getRandomPastStamp,
-  getAMockDescriptorPublished,
-} from "../mockUtils.js";
+import { getRandomPastStamp } from "../mockUtils.js";
 
 describe("suspend agreement", () => {
   beforeEach(async () => {
@@ -99,7 +97,7 @@ describe("suspend agreement", () => {
     };
 
     const descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
         declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
@@ -228,7 +226,7 @@ describe("suspend agreement", () => {
       ],
     };
     const descriptor: Descriptor = {
-      ...getAMockDescriptorPublished(),
+      ...getMockDescriptorPublished(),
       attributes: {
         certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
         declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
@@ -316,7 +314,7 @@ describe("suspend agreement", () => {
     const producerId = generateId<TenantId>();
 
     const consumer = getMockTenant();
-    const descriptor: Descriptor = getAMockDescriptorPublished();
+    const descriptor: Descriptor = getMockDescriptorPublished();
     const eservice: EService = {
       ...getMockEService(),
       producerId,
@@ -442,7 +440,7 @@ describe("suspend agreement", () => {
         };
 
         const descriptor = {
-          ...getAMockDescriptorPublished(),
+          ...getMockDescriptorPublished(),
           attributes: {
             certified: [[getMockEServiceAttribute(consumer.attributes[0].id)]],
             declared: [[getMockEServiceAttribute(consumer.attributes[1].id)]],
@@ -592,7 +590,7 @@ describe("suspend agreement", () => {
 
   it("should throw a tenantNotFound error when the consumer does not exist", async () => {
     await addOneTenant(getMockTenant());
-    const descriptor = getAMockDescriptorPublished();
+    const descriptor = getMockDescriptorPublished();
     const eservice = getMockEService(
       generateId<EServiceId>(),
       generateId<TenantId>(),
@@ -622,7 +620,7 @@ describe("suspend agreement", () => {
   it("should throw a descriptorNotFound error when the descriptor does not exist", async () => {
     const eservice: EService = {
       ...getMockEService(),
-      descriptors: [getAMockDescriptorPublished()],
+      descriptors: [getMockDescriptorPublished()],
     };
     const consumer = getMockTenant();
     const agreement = {
@@ -655,7 +653,7 @@ describe("suspend agreement", () => {
     async ({ kind }) => {
       const eservice: EService = {
         ...getMockEService(),
-        descriptors: [getAMockDescriptorPublished()],
+        descriptors: [getMockDescriptorPublished()],
       };
       const consumer = getMockTenant();
       const delegate = getMockTenant();
@@ -704,7 +702,7 @@ describe("suspend agreement", () => {
     async (kind) => {
       const eservice: EService = {
         ...getMockEService(),
-        descriptors: [getAMockDescriptorPublished()],
+        descriptors: [getMockDescriptorPublished()],
       };
       const consumer = getMockTenant();
       const agreement = {
