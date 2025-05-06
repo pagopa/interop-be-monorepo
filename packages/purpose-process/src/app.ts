@@ -13,6 +13,14 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  makeDrizzleConnection,
+  purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import purposeRouter from "./routers/PurposeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
@@ -21,12 +29,39 @@ import {
   purposeServiceBuilder,
 } from "./services/purposeService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createDefaultPurposeService = async () => {
-  const readModelService = readModelServiceBuilder(
+  const readModelDB = makeDrizzleConnection(config);
+  const purposeReadModelServiceSQL =
+    purposeReadModelServiceBuilder(readModelDB);
+  const catalogReadModelServiceSQL =
+    catalogReadModelServiceBuilder(readModelDB);
+  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+  const agreementReadModelServiceSQL =
+    agreementReadModelServiceBuilder(readModelDB);
+  const delegationReadModelServiceSQL =
+    delegationReadModelServiceBuilder(readModelDB);
+
+  const oldReadModelService = readModelServiceBuilder(
     ReadModelRepository.init(config)
   );
+  const readModelServiceSQL = readModelServiceBuilderSQL({
+    readModelDB,
+    purposeReadModelServiceSQL,
+    catalogReadModelServiceSQL,
+    tenantReadModelServiceSQL,
+    agreementReadModelServiceSQL,
+    delegationReadModelServiceSQL,
+  });
+  const readModelService =
+    config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+      ? readModelServiceSQL
+      : oldReadModelService;
+
   const fileManager = initFileManager(config);
   const pdfGenerator = await initPDFGenerator();
 
