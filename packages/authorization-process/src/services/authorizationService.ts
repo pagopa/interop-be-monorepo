@@ -535,6 +535,7 @@ export function authorizationServiceBuilder(
             selfcareV2InstitutionClient,
             userIdToCheck: userId,
             correlationId,
+            userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
           })
         )
       );
@@ -579,8 +580,20 @@ export function authorizationServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Client> {
       assertFeatureFlagEnabled(config, "featureFlagAdminClient");
+
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        userIdToCheck: adminId,
+        selfcareV2InstitutionClient,
+        correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE],
+      });
+
       logger.info(`Add or update admin in client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
+      assertClientIsAPI(client.data);
       assertOrganizationIsClientConsumer(authData, client.data);
 
       const oldAdminId = client.data.adminId;
@@ -753,6 +766,7 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
       const jwk = createJWK(keySeed.key);
@@ -995,6 +1009,7 @@ export function authorizationServiceBuilder(
             userIdToCheck: userId,
             selfcareV2InstitutionClient,
             correlationId,
+            userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
           })
         )
       );
@@ -1109,6 +1124,7 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
       const jwk = createJWK(keySeed.key);
