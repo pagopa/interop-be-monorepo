@@ -1,62 +1,62 @@
-// /* eslint-disable @typescript-eslint/explicit-function-return-type */
-// import { describe, it, expect, vi } from "vitest";
-// import { generateId, ProducerKeychain, TenantId } from "pagopa-interop-models";
-// import {
-//   generateToken,
-//   getMockProducerKeychain,
-// } from "pagopa-interop-commons-test";
-// import { AuthRole, authRole } from "pagopa-interop-commons";
-// import request from "supertest";
-// import { authorizationApi } from "pagopa-interop-api-clients";
-// import { api, authorizationService } from "../vitest.api.setup.js";
-// import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { describe, it, expect, vi } from "vitest";
+import { generateId, ProducerKeychain, TenantId } from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockProducerKeychain,
+} from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import request from "supertest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { api, authorizationService } from "../vitest.api.setup.js";
+import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
 
-// describe("API /producerKeychains authorization test", () => {
-//   const organizationId: TenantId = generateId();
+describe("API /producerKeychains authorization test", () => {
+  const organizationId: TenantId = generateId();
 
-//   const producerKeychainSeed: authorizationApi.ProducerKeychainSeed = {
-//     name: "Seed name",
-//     description: "Description",
-//     members: [organizationId],
-//   };
+  const producerKeychainSeed: authorizationApi.ProducerKeychainSeed = {
+    name: "Seed name",
+    description: "Description",
+    members: [organizationId],
+  };
 
-//   const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
+  const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
 
-//   const apiProducerKeyChain = producerKeychainToApiProducerKeychain(
-//     mockProducerKeychain,
-//     {
-//       showUsers: true,
-//     }
-//   );
+  const apiProducerKeyChain = producerKeychainToApiProducerKeychain(
+    mockProducerKeychain,
+    {
+      showUsers: true,
+    }
+  );
 
-//   authorizationService.createProducerKeychain = vi.fn().mockResolvedValue({
-//     producerKeychain: mockProducerKeychain,
-//     showUsers: true,
-//   });
+  authorizationService.createProducerKeychain = vi.fn().mockResolvedValue({
+    producerKeychain: mockProducerKeychain,
+    showUsers: true,
+  });
 
-//   const makeRequest = async (token: string) =>
-//     request(api)
-//       .post(`/producerKeychains`)
-//       .set("Authorization", `Bearer ${token}`)
-//       .set("X-Correlation-Id", generateId())
-//       .send(producerKeychainSeed);
+  const makeRequest = async (token: string) =>
+    request(api)
+      .post(`/producerKeychains`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send(producerKeychainSeed);
 
-//   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
-//   it.each(authorizedRoles)(
-//     "Should return 200 for user with role %s",
-//     async (role) => {
-//       const token = generateToken(role);
-//       const res = await makeRequest(token);
-//       expect(res.status).toBe(200);
-//       expect(res.body).toEqual(apiProducerKeyChain);
-//     }
-//   );
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiProducerKeyChain);
+    }
+  );
 
-//   it.each(
-//     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
-//   )("Should return 403 for user with role %s", async (role) => {
-//     const token = generateToken(role);
-//     const res = await makeRequest(token);
-//     expect(res.status).toBe(403);
-//   });
-// });
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+});
