@@ -1,4 +1,4 @@
-import { ilike, inArray, or, SQL, and, eq, sql } from "drizzle-orm";
+import { ilike, inArray, or, SQL, and, eq, sql, asc } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -40,7 +40,11 @@ import {
   tenantInReadmodelTenant,
   EServiceDescriptorSQL,
 } from "pagopa-interop-readmodel-models";
-import { escapeRegExp, createListResult } from "pagopa-interop-commons";
+import {
+  escapeRegExp,
+  createListResult,
+  ascLowerMulti,
+} from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { PgSelect } from "drizzle-orm/pg-core";
 import {
@@ -392,7 +396,8 @@ export function readModelServiceBuilderSQL(
           eserviceInReadmodelCatalog.name
         )
         .orderBy(
-          sql`LOWER(${eserviceInReadmodelCatalog.name}), ${agreementInReadmodelAgreement.id}`
+          ascLowerMulti(eserviceInReadmodelCatalog.name),
+          agreementInReadmodelAgreement.id
         );
 
       const dynamicQueryAgreements = queryBaseAgreementIds.$dynamic();
@@ -584,7 +589,10 @@ export function readModelServiceBuilderSQL(
           eserviceInReadmodelCatalog.name
         )
         .orderBy(
-          sql`LOWER(${eserviceInReadmodelCatalog.name}), ${agreementInReadmodelAgreement.id}`
+          ascLowerMulti(
+            eserviceInReadmodelCatalog.name,
+            agreementInReadmodelAgreement.id
+          )
         );
 
       const queryAgreementIds = queryBaseAgreementIds.as("queryAgreementIds");
@@ -702,7 +710,7 @@ export function readModelServiceBuilderSQL(
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(tenantInReadmodelTenant.name)
+        .orderBy(asc(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
       return createListResult(
@@ -758,7 +766,7 @@ export function readModelServiceBuilderSQL(
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(tenantInReadmodelTenant.name)
+        .orderBy(asc(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
       return createListResult(
@@ -860,7 +868,7 @@ export function readModelServiceBuilderSQL(
           )
         )
         .groupBy(eserviceInReadmodelCatalog.id)
-        .orderBy(eserviceInReadmodelCatalog.name)
+        .orderBy(asc(eserviceInReadmodelCatalog.name))
         .limit(limit)
         .offset(offset);
       return createListResult(
