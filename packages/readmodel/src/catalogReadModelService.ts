@@ -238,7 +238,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateRef: eserviceTemplateRefInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
         })
@@ -298,13 +297,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
             eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
           )
         );
 
