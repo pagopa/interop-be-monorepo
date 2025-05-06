@@ -186,8 +186,7 @@ describe.each([
 
   it("should throw delegationNotFound when delegation doesn't exist", async () => {
     const delegateId = getMockTenant().id;
-    const nonExistentDelegationId =
-      unsafeBrandId<DelegationId>("non-existent-id");
+    const nonExistentDelegationId = generateId<DelegationId>();
 
     await expect(
       approveFn(
@@ -267,7 +266,7 @@ describe.each([
     }
   );
 
-  it("should generete a pdf document for a delegation", async () => {
+  it("should generate a pdf document for a delegation", async () => {
     const delegation = getMockDelegation({
       kind,
       state: "WaitingForApproval",
