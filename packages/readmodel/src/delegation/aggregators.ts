@@ -21,15 +21,15 @@ import { match } from "ts-pattern";
 import { makeUniqueKey } from "../utils.js";
 
 export const aggregateDelegationArray = ({
-  delegationSQL,
+  delegationsSQL,
   stampsSQL,
   contractDocumentsSQL,
 }: {
-  delegationSQL: DelegationSQL[];
+  delegationsSQL: DelegationSQL[];
   stampsSQL: DelegationStampSQL[];
   contractDocumentsSQL: DelegationContractDocumentSQL[];
 }): Array<WithMetadata<Delegation>> =>
-  delegationSQL.map((delegationSQL) =>
+  delegationsSQL.map((delegationSQL) =>
     aggregateDelegation({
       delegationSQL,
       stampsSQL: stampsSQL.filter(

@@ -10,6 +10,7 @@ import {
   getMockClient,
   getMockAuthData,
   getMockContext,
+  sortClient,
 } from "pagopa-interop-commons-test";
 import { userRole } from "pagopa-interop-commons";
 import { addOneClient, authorizationService } from "../integrationUtils.js";
@@ -34,6 +35,7 @@ describe("getClients", async () => {
   const userId2: UserId = generateId();
   const mockClient3: Client = {
     ...getMockClient(),
+    name: "test3",
     users: [userId1, userId2],
     consumerId,
   };
@@ -41,18 +43,21 @@ describe("getClients", async () => {
   const userId4: UserId = generateId();
   const mockClient4: Client = {
     ...getMockClient(),
+    name: "test4",
     users: [userId3, userId4],
     consumerId,
   };
 
   const mockClient5: Client = {
     ...getMockClient(),
+    name: "test5",
     purposes: [purposeId],
     consumerId,
   };
 
   const mockClient6: Client = {
     ...getMockClient(),
+    name: "test6",
     purposes: [purposeId],
     consumerId,
   };
@@ -73,8 +78,13 @@ describe("getClients", async () => {
       },
       getMockContext({ authData: getMockAuthData(consumerId) })
     );
-    expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([mockClient1, mockClient2]);
+    expect({
+      ...result,
+      results: result.results.map(sortClient),
+    }).toEqual({
+      totalCount: 2,
+      results: [mockClient1, mockClient2].map(sortClient),
+    });
   });
   it("should get the clients if they exist (parameters: userIds taken from the authData)", async () => {
     const userId: UserId = generateId();
@@ -108,8 +118,13 @@ describe("getClients", async () => {
       })
     );
 
-    expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([mockClient7]);
+    expect({
+      ...result,
+      results: result.results.map(sortClient),
+    }).toEqual({
+      totalCount: 1,
+      results: [sortClient(mockClient7)],
+    });
   });
   it("should get the clients if they exist (parameters: userIds taken from the filter)", async () => {
     const userId5: UserId = generateId();
@@ -136,8 +151,13 @@ describe("getClients", async () => {
       getMockContext({ authData: getMockAuthData(consumerId) })
     );
 
-    expect(result.totalCount).toBe(1);
-    expect(result.results).toEqual([mockClient9]);
+    expect({
+      ...result,
+      results: result.results.map(sortClient),
+    }).toEqual({
+      totalCount: 1,
+      results: [sortClient(mockClient9)],
+    });
   });
   it("should get the clients if they exist (parameters: consumerId)", async () => {
     await addOneClient(mockClient1);
@@ -154,8 +174,13 @@ describe("getClients", async () => {
       },
       getMockContext({ authData: getMockAuthData(consumerId) })
     );
-    expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([mockClient1, mockClient2]);
+    expect({
+      ...result,
+      results: result.results.map(sortClient),
+    }).toEqual({
+      totalCount: 2,
+      results: [mockClient1, mockClient2].map(sortClient),
+    });
   });
   it("should get the clients if they exist (parameters: purposeId)", async () => {
     await addOneClient(mockClient5);
@@ -173,8 +198,13 @@ describe("getClients", async () => {
       },
       getMockContext({ authData: getMockAuthData(consumerId) })
     );
-    expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([mockClient5, mockClient6]);
+    expect({
+      ...result,
+      results: result.results.map(sortClient),
+    }).toEqual({
+      totalCount: 2,
+      results: [mockClient5, mockClient6].map(sortClient),
+    });
   });
   it("should get the clients if they exist (parameters: kind)", async () => {
     await addOneClient(mockClient1);
@@ -192,20 +222,27 @@ describe("getClients", async () => {
       },
       getMockContext({ authData: getMockAuthData(consumerId) })
     );
-    expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([mockClient1, mockClient2]);
+    expect({
+      ...result,
+      results: result.results.map(sortClient),
+    }).toEqual({
+      totalCount: 2,
+      results: [mockClient1, mockClient2].map(sortClient),
+    });
   });
   it("should get the clients if they exist (pagination: offset)", async () => {
     await addOneClient(mockClient3);
     await addOneClient(mockClient4);
     const mockClientForOffset1: Client = {
       ...getMockClient(),
+      name: "Test client for offset 1",
       users: [userId1, userId4],
       consumerId,
     };
 
     const mockClientForOffset2: Client = {
       ...getMockClient(),
+      name: "Test client for offset 2",
       users: [userId2, userId3],
       consumerId,
     };
@@ -225,10 +262,9 @@ describe("getClients", async () => {
       },
       getMockContext({ authData: getMockAuthData(consumerId) })
     );
-    expect(result.results).toEqual([
-      mockClientForOffset1,
-      mockClientForOffset2,
-    ]);
+    expect(result.results.map(sortClient)).toEqual(
+      [mockClientForOffset1, mockClientForOffset2].map(sortClient)
+    );
   });
   it("should get the clients if they exist (pagination: limit)", async () => {
     const mockClientForLimit1: Client = {
@@ -259,7 +295,9 @@ describe("getClients", async () => {
       },
       getMockContext({ authData: getMockAuthData(consumerId) })
     );
-    expect(result.results).toEqual([mockClient3, mockClient4]);
+    expect(result.results.map(sortClient)).toEqual(
+      [mockClient3, mockClient4].map(sortClient)
+    );
   });
   it("should not get the clients if they don't exist", async () => {
     await addOneClient(mockClient1);
@@ -275,12 +313,15 @@ describe("getClients", async () => {
       },
       getMockContext({ authData: getMockAuthData(consumerId) })
     );
-    expect(result.totalCount).toBe(0);
-    expect(result.results).toEqual([]);
+    expect(result).toEqual({
+      totalCount: 0,
+      results: [],
+    });
   });
   it("should get the clients if they exist (parameters: name, userIds, consumerId, purposeId, kind)", async () => {
     const completeClient1: Client = {
       ...getMockClient(),
+      name: "Test client 1",
       users: [userId2, userId3],
       consumerId,
       purposes: [purposeId],
@@ -288,6 +329,7 @@ describe("getClients", async () => {
 
     const completeClient2: Client = {
       ...getMockClient(),
+      name: "Test client 2",
       users: [userId2, userId3],
       consumerId,
       purposes: [purposeId],
@@ -309,7 +351,12 @@ describe("getClients", async () => {
       },
       getMockContext({ authData: getMockAuthData(consumerId) })
     );
-    expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([completeClient1, completeClient2]);
+    expect({
+      ...result,
+      results: result.results.map(sortClient),
+    }).toEqual({
+      totalCount: 2,
+      results: [completeClient1, completeClient2].map(sortClient),
+    });
   });
 });
