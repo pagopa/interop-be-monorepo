@@ -54,7 +54,6 @@ import {
   readLastAgreementEvent,
   sortAgreementAttributes,
 } from "../integrationUtils.js";
-import { getAMockVerifiedTenantAttribute } from "../mockUtils.js";
 
 describe("reject agreement", () => {
   it.each([
@@ -109,18 +108,19 @@ describe("reject agreement", () => {
 
       const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
         {
-          ...getAMockVerifiedTenantAttribute(),
+          ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: tenantOnlyForVerifierAttribute.id,
               verificationDate: new Date(),
             },
           ],
+          revokedBy: [],
         };
 
       const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
         {
-          ...getAMockVerifiedTenantAttribute(),
+          ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: producerId,
@@ -128,17 +128,19 @@ describe("reject agreement", () => {
               extensionDate: addDays(new Date(), 300),
             },
           ],
+          revokedBy: [],
         };
 
       const tenantVerfiedAttributeNoMatchDescAttribute: VerifiedTenantAttribute =
         {
-          ...getAMockVerifiedTenantAttribute(),
+          ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: tenantAnotherOnlyForVerifierAttribute.id,
               verificationDate: new Date(),
             },
           ],
+          revokedBy: [],
         };
 
       const consumer: Tenant = {

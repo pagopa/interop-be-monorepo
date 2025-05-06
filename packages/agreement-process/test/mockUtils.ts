@@ -6,7 +6,6 @@ import {
   getMockDelegation,
   getMockTenant,
   getMockAuthData,
-  getMockVerifiedTenantAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -21,8 +20,6 @@ import {
   UserId,
   delegationKind,
   delegationState,
-  AttributeId,
-  VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { UIAuthData, formatDateyyyyMMddHHmmss } from "pagopa-interop-commons";
@@ -204,50 +201,3 @@ export const authDataAndDelegationsFromRequesterIs = (
       };
     })
     .exhaustive();
-
-// export const getAMockDescriptor = (state?: DescriptorState): Descriptor => ({
-//   id: generateId(),
-//   version: "1",
-//   docs: [],
-//   state: state || descriptorState.draft,
-//   audience: ["pagopa.it"],
-//   voucherLifespan: 60,
-//   dailyCallsPerConsumer: 10,
-//   dailyCallsTotal: 1000,
-//   createdAt: new Date(),
-//   serverUrls: ["pagopa.it"],
-//   agreementApprovalPolicy: "Automatic",
-//   attributes: {
-//     certified: [],
-//     verified: [],
-//     declared: [],
-//   },
-//   ...(state === descriptorState.archived ? { archivedAt: new Date() } : {}),
-//   ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
-//   ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
-//   ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
-// });
-
-// export const getMockDescriptorPublished = (
-//   descriptorId: DescriptorId = generateId<DescriptorId>(),
-//   certifiedAttributes: EServiceAttribute[][] = [],
-//   declaredAttributes: EServiceAttribute[][] = [],
-//   verifiedAttributes: EServiceAttribute[][] = []
-// ): Descriptor => ({
-//   ...getMockDescriptor(descriptorState.published),
-//   id: descriptorId,
-//   attributes: {
-//     certified: certifiedAttributes,
-//     declared: declaredAttributes,
-//     verified: verifiedAttributes,
-//   },
-//   rejectionReasons: undefined,
-// });
-
-export const getAMockVerifiedTenantAttribute = (
-  attributeId: AttributeId = generateId<AttributeId>()
-): VerifiedTenantAttribute => ({
-  ...getMockVerifiedTenantAttribute(),
-  id: attributeId,
-  revokedBy: [],
-});

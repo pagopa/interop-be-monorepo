@@ -28,6 +28,7 @@ import {
   randomBoolean,
   sortAgreement,
   getMockDescriptorPublished,
+  getMockVerifiedTenantAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -93,7 +94,6 @@ import {
   readLastAgreementEvent,
 } from "../integrationUtils.js";
 import {
-  getAMockVerifiedTenantAttribute,
   RequesterIs,
   authDataAndDelegationsFromRequesterIs,
   requesterIs,
@@ -285,7 +285,7 @@ describe("activate agreement", () => {
         };
 
         const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-          ...getAMockVerifiedTenantAttribute(verifiedAttribute.id),
+          ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
           verifiedBy: [
             {
               id: producer.id,
@@ -294,6 +294,7 @@ describe("activate agreement", () => {
               delegationId: producerDelegation?.id,
             },
           ],
+          revokedBy: [],
         };
 
         const consumer: Tenant = {
@@ -498,7 +499,7 @@ describe("activate agreement", () => {
       };
 
       const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-        ...getAMockVerifiedTenantAttribute(),
+        ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
             id: producer.id,
@@ -506,6 +507,7 @@ describe("activate agreement", () => {
             extensionDate: addDays(new Date(), 30),
           },
         ],
+        revokedBy: [],
       };
 
       const consumer: Tenant = {
@@ -605,18 +607,19 @@ describe("activate agreement", () => {
 
       const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
         {
-          ...getAMockVerifiedTenantAttribute(),
+          ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: tenantOnlyForVerifierAttribute.id,
               verificationDate: new Date(),
             },
           ],
+          revokedBy: [],
         };
 
       const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
         {
-          ...getAMockVerifiedTenantAttribute(),
+          ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: producer.id,
@@ -624,6 +627,7 @@ describe("activate agreement", () => {
               extensionDate: new Date(),
             },
           ],
+          revokedBy: [],
         };
 
       const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
@@ -802,7 +806,7 @@ describe("activate agreement", () => {
         };
 
         const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-          ...getAMockVerifiedTenantAttribute(),
+          ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: producer.id,
@@ -810,6 +814,7 @@ describe("activate agreement", () => {
               extensionDate: addDays(new Date(), 30),
             },
           ],
+          revokedBy: [],
         };
 
         const consumer: Tenant = {
@@ -958,13 +963,14 @@ describe("activate agreement", () => {
       const tenantOnlyForVerifierAttribute: Tenant = getMockTenant();
 
       const mockTenantVerifiedAttribute: VerifiedTenantAttribute = {
-        ...getAMockVerifiedTenantAttribute(),
+        ...getMockVerifiedTenantAttribute(),
         verifiedBy: [
           {
             id: tenantOnlyForVerifierAttribute.id,
             verificationDate: new Date(),
           },
         ],
+        revokedBy: [],
       };
 
       const consumerAndProducer: Tenant = {
@@ -1118,7 +1124,7 @@ describe("activate agreement", () => {
         };
 
         const validTenantVerifiedAttribute: VerifiedTenantAttribute = {
-          ...getAMockVerifiedTenantAttribute(),
+          ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
             {
               id: producer.id,
@@ -1126,6 +1132,7 @@ describe("activate agreement", () => {
               extensionDate: addDays(new Date(), 30),
             },
           ],
+          revokedBy: [],
         };
 
         const consumer: Tenant = {
@@ -1402,18 +1409,19 @@ describe("activate agreement", () => {
 
         const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
           {
-            ...getAMockVerifiedTenantAttribute(),
+            ...getMockVerifiedTenantAttribute(),
             verifiedBy: [
               {
                 id: tenantOnlyForVerifierAttribute.id,
                 verificationDate: new Date(),
               },
             ],
+            revokedBy: [],
           };
 
         const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
           {
-            ...getAMockVerifiedTenantAttribute(),
+            ...getMockVerifiedTenantAttribute(),
             verifiedBy: [
               {
                 id: producer.id,
@@ -1421,6 +1429,7 @@ describe("activate agreement", () => {
                 extensionDate: new Date(),
               },
             ],
+            revokedBy: [],
           };
 
         const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
