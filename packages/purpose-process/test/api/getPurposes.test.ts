@@ -8,7 +8,7 @@ import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 
-describe("API GET /purposes/{purposeId} test", () => {
+describe("API GET /purposes test", () => {
   const mockPurpose1: Purpose = {
     ...getMockPurpose(),
     title: "Mock purpose 1",
