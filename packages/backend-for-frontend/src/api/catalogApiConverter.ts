@@ -411,7 +411,6 @@ export function toBffEServiceTemplateInstance(
     producerName: producer.name,
     latestDescriptor: validDescriptors.at(-1),
     descriptors: validDescriptors,
-    instanceLabel: eservice.templateRef?.instanceLabel,
   };
 }
 

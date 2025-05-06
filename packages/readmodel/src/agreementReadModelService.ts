@@ -16,9 +16,7 @@ import {
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import {
   aggregateAgreement,
-  aggregateAgreementArray,
   toAgreementAggregator,
-  toAgreementAggregatorArray,
 } from "./agreement/aggregators.js";
 import { checkMetadataVersion } from "./utils.js";
 
@@ -45,35 +43,35 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
           agreement.id
         );
 
-        if (shouldUpsert) {
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(agreementInReadmodelAgreement)
+          .where(eq(agreementInReadmodelAgreement.id, agreement.id));
+
+        await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
+
+        for (const stampSQL of stampsSQL) {
+          await tx.insert(agreementStampInReadmodelAgreement).values(stampSQL);
+        }
+
+        for (const attributeSQL of attributesSQL) {
           await tx
-            .delete(agreementInReadmodelAgreement)
-            .where(eq(agreementInReadmodelAgreement.id, agreement.id));
+            .insert(agreementAttributeInReadmodelAgreement)
+            .values(attributeSQL);
+        }
 
-          await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
-
-          for (const stampSQL of stampsSQL) {
-            await tx
-              .insert(agreementStampInReadmodelAgreement)
-              .values(stampSQL);
-          }
-
-          for (const attributeSQL of attributesSQL) {
-            await tx
-              .insert(agreementAttributeInReadmodelAgreement)
-              .values(attributeSQL);
-          }
-
-          for (const docSQL of consumerDocumentsSQL) {
-            await tx
-              .insert(agreementConsumerDocumentInReadmodelAgreement)
-              .values(docSQL);
-          }
-          if (contractSQL !== undefined) {
-            await tx
-              .insert(agreementContractInReadmodelAgreement)
-              .values(contractSQL);
-          }
+        for (const docSQL of consumerDocumentsSQL) {
+          await tx
+            .insert(agreementConsumerDocumentInReadmodelAgreement)
+            .values(docSQL);
+        }
+        if (contractSQL !== undefined) {
+          await tx
+            .insert(agreementContractInReadmodelAgreement)
+            .values(contractSQL);
         }
       });
     },
@@ -144,58 +142,6 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
       }
 
       return aggregateAgreement(toAgreementAggregator(queryResult));
-    },
-    async getAgreementsByFilter(
-      filter: SQL | undefined
-    ): Promise<Array<WithMetadata<Agreement>>> {
-      if (filter === undefined) {
-        throw genericInternalError("Filter cannot be undefined");
-      }
-
-      const queryResult = await db
-        .select({
-          agreement: agreementInReadmodelAgreement,
-          stamp: agreementStampInReadmodelAgreement,
-          attribute: agreementAttributeInReadmodelAgreement,
-          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
-          contract: agreementContractInReadmodelAgreement,
-        })
-        .from(agreementInReadmodelAgreement)
-        .where(filter)
-        .leftJoin(
-          // 1
-          agreementStampInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementStampInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          // 2
-          agreementAttributeInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementAttributeInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          // 3
-          agreementConsumerDocumentInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementConsumerDocumentInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          // 4
-          agreementContractInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementContractInReadmodelAgreement.agreementId
-          )
-        );
-
-      return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));
     },
     async deleteAgreementById(
       agreementId: AgreementId,

@@ -24,7 +24,6 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateRefInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
@@ -79,15 +78,11 @@ export type EServiceRiskAnalysisAnswerSQL = InferSelectModel<
 export type EServiceDescriptorAttributeSQL = InferSelectModel<
   typeof eserviceDescriptorAttributeInReadmodelCatalog
 >;
-export type EServiceTemplateRefSQL = InferSelectModel<
-  typeof eserviceTemplateRefInReadmodelCatalog
->;
 export type EServiceDescriptorTemplateVersionRefSQL = InferSelectModel<
   typeof eserviceDescriptorTemplateVersionRefInReadmodelCatalog
 >;
 export type EServiceItemsSQL = {
   eserviceSQL: EServiceSQL;
-  templateRefSQL: EServiceTemplateRefSQL | undefined;
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
   riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[];
   descriptorsSQL: EServiceDescriptorSQL[];
@@ -218,6 +213,7 @@ export type ClientPurposeSQL = InferSelectModel<
   typeof clientPurposeInReadmodelClient
 >;
 export type ClientKeySQL = InferSelectModel<typeof clientKeyInReadmodelClient>;
+
 export type ClientItemsSQL = {
   clientSQL: ClientSQL;
   usersSQL: ClientUserSQL[];

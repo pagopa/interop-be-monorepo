@@ -8,7 +8,10 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
+import {
+  getMockContextInternal,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
   expirationDateNotFoundInVerifier,
@@ -61,7 +64,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
         tenant.id,
         attributeId,
         verifierId,
-        getMockContext({})
+        getMockContextInternal({})
       );
     const writtenEvent = await readLastTenantEvent(tenant.id);
     if (!writtenEvent) {
@@ -101,7 +104,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
         tenant.id,
         attributeId,
         verifierId,
-        getMockContext({})
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
@@ -133,7 +136,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
         updatedTenantWithoutExpirationDate.id,
         attributeId,
         verifierId,
-        getMockContext({})
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       expirationDateNotFoundInVerifier(
@@ -151,7 +154,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
         mockTenant.id,
         attributeId,
         verifierId,
-        getMockContext({})
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
@@ -165,7 +168,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
         tenant.id,
         attributeId,
         verifierId,
-        getMockContext({})
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)

@@ -9,6 +9,8 @@ import {
   getMockAttribute,
   getMockTenant,
   getMockCertifiedTenantAttribute,
+  getMockContext,
+  getMockAuthData,
 } from "pagopa-interop-commons-test";
 import {
   tenantIsNotACertifier,
@@ -60,11 +62,13 @@ describe("getCertifiedAttributes", () => {
     await addOneTenant(tenantCertifier);
     await addOneTenant(tenantWithCertifiedAttributes);
 
-    const result = await tenantService.getCertifiedAttributes({
-      organizationId: tenantCertifier.id,
-      offset: 0,
-      limit: 50,
-    });
+    const result = await tenantService.getCertifiedAttributes(
+      {
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+    );
 
     expect(result.totalCount).toBe(2);
     expect(result.results).toEqual([
@@ -126,11 +130,13 @@ describe("getCertifiedAttributes", () => {
     await addOneTenant(tenantCertifier);
     await addOneTenant(tenantWithCertifiedAttributes);
 
-    const result = await tenantService.getCertifiedAttributes({
-      organizationId: tenantCertifier.id,
-      offset: 0,
-      limit: 50,
-    });
+    const result = await tenantService.getCertifiedAttributes(
+      {
+        offset: 0,
+        limit: 50,
+      },
+      getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+    );
 
     expect(result.totalCount).toBe(1);
     expect(result.results).not.toContainEqual([
@@ -186,11 +192,13 @@ describe("getCertifiedAttributes", () => {
     await addOneTenant(tenantWithCertifiedAttributes);
 
     void expect(
-      tenantService.getCertifiedAttributes({
-        organizationId: tenantCertifier.id,
-        offset: 0,
-        limit: 50,
-      })
+      tenantService.getCertifiedAttributes(
+        {
+          offset: 0,
+          limit: 50,
+        },
+        getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+      )
     ).rejects.toThrowError(tenantNotFound(tenantCertifier.id));
   });
 
@@ -238,11 +246,13 @@ describe("getCertifiedAttributes", () => {
     await addOneTenant(tenantWithCertifiedAttributes);
 
     void expect(
-      tenantService.getCertifiedAttributes({
-        organizationId: tenantNotCertifier.id,
-        offset: 0,
-        limit: 50,
-      })
+      tenantService.getCertifiedAttributes(
+        {
+          offset: 0,
+          limit: 50,
+        },
+        getMockContext({ authData: getMockAuthData(tenantNotCertifier.id) })
+      )
     ).rejects.toThrowError(tenantIsNotACertifier(tenantNotCertifier.id));
   });
 });

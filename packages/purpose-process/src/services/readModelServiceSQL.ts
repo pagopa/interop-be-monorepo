@@ -1,4 +1,8 @@
-import { ReadModelRepository } from "pagopa-interop-commons";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+} from "pagopa-interop-commons";
 import {
   EService,
   WithMetadata,
@@ -49,6 +53,7 @@ import {
   sql,
   SQL,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 export type GetPurposesFilters = {
   title?: string;
@@ -68,10 +73,7 @@ function getPurposesFilters(
 ): Array<SQL | undefined> {
   const { title, eservicesIds, states, excludeDraft } = filters;
   const titleFilter = title
-    ? ilike(
-        purposeInReadmodelPurpose.title,
-        `%${ReadModelRepository.escapeRegExp(title)}%`
-      )
+    ? ilike(purposeInReadmodelPurpose.title, `%${escapeRegExp(title)}%`)
     : undefined;
 
   const eservicesIdsFilter =
@@ -167,10 +169,18 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<Purpose>> {
       const { producersIds, consumersIds, ...otherFilters } = filters;
 
+      const activeProducerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeProducerDelegations"
+      );
+      const activeConsumerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeConsumerDelegations"
+      );
       const subquery = readModelDB
         .select({
           purposeId: purposeInReadmodelPurpose.id,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
+          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(purposeInReadmodelPurpose)
         .leftJoin(
@@ -181,17 +191,50 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
-          delegationInReadmodelDelegation,
-          eq(
-            purposeInReadmodelPurpose.eserviceId,
-            delegationInReadmodelDelegation.eserviceId
-          )
-        )
-        .leftJoin(
           eserviceInReadmodelCatalog,
           eq(
             purposeInReadmodelPurpose.eserviceId,
             eserviceInReadmodelCatalog.id
+          )
+        )
+        .leftJoin(
+          activeProducerDelegations,
+          and(
+            eq(
+              purposeInReadmodelPurpose.eserviceId,
+              activeProducerDelegations.eserviceId
+            ),
+            eq(activeProducerDelegations.state, delegationState.active),
+            eq(
+              activeProducerDelegations.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(
+              activeProducerDelegations.delegatorId,
+              eserviceInReadmodelCatalog.producerId
+            )
+          )
+        )
+        .leftJoin(
+          activeConsumerDelegations,
+          and(
+            eq(
+              purposeInReadmodelPurpose.eserviceId,
+              activeConsumerDelegations.eserviceId
+            ),
+            eq(activeConsumerDelegations.state, delegationState.active),
+            eq(
+              activeConsumerDelegations.kind,
+              delegationKind.delegatedConsumer
+            ),
+            eq(
+              activeConsumerDelegations.delegatorId,
+              purposeInReadmodelPurpose.consumerId
+            ),
+            eq(
+              purposeInReadmodelPurpose.delegationId,
+              activeConsumerDelegations.id
+            )
           )
         )
         .where(
@@ -200,48 +243,29 @@ export function readModelServiceBuilderSQL({
             producersIds.length > 0
               ? or(
                   inArray(eserviceInReadmodelCatalog.producerId, producersIds),
-                  inArray(
-                    delegationInReadmodelDelegation.delegateId,
-                    producersIds
-                  )
+                  inArray(activeProducerDelegations.delegateId, producersIds)
                 )
               : undefined,
             // CONSUMER IDS
             consumersIds.length > 0
               ? or(
                   inArray(purposeInReadmodelPurpose.consumerId, consumersIds),
-                  inArray(
-                    delegationInReadmodelDelegation.delegateId,
-                    consumersIds
-                  )
+                  inArray(activeConsumerDelegations.delegateId, consumersIds)
                 )
               : undefined,
             // VISIBILITY
             or(
               eq(eserviceInReadmodelCatalog.producerId, requesterId),
               eq(purposeInReadmodelPurpose.consumerId, requesterId),
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  delegationInReadmodelDelegation.kind,
-                  delegationKind.delegatedProducer
-                )
-              ),
-              and(
-                eq(delegationInReadmodelDelegation.delegateId, requesterId),
-                eq(
-                  purposeInReadmodelPurpose.delegationId,
-                  delegationInReadmodelDelegation.id
-                ),
-                isNotNull(delegationInReadmodelDelegation.delegateId)
-              )
+              eq(activeProducerDelegations.delegateId, requesterId),
+              eq(activeConsumerDelegations.delegateId, requesterId)
             ),
             // PURPOSE FILTERS
             ...getPurposesFilters(readModelDB, otherFilters)
           )
         )
         .groupBy(purposeInReadmodelPurpose.id)
-        .orderBy(sql`LOWER(${purposeInReadmodelPurpose.title})`)
+        .orderBy(ascLower(purposeInReadmodelPurpose.title))
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -303,14 +327,15 @@ export function readModelServiceBuilderSQL({
             eserviceInReadmodelCatalog.id
           )
         )
-        .orderBy(sql`LOWER(${purposeInReadmodelPurpose.title})`);
+        .orderBy(ascLower(purposeInReadmodelPurpose.title));
 
-      return {
-        results: aggregatePurposeArray(
-          toPurposeAggregatorArray(queryResult)
-        ).map((p) => p.data),
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
-      };
+      const purposes = aggregatePurposeArray(
+        toPurposeAggregatorArray(queryResult)
+      );
+      return createListResult(
+        purposes.map((p) => p.data),
+        queryResult[0]?.totalCount
+      );
     },
     async getActiveAgreement(
       eserviceId: EServiceId,
@@ -337,8 +362,6 @@ export function readModelServiceBuilderSQL({
           and(...getPurposesFilters(readModelDB, filters))
         )
       ).map((d) => d.data);
-
-      // TODO: safeParse?
     },
     async getActiveProducerDelegationByEserviceId(
       eserviceId: EServiceId
