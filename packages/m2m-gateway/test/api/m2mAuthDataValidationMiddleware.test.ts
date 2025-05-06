@@ -5,7 +5,7 @@ import {
   generateToken,
   mockM2MAdminClientId,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, mockGetClientAdminId } from "../vitest.api.setup.js";
 import { appBasePath } from "../../src/config/appBasePath.js";
