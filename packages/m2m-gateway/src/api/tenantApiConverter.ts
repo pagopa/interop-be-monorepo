@@ -33,7 +33,7 @@ export function toGetTenantsApiQueryParams(
   };
 }
 
-export function toM2MTenantCertifiedAttribute(
+export function toM2MGatewayApiTenantCertifiedAttribute(
   tenantCertifiedAttribute: tenantApi.CertifiedTenantAttribute,
   certifiedAttribute: attributeRegistryApi.Attribute
 ): m2mGatewayApi.TenantCertifiedAttribute {

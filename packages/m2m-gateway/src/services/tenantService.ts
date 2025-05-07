@@ -4,7 +4,7 @@ import { TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
-  toM2MTenantCertifiedAttribute,
+  toM2MGatewayApiTenantCertifiedAttribute,
   toGetTenantsApiQueryParams,
   toM2MGatewayApiTenant,
 } from "../api/tenantApiConverter.js";
@@ -83,7 +83,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return {
         results: combinedAttributes.map((args) =>
-          toM2MTenantCertifiedAttribute(...args)
+          toM2MGatewayApiTenantCertifiedAttribute(...args)
         ),
         pagination: {
           limit,
