@@ -3,6 +3,7 @@ import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
+  getMockDelegation,
 } from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
@@ -13,6 +14,8 @@ import {
   agreementApprovalPolicy,
   EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
   featureFlagNotEnabled,
+  delegationKind,
+  delegationState,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
@@ -23,6 +26,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
+  addOneDelegation,
   addOneEService,
   catalogService,
   getMockDescriptor,
@@ -78,6 +82,69 @@ describe("update descriptor agreement approval policy", () => {
           descriptor.id,
           updatedDescriptorAgreementApprovalPolicy,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        );
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorAgreementApprovalPolicyUpdated",
+        event_version: 2,
+      });
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
+        payload: writtenEvent.data,
+      });
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+    }
+  );
+
+  it.each([
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.deprecated,
+  ])(
+    "should write on event-store for the update of descriptor agreement approval policy in state %s as delegate",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+        state,
+        interface: mockDocument,
+        publishedAt: new Date(),
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
+
+      const updatedDescriptorAgreementApprovalPolicy: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed =
+        {
+          agreementApprovalPolicy: "MANUAL",
+        };
+
+      const updatedEService: EService = {
+        ...eservice,
+        descriptors: [
+          {
+            ...descriptor,
+            agreementApprovalPolicy: agreementApprovalPolicy.manual,
+          },
+        ],
+      };
+      const returnedEService =
+        await catalogService.updateAgreementApprovalPolicy(
+          eservice.id,
+          descriptor.id,
+          updatedDescriptorAgreementApprovalPolicy,
+          getMockContext({ authData: getMockAuthData(delegation.delegateId) })
         );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
