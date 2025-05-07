@@ -1,7 +1,10 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeId, PurposeVersionId } from "pagopa-interop-models";
-import { toM2MPurpose } from "../api/purposeApiConverter.js";
+import { PurposeId } from "pagopa-interop-models";
+import {
+  toGetPurposesApiQueryParams,
+  toM2MGatewayApiPurpose,
+} from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -14,16 +17,14 @@ import { purposeVersionNotFound } from "../model/errors.js";
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeServiceBuilder({
-  purposeProcessClient,
-}: PagoPAInteropBeClients) {
+export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollPurpose = (
     response: WithMaybeMetadata<purposeApi.Purpose>,
     headers: M2MGatewayAppContext["headers"]
   ) =>
     pollResource(() =>
-      purposeProcessClient.getPurpose({
+      clients.purposeProcessClient.getPurpose({
         params: { id: response.data.id },
         headers,
       })
@@ -33,8 +34,8 @@ export function purposeServiceBuilder({
 
   return {
     getPurposes: async (
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
-      queryParams: m2mGatewayApi.GetPurposesQueryParams
+      queryParams: m2mGatewayApi.GetPurposesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purposes> => {
       const { eserviceIds, limit, offset } = queryParams;
 
@@ -42,19 +43,14 @@ export function purposeServiceBuilder({
         `Retrieving purposes for eServiceIds ${eserviceIds} limit ${limit} offset ${offset}`
       );
 
+      const queries = toGetPurposesApiQueryParams(queryParams);
+
       const {
         data: { results, totalCount },
-      } = await purposeProcessClient.getPurposes({
-        queries: {
-          eservicesIds: eserviceIds,
-          limit,
-          offset,
-        },
-        headers,
-      });
+      } = await clients.purposeProcessClient.getPurposes({ queries, headers });
 
       return {
-        results: results.map(toM2MPurpose),
+        results: results.map(toM2MGatewayApiPurpose),
         pagination: {
           limit,
           offset,
@@ -63,27 +59,27 @@ export function purposeServiceBuilder({
       };
     },
     getPurpose: async (
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
-      purposeId: PurposeId
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> => {
       logger.info(`Retrieving purpose with id ${purposeId}`);
 
-      const { data } = await purposeProcessClient.getPurpose({
+      const { data } = await clients.purposeProcessClient.getPurpose({
         params: {
           id: purposeId,
         },
         headers,
       });
 
-      return toM2MPurpose(data);
+      return toM2MGatewayApiPurpose(data);
     },
     createPurpose: async (
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
-      purposeSeed: m2mGatewayApi.PurposeSeed
+      purposeSeed: m2mGatewayApi.PurposeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> => {
       logger.info(`Creating purpose`);
 
-      const purposeResponse = await purposeProcessClient.createPurpose(
+      const purposeResponse = await clients.purposeProcessClient.createPurpose(
         purposeSeed,
         {
           headers,
@@ -92,7 +88,7 @@ export function purposeServiceBuilder({
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MPurpose(polledResource.data);
+      return toM2MGatewayApiPurpose(polledResource.data);
     },
     getPurposeVersion: async (
       { logger, headers }: WithLogger<M2MGatewayAppContext>,

@@ -36,7 +36,7 @@ export function getMockedApiPurpose({
       isRiskAnalysisValid: true,
     },
     metadata: {
-      version: versions ? versions.length - 1 : 0,
+      version: 0,
     },
   };
 }
