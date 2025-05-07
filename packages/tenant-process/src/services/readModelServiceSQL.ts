@@ -53,7 +53,11 @@ import {
   sql,
 } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { ascLower, createListResult } from "pagopa-interop-commons";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+} from "pagopa-interop-commons";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
@@ -97,7 +101,9 @@ export function readModelServiceBuilderSQL(
             features.length > 0
               ? inArray(tenantFeatureInReadmodelTenant.kind, features)
               : undefined,
-            name ? ilike(tenantInReadmodelTenant.name, `%${name}%`) : undefined,
+            name
+              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
+              : undefined,
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
@@ -187,7 +193,7 @@ export function readModelServiceBuilderSQL(
       name: string
     ): Promise<WithMetadata<Tenant> | undefined> {
       return await tenantReadModelService.getTenantByFilter(
-        ilike(tenantInReadmodelTenant.name, name)
+        ilike(tenantInReadmodelTenant.name, escapeRegExp(name))
       );
     },
 
