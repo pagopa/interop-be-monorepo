@@ -40,7 +40,7 @@ describe("getPurpose", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
       params: {
-        purposeId: m2mPurposeResponse.id,
+        id: m2mPurposeResponse.id,
       },
     });
   });
