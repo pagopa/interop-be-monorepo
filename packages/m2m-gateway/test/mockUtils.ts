@@ -6,6 +6,8 @@ import {
   WithMetadata,
   generateId,
 } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 
 export function getMockedApiPurpose({
@@ -22,16 +24,16 @@ export function getMockedApiPurpose({
         {
           id: generateId(),
           createdAt: new Date().toISOString(),
-          dailyCalls: 5000,
+          dailyCalls: generateMock(z.number().positive()),
           state: "DRAFT",
         },
       ],
-      title: "Purpose 1 - test",
-      description: "Test purpose - description",
+      title: generateMock(z.string()),
+      description: generateMock(z.string()),
       createdAt: new Date().toISOString(),
-      isFreeOfCharge: true,
-      freeOfChargeReason: "test",
       isRiskAnalysisValid: true,
+      isFreeOfCharge: true,
+      freeOfChargeReason: generateMock(z.string()),
     },
     metadata: {
       version: 0,
