@@ -4,7 +4,6 @@ import {
   loggerMiddleware,
   zodiosCtx,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
-  initFileManager,
   InteropTokenGenerator,
   RateLimiter,
   FileManager,
@@ -15,10 +14,6 @@ import {
   applicationAuditEndSessionTokenExchangeMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
-import {
-  selfcareV2InstitutionClientBuilder,
-  selfcareV2UsersClientBuilder,
-} from "pagopa-interop-api-clients";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
@@ -120,7 +115,6 @@ export async function createServices(
   authorizationServiceAllowList: string[]
 ): Promise<BFFServices> {
   const interopTokenGenerator = new InteropTokenGenerator(config);
-  const selfcareV2UsersClient = selfcareV2UsersClientBuilder(config);
 
   return {
     agreementService: agreementServiceBuilder(clients, fileManager),
