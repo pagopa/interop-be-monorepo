@@ -546,6 +546,7 @@ export function readModelServiceBuilderSQL(
               attributeInReadmodelAttribute.id
             ),
             eq(attributeInReadmodelAttribute.origin, certifierId),
+            eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
             isNull(
               tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
             )
