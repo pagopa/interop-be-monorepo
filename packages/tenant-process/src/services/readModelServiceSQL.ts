@@ -57,6 +57,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  lowerCase,
 } from "pagopa-interop-commons";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
@@ -83,7 +84,7 @@ export function readModelServiceBuilderSQL(
       const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -252,7 +253,7 @@ export function readModelServiceBuilderSQL(
       const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -366,7 +367,7 @@ export function readModelServiceBuilderSQL(
       const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -532,7 +533,7 @@ export function readModelServiceBuilderSQL(
         .selectDistinct({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
-          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
           attributeName: attributeInReadmodelAttribute.name,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
