@@ -9,6 +9,7 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
+import { producerKeychainNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /producerKeychains/{producerKeychainId} authorization test", () => {
   const userId1: UserId = generateId();
@@ -34,7 +35,10 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
       .get(`/producerKeychains/${producerKeychainId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .query({
+        offset: 0,
+        limit: 50,
+      });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -59,5 +63,14 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
     const res = await makeRequest(token, mockProducerKeychain.id);
 
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 404 for producerKeychainNotFound", async () => {
+    authorizationService.getProducerKeychainById = vi
+      .fn()
+      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockProducerKeychain.id);
+    expect(res.status).toBe(404);
   });
 });

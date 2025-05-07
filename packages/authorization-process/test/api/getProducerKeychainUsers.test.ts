@@ -9,6 +9,10 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
+import {
+  organizationNotAllowedOnProducerKeychain,
+  producerKeychainNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /producerKeychains/{producerKeychainId}/users authorization test", () => {
   const userId1: UserId = generateId();
@@ -61,5 +65,34 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
     const token = generateToken(role);
     const res = await makeRequest(token, mockProducerKeychain.id);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 404 for producerKeychainNotFound", async () => {
+    authorizationService.getProducerKeychainUsers = vi
+      .fn()
+      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, generateId());
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for organizationNotAllowedOnProducerKeychain", async () => {
+    authorizationService.getProducerKeychainUsers = vi
+      .fn()
+      .mockRejectedValue(
+        organizationNotAllowedOnProducerKeychain(
+          generateId(),
+          mockProducerKeychain.id
+        )
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockProducerKeychain.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
   });
 });

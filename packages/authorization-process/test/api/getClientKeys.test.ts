@@ -16,7 +16,11 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { clientNotFound } from "../../src/model/domain/errors.js";
+import {
+  clientNotFound,
+  organizationNotAllowedOnClient,
+  securityUserNotMember,
+} from "../../src/model/domain/errors.js";
 import { keyToApiKey } from "../../src/model/domain/apiConverter.js";
 
 describe("API /clients/{clientId}/keys authorization test", () => {
@@ -107,5 +111,31 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     );
 
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for organizationNotAllowedOnClient", async () => {
+    authorizationService.getClientKeys = vi
+      .fn()
+      .mockRejectedValue(
+        organizationNotAllowedOnClient(generateId(), mockClient.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockClient.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 403 for securityUserNotMember", async () => {
+    authorizationService.getClientKeys = vi
+      .fn()
+      .mockRejectedValue(securityUserNotMember(keyUserId1));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockClient.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
   });
 });

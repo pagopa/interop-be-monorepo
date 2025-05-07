@@ -7,6 +7,10 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
+import {
+  clientKeyNotFound,
+  clientNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () => {
   const clientId: ClientId = generateId();
@@ -36,7 +40,11 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
     request(api)
       .get(`/clients/${clientId}/keys/${keyId}/bundle`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("X-Correlation-Id", generateId())
+      .query({
+        offset: 0,
+        limit: 50,
+      });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -61,5 +69,30 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
     const token = generateToken(role);
     const res = await makeRequest(token, clientId, keyId);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 404 for clientNotFound", async () => {
+    authorizationService.getKeyWithClientByKeyId = vi
+      .fn()
+      .mockRejectedValue(clientNotFound(mockClient.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockClient.id, mockKey.kid);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for clientKeyNotFound", async () => {
+    authorizationService.getKeyWithClientByKeyId = vi
+      .fn()
+      .mockRejectedValue(clientKeyNotFound(generateId(), mockClient.id));
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockClient.id, mockKey.kid);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid", "invalid");
+    expect(res.status).toBe(400);
   });
 });

@@ -90,7 +90,7 @@ describe("API /producerKeychains authorization test", () => {
   it("Should return 400 for invalid query parameter (invalid limit)", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await request(api)
-      .get("/clients")
+      .get("/producerKeychains")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query({

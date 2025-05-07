@@ -59,4 +59,17 @@ describe("API /producerKeychains authorization test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const invalidMakeRequest = async (token: string) =>
+      request(api)
+        .post(`/producerKeychains`)
+        .set("Authorization", `Bearer ${token}`)
+        .set("X-Correlation-Id", generateId())
+        .send({});
+
+    const res = await invalidMakeRequest(token);
+    expect(res.status).toBe(400);
+  });
 });

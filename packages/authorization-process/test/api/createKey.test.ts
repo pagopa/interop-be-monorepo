@@ -169,7 +169,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 409 for invalidKeyLength", async () => {
+  it("Should return 409 for keyAlreadyExists", async () => {
     authorizationService.createKey = vi
       .fn()
       .mockRejectedValue(keyAlreadyExists(key.kid));

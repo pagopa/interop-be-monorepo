@@ -10,7 +10,12 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { keyToApiKey } from "../../src/model/domain/apiConverter.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { clientKeyNotFound } from "../../src/model/domain/errors.js";
+import {
+  clientKeyNotFound,
+  clientNotFound,
+  organizationNotAllowedOnClient,
+  securityUserNotMember,
+} from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
   const mockKey1 = getMockKey();
@@ -30,7 +35,10 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
       .get(`/clients/${clientId}/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .query({
+        offset: 0,
+        limit: 50,
+      });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -69,5 +77,59 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
     );
 
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for clientNotFound", async () => {
+    authorizationService.getClientKeyById = vi
+      .fn()
+      .mockRejectedValue(clientNotFound(mockClient.id));
+
+    const res = await makeRequest(
+      generateToken(authRole.ADMIN_ROLE),
+      generateId(),
+      mockKey1.kid
+    );
+
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for clientKeyNotFound", async () => {
+    authorizationService.getClientKeyById = vi
+      .fn()
+      .mockRejectedValue(clientKeyNotFound(mockKey1.kid, mockClient.id));
+
+    const res = await makeRequest(
+      generateToken(authRole.ADMIN_ROLE),
+      generateId(),
+      mockKey1.kid
+    );
+
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for organizationNotAllowedOnClient", async () => {
+    authorizationService.getClientKeyById = vi
+      .fn()
+      .mockRejectedValue(
+        organizationNotAllowedOnClient(generateId(), mockClient.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockClient.id, mockKey1.kid);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 403 for securityUserNotMember", async () => {
+    authorizationService.getClientKeyById = vi
+      .fn()
+      .mockRejectedValue(securityUserNotMember(mockClient.users[0]));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockClient.id, mockKey1.kid);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid", "invalid");
+    expect(res.status).toBe(400);
   });
 });

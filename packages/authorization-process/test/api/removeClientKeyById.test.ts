@@ -5,6 +5,10 @@ import { generateId, ClientId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, authorizationService } from "../vitest.api.setup.js";
+import {
+  clientKeyNotFound,
+  clientNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
   const clientId = generateId<ClientId>();
@@ -38,5 +42,29 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
     const token = generateToken(role);
     const res = await makeRequest(token, clientId, keyId);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 404 for clientNotFound", async () => {
+    authorizationService.deleteClientKeyById = vi
+      .fn()
+      .mockRejectedValue(clientNotFound(clientId));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, clientId, keyId);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for clientKeyNotFound", async () => {
+    authorizationService.deleteClientKeyById = vi
+      .fn()
+      .mockRejectedValue(clientKeyNotFound(keyId, clientId));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, clientId, keyId);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid", "invalid");
+    expect(res.status).toBe(400);
   });
 });

@@ -9,6 +9,10 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, authorizationService } from "../vitest.api.setup.js";
+import {
+  organizationNotAllowedOnProducerKeychain,
+  producerKeychainNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId} authorization test", () => {
   const mockProducerKeychain: ProducerKeychain = {
@@ -39,6 +43,29 @@ describe("API /clients/{clientId} authorization test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
+    const res = await makeRequest(token, mockProducerKeychain.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 404 for producerKeychainNotFound", async () => {
+    authorizationService.deleteProducerKeychain = vi
+      .fn()
+      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockProducerKeychain.id);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for organizationNotAllowedOnProducerKeychain", async () => {
+    authorizationService.deleteProducerKeychain = vi
+      .fn()
+      .mockRejectedValue(
+        organizationNotAllowedOnProducerKeychain(
+          generateId(),
+          mockProducerKeychain.id
+        )
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, mockProducerKeychain.id);
     expect(res.status).toBe(403);
   });

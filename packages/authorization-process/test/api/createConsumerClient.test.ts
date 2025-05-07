@@ -55,7 +55,7 @@ describe("API /clientsConsumer authorization test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const invalidMakeRequest = async (token: string) =>
       request(api)
-        .post(`/clientsApi`)
+        .post(`/clientsConsumer`)
         .set("Authorization", `Bearer ${token}`)
         .set("X-Correlation-Id", generateId())
         .send({});

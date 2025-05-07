@@ -164,17 +164,6 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     authorizationService.addClientPurpose = vi
       .fn()
       .mockRejectedValue(
-        organizationNotAllowedOnClient(mockConsumerId, mockClient.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnClient", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(
         organizationNotAllowedOnClient(generateId(), mockClient.id)
       );
     const token = generateToken(authRole.ADMIN_ROLE);

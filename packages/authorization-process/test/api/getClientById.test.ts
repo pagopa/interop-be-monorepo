@@ -9,7 +9,10 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { clientNotFound } from "../../src/model/domain/errors.js";
+import {
+  clientNotFound,
+  organizationNotAllowedOnClient,
+} from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId} authorization test", () => {
   const mockClient: Client = getMockClient();
@@ -25,7 +28,10 @@ describe("API /clients/{clientId} authorization test", () => {
       .get(`/clients/${clientId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .query({
+        offset: 0,
+        limit: 50,
+      });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -63,5 +69,16 @@ describe("API /clients/{clientId} authorization test", () => {
     );
 
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for organizationNotAllowedOnClient", async () => {
+    authorizationService.getClientById = vi
+      .fn()
+      .mockRejectedValue(
+        organizationNotAllowedOnClient(generateId(), mockClient.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockClient.id);
+    expect(res.status).toBe(403);
   });
 });
