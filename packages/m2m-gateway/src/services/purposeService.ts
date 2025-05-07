@@ -30,7 +30,9 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       } = await clients.purposeProcessClient.getPurposes({ queries, headers });
 
       return {
-        results: results.map(toM2MGatewayApiPurpose),
+        results: results.map((purpose) =>
+          toM2MGatewayApiPurpose({ purpose, logger, throwNotFoundError: true })
+        ),
         pagination: {
           limit,
           offset,

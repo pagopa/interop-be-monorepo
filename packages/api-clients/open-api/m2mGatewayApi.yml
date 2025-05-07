@@ -2327,6 +2327,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 0
         - name: limit
           in: query
           description: The limit used for pagination
@@ -2334,13 +2335,15 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Purposes retrieved
           content:
             application/json:
               schema:
-                  $ref: "#/components/schemas/Purposes"
+                $ref: "#/components/schemas/Purposes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
