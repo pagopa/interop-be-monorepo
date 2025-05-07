@@ -67,7 +67,7 @@ describe("GET /purposes router test", () => {
   );
 
   it.each([
-    { ...mockQueryParams, eservicesIds: ["invalidId"] },
+    { ...mockQueryParams, eserviceIds: ["invalidId"] },
     { ...mockQueryParams, offset: -2 },
     { ...mockQueryParams, limit: 100 },
     { ...mockQueryParams, offset: "invalidOffset" },
