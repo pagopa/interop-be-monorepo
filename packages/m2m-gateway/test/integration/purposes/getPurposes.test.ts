@@ -48,14 +48,14 @@ describe("getPurposes", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mPurposeResponse1: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
-      mockApiPurpose1.data,
-      genericLogger
-    );
-    const m2mPurposeResponse2: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
-      mockApiPurpose2.data,
-      genericLogger
-    );
+    const m2mPurposeResponse1: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose({
+      purpose: mockApiPurpose1.data,
+      logger: genericLogger,
+    });
+    const m2mPurposeResponse2: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose({
+      purpose: mockApiPurpose2.data,
+      logger: genericLogger,
+    });
 
     const m2mPurposeResponse: m2mGatewayApi.Purposes = {
       pagination: {

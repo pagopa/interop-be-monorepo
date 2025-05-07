@@ -1,5 +1,4 @@
 import { delegationApi, purposeApi } from "pagopa-interop-api-clients";
-import { Logger } from "pagopa-interop-commons";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -7,6 +6,7 @@ export const errorCodes = {
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
   purposeNotFound: "0004",
+  missingActivePurposeVersion: "0005",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -52,12 +52,11 @@ export function purposeNotFound(
 }
 
 export function missingActivePurposeVersion(
-  purposeId: purposeApi.Purpose["id"],
-  logger: Logger
+  purposeId: purposeApi.Purpose["id"]
 ): ApiError<ErrorCodes> {
-  const error = purposeNotFound(purposeId);
-  logger.warn(
-    `Root cause for Error "${error.title}": there is no active version for purpose ${purposeId}`
-  );
-  return error;
+  return new ApiError({
+    detail: `There is no active version for purpose ${purposeId}`,
+    code: "missingActivePurposeVersion",
+    title: "Missing active purpose version",
+  });
 }
