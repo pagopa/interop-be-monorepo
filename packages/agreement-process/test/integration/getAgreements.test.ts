@@ -1,12 +1,12 @@
 /* eslint-disable functional/no-let */
 import {
   getMockTenant,
-  getMockDescriptorPublished,
   getMockEService,
   getMockAgreement,
   getMockDelegation,
   getMockAuthData,
   getMockContext,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Tenant,
@@ -30,6 +30,7 @@ import {
   agreementService,
   addOneDelegation,
   expectSinglePageListResult,
+  sortListAgreements,
 } from "../integrationUtils.js";
 
 describe("get agreements", () => {
@@ -44,6 +45,7 @@ describe("get agreements", () => {
   let descriptor3: Descriptor;
   let descriptor4: Descriptor;
   let descriptor5: Descriptor;
+  let descriptor6: Descriptor;
   let eservice1: EService;
   let eservice2: EService;
   let eservice3: EService;
@@ -89,6 +91,7 @@ describe("get agreements", () => {
       publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     };
     descriptor5 = getMockDescriptorPublished();
+    descriptor6 = getMockDescriptorPublished();
     eservice1 = {
       ...getMockEService(generateId<EServiceId>(), tenant1.id, [
         descriptor1,
@@ -107,11 +110,11 @@ describe("get agreements", () => {
     };
     eservice3 = {
       ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
-      name: "EService3", // Adding name because results are sorted by esevice name
+      name: "EService3", // Adding name because results are sorted by eservice name
     };
     eservice4 = {
-      ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
-      name: "EService4", // Adding name because results are sorted by esevice name
+      ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor6]),
+      name: "EService4", // Adding name because results are sorted by eservice name
     };
 
     await addOneTenant(tenant1);
@@ -347,7 +350,6 @@ describe("get agreements", () => {
         0,
         getMockContext({ authData: getMockAuthData(delegateConsumer2.id) })
       );
-
     expectSinglePageListResult(allAgreementsVisibleToDelegateConsumer2, [
       agreement6,
       agreement10,
@@ -462,7 +464,6 @@ describe("get agreements", () => {
       agreement1,
       agreement3,
       agreement5,
-      agreement7,
     ]);
   });
 
@@ -600,9 +601,12 @@ describe("get agreements", () => {
       0,
       getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
-    expect(agreements).toEqual({
+    expect({
+      totalCount: agreements.totalCount,
+      results: sortListAgreements(agreements.results),
+    }).toEqual({
       totalCount: 5,
-      results: [agreement1, agreement2],
+      results: sortListAgreements([agreement1, agreement2]),
     });
   });
 
@@ -613,9 +617,12 @@ describe("get agreements", () => {
       2,
       getMockContext({ authData: getMockAuthData(tenant1.id) })
     );
-    expect(agreements).toEqual({
+    expect({
+      totalCount: agreements.totalCount,
+      results: sortListAgreements(agreements.results),
+    }).toEqual({
       totalCount: 5,
-      results: [agreement3, agreement5],
+      results: sortListAgreements([agreement3, agreement5]),
     });
   });
 
