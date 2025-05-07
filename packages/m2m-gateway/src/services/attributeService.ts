@@ -34,8 +34,10 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     async getCertifiedAttribute(
       attributeId: string,
-      { headers }: WithLogger<M2MGatewayAppContext>
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.CertifiedAttribute> {
+      logger.info(`Retrieving certified attribute with id ${attributeId}`);
+
       const response = await clients.attributeProcessClient.getAttributeById({
         params: {
           attributeId,
@@ -50,8 +52,12 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async createCertifiedAttribute(
       seed: m2mGatewayApi.CertifiedAttributeSeed,
-      { headers }: WithLogger<M2MGatewayAppContext>
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.CertifiedAttribute> {
+      logger.info(
+        `Creating certified attribute with code ${seed.code} and name ${seed.name}`
+      );
+
       const response =
         await clients.attributeProcessClient.createCertifiedAttribute(seed, {
           headers,
