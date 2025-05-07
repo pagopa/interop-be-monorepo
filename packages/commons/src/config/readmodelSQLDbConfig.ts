@@ -3,9 +3,9 @@ import { z } from "zod";
 export const ReadModelSQLDbConfig = z
   .object({
     READMODEL_SQL_DB_HOST: z.string().default("localhost"),
-    READMODEL_SQL_DB_NAME: z.string().default("root"),
-    READMODEL_SQL_DB_USERNAME: z.string().default("root"),
-    READMODEL_SQL_DB_PASSWORD: z.string().default("root"),
+    READMODEL_SQL_DB_NAME: z.string().default("test"),
+    READMODEL_SQL_DB_USERNAME: z.string().default("test"),
+    READMODEL_SQL_DB_PASSWORD: z.string().default("test"),
     READMODEL_SQL_DB_PORT: z.coerce.number().min(1001).default(6002),
     READMODEL_SQL_DB_USE_SSL: z
       .enum(["true", "false"])
