@@ -53,7 +53,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      return toM2MGatewayApiPurpose(data);
+      return toM2MGatewayApiPurpose({
+        purpose: data,
+        logger,
+        throwNotFoundError: true,
+      });
     },
   };
 }
