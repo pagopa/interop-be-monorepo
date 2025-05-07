@@ -47,10 +47,11 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.TenantCertifiedAttributes> => {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);
 
-      const { data: tenant } = await tenantProcessClient.tenant.getTenant({
-        params: { id: tenantId },
-        headers,
-      });
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: tenantId },
+          headers,
+        });
 
       const tenantCertifiedAttributes = tenant.attributes
         .map((v) => v.certified)
@@ -62,7 +63,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const {
         data: { results: certifiedAttributes, totalCount },
-      } = await attributeProcessClient.getBulkedAttributes(
+      } = await clients.attributeProcessClient.getBulkedAttributes(
         tenantCertifiedAttributeIds,
         {
           headers,
