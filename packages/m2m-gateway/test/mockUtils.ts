@@ -1,4 +1,4 @@
-import { delegationApi } from "pagopa-interop-api-clients";
+import { delegationApi, tenantApi } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -6,6 +6,8 @@ import {
   WithMetadata,
   generateId,
 } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 
 export function getMockedApiDelegation({
@@ -32,6 +34,27 @@ export function getMockedApiDelegation({
           when: new Date().toISOString(),
         },
       },
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiTenant(): WithMetadata<tenantApi.Tenant> {
+  return {
+    data: {
+      id: generateId(),
+      attributes: [],
+      externalId: {
+        origin: "ORIGIN",
+        value: "VALUE",
+      },
+      name: generateMock(z.string()),
+      createdAt: new Date().toISOString(),
+      kind: tenantApi.TenantKind.Values.GSP,
+      mails: [],
+      features: [],
     },
     metadata: {
       version: 0,

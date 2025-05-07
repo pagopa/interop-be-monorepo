@@ -3,24 +3,19 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
+import { getMockedApiTenant } from "../../mockUtils.js";
 
 describe("GET /tenants route test", () => {
+  const mockApiTenant1 = getMockedApiTenant();
+  const mockApiTenant2 = getMockedApiTenant();
+
   const mockResponse: m2mGatewayApi.Tenants = {
     results: [
-      {
-        id: generateId(),
-        createdAt: new Date().toISOString(),
-        externalId: {
-          origin: "ORIGIN",
-          value: "VALUE",
-        },
-        name: "Test Tenant",
-        kind: "GSP",
-        onboardedAt: new Date().toISOString(),
-      },
+      toM2MGatewayApiTenant(mockApiTenant1.data),
+      toM2MGatewayApiTenant(mockApiTenant2.data),
     ],
     pagination: {
       limit: 10,
