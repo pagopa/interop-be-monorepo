@@ -20,7 +20,13 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
           tx,
           clientJwkKeyInReadmodelClientJwkKey,
           metadataVersion,
-          eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+          and(
+            eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid),
+            eq(
+              clientJwkKeyInReadmodelClientJwkKey.clientId,
+              clientJWKKey.clientId
+            )
+          )
         );
 
         if (!shouldUpsert) {

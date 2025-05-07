@@ -1,0 +1,19 @@
+meta {
+  name: List Tenant Certified Attributes
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host-m2m-gw}}/tenants/:tenantId/certifiedAttributes
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
