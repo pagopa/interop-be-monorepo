@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { genericLogger } from "pagopa-interop-commons";
-import { decodeProtobufPayload } from "pagopa-interop-commons-test/index.js";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+} from "pagopa-interop-commons-test/index.js";
 import {
   Descriptor,
   descriptorState,
   EService,
   toEServiceV2,
   operationForbidden,
-  generateId,
   agreementApprovalPolicy,
   EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
   featureFlagNotEnabled,
@@ -17,13 +19,12 @@ import { expect, describe, it, beforeEach } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  notValidDescriptor,
+  notValidDescriptorState,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
 import {
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -76,12 +77,7 @@ describe("update descriptor agreement approval policy", () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorAgreementApprovalPolicy,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
@@ -109,12 +105,7 @@ describe("update descriptor agreement approval policy", () => {
         mockEService.id,
         mockDescriptor.id,
         updatedDescriptorAgreementApprovalPolicy,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -136,12 +127,7 @@ describe("update descriptor agreement approval policy", () => {
         mockEService.id,
         mockDescriptor.id,
         updatedDescriptorAgreementApprovalPolicy,
-        {
-          authData: getMockAuthData(mockEService.producerId),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -171,14 +157,9 @@ describe("update descriptor agreement approval policy", () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorAgreementApprovalPolicy,
-          {
-            authData: getMockAuthData(eservice.producerId),
-            correlationId: generateId(),
-            serviceName: "",
-            logger: genericLogger,
-          }
+          getMockContext({ authData: getMockAuthData(mockEService.producerId) })
         )
-      ).rejects.toThrowError(notValidDescriptor(mockDescriptor.id, state));
+      ).rejects.toThrowError(notValidDescriptorState(mockDescriptor.id, state));
     }
   );
 
@@ -202,12 +183,7 @@ describe("update descriptor agreement approval policy", () => {
         eservice.id,
         descriptor.id,
         updatedDescriptorAgreementApprovalPolicy,
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData() })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -219,12 +195,7 @@ describe("update descriptor agreement approval policy", () => {
         mockEService.id,
         mockDescriptor.id,
         { agreementApprovalPolicy: "MANUAL" },
-        {
-          authData: getMockAuthData(),
-          correlationId: generateId(),
-          serviceName: "",
-          logger: genericLogger,
-        }
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
       featureFlagNotEnabled("featureFlagAgreementApprovalPolicyUpdate")
