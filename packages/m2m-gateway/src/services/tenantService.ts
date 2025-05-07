@@ -46,12 +46,13 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Tenant> => {
       logger.info(`Retrieving tenant with id ${tenantId}`);
 
-      const { data: tenant } = await tenantProcessClient.tenant.getTenant({
-        params: { id: tenantId },
-        headers,
-      });
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: tenantId },
+          headers,
+        });
 
-      return toM2MTenant(tenant);
+      return toM2MGatewayApiTenant(tenant);
     },
     getCertifiedAttributes: async (
       tenantId: TenantId,

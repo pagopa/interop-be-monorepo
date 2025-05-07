@@ -4,22 +4,16 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { getMockedApiTenant } from "../../mockUtils.js";
+import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
 
 describe("GET /tenants/:tenantId route test", () => {
-  const mockResponse: m2mGatewayApi.Tenant = {
-    id: generateId(),
-    createdAt: new Date().toISOString(),
-    externalId: {
-      origin: "ORIGIN",
-      value: "VALUE",
-    },
-    name: "Test Tenant",
-    kind: "GSP",
-    onboardedAt: new Date().toISOString(),
-  };
+  const mockApiResponse = getMockedApiTenant();
+  const mockResponse: m2mGatewayApi.Tenant = toM2MGatewayApiTenant(
+    mockApiResponse.data
+  );
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -50,5 +44,16 @@ describe("GET /tenants/:tenantId route test", () => {
     const token = generateToken(role);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 500 when API model parsing fails for response", async () => {
+    mockTenantService.getTenants = vi.fn().mockResolvedValue({
+      ...mockResponse,
+      kind: "INVALID_KIND",
+    });
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(500);
   });
 });
