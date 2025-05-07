@@ -77,7 +77,9 @@ export function readModelServiceBuilderSQL({
     async getEServiceTemplateById(
       id: EServiceTemplateId
     ): Promise<WithMetadata<EServiceTemplate> | undefined> {
-      return eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(id);
+      return await eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(
+        id
+      );
     },
     async getEServiceTemplateByNameAndCreatorId({
       name,
