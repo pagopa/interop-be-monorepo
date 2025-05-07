@@ -27,7 +27,6 @@ export async function handleMessageV1(
         await purposeReadModelService.upsertPurpose(purpose, msg.version);
       }
     )
-
     .with(
       { type: "PurposeVersionCreated" },
       { type: "PurposeVersionUpdated" },
