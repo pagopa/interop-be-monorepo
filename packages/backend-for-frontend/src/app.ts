@@ -147,7 +147,7 @@ export async function createServices(
       fileManager,
       config
     ),
-    clientService: clientServiceBuilder(clients, selfcareV2UsersClient),
+    clientService: clientServiceBuilder(clients),
     delegationService: delegationServiceBuilder(
       clients.delegationProcessClient,
       clients.tenantProcessClient,
@@ -160,24 +160,9 @@ export async function createServices(
       clients.attributeProcessClient,
       fileManager
     ),
-    producerKeychainService: producerKeychainServiceBuilder(
-      clients,
-      selfcareV2UsersClient
-    ),
-    purposeService: purposeServiceBuilder(
-      clients.purposeProcessClient,
-      clients.catalogProcessClient,
-      clients.tenantProcessClient,
-      clients.agreementProcessClient,
-      clients.delegationProcessClient,
-      clients.authorizationClient,
-      initFileManager(config)
-    ),
-    selfcareService: selfcareServiceBuilder(
-      selfcareV2InstitutionClientBuilder(config),
-      selfcareV2UsersClientBuilder(config),
-      clients.tenantProcessClient
-    ),
+    producerKeychainService: producerKeychainServiceBuilder(clients),
+    purposeService: purposeServiceBuilder(clients, fileManager),
+    selfcareService: selfcareServiceBuilder(clients),
     tenantService: tenantServiceBuilder(
       clients.tenantProcessClient,
       clients.attributeProcessClient,
