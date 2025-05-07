@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
 import {
   attributeRegistryApi,
@@ -30,7 +30,10 @@ describe("POST /certifiedAttributes router test", () => {
   });
 
   const mockM2MCertifiedAttributeResponse: m2mGatewayApi.CertifiedAttribute =
-    toM2MGatewayApiCertifiedAttribute(mockApiCertifiedAttribute.data);
+    toM2MGatewayApiCertifiedAttribute({
+      attribute: mockApiCertifiedAttribute.data,
+      logger: genericLogger,
+    });
 
   const makeRequest = async (
     token: string,

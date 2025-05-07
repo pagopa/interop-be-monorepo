@@ -2,30 +2,48 @@ import {
   attributeRegistryApi,
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
+import { ApiError } from "pagopa-interop-models";
+import { Logger } from "pagopa-interop-commons";
 import {
   assertAttributeKindIs,
   assertAttributeOriginAndCodeAreDefined,
 } from "../utils/validators/attributeValidators.js";
+import { attributeNotFound } from "../model/errors.js";
 
-export function toM2MGatewayApiCertifiedAttribute(
-  attribute: attributeRegistryApi.Attribute,
-  errorType: Parameters<
-    typeof assertAttributeKindIs
-  >[2] = "unexpectedAttributeKind"
-): m2mGatewayApi.CertifiedAttribute {
-  assertAttributeKindIs(
-    attribute,
-    attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-    errorType
-  );
-  assertAttributeOriginAndCodeAreDefined(attribute);
+export function toM2MGatewayApiCertifiedAttribute({
+  attribute,
+  logger,
+  throwNotFoundError = false,
+}: {
+  attribute: attributeRegistryApi.Attribute;
+  logger: Logger;
+  throwNotFoundError?: boolean;
+}): m2mGatewayApi.CertifiedAttribute {
+  try {
+    assertAttributeKindIs(
+      attribute,
+      attributeRegistryApi.AttributeKind.Values.CERTIFIED
+    );
+    assertAttributeOriginAndCodeAreDefined(attribute);
 
-  return {
-    id: attribute.id,
-    code: attribute.code,
-    description: attribute.description,
-    origin: attribute.origin,
-    name: attribute.name,
-    createdAt: attribute.creationTime,
-  };
+    return {
+      id: attribute.id,
+      code: attribute.code,
+      description: attribute.description,
+      origin: attribute.origin,
+      name: attribute.name,
+      createdAt: attribute.creationTime,
+    };
+  } catch (error) {
+    if (throwNotFoundError) {
+      logger.warn(
+        `Root cause for "Attribute not found" error: unexpected error while converting attribute: ${
+          error instanceof ApiError ? error.detail : error
+        }`
+      );
+      throw attributeNotFound(attribute);
+    } else {
+      throw error;
+    }
+  }
 }

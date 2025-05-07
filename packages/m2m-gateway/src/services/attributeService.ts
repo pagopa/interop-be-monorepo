@@ -45,10 +45,11 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      return toM2MGatewayApiCertifiedAttribute(
-        response.data,
-        "attributeNotFound"
-      );
+      return toM2MGatewayApiCertifiedAttribute({
+        attribute: response.data,
+        logger,
+        throwNotFoundError: true,
+      });
     },
     async createCertifiedAttribute(
       seed: m2mGatewayApi.CertifiedAttributeSeed,
@@ -65,7 +66,10 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledResource = await pollAttribute(response, headers);
 
-      return toM2MGatewayApiCertifiedAttribute(polledResource.data);
+      return toM2MGatewayApiCertifiedAttribute({
+        attribute: polledResource.data,
+        logger,
+      });
     },
   };
 }

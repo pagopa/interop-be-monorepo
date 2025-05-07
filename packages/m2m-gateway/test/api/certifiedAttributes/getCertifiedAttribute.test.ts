@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
 import {
   attributeRegistryApi,
@@ -8,10 +8,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { api, mockAttributeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  attributeNotFound,
-  unexpectedUndefinedAttributeOriginOrCode,
-} from "../../../src/model/errors.js";
+import { attributeNotFound } from "../../../src/model/errors.js";
 import { getMockedApiAttribute } from "../../mockUtils.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
@@ -20,7 +17,10 @@ describe("GET /certifiedAttribute router test", () => {
     kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
   });
   const mockM2MCertifiedAttributeResponse: m2mGatewayApi.CertifiedAttribute =
-    toM2MGatewayApiCertifiedAttribute(mockApiCertifiedAttribute.data);
+    toM2MGatewayApiCertifiedAttribute({
+      attribute: mockApiCertifiedAttribute.data,
+      logger: genericLogger,
+    });
 
   const makeRequest = async (token: string, attributeId: string) =>
     request(api)
@@ -70,17 +70,5 @@ describe("GET /certifiedAttribute router test", () => {
     const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
 
     expect(res.status).toBe(404);
-  });
-
-  it("Should return 500 in case of unexpectedUndefinedAttributeOriginOrCode error", async () => {
-    mockAttributeService.getCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(
-        unexpectedUndefinedAttributeOriginOrCode(mockApiCertifiedAttribute.data)
-      );
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
-
-    expect(res.status).toBe(500);
   });
 });

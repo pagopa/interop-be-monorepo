@@ -9,10 +9,7 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  attributeNotFound,
-  unexpectedUndefinedAttributeOriginOrCode,
-} from "../../../src/model/errors.js";
+import { attributeNotFound } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   getMockedApiAttribute,
@@ -82,7 +79,7 @@ describe("getCertifiedAttribute", () => {
     { origin: "validOrigin", code: undefined },
     { origin: undefined, code: undefined },
   ])(
-    "Should throw unexpectedUndefinedAttributeOriginOrCode in case the returned attribute has an undefined origin or code",
+    "Should throw attributeNotFound in case the returned attribute has an undefined origin or code",
     async ({ origin, code }) => {
       const mockResponse = {
         ...mockAttributeProcessResponse,
@@ -101,9 +98,7 @@ describe("getCertifiedAttribute", () => {
           mockAttributeProcessResponse.data.id,
           getMockM2MAdminAppContext()
         )
-      ).rejects.toThrowError(
-        unexpectedUndefinedAttributeOriginOrCode(mockResponse.data)
-      );
+      ).rejects.toThrowError(attributeNotFound(mockResponse.data));
     }
   );
 });
