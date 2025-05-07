@@ -11,7 +11,6 @@ import {
   getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
@@ -19,6 +18,9 @@ import {
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
+  sortAgreementV2,
+  sortAgreement,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -30,6 +32,7 @@ import {
   EServiceId,
   Tenant,
   TenantId,
+  VerifiedTenantAttribute,
   agreementState,
   delegationKind,
   delegationState,
@@ -69,6 +72,18 @@ describe("suspend agreement", () => {
 
   it("should succeed when requester is Consumer or Producer and the Agreement is in an suspendable state", async () => {
     const producerId = generateId<TenantId>();
+    const tenantOnlyForVerifierAttribute: Tenant = getMockTenant();
+
+    const tenantVerifiedAttribute: VerifiedTenantAttribute = {
+      ...getMockVerifiedTenantAttribute(),
+      verifiedBy: [
+        {
+          id: tenantOnlyForVerifierAttribute.id,
+          verificationDate: new Date(),
+        },
+      ],
+      revokedBy: [],
+    };
 
     // Adding some attributes to consumer, descriptor and eService to verify
     // that the suspension ignores them and does not update them
@@ -77,7 +92,7 @@ describe("suspend agreement", () => {
       attributes: [
         getMockCertifiedTenantAttribute(),
         getMockDeclaredTenantAttribute(),
-        getMockVerifiedTenantAttribute(),
+        tenantVerifiedAttribute,
       ],
     };
 
@@ -112,7 +127,7 @@ describe("suspend agreement", () => {
         getMockAgreementAttribute(consumer.attributes[2].id),
       ],
     };
-
+    await addOneTenant(tenantOnlyForVerifierAttribute);
     await addOneTenant(consumer);
     await addOneEService(eservice);
     await addOneAgreement(agreement);
@@ -164,13 +179,10 @@ describe("suspend agreement", () => {
         : agreement.stamps.suspensionByProducer,
     };
     const expectedSuspensionFlags = {
-      suspendedByConsumer: isConsumer
-        ? true
-        : agreement.suspendedByConsumer ?? false,
-      suspendedByProducer: !isConsumer
-        ? true
-        : agreement.suspendedByProducer ?? false,
+      ...(isConsumer ? { suspendedByConsumer: true } : {}),
+      ...(!isConsumer ? { suspendedByProducer: true } : {}),
     };
+
     const expectedAgreementSuspended: Agreement = {
       ...agreement,
       ...expectedSuspensionFlags,
@@ -190,6 +202,19 @@ describe("suspend agreement", () => {
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
     const producerAndConsumerId = generateId<TenantId>();
 
+    const tenantOnlyForVerifierAttribute: Tenant = getMockTenant();
+
+    const tenantVerifiedAttribute: VerifiedTenantAttribute = {
+      ...getMockVerifiedTenantAttribute(),
+      verifiedBy: [
+        {
+          id: tenantOnlyForVerifierAttribute.id,
+          verificationDate: new Date(),
+        },
+      ],
+      revokedBy: [],
+    };
+
     // Adding some attributes to consumer, descriptor and eService to verify
     // that the suspension ignores them and does not update them
     const consumer: Tenant = {
@@ -197,7 +222,7 @@ describe("suspend agreement", () => {
       attributes: [
         getMockCertifiedTenantAttribute(),
         getMockDeclaredTenantAttribute(),
-        getMockVerifiedTenantAttribute(),
+        tenantVerifiedAttribute,
       ],
     };
     const descriptor: Descriptor = {
@@ -233,6 +258,7 @@ describe("suspend agreement", () => {
       ],
     };
 
+    await addOneTenant(tenantOnlyForVerifierAttribute);
     await addOneTenant(consumer);
     await addOneEService(eservice);
     await addOneAgreement(agreement);
@@ -379,8 +405,8 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(actualAgreementSuspended).toEqual(
-      toAgreementV2(expectedAgreementSuspended)
+    expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
+      sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
     );
     expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
   });
@@ -392,13 +418,24 @@ describe("suspend agreement", () => {
         delegationKind.delegatedConsumer,
         delegationKind.delegatedProducer,
       ])("and the requester is the %s", async (kind) => {
+        const tenantOnlyForVerifierAttribute: Tenant = getMockTenant();
+        const tenantVerifiedAttribute: VerifiedTenantAttribute = {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: tenantOnlyForVerifierAttribute.id,
+              verificationDate: new Date(),
+            },
+          ],
+          revokedBy: [],
+        };
         const date = new Date();
         const consumer: Tenant = {
           ...getMockTenant(),
           attributes: [
             getMockCertifiedTenantAttribute(),
             getMockDeclaredTenantAttribute(),
-            getMockVerifiedTenantAttribute(),
+            tenantVerifiedAttribute,
           ],
         };
 
@@ -437,6 +474,7 @@ describe("suspend agreement", () => {
           state: delegationState.active,
         });
 
+        await addOneTenant(tenantOnlyForVerifierAttribute);
         await addOneAgreement(agreement);
         await addOneEService(eservice);
         await addOneTenant(consumer);
@@ -478,7 +516,9 @@ describe("suspend agreement", () => {
           agreement.id,
           getMockContext({ authData })
         );
-        expect(actualAgreement).toEqual(expectedAgreement);
+        expect(sortAgreement(actualAgreement)).toEqual(
+          sortAgreement(expectedAgreement)
+        );
       });
     }
   );
