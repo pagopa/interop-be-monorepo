@@ -20,7 +20,7 @@ describe("GET /tenants route test", () => {
     pagination: {
       limit: 10,
       offset: 0,
-      totalCount: 0,
+      totalCount: 2,
     },
   };
 

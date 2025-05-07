@@ -92,9 +92,11 @@ describe("getTenants", () => {
     expect(result).toEqual(m2mTenantsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenants,
-      params: {
+      queries: {
         externalIdOrigin: mockParams.externalIdOrigin,
         externalIdValue: mockParams.externalIdValue,
+        features: [],
+        name: undefined,
         offset: mockParams.offset,
         limit: mockParams.limit,
       },
