@@ -910,7 +910,10 @@ export function readModelServiceBuilderSQL(
           and(
             // FILTER NAME
             eserviceName
-              ? ilike(eserviceInReadmodelCatalog.name, `%${eserviceName}%`)
+              ? ilike(
+                  eserviceInReadmodelCatalog.name,
+                  `%${escapeRegExp(eserviceName)}%`
+                )
               : undefined,
             // FILTER PRODUCER
             producerIds.length > 0

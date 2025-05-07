@@ -274,7 +274,7 @@ export function readModelServiceBuilderSQL(
         .where(
           and(
             consumerName
-              ? ilike(tenantInReadmodelTenant.name, consumerName)
+              ? ilike(tenantInReadmodelTenant.name, escapeRegExp(consumerName))
               : undefined,
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
@@ -383,7 +383,7 @@ export function readModelServiceBuilderSQL(
         .where(
           and(
             producerName
-              ? ilike(tenantInReadmodelTenant.name, producerName)
+              ? ilike(tenantInReadmodelTenant.name, escapeRegExp(producerName))
               : undefined,
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
