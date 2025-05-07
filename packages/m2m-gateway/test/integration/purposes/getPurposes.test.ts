@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -48,10 +49,12 @@ describe("getPurposes", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const m2mPurposeResponse1: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
-      mockApiPurpose1.data
+      mockApiPurpose1.data,
+      genericLogger
     );
     const m2mPurposeResponse2: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
-      mockApiPurpose2.data
+      mockApiPurpose2.data,
+      genericLogger
     );
 
     const m2mPurposeResponse: m2mGatewayApi.Purposes = {

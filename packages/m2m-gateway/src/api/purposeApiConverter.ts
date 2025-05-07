@@ -1,4 +1,6 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import { Logger } from "pagopa-interop-commons";
+import { assertActivePurposeVersionExists } from "../validators/purposeValidator.js";
 
 export function toGetPurposesApiQueryParams(
   params: m2mGatewayApi.GetPurposesQueryParams
@@ -16,7 +18,8 @@ export function toGetPurposesApiQueryParams(
 }
 
 export function toM2MGatewayApiPurpose(
-  purpose: purposeApi.Purpose
+  purpose: purposeApi.Purpose,
+  logger: Logger
 ): m2mGatewayApi.Purpose {
   const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
     m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
@@ -30,9 +33,7 @@ export function toM2MGatewayApiPurpose(
     )
     .at(-1);
 
-  if (!currentVersion) {
-    throw new Error("Current purpose has no versions");
-  }
+  assertActivePurposeVersionExists(currentVersion, purpose.id, logger);
 
   const waitingForApprovalVersion = purpose.versions.find(
     (v) =>
