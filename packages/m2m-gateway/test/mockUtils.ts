@@ -1,4 +1,8 @@
-import { delegationApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  delegationApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -55,6 +59,27 @@ export function getMockedApiTenant(): WithMetadata<tenantApi.Tenant> {
       kind: tenantApi.TenantKind.Values.GSP,
       mails: [],
       features: [],
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiAttribute({
+  kind,
+}: {
+  kind?: attributeRegistryApi.AttributeKind;
+} = {}): WithMetadata<attributeRegistryApi.Attribute> {
+  return {
+    data: {
+      id: generateId(),
+      creationTime: new Date().toISOString(),
+      description: generateMock(z.string()),
+      name: generateMock(z.string()),
+      kind: kind ?? attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+      code: generateMock(z.string()),
+      origin: generateMock(z.string()),
     },
     metadata: {
       version: 0,
