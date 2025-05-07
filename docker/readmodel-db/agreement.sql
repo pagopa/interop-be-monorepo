@@ -62,6 +62,6 @@ CREATE TABLE IF NOT EXISTS readmodel_agreement.agreement_contract (
   content_type VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (id),
+  PRIMARY KEY (agreement_id, id),
   FOREIGN KEY (agreement_id, metadata_version) REFERENCES readmodel_agreement.agreement (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
