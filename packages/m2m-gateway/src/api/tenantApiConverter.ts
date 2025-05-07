@@ -3,7 +3,10 @@ import {
   m2mGatewayApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { genericError } from "pagopa-interop-models";
+import {
+  assertAttributeKindIs,
+  assertAttributeOriginAndCodeAreDefined,
+} from "../utils/validators/attributeValidators.js";
 
 export function toM2MGatewayApiTenant(
   tenant: tenantApi.Tenant
@@ -37,9 +40,11 @@ export function toM2MGatewayApiTenantCertifiedAttribute(
   tenantCertifiedAttribute: tenantApi.CertifiedTenantAttribute,
   certifiedAttribute: attributeRegistryApi.Attribute
 ): m2mGatewayApi.TenantCertifiedAttribute {
-  if (!certifiedAttribute.origin || !certifiedAttribute.code) {
-    throw genericError("Invalid certified attribute");
-  }
+  assertAttributeKindIs(
+    certifiedAttribute,
+    attributeRegistryApi.AttributeKind.Values.CERTIFIED
+  );
+  assertAttributeOriginAndCodeAreDefined(certifiedAttribute);
 
   return {
     id: certifiedAttribute.id,
