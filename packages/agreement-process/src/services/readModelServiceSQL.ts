@@ -1,4 +1,4 @@
-import { ilike, inArray, or, SQL, and, eq, sql } from "drizzle-orm";
+import { ilike, inArray, or, and, eq, sql } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -47,7 +47,7 @@ import {
   ascLower,
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { PgSelect } from "drizzle-orm/pg-core";
+import { alias, PgSelect } from "drizzle-orm/pg-core";
 import {
   CompactEService,
   CompactOrganization,
@@ -68,48 +68,6 @@ export type AgreementEServicesQueryFilters = {
   consumerIds: TenantId[];
   producerIds: TenantId[];
 };
-
-const delegationsJoinConditions = (
-  agreementTable: typeof agreementInReadmodelAgreement,
-  delegationTable: typeof delegationInReadmodelDelegation
-): SQL<unknown> | undefined =>
-  and(
-    eq(delegationTable.eserviceId, agreementTable.eserviceId),
-    or(
-      and(
-        eq(delegationTable.delegatorId, agreementTable.consumerId),
-        eq(delegationTable.kind, delegationKind.delegatedConsumer)
-      ),
-      and(
-        eq(delegationTable.delegatorId, agreementTable.producerId),
-        eq(delegationTable.kind, delegationKind.delegatedProducer)
-      )
-    )
-  );
-
-const delegationsVisibilityConditions = (
-  requesterId: TenantId,
-  agreementTable: typeof agreementInReadmodelAgreement,
-  delegationTable: typeof delegationInReadmodelDelegation
-): SQL<unknown> | undefined =>
-  or(
-    // REQ IS PRODUCER
-    eq(agreementTable.producerId, requesterId),
-    // REQ IS CONSUMER
-    eq(agreementTable.consumerId, requesterId),
-    // REQ IS DELEGATE AS PRODUCER
-    and(
-      eq(delegationTable.delegateId, requesterId),
-      eq(delegationTable.kind, delegationKind.delegatedProducer),
-      eq(delegationTable.state, delegationState.active)
-    ),
-    // REQ IS DELEGATE AS CONSUMER
-    and(
-      eq(delegationTable.delegateId, requesterId),
-      eq(delegationTable.kind, delegationKind.delegatedConsumer),
-      eq(delegationTable.state, delegationState.active)
-    )
-  );
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const withPagination = <T extends PgSelect>(
@@ -285,6 +243,15 @@ export function readModelServiceBuilderSQL(
         showOnlyUpgradeable,
       } = explicitFilters(filters);
 
+      const activeProducerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeProducerDelegations"
+      );
+      const activeConsumerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeConsumerDelegations"
+      );
+
       const queryBaseAgreementIds = readmodelDB
         .select({
           id: agreementInReadmodelAgreement.id,
@@ -314,20 +281,49 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // DELEGATION
-          delegationInReadmodelDelegation,
-          delegationsJoinConditions(
-            agreementInReadmodelAgreement,
-            delegationInReadmodelDelegation
+          activeProducerDelegations,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              activeProducerDelegations.eserviceId
+            ),
+            eq(activeProducerDelegations.state, delegationState.active),
+            eq(
+              activeProducerDelegations.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(
+              activeProducerDelegations.delegatorId,
+              agreementInReadmodelAgreement.producerId
+            )
+          )
+        )
+        .leftJoin(
+          activeConsumerDelegations,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              activeConsumerDelegations.eserviceId
+            ),
+            eq(activeConsumerDelegations.state, delegationState.active),
+            eq(
+              activeConsumerDelegations.kind,
+              delegationKind.delegatedConsumer
+            ),
+            eq(
+              activeConsumerDelegations.delegatorId,
+              agreementInReadmodelAgreement.consumerId
+            )
           )
         )
         .where(
           and(
             // VISIBILITY
-            delegationsVisibilityConditions(
-              requesterId,
-              agreementInReadmodelAgreement,
-              delegationInReadmodelDelegation
+            or(
+              eq(agreementInReadmodelAgreement.producerId, requesterId),
+              eq(agreementInReadmodelAgreement.consumerId, requesterId),
+              eq(activeProducerDelegations.delegateId, requesterId),
+              eq(activeConsumerDelegations.delegateId, requesterId)
             ),
             // END // VISIBILITY
             // PRODUCERS
@@ -337,10 +333,7 @@ export function readModelServiceBuilderSQL(
                     agreementInReadmodelAgreement.producerId,
                     producerIds
                   ),
-                  inArray(
-                    delegationInReadmodelDelegation.delegateId,
-                    producerIds
-                  )
+                  inArray(activeProducerDelegations.delegateId, producerIds)
                 )
               : undefined,
             // END PRODUCERS
@@ -351,10 +344,7 @@ export function readModelServiceBuilderSQL(
                     agreementInReadmodelAgreement.consumerId,
                     consumerIds
                   ),
-                  inArray(
-                    delegationInReadmodelDelegation.delegateId,
-                    consumerIds
-                  )
+                  inArray(activeConsumerDelegations.delegateId, consumerIds)
                 )
               : undefined,
             // END CONSUMERS
@@ -670,6 +660,15 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
+      const activeProducerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeProducerDelegations"
+      );
+      const activeConsumerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeConsumerDelegations"
+      );
+
       const resultSet = await readmodelDB
         .select({
           id: tenantInReadmodelTenant.id,
@@ -685,11 +684,39 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // DELEGATION
-          delegationInReadmodelDelegation,
-          delegationsJoinConditions(
-            agreementInReadmodelAgreement,
-            delegationInReadmodelDelegation
+          activeProducerDelegations,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              activeProducerDelegations.eserviceId
+            ),
+            eq(activeProducerDelegations.state, delegationState.active),
+            eq(
+              activeProducerDelegations.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(
+              activeProducerDelegations.delegatorId,
+              agreementInReadmodelAgreement.producerId
+            )
+          )
+        )
+        .leftJoin(
+          activeConsumerDelegations,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              activeConsumerDelegations.eserviceId
+            ),
+            eq(activeConsumerDelegations.state, delegationState.active),
+            eq(
+              activeConsumerDelegations.kind,
+              delegationKind.delegatedConsumer
+            ),
+            eq(
+              activeConsumerDelegations.delegatorId,
+              agreementInReadmodelAgreement.consumerId
+            )
           )
         )
         .where(
@@ -702,10 +729,11 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // VISIBILITY
-            delegationsVisibilityConditions(
-              requesterId,
-              agreementInReadmodelAgreement,
-              delegationInReadmodelDelegation
+            or(
+              eq(agreementInReadmodelAgreement.producerId, requesterId),
+              eq(agreementInReadmodelAgreement.consumerId, requesterId),
+              eq(activeProducerDelegations.delegateId, requesterId),
+              eq(activeConsumerDelegations.delegateId, requesterId)
             )
             // END // VISIBILITY
           )
@@ -726,6 +754,15 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
+      const activeProducerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeProducerDelegations"
+      );
+      const activeConsumerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeConsumerDelegations"
+      );
+
       const resultSet = await readmodelDB
         .select({
           id: tenantInReadmodelTenant.id,
@@ -741,11 +778,39 @@ export function readModelServiceBuilderSQL(
           )
         )
         .leftJoin(
-          // DELEGATION
-          delegationInReadmodelDelegation,
-          delegationsJoinConditions(
-            agreementInReadmodelAgreement,
-            delegationInReadmodelDelegation
+          activeProducerDelegations,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              activeProducerDelegations.eserviceId
+            ),
+            eq(activeProducerDelegations.state, delegationState.active),
+            eq(
+              activeProducerDelegations.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(
+              activeProducerDelegations.delegatorId,
+              agreementInReadmodelAgreement.producerId
+            )
+          )
+        )
+        .leftJoin(
+          activeConsumerDelegations,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              activeConsumerDelegations.eserviceId
+            ),
+            eq(activeConsumerDelegations.state, delegationState.active),
+            eq(
+              activeConsumerDelegations.kind,
+              delegationKind.delegatedConsumer
+            ),
+            eq(
+              activeConsumerDelegations.delegatorId,
+              agreementInReadmodelAgreement.consumerId
+            )
           )
         )
         .where(
@@ -758,10 +823,11 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // VISIBILITY
-            delegationsVisibilityConditions(
-              requesterId,
-              agreementInReadmodelAgreement,
-              delegationInReadmodelDelegation
+            or(
+              eq(agreementInReadmodelAgreement.producerId, requesterId),
+              eq(agreementInReadmodelAgreement.consumerId, requesterId),
+              eq(activeProducerDelegations.delegateId, requesterId),
+              eq(activeConsumerDelegations.delegateId, requesterId)
             )
             // END // VISIBILITY
           )
@@ -783,6 +849,16 @@ export function readModelServiceBuilderSQL(
       offset: number
     ): Promise<ListResult<CompactEService>> {
       const { consumerIds, producerIds, eserviceName } = filters;
+
+      const activeProducerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeProducerDelegations"
+      );
+      const activeConsumerDelegations = alias(
+        delegationInReadmodelDelegation,
+        "activeConsumerDelegations"
+      );
+
       const resultSet = await readmodelDB
         .select({
           id: eserviceInReadmodelCatalog.id,
@@ -792,19 +868,45 @@ export function readModelServiceBuilderSQL(
         .from(eserviceInReadmodelCatalog)
         .leftJoin(
           agreementInReadmodelAgreement,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            agreementInReadmodelAgreement.eserviceId
+          )
+        )
+        .leftJoin(
+          activeProducerDelegations,
           and(
             eq(
-              eserviceInReadmodelCatalog.id,
-              agreementInReadmodelAgreement.eserviceId
+              agreementInReadmodelAgreement.eserviceId,
+              activeProducerDelegations.eserviceId
+            ),
+            eq(activeProducerDelegations.state, delegationState.active),
+            eq(
+              activeProducerDelegations.kind,
+              delegationKind.delegatedProducer
+            ),
+            eq(
+              activeProducerDelegations.delegatorId,
+              agreementInReadmodelAgreement.producerId
             )
           )
         )
         .leftJoin(
-          // DELEGATION
-          delegationInReadmodelDelegation,
-          delegationsJoinConditions(
-            agreementInReadmodelAgreement,
-            delegationInReadmodelDelegation
+          activeConsumerDelegations,
+          and(
+            eq(
+              agreementInReadmodelAgreement.eserviceId,
+              activeConsumerDelegations.eserviceId
+            ),
+            eq(activeConsumerDelegations.state, delegationState.active),
+            eq(
+              activeConsumerDelegations.kind,
+              delegationKind.delegatedConsumer
+            ),
+            eq(
+              activeConsumerDelegations.delegatorId,
+              agreementInReadmodelAgreement.consumerId
+            )
           )
         )
         .where(
@@ -820,20 +922,7 @@ export function readModelServiceBuilderSQL(
                     agreementInReadmodelAgreement.producerId,
                     producerIds
                   ),
-                  and(
-                    inArray(
-                      delegationInReadmodelDelegation.delegateId,
-                      producerIds
-                    ),
-                    eq(
-                      delegationInReadmodelDelegation.state,
-                      delegationState.active
-                    ),
-                    eq(
-                      delegationInReadmodelDelegation.kind,
-                      delegationKind.delegatedProducer
-                    )
-                  )
+                  inArray(activeProducerDelegations.delegateId, producerIds)
                 )
               : undefined,
             // FILTER CONSUMER
@@ -843,27 +932,15 @@ export function readModelServiceBuilderSQL(
                     agreementInReadmodelAgreement.consumerId,
                     consumerIds
                   ),
-                  and(
-                    inArray(
-                      delegationInReadmodelDelegation.delegateId,
-                      consumerIds
-                    ),
-                    eq(
-                      delegationInReadmodelDelegation.state,
-                      delegationState.active
-                    ),
-                    eq(
-                      delegationInReadmodelDelegation.kind,
-                      delegationKind.delegatedConsumer
-                    )
-                  )
+                  inArray(activeConsumerDelegations.delegateId, consumerIds)
                 )
               : undefined,
             // VISIBILITY
-            delegationsVisibilityConditions(
-              requesterId,
-              agreementInReadmodelAgreement,
-              delegationInReadmodelDelegation
+            or(
+              eq(agreementInReadmodelAgreement.producerId, requesterId),
+              eq(agreementInReadmodelAgreement.consumerId, requesterId),
+              eq(activeProducerDelegations.delegateId, requesterId),
+              eq(activeConsumerDelegations.delegateId, requesterId)
             )
             // END // VISIBILITY
           )
