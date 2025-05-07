@@ -1,5 +1,5 @@
 import { purposeApi } from "pagopa-interop-api-clients";
-import { missingActivePurposeVersion } from "../model/errors.js";
+import { missingActivePurposeVersion } from "../../model/errors.js";
 
 export function assertActivePurposeVersionExists(
   purposeVersion: purposeApi.PurposeVersion | undefined,

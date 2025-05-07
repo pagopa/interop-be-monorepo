@@ -1,7 +1,7 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
 import { ApiError } from "pagopa-interop-models";
-import { assertActivePurposeVersionExists } from "../validators/purposeValidator.js";
+import { assertActivePurposeVersionExists } from "../utils/validators/purposeValidator.js";
 import { purposeNotFound } from "../model/errors.js";
 
 export function toGetPurposesApiQueryParams(
