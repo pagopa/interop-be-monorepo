@@ -30,7 +30,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
-  
+
   return {
     getPurposes: async (
       queryParams: m2mGatewayApi.GetPurposesQueryParams,
@@ -73,12 +73,12 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       return toM2MGatewayApiPurpose(data);
     },
     createPurpose: async (
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
-      purposeSeed: m2mGatewayApi.PurposeSeed
+      purposeSeed: m2mGatewayApi.PurposeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> => {
       logger.info(`Creating purpose`);
 
-      const purposeResponse = await purposeProcessClient.createPurpose(
+      const purposeResponse = await clients.purposeProcessClient.createPurpose(
         purposeSeed,
         {
           headers,
@@ -87,7 +87,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MPurpose(polledResource.data);
+      return toM2MGatewayApiPurpose(polledResource.data);
     },
   };
 }

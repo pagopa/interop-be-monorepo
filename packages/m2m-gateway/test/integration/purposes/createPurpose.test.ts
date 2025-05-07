@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
@@ -18,7 +17,7 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
 } from "../../mockUtils.js";
-import { toM2MPurpose } from "../../../src/api/purposeApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("createPurpose", () => {
   const mockPurposeProcessResponse = getMockedApiPurpose();
@@ -32,7 +31,7 @@ describe("createPurpose", () => {
     title: mockPurposeProcessResponse.data.title,
   };
 
-  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MPurpose(
+  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
     mockPurposeProcessResponse.data
   );
 
@@ -55,8 +54,8 @@ describe("createPurpose", () => {
     const m2mPurposeResponse: m2mGatewayApi.Purpose = mockM2MPurpose;
 
     const result = await purposeService.createPurpose(
-      getMockM2MAdminAppContext(),
-      mockPurposeSeed
+      mockPurposeSeed,
+      getMockM2MAdminAppContext()
     );
 
     expect(result).toEqual(m2mPurposeResponse);
@@ -80,7 +79,7 @@ describe("createPurpose", () => {
     });
 
     await expect(
-      purposeService.createPurpose(getMockM2MAdminAppContext(), mockPurposeSeed)
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
     ).rejects.toThrowError(missingMetadata());
   });
 
@@ -91,7 +90,7 @@ describe("createPurpose", () => {
     });
 
     await expect(
-      purposeService.createPurpose(getMockM2MAdminAppContext(), mockPurposeSeed)
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
     ).rejects.toThrowError(missingMetadata());
   });
 
@@ -104,7 +103,7 @@ describe("createPurpose", () => {
     );
 
     await expect(
-      purposeService.createPurpose(getMockM2MAdminAppContext(), mockPurposeSeed)
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
     ).rejects.toThrowError(
       resourcePollingTimeout(config.defaultPollingMaxAttempts)
     );
