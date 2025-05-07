@@ -83,7 +83,7 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
       { rejectionReason }: m2mGatewayApi.DelegationRejection,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegation> {
-      logger.info(`Rejecting consumer delegation ${delegationId}`);
+      logger.info(`Rejecting consumer delegation with id ${delegationId}`);
 
       const response =
         await clients.delegationProcessClient.consumer.rejectConsumerDelegation(
@@ -104,7 +104,7 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
       delegationId: string,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegation> {
-      logger.info(`Accepting consumer delegation ${delegationId}`);
+      logger.info(`Accepting consumer delegation with id ${delegationId}`);
 
       const response =
         await clients.delegationProcessClient.consumer.approveConsumerDelegation(
