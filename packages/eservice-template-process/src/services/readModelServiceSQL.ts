@@ -1,9 +1,9 @@
 import {
   ascLower,
   createListResult,
+  escapeRegExp,
   hasAtLeastOneUserRole,
   M2MAuthData,
-  ReadModelRepository,
   UIAuthData,
   userRole,
 } from "pagopa-interop-commons";
@@ -91,7 +91,7 @@ export function readModelServiceBuilderSQL({
           eq(eserviceTemplateInReadmodelEserviceTemplate.creatorId, creatorId),
           ilike(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            ReadModelRepository.escapeRegExp(name)
+            escapeRegExp(name)
           )
         )
       );
@@ -135,7 +135,7 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             // IDS FILTER
@@ -332,10 +332,7 @@ export function readModelServiceBuilderSQL({
             ),
             // TENANT FILTER
             name
-              ? ilike(
-                  tenantInReadmodelTenant.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
-                )
+              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
               : undefined
           )
         )
