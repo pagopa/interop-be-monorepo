@@ -1,31 +1,28 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, expect, it } from "vitest";
 import {
-  getMockAuthData,
   getMockClient,
-  getMockContext,
+  getMockContextInternal,
 } from "pagopa-interop-commons-test";
 import {
   Client,
   ClientId,
   clientKind,
   generateId,
-  TenantId,
   UserId,
 } from "pagopa-interop-models";
 import {
   clientAdminIdNotFound,
   clientKindNotAllowed,
   clientNotFound,
-  organizationNotAllowedOnClient,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./integrationUtils.js";
+} from "../integrationUtils.js";
 
-describe("clientAdminRemoved", () => {
+describe("internalClientAdminRemovedBySelfcare", () => {
   it("should write on event-store for the remove of an admin in a client", async () => {
     const mockClient: Client = {
       ...getMockClient(),
@@ -35,9 +32,10 @@ describe("clientAdminRemoved", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.removeClientAdmin(
-      { clientId: mockClient.id, adminId: mockClient.adminId! },
-      getMockContext({ authData: getMockAuthData(mockClient.consumerId) })
+    await authorizationService.internalRemoveClientAdmin(
+      mockClient.id,
+      mockClient.adminId!,
+      getMockContextInternal({})
     );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -45,34 +43,18 @@ describe("clientAdminRemoved", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: mockClient.id,
       version: "1",
-      type: "ClientAdminRemoved",
+      type: "ClientAdminRemovedBySelfcare",
       event_version: 2,
     });
-  });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
-    const organizationId: TenantId = generateId();
-    const mockClient: Client = {
-      ...getMockClient(),
-      consumerId: generateId(),
-      adminId: generateId<UserId>(),
-    };
-    await addOneClient(mockClient);
-    await expect(
-      authorizationService.removeClientAdmin(
-        { clientId: mockClient.id, adminId: mockClient.adminId! },
-        getMockContext({ authData: getMockAuthData(organizationId) })
-      )
-    ).rejects.toThrowError(
-      organizationNotAllowedOnClient(organizationId, mockClient.id)
-    );
   });
   it("should throw clientNotFound if the client does not exist", async () => {
     const clientId = generateId<ClientId>();
 
     await expect(
-      authorizationService.removeClientAdmin(
-        { clientId, adminId: generateId<UserId>() },
-        getMockContext({})
+      authorizationService.internalRemoveClientAdmin(
+        clientId,
+        generateId<UserId>(),
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(clientNotFound(clientId));
   });
@@ -85,9 +67,10 @@ describe("clientAdminRemoved", () => {
     await addOneClient(mockClient);
 
     await expect(
-      authorizationService.removeClientAdmin(
-        { clientId: mockClient.id, adminId: generateId<UserId>() },
-        getMockContext({ authData: getMockAuthData(mockClient.consumerId) })
+      authorizationService.internalRemoveClientAdmin(
+        mockClient.id,
+        generateId<UserId>(),
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(clientKindNotAllowed(mockClient.id));
   });
@@ -102,9 +85,10 @@ describe("clientAdminRemoved", () => {
     await addOneClient(mockClient1);
 
     await expect(
-      authorizationService.removeClientAdmin(
-        { clientId: mockClient1.id, adminId },
-        getMockContext({ authData: getMockAuthData(mockClient1.consumerId) })
+      authorizationService.internalRemoveClientAdmin(
+        mockClient1.id,
+        adminId,
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(clientAdminIdNotFound(mockClient1.id, adminId));
 
@@ -117,9 +101,10 @@ describe("clientAdminRemoved", () => {
     await addOneClient(mockClient2);
 
     await expect(
-      authorizationService.removeClientAdmin(
-        { clientId: mockClient2.id, adminId },
-        getMockContext({ authData: getMockAuthData(mockClient2.consumerId) })
+      authorizationService.internalRemoveClientAdmin(
+        mockClient2.id,
+        adminId,
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(clientAdminIdNotFound(mockClient2.id, adminId));
   });
