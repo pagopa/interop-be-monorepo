@@ -23,7 +23,7 @@ import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./utils.js";
+} from "./integrationUtils.js";
 
 describe("setAdminToClient", () => {
   const mockClient: Client = getMockClient();
