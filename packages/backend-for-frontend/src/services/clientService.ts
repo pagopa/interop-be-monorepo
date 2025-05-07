@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import {
-  getAllFromPaginated,
-  ReadModelRepository,
-  WithLogger,
-} from "pagopa-interop-commons";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import {
   authorizationApi,
   bffApi,
@@ -21,6 +17,8 @@ import {
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
+
+import { escapeRegExp } from "./../../../commons/src/utils/regexpUtils.js";
 
 export function clientServiceBuilder(
   apiClients: PagoPAInteropBeClients,
@@ -257,9 +255,7 @@ export function clientServiceBuilder(
 
       return name
         ? users.filter((user) =>
-            new RegExp(ReadModelRepository.escapeRegExp(name), "i").test(
-              user.name
-            )
+            new RegExp(escapeRegExp(name), "i").test(user.name)
           )
         : users;
     },
