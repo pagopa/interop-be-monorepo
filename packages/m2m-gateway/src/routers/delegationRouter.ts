@@ -63,7 +63,7 @@ const delegationRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          "Error creating consumer delegation"
+          `Error creating consumer delegation for eservice ${req.body.eserviceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -88,7 +88,7 @@ const delegationRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error accepting consumer delegation with id ${req.params.delegationId}`
+          `Error accepting consumer delegation ${req.params.delegationId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -114,7 +114,7 @@ const delegationRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error rejecting consumer delegation with id ${req.params.delegationId}`
+          `Error rejecting consumer delegation ${req.params.delegationId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

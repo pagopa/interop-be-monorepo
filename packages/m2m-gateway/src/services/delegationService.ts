@@ -33,8 +33,12 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     async getConsumerDelegations(
       params: m2mGatewayApi.GetConsumerDelegationsQueryParams,
-      { headers }: WithLogger<M2MGatewayAppContext>
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegations> {
+      logger.info(
+        `Retrieving delegations for states ${params.states} delegatorIds ${params.delegatorIds} delegateIds ${params.delegateIds} eserviceIds ${params.eserviceIds} offset ${params.offset}  limit ${params.limit}`
+      );
+
       const response =
         await clients.delegationProcessClient.delegation.getDelegations({
           queries: toGetDelegationsApiQueryParams(params),
@@ -56,8 +60,12 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async createConsumerDelegation(
       seed: m2mGatewayApi.DelegationSeed,
-      { headers }: WithLogger<M2MGatewayAppContext>
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegation> {
+      logger.info(
+        `Creating consumer delegation for eservice ${seed.eserviceId} and delegateId ${seed.delegateId}`
+      );
+
       const response =
         await clients.delegationProcessClient.consumer.createConsumerDelegation(
           seed,
@@ -73,8 +81,10 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
     async rejectConsumerDelegation(
       delegationId: string,
       { rejectionReason }: m2mGatewayApi.DelegationRejection,
-      { headers }: WithLogger<M2MGatewayAppContext>
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegation> {
+      logger.info(`Rejecting consumer delegation ${delegationId}`);
+
       const response =
         await clients.delegationProcessClient.consumer.rejectConsumerDelegation(
           { rejectionReason },
@@ -92,8 +102,10 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async acceptConsumerDelegation(
       delegationId: string,
-      { headers }: WithLogger<M2MGatewayAppContext>
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegation> {
+      logger.info(`Accepting consumer delegation ${delegationId}`);
+
       const response =
         await clients.delegationProcessClient.consumer.approveConsumerDelegation(
           undefined,
