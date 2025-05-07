@@ -72,8 +72,8 @@ import {
   addProducerKeychainUserErrorMapper,
   removeProducerKeychainUserErrorMapper,
   removeProducerKeychainEServiceErrorMapper,
-  addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
+  addProducerKeychainEServiceErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
@@ -943,7 +943,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addPurposeKeychainEServiceErrorMapper,
+            addProducerKeychainEServiceErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

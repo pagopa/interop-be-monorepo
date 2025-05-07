@@ -297,7 +297,7 @@ export const getProducerKeychainKeyErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const addPurposeKeychainEServiceErrorMapper = (
+export const addProducerKeychainEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
