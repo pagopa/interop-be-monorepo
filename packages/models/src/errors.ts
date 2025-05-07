@@ -192,6 +192,7 @@ const errorCodes = {
   jwksSigningKeyError: "10006",
   badBearerToken: "10007",
   notAllowedMultipleKeysException: "10008",
+  featureFlagNotEnabled: "10009",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -429,5 +430,15 @@ export function invalidKey(
     detail: `Key ${kid} is invalid. Reason: ${parseErrorMessage(error)}`,
     code: "invalidKey",
     title: "Invalid Key",
+  });
+}
+
+export function featureFlagNotEnabled(
+  featureFlag: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Feature flag ${featureFlag} is not enabled`,
+    code: "featureFlagNotEnabled",
+    title: "Feature flag not enabled",
   });
 }

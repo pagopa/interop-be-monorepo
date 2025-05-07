@@ -94,6 +94,7 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorAdded" },
       { type: "EServiceDraftDescriptorUpdated" },
       { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorArchived" },
       { type: "EServiceDescriptorPublished" },
