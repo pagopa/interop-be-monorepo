@@ -4,6 +4,10 @@ import {
   loggerMiddleware,
   zodiosCtx,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
+  initFileManager,
+  InteropTokenGenerator,
+  RateLimiter,
+  FileManager,
 } from "pagopa-interop-commons";
 import express from "express";
 import {
@@ -11,6 +15,10 @@ import {
   applicationAuditEndSessionTokenExchangeMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
+import {
+  selfcareV2InstitutionClientBuilder,
+  selfcareV2UsersClientBuilder,
+} from "pagopa-interop-api-clients";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
@@ -35,18 +43,53 @@ import delegationRouter from "./routers/delegationRouter.js";
 import producerDelegationRouter from "./routers/producerDelegationRouter.js";
 import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
 import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
-import { AgreementService } from "./services/agreementService.js";
-import { AttributeService } from "./services/attributeService.js";
-import { AuthorizationService } from "./services/authorizationService.js";
-import { CatalogService } from "./services/catalogService.js";
-import { ClientService } from "./services/clientService.js";
-import { DelegationService } from "./services/delegationService.js";
-import { EServiceTemplateService } from "./services/eserviceTemplateService.js";
-import { ProducerKeychainService } from "./services/producerKeychainService.js";
-import { PurposeService } from "./services/purposeService.js";
-import { SelfcareService } from "./services/selfcareService.js";
-import { TenantService } from "./services/tenantService.js";
-import { ToolsService } from "./services/toolService.js";
+import { appBasePath } from "./config/appBasePath.js";
+import {
+  AgreementService,
+  agreementServiceBuilder,
+} from "./services/agreementService.js";
+import {
+  AttributeService,
+  attributeServiceBuilder,
+} from "./services/attributeService.js";
+import {
+  AuthorizationService,
+  authorizationServiceBuilder,
+} from "./services/authorizationService.js";
+import {
+  CatalogService,
+  catalogServiceBuilder,
+} from "./services/catalogService.js";
+import {
+  ClientService,
+  clientServiceBuilder,
+} from "./services/clientService.js";
+import {
+  DelegationService,
+  delegationServiceBuilder,
+} from "./services/delegationService.js";
+import {
+  EServiceTemplateService,
+  eserviceTemplateServiceBuilder,
+} from "./services/eserviceTemplateService.js";
+import {
+  ProducerKeychainService,
+  producerKeychainServiceBuilder,
+} from "./services/producerKeychainService.js";
+import {
+  PurposeService,
+  purposeServiceBuilder,
+} from "./services/purposeService.js";
+import {
+  SelfcareService,
+  selfcareServiceBuilder,
+} from "./services/selfcareService.js";
+import {
+  TenantService,
+  tenantServiceBuilder,
+} from "./services/tenantService.js";
+import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
+import { ToolsService, toolsServiceBuilder } from "./services/toolService.js";
 
 export type BFFServices = {
   agreementService: AgreementService;
@@ -69,6 +112,80 @@ export type RateLimiterMiddleware = ReturnType<
 >;
 
 export const serviceName = modelsServiceName.BACKEND_FOR_FRONTEND;
+
+export async function createServices(
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager,
+  redisRateLimiter: RateLimiter,
+  authorizationServiceAllowList: string[]
+): Promise<BFFServices> {
+  const interopTokenGenerator = new InteropTokenGenerator(config);
+  const selfcareV2UsersClient = selfcareV2UsersClientBuilder(config);
+
+  return {
+    agreementService: agreementServiceBuilder(clients, fileManager),
+    attributeService: attributeServiceBuilder(clients.attributeProcessClient),
+    authorizationService: authorizationServiceBuilder(
+      interopTokenGenerator,
+      clients.tenantProcessClient,
+      authorizationServiceAllowList,
+      redisRateLimiter
+    ),
+    authorizationServiceForSupport: authorizationServiceBuilder(
+      interopTokenGenerator,
+      clients.tenantProcessClient,
+      config.tenantAllowedOrigins,
+      redisRateLimiter
+    ),
+    catalogService: catalogServiceBuilder(
+      clients.catalogProcessClient,
+      clients.tenantProcessClient,
+      clients.agreementProcessClient,
+      clients.attributeProcessClient,
+      clients.delegationProcessClient,
+      clients.eserviceTemplateProcessClient,
+      fileManager,
+      config
+    ),
+    clientService: clientServiceBuilder(clients, selfcareV2UsersClient),
+    delegationService: delegationServiceBuilder(
+      clients.delegationProcessClient,
+      clients.tenantProcessClient,
+      clients.catalogProcessClient,
+      fileManager
+    ),
+    eServiceTemplateService: eserviceTemplateServiceBuilder(
+      clients.eserviceTemplateProcessClient,
+      clients.tenantProcessClient,
+      clients.attributeProcessClient,
+      fileManager
+    ),
+    producerKeychainService: producerKeychainServiceBuilder(
+      clients,
+      selfcareV2UsersClient
+    ),
+    purposeService: purposeServiceBuilder(
+      clients.purposeProcessClient,
+      clients.catalogProcessClient,
+      clients.tenantProcessClient,
+      clients.agreementProcessClient,
+      clients.delegationProcessClient,
+      clients.authorizationClient,
+      initFileManager(config)
+    ),
+    selfcareService: selfcareServiceBuilder(
+      selfcareV2InstitutionClientBuilder(config),
+      selfcareV2UsersClientBuilder(config),
+      clients.tenantProcessClient
+    ),
+    tenantService: tenantServiceBuilder(
+      clients.tenantProcessClient,
+      clients.attributeProcessClient,
+      clients.selfcareV2InstitutionClient
+    ),
+    toolsService: toolsServiceBuilder(clients),
+  };
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(
@@ -93,7 +210,7 @@ export async function createApp(
   app.use(loggerMiddleware(serviceName));
 
   app.use(
-    `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
+    appBasePath,
     healthRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
@@ -104,6 +221,7 @@ export async function createApp(
     ),
     authenticationMiddleware(config),
     uiAuthDataValidationMiddleware(),
+    // Authenticated routes - rate limiter relies on auth data to work
     rateLimiterMiddleware,
     agreementRouter(zodiosCtx, services.agreementService),
     attributeRouter(zodiosCtx, services.attributeService),

@@ -9,6 +9,9 @@ vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditEndMiddleware: vi.fn(
     async () => (_req: Request, _res: Response, next: NextFunction) => next()
   ),
+  applicationAuditEndSessionTokenExchangeMiddleware: vi.fn(
+    async () => (_req: Request, _res: Response, next: NextFunction) => next()
+  ),
 }));
 
 vi.mock("pagopa-interop-commons", async () => {
@@ -28,7 +31,6 @@ vi.mock("pagopa-interop-commons", async () => {
             const jwtToken = jwtFromAuthHeader(req, genericLogger);
             const decoded = decodeJwtToken(jwtToken, genericLogger);
             const ctx = req.ctx || {};
-            // eslint-disable-next-line functional/immutable-data
             ctx.authData = readAuthDataFromJwtToken(
               decoded ??
                 (() => {
@@ -62,50 +64,52 @@ import {
   readAuthDataFromJwtToken,
   decodeJwtToken,
   AppContext,
+  RateLimiter,
+  initFileManager,
 } from "pagopa-interop-commons";
-import { AgreementService } from "../src/services/agreementService.js";
-import { AttributeService } from "../src/services/attributeService.js";
-import { AuthorizationService } from "../src/services/authorizationService.js";
-import { CatalogService } from "../src/services/catalogService.js";
-import { ClientService } from "../src/services/clientService.js";
-import { DelegationService } from "../src/services/delegationService.js";
-import { EServiceTemplateService } from "../src/services/eserviceTemplateService.js";
-import { ProducerKeychainService } from "../src/services/producerKeychainService.js";
-import { PurposeService } from "../src/services/purposeService.js";
-import { SelfcareService } from "../src/services/selfcareService.js";
-import { TenantService } from "../src/services/tenantService.js";
-import { ToolsService } from "../src/services/toolService.js";
-import { createApp } from "../src/app.js";
+import {
+  RateLimiterMiddleware,
+  createApp,
+  createServices,
+} from "../src/app.js";
+import {
+  AgreementProcessClient,
+  AttributeProcessClient,
+  AuthorizationProcessClient,
+  CatalogProcessClient,
+  DelegationProcessClient,
+  EServiceTemplateProcessClient,
+  PurposeProcessClient,
+  SelfcareV2InstitutionClient,
+  SelfcareV2UserClient,
+  TenantProcessClient,
+} from "../src/clients/clientsProvider.js";
+import { config } from "../src/config/config.js";
 
-export const agreementService = {} as AgreementService;
-export const attributeService = {} as AttributeService;
-export const authorizationService = {} as AuthorizationService;
-export const authorizationServiceForSupport = {} as AuthorizationService;
-export const catalogService = {} as CatalogService;
-export const clientService = {} as ClientService;
-export const delegationService = {} as DelegationService;
-export const eServiceTemplateService = {} as EServiceTemplateService;
-export const producerKeychainService = {} as ProducerKeychainService;
-export const purposeService = {} as PurposeService;
-export const selfcareService = {} as SelfcareService;
-export const tenantService = {} as TenantService;
-export const toolsService = {} as ToolsService;
+export const clients = {
+  tenantProcessClient: {} as TenantProcessClient,
+  attributeProcessClient: {} as AttributeProcessClient,
+  catalogProcessClient: {} as CatalogProcessClient,
+  agreementProcessClient: {} as AgreementProcessClient,
+  purposeProcessClient: {} as PurposeProcessClient,
+  authorizationClient: {} as AuthorizationProcessClient,
+  selfcareV2InstitutionClient: {} as SelfcareV2InstitutionClient,
+  selfcareV2UserClient: {} as SelfcareV2UserClient,
+  delegationProcessClient: {} as DelegationProcessClient,
+  eserviceTemplateProcessClient: {} as EServiceTemplateProcessClient,
+};
 
-export const api = await createApp(
-  {
-    agreementService,
-    attributeService,
-    authorizationService,
-    authorizationServiceForSupport,
-    catalogService,
-    clientService,
-    delegationService,
-    eServiceTemplateService,
-    producerKeychainService,
-    purposeService,
-    selfcareService,
-    tenantService,
-    toolsService,
-  },
-  (_req, _res, next): void => next()
+const fileManager = initFileManager(config);
+const authorizationServiceAllowList: string[] = [];
+const redisRateLimiter = {} as RateLimiter;
+const rateLimiterMiddleware: RateLimiterMiddleware = (_req, _res, next): void =>
+  next();
+
+export const services = await createServices(
+  clients,
+  fileManager,
+  redisRateLimiter,
+  authorizationServiceAllowList
 );
+
+export const api = await createApp(services, rateLimiterMiddleware);
