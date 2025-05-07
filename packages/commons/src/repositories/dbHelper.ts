@@ -6,13 +6,17 @@ export const createListResult = <T>(
   totalCount?: number
 ): ListResult<T> => ({
   results: items,
-  totalCount: totalCount ?? items.length,
+  totalCount: totalCount ?? 0,
 });
 
 // see: https://orm.drizzle.team/docs/guides/limit-offset-pagination
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const ascLower = <T = string>(column: Column | SQL | SQL.Aliased) =>
+export const ascLower = <T = string>(column: Column | SQL | SQL.Aliased): SQL =>
   asc(sql<T>`LOWER(${column})`);
+
+export const ascLowerMulti = <T = string>(
+  columnLower: Column | SQL | SQL.Aliased,
+  ...columns: Array<Column | SQL | SQL.Aliased>
+): SQL => asc(sql<T>`LOWER(${columnLower}), ${columns.join(", ")}`);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const withTotalCount = <T extends Table>(tbl: T) => ({
