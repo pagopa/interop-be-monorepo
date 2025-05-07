@@ -197,7 +197,7 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error adding admin ${req.body.adminId} to client ${req.params.clientId}`
+          `Error adding user ${req.body.adminId} to client ${req.params.clientId} as admin`
         );
         return res.status(errorRes.status).send(errorRes);
       }
