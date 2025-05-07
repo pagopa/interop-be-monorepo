@@ -7,7 +7,6 @@ import {
   DB,
   eventRepository,
   FileManager,
-  formatDateddMMyyyyHHmmss,
   hasAtLeastOneUserRole,
   InternalAuthData,
   interpolateApiSpec,
@@ -19,7 +18,6 @@ import {
   userRole,
   verifyAndCreateDocument,
   WithLogger,
-  userRoles,
   formatDateddMMyyyyHHmmss,
   assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
@@ -1958,7 +1956,7 @@ export function catalogServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       assertFeatureFlagEnabled(
         config,
@@ -1970,17 +1968,15 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertRequesterAllowed(eservice.data.producerId, authData);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended &&
-        descriptor.state !== descriptorState.deprecated
-      ) {
-        throw notValidDescriptor(descriptorId, descriptor.state.toString());
-      }
+      assertDescriptorUpdatable(descriptor);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,

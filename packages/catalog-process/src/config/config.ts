@@ -4,7 +4,6 @@ import {
   FileManagerConfig,
   EventStoreConfig,
   S3Config,
-  FeatureFlagsConfig,
   ApplicationAuditProducerConfig,
   FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,

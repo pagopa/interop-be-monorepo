@@ -796,8 +796,7 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateAgreementApprovalPolicyErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }

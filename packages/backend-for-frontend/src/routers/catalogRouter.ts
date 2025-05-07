@@ -384,8 +384,7 @@ const catalogRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating agreementApprovalPolicy of descriptor ${
               req.params.descriptorId
             } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
