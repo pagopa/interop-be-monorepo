@@ -19091,6 +19091,8 @@ components:
           type: string
         hasKeys:
           type: boolean
+        admin:
+          $ref: "#/components/schemas/CompactUser"
       required:
         - id
         - name
