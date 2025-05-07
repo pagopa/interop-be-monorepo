@@ -5,7 +5,9 @@ import {
 } from "pagopa-interop-api-clients";
 import { genericError } from "pagopa-interop-models";
 
-export function toM2MTenant(tenant: tenantApi.Tenant): m2mGatewayApi.Tenant {
+export function toM2MGatewayApiTenant(
+  tenant: tenantApi.Tenant
+): m2mGatewayApi.Tenant {
   return {
     id: tenant.id,
     externalId: tenant.externalId,
@@ -15,6 +17,19 @@ export function toM2MTenant(tenant: tenantApi.Tenant): m2mGatewayApi.Tenant {
     kind: tenant.kind,
     onboardedAt: tenant.onboardedAt,
     subUnitType: tenant.subUnitType,
+  };
+}
+
+export function toGetTenantsApiQueryParams(
+  params: m2mGatewayApi.GetTenantsQueryParams
+): tenantApi.GetTenantsQueryParams {
+  return {
+    externalIdOrigin: params.externalIdOrigin,
+    externalIdValue: params.externalIdValue,
+    name: undefined,
+    features: [],
+    offset: params.offset,
+    limit: params.limit,
   };
 }
 

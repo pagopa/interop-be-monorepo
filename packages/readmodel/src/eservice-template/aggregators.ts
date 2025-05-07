@@ -328,23 +328,15 @@ export const toEServiceTemplateAggregatorArray = (
       }
 
       const attributeSQL = row.attribute;
-      if (
-        attributeSQL &&
-        !attributeIdSet.has(
-          makeUniqueKey([
+      const attributePK = attributeSQL
+        ? makeUniqueKey([
             attributeSQL.attributeId,
             attributeSQL.versionId,
             attributeSQL.groupId.toString(),
           ])
-        )
-      ) {
-        attributeIdSet.add(
-          makeUniqueKey([
-            attributeSQL.attributeId,
-            attributeSQL.versionId,
-            attributeSQL.groupId.toString(),
-          ])
-        );
+        : undefined;
+      if (attributeSQL && attributePK && !attributeIdSet.has(attributePK)) {
+        attributeIdSet.add(attributePK);
         // eslint-disable-next-line functional/immutable-data
         attributesSQL.push(attributeSQL);
       }

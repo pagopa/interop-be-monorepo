@@ -4,21 +4,19 @@ import { TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
-  toM2MTenant,
   toM2MTenantCertifiedAttribute,
+  toGetTenantsApiQueryParams,
+  toM2MGatewayApiTenant,
 } from "../api/tenantApiConverter.js";
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tenantServiceBuilder({
-  tenantProcessClient,
-  attributeProcessClient,
-}: PagoPAInteropBeClients) {
+export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getTenants: async (
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
-      queryParams: m2mGatewayApi.GetTenantsQueryParams
+      queryParams: m2mGatewayApi.GetTenantsQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Tenants> => {
       const { externalIdOrigin, externalIdValue, limit, offset } = queryParams;
 
@@ -28,18 +26,13 @@ export function tenantServiceBuilder({
 
       const {
         data: { results, totalCount },
-      } = await tenantProcessClient.tenant.getTenants({
-        queries: {
-          externalIdOrigin,
-          externalIdValue,
-          limit,
-          offset,
-        },
+      } = await clients.tenantProcessClient.tenant.getTenants({
+        queries: toGetTenantsApiQueryParams(queryParams),
         headers,
       });
 
       return {
-        results: results.map(toM2MTenant),
+        results: results.map(toM2MGatewayApiTenant),
         pagination: {
           limit,
           offset,
