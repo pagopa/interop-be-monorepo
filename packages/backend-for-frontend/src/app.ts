@@ -15,6 +15,10 @@ import {
   applicationAuditEndSessionTokenExchangeMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
+import {
+  selfcareV2InstitutionClientBuilder,
+  selfcareV2UsersClientBuilder,
+} from "pagopa-interop-api-clients";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
