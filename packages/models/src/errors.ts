@@ -292,6 +292,7 @@ const errorCodes = {
   interfaceExtractingSoapFieldValueError: "10017",
   soapFileCreatingError: "10018",
   notAllowedMultipleKeysException: "10019",
+  featureFlagNotEnabled: "10020",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -654,5 +655,14 @@ export function invalidInterfaceContentTypeDetected(
     detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
     code: "invalidInterfaceContentTypeDetected",
     title: "Invalid content type detected",
+  });
+}
+export function featureFlagNotEnabled(
+  featureFlag: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Feature flag ${featureFlag} is not enabled`,
+    code: "featureFlagNotEnabled",
+    title: "Feature flag not enabled",
   });
 }

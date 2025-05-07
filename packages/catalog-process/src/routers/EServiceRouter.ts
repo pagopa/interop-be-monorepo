@@ -81,6 +81,7 @@ import {
   updateDraftDescriptorTemplateInstanceErrorMapper,
   createTemplateInstanceDescriptorErrorMapper,
   updateTemplateInstanceDescriptorErrorMapper,
+  updateAgreementApprovalPolicyErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
@@ -771,6 +772,37 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+          const updatedEService =
+            await catalogService.updateAgreementApprovalPolicy(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateAgreementApprovalPolicyErrorMapper,
+            ctx.logger,
+            ctx.correlationId
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       async (req, res) => {

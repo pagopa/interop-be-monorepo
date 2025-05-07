@@ -19,6 +19,10 @@ import {
   userRole,
   verifyAndCreateDocument,
   WithLogger,
+  userRoles,
+  formatDateddMMyyyyHHmmss,
+  assertFeatureFlagEnabled,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -103,6 +107,7 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorApprovedByDelegator,
+  toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated,
   toCreateEventEServiceDescriptorArchived,
   toCreateEventEServiceDescriptorAttributesUpdated,
   toCreateEventEServiceDescriptorAttributesUpdatedByTemplateUpdate,
@@ -501,7 +506,10 @@ async function innerCreateEService(
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: [],
-    isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+    isSignalHubEnabled: isFeatureFlagEnabled(
+      config,
+      "featureFlagSignalhubWhitelist"
+    )
       ? isTenantInSignalHubWhitelist(
           authData.organizationId,
           seed.isSignalHubEnabled
@@ -878,7 +886,10 @@ export function catalogServiceBuilder(
               serverUrls: [],
             }))
           : eservice.data.descriptors,
-        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+        isSignalHubEnabled: isFeatureFlagEnabled(
+          config,
+          "featureFlagSignalhubWhitelist"
+        )
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
               eservice.data.isSignalHubEnabled
@@ -1939,6 +1950,59 @@ export function catalogServiceBuilder(
         updatedEService,
         correlationId
       );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
+    async updateAgreementApprovalPolicy(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
+      { authData, correlationId, logger }: WithLogger<AppContext>
+    ): Promise<EService> {
+      assertFeatureFlagEnabled(
+        config,
+        "featureFlagAgreementApprovalPolicyUpdate"
+      );
+
+      logger.info(
+        `Updating Agreement approval policy of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      assertRequesterAllowed(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      if (
+        descriptor.state !== descriptorState.published &&
+        descriptor.state !== descriptorState.suspended &&
+        descriptor.state !== descriptorState.deprecated
+      ) {
+        throw notValidDescriptor(descriptorId, descriptor.state.toString());
+      }
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event =
+        toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        );
       await repository.createEvent(event);
 
       return updatedEService;
