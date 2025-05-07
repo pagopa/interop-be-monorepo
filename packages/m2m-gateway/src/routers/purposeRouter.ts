@@ -29,7 +29,7 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const purposes = await purposeService.getPurposes(ctx, req.query);
+        const purposes = await purposeService.getPurposes(req.query, ctx);
 
         return res.status(200).send(m2mGatewayApi.Purposes.parse(purposes));
       } catch (error) {
@@ -48,8 +48,8 @@ const purposeRouter = (
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
         const purpose = await purposeService.getPurpose(
-          ctx,
-          unsafeBrandId(req.params.purposeId)
+          unsafeBrandId(req.params.purposeId),
+          ctx
         );
 
         return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
