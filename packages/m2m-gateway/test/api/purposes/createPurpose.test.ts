@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -12,7 +11,7 @@ import {
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import { getMockedApiPurpose } from "../../mockUtils.js";
-import { toM2MPurpose } from "../../../src/api/purposeApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("POST /purposes router test", () => {
   const mockPurpose: WithMetadata<purposeApi.Purpose> = getMockedApiPurpose();
@@ -26,7 +25,9 @@ describe("POST /purposes router test", () => {
     title: mockPurpose.data.title,
   };
 
-  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MPurpose(mockPurpose.data);
+  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
+    mockPurpose.data
+  );
 
   const makeRequest = async (token: string, body: m2mGatewayApi.PurposeSeed) =>
     request(api)

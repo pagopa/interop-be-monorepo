@@ -106,7 +106,7 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        const purpose = await purposeService.createPurpose(ctx, req.body);
+        const purpose = await purposeService.createPurpose(req.body, ctx);
 
         return res.status(201).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
