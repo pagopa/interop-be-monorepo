@@ -582,6 +582,8 @@ export function authorizationServiceBuilder(
     ): Promise<Client> {
       assertFeatureFlagEnabled(config, "featureFlagAdminClient");
 
+      logger.info(`Set user ${adminId} in client ${clientId} as admin`);
+
       await assertUserSelfcareSecurityPrivileges({
         selfcareId: authData.selfcareId,
         requesterUserId: authData.userId,
@@ -592,7 +594,6 @@ export function authorizationServiceBuilder(
         userRolesToCheck: [userRole.ADMIN_ROLE],
       });
 
-      logger.info(`Add or update admin in client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
       assertClientIsAPI(client.data);
       assertOrganizationIsClientConsumer(authData, client.data);
