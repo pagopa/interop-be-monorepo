@@ -18,6 +18,7 @@ import {
   EServiceTemplateVersionRef,
   AttributeKind,
   RiskAnalysisAnswerKind,
+  EServiceId,
   EServiceTemplateId,
 } from "pagopa-interop-models";
 import {
@@ -309,37 +310,64 @@ export const aggregateEserviceArray = ({
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
-}): Array<WithMetadata<EService>> =>
-  eservicesSQL.map((eserviceSQL) =>
-    aggregateEservice({
-      eserviceSQL,
-      riskAnalysesSQL: riskAnalysesSQL.filter(
-        (ra) => ra.eserviceId === eserviceSQL.id
-      ),
-      riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.filter(
-        (answer) => answer.eserviceId === eserviceSQL.id
-      ),
-      descriptorsSQL: descriptorsSQL.filter(
-        (d) => d.eserviceId === eserviceSQL.id
-      ),
-      interfacesSQL: interfacesSQL.filter(
-        (descriptorInterface) =>
-          descriptorInterface.eserviceId === eserviceSQL.id
-      ),
-      documentsSQL: documentsSQL.filter(
-        (doc) => doc.eserviceId === eserviceSQL.id
-      ),
-      attributesSQL: attributesSQL.filter(
-        (attr) => attr.eserviceId === eserviceSQL.id
-      ),
-      rejectionReasonsSQL: rejectionReasonsSQL.filter(
-        (rejectionReason) => rejectionReason.eserviceId === eserviceSQL.id
-      ),
-      templateVersionRefsSQL: templateVersionRefsSQL.filter(
-        (t) => t.eserviceId === eserviceSQL.id
-      ),
-    })
+}): Array<WithMetadata<EService>> => {
+  const riskAnalysesSQLByEServiceId =
+    createEServiceSQLPropertyMap(riskAnalysesSQL);
+  const riskAnalysisAnswersSQLByEServiceId = createEServiceSQLPropertyMap(
+    riskAnalysisAnswersSQL
   );
+  const descriptorsSQLByEServiceId =
+    createEServiceSQLPropertyMap(descriptorsSQL);
+  const interfacesSQLByEServiceId = createEServiceSQLPropertyMap(interfacesSQL);
+  const documentsSQLByEServiceId = createEServiceSQLPropertyMap(documentsSQL);
+  const attributesSQLByEServiceId = createEServiceSQLPropertyMap(attributesSQL);
+  const rejectionReasonsSQLByEServiceId =
+    createEServiceSQLPropertyMap(rejectionReasonsSQL);
+  const templateVersionRefsSQLByEServiceId = createEServiceSQLPropertyMap(
+    templateVersionRefsSQL
+  );
+
+  return eservicesSQL.map((eserviceSQL) => {
+    const eserviceId = unsafeBrandId<EServiceId>(eserviceSQL.id);
+    return aggregateEservice({
+      eserviceSQL,
+      riskAnalysesSQL: riskAnalysesSQLByEServiceId.get(eserviceId) || [],
+      riskAnalysisAnswersSQL:
+        riskAnalysisAnswersSQLByEServiceId.get(eserviceId) || [],
+      descriptorsSQL: descriptorsSQLByEServiceId.get(eserviceId) || [],
+      interfacesSQL: interfacesSQLByEServiceId.get(eserviceId) || [],
+      documentsSQL: documentsSQLByEServiceId.get(eserviceId) || [],
+      attributesSQL: attributesSQLByEServiceId.get(eserviceId) || [],
+      rejectionReasonsSQL:
+        rejectionReasonsSQLByEServiceId.get(eserviceId) || [],
+      templateVersionRefsSQL:
+        templateVersionRefsSQLByEServiceId.get(eserviceId) || [],
+    });
+  });
+};
+
+const createEServiceSQLPropertyMap = <
+  T extends
+    | EServiceRiskAnalysisSQL
+    | EServiceRiskAnalysisAnswerSQL
+    | EServiceDescriptorSQL
+    | EServiceDescriptorInterfaceSQL
+    | EServiceDescriptorDocumentSQL
+    | EServiceDescriptorAttributeSQL
+    | EServiceDescriptorRejectionReasonSQL
+    | EServiceDescriptorTemplateVersionRefSQL
+>(
+  items: T[]
+): Map<EServiceId, T[]> =>
+  items.reduce((acc, item) => {
+    const eserviceId = unsafeBrandId<EServiceId>(item.eserviceId);
+    const values = acc.get(eserviceId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(eserviceId, values);
+
+    return acc;
+  }, new Map<EServiceId, T[]>());
 
 export const aggregateRiskAnalysis = (
   riskAnalysisSQL: EServiceRiskAnalysisSQL | EServiceTemplateRiskAnalysisSQL,
