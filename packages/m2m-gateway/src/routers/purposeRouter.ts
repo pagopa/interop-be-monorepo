@@ -12,7 +12,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { purposesErrorMapper } from "../utils/errorMappers.js";
+import { getPurposesErrorMapper } from "../utils/errorMappers.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -36,7 +36,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          purposesErrorMapper,
+          getPurposesErrorMapper,
           ctx,
           "Error retrieving purposes"
         );
