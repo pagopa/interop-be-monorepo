@@ -57,7 +57,7 @@ export async function handleMessageV2(
         type: P.union(
           "ClientAdded",
           "ClientDeleted",
-          "ClientAdminRemoved",
+          "ClientAdminRemovedBySelfcare",
           "ClientKeyAdded",
           "ClientKeyDeleted",
           "ClientUserAdded",

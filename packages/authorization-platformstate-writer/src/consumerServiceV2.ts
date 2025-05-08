@@ -361,7 +361,7 @@ export async function handleMessageV2(
         logger
       );
     })
-    .with({ type: "ClientAdminRemoved" }, async (msg) => {
+    .with({ type: "ClientAdminRemovedBySelfcare" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
       const pk = makePlatformStatesClientPK(client.id);
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);

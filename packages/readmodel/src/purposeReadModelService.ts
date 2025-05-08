@@ -1,5 +1,10 @@
-import { and, eq, lte } from "drizzle-orm";
-import { Purpose, PurposeId, WithMetadata } from "pagopa-interop-models";
+import { and, eq, lte, SQL } from "drizzle-orm";
+import {
+  genericInternalError,
+  Purpose,
+  PurposeId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   purposeInReadmodelPurpose,
@@ -11,7 +16,9 @@ import {
 import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 import {
   aggregatePurpose,
+  aggregatePurposeArray,
   toPurposeAggregator,
+  toPurposeAggregatorArray,
 } from "./purpose/aggregators.js";
 import { checkMetadataVersion } from "./index.js";
 
@@ -76,6 +83,17 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
     async getPurposeById(
       purposeId: PurposeId
     ): Promise<WithMetadata<Purpose> | undefined> {
+      return await this.getPurposeByFilter(
+        eq(purposeInReadmodelPurpose.id, purposeId)
+      );
+    },
+    async getPurposeByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<Purpose> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       /*
         purpose -> 1 purpose_risk_analysis_form -> 2 purpose_risk_analysis_answer
                 -> 3 purpose_version -> 4 purpose_version_document
@@ -90,7 +108,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
-        .where(eq(purposeInReadmodelPurpose.id, purposeId))
+        .where(filter)
         .leftJoin(
           // 1
           purposeRiskAnalysisFormInReadmodelPurpose,
@@ -129,6 +147,55 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
       }
 
       return aggregatePurpose(toPurposeAggregator(queryResult));
+    },
+    async getPurposesByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<Purpose>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select({
+          purpose: purposeInReadmodelPurpose,
+          purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
+          purposeRiskAnalysisAnswer:
+            purposeRiskAnalysisAnswerInReadmodelPurpose,
+          purposeVersion: purposeVersionInReadmodelPurpose,
+          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+        })
+        .from(purposeInReadmodelPurpose)
+        .where(filter)
+        .leftJoin(
+          purposeRiskAnalysisFormInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            purposeRiskAnalysisFormInReadmodelPurpose.purposeId
+          )
+        )
+        .leftJoin(
+          purposeRiskAnalysisAnswerInReadmodelPurpose,
+          eq(
+            purposeRiskAnalysisFormInReadmodelPurpose.id,
+            purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          purposeVersionInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            purposeVersionInReadmodelPurpose.purposeId
+          )
+        )
+        .leftJoin(
+          purposeVersionDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
+          )
+        );
+
+      return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
     },
     async deletePurposeById(
       purposeId: PurposeId,
