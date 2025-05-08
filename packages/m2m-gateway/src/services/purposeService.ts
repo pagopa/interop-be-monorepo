@@ -96,7 +96,6 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       return toM2MGatewayApiPurpose({
         purpose: polledResource.data,
         logger,
-        throwNotFoundError: true,
       });
     },
   };
