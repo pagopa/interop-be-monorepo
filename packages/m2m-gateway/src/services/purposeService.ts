@@ -40,7 +40,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     headers: M2MGatewayAppContext["headers"]
   ) =>
     pollResource(() =>
-      purposeProcessClient.getPurpose({
+      clients.purposeProcessClient.getPurpose({
         params: { id: purposeId },
         headers,
       })
@@ -147,10 +147,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.PurposeVersion> => {
       logger.info(`Creating purpose version`);
 
-      const versionResponse = await purposeProcessClient.createPurposeVersion(
-        versionSeed,
-        { params: { purposeId }, headers }
-      );
+      const versionResponse =
+        await clients.purposeProcessClient.createPurposeVersion(versionSeed, {
+          params: { purposeId },
+          headers,
+        });
 
       const polledPurpose = await pollPurposeVersion(
         purposeId,
@@ -166,7 +167,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         throw purposeVersionNotFound(purposeId, versionResponse.data.id);
       }
 
-      return toM2MPurposeVersion(createdVersion);
+      return toM2mGatewayApiPurposeVersion(createdVersion);
     },
   };
 }
