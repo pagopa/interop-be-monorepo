@@ -1,9 +1,4 @@
-import { Filter, WithId } from "mongodb";
-import {
-  EServiceCollection,
-  ReadModelFilter,
-  ReadModelRepository,
-} from "pagopa-interop-commons";
+import { ReadModelFilter, ReadModelRepository } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -11,12 +6,10 @@ import {
   DelegationId,
   delegationKind,
   DelegationKind,
-  DelegationReadModel,
   delegationState,
   DelegationState,
   EService,
   EServiceId,
-  EServiceReadModel,
   genericInternalError,
   ListResult,
   Tenant,
@@ -33,41 +26,19 @@ export function readModelServiceBuilder(
   const { delegations, eservices, tenants, agreements } = readModelRepository;
 
   return {
-    async getEService(
-      eservices: EServiceCollection,
-      filter: Filter<WithId<WithMetadata<EServiceReadModel>>>
-    ): Promise<WithMetadata<EService> | undefined> {
-      const data = await eservices.findOne(filter, {
-        projection: { data: true, metadata: true },
-      });
-      if (!data) {
-        return undefined;
-      } else {
-        const result = z
-          .object({
-            metadata: z.object({ version: z.number() }),
-            data: EService,
-          })
-          .safeParse(data);
-        if (!result.success) {
-          throw genericInternalError(
-            `Unable to parse eService item: result ${JSON.stringify(
-              result
-            )} - data ${JSON.stringify(data)} `
-          );
-        }
-        return {
-          data: result.data.data,
-          metadata: { version: result.data.metadata.version },
-        };
-      }
-    },
-    async getDelegation(
-      filter: Filter<{ data: DelegationReadModel }>
+    async getDelegationById(
+      id: DelegationId,
+      kind: DelegationKind | undefined = undefined
     ): Promise<WithMetadata<Delegation> | undefined> {
-      const data = await delegations.findOne(filter, {
-        projection: { data: true, metadata: true },
-      });
+      const data = await delegations.findOne(
+        {
+          "data.id": id,
+          ...(kind ? { "data.kind": kind } : {}),
+        },
+        {
+          projection: { data: true, metadata: true },
+        }
+      );
       if (data) {
         const result = Delegation.safeParse(data.data);
         if (!result.success) {
@@ -80,15 +51,6 @@ export function readModelServiceBuilder(
         return data;
       }
       return undefined;
-    },
-    async getDelegationById(
-      id: DelegationId,
-      kind: DelegationKind | undefined = undefined
-    ): Promise<WithMetadata<Delegation> | undefined> {
-      return this.getDelegation({
-        "data.id": id,
-        ...(kind ? { "data.kind": kind } : {}),
-      });
     },
     async findDelegations(filters: {
       eserviceId?: EServiceId;
@@ -143,7 +105,33 @@ export function readModelServiceBuilder(
     async getEServiceById(
       id: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
-      return this.getEService(eservices, { "data.id": id });
+      const data = await eservices.findOne(
+        { "data.id": id },
+        {
+          projection: { data: true, metadata: true },
+        }
+      );
+      if (!data) {
+        return undefined;
+      } else {
+        const result = z
+          .object({
+            metadata: z.object({ version: z.number() }),
+            data: EService,
+          })
+          .safeParse(data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse eService item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return {
+          data: result.data.data,
+          metadata: { version: result.data.metadata.version },
+        };
+      }
     },
     async getTenantById(tenantId: string): Promise<Tenant | undefined> {
       const data = await tenants.findOne(

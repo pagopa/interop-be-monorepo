@@ -13,6 +13,14 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import {
+  agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/AgreementRouter.js";
 import { config } from "./config/config.js";
@@ -21,12 +29,36 @@ import {
   agreementServiceBuilder,
 } from "./services/agreementService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createDefaultAgreementService = async () => {
-  const readModelService = readModelServiceBuilder(
+  const db = makeDrizzleConnection(config);
+  const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
+  const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
+  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
+  const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
+  const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
+
+  const oldReadModelService = readModelServiceBuilder(
     ReadModelRepository.init(config)
   );
+  const readModelServiceSQL = readModelServiceBuilderSQL(
+    db,
+    agreementReadModelServiceSQL,
+    catalogReadModelServiceSQL,
+    tenantReadModelServiceSQL,
+    attributeReadModelServiceSQL,
+    delegationReadModelServiceSQL
+  );
+
+  const readModelService =
+    config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+      ? readModelServiceSQL
+      : oldReadModelService;
+
   const pdfGenerator = await initPDFGenerator();
 
   return agreementServiceBuilder(

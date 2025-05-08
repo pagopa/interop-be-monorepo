@@ -16,9 +16,8 @@ import {
   delegationState,
   delegationKind,
   AttributeId,
-  toReadModelAgreement,
-  toReadModelAttribute,
-  toReadModelEService,
+  TenantVerifier,
+  TenantRevoker,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
@@ -28,7 +27,6 @@ import {
   getMockEService,
   getMockTenant,
   getMockDelegation,
-  writeInReadmodel,
   getMockAuthData,
   getMockContext,
 } from "pagopa-interop-commons-test";
@@ -51,9 +49,6 @@ import {
   addOneAttribute,
   addOneEService,
   addOneDelegation,
-  agreements,
-  attributes,
-  eservices,
 } from "./utils.js";
 
 describe("verifyVerifiedAttribute", async () => {
@@ -195,8 +190,16 @@ describe("verifyVerifiedAttribute", async () => {
   ])(
     "Should verify the VerifiedAttribute if verifiedTenantAttribute exist $desc",
     async (hasDelegation) => {
-      const mockVerifiedBy = getMockVerifiedBy();
-      const mockRevokedBy = getMockRevokedBy();
+      const mockVerifier = getMockTenant();
+      const mockRevoker = getMockTenant();
+      const mockVerifiedBy: TenantVerifier = {
+        ...getMockVerifiedBy(),
+        id: mockVerifier.id,
+      };
+      const mockRevokedBy: TenantRevoker = {
+        ...getMockRevokedBy(),
+        id: mockRevoker.id,
+      };
 
       const tenantWithVerifiedAttribute: Tenant = {
         ...targetTenant,
@@ -214,6 +217,8 @@ describe("verifyVerifiedAttribute", async () => {
         ],
       };
 
+      await addOneTenant(mockVerifier);
+      await addOneTenant(mockRevoker);
       await addOneTenant(tenantWithVerifiedAttribute);
       await addOneTenant(requesterTenant);
       await addOneAttribute(attribute);
@@ -374,8 +379,16 @@ describe("verifyVerifiedAttribute", async () => {
     ).rejects.toThrowError(verifiedAttributeSelfVerificationNotAllowed());
   });
   it("Should throw expirationDateCannotBeInThePast if the expirationDate is in the past", async () => {
-    const mockVerifiedBy = getMockVerifiedBy();
-    const mockRevokedBy = getMockRevokedBy();
+    const mockVerifier = getMockTenant();
+    const mockRevoker = getMockTenant();
+    const mockVerifiedBy: TenantVerifier = {
+      ...getMockVerifiedBy(),
+      id: mockVerifier.id,
+    };
+    const mockRevokedBy: TenantRevoker = {
+      ...getMockRevokedBy(),
+      id: mockRevoker.id,
+    };
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -396,15 +409,14 @@ describe("verifyVerifiedAttribute", async () => {
       ],
     };
 
+    await addOneTenant(mockVerifier);
+    await addOneTenant(mockRevoker);
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(requesterTenant);
     await addOneAgreement(agreementEservice1);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await addOneAttribute(attribute);
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
 
     expect(
       tenantService.verifyVerifiedAttribute(
