@@ -25,7 +25,7 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   )
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional());
+  .and(ReadModelSQLDbConfig);
 
 export type AuthorizationConfig = z.infer<typeof AuthorizationConfig>;
 

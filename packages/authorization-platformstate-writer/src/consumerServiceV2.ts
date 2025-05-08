@@ -17,7 +17,7 @@ import {
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import {
   clientKindToTokenGenerationStatesClientKind,
@@ -34,6 +34,7 @@ import {
   deleteEntriesFromTokenGenStatesByClientIdV2,
   deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2,
   deleteEntriesFromTokenGenStatesByClientIdKidV2,
+  removeAdminIdFromTokenGenStatesApiClient,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -64,24 +65,24 @@ export async function handleMessageV2(
           `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
         );
         return Promise.resolve();
-      } else {
-        // platform-states
-        const platformClientEntry: PlatformStatesClientEntry = {
-          PK: platformClientPK,
-          state: itemState.active,
-          clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
-          clientConsumerId: client.consumerId,
-          clientPurposesIds: [],
-          version: msg.version,
-          updatedAt: new Date().toISOString(),
-          clientAdminId: client.adminId,
-        };
-        await upsertPlatformClientEntry(
-          platformClientEntry,
-          dynamoDBClient,
-          logger
-        );
       }
+
+      // platform-states
+      const platformClientEntry: PlatformStatesClientEntry = {
+        PK: platformClientPK,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+        clientPurposesIds: [],
+        version: msg.version,
+        updatedAt: new Date().toISOString(),
+        clientAdminId: client.adminId,
+      };
+      await upsertPlatformClientEntry(
+        platformClientEntry,
+        dynamoDBClient,
+        logger
+      );
 
       // token-generation-states
       await match(client.kind)
@@ -182,23 +183,24 @@ export async function handleMessageV2(
           `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
         );
         return Promise.resolve();
-      } else {
-        const platformClientEntry: PlatformStatesClientEntry = {
-          PK: pk,
-          state: itemState.active,
-          clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
-          clientConsumerId: client.consumerId,
-          clientPurposesIds: [],
-          version: msg.version,
-          updatedAt: new Date().toISOString(),
-          clientAdminId: client.adminId,
-        };
-        await upsertPlatformClientEntry(
-          platformClientEntry,
-          dynamoDBClient,
-          logger
-        );
       }
+
+      // platform-states
+      const platformClientEntry: PlatformStatesClientEntry = {
+        PK: pk,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+        clientPurposesIds: [],
+        version: msg.version,
+        updatedAt: new Date().toISOString(),
+        clientAdminId: client.adminId,
+      };
+      await upsertPlatformClientEntry(
+        platformClientEntry,
+        dynamoDBClient,
+        logger
+      );
 
       await deleteEntriesFromTokenGenStatesByClientIdKidV2(
         client,
@@ -221,24 +223,24 @@ export async function handleMessageV2(
           `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
         );
         return Promise.resolve();
-      } else {
-        // platform-states
-        const platformClientEntry: PlatformStatesClientEntry = {
-          PK: platformClientEntryPK,
-          state: itemState.active,
-          clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
-          clientConsumerId: client.consumerId,
-          clientPurposesIds: [],
-          version: msg.version,
-          updatedAt: new Date().toISOString(),
-          clientAdminId: client.adminId,
-        };
-        await upsertPlatformClientEntry(
-          platformClientEntry,
-          dynamoDBClient,
-          logger
-        );
       }
+
+      // platform-states
+      const platformClientEntry: PlatformStatesClientEntry = {
+        PK: platformClientEntryPK,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+        clientPurposesIds: [],
+        version: msg.version,
+        updatedAt: new Date().toISOString(),
+        clientAdminId: client.adminId,
+      };
+      await upsertPlatformClientEntry(
+        platformClientEntry,
+        dynamoDBClient,
+        logger
+      );
 
       // token-generation-states
       if (client.keys.length === 0) {
@@ -319,35 +321,34 @@ export async function handleMessageV2(
       const pk = makePlatformStatesClientPK(client.id);
       const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
 
-      if (clientEntry) {
-        if (clientEntry.version > msg.version) {
-          logger.info(
-            `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
-          );
-          return Promise.resolve();
-        } else {
-          const purposeId = unsafeBrandId<PurposeId>(msg.data.purposeId);
-
-          // platform-states
-          await setClientPurposeIdsInPlatformStatesEntry(
-            { primaryKey: pk, version: msg.version, clientPurposeIds: [] },
-            dynamoDBClient,
-            logger
-          );
-
-          // token-generation-states
-          await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2(
-            client,
-            purposeId,
-            dynamoDBClient,
-            logger
-          );
-        }
-      } else {
+      if (!clientEntry) {
         logger.info(
           `Platform-states and token-generation-states. Skipping processing of entry ${pk}. Reason: entry not found in platform-states`
         );
+        return Promise.resolve();
       }
+
+      if (clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+        );
+        return Promise.resolve();
+      }
+
+      // platform-states
+      await setClientPurposeIdsInPlatformStatesEntry(
+        { primaryKey: pk, version: msg.version, clientPurposeIds: [] },
+        dynamoDBClient,
+        logger
+      );
+
+      // token-generation-states
+      await deleteEntriesFromTokenGenStatesByClientIdPurposeIdV2(
+        client,
+        unsafeBrandId<PurposeId>(msg.data.purposeId),
+        dynamoDBClient,
+        logger
+      );
     })
     .with({ type: "ClientDeleted" }, async (msg) => {
       const client = parseClient(msg.data.client, msg.type);
@@ -360,20 +361,75 @@ export async function handleMessageV2(
         logger
       );
     })
+    .with({ type: "ClientAdminRemovedBySelfcare" }, async (msg) => {
+      const client = parseClient(msg.data.client, msg.type);
+      const pk = makePlatformStatesClientPK(client.id);
+      const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
+
+      if (!clientEntry) {
+        logger.info(
+          `Platform-states and token-generation-states. Skipping processing of entry ${pk}. Reason: entry not found in platform-states`
+        );
+        return Promise.resolve();
+      }
+
+      if (clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+        );
+        return Promise.resolve();
+      }
+
+      // platform-states
+      const platformClientEntry: PlatformStatesClientEntry = {
+        PK: pk,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+        clientPurposesIds: [],
+        version: msg.version,
+        updatedAt: new Date().toISOString(),
+      };
+      await upsertPlatformClientEntry(
+        platformClientEntry,
+        dynamoDBClient,
+        logger
+      );
+
+      // token-generation-states
+      await Promise.all(
+        client.keys.map(async (key) => {
+          const tokenGenPK = makeTokenGenerationStatesClientKidPK({
+            clientId: client.id,
+            kid: key.kid,
+          });
+
+          await removeAdminIdFromTokenGenStatesApiClient(
+            tokenGenPK,
+            dynamoDBClient,
+            logger
+          );
+        })
+      );
+    })
     .with(
-      { type: "ClientAdded" },
-      { type: "ClientUserAdded" },
-      { type: "ClientUserDeleted" },
-      { type: "ProducerKeychainAdded" },
-      { type: "ProducerKeychainDeleted" },
-      { type: "ProducerKeychainEServiceAdded" },
-      { type: "ProducerKeychainEServiceRemoved" },
-      { type: "ProducerKeychainEServiceAdded" },
-      { type: "ProducerKeychainEServiceRemoved" },
-      { type: "ProducerKeychainKeyAdded" },
-      { type: "ProducerKeychainKeyDeleted" },
-      { type: "ProducerKeychainUserAdded" },
-      { type: "ProducerKeychainUserDeleted" },
+      {
+        type: P.union(
+          "ClientAdded",
+          "ClientUserAdded",
+          "ClientUserDeleted",
+          "ProducerKeychainAdded",
+          "ProducerKeychainDeleted",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved",
+          "ProducerKeychainKeyAdded",
+          "ProducerKeychainKeyDeleted",
+          "ProducerKeychainUserAdded",
+          "ProducerKeychainUserDeleted"
+        ),
+      },
       () => Promise.resolve()
     )
     .exhaustive();

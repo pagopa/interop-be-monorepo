@@ -38,7 +38,7 @@ const DelegationProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   )
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional());
+  .and(ReadModelSQLDbConfig);
 
 export type DelegationProcessConfig = z.infer<typeof DelegationProcessConfig>;
 export const config: DelegationProcessConfig = DelegationProcessConfig.parse(

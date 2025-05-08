@@ -191,6 +191,7 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         return undefined;
       }
 
+      // TODO how to ensure that this is used with filters that match always one tenant at most?
       return aggregateTenant(toTenantAggregator(queryResult));
     },
     async getTenantsByFilter(
