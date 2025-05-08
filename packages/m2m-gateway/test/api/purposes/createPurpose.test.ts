@@ -60,14 +60,16 @@ describe("POST /purposes router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid delegation seed", async () => {
+  it.each([
+    { invalidParam: "invalidValue" },
+    { ...mockPurposeSeed, extraParam: -1 },
+    { ...mockPurposeSeed, description: "short" },
+  ])("Should return 400 if passed invalid delegation seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-
-    const invalidBody = {
-      invalidParam: "invalidValue",
-    } as unknown as m2mGatewayApi.PurposeSeed;
-
-    const res = await makeRequest(token, invalidBody);
+    const res = await makeRequest(
+      token,
+      body as unknown as m2mGatewayApi.PurposeSeed
+    );
 
     expect(res.status).toBe(400);
   });

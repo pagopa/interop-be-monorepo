@@ -35,7 +35,7 @@ export function getMockedApiPurpose({
       consumerId: generateId(),
       versions: versions ?? [getMockedApiPurposeVersion()],
       title: generateMock(z.string()),
-      description: generateMock(z.string()),
+      description: generateMock(z.string().length(10)),
       createdAt: new Date().toISOString(),
       isRiskAnalysisValid: true,
       isFreeOfCharge: true,

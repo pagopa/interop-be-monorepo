@@ -4265,6 +4265,7 @@ components:
         dailyCalls:
           type: integer
           format: int32
+          minimum: 0
         consumerId:
           type: string
           format: uuid
