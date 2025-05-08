@@ -69,12 +69,10 @@ describe("POST /certifiedAttributes router test", () => {
   });
 
   it.each([
-    { invalidParam: "invalidValue" },
-    { code: "code" },
-    { name: "name" },
-    { description: "description", code: "code" },
-    { description: "description", name: "name" },
-    { name: "name", code: "code" },
+    { ...mockCertifiedAttributeSeed, invalidParam: "invalidValue" },
+    { ...mockCertifiedAttributeSeed, name: undefined },
+    { ...mockCertifiedAttributeSeed, code: undefined },
+    { ...mockCertifiedAttributeSeed, description: undefined },
   ])(
     "Should return 400 if passed an invalid certified attribute seed: %s",
     async (body) => {
