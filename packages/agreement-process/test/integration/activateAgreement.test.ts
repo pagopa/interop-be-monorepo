@@ -20,14 +20,15 @@ import {
   getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
-  getMockVerifiedTenantAttribute,
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
+  sortAgreement,
+  getMockDescriptorPublished,
+  getMockVerifiedTenantAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -293,6 +294,7 @@ describe("activate agreement", () => {
               delegationId: producerDelegation?.id,
             },
           ],
+          revokedBy: [],
         };
 
         const consumer: Tenant = {
@@ -306,8 +308,8 @@ describe("activate agreement", () => {
         };
 
         await addOneAgreement(agreement);
-        await addOneTenant(consumer);
         await addOneTenant(producer);
+        await addOneTenant(consumer);
         await addOneEService(eservice);
         await addOneAttribute(certifiedAttribute);
         await addOneAttribute(declaredAttribute);
@@ -505,6 +507,7 @@ describe("activate agreement", () => {
             extensionDate: addDays(new Date(), 30),
           },
         ],
+        revokedBy: [],
       };
 
       const consumer: Tenant = {
@@ -549,8 +552,8 @@ describe("activate agreement", () => {
         suspendedByPlatform: false, // Must be false, otherwise no event is created
       };
 
-      await addOneTenant(consumer);
       await addOneTenant(producer);
+      await addOneTenant(consumer);
       await addOneEService(eservice);
       await addOneAgreement(agreement);
 
@@ -583,11 +586,14 @@ describe("activate agreement", () => {
         suspendedByPlatform: true,
       };
 
-      expect(actualAgreement).toMatchObject(expectedAgreement);
+      expect(sortAgreement(actualAgreement)).toMatchObject(
+        sortAgreement(expectedAgreement)
+      );
     });
 
     it("Agreement Pending, Requester === Producer, invalid attributes -- error case: throws agreementActivationFailed", async () => {
       const producer: Tenant = getMockTenant();
+      const tenantOnlyForVerifierAttribute: Tenant = getMockTenant();
 
       const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
@@ -603,8 +609,12 @@ describe("activate agreement", () => {
         {
           ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
-            { id: generateId<TenantId>(), verificationDate: new Date() },
+            {
+              id: tenantOnlyForVerifierAttribute.id,
+              verificationDate: new Date(),
+            },
           ],
+          revokedBy: [],
         };
 
       const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
@@ -617,6 +627,7 @@ describe("activate agreement", () => {
               extensionDate: new Date(),
             },
           ],
+          revokedBy: [],
         };
 
       const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
@@ -666,9 +677,9 @@ describe("activate agreement", () => {
         producerId: producer.id,
         consumerId: consumer.id,
       };
-
-      await addOneTenant(consumer);
+      await addOneTenant(tenantOnlyForVerifierAttribute);
       await addOneTenant(producer);
+      await addOneTenant(consumer);
       await addOneEService(eservice);
       await addOneAgreement(agreement);
 
@@ -803,6 +814,7 @@ describe("activate agreement", () => {
               extensionDate: addDays(new Date(), 30),
             },
           ],
+          revokedBy: [],
         };
 
         const consumer: Tenant = {
@@ -877,8 +889,8 @@ describe("activate agreement", () => {
           delegateConsumer,
         } = authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
-        await addOneTenant(consumer);
         await addOneTenant(producer);
+        await addOneTenant(consumer);
         await addOneEService(eservice);
         await addOneAgreement(agreement);
         const relatedAgreements = await addRelatedAgreements(agreement);
@@ -948,12 +960,25 @@ describe("activate agreement", () => {
         revocationTimestamp: new Date(),
       };
 
+      const tenantOnlyForVerifierAttribute: Tenant = getMockTenant();
+
+      const mockTenantVerifiedAttribute: VerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(),
+        verifiedBy: [
+          {
+            id: tenantOnlyForVerifierAttribute.id,
+            verificationDate: new Date(),
+          },
+        ],
+        revokedBy: [],
+      };
+
       const consumerAndProducer: Tenant = {
         ...getMockTenant(),
         attributes: [
           revokedTenantCertifiedAttribute,
           getMockDeclaredTenantAttribute(),
-          getMockVerifiedTenantAttribute(),
+          mockTenantVerifiedAttribute,
         ],
       };
 
@@ -1018,17 +1043,17 @@ describe("activate agreement", () => {
         verifiedAttributes: [getMockAgreementAttribute()],
       };
 
+      await addOneTenant(tenantOnlyForVerifierAttribute);
       await addOneTenant(consumerAndProducer);
       await addOneEService(eservice);
       await addOneAgreement(agreement);
-      const relatedAgreements = await addRelatedAgreements(agreement);
 
+      const relatedAgreements = await addRelatedAgreements(agreement);
       const activateAgreementReturnValue =
         await agreementService.activateAgreement(
           agreement.id,
           getMockContext({ authData })
         );
-
       const agreementEvent = await readLastAgreementEvent(agreement.id);
 
       // In this case, where the caller is both Producer and Consumer,
@@ -1107,6 +1132,7 @@ describe("activate agreement", () => {
               extensionDate: addDays(new Date(), 30),
             },
           ],
+          revokedBy: [],
         };
 
         const consumer: Tenant = {
@@ -1229,8 +1255,8 @@ describe("activate agreement", () => {
             ...expectedUnsuspendedAgreement,
             suspendedByPlatform: false,
           };
-          await addOneTenant(consumer);
           await addOneTenant(producer);
+          await addOneTenant(consumer);
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
@@ -1289,8 +1315,8 @@ describe("activate agreement", () => {
             suspendedByPlatform: false,
           };
 
-          await addOneTenant(consumer);
           await addOneTenant(producer);
+          await addOneTenant(consumer);
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
@@ -1369,6 +1395,7 @@ describe("activate agreement", () => {
           .exhaustive();
 
         const producer: Tenant = getMockTenant();
+        const tenantOnlyForVerifierAttribute: Tenant = getMockTenant();
 
         const revokedTenantCertifiedAttribute: CertifiedTenantAttribute = {
           ...getMockCertifiedTenantAttribute(),
@@ -1384,8 +1411,12 @@ describe("activate agreement", () => {
           {
             ...getMockVerifiedTenantAttribute(),
             verifiedBy: [
-              { id: generateId<TenantId>(), verificationDate: new Date() },
+              {
+                id: tenantOnlyForVerifierAttribute.id,
+                verificationDate: new Date(),
+              },
             ],
+            revokedBy: [],
           };
 
         const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
@@ -1398,6 +1429,7 @@ describe("activate agreement", () => {
                 extensionDate: new Date(),
               },
             ],
+            revokedBy: [],
           };
 
         const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
@@ -1526,8 +1558,9 @@ describe("activate agreement", () => {
             ...expectedUnsuspendedAgreement,
             suspendedByPlatform: true,
           };
-          await addOneTenant(consumer);
+          await addOneTenant(tenantOnlyForVerifierAttribute);
           await addOneTenant(producer);
+          await addOneTenant(consumer);
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
@@ -1578,9 +1611,9 @@ describe("activate agreement", () => {
             ...expected1,
             suspendedByPlatform: true,
           };
-
-          await addOneTenant(consumer);
+          await addOneTenant(tenantOnlyForVerifierAttribute);
           await addOneTenant(producer);
+          await addOneTenant(consumer);
           await addOneEService(eservice);
           await addOneAgreement(agreement);
           const relatedAgreements = await addRelatedAgreements(agreement);
@@ -1982,8 +2015,8 @@ describe("activate agreement", () => {
         },
       };
 
-      await addOneTenant(consumer);
       await addOneTenant(producer);
+      await addOneTenant(consumer);
       await addOneEService(eservice);
       await addOneAgreement(agreement);
       await expect(
