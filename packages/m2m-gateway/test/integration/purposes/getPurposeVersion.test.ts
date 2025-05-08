@@ -18,7 +18,7 @@ import {
 import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
 import { purposeVersionNotFound } from "../../../src/model/errors.js";
 
-describe("getPurpose", () => {
+describe("getPurposeVersion", () => {
   const mockApiPurposeVersionResponse = getMockedApiPurposeVersion();
   const mockApiPurposeResponse = getMockedApiPurpose({
     versions: [mockApiPurposeVersionResponse],
