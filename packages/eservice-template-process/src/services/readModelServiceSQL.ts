@@ -6,6 +6,7 @@ import {
   M2MAuthData,
   UIAuthData,
   userRole,
+  withTotalCount,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -42,17 +43,7 @@ import {
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-import {
-  and,
-  count,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  ne,
-  or,
-  sql,
-} from "drizzle-orm";
+import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -119,10 +110,11 @@ export function readModelServiceBuilderSQL({
       const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
 
       const subquery = readModelDB
-        .select({
-          eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+          })
+        )
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .leftJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -305,11 +297,12 @@ export function readModelServiceBuilderSQL({
       offset: number
     ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
       const queryResult = await readModelDB
-        .select({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+        )
         .from(tenantInReadmodelTenant)
         .innerJoin(
           eserviceTemplateInReadmodelEserviceTemplate,
