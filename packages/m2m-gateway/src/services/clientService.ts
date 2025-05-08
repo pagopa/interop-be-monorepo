@@ -12,8 +12,8 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     /**
      * Get the admin user ID for a given client ID.
      * This method is used by the m2mAuthDataValidationMiddleware to validate
-     * that the userId in the JWT token is the same as the adminId associated
-     * with the client associated with the token.
+     * that the adminId in the JWT token is the same as the adminId associated
+     * with the client for which the token was issued.
      */
     async getClientAdminId(
       clientId: ClientId,
