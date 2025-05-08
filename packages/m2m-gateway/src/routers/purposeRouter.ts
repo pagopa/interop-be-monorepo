@@ -129,9 +129,9 @@ const purposeRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const version = await purposeService.createPurposeVersion(
-          ctx,
           unsafeBrandId(req.params.purposeId),
-          req.body
+          req.body,
+          ctx
         );
 
         return res
