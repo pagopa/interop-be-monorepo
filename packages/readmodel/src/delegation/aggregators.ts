@@ -44,6 +44,7 @@ export const aggregateDelegationArray = ({
     });
   });
 };
+
 const createDelegationSQLPropertyMap = <
   T extends DelegationStampSQL | DelegationContractDocumentSQL
 >(

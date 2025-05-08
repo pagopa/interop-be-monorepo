@@ -345,6 +345,7 @@ export const aggregateEserviceArray = ({
     });
   });
 };
+
 const createEServiceSQLPropertyMap = <
   T extends
     | EServiceRiskAnalysisSQL

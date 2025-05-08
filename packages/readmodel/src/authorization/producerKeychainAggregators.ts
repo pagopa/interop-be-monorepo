@@ -87,6 +87,7 @@ export const aggregateProducerKeychainArray = ({
     });
   });
 };
+
 const createProducerKeychainSQLPropertyMap = <
   T extends
     | ProducerKeychainUserSQL
