@@ -5,9 +5,9 @@ import {
   EventStoreConfig,
   S3Config,
   ApplicationAuditProducerConfig,
-  FeatureFlagSignalhubWhitelistConfig,
   FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
+  FeatureFlagSignalhubWhitelistConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
