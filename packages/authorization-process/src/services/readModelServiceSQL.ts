@@ -1,5 +1,5 @@
 import { and, eq, ilike, inArray, sql } from "drizzle-orm";
-import { ReadModelRepository } from "pagopa-interop-commons";
+import { escapeRegExp } from "pagopa-interop-commons";
 import {
   Client,
   WithMetadata,
@@ -118,10 +118,7 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(
-                  clientInReadmodelClient.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
-                )
+              ? ilike(clientInReadmodelClient.name, `%${escapeRegExp(name)}%`)
               : undefined,
             // USERS FILTER
             userIds.length > 0
@@ -303,7 +300,7 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   producerKeychainInReadmodelProducerKeychain.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             // USERS FILTER
