@@ -409,18 +409,19 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const client = await authorizationService.setAdminToClient(
-          {
-            clientId: unsafeBrandId(req.params.clientId),
-            adminId: unsafeBrandId(req.body.adminId),
-          },
-          ctx
-        );
+        const { client, showUsers } =
+          await authorizationService.setAdminToClient(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              adminId: unsafeBrandId(req.body.adminId),
+            },
+            ctx
+          );
         return res
           .status(200)
           .send(
             authorizationApi.Client.parse(
-              clientToApiClient(client, { showUsers: false })
+              clientToApiClient(client, { showUsers })
             )
           );
       } catch (error) {

@@ -579,7 +579,7 @@ export function authorizationServiceBuilder(
         adminId: UserId;
       },
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Client> {
+    ): Promise<{ client: Client; showUsers: boolean }> {
       assertFeatureFlagEnabled(config, "featureFlagAdminClient");
 
       logger.info(`Set user ${adminId} in client ${clientId} as admin`);
@@ -617,7 +617,7 @@ export function authorizationServiceBuilder(
           oldAdminId
         )
       );
-      return updatedClient;
+      return { client: updatedClient, showUsers: true };
     },
     async getClientKeys(
       {
