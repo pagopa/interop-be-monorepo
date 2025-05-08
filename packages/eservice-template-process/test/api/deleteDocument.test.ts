@@ -13,8 +13,10 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
+  documentPrettyNameDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
+  eserviceTemplateDocumentNotFound,
   notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
 
@@ -85,6 +87,24 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
     expect(res.status).toBe(404);
   });
 
+  it("Should return 404 for eserviceTemplateDocumentNotFound", async () => {
+    eserviceTemplateService.deleteDocument = vi
+      .fn()
+      .mockRejectedValue(
+        eserviceTemplateDocumentNotFound(
+          templateId,
+          templateVersionId,
+          documentId
+        )
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.body.detail).toBe(
+      `Document ${documentId} not found in version ${templateVersionId} of template ${templateId}`
+    );
+    expect(res.status).toBe(404);
+  });
+
   it("Should return 403 for operationForbidden", async () => {
     eserviceTemplateService.deleteDocument = vi
       .fn()
@@ -110,6 +130,21 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
       `EService template version ${templateVersionId} has a not valid status for this operation ${eserviceTemplateVersionState.draft}`
     );
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 409 for documentPrettyNameDuplicate", async () => {
+    const documentName = "documentName";
+    eserviceTemplateService.updateDocument = vi
+      .fn()
+      .mockRejectedValue(
+        documentPrettyNameDuplicate(documentName, templateVersionId)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.body.detail).toBe(
+      `A document with prettyName ${documentName} already exists in version ${templateVersionId}`
+    );
+    expect(res.status).toBe(409);
   });
 
   it("Should return 400 if passed a not compliat query param", async () => {
