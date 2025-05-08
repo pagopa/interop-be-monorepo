@@ -15,7 +15,9 @@ describe("API GET /agreements/:agreementId/contract", () => {
   const mockAgreementId = generateId<AgreementId>();
   const mockBuffer = Buffer.from("content");
 
-  services.agreementService.getAgreementContract = vi.fn().mockResolvedValue(mockBuffer);
+  services.agreementService.getAgreementContract = vi
+    .fn()
+    .mockResolvedValue(mockBuffer);
 
   const makeRequest = async (
     token: string,
@@ -33,7 +35,7 @@ describe("API GET /agreements/:agreementId/contract", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
-    expect(res.body).toBe(mockBuffer);
+    expect(res.body).toEqual(mockBuffer);
   });
 
   it("Should return 404 for contractNotFound", async () => {

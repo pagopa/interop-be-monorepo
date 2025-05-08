@@ -15,7 +15,9 @@ describe("API POST /agreements/:agreementId/archive", () => {
   const mockApiAgreement = getMockApiAgreement();
   const mockPayload = getMockApiAgreementRejectionPayload();
 
-  services.agreementService.archiveAgreement = vi.fn().mockResolvedValue(undefined);
+  services.agreementService.archiveAgreement = vi
+    .fn()
+    .mockResolvedValue(undefined);
 
   const makeRequest = async (
     token: string,

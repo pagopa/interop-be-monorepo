@@ -8,6 +8,7 @@ import { authRole } from "pagopa-interop-commons";
 import { services, api } from "../../vitest.api.setup.js";
 import { getMockApiAgreementListEntry } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
+import { agreementDescriptorNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /consumers/agreements", () => {
   const mockAgreement1 = getMockApiAgreementListEntry();
@@ -47,6 +48,9 @@ describe("API GET /consumers/agreements", () => {
   });
 
   it("Should return 500 for agreementDescriptorNotFound", async () => {
+    services.agreementService.getConsumerAgreements = vi
+      .fn()
+      .mockRejectedValue(agreementDescriptorNotFound(mockAgreement1.id));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(500);
