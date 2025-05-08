@@ -18,6 +18,7 @@ import {
   PurposeId,
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
+  UserId,
 } from "pagopa-interop-models";
 import {} from "pagopa-interop-client-assertion-validation";
 import { genericLogger } from "pagopa-interop-commons";
@@ -208,6 +209,31 @@ describe("unit tests", () => {
       const key = await retrieveKey(dynamoDBClient, tokenClientKidPK);
 
       expect(key).toEqual(tokenClientEntry);
+    });
+
+    it("should succeed - clientKid entry - api key - adminId", async () => {
+      const clientId = generateId<ClientId>();
+      const clientAdminId = generateId<UserId>();
+      const kid = "kid";
+
+      const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
+        clientId,
+        kid,
+      });
+
+      const tokenClientEntry: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK),
+        clientKind: clientKindTokenGenStates.api,
+        adminId: clientAdminId,
+      };
+
+      await writeTokenGenStatesApiClient(tokenClientEntry, dynamoDBClient);
+      const key = await retrieveKey(dynamoDBClient, tokenClientKidPK);
+
+      expect(key).toEqual(tokenClientEntry);
+      expect(key).toMatchObject({
+        adminId: clientAdminId,
+      });
     });
   });
 
