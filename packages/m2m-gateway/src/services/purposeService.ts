@@ -33,6 +33,24 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const pollPurposeVersion = (
+    purposeId: PurposeId,
+    newVersion: WithMaybeMetadata<purposeApi.PurposeVersion>,
+    headers: M2MGatewayAppContext["headers"]
+  ) =>
+    pollResource(() =>
+      clients.purposeProcessClient.getPurpose({
+        params: { id: purposeId },
+        headers,
+      })
+    )({
+      checkFn: (polledPurpose) =>
+        polledPurpose.data.versions.some(
+          (version) => version.id === newVersion.data.id
+        ),
+    });
+
   return {
     getPurposes: async (
       queryParams: m2mGatewayApi.GetPurposesQueryParams,
@@ -121,6 +139,35 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       }
 
       return toM2mGatewayApiPurposeVersion(version);
+    },
+    createPurposeVersion: async (
+      purposeId: PurposeId,
+      versionSeed: m2mGatewayApi.PurposeVersionSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeVersion> => {
+      logger.info(`Creating purpose version`);
+
+      const versionResponse =
+        await clients.purposeProcessClient.createPurposeVersion(versionSeed, {
+          params: { purposeId },
+          headers,
+        });
+
+      const polledPurpose = await pollPurposeVersion(
+        purposeId,
+        versionResponse,
+        headers
+      );
+
+      const createdVersion = polledPurpose.data.versions.find(
+        (version) => version.id === versionResponse.data.id
+      );
+
+      if (!createdVersion) {
+        throw purposeVersionNotFound(purposeId, versionResponse.data.id);
+      }
+
+      return toM2mGatewayApiPurposeVersion(createdVersion);
     },
   };
 }

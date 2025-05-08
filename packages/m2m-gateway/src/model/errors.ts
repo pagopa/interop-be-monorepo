@@ -2,7 +2,6 @@ import {
   ApiError,
   makeApiProblemBuilder,
   PurposeId,
-  PurposeVersionId,
 } from "pagopa-interop-models";
 import { delegationApi, purposeApi } from "pagopa-interop-api-clients";
 
@@ -49,7 +48,7 @@ export function unexpectedDelegationKind(
 
 export function purposeVersionNotFound(
   purposeId: PurposeId,
-  versionId: PurposeVersionId
+  versionId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version ${versionId} not found in purpose ${purposeId}`,

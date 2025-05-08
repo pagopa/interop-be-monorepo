@@ -308,7 +308,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const purposeVersion = await purposeService.createPurposeVersion(
           unsafeBrandId(req.params.purposeId),
