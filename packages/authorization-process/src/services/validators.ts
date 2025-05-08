@@ -33,6 +33,7 @@ import {
   keyAlreadyExists,
   securityUserNotMember,
   clientKindNotAllowed,
+  clientAdminIdNotFound,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -178,5 +179,17 @@ export const assertSecurityRoleIsClientMember = (
 export const assertClientIsConsumer = (client: Client): void => {
   if (client.kind !== clientKind.consumer) {
     throw clientKindNotAllowed(client.id);
+  }
+};
+
+export const assertClientIsAPI = (client: Client): void => {
+  if (client.kind !== clientKind.api) {
+    throw clientKindNotAllowed(client.id);
+  }
+};
+
+export const assertAdminInClient = (client: Client, adminId: UserId): void => {
+  if (client.adminId !== adminId) {
+    throw clientAdminIdNotFound(client.id, adminId);
   }
 };

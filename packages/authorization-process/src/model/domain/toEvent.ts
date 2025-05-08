@@ -338,3 +338,24 @@ export function toCreateEventProducerKeychainEServiceRemoved(
     correlationId,
   };
 }
+
+export function toCreateEventClientAdminRemovedBySelfcare(
+  client: Client,
+  adminId: UserId,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AuthorizationEventV2> {
+  return {
+    streamId: client.id,
+    version,
+    event: {
+      type: "ClientAdminRemovedBySelfcare",
+      event_version: 2,
+      data: {
+        client: toClientV2(client),
+        adminId,
+      },
+    },
+    correlationId,
+  };
+}
