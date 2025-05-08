@@ -16,14 +16,14 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-// import { keyToApiKey } from "../../src/model/domain/apiConverter.js";
+import { keyToApiKey } from "../../src/model/domain/apiConverter.js";
 import {
   organizationNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
   tooManyKeysPerProducerKeychain,
 } from "../../src/model/domain/errors.js";
 
-describe("API /producerKeychains/:producerKeychainId/keys authorization test", () => {
+describe("API /producerKeychains/{producerKeychainId}/keys authorization test", () => {
   const keySeed: authorizationApi.KeySeed = {
     name: "key seed",
     use: "ENC",
@@ -31,18 +31,15 @@ describe("API /producerKeychains/:producerKeychainId/keys authorization test", (
     alg: "",
   };
 
-  const mockKeys = [getMockKey()];
+  const mockKey = getMockKey();
 
   const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();
 
-  // const apiKeys: authorizationApi.Keys = {
-  //   keys: mockKeys.map(keyToApiKey),
-  //   totalCount: mockKeys.length,
-  // };
+  const apiKey: authorizationApi.Key = keyToApiKey(mockKey);
 
   authorizationService.createProducerKeychainKey = vi
     .fn()
-    .mockResolvedValue({ keys: mockKeys });
+    .mockResolvedValue(mockKey);
 
   const makeRequest = async (token: string, producerKeychainId: string) =>
     request(api)
@@ -56,15 +53,15 @@ describe("API /producerKeychains/:producerKeychainId/keys authorization test", (
     authRole.SECURITY_ROLE,
   ];
 
-  // it.each(authorizedRoles)(
-  //   "Should return 200 for user with role %s",
-  //   async (role) => {
-  //     const token = generateToken(role);
-  //     const res = await makeRequest(token, mockProducerKeychain.id);
-  //     expect(res.status).toBe(200);
-  //     expect(res.body).toEqual(apiKeys);
-  //   }
-  // );
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockProducerKeychain.id);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiKey);
+    }
+  );
 
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
@@ -115,7 +112,7 @@ describe("API /producerKeychains/:producerKeychainId/keys authorization test", (
   it("Should return 400 for invalidKeyLength", async () => {
     authorizationService.createProducerKeychainKey = vi
       .fn()
-      .mockRejectedValue(invalidKeyLength(mockKeys[0].encodedPem.length));
+      .mockRejectedValue(invalidKeyLength(mockKey.encodedPem.length));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, mockProducerKeychain.id);
     expect(res.status).toBe(400);
