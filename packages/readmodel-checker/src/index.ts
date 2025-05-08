@@ -22,7 +22,7 @@ const pool = new pg.Pool({
   database: config.readModelSQLDbName,
   user: config.readModelSQLDbUsername,
   password: config.readModelSQLDbPassword,
-  ssl: config.readModelSQLDbUseSSL,
+  ssl: config.readModelSQLDbUseSSL ? { rejectUnauthorized: false } : undefined,
 });
 
 const readModelDB = drizzle({ client: pool });
