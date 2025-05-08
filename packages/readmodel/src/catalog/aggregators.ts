@@ -79,28 +79,30 @@ export const aggregateDescriptor = ({
     certified: certifiedAttributesSQL,
     verified: verifiedAttributesSQL,
     declared: declaredAttributesSQL,
-  } = attributesSQL.reduce(
-    (acc, attributeSQL) =>
-      match(AttributeKind.parse(attributeSQL.kind))
-        .with(attributeKind.certified, () => ({
-          ...acc,
-          certified: [...acc.certified, attributeSQL],
-        }))
-        .with(attributeKind.declared, () => ({
-          ...acc,
-          declared: [...acc.declared, attributeSQL],
-        }))
-        .with(attributeKind.verified, () => ({
-          ...acc,
-          verified: [...acc.verified, attributeSQL],
-        }))
-        .exhaustive(),
-    {
-      certified: new Array<EServiceDescriptorAttributeSQL>(),
-      declared: new Array<EServiceDescriptorAttributeSQL>(),
-      verified: new Array<EServiceDescriptorAttributeSQL>(),
-    }
-  );
+  } = [...attributesSQL]
+    .sort((attr1, attr2) => attr1.groupId - attr2.groupId)
+    .reduce(
+      (acc, attributeSQL) =>
+        match(AttributeKind.parse(attributeSQL.kind))
+          .with(attributeKind.certified, () => ({
+            ...acc,
+            certified: [...acc.certified, attributeSQL],
+          }))
+          .with(attributeKind.declared, () => ({
+            ...acc,
+            declared: [...acc.declared, attributeSQL],
+          }))
+          .with(attributeKind.verified, () => ({
+            ...acc,
+            verified: [...acc.verified, attributeSQL],
+          }))
+          .exhaustive(),
+      {
+        certified: new Array<EServiceDescriptorAttributeSQL>(),
+        declared: new Array<EServiceDescriptorAttributeSQL>(),
+        verified: new Array<EServiceDescriptorAttributeSQL>(),
+      }
+    );
   const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
   const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
   const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
