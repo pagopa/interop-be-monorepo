@@ -26,7 +26,7 @@ import {
 } from "./integrationUtils.js";
 
 describe("clientAdminRemoved", () => {
-  it("should write on event-store for the remove of an admin in a client", async () => {
+  it("should write on event-store for the removal of an admin in a client", async () => {
     const mockClient: Client = {
       ...getMockClient(),
       adminId: generateId<UserId>(),
