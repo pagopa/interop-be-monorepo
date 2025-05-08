@@ -92,7 +92,7 @@ function createM2MAdminPayload() {
     organizationId: generateId(),
     client_id: mockM2MAdminClientId,
     sub: mockM2MAdminClientId,
-    userId: mockM2MAdminUserId,
+    adminId: mockM2MAdminUserId,
   };
 }
 

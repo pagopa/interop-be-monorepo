@@ -145,7 +145,7 @@ const mockSupportExpectedAuthData: UIAuthData = {
 const mockM2MAdminToken = {
   ...mockM2MToken,
   role: "m2m-admin",
-  userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+  adminId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
 };
 
 const mockM2MAdminExpectedAuthData: M2MAdminAuthData = {
