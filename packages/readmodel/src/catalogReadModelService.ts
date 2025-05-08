@@ -20,9 +20,7 @@ import {
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import {
   aggregateEservice,
-  aggregateEserviceArray,
   toEServiceAggregator,
-  toEServiceAggregatorArray,
 } from "./catalog/aggregators.js";
 import { checkMetadataVersion } from "./utils.js";
 
@@ -220,87 +218,6 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
       }
 
       return aggregateEservice(toEServiceAggregator(queryResult));
-    },
-    async getEServicesByFilter(
-      filter: SQL | undefined
-    ): Promise<Array<WithMetadata<EService>>> {
-      if (filter === undefined) {
-        throw genericInternalError("Filter cannot be undefined");
-      }
-
-      const queryResult = await db
-        .select({
-          eservice: eserviceInReadmodelCatalog,
-          descriptor: eserviceDescriptorInReadmodelCatalog,
-          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
-          document: eserviceDescriptorDocumentInReadmodelCatalog,
-          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
-          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
-          riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateVersionRef:
-            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-        })
-        .from(eserviceInReadmodelCatalog)
-        .where(filter)
-        .leftJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorInterfaceInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorDocumentInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorAttributeInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceRiskAnalysisInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceRiskAnalysisInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          eq(
-            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        );
-
-      return aggregateEserviceArray(toEServiceAggregatorArray(queryResult));
     },
     async deleteEServiceById(
       eserviceId: EServiceId,
