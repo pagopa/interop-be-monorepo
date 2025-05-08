@@ -102,4 +102,10 @@ describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:
     expect(res.body.detail).toBe("Insufficient privileges");
     expect(res.status).toBe(403);
   });
+
+  it("Should return 400 if passed a not compliat query param", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "111");
+    expect(res.status).toBe(400);
+  });
 });

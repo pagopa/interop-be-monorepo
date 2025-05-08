@@ -23,10 +23,15 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
   const templateVersionId = generateId<EServiceTemplateVersionId>();
   const documentId = generateId<EServiceDocumentId>();
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    tempId: string = templateId,
+    tempVersionId: string = templateVersionId,
+    docId: string = documentId
+  ) =>
     request(api)
       .delete(
-        `/templates/${templateId}/versions/${templateVersionId}/documents/${documentId}`
+        `/templates/${tempId}/versions/${tempVersionId}/documents/${docId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
@@ -104,6 +109,12 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
     expect(res.body.detail).toBe(
       `EService template version ${templateVersionId} has a not valid status for this operation ${eserviceTemplateVersionState.draft}`
     );
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed a not compliat query param", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "111");
     expect(res.status).toBe(400);
   });
 });

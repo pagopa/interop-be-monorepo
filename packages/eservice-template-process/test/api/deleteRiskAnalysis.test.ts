@@ -101,4 +101,10 @@ describe("API DELETE /templates/:templateId/riskAnalysis/:riskAnalysisId", () =>
     );
     expect(res.status).toBe(400);
   });
+
+  it("Should return 400 if passed a not compliat query param", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "111");
+    expect(res.status).toBe(400);
+  });
 });
