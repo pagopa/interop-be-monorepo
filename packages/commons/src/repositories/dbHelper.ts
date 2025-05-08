@@ -6,13 +6,13 @@ export const createListResult = <T>(
   totalCount?: number
 ): ListResult<T> => ({
   results: items,
-  totalCount: totalCount ?? items.length,
+  totalCount: totalCount ?? 0,
 });
 
+export const lowerCase = (column: Column): SQL => sql<string>`LOWER(${column})`;
+
 // see: https://orm.drizzle.team/docs/guides/limit-offset-pagination
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const ascLower = <T = string>(column: Column | SQL | SQL.Aliased) =>
-  asc(sql<T>`LOWER(${column})`);
+export const ascLower = (column: Column): SQL => asc(lowerCase(column));
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const withTotalCount = <T extends Table>(tbl: T) => ({
