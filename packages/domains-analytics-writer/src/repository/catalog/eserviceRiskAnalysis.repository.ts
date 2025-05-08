@@ -90,21 +90,23 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      id: string
+      recordsId: Array<EServiceRiskAnalysisSQL["id"]>
     ): Promise<void> {
-      const mapping = {
-        id: () => id,
-        deleted: () => true,
-      };
-      const cs = buildColumnSet<{ id: string; deleted: boolean }>(
-        pgp,
-        mapping,
-        stagingDeletingTable
-      );
       try {
+        const mapping = {
+          id: (r: { id: string }) => r.id,
+          deleted: () => true,
+        };
+        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+          pgp,
+          mapping,
+          stagingDeletingTable
+        );
+
+        const records = recordsId.map((id: string) => ({ id, deleted: true }));
+
         await t.none(
-          pgp.helpers.insert({ id, deleted: true }, cs) +
-            " ON CONFLICT DO NOTHING"
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
