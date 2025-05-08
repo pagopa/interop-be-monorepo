@@ -158,7 +158,7 @@ export function readModelServiceBuilderSQL({
         and(
           eq(purposeInReadmodelPurpose.eserviceId, eserviceId),
           eq(purposeInReadmodelPurpose.consumerId, consumerId),
-          ilike(purposeInReadmodelPurpose.title, title)
+          ilike(purposeInReadmodelPurpose.title, escapeRegExp(title))
         )
       );
     },
