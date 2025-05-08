@@ -5,7 +5,7 @@ import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { services, api } from "../../vitest.api.setup.js";
-import { config } from "../../../src/config/config.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /agreements/:agreementId/consumer-documents", () => {
   const mockAgreementId = generateId<AgreementId>();
@@ -20,9 +20,7 @@ describe("API POST /agreements/:agreementId/consumer-documents", () => {
     agreementId: string = mockAgreementId
   ) =>
     request(api)
-      .post(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements/${agreementId}/consumer-documents`
-      )
+      .post(`${appBasePath}/agreements/${agreementId}/consumer-documents`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .field("name", "name")

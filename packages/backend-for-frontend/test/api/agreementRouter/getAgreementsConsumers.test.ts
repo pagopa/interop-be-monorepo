@@ -7,7 +7,7 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { services, api } from "../../vitest.api.setup.js";
 import { getMockApiCompactEServiceLight } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /agreements/filter/consumers", () => {
   const mockCompactEServiceLight1 = getMockApiCompactEServiceLight();
@@ -39,7 +39,7 @@ describe("API GET /agreements/filter/consumers", () => {
   const makeRequest = async (token: string, limit: unknown = 10) =>
     request(api)
       .get(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements/filter/consumers`
+        `${appBasePath}/agreements/filter/consumers`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())

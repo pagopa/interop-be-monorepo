@@ -7,7 +7,7 @@ import { authRole } from "pagopa-interop-commons";
 import { services, api } from "../../vitest.api.setup.js";
 import { getMockApiAgreement } from "../../mockUtils.js";
 import { agreementDescriptorNotFound } from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /agreements/:agreementId", () => {
   const mockAgreementId = generateId<AgreementId>();
@@ -23,7 +23,7 @@ describe("API GET /agreements/:agreementId", () => {
   ) =>
     request(api)
       .get(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements/${agreementId}`
+        `${appBasePath}/agreements/${agreementId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())

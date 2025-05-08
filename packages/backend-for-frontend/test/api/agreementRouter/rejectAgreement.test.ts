@@ -9,7 +9,7 @@ import {
   getMockApiAgreement,
   getMockApiAgreementRejectionPayload,
 } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /agreements/:agreementId/reject", () => {
   const mockApiAgreement = getMockApiAgreement();
@@ -25,7 +25,7 @@ describe("API POST /agreements/:agreementId/reject", () => {
   ) =>
     request(api)
       .post(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements/${agreementId}/reject`
+        `${appBasePath}/agreements/${agreementId}/reject`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())

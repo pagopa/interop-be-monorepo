@@ -9,7 +9,7 @@ import {
   contractException,
   contractNotFound,
 } from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /agreements/:agreementId/contract", () => {
   const mockAgreementId = generateId<AgreementId>();
@@ -25,7 +25,7 @@ describe("API GET /agreements/:agreementId/contract", () => {
   ) =>
     request(api)
       .get(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements/${agreementId}/contract`
+        `${appBasePath}/agreements/${agreementId}/contract`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
