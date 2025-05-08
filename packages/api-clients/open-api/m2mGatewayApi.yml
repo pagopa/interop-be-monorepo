@@ -4312,15 +4312,9 @@ components:
         - createdAt
       description: business representation of a purpose version
     PurposeVersions:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/PurposeVersion"
-      required:
-        - results
+      type: array
+      items:
+        $ref: "#/components/schemas/PurposeVersion"
     PurposeVersionSeed:
       type: object
       additionalProperties: false

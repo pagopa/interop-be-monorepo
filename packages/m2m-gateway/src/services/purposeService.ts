@@ -127,7 +127,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { state } = queryParams;
 
-      const { data } = await purposeProcessClient.getPurpose({
+      const { data } = await clients.purposeProcessClient.getPurpose({
         params: {
           id: purposeId,
         },
@@ -138,7 +138,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         ? data.versions.filter((version) => version.state === state)
         : data.versions;
 
-      return { results: versions.map(toM2MPurposeVersion) };
+      return versions.map(toM2mGatewayApiPurposeVersion);
     },
     getPurposeVersion: async (
       purposeId: PurposeId,
