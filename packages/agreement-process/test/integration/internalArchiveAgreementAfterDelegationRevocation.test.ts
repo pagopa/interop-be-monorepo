@@ -5,6 +5,7 @@ import {
   getMockContextInternal,
   getMockDelegation,
   randomArrayItem,
+  sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -82,8 +83,11 @@ describe("internal archive agreement", () => {
       state: agreementState.archived,
     };
 
-    expect(actualAgreement).toEqual({
-      agreement: toAgreementV2(expectedAgreemenentArchived),
+    expect({
+      agreement: sortAgreementV2(actualAgreement.agreement),
+      delegationId: actualAgreement.delegationId,
+    }).toEqual({
+      agreement: sortAgreementV2(toAgreementV2(expectedAgreemenentArchived)),
       delegationId: consumerDelegation.id,
     });
 
