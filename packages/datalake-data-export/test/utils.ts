@@ -50,12 +50,7 @@ const agreementReadModelServiceSQL =
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-const readModelServiceSQL = readModelServiceBuilderSQL({
-  readModelDB,
-  agreementReadModelServiceSQL,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-});
+const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 export const readModelService =
   config.featureFlagSQL &&
   config.readModelSQLDbHost &&

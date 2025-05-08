@@ -6,23 +6,31 @@ import {
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   DrizzleReturnType,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorInterfaceInReadmodelCatalog,
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
   purposeInReadmodelPurpose,
-  purposeRiskAnalysisAnswerInReadmodelPurpose,
-  purposeRiskAnalysisFormInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
+  aggregateAgreementArray,
+  aggregateEserviceArray,
   aggregatePurposeArray,
-  AgreementReadModelService,
-  CatalogReadModelService,
-  TenantReadModelService,
+  aggregateTenantArray,
+  toAgreementAggregatorArray,
+  toEServiceAggregatorArray,
   toPurposeAggregatorArray,
+  toTenantAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { isNotNull, eq, ne, and } from "drizzle-orm";
+import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
 import {
   ExportedAgreement,
   ExportedEService,
@@ -30,28 +38,85 @@ import {
   ExportedTenant,
 } from "../config/models/models.js";
 
-export function readModelServiceBuilderSQL({
-  readModelDB,
-  agreementReadModelServiceSQL,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-}: {
-  readModelDB: DrizzleReturnType;
-  agreementReadModelServiceSQL: AgreementReadModelService;
-  catalogReadModelServiceSQL: CatalogReadModelService;
-  tenantReadModelServiceSQL: TenantReadModelService;
-}) {
+export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
   return {
     async getTenants(): Promise<ExportedTenant[]> {
-      return (
-        await tenantReadModelServiceSQL.getTenantsByFilter(
-          isNotNull(tenantInReadmodelTenant.selfcareId)
-        )
-      ).map((tenant) => ExportedTenant.parse(tenant.data));
+      const queryResult = await readModelDB
+        .select({
+          tenant: tenantInReadmodelTenant,
+          mail: sql<null>`NULL`,
+          certifiedAttribute: sql<null>`NULL`,
+          declaredAttribute: sql<null>`NULL`,
+          verifiedAttribute: sql<null>`NULL`,
+          verifier: sql<null>`NULL`,
+          revoker: sql<null>`NULL`,
+          feature: sql<null>`NULL`,
+        })
+        .from(tenantInReadmodelTenant)
+        .where(isNotNull(tenantInReadmodelTenant.selfcareId));
+
+      return aggregateTenantArray(toTenantAggregatorArray(queryResult)).map(
+        (tenant) => ExportedTenant.parse(tenant.data)
+      );
     },
     async getEServices(): Promise<ExportedEService[]> {
-      return (
-        await catalogReadModelServiceSQL.getEServicesByFilter(
+      const queryResult = await readModelDB
+        .select({
+          eservice: eserviceInReadmodelCatalog,
+          descriptor: eserviceDescriptorInReadmodelCatalog,
+          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
+          document: eserviceDescriptorDocumentInReadmodelCatalog,
+          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
+          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          templateVersionRef:
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          riskAnalysis: sql<null>`NULL`,
+          riskAnalysisAnswer: sql<null>`NULL`,
+        })
+        .from(eserviceInReadmodelCatalog)
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInterfaceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorDocumentInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorAttributeInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
           and(
             ne(
               eserviceDescriptorInReadmodelCatalog.state,
@@ -62,27 +127,57 @@ export function readModelServiceBuilderSQL({
               descriptorState.waitingForApproval
             )
           )
-        )
-      ).map((eservice) => ExportedEService.parse(eservice.data));
+        );
+
+      return aggregateEserviceArray(toEServiceAggregatorArray(queryResult)).map(
+        (eservice) => ExportedEService.parse(eservice.data)
+      );
     },
     async getAgreements(): Promise<ExportedAgreement[]> {
-      return (
-        await agreementReadModelServiceSQL.getAgreementsByFilter(
-          ne(agreementInReadmodelAgreement.state, agreementState.draft)
+      const queryResult = await readModelDB
+        .select({
+          agreement: agreementInReadmodelAgreement,
+          stamp: agreementStampInReadmodelAgreement,
+          attribute: sql<null>`NULL`,
+          consumerDocument: sql<null>`NULL`,
+          contract: sql<null>`NULL`,
+        })
+        .from(agreementInReadmodelAgreement)
+        .leftJoin(
+          agreementStampInReadmodelAgreement,
+          eq(
+            agreementInReadmodelAgreement.id,
+            agreementStampInReadmodelAgreement.agreementId
+          )
         )
+        .where(ne(agreementInReadmodelAgreement.state, agreementState.draft));
+
+      return aggregateAgreementArray(
+        toAgreementAggregatorArray(queryResult)
       ).map((agreement) => ExportedAgreement.parse(agreement.data));
     },
     async getPurposes(): Promise<ExportedPurpose[]> {
-      const subquery = readModelDB
-        .selectDistinct({
-          purposeId: purposeInReadmodelPurpose.id,
+      const queryResult = await readModelDB
+        .select({
+          purpose: purposeInReadmodelPurpose,
+          purposeVersion: purposeVersionInReadmodelPurpose,
+          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
+          purposeRiskAnalysisForm: sql<null>`NULL`,
+          purposeRiskAnalysisAnswer: sql<null>`NULL`,
         })
         .from(purposeInReadmodelPurpose)
         .innerJoin(
           purposeVersionInReadmodelPurpose,
           eq(
-            purposeVersionInReadmodelPurpose.purposeId,
-            purposeInReadmodelPurpose.id
+            purposeInReadmodelPurpose.id,
+            purposeVersionInReadmodelPurpose.purposeId
+          )
+        )
+        .leftJoin(
+          purposeVersionDocumentInReadmodelPurpose,
+          eq(
+            purposeVersionInReadmodelPurpose.id,
+            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
           )
         )
         .where(
@@ -95,50 +190,6 @@ export function readModelServiceBuilderSQL({
               purposeVersionInReadmodelPurpose.state,
               purposeVersionState.waitingForApproval
             )
-          )
-        )
-        .as("subquery");
-
-      const queryResult = await readModelDB
-        .select({
-          purpose: purposeInReadmodelPurpose,
-          purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
-          purposeRiskAnalysisAnswer:
-            purposeRiskAnalysisAnswerInReadmodelPurpose,
-          purposeVersion: purposeVersionInReadmodelPurpose,
-          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-        })
-        .from(purposeInReadmodelPurpose)
-        .innerJoin(
-          subquery,
-          eq(purposeInReadmodelPurpose.id, subquery.purposeId)
-        )
-        .leftJoin(
-          purposeRiskAnalysisFormInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeRiskAnalysisFormInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          purposeRiskAnalysisAnswerInReadmodelPurpose,
-          eq(
-            purposeRiskAnalysisFormInReadmodelPurpose.id,
-            purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          purposeVersionInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeVersionInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          purposeVersionDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
           )
         );
 

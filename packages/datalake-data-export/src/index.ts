@@ -4,12 +4,7 @@ import {
   ReadModelRepository,
 } from "pagopa-interop-commons";
 import { generateId, CorrelationId } from "pagopa-interop-models";
-import {
-  agreementReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  makeDrizzleConnection,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { datalakeServiceBuilder } from "./services/datalakeService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { config } from "./config/config.js";
@@ -25,16 +20,7 @@ const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const readModelDB = makeDrizzleConnection(config);
-const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-const readModelServiceSQL = readModelServiceBuilderSQL({
-  readModelDB,
-  agreementReadModelServiceSQL,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-});
+const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 const readModelService =
   config.featureFlagSQL &&
   config.readModelSQLDbHost &&
