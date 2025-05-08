@@ -5,7 +5,7 @@ import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { services, api } from "../../vitest.api.setup.js";
-import { config } from "../../../src/config/config.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API DELETE /agreements/:agreementId", () => {
   const mockAgreementId = generateId<AgreementId>();
@@ -20,7 +20,7 @@ describe("API DELETE /agreements/:agreementId", () => {
   ) =>
     request(api)
       .delete(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements/${agreementId}`
+        `${appBasePath}/agreements/${agreementId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())

@@ -10,7 +10,7 @@ import {
   getMockApiAgreementPayload,
   getMockApiCreatedResource,
 } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /agreements", () => {
   const mockAgreementPayload: bffApi.AgreementPayload =
@@ -25,7 +25,7 @@ describe("API POST /agreements", () => {
   const makeRequest = async (token: string, payload = mockAgreementPayload) =>
     request(api)
       .post(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements`
+        `${appBasePath}/agreements`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())

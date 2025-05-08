@@ -11,7 +11,7 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { services, api } from "../../vitest.api.setup.js";
 import { getMockApiHasCertifiedAttributes } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /tenants/:tenantId/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/validate", () => {
   const mockTenantId = generateId<TenantId>();
@@ -29,7 +29,7 @@ describe("API GET /tenants/:tenantId/eservices/:eserviceId/descriptors/:descript
   ) =>
     request(api)
       .get(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/tenants/${mockTenantId}/eservices/${mockEServiceId}/descriptors/${descriptorId}/certifiedAttributes/validate`
+        `${appBasePath}/tenants/${mockTenantId}/eservices/${mockEServiceId}/descriptors/${descriptorId}/certifiedAttributes/validate`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
