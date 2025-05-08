@@ -13,7 +13,6 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
-  documentPrettyNameDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
@@ -130,21 +129,6 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
       `EService template version ${templateVersionId} has a not valid status for this operation ${eserviceTemplateVersionState.draft}`
     );
     expect(res.status).toBe(400);
-  });
-
-  it("Should return 409 for documentPrettyNameDuplicate", async () => {
-    const documentName = "documentName";
-    eserviceTemplateService.deleteDocument = vi
-      .fn()
-      .mockRejectedValue(
-        documentPrettyNameDuplicate(documentName, templateVersionId)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `A document with prettyName ${documentName} already exists in version ${templateVersionId}`
-    );
-    expect(res.status).toBe(409);
   });
 
   it("Should return 400 if passed a not compliat query param", async () => {
