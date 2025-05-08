@@ -1282,7 +1282,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Keys"
+                $ref: "#/components/schemas/Key"
         "400":
           description: Bad Request
           content:
