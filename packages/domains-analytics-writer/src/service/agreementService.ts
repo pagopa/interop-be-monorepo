@@ -10,13 +10,13 @@ import { DBContext } from "../db/db.js";
 
 import { AgreementDbTable, DeletingDbTable } from "../model/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
-import { mergeDeletingById } from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
 import { agreementRepo } from "../repository/agreement/agreement.repository.js";
 import { agreementAttributeRepo } from "../repository/agreement/agreementAttribute.repository.js";
 import { agreementConsumerDocumentRepo } from "../repository/agreement/agreementConsumerDocument.repository.js";
 import { agreementContractRepo } from "../repository/agreement/agreementContract.repository.js";
 import { agreementStampRepo } from "../repository/agreement/agreementStamp.repository.js";
+import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
 
 export function agreementServiceBuilder(db: DBContext) {
   const agreementRepository = agreementRepo(db.conn);
@@ -144,9 +144,7 @@ export function agreementServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         await ctx.conn.tx(async (t) => {
-          for (const id of batch) {
-            await agreementRepository.insertDeleting(t, ctx.pgp, id);
-          }
+          await agreementRepository.insertDeleting(t, ctx.pgp, batch);
         });
         genericLogger.info(
           `Staging deletion inserted for agreementsId: ${batch.join(", ")}`
@@ -155,7 +153,7 @@ export function agreementServiceBuilder(db: DBContext) {
 
       await ctx.conn.tx(async (t) => {
         await agreementRepository.mergeDeleting(t);
-        await mergeDeletingById(
+        await mergeDeletingCascadeById(
           t,
           "agreement_id",
           [
@@ -185,9 +183,7 @@ export function agreementServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         await dbContext.conn.tx(async (t) => {
-          for (const id of batch) {
-            await docRepository.insertDeleting(t, dbContext.pgp, id);
-          }
+          await docRepository.insertDeleting(t, dbContext.pgp, batch);
         });
         genericLogger.info(
           `Staging deletion inserted for agreement documentIds: ${batch.join(
