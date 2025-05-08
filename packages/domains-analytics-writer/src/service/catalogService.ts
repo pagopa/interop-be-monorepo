@@ -23,7 +23,7 @@ import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDesc
 import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
 import { CatalogDbTable, DeletingDbTable } from "../model/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
-import { mergeDeletingById } from "../utils/sqlQueryHelper.js";
+import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
 
 export function catalogServiceBuilder(db: DBContext) {
@@ -350,9 +350,7 @@ export function catalogServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         await dbContext.conn.tx(async (t) => {
-          for (const id of batch) {
-            await eserviceRepo.insertDeleting(t, dbContext.pgp, id);
-          }
+          await eserviceRepo.insertDeleting(t, dbContext.pgp, batch);
 
           genericLogger.info(
             `Staging deletion inserted for eserviceIds: ${batch.join(", ")}`
@@ -361,7 +359,7 @@ export function catalogServiceBuilder(db: DBContext) {
       }
       await dbContext.conn.tx(async (t) => {
         await eserviceRepo.mergeDeleting(t);
-        await mergeDeletingById(
+        await mergeDeletingCascadeById(
           t,
           "eservice_id",
           [
@@ -396,9 +394,7 @@ export function catalogServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         await dbContext.conn.tx(async (t) => {
-          for (const id of batch) {
-            await descriptorRepo.insertDeleting(t, dbContext.pgp, id);
-          }
+          await descriptorRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for descriptorIds: ${batch.join(", ")}`
           );
@@ -406,7 +402,7 @@ export function catalogServiceBuilder(db: DBContext) {
       }
       await dbContext.conn.tx(async (t) => {
         await descriptorRepo.mergeDeleting(t);
-        await mergeDeletingById(
+        await mergeDeletingCascadeById(
           t,
           "descriptor_id",
           [
@@ -436,9 +432,7 @@ export function catalogServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         await dbContext.conn.tx(async (t) => {
-          for (const id of batch) {
-            await riskAnalysisRepo.insertDeleting(t, dbContext.pgp, id);
-          }
+          await riskAnalysisRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for riskAnalysisIds: ${batch.join(", ")}`
           );
@@ -466,9 +460,7 @@ export function catalogServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         await dbContext.conn.tx(async (t) => {
-          for (const id of batch) {
-            await documentRepo.insertDeleting(t, dbContext.pgp, id);
-          }
+          await documentRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for documentIds: ${batch.join(", ")}`
           );
@@ -494,9 +486,7 @@ export function catalogServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         await dbContext.conn.tx(async (t) => {
-          for (const id of batch) {
-            await interfaceRepo.insertDeleting(t, dbContext.pgp, id);
-          }
+          await interfaceRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for interface descriptorIds: ${batch.join(
               ", "

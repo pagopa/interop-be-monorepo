@@ -83,7 +83,7 @@ export function generateMergeDeleteQuery(
 `;
 }
 
-export async function mergeDeletingById(
+export async function mergeDeletingCascadeById(
   t: ITask<unknown>,
   id: string,
   deletingTableNames: string[],
