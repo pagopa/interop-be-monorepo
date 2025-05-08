@@ -1,5 +1,10 @@
+import {
+  ApiError,
+  makeApiProblemBuilder,
+  PurposeId,
+  PurposeVersionId,
+} from "pagopa-interop-models";
 import { delegationApi, purposeApi } from "pagopa-interop-api-clients";
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 export const errorCodes = {
   resourcePollingTimeout: "0001",
@@ -7,6 +12,7 @@ export const errorCodes = {
   unexpectedDelegationKind: "0003",
   purposeNotFound: "0004",
   missingActivePurposeVersion: "0005",
+  purposeVersionNotFound: "0006",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -38,6 +44,17 @@ export function unexpectedDelegationKind(
     detail: `Unexpected delegation kind "${delegation.kind}" for delegation ${delegation.id}`,
     code: "unexpectedDelegationKind",
     title: "Unexpected Delegation Kind",
+  });
+}
+
+export function purposeVersionNotFound(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${versionId} not found in purpose ${purposeId}`,
+    code: "purposeVersionNotFound",
+    title: "Purpose version not found",
   });
 }
 

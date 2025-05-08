@@ -12,7 +12,10 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { getPurposesErrorMapper } from "../utils/errorMappers.js";
+import {
+  getPurposesErrorMapper,
+  getPurposeVersionErrorMapper,
+} from "../utils/errorMappers.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -81,11 +84,21 @@ const purposeRouter = (
     .get("/purposes/:purposeId/versions/:versionId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const version = await purposeService.getPurposeVersion(
+          unsafeBrandId(req.params.purposeId),
+          unsafeBrandId(req.params.versionId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeVersion.parse(version));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getPurposeVersionErrorMapper,
           ctx,
           `Error retrieving purpose ${req.params.purposeId} version ${req.params.versionId}`
         );
