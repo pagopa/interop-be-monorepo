@@ -9,6 +9,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
+  eServiceTemplateDuplicate,
   eServiceTemplateNotFound,
   eserviceTemplateWithoutPublishedVersion,
 } from "../../src/model/domain/errors.js";
@@ -97,6 +98,18 @@ describe("API POST /templates/:templateId/description/update", () => {
     const res = await makeRequest(token);
     expect(res.body.detail).toBe(
       `EService Template ${mockEserviceTemplate.id} does not have a published version`
+    );
+    expect(res.status).toBe(409);
+  });
+
+  it("Should return 409 for eserviceTemplateDuplicate", async () => {
+    eserviceTemplateService.updateEServiceTemplateName = vi
+      .fn()
+      .mockRejectedValue(eServiceTemplateDuplicate(mockEserviceTemplate.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.body.detail).toBe(
+      `An EService Template with name ${mockEserviceTemplate.id} already exists`
     );
     expect(res.status).toBe(409);
   });
