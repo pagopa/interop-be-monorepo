@@ -231,10 +231,12 @@ const clientRouter = (
 
       try {
         const users = await clientService.getClientUsers(
-          req.params.clientId,
-          ctx.authData.selfcareId,
-          ctx,
-          req.query.name
+          {
+            clientId: req.params.clientId,
+            selfcareId: ctx.authData.selfcareId,
+            name: req.query.name,
+          },
+          ctx
         );
 
         return res.status(200).send(bffApi.CompactUsers.parse(users));

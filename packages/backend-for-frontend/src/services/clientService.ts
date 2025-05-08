@@ -232,10 +232,12 @@ export function clientServiceBuilder(
     },
 
     async getClientUsers(
-      clientId: string,
-      selfcareId: string,
-      { logger, headers, correlationId }: WithLogger<BffAppContext>,
-      name?: string
+      {
+        clientId,
+        selfcareId,
+        name,
+      }: { clientId: string; selfcareId: string; name?: string },
+      { logger, headers, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactUsers> {
       logger.info(`Retrieving users for client ${clientId}`);
 
