@@ -62,11 +62,11 @@ describe("POST /consumerDelegations router test", () => {
   });
 
   it.each([
-    { invalidParam: "invalidValue" },
-    { eserviceId: mockDelegationSeed.eserviceId },
-    { delegateId: mockDelegationSeed.delegateId },
-    { eserviceId: "invalidId" },
-    { delegateId: "invalidId" },
+    { ...mockDelegationSeed, invalidParam: "invalidValue" },
+    { ...mockDelegationSeed, delegateId: undefined },
+    { ...mockDelegationSeed, eserviceId: undefined },
+    { ...mockDelegationSeed, eserviceId: "invalidId" },
+    { ...mockDelegationSeed, delegateId: "invalidId" },
   ])(
     "Should return 400 if passed an invalid delegation seed: %s",
     async (body) => {
