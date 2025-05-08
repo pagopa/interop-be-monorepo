@@ -18,7 +18,7 @@ export const errorCodes = {
   eServiceDocumentNotFound: "0004",
   eServiceNotFound: "0005",
   draftDescriptorAlreadyExists: "0006",
-  eServiceNameDuplicate: "007",
+  eServiceNameDuplicateForProducer: "007",
   originNotCompliant: "0008",
   attributeNotFound: "0009",
   inconsistentDailyCalls: "0010",
@@ -63,12 +63,13 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceNameDuplicate(
-  eserviceName: string
+export function eServiceNameDuplicateForProducer(
+  eserviceName: string,
+  producerId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `An EService with name ${eserviceName} already exists`,
-    code: "eServiceNameDuplicate",
+    detail: `An EService with name ${eserviceName} already exists for producer ${producerId}`,
+    code: "eServiceNameDuplicateForProducer",
     title: "Duplicated service name",
   });
 }

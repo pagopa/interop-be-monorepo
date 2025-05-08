@@ -17,7 +17,7 @@ import {
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import { match } from "ts-pattern";
 import {
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   inconsistentDailyCalls,
   originNotCompliant,
 } from "../src/model/domain/errors.js";
@@ -345,7 +345,7 @@ describe("create eservice", () => {
     expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
   });
 
-  it("should throw eServiceNameDuplicate if an eservice with the same name already exists, case insensitive", async () => {
+  it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists, case insensitive", async () => {
     await addOneEService({
       ...mockEService,
       name: mockEService.name.toUpperCase(),
@@ -362,7 +362,10 @@ describe("create eservice", () => {
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
-      eServiceNameDuplicate(mockEService.name.toLowerCase())
+      eServiceNameDuplicateForProducer(
+        mockEService.name.toLowerCase(),
+        mockEService.producerId
+      )
     );
   });
 
