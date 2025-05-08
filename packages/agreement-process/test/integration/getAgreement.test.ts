@@ -3,10 +3,11 @@ import {
   getMockAgreement,
   getMockContext,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
   getMockAuthData,
+  sortAgreement,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -75,28 +76,36 @@ describe("get agreement", () => {
         agreement.id,
         getMockContext({ authData: getMockAuthData(consumer.id) })
       );
-    expect(retrievedAgreementByConsumer).toEqual(agreement);
+    expect(sortAgreement(retrievedAgreementByConsumer)).toEqual(
+      sortAgreement(agreement)
+    );
 
     const retrievedAgreementByProducer =
       await agreementService.getAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(producer.id) })
       );
-    expect(retrievedAgreementByProducer).toEqual(agreement);
+    expect(sortAgreement(retrievedAgreementByProducer)).toEqual(
+      sortAgreement(agreement)
+    );
 
     const retrievedAgreementByProducerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(producerDelegate.id) })
       );
-    expect(retrievedAgreementByProducerDelegate).toEqual(agreement);
+    expect(sortAgreement(retrievedAgreementByProducerDelegate)).toEqual(
+      sortAgreement(agreement)
+    );
 
     const retrievedAgreementByConsumerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
       );
-    expect(retrievedAgreementByConsumerDelegate).toEqual(agreement);
+    expect(sortAgreement(retrievedAgreementByConsumerDelegate)).toEqual(
+      sortAgreement(agreement)
+    );
   });
 
   it(`should throw an organizationNotAllowed error when the requester is
