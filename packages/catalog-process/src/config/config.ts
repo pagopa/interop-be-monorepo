@@ -8,7 +8,6 @@ import {
   FeatureFlagSignalhubWhitelistConfig,
   FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
-  FeatureFlagSignalhubWhitelistConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";

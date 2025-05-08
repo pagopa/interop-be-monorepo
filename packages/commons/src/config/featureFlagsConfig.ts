@@ -23,7 +23,7 @@ export type FeatureFlagSignalhubWhitelistConfig = z.infer<
   typeof FeatureFlagSignalhubWhitelistConfig
 >;
 
-export const featureFlagAdminClientConfig = z
+export const FeatureFlagAdminClientConfig = z
   .object({
     FEATURE_FLAG_ADMIN_CLIENT: z
       .enum(["true", "false"])
@@ -34,8 +34,8 @@ export const featureFlagAdminClientConfig = z
     featureFlagAdminClient: c.FEATURE_FLAG_ADMIN_CLIENT ?? false,
   }));
 
-export type featureFlagAdminClientConfig = z.infer<
-  typeof featureFlagAdminClientConfig
+export type FeatureFlagAdminClientConfig = z.infer<
+  typeof FeatureFlagAdminClientConfig
 >;
 
 export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
@@ -69,7 +69,7 @@ export const FeatureFlagSQLConfig = z
 export type FeatureFlagSQLConfig = z.infer<typeof FeatureFlagSQLConfig>;
 
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
-  featureFlagAdminClientConfig &
+  FeatureFlagAdminClientConfig &
   FeatureFlagSQLConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig;
 
