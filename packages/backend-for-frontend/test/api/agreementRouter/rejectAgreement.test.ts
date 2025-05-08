@@ -2,46 +2,45 @@
 import { describe, expect, it, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { agreementService, api } from "../../vitest.api.setup.js";
 import {
-  getMockApiAgreementPayload,
-  getMockApiCreatedResource,
+  getMockApiAgreement,
+  getMockApiAgreementRejectionPayload,
 } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
 
-describe("API POST /agreements", () => {
-  const mockAgreementPayload: bffApi.AgreementPayload =
-    getMockApiAgreementPayload();
-  const mockAgreement: bffApi.CreatedResource = getMockApiCreatedResource();
+describe("API POST /agreements/:agreementId/reject", () => {
+  const mockApiAgreement = getMockApiAgreement();
+  const mockPayload = getMockApiAgreementRejectionPayload();
 
-  // eslint-disable-next-line functional/immutable-data
-  agreementService.createAgreement = vi.fn().mockResolvedValue(mockAgreement);
+  agreementService.rejectAgreement = vi
+    .fn()
+    .mockResolvedValue(mockApiAgreement);
 
-  const makeRequest = async (token: string, payload = mockAgreementPayload) =>
+  const makeRequest = async (
+    token: string,
+    agreementId = mockApiAgreement.id
+  ) =>
     request(api)
       .post(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements`
+        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements/${agreementId}/reject`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(payload);
+      .send(mockPayload);
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockAgreement);
+    expect(res.body).toEqual(mockApiAgreement);
   });
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      ...mockAgreementPayload,
-      eserviceId: "invalid",
-    });
+    const res = await makeRequest(token, "invalid");
     expect(res.status).toBe(400);
   });
 });

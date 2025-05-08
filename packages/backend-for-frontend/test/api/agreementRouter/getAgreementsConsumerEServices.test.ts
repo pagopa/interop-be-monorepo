@@ -7,14 +7,9 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { agreementService, api } from "../../vitest.api.setup.js";
 import { getMockApiCompactEServiceLight } from "../../mockUtils.js";
+import { config } from "../../../src/config/config.js";
 
 describe("API GET /consumers/agreements/eservices", () => {
-  const mockPayload = {
-    offset: 0,
-    limit: 10,
-    requesterId: generateId(),
-    eServiceName: "name",
-  };
   const mockCompactEServiceLight1 = getMockApiCompactEServiceLight();
   const mockCompactEServiceLight2 = getMockApiCompactEServiceLight();
   const mockCompactEServiceLight3 = getMockApiCompactEServiceLight();
@@ -41,12 +36,15 @@ describe("API GET /consumers/agreements/eservices", () => {
     .fn()
     .mockResolvedValue(apiCompactEServicesLight);
 
-  const makeRequest = async (token: string, payload: object = mockPayload) =>
+  const makeRequest = async (token: string, limit: unknown = 10) =>
     request(api)
-      .get(`/consumers/agreements/eservices`)
+      .get(
+        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/consumers/agreements/eservices`
+      )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(payload);
+      .query({ offset: 0, limit })
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -57,10 +55,7 @@ describe("API GET /consumers/agreements/eservices", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      ...mockPayload,
-      requesterId: "invalid",
-    });
+    const res = await makeRequest(token, "invalid");
     expect(res.status).toBe(400);
   });
 });
