@@ -80,7 +80,7 @@ export function attributeRepository(conn: DBConnection) {
       }
     },
 
-    async insertDeletingById(
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
       id: string

@@ -1,4 +1,4 @@
-import { createListResult, ReadModelRepository } from "pagopa-interop-commons";
+import { createListResult, escapeRegExp } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -232,7 +232,7 @@ export function readModelServiceBuilderSQL({
             filters.delegatorName
               ? ilike(
                   tenantInReadmodelTenant.name,
-                  `%${ReadModelRepository.escapeRegExp(filters.delegatorName)}%`
+                  `%${escapeRegExp(filters.delegatorName)}%`
                 )
               : undefined
           )
@@ -316,7 +316,7 @@ export function readModelServiceBuilderSQL({
             filters.delegatorName
               ? ilike(
                   tenantInReadmodelTenant.name,
-                  `%${ReadModelRepository.escapeRegExp(filters.delegatorName)}%`
+                  `%${escapeRegExp(filters.delegatorName)}%`
                 )
               : undefined
           )
@@ -389,7 +389,7 @@ export function readModelServiceBuilderSQL({
             filters.eserviceName
               ? ilike(
                   eserviceInReadmodelCatalog.name,
-                  `%${ReadModelRepository.escapeRegExp(filters.eserviceName)}%`
+                  `%${escapeRegExp(filters.eserviceName)}%`
                 )
               : undefined,
             // AGREEMENT FILTERS
