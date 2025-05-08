@@ -1,7 +1,7 @@
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { assertDelegationKindIs } from "../utils/validators/delegationValidators.js";
 
-export function toGetDelegationsApiQueryParams(
+export function toGetConsumerDelegationsApiQueryParams(
   params: m2mGatewayApi.GetConsumerDelegationsQueryParams
 ): delegationApi.GetDelegationsQueryParams {
   return {

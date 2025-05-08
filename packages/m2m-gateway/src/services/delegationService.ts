@@ -7,7 +7,7 @@ import {
 } from "../utils/polling.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
-  toGetDelegationsApiQueryParams,
+  toGetConsumerDelegationsApiQueryParams,
   toM2MGatewayApiConsumerDelegation,
 } from "../api/delegationApiConverter.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -41,7 +41,7 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const response =
         await clients.delegationProcessClient.delegation.getDelegations({
-          queries: toGetDelegationsApiQueryParams(params),
+          queries: toGetConsumerDelegationsApiQueryParams(params),
           headers,
         });
 
