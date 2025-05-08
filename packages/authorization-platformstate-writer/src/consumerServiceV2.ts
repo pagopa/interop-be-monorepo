@@ -361,6 +361,57 @@ export async function handleMessageV2(
         logger
       );
     })
+    .with({ type: "ClientAdminRemovedBySelfcare" }, async (msg) => {
+      const client = parseClient(msg.data.client, msg.type);
+      const pk = makePlatformStatesClientPK(client.id);
+      const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
+
+      if (!clientEntry) {
+        logger.info(
+          `Platform-states and token-generation-states. Skipping processing of entry ${pk}. Reason: entry not found in platform-states`
+        );
+        return Promise.resolve();
+      }
+
+      if (clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+        );
+        return Promise.resolve();
+      }
+
+      // platform-states
+      const platformClientEntry: PlatformStatesClientEntry = {
+        PK: pk,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+        clientPurposesIds: [],
+        version: msg.version,
+        updatedAt: new Date().toISOString(),
+      };
+      await upsertPlatformClientEntry(
+        platformClientEntry,
+        dynamoDBClient,
+        logger
+      );
+
+      // token-generation-states
+      await Promise.all(
+        client.keys.map(async (key) => {
+          const tokenGenPK = makeTokenGenerationStatesClientKidPK({
+            clientId: client.id,
+            kid: key.kid,
+          });
+
+          await removeAdminIdFromTokenGenStatesApiClient(
+            tokenGenPK,
+            dynamoDBClient,
+            logger
+          );
+        })
+      );
+    })
     .with(
       { type: "ClientAdminRemovedBySelfcare" },
       { type: "ClientAdminRemoved" },

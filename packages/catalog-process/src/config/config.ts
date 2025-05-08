@@ -42,8 +42,8 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   )
   .and(EServiceTemplateS3Config)
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig.optional())
-  .and(ReadModelSQLDbConfig.optional());
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig);
 
 export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 
