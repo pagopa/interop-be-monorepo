@@ -126,8 +126,8 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     addCertifiedAttribute: async (
       tenantId: TenantId,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
-      seed: m2mGatewayApi.TenantCertifiedAttributeSeed
+      seed: m2mGatewayApi.TenantCertifiedAttributeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> => {
       logger.info(
         `Assigning certified attribute ${seed.id} to tenant ${tenantId}`

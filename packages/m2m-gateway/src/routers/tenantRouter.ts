@@ -91,8 +91,8 @@ const tenantRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         await tenantService.addCertifiedAttribute(
           unsafeBrandId(req.params.tenantId),
-          ctx,
-          req.body
+          req.body,
+          ctx
         );
 
         return res.status(204).send();
