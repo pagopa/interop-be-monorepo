@@ -93,7 +93,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MGatewayApiPurpose(polledResource.data);
+      return toM2MGatewayApiPurpose({
+        purpose: polledResource.data,
+        logger,
+        throwNotFoundError: true,
+      });
     },
   };
 }

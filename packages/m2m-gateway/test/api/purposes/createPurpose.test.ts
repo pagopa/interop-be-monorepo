@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { WithMetadata } from "pagopa-interop-models";
@@ -25,9 +25,10 @@ describe("POST /purposes router test", () => {
     title: mockPurpose.data.title,
   };
 
-  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
-    mockPurpose.data
-  );
+  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose({
+    purpose: mockPurpose.data,
+    logger: genericLogger,
+  });
 
   const makeRequest = async (token: string, body: m2mGatewayApi.PurposeSeed) =>
     request(api)
