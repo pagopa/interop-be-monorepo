@@ -67,6 +67,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
+  toCreateEventClientAdminRemovedBySelfcare,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -104,6 +105,8 @@ import {
   assertUserSelfcareSecurityPrivileges,
   assertSecurityRoleIsClientMember,
   assertClientIsConsumer,
+  assertClientIsAPI,
+  assertAdminInClient,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -1042,7 +1045,7 @@ export function authorizationServiceBuilder(
         keySeed: authorizationApi.KeySeed;
       },
       { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ProducerKeychain> {
+    ): Promise<Key> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
@@ -1097,7 +1100,7 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return updatedProducerKeychain;
+      return newKey;
     },
     async removeProducerKeychainKeyById(
       {
@@ -1309,6 +1312,31 @@ export function authorizationServiceBuilder(
           updatedProducerKeychain,
           eserviceIdToRemove,
           producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async internalRemoveClientAdmin(
+      clientId: ClientId,
+      adminId: UserId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRemovedBySelfcare(
+          updatedClient,
+          adminId,
+          client.metadata.version,
           correlationId
         )
       );

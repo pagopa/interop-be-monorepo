@@ -18,8 +18,8 @@ const AttributeRegistryConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
     }))
   )
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig.optional())
-  .and(ReadModelSQLDbConfig.optional());
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig);
 
 export type AttributeRegistryConfig = z.infer<typeof AttributeRegistryConfig>;
 

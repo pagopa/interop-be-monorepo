@@ -1,11 +1,12 @@
 import {
   ascLower,
   createListResult,
+  escapeRegExp,
   hasAtLeastOneUserRole,
   M2MAuthData,
-  ReadModelRepository,
   UIAuthData,
   userRole,
+  withTotalCount,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -42,17 +43,7 @@ import {
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-import {
-  and,
-  count,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  ne,
-  or,
-  sql,
-} from "drizzle-orm";
+import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -77,7 +68,9 @@ export function readModelServiceBuilderSQL({
     async getEServiceTemplateById(
       id: EServiceTemplateId
     ): Promise<WithMetadata<EServiceTemplate> | undefined> {
-      return eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(id);
+      return await eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(
+        id
+      );
     },
     async getEServiceTemplateByNameAndCreatorId({
       name,
@@ -91,7 +84,7 @@ export function readModelServiceBuilderSQL({
           eq(eserviceTemplateInReadmodelEserviceTemplate.creatorId, creatorId),
           ilike(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            ReadModelRepository.escapeRegExp(name)
+            escapeRegExp(name)
           )
         )
       );
@@ -117,10 +110,11 @@ export function readModelServiceBuilderSQL({
       const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
 
       const subquery = readModelDB
-        .select({
-          eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+          })
+        )
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .leftJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -135,7 +129,7 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             // IDS FILTER
@@ -160,25 +154,35 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             // VISIBILITY FILTER
-            or(
-              hasAtLeastOneUserRole(authData, [
-                userRole.ADMIN_ROLE,
-                userRole.API_ROLE,
-                userRole.SUPPORT_ROLE,
-              ])
-                ? eq(
+            hasAtLeastOneUserRole(authData, [
+              userRole.ADMIN_ROLE,
+              userRole.API_ROLE,
+              userRole.SUPPORT_ROLE,
+            ])
+              ? or(
+                  eq(
                     eserviceTemplateInReadmodelEserviceTemplate.creatorId,
                     authData.organizationId
+                  ),
+                  and(
+                    ne(
+                      eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                      eserviceTemplateVersionState.draft
+                    ),
+                    isNotNull(
+                      eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                    )
                   )
-                : undefined,
-              and(
-                ne(
-                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                  eserviceTemplateVersionState.draft
-                ),
-                isNotNull(eserviceTemplateVersionInReadmodelEserviceTemplate.id)
-              )
-            )
+                )
+              : and(
+                  ne(
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                    eserviceTemplateVersionState.draft
+                  ),
+                  isNotNull(
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                  )
+                )
           )
         )
         .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
@@ -303,11 +307,12 @@ export function readModelServiceBuilderSQL({
       offset: number
     ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
       const queryResult = await readModelDB
-        .select({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+        )
         .from(tenantInReadmodelTenant)
         .innerJoin(
           eserviceTemplateInReadmodelEserviceTemplate,
@@ -332,10 +337,7 @@ export function readModelServiceBuilderSQL({
             ),
             // TENANT FILTER
             name
-              ? ilike(
-                  tenantInReadmodelTenant.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
-                )
+              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
               : undefined
           )
         )
