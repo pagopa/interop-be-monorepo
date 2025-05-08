@@ -38,7 +38,10 @@ import {
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
+import {
+  CatalogService,
+  catalogServiceBuilder,
+} from "../services/catalogService.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   activateDescriptorErrorMapper,
@@ -107,7 +110,7 @@ const readModelService =
     ? readModelServiceSQL
     : oldReadModelService;
 
-const catalogService = catalogServiceBuilder(
+const defaultCatalogService = catalogServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
@@ -122,7 +125,8 @@ const catalogService = catalogServiceBuilder(
 );
 
 const eservicesRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  catalogService: CatalogService = defaultCatalogService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eservicesRouter = ctx.router(catalogApi.processApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
