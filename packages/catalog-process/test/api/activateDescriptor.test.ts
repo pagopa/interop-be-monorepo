@@ -6,6 +6,7 @@ import {
   descriptorState,
   EService,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -15,6 +16,11 @@ import {
   getMockDocument,
   getMockEService,
 } from "../mockUtils.js";
+import {
+  eServiceDescriptorNotFound,
+  eServiceNotFound,
+  notValidDescriptorState,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/activate authorization test", () => {
   const descriptor: Descriptor = {
@@ -61,8 +67,49 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/activate author
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
+  it("Should return 404 for eserviceNotFound", async () => {
+    catalogService.activateDescriptor = vi
+      .fn()
+      .mockRejectedValue(eServiceNotFound(mockEService.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id, descriptor.id);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for eServiceDescriptorNotFound", async () => {
+    catalogService.activateDescriptor = vi
+      .fn()
+      .mockRejectedValue(
+        eServiceDescriptorNotFound(mockEService.id, descriptor.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id, descriptor.id);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for operationForbidden", async () => {
+    catalogService.activateDescriptor = vi
+      .fn()
+      .mockRejectedValue(operationForbidden);
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id, descriptor.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 for notValidDescriptor", async () => {
+    catalogService.activateDescriptor = vi
+      .fn()
+      .mockRejectedValue(
+        notValidDescriptorState(descriptor.id, descriptorState.suspended)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id, descriptor.id);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid", "invalid");
+    expect(res.status).toBe(400);
   });
 });

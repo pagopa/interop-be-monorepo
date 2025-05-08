@@ -6,6 +6,7 @@ import {
   descriptorState,
   EService,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
@@ -15,6 +16,10 @@ import {
   getMockDocument,
   getMockEService,
 } from "../mockUtils.js";
+import {
+  eServiceDescriptorNotFound,
+  eServiceNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authorization test", () => {
   const descriptor: Descriptor = {
@@ -59,8 +64,38 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authoriza
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
+  it("Should return 404 for eserviceNotFound", async () => {
+    catalogService.approveDelegatedEServiceDescriptor = vi
+      .fn()
+      .mockRejectedValue(eServiceNotFound(mockEService.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id, descriptor.id);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for eServiceDescriptorNotFound", async () => {
+    catalogService.approveDelegatedEServiceDescriptor = vi
+      .fn()
+      .mockRejectedValue(
+        eServiceDescriptorNotFound(mockEService.id, descriptor.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id, descriptor.id);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for operationForbidden", async () => {
+    catalogService.approveDelegatedEServiceDescriptor = vi
+      .fn()
+      .mockRejectedValue(operationForbidden);
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id, descriptor.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid", "invalid");
+    expect(res.status).toBe(400);
   });
 });

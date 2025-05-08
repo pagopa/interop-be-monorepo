@@ -7,7 +7,10 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
-import { eServiceNameDuplicate } from "../../src/model/domain/errors.js";
+import {
+  eServiceNameDuplicate,
+  originNotCompliant,
+} from "../../src/model/domain/errors.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { EServiceSeed } from "../../../api-clients/dist/catalogApi.js";
 
@@ -65,13 +68,33 @@ describe("API /eservices authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 409 for name conflict", async () => {
-    vi.spyOn(catalogService, "createEService").mockRejectedValue(
-      eServiceNameDuplicate(eserviceSeed.name)
-    );
-
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
-
+  it("Should return 409 for eServiceNameDuplicate", async () => {
+    catalogService.createEService = vi
+      .fn()
+      .mockRejectedValue(eServiceNameDuplicate(mockEService.name));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
     expect(res.status).toBe(409);
+  });
+
+  it("Should return 403 for originNotCompliant", async () => {
+    catalogService.createEService = vi
+      .fn()
+      .mockRejectedValue(originNotCompliant("IPA"));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const invalidMakeRequest = async (token: string) =>
+      request(api)
+        .post("/eservices")
+        .set("Authorization", `Bearer ${token}`)
+        .set("X-Correlation-Id", generateId())
+        .send({});
+    const res = await invalidMakeRequest(token);
+    expect(res.status).toBe(400);
   });
 });

@@ -6,6 +6,7 @@ import {
   Descriptor,
   EService,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -13,6 +14,13 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { descriptorToApiDescriptor } from "../../src/model/domain/apiConverter.js";
+import {
+  attributeNotFound,
+  draftDescriptorAlreadyExists,
+  eServiceNotFound,
+  inconsistentDailyCalls,
+  templateInstanceNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
   const buildCreateDescriptorSeed = (
@@ -113,8 +121,65 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "");
+  it("Should return 404 for eserviceNotFound", async () => {
+    catalogService.createDescriptor = vi
+      .fn()
+      .mockRejectedValue(eServiceNotFound(eservice.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, eservice.id);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for templateInstanceNotAllowed", async () => {
+    catalogService.createDescriptor = vi
+      .fn()
+      .mockRejectedValue(
+        templateInstanceNotAllowed(eservice.id, eservice.templateId!)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, eservice.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 403 for operationForbidden", async () => {
+    catalogService.createDescriptor = vi
+      .fn()
+      .mockRejectedValue(operationForbidden);
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, eservice.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 for draftDescriptorAlreadyExists", async () => {
+    catalogService.createDescriptor = vi
+      .fn()
+      .mockRejectedValue(draftDescriptorAlreadyExists(eservice.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, eservice.id);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for attributeNotFound", async () => {
+    catalogService.createDescriptor = vi
+      .fn()
+      .mockRejectedValue(attributeNotFound(generateId()));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, eservice.id);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for inconsistentDailyCalls", async () => {
+    catalogService.createDescriptor = vi
+      .fn()
+      .mockRejectedValue(inconsistentDailyCalls());
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, eservice.id);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
   });
 });

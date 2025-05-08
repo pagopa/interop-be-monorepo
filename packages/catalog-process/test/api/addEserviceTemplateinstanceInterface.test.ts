@@ -9,6 +9,10 @@ import {
   EServiceId,
   EServiceTemplateId,
   generateId,
+  interfaceExtractingInfoError,
+  invalidInterfaceContentTypeDetected,
+  invalidInterfaceFileDetected,
+  operationForbidden,
   TenantId,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
@@ -16,6 +20,18 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockDocument } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import {
+  documentPrettyNameDuplicate,
+  eServiceDescriptorNotFound,
+  eserviceInterfaceDataNotValid,
+  eServiceNotAnInstance,
+  eServiceNotFound,
+  eserviceTemplateInterfaceNotFound,
+  eServiceTemplateNotFound,
+  eServiceTemplateWithoutPublishedVersion,
+  interfaceAlreadyExists,
+  notValidDescriptorState,
+} from "../../src/model/domain/errors.js";
 
 describe("addEServiceTemplateInstanceInterface", () => {
   beforeEach(() => {
@@ -95,6 +111,154 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
       expect(res.status).toBe(403);
     });
+
+    it("Should return 409 for eServiceNotAnInstance", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(eServiceNotAnInstance(mockEserviceREST.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(409);
+    });
+
+    it("Should return 409 for eServiceTemplateWithoutPublishedVersion", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          eServiceTemplateWithoutPublishedVersion(mockEserviceREST.templateId!)
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(409);
+    });
+
+    it("Should return 409 for invalidEserviceInterfaceFileDetected", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(invalidInterfaceFileDetected(mockEserviceREST.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(409);
+    });
+
+    it("Should return 409 for interfaceAlreadyExists", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(interfaceAlreadyExists(descriptor.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(409);
+    });
+
+    it("Should return 404 for eserviceNotFound", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(eServiceNotFound(mockEserviceREST.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(404);
+    });
+
+    it("Should return 404 for eServiceDescriptorNotFound", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          eServiceDescriptorNotFound(mockEserviceREST.id, descriptor.id)
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(404);
+    });
+
+    it("Should return 404 for eServiceTemplateNotFound", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          eServiceTemplateNotFound(mockEserviceREST.templateId!)
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(404);
+    });
+
+    it("Should return 403 for eserviceTemplateInterfaceNotFound", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          eserviceTemplateInterfaceNotFound(mockEserviceREST.templateId!, "1")
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(403);
+    });
+
+    it("Should return 403 for interfaceExtractingInfoError", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(interfaceExtractingInfoError());
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(403);
+    });
+
+    it("Should return 403 for operationForbidden", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(operationForbidden);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(403);
+    });
+
+    it("Should return 400 for eserviceTemplateInterfaceDataNotValid", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(eserviceInterfaceDataNotValid());
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(400);
+    });
+
+    it("Should return 400 for invalidInterfaceContentTypeDetected", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          invalidInterfaceContentTypeDetected(
+            mockEserviceREST.id,
+            "invalid",
+            mockEserviceREST.technology
+          )
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(400);
+    });
+
+    it("Should return 400 for documentPrettyNameDuplicate", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(documentPrettyNameDuplicate("test", descriptor.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(400);
+    });
+
+    it("Should return 400 for notValidDescriptor", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          notValidDescriptorState(descriptor.id, descriptor.state)
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceREST.id, descriptor.id);
+      expect(res.status).toBe(400);
+    });
+
+    it("Should return 400 if passed an invalid field", async () => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, "invalid", "invalid");
+      expect(res.status).toBe(400);
+    });
   });
 
   describe("POST /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/soap", () => {
@@ -163,6 +327,154 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
 
       expect(res.status).toBe(403);
+    });
+
+    it("Should return 409 for eServiceNotAnInstance", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(eServiceNotAnInstance(mockEserviceSOAP.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(409);
+    });
+
+    it("Should return 409 for eServiceTemplateWithoutPublishedVersion", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          eServiceTemplateWithoutPublishedVersion(mockEserviceSOAP.templateId!)
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(409);
+    });
+
+    it("Should return 409 for invalidEserviceInterfaceFileDetected", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(invalidInterfaceFileDetected(mockEserviceSOAP.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(409);
+    });
+
+    it("Should return 409 for interfaceAlreadyExists", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(interfaceAlreadyExists(descriptor.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(409);
+    });
+
+    it("Should return 404 for eserviceNotFound", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(eServiceNotFound(mockEserviceSOAP.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(404);
+    });
+
+    it("Should return 404 for eServiceDescriptorNotFound", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          eServiceDescriptorNotFound(mockEserviceSOAP.id, descriptor.id)
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(404);
+    });
+
+    it("Should return 404 for eServiceTemplateNotFound", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          eServiceTemplateNotFound(mockEserviceSOAP.templateId!)
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(404);
+    });
+
+    it("Should return 403 for eserviceTemplateInterfaceNotFound", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          eserviceTemplateInterfaceNotFound(mockEserviceSOAP.templateId!, "1")
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(403);
+    });
+
+    it("Should return 403 for interfaceExtractingInfoError", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(interfaceExtractingInfoError());
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(403);
+    });
+
+    it("Should return 403 for operationForbidden", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(operationForbidden);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(403);
+    });
+
+    it("Should return 400 for eserviceTemplateInterfaceDataNotValid", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(eserviceInterfaceDataNotValid());
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(400);
+    });
+
+    it("Should return 400 for invalidInterfaceContentTypeDetected", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          invalidInterfaceContentTypeDetected(
+            mockEserviceSOAP.id,
+            "invalid",
+            mockEserviceSOAP.technology
+          )
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(400);
+    });
+
+    it("Should return 400 for documentPrettyNameDuplicate", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(documentPrettyNameDuplicate("test1", descriptor.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(400);
+    });
+
+    it("Should return 400 for notValidDescriptor", async () => {
+      catalogService.addEServiceTemplateInstanceInterface = vi
+        .fn()
+        .mockRejectedValue(
+          notValidDescriptorState(descriptor.id, descriptor.state)
+        );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEserviceSOAP.id, descriptor.id);
+      expect(res.status).toBe(400);
+    });
+
+    it("Should return 400 if passed an invalid field", async () => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, "invalid", "invalid");
+      expect(res.status).toBe(400);
     });
   });
 });

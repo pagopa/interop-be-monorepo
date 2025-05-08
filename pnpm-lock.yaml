@@ -1427,9 +1427,6 @@ importers:
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
-      '@types/jsonwebtoken':
-        specifier: ^9.0.2
-        version: 9.0.6
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1439,9 +1436,6 @@ importers:
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
-      jsonwebtoken:
-        specifier: 9.0.2
-        version: 9.0.2
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test

@@ -5,6 +5,7 @@ import {
   descriptorState,
   EService,
   generateId,
+  operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
 import {
@@ -20,6 +21,14 @@ import {
   getMockDescriptor,
   getMockEService,
 } from "../mockUtils.js";
+import {
+  eServiceNotFound,
+  eserviceNotInDraftState,
+  eserviceNotInReceiveMode,
+  riskAnalysisDuplicated,
+  riskAnalysisValidationFailed,
+  templateInstanceNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
   const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed =
@@ -58,8 +67,76 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "");
+  it("Should return 409 for riskAnalysisDuplicated", async () => {
+    catalogService.createRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue(
+        riskAnalysisDuplicated("riskAnalysName", mockEService.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id);
+    expect(res.status).toBe(409);
+  });
+
+  it("Should return 404 for eServiceNotFound", async () => {
+    catalogService.createRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue(eServiceNotFound(mockEService.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id);
     expect(res.status).toBe(404);
+  });
+
+  it("Should return 403 for templateInstanceNotAllowed", async () => {
+    catalogService.createRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue(
+        templateInstanceNotAllowed(mockEService.id, mockEService.templateId!)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 403 for operationForbidden", async () => {
+    catalogService.createRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue(operationForbidden);
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 for eserviceNotInDraftState", async () => {
+    catalogService.createRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue(eserviceNotInDraftState(mockEService.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for eserviceNotInReceiveMode", async () => {
+    catalogService.createRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue(eserviceNotInReceiveMode(mockEService.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for riskAnalysisValidationFailed", async () => {
+    catalogService.createRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue(riskAnalysisValidationFailed([]));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed an invalid field", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
   });
 });
