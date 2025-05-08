@@ -134,10 +134,13 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       const response =
-        await tenantProcessClient.tenantAttribute.addCertifiedAttribute(seed, {
-          params: { tenantId },
-          headers,
-        });
+        await clients.tenantProcessClient.tenantAttribute.addCertifiedAttribute(
+          seed,
+          {
+            params: { tenantId },
+            headers,
+          }
+        );
 
       await pollTenant(response, headers);
     },
