@@ -20,7 +20,10 @@ import {
 } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
-import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
+import {
+  EServiceTemplateService,
+  eserviceTemplateServiceBuilder,
+} from "../services/eserviceTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activateEServiceTemplateVersionErrorMapper,
@@ -56,7 +59,7 @@ const readModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 
-const eserviceTemplateService = eserviceTemplateServiceBuilder(
+const defaultEserviceTemplateService = eserviceTemplateServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
@@ -71,7 +74,8 @@ const eserviceTemplateService = eserviceTemplateServiceBuilder(
 );
 
 const eserviceTemplatesRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  eserviceTemplateService: EServiceTemplateService = defaultEserviceTemplateService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, M2M_ROLE, SUPPORT_ROLE } =
     authRole;
