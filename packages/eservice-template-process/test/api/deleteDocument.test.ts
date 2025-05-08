@@ -134,7 +134,7 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
 
   it("Should return 409 for documentPrettyNameDuplicate", async () => {
     const documentName = "documentName";
-    eserviceTemplateService.updateDocument = vi
+    eserviceTemplateService.deleteDocument = vi
       .fn()
       .mockRejectedValue(
         documentPrettyNameDuplicate(documentName, templateVersionId)

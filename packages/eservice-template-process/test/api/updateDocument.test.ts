@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   EServiceDocumentId,
+  eserviceTemplateVersionState,
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
@@ -17,6 +18,8 @@ import {
   documentPrettyNameDuplicate,
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
+  eserviceTemplateDocumentNotFound,
+  notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/versions/:templateVersionId/documents/:documentId/update", () => {
@@ -93,6 +96,24 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents/
     expect(res.status).toBe(404);
   });
 
+  it("Should return 404 for eserviceTemplateDocumentNotFound", async () => {
+    eserviceTemplateService.updateDocument = vi
+      .fn()
+      .mockRejectedValue(
+        eserviceTemplateDocumentNotFound(
+          mockEserviceTemplate.id,
+          mockEserviceTemplate.versions[0].id,
+          docId
+        )
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.body.detail).toBe(
+      `Document ${docId} not found in version ${mockEserviceTemplate.versions[0].id} of template ${mockEserviceTemplate.id}`
+    );
+    expect(res.status).toBe(404);
+  });
+
   it("Should return 403 for operationForbidden", async () => {
     eserviceTemplateService.updateDocument = vi
       .fn()
@@ -101,6 +122,23 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents/
     const res = await makeRequest(token);
     expect(res.body.detail).toBe("Insufficient privileges");
     expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 for notValidEServiceTemplateVersionState", async () => {
+    eserviceTemplateService.updateDocument = vi
+      .fn()
+      .mockRejectedValue(
+        notValidEServiceTemplateVersionState(
+          mockEserviceTemplate.versions[0].id,
+          eserviceTemplateVersionState.draft
+        )
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.body.detail).toBe(
+      `EService template version ${mockEserviceTemplate.versions[0].id} has a not valid status for this operation ${eserviceTemplateVersionState.draft}`
+    );
+    expect(res.status).toBe(400);
   });
 
   it("Should return 409 for documentPrettyNameDuplicate", async () => {
