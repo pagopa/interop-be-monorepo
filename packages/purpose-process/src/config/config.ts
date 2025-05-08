@@ -25,7 +25,7 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   )
   .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional());
+  .and(ReadModelSQLDbConfig);
 
 export type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
 

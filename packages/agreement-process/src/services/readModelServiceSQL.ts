@@ -43,7 +43,6 @@ import {
 import {
   escapeRegExp,
   createListResult,
-  ascLowerMulti,
   ascLower,
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
@@ -387,7 +386,7 @@ export function readModelServiceBuilderSQL(
           eserviceInReadmodelCatalog.name
         )
         .orderBy(
-          ascLowerMulti(eserviceInReadmodelCatalog.name),
+          ascLower(eserviceInReadmodelCatalog.name),
           agreementInReadmodelAgreement.id
         );
 
@@ -580,10 +579,8 @@ export function readModelServiceBuilderSQL(
           eserviceInReadmodelCatalog.name
         )
         .orderBy(
-          ascLowerMulti(
-            eserviceInReadmodelCatalog.name,
-            agreementInReadmodelAgreement.id
-          )
+          ascLower(eserviceInReadmodelCatalog.name),
+          agreementInReadmodelAgreement.id
         );
 
       const queryAgreementIds = queryBaseAgreementIds.as("queryAgreementIds");
@@ -913,7 +910,10 @@ export function readModelServiceBuilderSQL(
           and(
             // FILTER NAME
             eserviceName
-              ? ilike(eserviceInReadmodelCatalog.name, `%${eserviceName}%`)
+              ? ilike(
+                  eserviceInReadmodelCatalog.name,
+                  `%${escapeRegExp(eserviceName)}%`
+                )
               : undefined,
             // FILTER PRODUCER
             producerIds.length > 0
