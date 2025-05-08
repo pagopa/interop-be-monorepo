@@ -10,12 +10,14 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
+  getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
 import {
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
 } from "../../../src/api/purposeApiConverter.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { purposeNotFound } from "../../../src/model/errors.js";
 
 describe("getPurposes", () => {
   const mockParams: m2mGatewayApi.GetPurposesQueryParams = {
@@ -76,5 +78,35 @@ describe("getPurposes", () => {
       mockGet: mockInteropBeClients.purposeProcessClient.getPurposes,
       queries: toGetPurposesApiQueryParams(mockParams),
     });
+  });
+
+  it("Should throw a 400 purposeNotFound error due to missing valid current version", async () => {
+    const invalidPurpose = getMockedApiPurpose({
+      versions: [
+        getMockedApiPurposeVersion({ state: "WAITING_FOR_APPROVAL" }),
+        getMockedApiPurposeVersion({ state: "REJECTED" }),
+      ],
+    });
+
+    const mockInvalidPurposeProcessResponse: WithMaybeMetadata<purposeApi.Purposes> =
+      {
+        data: {
+          results: [invalidPurpose.data],
+          totalCount: 1,
+        },
+        metadata: undefined,
+      };
+
+    const mockGetPurposes = vi
+      .fn()
+      .mockResolvedValue(mockInvalidPurposeProcessResponse);
+
+    mockInteropBeClients.purposeProcessClient = {
+      getPurposes: mockGetPurposes,
+    } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
+
+    await expect(
+      purposeService.getPurposes(mockParams, getMockM2MAdminAppContext())
+    ).rejects.toThrow(purposeNotFound(invalidPurpose.data.id));
   });
 });
