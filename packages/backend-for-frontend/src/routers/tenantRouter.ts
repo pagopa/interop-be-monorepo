@@ -377,6 +377,7 @@ const tenantRouter = (
         );
         return res.status(200).send(bffApi.Tenants.parse(result));
       } catch (error) {
+        console.log(error);
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
