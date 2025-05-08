@@ -403,7 +403,11 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
     .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
-    .with("unauthorizedError", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "unauthorizedError",
+      "featureFlagNotEnabled",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
