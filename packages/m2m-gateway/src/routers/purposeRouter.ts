@@ -157,20 +157,31 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/purposes/:purposeId/activate", async (req, res) => {
-      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-      try {
-        return res.status(501).send();
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          emptyErrorMapper,
-          ctx,
-          `Error activating purpose ${req.params.purposeId}`
-        );
-        return res.status(errorRes.status).send(errorRes);
+    .post(
+      "/purposes/:purposeId/versions/:versionId/activate",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE]);
+
+          await purposeService.activatePurposeVersion(
+            ctx,
+            unsafeBrandId(req.params.purposeId),
+            unsafeBrandId(req.params.versionId)
+          );
+
+          return res.status(204);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error activating purpose ${req.params.purposeId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    })
+    )
     .post("/purposes/:purposeId/approve", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {

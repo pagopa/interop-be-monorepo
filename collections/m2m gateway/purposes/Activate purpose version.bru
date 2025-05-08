@@ -1,0 +1,25 @@
+meta {
+  name: Activate Purpose Version
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{host-m2m-gw}}/purposes/:purposeId/versions/:versionId/activate
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+  versionId: {{versionId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+  x-correlation-id: {{correlation-id}}
+}
+
+docs {
+  Activates the specified purpose version
+}
