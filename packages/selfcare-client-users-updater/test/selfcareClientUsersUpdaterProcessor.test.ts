@@ -80,68 +80,71 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     vi.clearAllMocks();
   });
 
-  it("should remove admin when user is no longer a valid admin", async () => {
-    const message: EachMessagePayload = {
-      ...kafkaMessagePayload,
-      message: {
-        ...kafkaMessagePayload.message,
-        value: Buffer.from(
-          JSON.stringify({
-            ...correctEventPayload,
-            productId: config.interopProduct,
-            user: {
-              userId,
-              name: "Test Name",
-              familyName: "Test FamilyName",
-              email: "test@example.com",
-              role: "Test Role",
-              productRole: userRole.ADMIN_ROLE,
-              relationshipStatus: relationshipStatus.suspended,
-              mobilePhone: "1234567890",
-            },
-          })
-        ),
-      },
-    };
+  it.each([relationshipStatus.suspended, relationshipStatus.deleted])(
+    "should remove admin when user has relationshipStatus %s",
+    async (status) => {
+      const message: EachMessagePayload = {
+        ...kafkaMessagePayload,
+        message: {
+          ...kafkaMessagePayload.message,
+          value: Buffer.from(
+            JSON.stringify({
+              ...correctEventPayload,
+              productId: config.interopProduct,
+              user: {
+                userId,
+                name: "Test Name",
+                familyName: "Test FamilyName",
+                email: "test@example.com",
+                role: "Test Role",
+                productRole: userRole.ADMIN_ROLE,
+                relationshipStatus: status,
+                mobilePhone: "1234567890",
+              },
+            })
+          ),
+        },
+      };
 
-    await selfcareClientUsersUpdaterProcessor.processMessage(message);
+      await selfcareClientUsersUpdaterProcessor.processMessage(message);
 
-    expect(
-      authorizationProcessClientMock.client.getClients
-    ).toHaveBeenCalledWith({
-      queries: {
-        consumerId: correctEventPayload.institutionId,
-        kind: bffApi.ClientKind.Values.API,
-        limit: expect.any(Number),
-        offset: expect.any(Number),
-      },
-      headers: expect.any(Object),
-    });
-    expect(
-      authorizationProcessClientMock.client.internalRemoveClientAdmin
-    ).toHaveBeenCalledWith(
-      undefined,
-      expect.objectContaining({
-        params: {
-          clientId: clientMock.id,
-          adminId: clientMock.adminId,
+      expect(
+        authorizationProcessClientMock.client.getClients
+      ).toHaveBeenCalledWith({
+        queries: {
+          consumerId: correctEventPayload.institutionId,
+          kind: bffApi.ClientKind.Values.API,
+          limit: expect.any(Number),
+          offset: expect.any(Number),
         },
         headers: expect.any(Object),
-      })
-    );
-    expect(
-      authorizationProcessClientMock.client.internalRemoveClientAdmin
-    ).toHaveBeenCalledWith(
-      undefined,
-      expect.objectContaining({
-        params: {
-          clientId: clientMock2.id,
-          adminId: clientMock2.adminId,
-        },
-        headers: expect.any(Object),
-      })
-    );
-  });
+      });
+      expect(
+        authorizationProcessClientMock.client.internalRemoveClientAdmin
+      ).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({
+          params: {
+            clientId: clientMock.id,
+            adminId: clientMock.adminId,
+          },
+          headers: expect.any(Object),
+        })
+      );
+      expect(
+        authorizationProcessClientMock.client.internalRemoveClientAdmin
+      ).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({
+          params: {
+            clientId: clientMock2.id,
+            adminId: clientMock2.adminId,
+          },
+          headers: expect.any(Object),
+        })
+      );
+    }
+  );
 
   it("should skip empty message", async () => {
     const message: EachMessagePayload = {
@@ -218,7 +221,7 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
           JSON.stringify({
             ...correctEventPayload,
             user: {
-              productRole: userRole.ADMIN_ROLE,
+              ...correctEventPayload.user,
               relationshipStatus: relationshipStatus.active,
             },
           })

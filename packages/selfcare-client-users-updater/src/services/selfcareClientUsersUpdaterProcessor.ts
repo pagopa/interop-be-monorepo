@@ -51,18 +51,16 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
         }
 
         const stringPayload = message.value.toString();
-        const jsonPayload = JSON.parse(stringPayload);
-
-        if (jsonPayload.productId !== productId) {
-          loggerInstance.info(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.productId}`
-          );
-          return;
-        }
-
-        const userEventPayload = UsersEventPayload.parse(jsonPayload);
+        const userEventPayload = UsersEventPayload.parse(
+          JSON.parse(stringPayload)
+        );
 
         return match(userEventPayload)
+          .with({ productId: P.not(productId) }, () => {
+            loggerInstance.info(
+              `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${userEventPayload.productId}`
+            );
+          })
           .with({ user: { userId: P.nullish } }, () => {
             loggerInstance.warn(
               `Skipping message for partition ${partition} with offset ${message.offset} - Missing userId.`
@@ -85,7 +83,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
                 async (offset, limit) =>
                   await authorizationProcessClient.client.getClients({
                     queries: {
-                      consumerId: jsonPayload.institutionId,
+                      consumerId: userEventPayload.institutionId,
                       kind: bffApi.ClientKind.Values.API,
                       offset,
                       limit,
@@ -121,7 +119,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
               );
 
               loggerInstance.info(
-                `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${jsonPayload.institutionId}`
+                `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${userEventPayload.institutionId}`
               );
             }
           )
