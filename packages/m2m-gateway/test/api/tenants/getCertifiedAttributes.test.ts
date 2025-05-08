@@ -8,6 +8,10 @@ import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockedApiAttribute } from "../../mockUtils.js";
 import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
+import {
+  unexpectedAttributeKind,
+  unexpectedUndefinedAttributeOriginOrCode,
+} from "../../../src/model/errors.js";
 
 describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
   const mockQueryParams: m2mGatewayApi.GetCertifiedAttributesQueryParams = {
@@ -128,4 +132,15 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
       expect(res.status).toBe(500);
     }
   );
+
+  it.each([
+    unexpectedAttributeKind(mockApiAttribute1.data),
+    unexpectedUndefinedAttributeOriginOrCode(mockApiAttribute1.data),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockTenantService.getCertifiedAttributes = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockQueryParams);
+
+    expect(res.status).toBe(500);
+  });
 });
