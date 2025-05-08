@@ -21,6 +21,7 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 import {
+  eServiceTemplateNotFound,
   eserviceTemaplateRiskAnalysisNameDuplicate,
   eserviceTemplateNotInDraftState,
   riskAnalysisValidationFailed,
@@ -78,6 +79,18 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
       {} as eserviceTemplateApi.EServiceRiskAnalysisSeed
     );
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 404 for eserviceTemplateNotFound", async () => {
+    eserviceTemplateService.createRiskAnalysis = vi
+      .fn()
+      .mockRejectedValue(eServiceTemplateNotFound(eserviceTemplateId));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.body.detail).toBe(
+      `EService Template ${eserviceTemplateId} not found`
+    );
+    expect(res.status).toBe(404);
   });
 
   it("Should return 403 for operationForbidden", async () => {
