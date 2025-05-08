@@ -49,10 +49,10 @@ export function getMockedApiTenant(): WithMetadata<tenantApi.Tenant> {
   return {
     data: {
       id: generateId(),
-      attributes: [],
+      attributes: generateMock(z.array(tenantApi.TenantAttribute)),
       externalId: {
-        origin: "ORIGIN",
-        value: "VALUE",
+        origin: generateMock(z.string()),
+        value: generateMock(z.string()),
       },
       name: generateMock(z.string()),
       createdAt: new Date().toISOString(),

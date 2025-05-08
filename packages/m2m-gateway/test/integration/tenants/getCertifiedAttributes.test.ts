@@ -13,6 +13,10 @@ import {
   getMockedApiTenant,
 } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import {
+  unexpectedAttributeKind,
+  unexpectedUndefinedAttributeOriginOrCode,
+} from "../../../src/model/errors.js";
 
 describe("getCertifiedAttributes", () => {
   const mockParams: m2mGatewayApi.GetCertifiedAttributesQueryParams = {
@@ -113,4 +117,71 @@ describe("getCertifiedAttributes", () => {
 
     expect(result).toEqual(m2mTenantsResponse);
   });
+
+  it.each([
+    [
+      attributeRegistryApi.AttributeKind.Values.VERIFIED,
+      attributeRegistryApi.AttributeKind.Values.DECLARED,
+    ],
+  ])(
+    "Should throw unexpectedAttributeKind in case the returned attribute has an unexpected kind",
+    async (kind) => {
+      const mockResponse = {
+        ...mockGetBulkedAttributesResponse,
+        data: {
+          results: [
+            { ...mockApiAttribute1.data, kind },
+            mockApiAttribute2.data,
+          ],
+          totalCount: 2,
+        },
+      };
+
+      mockInteropBeClients.attributeProcessClient.getBulkedAttributes =
+        mockGetBulkedAttributes.mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        tenantService.getCertifiedAttributes(
+          unsafeBrandId(mockApiTenant.id),
+          mockParams,
+          getMockM2MAdminAppContext()
+        )
+      ).rejects.toThrowError(
+        unexpectedAttributeKind(mockResponse.data.results[0])
+      );
+    }
+  );
+
+  it.each([
+    { origin: undefined, code: "validCode" },
+    { origin: "validOrigin", code: undefined },
+    { origin: undefined, code: undefined },
+  ])(
+    "Should throw unexpectedUndefinedAttributeOriginOrCode in case the returned attribute has an unexpected kind",
+    async (originAndCodeOverride) => {
+      const mockResponse = {
+        ...mockGetBulkedAttributesResponse,
+        data: {
+          results: [
+            { ...mockApiAttribute1.data, ...originAndCodeOverride },
+            mockApiAttribute2.data,
+          ],
+          totalCount: 2,
+        },
+      };
+
+      mockInteropBeClients.attributeProcessClient.getBulkedAttributes =
+        mockGetBulkedAttributes.mockResolvedValueOnce(mockResponse);
+
+      await expect(
+        tenantService.getCertifiedAttributes(
+          unsafeBrandId(mockApiTenant.id),
+          mockParams,
+          getMockM2MAdminAppContext()
+        )
+      ).rejects.toThrowError(
+        unexpectedUndefinedAttributeOriginOrCode(mockResponse.data.results[0])
+      );
+    }
+  );
 });
