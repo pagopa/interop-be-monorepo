@@ -53,7 +53,12 @@ import {
   sql,
 } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { ascLower, createListResult } from "pagopa-interop-commons";
+import {
+  ascLower,
+  createListResult,
+  escapeRegExp,
+  lowerCase,
+} from "pagopa-interop-commons";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
@@ -79,7 +84,7 @@ export function readModelServiceBuilderSQL(
       const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -97,7 +102,9 @@ export function readModelServiceBuilderSQL(
             features.length > 0
               ? inArray(tenantFeatureInReadmodelTenant.kind, features)
               : undefined,
-            name ? ilike(tenantInReadmodelTenant.name, `%${name}%`) : undefined,
+            name
+              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
+              : undefined,
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
@@ -187,7 +194,7 @@ export function readModelServiceBuilderSQL(
       name: string
     ): Promise<WithMetadata<Tenant> | undefined> {
       return await tenantReadModelService.getTenantByFilter(
-        ilike(tenantInReadmodelTenant.name, name)
+        ilike(tenantInReadmodelTenant.name, escapeRegExp(name))
       );
     },
 
@@ -246,7 +253,7 @@ export function readModelServiceBuilderSQL(
       const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -267,7 +274,7 @@ export function readModelServiceBuilderSQL(
         .where(
           and(
             consumerName
-              ? ilike(tenantInReadmodelTenant.name, consumerName)
+              ? ilike(tenantInReadmodelTenant.name, escapeRegExp(consumerName))
               : undefined,
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
@@ -360,7 +367,7 @@ export function readModelServiceBuilderSQL(
       const subquery = readModelDB
         .selectDistinct({
           tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
         })
         .from(tenantInReadmodelTenant)
@@ -376,7 +383,7 @@ export function readModelServiceBuilderSQL(
         .where(
           and(
             producerName
-              ? ilike(tenantInReadmodelTenant.name, producerName)
+              ? ilike(tenantInReadmodelTenant.name, escapeRegExp(producerName))
               : undefined,
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
@@ -526,7 +533,7 @@ export function readModelServiceBuilderSQL(
         .selectDistinct({
           id: tenantInReadmodelTenant.id,
           name: tenantInReadmodelTenant.name,
-          nameLowerCase: ascLower(tenantInReadmodelTenant.name),
+          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
           attributeName: attributeInReadmodelAttribute.name,
           totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
@@ -540,6 +547,7 @@ export function readModelServiceBuilderSQL(
               attributeInReadmodelAttribute.id
             ),
             eq(attributeInReadmodelAttribute.origin, certifierId),
+            eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
             isNull(
               tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
             )
