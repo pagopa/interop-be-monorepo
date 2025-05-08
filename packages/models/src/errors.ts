@@ -292,7 +292,7 @@ const errorCodes = {
   interfaceExtractingSoapFieldValueError: "10017",
   soapFileCreatingError: "10018",
   notAllowedMultipleKeysException: "10019",
-  notFound: "10020",
+  featureFlagNotEnabled: "10020",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -403,7 +403,11 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
     .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
-    .with("unauthorizedError", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "unauthorizedError",
+      "featureFlagNotEnabled",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -657,11 +661,12 @@ export function invalidInterfaceContentTypeDetected(
     title: "Invalid content type detected",
   });
 }
-
-export function notFound(): ApiError<CommonErrorCodes> {
+export function featureFlagNotEnabled(
+  featureFlag: string
+): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `Resource not found`,
-    code: "notFound",
-    title: "Not Found",
+    detail: `Feature flag ${featureFlag} is not enabled`,
+    code: "featureFlagNotEnabled",
+    title: "Feature flag not enabled",
   });
 }

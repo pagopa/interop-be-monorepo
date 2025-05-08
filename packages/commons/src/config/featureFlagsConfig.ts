@@ -1,4 +1,4 @@
-import { notFound } from "pagopa-interop-models";
+import { featureFlagNotEnabled } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const FeatureFlagSignalhubWhitelistConfig = z
@@ -38,21 +38,40 @@ export type featureFlagAdminClientConfig = z.infer<
   typeof featureFlagAdminClientConfig
 >;
 
+export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
+  .object({
+    FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagAgreementApprovalPolicyUpdate:
+      c.FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE ?? false,
+  }));
+
+export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
+  typeof FeatureFlagAgreementApprovalPolicyUpdateConfig
+>;
+
 export const FeatureFlagSQLConfig = z
   .object({
     FEATURE_FLAG_SQL: z
       .enum(["true", "false"])
       .default("false")
-      .transform((value) => value === "true"),
+      .transform((value) => value === "true")
+      .optional(),
   })
   .transform((c) => ({
-    featureFlagSQL: c.FEATURE_FLAG_SQL,
+    featureFlagSQL: c.FEATURE_FLAG_SQL ?? false,
   }));
 export type FeatureFlagSQLConfig = z.infer<typeof FeatureFlagSQLConfig>;
 
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   featureFlagAdminClientConfig &
-  FeatureFlagSQLConfig;
+  FeatureFlagSQLConfig &
+  FeatureFlagAgreementApprovalPolicyUpdateConfig;
 
 export type FeatureFlagKeys = keyof Pick<
   FeatureFlags,
@@ -61,12 +80,14 @@ export type FeatureFlagKeys = keyof Pick<
   }[keyof FeatureFlags]
 >;
 
-export const isFeatureFlagEnabled = <
-  T extends Record<string, unknown>,
-  K extends keyof T & string
->(
-  config: T,
-  featureFlagName: K extends FeatureFlagKeys ? K : never
+/**
+ * isFeatureFlagEnabled and assertFeatureFlagEnabled check if a feature flag is enabled in the config.
+ * the flags have to start with featureFlag and be exported from the featureFlagsConfig file
+ * i.e. assertFeatureFlagEnabled(config, "notExistentFeatureFlag"); will raise a compile error
+ */
+export const isFeatureFlagEnabled = <K extends string>(
+  config: Record<K, unknown>,
+  featureFlagName: K & FeatureFlagKeys
 ): boolean => {
   const featureFlag = config[featureFlagName];
 
@@ -76,14 +97,11 @@ export const isFeatureFlagEnabled = <
 
   return featureFlag === true;
 };
-export const assertFeatureFlagEnabled = <
-  T extends Record<string, unknown>,
-  K extends keyof T & string
->(
-  config: T,
-  featureFlagName: K extends FeatureFlagKeys ? K : never
+export const assertFeatureFlagEnabled = <K extends string>(
+  config: Record<K, unknown>,
+  featureFlagName: K & FeatureFlagKeys
 ): void => {
   if (!isFeatureFlagEnabled(config, featureFlagName)) {
-    throw notFound();
+    throw featureFlagNotEnabled(featureFlagName);
   }
 };
