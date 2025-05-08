@@ -7,13 +7,9 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { agreementService, api } from "../../vitest.api.setup.js";
 import { getMockApiCompactEServiceLight } from "../../mockUtils.js";
+import { config } from "../../../src/config/config.js";
 
 describe("API GET /agreements/filter/producers", () => {
-  const mockPayload = {
-    offset: 0,
-    limit: 10,
-    producerName: "name",
-  };
   const mockCompactEServiceLight1 = getMockApiCompactEServiceLight();
   const mockCompactEServiceLight2 = getMockApiCompactEServiceLight();
   const mockCompactEServiceLight3 = getMockApiCompactEServiceLight();
@@ -36,16 +32,19 @@ describe("API GET /agreements/filter/producers", () => {
   );
 
   // eslint-disable-next-line functional/immutable-data
-  agreementService.getAgreementsConsumerEServices = vi
+  agreementService.getAgreementsProducers = vi
     .fn()
     .mockResolvedValue(apiCompactEServicesLight);
 
-  const makeRequest = async (token: string, payload: object = mockPayload) =>
+  const makeRequest = async (token: string, limit: unknown = 10) =>
     request(api)
-      .get(`/agreements/filter/producers`)
+      .get(
+        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements/filter/producers`
+      )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(payload);
+      .query({ offset: 0, limit })
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -56,10 +55,7 @@ describe("API GET /agreements/filter/producers", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      ...mockPayload,
-      requesterId: "invalid",
-    });
+    const res = await makeRequest(token, "invalid");
     expect(res.status).toBe(400);
   });
 });

@@ -9,7 +9,7 @@ import { agreementService, api } from "../../vitest.api.setup.js";
 import { getMockApiCompactEServiceLight } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
 
-describe("API GET /producers/agreements/eservices", () => {
+describe("API GET /agreements/filter/consumers", () => {
   const mockCompactEServiceLight1 = getMockApiCompactEServiceLight();
   const mockCompactEServiceLight2 = getMockApiCompactEServiceLight();
   const mockCompactEServiceLight3 = getMockApiCompactEServiceLight();
@@ -32,14 +32,14 @@ describe("API GET /producers/agreements/eservices", () => {
   );
 
   // eslint-disable-next-line functional/immutable-data
-  agreementService.getAgreementsProducerEServices = vi
+  agreementService.getAgreementsConsumers = vi
     .fn()
     .mockResolvedValue(apiCompactEServicesLight);
 
   const makeRequest = async (token: string, limit: unknown = 10) =>
     request(api)
       .get(
-        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/producers/agreements/eservices`
+        `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}/agreements/filter/consumers`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
