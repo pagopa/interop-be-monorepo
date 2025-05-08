@@ -154,25 +154,35 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             // VISIBILITY FILTER
-            or(
-              hasAtLeastOneUserRole(authData, [
-                userRole.ADMIN_ROLE,
-                userRole.API_ROLE,
-                userRole.SUPPORT_ROLE,
-              ])
-                ? eq(
+            hasAtLeastOneUserRole(authData, [
+              userRole.ADMIN_ROLE,
+              userRole.API_ROLE,
+              userRole.SUPPORT_ROLE,
+            ])
+              ? or(
+                  eq(
                     eserviceTemplateInReadmodelEserviceTemplate.creatorId,
                     authData.organizationId
+                  ),
+                  and(
+                    ne(
+                      eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                      eserviceTemplateVersionState.draft
+                    ),
+                    isNotNull(
+                      eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                    )
                   )
-                : undefined,
-              and(
-                ne(
-                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                  eserviceTemplateVersionState.draft
-                ),
-                isNotNull(eserviceTemplateVersionInReadmodelEserviceTemplate.id)
-              )
-            )
+                )
+              : and(
+                  ne(
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                    eserviceTemplateVersionState.draft
+                  ),
+                  isNotNull(
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                  )
+                )
           )
         )
         .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
