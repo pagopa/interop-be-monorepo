@@ -40,23 +40,16 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
     expect(res.status).toBe(403);
   });
 
-  it("Should return 500 in case of missingMetadata error", async () => {
-    mockTenantService.revokeCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(missingMetadata());
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
+  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+    "Should return 500 in case of $code error",
+    async (error) => {
+      mockTenantService.revokeCertifiedAttribute = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token);
 
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of resourcePollingTimeout error", async () => {
-    mockTenantService.revokeCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(resourcePollingTimeout(3));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
-
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });

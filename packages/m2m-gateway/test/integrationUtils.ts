@@ -55,7 +55,7 @@ export function expectApiClientPostToHaveBeenCalledWith({
   params,
 }: {
   mockPost: Function;
-  body: Record<string, unknown>;
+  body?: Record<string, unknown>;
   params?: Record<string, unknown>;
 }): void {
   expect(mockPost).toHaveBeenCalledWith(body, {
