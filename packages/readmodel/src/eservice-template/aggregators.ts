@@ -4,6 +4,7 @@ import {
   attributeKind,
   EServiceMode,
   EServiceTemplate,
+  EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   stringToDate,
@@ -197,31 +198,65 @@ export const aggregateEServiceTemplateArray = ({
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
-}): Array<WithMetadata<EServiceTemplate>> =>
-  eserviceTemplatesSQL.map((eserviceTemplateSQL) =>
-    aggregateEServiceTemplate({
+}): Array<WithMetadata<EServiceTemplate>> => {
+  const riskAnalysesSQLByEServiceTemplateId =
+    createEServiceTemplateSQLPropertyMap(riskAnalysesSQL);
+  const riskAnalysisAnswersSQLByEServiceTemplateId =
+    createEServiceTemplateSQLPropertyMap(riskAnalysisAnswersSQL);
+  const versionsSQLByEServiceTemplateId =
+    createEServiceTemplateSQLPropertyMap(versionsSQL);
+  const attributesSQLByEServiceTemplateId =
+    createEServiceTemplateSQLPropertyMap(attributesSQL);
+  const interfacesSQLByEServiceTemplateId =
+    createEServiceTemplateSQLPropertyMap(interfacesSQL);
+  const documentsSQLByEServiceTemplateId =
+    createEServiceTemplateSQLPropertyMap(documentsSQL);
+
+  return eserviceTemplatesSQL.map((eserviceTemplateSQL) => {
+    const eserviceTemplateId = unsafeBrandId<EServiceTemplateId>(
+      eserviceTemplateSQL.id
+    );
+    return aggregateEServiceTemplate({
       eserviceTemplateSQL,
-      riskAnalysesSQL: riskAnalysesSQL.filter(
-        (ra) => ra.eserviceTemplateId === eserviceTemplateSQL.id
-      ),
-      riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.filter(
-        (answer) => answer.eserviceTemplateId === eserviceTemplateSQL.id
-      ),
-      versionsSQL: versionsSQL.filter(
-        (d) => d.eserviceTemplateId === eserviceTemplateSQL.id
-      ),
-      interfacesSQL: interfacesSQL.filter(
-        (descriptorInterface) =>
-          descriptorInterface.eserviceTemplateId === eserviceTemplateSQL.id
-      ),
-      documentsSQL: documentsSQL.filter(
-        (doc) => doc.eserviceTemplateId === eserviceTemplateSQL.id
-      ),
-      attributesSQL: attributesSQL.filter(
-        (attr) => attr.eserviceTemplateId === eserviceTemplateSQL.id
-      ),
-    })
-  );
+      riskAnalysesSQL:
+        riskAnalysesSQLByEServiceTemplateId.get(eserviceTemplateId) || [],
+      riskAnalysisAnswersSQL:
+        riskAnalysisAnswersSQLByEServiceTemplateId.get(eserviceTemplateId) ||
+        [],
+      versionsSQL:
+        versionsSQLByEServiceTemplateId.get(eserviceTemplateId) || [],
+      interfacesSQL:
+        interfacesSQLByEServiceTemplateId.get(eserviceTemplateId) || [],
+      documentsSQL:
+        documentsSQLByEServiceTemplateId.get(eserviceTemplateId) || [],
+      attributesSQL:
+        attributesSQLByEServiceTemplateId.get(eserviceTemplateId) || [],
+    });
+  });
+};
+
+const createEServiceTemplateSQLPropertyMap = <
+  T extends
+    | EServiceTemplateVersionSQL
+    | EServiceTemplateVersionInterfaceSQL
+    | EServiceTemplateVersionDocumentSQL
+    | EServiceTemplateVersionAttributeSQL
+    | EServiceTemplateRiskAnalysisSQL
+    | EServiceTemplateRiskAnalysisAnswerSQL
+>(
+  items: T[]
+): Map<EServiceTemplateId, T[]> =>
+  items.reduce((acc, item) => {
+    const eserviceTemplateId = unsafeBrandId<EServiceTemplateId>(
+      item.eserviceTemplateId
+    );
+    const values = acc.get(eserviceTemplateId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(eserviceTemplateId, values);
+
+    return acc;
+  }, new Map<EServiceTemplateId, T[]>());
 
 export const toEServiceTemplateAggregator = (
   queryRes: Array<{
