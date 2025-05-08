@@ -18,7 +18,9 @@ describe("API POST /agreements", () => {
   const mockAgreement: bffApi.CreatedResource = getMockApiCreatedResource();
 
   // eslint-disable-next-line functional/immutable-data
-  services.agreementService.createAgreement = vi.fn().mockResolvedValue(mockAgreement);
+  services.agreementService.createAgreement = vi
+    .fn()
+    .mockResolvedValue(mockAgreement);
 
   const makeRequest = async (token: string, payload = mockAgreementPayload) =>
     request(api)

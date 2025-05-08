@@ -10,7 +10,9 @@ import { config } from "../../../src/config/config.js";
 describe("API DELETE /agreements/:agreementId", () => {
   const mockAgreementId = generateId<AgreementId>();
 
-  services.agreementService.deleteAgreement = vi.fn().mockResolvedValue(undefined);
+  services.agreementService.deleteAgreement = vi
+    .fn()
+    .mockResolvedValue(undefined);
 
   const makeRequest = async (
     token: string,
