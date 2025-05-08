@@ -80,7 +80,7 @@ describe("getPurposes", () => {
     });
   });
 
-  it("Should throw a 400 purposeNotFound error due to assertion fail", async () => {
+  it("Should throw a 400 purposeNotFound error due to missing valid current version", async () => {
     const invalidPurpose = getMockedApiPurpose({
       versions: [
         getMockedApiPurposeVersion({ state: "WAITING_FOR_APPROVAL" }),
