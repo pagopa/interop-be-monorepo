@@ -24,7 +24,7 @@ import {
   getMockedApiAttribute,
 } from "../../mockUtils.js";
 
-describe("createConsumerDelegation", () => {
+describe("createCertifiedAttribute", () => {
   const mockCertifiedAttributeSeed: m2mGatewayApi.CertifiedAttributeSeed =
     generateMock(m2mGatewayApi.CertifiedAttributeSeed);
 
