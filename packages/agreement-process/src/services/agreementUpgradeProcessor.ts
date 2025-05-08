@@ -60,6 +60,7 @@ export async function createUpgradeOrNewDraft({
   logger: Logger;
 }): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
   const newAgreementId = generateId<AgreementId>();
+
   if (canBeUpgraded) {
     // Upgrade Agreement case:
     // Creates a new Agreement linked to the new descriptor version,
