@@ -1,19 +1,13 @@
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  CustomClaims,
   InteropTokenGenerator,
+  InteropUserJwtPayload,
   Logger,
-  ORGANIZATION,
-  ORGANIZATION_EXTERNAL_ID_CLAIM,
-  ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM,
-  ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM,
-  ORGANIZATION_ID_CLAIM,
   RateLimiter,
   RateLimiterStatus,
-  SELFCARE_ID_CLAIM,
+  SUPPORT_USER_ID,
   SessionClaims,
-  UID,
-  USER_ROLES,
+  SupportJwtPayload,
   WithLogger,
   userRole,
   verifyJwtToken,
@@ -28,8 +22,6 @@ import {
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
-
-const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
 type GetSessionTokenReturnType =
   | {
@@ -97,18 +89,20 @@ export function authorizationServiceBuilder(
     selfcareId: string,
     tenantOrigin: string,
     tenantExternalId: string
-  ): CustomClaims => ({
-    [USER_ROLES]: roles,
-    [ORGANIZATION_ID_CLAIM]: tenantId,
-    [SELFCARE_ID_CLAIM]: selfcareId,
-    [ORGANIZATION_EXTERNAL_ID_CLAIM]: {
-      [ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM]: tenantOrigin,
-      [ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM]: tenantExternalId,
+  ): InteropUserJwtPayload => ({
+    "user-roles": roles,
+    organizationId: tenantId,
+    selfcareId,
+    externalId: {
+      origin: tenantOrigin,
+      value: tenantExternalId,
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const buildSupportClaims = (selfcareId: string, tenant: tenantApi.Tenant) => {
+  const buildSupportClaims = (
+    selfcareId: string,
+    tenant: tenantApi.Tenant
+  ): SupportJwtPayload => {
     const organization = {
       id: selfcareId,
       name: tenant.name,
@@ -119,11 +113,6 @@ export function authorizationServiceBuilder(
       ],
     };
 
-    const selfcareClaims = {
-      [ORGANIZATION]: organization,
-      [UID]: SUPPORT_USER_ID,
-    };
-
     return {
       ...buildJwtCustomClaims(
         userRole.SUPPORT_ROLE,
@@ -132,13 +121,17 @@ export function authorizationServiceBuilder(
         tenant.externalId.origin,
         tenant.externalId.value
       ),
-      ...selfcareClaims,
+      ...{
+        organization,
+      },
+      uid: SUPPORT_USER_ID,
+      "user-roles": userRole.SUPPORT_ROLE,
     };
   };
 
   const retrieveSupportClaims = (
     tenant: tenantApi.Tenant
-  ): ReturnType<typeof buildSupportClaims> => {
+  ): SupportJwtPayload => {
     const selfcareId = tenant.selfcareId;
     if (!selfcareId) {
       throw missingSelfcareId(config.pagoPaTenantId);

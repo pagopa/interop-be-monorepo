@@ -8,13 +8,12 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { systemRole } from "../auth/authData.js";
+import { systemRole } from "../auth/roles.js";
 import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
 import { dateToSeconds } from "../utils/date.js";
 import {
-  CustomClaims,
   InteropApiToken,
   InteropConsumerToken,
   InteropInternalToken,
@@ -23,8 +22,7 @@ import {
   InteropJwtConsumerPayload,
   InteropJwtHeader,
   InteropJwtInternalPayload,
-  ORGANIZATION_ID_CLAIM,
-  ROLE_CLAIM,
+  InteropUserJwtPayload,
   SessionClaims,
   SessionJwtPayload,
   SessionToken,
@@ -93,7 +91,7 @@ export class InteropTokenGenerator {
   }
 
   public async generateSessionToken(
-    claims: SessionClaims & CustomClaims,
+    claims: SessionClaims & InteropUserJwtPayload,
     jwtDuration?: number
   ): Promise<SessionToken> {
     if (
@@ -178,16 +176,16 @@ export class InteropTokenGenerator {
       nbf: currentTimestamp,
       exp:
         currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
-      [ORGANIZATION_ID_CLAIM]: consumerId,
+      organizationId: consumerId,
     };
 
     const systemRolePayload = clientAdminId
       ? {
-          [ROLE_CLAIM]: systemRole.M2M_ADMIN_ROLE,
+          role: systemRole.M2M_ADMIN_ROLE,
           adminId: clientAdminId,
         }
       : {
-          [ROLE_CLAIM]: systemRole.M2M_ROLE,
+          role: systemRole.M2M_ROLE,
         };
 
     const payload: InteropJwtApiPayload = {
@@ -301,6 +299,6 @@ export class InteropTokenGenerator {
     return `${serializedToken}.${jwtSignature}`;
   }
 
-  private toJwtAudience = (input: string | string[]): string | string[] =>
-    Array.isArray(input) && input.length === 1 ? input[0] : input;
+  private toJwtAudience = (input: string | string[]): string[] =>
+    Array.isArray(input) ? input : [input];
 }
