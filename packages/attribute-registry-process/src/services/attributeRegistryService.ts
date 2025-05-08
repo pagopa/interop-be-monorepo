@@ -23,7 +23,7 @@ import {
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
-  OrganizationIsNotACertifier,
+  tenantIsNotACertifier,
   attributeDuplicateByName,
   attributeDuplicateByNameAndCode,
   attributeNotFound,
@@ -335,7 +335,7 @@ async function getCertifierId(
   if (certifier) {
     return certifier.certifierId;
   }
-  throw OrganizationIsNotACertifier(tenantId);
+  throw tenantIsNotACertifier(tenantId);
 }
 
 export type AttributeRegistryService = ReturnType<

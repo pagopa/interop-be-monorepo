@@ -18,7 +18,7 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   attributeDuplicateByNameAndCode,
-  OrganizationIsNotACertifier,
+  tenantIsNotACertifier,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -119,7 +119,7 @@ describe("certified attribute creation", () => {
       )
     );
   });
-  it("should throw OrganizationIsNotACertifier if the organization is not a certifier", async () => {
+  it("should throw tenantIsNotACertifier if the organization is not a certifier", async () => {
     await addOneTenant(mockTenant);
     await addOneAttribute(mockAttribute);
     expect(
@@ -131,7 +131,7 @@ describe("certified attribute creation", () => {
         },
         getMockContext({ authData: getMockAuthData(mockTenant.id) })
       )
-    ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
+    ).rejects.toThrowError(tenantIsNotACertifier(mockTenant.id));
   });
   it("should throw tenantNotFound if the certifier is not found", async () => {
     await addOneAttribute(mockAttribute);
