@@ -273,6 +273,15 @@ export const toPurposeAggregator = (
     versionsSQL,
     versionDocumentsSQL,
   } = toPurposeAggregatorArray(queryRes);
+
+  if (purposesSQL.length > 1) {
+    throw genericInternalError(
+      `Found more than one purpose for a unique filter: ${purposesSQL
+        .map((purposeSQL) => purposeSQL.id)
+        .join(", ")}`
+    );
+  }
+
   return {
     purposeSQL: purposesSQL[0],
     riskAnalysisFormSQL: riskAnalysisFormsSQL[0],

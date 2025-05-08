@@ -1,5 +1,6 @@
 import {
   EServiceId,
+  genericInternalError,
   Key,
   KeyUse,
   ProducerKeychain,
@@ -118,6 +119,15 @@ export const toProducerKeychainAggregator = (
 ): ProducerKeychainItemsSQL => {
   const { producerKeychainsSQL, usersSQL, eservicesSQL, keysSQL } =
     toProducerKeychainAggregatorArray(queryRes);
+
+  if (producerKeychainsSQL.length > 1) {
+    throw genericInternalError(
+      `Found more than one producer keychain for a unique filter: ${producerKeychainsSQL
+        .map((producerKeychainSQL) => producerKeychainSQL.id)
+        .join(", ")}`
+    );
+  }
+
   return {
     producerKeychainSQL: producerKeychainsSQL[0],
     usersSQL,

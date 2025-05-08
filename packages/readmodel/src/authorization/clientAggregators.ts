@@ -121,6 +121,15 @@ export const toClientAggregator = (
 ): ClientItemsSQL => {
   const { clientsSQL, usersSQL, purposesSQL, keysSQL } =
     toClientAggregatorArray(queryRes);
+
+  if (clientsSQL.length > 1) {
+    throw genericInternalError(
+      `Found more than one client for a unique filter: ${clientsSQL
+        .map((clientSQL) => clientSQL.id)
+        .join(", ")}`
+    );
+  }
+
   return {
     clientSQL: clientsSQL[0],
     usersSQL,

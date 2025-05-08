@@ -208,6 +208,14 @@ export const toDelegationAggregator = (
   const { delegationsSQL, stampsSQL, contractDocumentsSQL } =
     toDelegationAggregatorArray(queryRes);
 
+  if (delegationsSQL.length > 1) {
+    throw genericInternalError(
+      `Found more than one delegation for a unique filter: ${delegationsSQL
+        .map((delegationSQL) => delegationSQL.id)
+        .join(", ")}`
+    );
+  }
+
   return {
     delegationSQL: delegationsSQL[0],
     stampsSQL,

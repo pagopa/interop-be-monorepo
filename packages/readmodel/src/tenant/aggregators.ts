@@ -388,6 +388,14 @@ export const toTenantAggregator = (
     featuresSQL,
   } = toTenantAggregatorArray(queryRes);
 
+  if (tenantsSQL.length > 1) {
+    throw genericInternalError(
+      `Found more than one tenant for a unique filter: ${tenantsSQL
+        .map((tenantSQL) => tenantSQL.id)
+        .join(", ")}`
+    );
+  }
+
   return {
     tenantSQL: tenantsSQL[0],
     mailsSQL,

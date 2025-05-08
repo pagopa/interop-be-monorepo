@@ -7,6 +7,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
+  genericInternalError,
   stringToDate,
   Technology,
   unsafeBrandId,
@@ -278,6 +279,14 @@ export const toEServiceTemplateAggregator = (
     documentsSQL,
     attributesSQL,
   } = toEServiceTemplateAggregatorArray(queryRes);
+
+  if (eserviceTemplatesSQL.length > 1) {
+    throw genericInternalError(
+      `Found more than one e-service template for a unique filter: ${eserviceTemplatesSQL
+        .map((eserviceTemplateSQL) => eserviceTemplateSQL.id)
+        .join(", ")}`
+    );
+  }
 
   return {
     eserviceTemplateSQL: eserviceTemplatesSQL[0],
