@@ -2,14 +2,14 @@ import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
+import { purposeVersionNotFound } from "../../../src/model/errors.js";
 
 describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -32,25 +32,22 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
     versions: [mockApiPurposeVersion],
   });
 
-  const mockM2MPurposeVersionResponse: m2mGatewayApi.PurposeVersion =
-    mockApiPurposeVersion;
-
   it.each(authorizedRoles)(
     "Should return 200 and perform API clients calls for user with role %s",
     async (role) => {
       mockPurposeService.getPurposeVersion = vi
         .fn()
-        .mockResolvedValue(mockM2MPurposeVersionResponse);
+        .mockResolvedValue(mockApiPurposeVersion);
 
       const token = generateToken(role);
       const res = await makeRequest(
         token,
-        mockM2MPurposeVersionResponse.id,
+        mockApiPurposeVersion.id,
         mockApiPurposeVersion.id
       );
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MPurposeVersionResponse);
+      expect(res.body).toEqual(mockApiPurposeVersion);
     }
   );
 
@@ -68,6 +65,22 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
       "INVALID_VERSION_ID"
     );
     expect(res.status).toBe(400);
+  });
+
+  it("Should throw purposeVersionNotFound for version not found", async () => {
+    mockPurposeService.getPurposeVersion = vi
+      .fn()
+      .mockRejectedValue(
+        purposeVersionNotFound(
+          unsafeBrandId(mockApiPurpose.data.id),
+          unsafeBrandId(mockApiPurposeVersion.id)
+        )
+      );
+
+    const token = generateToken(authRole.M2M_ROLE);
+
+    const res = await makeRequest(token, mockApiPurpose.data.id, generateId());
+    expect(res.status).toBe(404);
   });
 
   it.each(

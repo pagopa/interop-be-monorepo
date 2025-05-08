@@ -4,6 +4,7 @@ import { PurposeId, PurposeVersionId } from "pagopa-interop-models";
 import {
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
+  toM2mGatewayApiPurposeVersion,
 } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -119,7 +120,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         throw purposeVersionNotFound(purposeId, versionId);
       }
 
-      return version;
+      return toM2mGatewayApiPurposeVersion(version);
     },
   };
 }

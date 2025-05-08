@@ -1,4 +1,3 @@
-import { delegationApi } from "pagopa-interop-api-clients";
 import {
   ApiError,
   makeApiProblemBuilder,
@@ -6,8 +5,6 @@ import {
   PurposeVersionId,
 } from "pagopa-interop-models";
 import { delegationApi, purposeApi } from "pagopa-interop-api-clients";
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
-
 
 export const errorCodes = {
   resourcePollingTimeout: "0001",
@@ -49,7 +46,6 @@ export function unexpectedDelegationKind(
     title: "Unexpected Delegation Kind",
   });
 }
-
 
 export function purposeVersionNotFound(
   purposeId: PurposeId,
