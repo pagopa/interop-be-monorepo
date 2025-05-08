@@ -157,13 +157,13 @@ import {
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
-  isDescriptorUpdatable,
   isNotActiveDescriptor,
   validateRiskAnalysisSchemaOrThrow,
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
   assertDescriptorUpdatable,
+  assertEServiceUpdatable,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -2211,12 +2211,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const hasValidDescriptor = eservice.data.descriptors.some(
-        isDescriptorUpdatable
-      );
-      if (!hasValidDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
+      assertEServiceUpdatable(eservice.data);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -2252,12 +2247,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const hasValidDescriptor = eservice.data.descriptors.some(
-        isDescriptorUpdatable
-      );
-      if (!hasValidDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
+      assertEServiceUpdatable(eservice.data);
 
       if (!isConsumerDelegable && isClientAccessDelegable) {
         throw invalidEServiceFlags(eserviceId);
@@ -2402,15 +2392,8 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
-      if (
-        eservice.data.descriptors.every(
-          (descriptor) =>
-            descriptor.state === descriptorState.draft ||
-            descriptor.state === descriptorState.archived
-        )
-      ) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
+
+      assertEServiceUpdatable(eservice.data);
 
       await assertNotDuplicatedEServiceName(
         name,
@@ -2542,13 +2525,7 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
-      ) {
-        throw notValidDescriptorState(descriptorId, descriptor.state);
-      }
+      assertDescriptorUpdatable(descriptor);
 
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
