@@ -4,6 +4,7 @@ import { expect } from "vitest";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
+import { tenantServiceBuilder } from "../src/services/tenantService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -31,12 +32,15 @@ export function mockPollingResponse<T>(
 export function expectApiClientGetToHaveBeenCalledWith({
   mockGet,
   params,
+  queries,
 }: {
   mockGet: Function;
-  params: Record<string, unknown>;
+  params?: Record<string, unknown>;
+  queries?: Record<string, unknown>;
 }): void {
   expect(mockGet).toHaveBeenCalledWith({
     params,
+    queries,
     headers: {
       Authorization: `Bearer ${m2mTestToken}`,
       "X-Correlation-Id": expect.any(String),
@@ -48,9 +52,11 @@ export function expectApiClientGetToHaveBeenCalledWith({
 export function expectApiClientPostToHaveBeenCalledWith({
   mockPost,
   body,
+  params,
 }: {
   mockPost: Function;
   body: Record<string, unknown>;
+  params?: Record<string, unknown>;
 }): void {
   expect(mockPost).toHaveBeenCalledWith(body, {
     headers: {
@@ -58,8 +64,10 @@ export function expectApiClientPostToHaveBeenCalledWith({
       "X-Correlation-Id": expect.any(String),
       "X-Forwarded-For": undefined,
     },
+    params,
   });
 }
 
 export const mockInteropBeClients = {} as PagoPAInteropBeClients;
 export const delegationService = delegationServiceBuilder(mockInteropBeClients);
+export const tenantService = tenantServiceBuilder(mockInteropBeClients);

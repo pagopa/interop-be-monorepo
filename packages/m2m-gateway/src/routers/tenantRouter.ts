@@ -27,7 +27,7 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        const tenants = await tenantService.getTenants(ctx, req.query);
+        const tenants = await tenantService.getTenants(req.query, ctx);
 
         return res.status(200).send(m2mGatewayApi.Tenants.parse(tenants));
       } catch (error) {
@@ -91,8 +91,8 @@ const tenantRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         await tenantService.addCertifiedAttribute(
           unsafeBrandId(req.params.tenantId),
-          ctx,
-          req.body
+          req.body,
+          ctx
         );
 
         return res.status(204).send();

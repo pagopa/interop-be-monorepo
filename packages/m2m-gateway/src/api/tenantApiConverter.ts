@@ -3,9 +3,14 @@ import {
   m2mGatewayApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { genericError } from "pagopa-interop-models";
+import {
+  assertAttributeKindIs,
+  assertAttributeOriginAndCodeAreDefined,
+} from "../utils/validators/attributeValidators.js";
 
-export function toM2MTenant(tenant: tenantApi.Tenant): m2mGatewayApi.Tenant {
+export function toM2MGatewayApiTenant(
+  tenant: tenantApi.Tenant
+): m2mGatewayApi.Tenant {
   return {
     id: tenant.id,
     externalId: tenant.externalId,
@@ -18,13 +23,28 @@ export function toM2MTenant(tenant: tenantApi.Tenant): m2mGatewayApi.Tenant {
   };
 }
 
-export function toM2MTenantCertifiedAttribute(
+export function toGetTenantsApiQueryParams(
+  params: m2mGatewayApi.GetTenantsQueryParams
+): tenantApi.GetTenantsQueryParams {
+  return {
+    externalIdOrigin: params.externalIdOrigin,
+    externalIdValue: params.externalIdValue,
+    name: undefined,
+    features: [],
+    offset: params.offset,
+    limit: params.limit,
+  };
+}
+
+export function toM2MGatewayApiTenantCertifiedAttribute(
   tenantCertifiedAttribute: tenantApi.CertifiedTenantAttribute,
   certifiedAttribute: attributeRegistryApi.Attribute
 ): m2mGatewayApi.TenantCertifiedAttribute {
-  if (!certifiedAttribute.origin || !certifiedAttribute.code) {
-    throw genericError("Invalid certified attribute");
-  }
+  assertAttributeKindIs(
+    certifiedAttribute,
+    attributeRegistryApi.AttributeKind.Values.CERTIFIED
+  );
+  assertAttributeOriginAndCodeAreDefined(certifiedAttribute);
 
   return {
     id: certifiedAttribute.id,
