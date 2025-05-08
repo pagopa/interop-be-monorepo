@@ -1,0 +1,143 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateId } from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockPurpose,
+  getMockPurposeVersion,
+} from "pagopa-interop-commons-test";
+import { authRole } from "pagopa-interop-commons";
+import request from "supertest";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { api, purposeService } from "../vitest.api.setup.js";
+import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
+import {
+  agreementNotFound,
+  missingRiskAnalysis,
+  organizationIsNotTheConsumer,
+  organizationIsNotTheProducer,
+  organizationNotAllowed,
+  purposeNotFound,
+  purposeVersionNotFound,
+  riskAnalysisValidationFailed,
+} from "../../src/model/domain/errors.js";
+
+describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", () => {
+  const mockPurposeVersion = getMockPurposeVersion();
+  const mockPurpose = { ...getMockPurpose(), versions: [mockPurposeVersion] };
+
+  const apiResponse = purposeApi.PurposeVersion.parse(
+    purposeVersionToApiPurposeVersion(mockPurposeVersion)
+  );
+
+  beforeEach(() => {
+    purposeService.activatePurposeVersion = vi
+      .fn()
+      .mockResolvedValue(mockPurposeVersion);
+  });
+
+  const makeRequest = async (
+    token: string,
+    purposeId: string = mockPurpose.id,
+    versionId: string = mockPurposeVersion.id
+  ) =>
+    request(api)
+      .post(`/purposes/${purposeId}/versions/${versionId}/activate`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId());
+
+  it("Should return 200 for user with role Admin", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(apiResponse);
+  });
+
+  it.each(
+    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 400 for missingRiskAnalysis", async () => {
+    purposeService.activatePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(missingRiskAnalysis(mockPurpose.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for agreementNotFound", async () => {
+    purposeService.activatePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(agreementNotFound(generateId(), generateId()));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for riskAnalysisValidationFailed", async () => {
+    purposeService.activatePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(riskAnalysisValidationFailed([]));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 403 for organizationIsNotTheConsumer", async () => {
+    purposeService.activatePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 403 for organizationIsNotTheProducer", async () => {
+    purposeService.activatePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(organizationIsNotTheProducer(generateId()));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 403 for organizationNotAllowed", async () => {
+    purposeService.activatePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(organizationNotAllowed(generateId()));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 404 for purposeNotFound", async () => {
+    purposeService.activatePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(purposeNotFound(mockPurpose.id));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for purposeVersionNotFound", async () => {
+    purposeService.activatePurposeVersion = vi
+      .fn()
+      .mockRejectedValue(
+        purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id)
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed an invalid purpose id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
+  });
+});
