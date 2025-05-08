@@ -12,6 +12,7 @@ import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   eServiceTemplateNotFound,
   eServiceTemplateVersionNotFound,
+  eserviceTemplateDocumentNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:documentId", () => {
@@ -89,6 +90,24 @@ describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:
     const res = await makeRequest(token);
     expect(res.body.detail).toBe(
       `EService Template ${mockEserviceTemplate.id} version ${mockEserviceTemplate.versions[0].id} not found`
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for eserviceTemplateDocumentNotFound", async () => {
+    eserviceTemplateService.getEServiceTemplateDocument = vi
+      .fn()
+      .mockRejectedValue(
+        eserviceTemplateDocumentNotFound(
+          mockEserviceTemplate.id,
+          mockEserviceTemplate.versions[0].id,
+          doc.id
+        )
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.body.detail).toBe(
+      `Document ${doc.id} not found in version ${mockEserviceTemplate.versions[0].id} of template ${mockEserviceTemplate.id}`
     );
     expect(res.status).toBe(404);
   });
