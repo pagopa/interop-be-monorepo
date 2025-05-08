@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -18,27 +18,30 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
 } from "../../mockUtils.js";
-import { toM2MPurpose } from "../../../src/api/purposeApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("createPurpose", () => {
-  const mockPurposeProcessResponse = getMockedApiPurpose();
+  const mockPurposeProcessGetResponse = getMockedApiPurpose();
 
   const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
-    consumerId: mockPurposeProcessResponse.data.id,
-    dailyCalls: mockPurposeProcessResponse.data.versions[0].dailyCalls,
-    description: mockPurposeProcessResponse.data.description,
-    eserviceId: mockPurposeProcessResponse.data.eserviceId,
-    isFreeOfCharge: mockPurposeProcessResponse.data.isFreeOfCharge,
-    title: mockPurposeProcessResponse.data.title,
+    consumerId: mockPurposeProcessGetResponse.data.id,
+    dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
+    description: mockPurposeProcessGetResponse.data.description,
+    eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
+    isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
+    title: mockPurposeProcessGetResponse.data.title,
   };
 
-  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MPurpose(
-    mockPurposeProcessResponse.data
-  );
+  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose({
+    purpose: mockPurposeProcessGetResponse.data,
+    logger: genericLogger,
+  });
 
-  const mockCreatePurpose = vi.fn().mockResolvedValue(mockM2MPurpose);
+  const mockCreatePurpose = vi
+    .fn()
+    .mockResolvedValue(mockPurposeProcessGetResponse);
   const mockGetPurpose = vi.fn(
-    mockPollingResponse(mockPurposeProcessResponse, 2)
+    mockPollingResponse(mockPurposeProcessGetResponse, 2)
   );
 
   mockInteropBeClients.purposeProcessClient = {
@@ -47,7 +50,6 @@ describe("createPurpose", () => {
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
     mockCreatePurpose.mockClear();
     mockGetPurpose.mockClear();
   });
@@ -56,8 +58,8 @@ describe("createPurpose", () => {
     const m2mPurposeResponse: m2mGatewayApi.Purpose = mockM2MPurpose;
 
     const result = await purposeService.createPurpose(
-      getMockM2MAdminAppContext(),
-      mockPurposeSeed
+      mockPurposeSeed,
+      getMockM2MAdminAppContext()
     );
 
     expect(result).toEqual(m2mPurposeResponse);
@@ -67,7 +69,7 @@ describe("createPurpose", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
-      params: { delegationId: m2mPurposeResponse.id },
+      params: { id: m2mPurposeResponse.id },
     });
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
@@ -76,36 +78,36 @@ describe("createPurpose", () => {
 
   it("Should throw missingMetadata in case the purpose returned by the creation POST call has no metadata", async () => {
     mockCreatePurpose.mockResolvedValueOnce({
-      ...mockPurposeProcessResponse,
+      ...mockPurposeProcessGetResponse,
       metadata: undefined,
     });
 
     await expect(
-      purposeService.createPurpose(getMockM2MAdminAppContext(), mockPurposeSeed)
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
     ).rejects.toThrowError(missingMetadata());
   });
 
   it("Should throw missingMetadata in case the purpose returned by the polling GET call has no metadata", async () => {
     mockGetPurpose.mockResolvedValueOnce({
-      ...mockPurposeProcessResponse,
+      ...mockPurposeProcessGetResponse,
       metadata: undefined,
     });
 
     await expect(
-      purposeService.createPurpose(getMockM2MAdminAppContext(), mockPurposeSeed)
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
     ).rejects.toThrowError(missingMetadata());
   });
 
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
     mockGetPurpose.mockImplementation(
       mockPollingResponse(
-        mockPurposeProcessResponse,
+        mockPurposeProcessGetResponse,
         config.defaultPollingMaxAttempts + 1
       )
     );
 
     await expect(
-      purposeService.createPurpose(getMockM2MAdminAppContext(), mockPurposeSeed)
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
     ).rejects.toThrowError(
       resourcePollingTimeout(config.defaultPollingMaxAttempts)
     );
