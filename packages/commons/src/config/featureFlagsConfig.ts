@@ -73,12 +73,7 @@ type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagSQLConfig &
   FeatureFlagAdminClientConfig;
 
-export type FeatureFlagKeys = keyof Pick<
-  FeatureFlags,
-  {
-    [K in keyof FeatureFlags]: K extends `featureFlag${string}` ? K : never;
-  }[keyof FeatureFlags]
->;
+export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
 /**
  * isFeatureFlagEnabled and assertFeatureFlagEnabled check if a feature flag is enabled in the config.
