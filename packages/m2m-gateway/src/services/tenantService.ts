@@ -154,7 +154,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       const response =
-        await tenantProcessClient.tenantAttribute.revokeCertifiedAttributeById(
+        await clients.tenantProcessClient.tenantAttribute.revokeCertifiedAttributeById(
           undefined,
           {
             params: { tenantId, attributeId },
