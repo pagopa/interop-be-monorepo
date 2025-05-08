@@ -57,7 +57,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          purposesErrorMapper,
+          getPurposesErrorMapper,
           ctx,
           `Error retrieving purpose with id ${req.params.purposeId}`
         );
