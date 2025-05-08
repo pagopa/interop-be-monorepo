@@ -4,7 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import {
   getMockApiAgreement,
   getMockApiAgreementSubmissionPayload,
@@ -15,7 +15,7 @@ describe("API POST /agreements/:agreementId/suspend", () => {
   const mockApiAgreement = getMockApiAgreement();
   const mockPayload = getMockApiAgreementSubmissionPayload();
 
-  agreementService.suspendAgreement = vi
+  services.agreementService.suspendAgreement = vi
     .fn()
     .mockResolvedValue(mockApiAgreement);
 

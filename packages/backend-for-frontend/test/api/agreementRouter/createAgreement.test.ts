@@ -5,7 +5,7 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import {
   getMockApiAgreementPayload,
   getMockApiCreatedResource,
@@ -18,7 +18,7 @@ describe("API POST /agreements", () => {
   const mockAgreement: bffApi.CreatedResource = getMockApiCreatedResource();
 
   // eslint-disable-next-line functional/immutable-data
-  agreementService.createAgreement = vi.fn().mockResolvedValue(mockAgreement);
+  services.agreementService.createAgreement = vi.fn().mockResolvedValue(mockAgreement);
 
   const makeRequest = async (token: string, payload = mockAgreementPayload) =>
     request(api)

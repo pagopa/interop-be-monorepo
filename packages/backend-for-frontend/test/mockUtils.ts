@@ -1,9 +1,8 @@
-import { bffApi, catalogApi } from "pagopa-interop-api-clients";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   AgreementId,
   DelegationId,
   DescriptorId,
-  EService,
   EServiceId,
   generateId,
   TenantId,

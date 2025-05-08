@@ -5,7 +5,7 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import { getMockApiAgreementListEntry } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
 import { agreementDescriptorNotFound } from "../../../src/model/errors.js";
@@ -26,7 +26,7 @@ describe("API GET /producers/agreements", () => {
 
   const apiAgreements = bffApi.Agreements.parse(mockAgreements);
 
-  agreementService.getProducerAgreements = vi
+  services.agreementService.getProducerAgreements = vi
     .fn()
     .mockResolvedValue(mockAgreements);
 
@@ -48,7 +48,7 @@ describe("API GET /producers/agreements", () => {
   });
 
   it("Should return 500 for agreementDescriptorNotFound", async () => {
-    agreementService.getProducerAgreements = vi
+    services.agreementService.getProducerAgreements = vi
       .fn()
       .mockRejectedValue(agreementDescriptorNotFound(mockAgreement1.id));
     const token = generateToken(authRole.ADMIN_ROLE);

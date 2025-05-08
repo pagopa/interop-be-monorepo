@@ -4,7 +4,7 @@ import { AgreementId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import { getMockApiCreatedResource } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
 
@@ -12,7 +12,7 @@ describe("API POST /agreements/:agreementId/clone", () => {
   const mockAgreementId = generateId<AgreementId>();
   const mockApiCreatedResource = getMockApiCreatedResource();
 
-  agreementService.cloneAgreement = vi
+  services.agreementService.cloneAgreement = vi
     .fn()
     .mockResolvedValue(mockApiCreatedResource);
 
