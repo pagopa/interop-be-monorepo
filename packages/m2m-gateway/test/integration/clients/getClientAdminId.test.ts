@@ -11,6 +11,7 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { clientAdminIdNotFound } from "../../../src/model/errors.js";
 
 describe("getClientAdminId", () => {
   const mockAuthProcessResponseWithAdminId = getMockedApiClient({
@@ -37,7 +38,7 @@ describe("getClientAdminId", () => {
     mockGetClient.mockResolvedValueOnce(mockAuthProcessResponseWithAdminId);
     const result = await clientService.getClientAdminId(
       unsafeBrandId(mockAuthProcessResponseWithAdminId.data.id),
-      getMockM2MAdminAppContext().headers
+      getMockM2MAdminAppContext()
     );
 
     expect(result).toBeDefined();
@@ -48,14 +49,17 @@ describe("getClientAdminId", () => {
     });
   });
 
-  it("Should return undefined if the client has no adminId", async () => {
+  it("Should throw clientAdminIdNotFound if the client has no adminId", async () => {
     mockGetClient.mockResolvedValueOnce(mockAuthProcessResponseWithoutAdminId);
-    const result = await clientService.getClientAdminId(
-      unsafeBrandId(mockAuthProcessResponseWithoutAdminId.data.id),
-      getMockM2MAdminAppContext().headers
+    await expect(
+      clientService.getClientAdminId(
+        unsafeBrandId(mockAuthProcessResponseWithoutAdminId.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      clientAdminIdNotFound(mockAuthProcessResponseWithoutAdminId.data)
     );
 
-    expect(result).toBeUndefined();
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
       params: { clientId: mockAuthProcessResponseWithoutAdminId.data.id },

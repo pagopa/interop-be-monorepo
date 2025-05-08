@@ -2,6 +2,7 @@ import { constants } from "http2";
 import {
   AppContext,
   ExpressContext,
+  Logger,
   M2MAdminAuthData,
   fromAppContext,
   systemRole,
@@ -16,12 +17,13 @@ import { M2MGatewayAppContext, getInteropHeaders } from "./context.js";
 
 export async function validateM2MAdminUserId(
   authData: M2MAdminAuthData,
+  clientService: M2MGatewayServices["clientService"],
   headers: M2MGatewayAppContext["headers"],
-  clientService: M2MGatewayServices["clientService"]
+  logger: Logger
 ): Promise<void> {
   const clientAdminId = await clientService.getClientAdminId(
     authData.clientId,
-    headers
+    { headers, logger }
   );
 
   if (clientAdminId !== authData.userId) {
@@ -45,8 +47,9 @@ export function m2mAuthDataValidationMiddleware(
         .with({ systemRole: systemRole.M2M_ADMIN_ROLE }, (authData) =>
           validateM2MAdminUserId(
             authData,
+            clientService,
             getInteropHeaders(ctx, req.headers),
-            clientService
+            ctx.logger
           )
         )
         .with({ systemRole: systemRole.M2M_ROLE }, () => {

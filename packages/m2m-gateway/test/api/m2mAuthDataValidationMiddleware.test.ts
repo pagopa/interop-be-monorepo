@@ -9,6 +9,8 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, mockGetClientAdminId } from "../vitest.api.setup.js";
 import { appBasePath } from "../../src/config/appBasePath.js";
+import { getMockedApiClient } from "../mockUtils.js";
+import { clientAdminIdNotFound } from "../../src/model/errors.js";
 
 describe("m2mAuthDataValidationMiddleware", () => {
   const makeRequest = async (token: string) =>
@@ -76,9 +78,11 @@ describe("m2mAuthDataValidationMiddleware", () => {
     }
   );
 
-  it("Should return 403 if getClientAdminId fails", async () => {
+  it("Should return 403 if getClientAdminId throws clientAdminIdNotFound", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    mockGetClientAdminId.mockRejectedValue(new Error("test error"));
+    mockGetClientAdminId.mockRejectedValue(
+      clientAdminIdNotFound(getMockedApiClient().data)
+    );
     const res = await makeRequest(token);
 
     expect(res.status).toBe(403);
