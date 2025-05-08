@@ -20,6 +20,7 @@ import {
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -351,7 +352,7 @@ export const assertRequesterCanActAsProducer = (
 
 export const assertRequesterCanActAsConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {
@@ -390,7 +391,7 @@ const assertRequesterIsDelegateConsumer = (
 export const verifyRequesterIsConsumerOrDelegateConsumer = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<DelegationId | undefined> => {
   try {

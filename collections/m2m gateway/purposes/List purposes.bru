@@ -1,11 +1,11 @@
 meta {
-  name: Get Purposes
+  name: List Purposes
   type: http
   seq: 1
 }
 
 get {
-  url: {{host-m2m-gw}}/purposes
+  url: {{host-m2m-gw}}/purposes?offset=0&limit=10
   body: none
   auth: none
 }
@@ -13,9 +13,9 @@ get {
 params:query {
   offset: 0
   limit: 10
+  ~eserviceIds: ["{{eserviceId}}"]
 }
 
 headers {
   Authorization: {{JWT-M2M}}
-  x-correlation-id: {{correlation-id}}
 }
