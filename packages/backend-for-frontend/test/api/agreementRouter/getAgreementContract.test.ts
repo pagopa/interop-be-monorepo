@@ -4,7 +4,7 @@ import { AgreementId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import {
   contractException,
   contractNotFound,
@@ -15,7 +15,7 @@ describe("API GET /agreements/:agreementId/contract", () => {
   const mockAgreementId = generateId<AgreementId>();
   const mockBuffer = Buffer.from("content");
 
-  agreementService.getAgreementContract = vi.fn().mockResolvedValue(mockBuffer);
+  services.agreementService.getAgreementContract = vi.fn().mockResolvedValue(mockBuffer);
 
   const makeRequest = async (
     token: string,
@@ -37,7 +37,7 @@ describe("API GET /agreements/:agreementId/contract", () => {
   });
 
   it("Should return 404 for contractNotFound", async () => {
-    agreementService.getAgreementContract = vi
+    services.agreementService.getAgreementContract = vi
       .fn()
       .mockRejectedValue(contractNotFound(mockAgreementId));
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -46,7 +46,7 @@ describe("API GET /agreements/:agreementId/contract", () => {
   });
 
   it("Should return 500 for contractException", async () => {
-    agreementService.getAgreementContract = vi
+    services.agreementService.getAgreementContract = vi
       .fn()
       .mockRejectedValue(contractException(mockAgreementId));
     const token = generateToken(authRole.ADMIN_ROLE);

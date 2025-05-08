@@ -5,7 +5,7 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import { getMockApiAgreementListEntry } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
 
@@ -25,7 +25,7 @@ describe("API GET /consumers/agreements", () => {
 
   const apiAgreements = bffApi.Agreements.parse(mockAgreements);
 
-  agreementService.getConsumerAgreements = vi
+  services.agreementService.getConsumerAgreements = vi
     .fn()
     .mockResolvedValue(mockAgreements);
 

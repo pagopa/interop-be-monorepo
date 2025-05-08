@@ -8,14 +8,14 @@ import {
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import { config } from "../../../src/config/config.js";
 
 describe("API DELETE /agreements/:agreementId/consumer-documents/:documentId", () => {
   const mockAgreementId = generateId<AgreementId>();
   const mockDocumentId = generateId<AgreementDocumentId>();
 
-  agreementService.removeConsumerDocument = vi
+  services.agreementService.removeConsumerDocument = vi
     .fn()
     .mockResolvedValue(undefined);
 

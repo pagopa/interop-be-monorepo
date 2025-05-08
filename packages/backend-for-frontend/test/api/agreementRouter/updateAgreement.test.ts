@@ -4,7 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import {
   getMockApiAgreement,
   getMockApiAgreementUpdatePayload,
@@ -15,7 +15,7 @@ describe("API POST /agreements/:agreementId/update", () => {
   const mockApiAgreement = getMockApiAgreement();
   const mockPayload = getMockApiAgreementUpdatePayload();
 
-  agreementService.updateAgreement = vi
+  services.agreementService.updateAgreement = vi
     .fn()
     .mockResolvedValue(mockApiAgreement);
 

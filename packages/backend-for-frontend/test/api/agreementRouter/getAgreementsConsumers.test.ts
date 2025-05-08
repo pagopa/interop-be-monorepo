@@ -5,7 +5,7 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import { getMockApiCompactEServiceLight } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
 
@@ -32,7 +32,7 @@ describe("API GET /agreements/filter/consumers", () => {
   );
 
   // eslint-disable-next-line functional/immutable-data
-  agreementService.getAgreementsConsumers = vi
+  services.agreementService.getAgreementsConsumers = vi
     .fn()
     .mockResolvedValue(apiCompactEServicesLight);
 

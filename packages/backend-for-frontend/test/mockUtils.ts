@@ -6,10 +6,10 @@ import {
   DelegationId,
   PurposeId,
   PurposeVersionId,
-  TenantId,
-  generateId,
   DescriptorId,
   EServiceId,
+  generateId,
+  TenantId,
 } from "pagopa-interop-models";
 import { CompactDescriptor } from "../../api-clients/dist/bffApi.js";
 

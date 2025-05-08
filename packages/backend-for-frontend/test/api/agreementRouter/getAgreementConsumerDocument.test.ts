@@ -8,7 +8,7 @@ import {
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { agreementService, api } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import { config } from "../../../src/config/config.js";
 
 describe("API GET /agreements/:agreementId/consumer-documents/:documentId", () => {
@@ -16,7 +16,7 @@ describe("API GET /agreements/:agreementId/consumer-documents/:documentId", () =
   const mockDocumentId = generateId<AgreementDocumentId>();
   const mockBuffer = Buffer.from("content");
 
-  agreementService.getAgreementConsumerDocument = vi
+  services.agreementService.getAgreementConsumerDocument = vi
     .fn()
     .mockResolvedValue(mockBuffer);
 
