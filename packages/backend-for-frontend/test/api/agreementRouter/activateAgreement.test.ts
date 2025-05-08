@@ -13,7 +13,7 @@ describe("API POST /agreements/:agreementId/activate", () => {
   const mockAgreementId = generateId<AgreementId>();
   const mockApiAgreement = getMockApiAgreement();
 
-  services.services.agreementService.activateAgreement = vi
+  services.agreementService.activateAgreement = vi
     .fn()
     .mockResolvedValue(mockApiAgreement);
 
