@@ -1,7 +1,7 @@
 lockfileVersion: '9.0'
 
 settings:
-  autoInstallPeers: false
+  autoInstallPeers: true
   excludeLinksFromLockfile: false
 
 importers:
@@ -98,8 +98,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/agreement-platformstate-writer:
     dependencies:
@@ -159,8 +159,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/agreement-process:
     dependencies:
@@ -178,7 +178,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 0.39.3
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.11.5)
       express:
         specifier: 4.20.0
         version: 4.20.0
@@ -259,8 +259,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/agreement-readmodel-writer:
     dependencies:
@@ -320,8 +320,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/agreement-readmodel-writer-sql:
     dependencies:
@@ -390,8 +390,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/anac-certified-attributes-importer:
     dependencies:
@@ -442,8 +442,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/api-clients:
     dependencies:
@@ -573,8 +573,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/application-audit:
     dependencies:
@@ -713,8 +713,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/attribute-registry-readmodel-writer:
     dependencies:
@@ -768,8 +768,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/attribute-registry-readmodel-writer-sql:
     dependencies:
@@ -823,8 +823,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/authorization-platformstate-writer:
     dependencies:
@@ -884,8 +884,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/authorization-process:
     dependencies:
@@ -969,8 +969,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/authorization-server:
     dependencies:
@@ -1054,8 +1054,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/authorization-updater:
     dependencies:
@@ -1118,8 +1118,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/backend-for-frontend:
     dependencies:
@@ -1230,8 +1230,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/catalog-outbound-writer:
     dependencies:
@@ -1294,8 +1294,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/catalog-platformstate-writer:
     dependencies:
@@ -1358,8 +1358,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/catalog-process:
     dependencies:
@@ -1452,8 +1452,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/catalog-readmodel-writer:
     dependencies:
@@ -1510,8 +1510,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/catalog-readmodel-writer-sql:
     dependencies:
@@ -1577,8 +1577,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/certified-email-sender:
     dependencies:
@@ -1641,8 +1641,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/client-assertion-validation:
     dependencies:
@@ -1684,8 +1684,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/client-purpose-updater:
     dependencies:
@@ -1739,8 +1739,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/client-readmodel-writer:
     dependencies:
@@ -1791,8 +1791,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/client-readmodel-writer-sql:
     dependencies:
@@ -1849,8 +1849,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/commons:
     dependencies:
@@ -2057,8 +2057,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2146,8 +2146,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/datalake-interface-exporter:
     dependencies:
@@ -2195,8 +2195,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/delegation-items-archiver:
     dependencies:
@@ -2250,8 +2250,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/delegation-outbound-writer:
     dependencies:
@@ -2308,8 +2308,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/delegation-process:
     dependencies:
@@ -2405,8 +2405,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/delegation-readmodel-writer:
     dependencies:
@@ -2457,8 +2457,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/delegation-readmodel-writer-sql:
     dependencies:
@@ -2515,8 +2515,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/domains-analytics-writer:
     dependencies:
@@ -2579,8 +2579,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/dtd-catalog-exporter:
     dependencies:
@@ -2628,8 +2628,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/eservice-descriptors-archiver:
     dependencies:
@@ -2698,8 +2698,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/eservice-template-instances-updater:
     dependencies:
@@ -2753,8 +2753,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/eservice-template-outbound-writer:
     dependencies:
@@ -2811,8 +2811,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/eservice-template-process:
     dependencies:
@@ -2902,8 +2902,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/eservice-template-readmodel-writer:
     dependencies:
@@ -2960,8 +2960,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/eservice-template-readmodel-writer-sql:
     dependencies:
@@ -3024,8 +3024,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/event-migration:
     dependencies:
@@ -3085,8 +3085,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/ipa-certified-attributes-importer:
     dependencies:
@@ -3140,8 +3140,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.4.9)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.4.9)
 
   packages/ivass-certified-attributes-importer:
     dependencies:
@@ -3204,8 +3204,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/kafka-iam-auth:
     dependencies:
@@ -3284,8 +3284,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/key-readmodel-writer-sql:
     dependencies:
@@ -3345,8 +3345,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/m2m-gateway:
     dependencies:
@@ -3424,8 +3424,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/models:
     dependencies:
@@ -3528,8 +3528,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/notifier-seeder:
     dependencies:
@@ -3592,8 +3592,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/one-trust-notices:
     dependencies:
@@ -3690,8 +3690,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/producer-key-events-writer:
     dependencies:
@@ -3739,8 +3739,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/producer-key-readmodel-writer:
     dependencies:
@@ -3791,8 +3791,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/producer-key-readmodel-writer-sql:
     dependencies:
@@ -3852,8 +3852,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/producer-keychain-readmodel-writer:
     dependencies:
@@ -3904,8 +3904,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/producer-keychain-readmodel-writer-sql:
     dependencies:
@@ -3962,8 +3962,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/purpose-outbound-writer:
     dependencies:
@@ -4026,8 +4026,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/purpose-platformstate-writer:
     dependencies:
@@ -4087,8 +4087,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/purpose-process:
     dependencies:
@@ -4178,8 +4178,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/purpose-readmodel-writer:
     dependencies:
@@ -4230,8 +4230,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/purpose-readmodel-writer-sql:
     dependencies:
@@ -4291,8 +4291,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/readmodel:
     dependencies:
@@ -4352,8 +4352,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/readmodel-checker:
     dependencies:
@@ -4422,8 +4422,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/readmodel-models:
     dependencies:
@@ -4511,8 +4511,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/tenant-outbound-writer:
     dependencies:
@@ -4575,8 +4575,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/tenant-process:
     dependencies:
@@ -4657,8 +4657,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/tenant-readmodel-writer:
     dependencies:
@@ -4709,8 +4709,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/tenant-readmodel-writer-sql:
     dependencies:
@@ -4776,8 +4776,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/token-details-persister:
     dependencies:
@@ -4828,8 +4828,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
   packages/token-generation-readmodel-checker:
     dependencies:
@@ -4883,8 +4883,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       vitest:
-        specifier: 1.6.0
-        version: 1.6.0(@types/node@20.14.6)
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.6)
 
 packages:
 
@@ -6739,20 +6739,20 @@ packages:
   '@ungap/structured-clone@1.2.0':
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
 
-  '@vitest/expect@1.6.0':
-    resolution: {integrity: sha512-ixEvFVQjycy/oNgHjqsL6AZCDduC+tflRluaHIzKIsdbzkLn2U/iBnVeJwB6HsIjQBdfMR8Z0tRxKUsvFJEeWQ==}
+  '@vitest/expect@1.6.1':
+    resolution: {integrity: sha512-jXL+9+ZNIJKruofqXuuTClf44eSpcHlgj3CiuNihUF3Ioujtmc0zIa3UJOW5RjDK1YLBJZnWBlPuqhYycLioog==}
 
-  '@vitest/runner@1.6.0':
-    resolution: {integrity: sha512-P4xgwPjwesuBiHisAVz/LSSZtDjOTPYZVmNAnpHHSR6ONrf8eCJOFRvUwdHn30F5M1fxhqtl7QZQUk2dprIXAg==}
+  '@vitest/runner@1.6.1':
+    resolution: {integrity: sha512-3nSnYXkVkf3mXFfE7vVyPmi3Sazhb/2cfZGGs0JRzFsPFvAMBEcrweV1V1GsrstdXeKCTXlJbvnQwGWgEIHmOA==}
 
-  '@vitest/snapshot@1.6.0':
-    resolution: {integrity: sha512-+Hx43f8Chus+DCmygqqfetcAZrDJwvTj0ymqjQq4CvmpKFSTVteEOBzCusu1x2tt4OJcvBflyHUE0DZSLgEMtQ==}
+  '@vitest/snapshot@1.6.1':
+    resolution: {integrity: sha512-WvidQuWAzU2p95u8GAKlRMqMyN1yOJkGHnx3M1PL9Raf7AQ1kwLKg04ADlCa3+OXUZE7BceOhVZiuWAbzCKcUQ==}
 
-  '@vitest/spy@1.6.0':
-    resolution: {integrity: sha512-leUTap6B/cqi/bQkXUu6bQV5TZPx7pmMBKBQiI0rJA8c3pB56ZsaTbREnF7CJfmvAS4V2cXIBAh/3rVwrrCYgw==}
+  '@vitest/spy@1.6.1':
+    resolution: {integrity: sha512-MGcMmpGkZebsMZhbQKkAf9CX5zGvjkBTqf8Zx3ApYWXr3wG+QvEu2eXWfnIIWYSJExIp4V9FCKDEeygzkYrXMw==}
 
-  '@vitest/utils@1.6.0':
-    resolution: {integrity: sha512-21cPiuGMoMZwiOHa2i4LXkMkMkCGzA+MVFV70jRwHo95dL4x/ts5GZhML1QWuy7yfp3WzK3lRvZi3JnXTYqrBw==}
+  '@vitest/utils@1.6.1':
+    resolution: {integrity: sha512-jOrrUvXM4Av9ZWiG1EajNto0u96kWAhJ1LmPmJhXXQx/32MecEKd10pOLYgS2BQx1TgkGhloPU1ArDW2vvaY6g==}
 
   '@xmldom/is-dom-node@1.0.1':
     resolution: {integrity: sha512-CJDxIgE5I0FH+ttq/Fxy6nRpxP70+e2O048EPe85J2use3XKdatVM7dDVvFNjQudd9B49NPoZ+8PG49zj4Er8Q==}
@@ -7025,6 +7025,7 @@ packages:
   bson@6.8.0:
     resolution: {integrity: sha512-iOJg8pr7wq2tg/zSlCCHMi3hMm5JTOxLTagf3zxhcenHsFp+c6uOs6K7W5UE7A4QIJGtqh/ZovFNMP4mOPJynQ==}
     engines: {node: '>=16.20.1'}
+    deprecated: a critical bug affecting only useBigInt64=true deserialization usage is fixed in bson@6.10.3
 
   buffer-crc32@0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
@@ -9665,8 +9666,8 @@ packages:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
 
-  vite-node@1.6.0:
-    resolution: {integrity: sha512-de6HJgzC+TFzOu0NTC4RAIsyf/DY/ibWDYQUcuEA84EMHhcefTUGkjFHKKEJhQN4A+6I0u++kr3l36ZF2d7XRw==}
+  vite-node@1.6.1:
+    resolution: {integrity: sha512-YAXkfvGtuTzwWbDSACdJSg4A4DZiAqckWe90Zapc/sEX3XvHcw1NdurM/6od8J207tSDqNbSsgdCacBgvJKFuA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
 
@@ -9698,15 +9699,15 @@ packages:
       terser:
         optional: true
 
-  vitest@1.6.0:
-    resolution: {integrity: sha512-H5r/dN06swuFnzNFhq/dnz37bPXnq8xB2xB5JOVk8K09rUtoeNN+LHWkoQ0A/i3hvbUKKcCei9KpbxqHMLhLLA==}
+  vitest@1.6.1:
+    resolution: {integrity: sha512-Ljb1cnSJSivGN0LqXd/zmDbWEM0RNNg2t1QW/XUhYl/qPqyu7CsqeWtqQXHVaJsecLPuDoak2oJcZN2QoRIOag==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
     peerDependencies:
       '@edge-runtime/vm': '*'
       '@types/node': ^18.0.0 || >=20.0.0
-      '@vitest/browser': 1.6.0
-      '@vitest/ui': 1.6.0
+      '@vitest/browser': 1.6.1
+      '@vitest/ui': 1.6.1
       happy-dom: '*'
       jsdom: '*'
     peerDependenciesMeta:
@@ -12725,29 +12726,29 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitest/expect@1.6.0':
+  '@vitest/expect@1.6.1':
     dependencies:
-      '@vitest/spy': 1.6.0
-      '@vitest/utils': 1.6.0
+      '@vitest/spy': 1.6.1
+      '@vitest/utils': 1.6.1
       chai: 4.4.1
 
-  '@vitest/runner@1.6.0':
+  '@vitest/runner@1.6.1':
     dependencies:
-      '@vitest/utils': 1.6.0
+      '@vitest/utils': 1.6.1
       p-limit: 5.0.0
       pathe: 1.1.2
 
-  '@vitest/snapshot@1.6.0':
+  '@vitest/snapshot@1.6.1':
     dependencies:
       magic-string: 0.30.10
       pathe: 1.1.2
       pretty-format: 29.7.0
 
-  '@vitest/spy@1.6.0':
+  '@vitest/spy@1.6.1':
     dependencies:
       tinyspy: 2.2.1
 
-  '@vitest/utils@1.6.0':
+  '@vitest/utils@1.6.1':
     dependencies:
       diff-sequences: 29.6.3
       estree-walker: 3.0.3
@@ -13143,7 +13144,7 @@ snapshots:
       get-func-name: 2.0.2
       loupe: 2.3.7
       pathval: 1.1.1
-      type-detect: 4.0.8
+      type-detect: 4.1.0
 
   chalk@2.4.2:
     dependencies:
@@ -13372,7 +13373,7 @@ snapshots:
 
   deep-eql@4.1.4:
     dependencies:
-      type-detect: 4.0.8
+      type-detect: 4.1.0
 
   deep-is@0.1.4: {}
 
@@ -13470,6 +13471,11 @@ snapshots:
       esbuild-register: 3.6.0(esbuild@0.19.12)
     transitivePeerDependencies:
       - supports-color
+
+  drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.11.5):
+    optionalDependencies:
+      '@types/pg': 8.11.11
+      pg: 8.11.5
 
   drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1):
     optionalDependencies:
@@ -15984,7 +15990,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite-node@1.6.0(@types/node@20.14.6):
+  vite-node@1.6.1(@types/node@20.14.6):
     dependencies:
       cac: 6.7.14
       debug: 4.3.5
@@ -16001,7 +16007,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite-node@1.6.0(@types/node@20.4.9):
+  vite-node@1.6.1(@types/node@20.4.9):
     dependencies:
       cac: 6.7.14
       debug: 4.3.5
@@ -16036,13 +16042,13 @@ snapshots:
       '@types/node': 20.4.9
       fsevents: 2.3.3
 
-  vitest@1.6.0(@types/node@20.14.6):
+  vitest@1.6.1(@types/node@20.14.6):
     dependencies:
-      '@vitest/expect': 1.6.0
-      '@vitest/runner': 1.6.0
-      '@vitest/snapshot': 1.6.0
-      '@vitest/spy': 1.6.0
-      '@vitest/utils': 1.6.0
+      '@vitest/expect': 1.6.1
+      '@vitest/runner': 1.6.1
+      '@vitest/snapshot': 1.6.1
+      '@vitest/spy': 1.6.1
+      '@vitest/utils': 1.6.1
       acorn-walk: 8.3.3
       chai: 4.4.1
       debug: 4.3.5
@@ -16056,7 +16062,7 @@ snapshots:
       tinybench: 2.8.0
       tinypool: 0.8.4
       vite: 5.3.3(@types/node@20.14.6)
-      vite-node: 1.6.0(@types/node@20.14.6)
+      vite-node: 1.6.1(@types/node@20.14.6)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.14.6
@@ -16069,13 +16075,13 @@ snapshots:
       - supports-color
       - terser
 
-  vitest@1.6.0(@types/node@20.4.9):
+  vitest@1.6.1(@types/node@20.4.9):
     dependencies:
-      '@vitest/expect': 1.6.0
-      '@vitest/runner': 1.6.0
-      '@vitest/snapshot': 1.6.0
-      '@vitest/spy': 1.6.0
-      '@vitest/utils': 1.6.0
+      '@vitest/expect': 1.6.1
+      '@vitest/runner': 1.6.1
+      '@vitest/snapshot': 1.6.1
+      '@vitest/spy': 1.6.1
+      '@vitest/utils': 1.6.1
       acorn-walk: 8.3.3
       chai: 4.4.1
       debug: 4.3.5
@@ -16089,7 +16095,7 @@ snapshots:
       tinybench: 2.8.0
       tinypool: 0.8.4
       vite: 5.3.3(@types/node@20.4.9)
-      vite-node: 1.6.0(@types/node@20.4.9)
+      vite-node: 1.6.1(@types/node@20.4.9)
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 20.4.9
