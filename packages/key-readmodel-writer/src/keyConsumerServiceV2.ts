@@ -65,7 +65,7 @@ export async function handleMessageV2(
           "ClientAdded",
           "ClientUserAdded",
           "ClientUserDeleted",
-          "ClientAdminRemovedBySelfcare",
+          "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
           "ClientPurposeAdded",
           "ClientPurposeRemoved",

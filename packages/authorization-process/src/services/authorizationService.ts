@@ -69,7 +69,7 @@ import {
 import {
   toCreateEventClientAdded,
   toCreateEventClientAdminRemoved,
-  toCreateEventClientAdminRemovedBySelfcare,
+  toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -1336,7 +1336,7 @@ export function authorizationServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventClientAdminRemovedBySelfcare(
+        toCreateEventClientAdminRoleRevoked(
           updatedClient,
           adminId,
           client.metadata.version,
