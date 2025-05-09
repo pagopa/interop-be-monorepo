@@ -1,6 +1,5 @@
 export const CatalogDbTable = {
   eservice: "eservice",
-  eservice_deleting: "eservice_deleting",
   eservice_descriptor: "eservice_descriptor",
   eservice_descriptor_attribute: "eservice_descriptor_attribute",
   eservice_descriptor_document: "eservice_descriptor_document",

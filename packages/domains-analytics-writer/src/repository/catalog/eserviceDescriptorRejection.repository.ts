@@ -8,7 +8,7 @@ import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceDescriptorRejectionMapping,
-  eserviceDescriptorRejectionSchema,
+  eserviceDescriptorRejectionReasonSchema,
 } from "../../model/catalog/eserviceDescriptorRejection.js";
 import { CatalogDbTable } from "../../model/db.js";
 
@@ -58,7 +58,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          eserviceDescriptorRejectionSchema,
+          eserviceDescriptorRejectionReasonSchema,
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,

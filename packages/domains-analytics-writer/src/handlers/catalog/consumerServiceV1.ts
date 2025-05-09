@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import {
-  EService,
   EServiceEventEnvelopeV1,
   EServiceId,
   unsafeBrandId,
-  Descriptor,
+  DescriptorId,
+  fromDescriptorV1,
+  genericInternalError,
+  fromEServiceV1,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
@@ -24,6 +26,7 @@ import {
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { DBContext } from "../../db/db.js";
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function handleCatalogMessageV1(
   messages: EServiceEventEnvelopeV1[],
   dbContext: DBContext
@@ -67,8 +70,13 @@ export async function handleCatalogMessageV1(
           ),
         },
         (msg) => {
+          if (!msg.data.eservice) {
+            throw genericInternalError(
+              `EService can't be missing in the event message`
+            );
+          }
           const splitResult: EServiceItemsSQL = splitEserviceIntoObjectsSQL(
-            EService.parse(msg.data.eservice),
+            fromEServiceV1(msg.data.eservice),
             msg.version
           );
           upsertEServiceBatch.push(splitResult);
@@ -81,24 +89,30 @@ export async function handleCatalogMessageV1(
         deleteDescriptorBatch.push(msg.data.descriptorId);
       })
       .with({ type: P.union("EServiceDocumentUpdated") }, (msg) => {
-        if (msg.data.updatedDocument) {
-          upsertEServiceDocumentBatch.push({
-            ...msg.data.updatedDocument,
-            eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-            descriptorId: unsafeBrandId<EServiceId>(msg.data.descriptorId),
-            metadataVersion: msg.version,
-          });
+        if (!msg.data.updatedDocument) {
+          throw genericInternalError(
+            `EService updatedDocument can't be missing in the event message`
+          );
         }
+        upsertEServiceDocumentBatch.push({
+          ...msg.data.updatedDocument,
+          eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          metadataVersion: msg.version,
+        });
       })
       .with({ type: P.union("EServiceDocumentAdded") }, (msg) => {
-        if (msg.data.document) {
-          upsertEServiceDocumentBatch.push({
-            ...msg.data.document,
-            eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-            descriptorId: unsafeBrandId<EServiceId>(msg.data.descriptorId),
-            metadataVersion: msg.version,
-          });
+        if (!msg.data.document) {
+          throw genericInternalError(
+            `EService document can't be missing in the event message`
+          );
         }
+        upsertEServiceDocumentBatch.push({
+          ...msg.data.document,
+          eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          metadataVersion: msg.version,
+        });
       })
       .with({ type: "EServiceDocumentDeleted" }, (msg) => {
         deleteEServiceDocumentBatch.push(msg.data.documentId);
@@ -111,10 +125,14 @@ export async function handleCatalogMessageV1(
           type: P.union("EServiceDescriptorAdded", "EServiceDescriptorUpdated"),
         },
         (msg) => {
-          const descriptor = Descriptor.parse(msg.data.eserviceDescriptor);
+          if (!msg.data.eserviceDescriptor) {
+            throw genericInternalError(
+              `EService Descriptor can't be missing in the event message`
+            );
+          }
           const splitResult = splitDescriptorIntoObjectsSQL(
             unsafeBrandId<EServiceId>(msg.data.eserviceId),
-            descriptor,
+            fromDescriptorV1(msg.data.eserviceDescriptor),
             msg.version
           );
 

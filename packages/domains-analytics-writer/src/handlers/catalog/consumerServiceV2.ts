@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import { EService, EServiceEventEnvelopeV2 } from "pagopa-interop-models";
+import {
+  EServiceEventEnvelopeV2,
+  fromEServiceV2,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { EServiceItemsSQL } from "pagopa-interop-readmodel-models";
@@ -83,8 +87,13 @@ export async function handleCatalogMessageV2(
           ),
         },
         (msg) => {
+          if (!msg.data.eservice) {
+            throw genericInternalError(
+              `EService can't be missing in the event message`
+            );
+          }
           const splitResult: EServiceItemsSQL = splitEserviceIntoObjectsSQL(
-            EService.parse(msg.data.eservice),
+            fromEServiceV2(msg.data.eservice),
             msg.version
           );
           upsertBatch.push(splitResult);
