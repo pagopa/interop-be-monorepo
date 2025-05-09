@@ -7,11 +7,12 @@ import {
   getMockAgreement,
   getMockContext,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
   getMockAuthData,
   randomArrayItem,
+  sortAgreementV2,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -347,19 +348,27 @@ describe("agreement consumer document", () => {
         ],
       };
 
-      expect(actualConsumerDocument).toMatchObject({
-        agreement: toAgreementV2(expectedAgreement),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toMatchObject({
+        agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
 
-      expect(actualConsumerDocument).toEqual({
-        agreement: toAgreementV2({
-          ...agreement,
-          consumerDocuments: [
-            ...agreement.consumerDocuments,
-            returnedConsumerDocument,
-          ],
-        }),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toEqual({
+        agreement: sortAgreementV2(
+          toAgreementV2({
+            ...agreement,
+            consumerDocuments: [
+              ...agreement.consumerDocuments,
+              returnedConsumerDocument,
+            ],
+          })
+        ),
         documentId: returnedConsumerDocument.id,
       });
     });
@@ -410,19 +419,27 @@ describe("agreement consumer document", () => {
         ],
       };
 
-      expect(actualConsumerDocument).toMatchObject({
-        agreement: toAgreementV2(expectedAgreement),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toMatchObject({
+        agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
 
-      expect(actualConsumerDocument).toEqual({
-        agreement: toAgreementV2({
-          ...agreement,
-          consumerDocuments: [
-            ...agreement.consumerDocuments,
-            returnedConsumerDocument,
-          ],
-        }),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toEqual({
+        agreement: sortAgreementV2(
+          toAgreementV2({
+            ...agreement,
+            consumerDocuments: [
+              ...agreement.consumerDocuments,
+              returnedConsumerDocument,
+            ],
+          })
+        ),
         documentId: returnedConsumerDocument.id,
       });
     });
@@ -595,8 +612,11 @@ describe("agreement consumer document", () => {
 
       const expectedAgreement = { ...agreement1, consumerDocuments: [] };
 
-      expect(actualConsumerDocument).toMatchObject({
-        agreement: toAgreementV2(expectedAgreement),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toMatchObject({
+        agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
       expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
@@ -645,8 +665,11 @@ describe("agreement consumer document", () => {
 
       const expectedAgreement = { ...agreement1, consumerDocuments: [] };
 
-      expect(actualConsumerDocument).toMatchObject({
-        agreement: toAgreementV2(expectedAgreement),
+      expect({
+        agreement: sortAgreementV2(actualConsumerDocument.agreement),
+        documentId: actualConsumerDocument.documentId,
+      }).toMatchObject({
+        agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
       expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
@@ -711,18 +734,22 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw a documentChangeNotAllowed if state not draft or pending", async () => {
-      const authData = getMockAuthData(agreement1.consumerId);
-
       const agreementConsumerDocumentChangeFailureState = randomArrayItem(
         Object.values(agreementState).filter(
           (state) => !agreementConsumerDocumentChangeValidStates.includes(state)
         )
       );
+      const agreementId = generateId<AgreementId>();
+      const anotherConsumerDocuments = [
+        getMockConsumerDocument(agreementId, "doc2"),
+      ];
       const agreement = {
-        ...agreement1,
-        id: generateId<AgreementId>(),
+        ...getMockAgreement(),
+        id: agreementId,
         state: agreementConsumerDocumentChangeFailureState,
+        consumerDocuments: anotherConsumerDocuments,
       };
+      const authData = getMockAuthData(agreement.consumerId);
 
       await addOneAgreement(agreement);
 
