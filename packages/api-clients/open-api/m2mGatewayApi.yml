@@ -2521,12 +2521,14 @@ paths:
           schema:
             type: integer
             format: int32
+          required: true
         - name: limit
           in: query
           description: The limit used for pagination
           schema:
             type: integer
             format: int32
+          required: true
       responses:
         "200":
           description: Purpose versions retrieved
