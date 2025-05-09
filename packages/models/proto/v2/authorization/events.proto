@@ -83,7 +83,7 @@ message ProducerKeychainEServiceRemovedV2 {
   ProducerKeychainV2 producerKeychain = 2;
 }
 
-message ClientAdminRemovedBySelfcareV2 {
+message ClientAdminRoleRevokedV2 {
   ClientV2 client = 1;
   string adminId = 2;
 }
