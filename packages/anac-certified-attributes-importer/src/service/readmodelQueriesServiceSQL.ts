@@ -1,5 +1,6 @@
 import {
   Attribute,
+  genericInternalError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
   TenantId,
@@ -68,7 +69,6 @@ export function readModelQueriesBuilderSQL(
             inArray(tenantInReadmodelTenant.externalIdValue, ipaCodes)
           )
         );
-      // .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       const tenants = aggregateTenantArray(
         toTenantAggregatorArray(
@@ -125,7 +125,6 @@ export function readModelQueriesBuilderSQL(
             inArray(tenantInReadmodelTenant.externalIdValue, taxCodes)
           )
         );
-      // .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       const tenants = aggregateTenantArray(
         toTenantAggregatorArray(
@@ -150,7 +149,7 @@ export function readModelQueriesBuilderSQL(
       );
 
       if (tenantWithMetadata === undefined) {
-        throw Error(`Tenant with id ${tenantId} not found`);
+        throw genericInternalError(`Tenant with id ${tenantId} not found`);
       }
 
       return tenantWithMetadata.data;
@@ -169,7 +168,7 @@ export function readModelQueriesBuilderSQL(
         );
 
       if (attributeWithMetadata === undefined) {
-        throw Error(
+        throw genericInternalError(
           `Attribute with origin ${origin} and code ${code} not found`
         );
       }
@@ -212,7 +211,6 @@ export function readModelQueriesBuilderSQL(
             attributeIds
           )
         );
-      // .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       const tenants = aggregateTenantArray(
         toTenantAggregatorArray(

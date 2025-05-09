@@ -67,7 +67,7 @@ export function clientJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
       clientId: ClientId,
       kid: string
     ): Promise<WithMetadata<ClientJWKKey> | undefined> {
-      return await this.getClientJWKKeyByFilter(
+      return this.getClientJWKKeyByFilter(
         and(
           eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientId),
           eq(clientJwkKeyInReadmodelClientJwkKey.kid, kid)

@@ -1,8 +1,12 @@
 import {
-  AuthData,
-  hasPermission,
-  ReadModelRepository,
-  userRoles,
+  ascLower,
+  createListResult,
+  escapeRegExp,
+  hasAtLeastOneUserRole,
+  M2MAuthData,
+  UIAuthData,
+  userRole,
+  withTotalCount,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -14,7 +18,6 @@ import {
   Tenant,
   TenantId,
   WithMetadata,
-  descriptorState,
   eserviceTemplateVersionState,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -23,10 +26,8 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
-  eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
-  eserviceTemplateRefInReadmodelCatalog,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
   eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
@@ -42,7 +43,7 @@ import {
   TenantReadModelService,
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { and, eq, ilike, inArray, isNotNull, ne, or, sql } from "drizzle-orm";
+import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -67,7 +68,9 @@ export function readModelServiceBuilderSQL({
     async getEServiceTemplateById(
       id: EServiceTemplateId
     ): Promise<WithMetadata<EServiceTemplate> | undefined> {
-      return eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(id);
+      return await eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(
+        id
+      );
     },
     async getEServiceTemplateByNameAndCreatorId({
       name,
@@ -81,7 +84,7 @@ export function readModelServiceBuilderSQL({
           eq(eserviceTemplateInReadmodelEserviceTemplate.creatorId, creatorId),
           ilike(
             eserviceTemplateInReadmodelEserviceTemplate.name,
-            ReadModelRepository.escapeRegExp(name)
+            escapeRegExp(name)
           )
         )
       );
@@ -102,15 +105,16 @@ export function readModelServiceBuilderSQL({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: AuthData
+      authData: UIAuthData | M2MAuthData
     ): Promise<ListResult<EServiceTemplate>> {
       const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
 
       const subquery = readModelDB
-        .select({
-          eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            eserviceTemplateId: eserviceTemplateInReadmodelEserviceTemplate.id,
+          })
+        )
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .leftJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -125,7 +129,7 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   eserviceTemplateInReadmodelEserviceTemplate.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             // IDS FILTER
@@ -150,28 +154,35 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             // VISIBILITY FILTER
-            or(
-              hasPermission(
-                [
-                  userRoles.ADMIN_ROLE,
-                  userRoles.API_ROLE,
-                  userRoles.SUPPORT_ROLE,
-                ],
-                authData
-              )
-                ? eq(
+            hasAtLeastOneUserRole(authData, [
+              userRole.ADMIN_ROLE,
+              userRole.API_ROLE,
+              userRole.SUPPORT_ROLE,
+            ])
+              ? or(
+                  eq(
                     eserviceTemplateInReadmodelEserviceTemplate.creatorId,
                     authData.organizationId
+                  ),
+                  and(
+                    ne(
+                      eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                      eserviceTemplateVersionState.draft
+                    ),
+                    isNotNull(
+                      eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                    )
                   )
-                : undefined,
-              and(
-                ne(
-                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                  eserviceTemplateVersionState.draft
-                ),
-                isNotNull(eserviceTemplateVersionInReadmodelEserviceTemplate.id)
-              )
-            )
+                )
+              : and(
+                  ne(
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                    eserviceTemplateVersionState.draft
+                  ),
+                  isNotNull(
+                    eserviceTemplateVersionInReadmodelEserviceTemplate.id
+                  )
+                )
           )
         )
         .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
@@ -243,65 +254,52 @@ export function readModelServiceBuilderSQL({
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
           )
         )
-        .orderBy(
-          sql`LOWER(${eserviceTemplateInReadmodelEserviceTemplate.name})`
-        );
+        .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name));
 
-      return {
-        results: aggregateEServiceTemplateArray(
-          toEServiceTemplateAggregatorArray(queryResult)
-        ).map((eserviceTemplate) => eserviceTemplate.data),
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
-      };
+      const eserviceTemplates = aggregateEServiceTemplateArray(
+        toEServiceTemplateAggregatorArray(queryResult)
+      );
+      return createListResult(
+        eserviceTemplates.map((eserviceTemplate) => eserviceTemplate.data),
+        queryResult[0]?.totalCount ?? 0
+      );
     },
     async checkNameConflictInstances(
       eserviceTemplate: EServiceTemplate,
       newName: string
     ): Promise<boolean> {
-      const queryResult = await readModelDB
-        .select({
-          eserviceId: eserviceInReadmodelCatalog.id,
-        })
-        .from(eserviceInReadmodelCatalog)
-        .innerJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
-        )
-        .innerJoin(
-          eserviceTemplateRefInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceTemplateRefInReadmodelCatalog.eserviceId
-          )
-        )
-        .where(
-          and(
-            ne(
-              eserviceDescriptorInReadmodelCatalog.state,
-              descriptorState.draft
-            ),
-            eq(
-              eserviceTemplateRefInReadmodelCatalog.eserviceTemplateId,
-              eserviceTemplate.id
-            ),
-            or(
+      const queryResult = await readModelDB.transaction(async (tx) => {
+        const instanceProducerIds = (
+          await tx
+            .select({
+              producerId: eserviceInReadmodelCatalog.producerId,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .where(
               and(
-                isNotNull(eserviceTemplateRefInReadmodelCatalog.instanceLabel),
-                eq(
-                  sql`${eserviceInReadmodelCatalog.name} || ' ' || ${eserviceTemplateRefInReadmodelCatalog.instanceLabel}`,
-                  newName
-                )
-              ),
-              eq(eserviceInReadmodelCatalog.name, newName)
+                eq(eserviceInReadmodelCatalog.templateId, eserviceTemplate.id)
+              )
             )
-          )
-        )
-        .groupBy(eserviceInReadmodelCatalog.id);
+            .groupBy(eserviceInReadmodelCatalog.producerId)
+        ).map((d) => d.producerId);
 
-      return queryResult.length > 0;
+        return await tx
+          .select({
+            count: count(),
+          })
+          .from(eserviceInReadmodelCatalog)
+          .where(
+            and(
+              eq(eserviceInReadmodelCatalog.name, newName),
+              inArray(
+                eserviceInReadmodelCatalog.producerId,
+                instanceProducerIds
+              )
+            )
+          );
+      });
+
+      return queryResult.length > 0 ? queryResult[0].count > 0 : false;
     },
     async getCreators(
       name: string | undefined,
@@ -309,11 +307,12 @@ export function readModelServiceBuilderSQL({
       offset: number
     ): Promise<ListResult<eserviceTemplateApi.CompactOrganization>> {
       const queryResult = await readModelDB
-        .select({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+        )
         .from(tenantInReadmodelTenant)
         .innerJoin(
           eserviceTemplateInReadmodelEserviceTemplate,
@@ -338,15 +337,12 @@ export function readModelServiceBuilderSQL({
             ),
             // TENANT FILTER
             name
-              ? ilike(
-                  tenantInReadmodelTenant.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
-                )
+              ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
               : undefined
           )
         )
         .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`)
+        .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset);
 
@@ -369,10 +365,7 @@ export function readModelServiceBuilderSQL({
         );
       }
 
-      return {
-        results: result.data,
-        totalCount: Number(queryResult[0]?.totalCount ?? 0),
-      };
+      return createListResult(result.data, queryResult[0]?.totalCount ?? 0);
     },
   };
 }

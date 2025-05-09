@@ -37,7 +37,7 @@ const readModelService =
     : oldReadModelService;
 
 await dtdCatalogExporterServiceBuilder({
-  readModelService: readModelServiceBuilder(ReadModelRepository.init(config)),
+  readModelService,
   fileManager: initFileManager(config),
   loggerInstance: logger({
     serviceName: "dtd-catalog-exporter",

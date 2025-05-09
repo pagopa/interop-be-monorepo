@@ -5,7 +5,6 @@ import {
   getMockAgreement,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
@@ -13,6 +12,8 @@ import {
   randomArrayItem,
   randomBoolean,
   getMockContextInternal,
+  sortAgreementV2,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -106,12 +107,16 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
-        agreement: toAgreementV2({
-          ...updatableActiveAgreement,
-          state: agreementState.suspended,
-          suspendedByPlatform: true,
-        }),
+      expect({
+        agreement: sortAgreementV2(agreementStateUpdateEventData.agreement),
+      }).toMatchObject({
+        agreement: sortAgreementV2(
+          toAgreementV2({
+            ...updatableActiveAgreement,
+            state: agreementState.suspended,
+            suspendedByPlatform: true,
+          })
+        ),
       });
     });
 
@@ -151,12 +156,16 @@ describe("compute Agreements state by attribute", () => {
           payload: agreementStateUpdateEvent.data,
         });
 
-        expect(agreementStateUpdateEventData).toMatchObject({
-          agreement: toAgreementV2({
-            ...updatableDraftOrPendingAgreement,
-            state: agreementState.missingCertifiedAttributes,
-            suspendedByPlatform: true,
-          }),
+        expect({
+          agreement: sortAgreementV2(agreementStateUpdateEventData.agreement),
+        }).toMatchObject({
+          agreement: sortAgreementV2(
+            toAgreementV2({
+              ...updatableDraftOrPendingAgreement,
+              state: agreementState.missingCertifiedAttributes,
+              suspendedByPlatform: true,
+            })
+          ),
         });
       }
     );
@@ -201,12 +210,16 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
-        agreement: toAgreementV2({
-          ...updatableSuspendedAgreement,
-          state: agreementState.suspended,
-          suspendedByPlatform: true,
-        }),
+      expect({
+        agreement: sortAgreementV2(agreementStateUpdateEventData.agreement),
+      }).toMatchObject({
+        agreement: sortAgreementV2(
+          toAgreementV2({
+            ...updatableSuspendedAgreement,
+            state: agreementState.suspended,
+            suspendedByPlatform: true,
+          })
+        ),
       });
     });
   });
@@ -302,12 +315,16 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
-        agreement: toAgreementV2({
-          ...updatableSuspendedAgreement,
-          state: agreementState.active,
-          suspendedByPlatform: false,
-        }),
+      expect({
+        agreement: sortAgreementV2(agreementStateUpdateEventData.agreement),
+      }).toMatchObject({
+        agreement: sortAgreementV2(
+          toAgreementV2({
+            ...updatableSuspendedAgreement,
+            state: agreementState.active,
+            suspendedByPlatform: false,
+          })
+        ),
       });
     });
 
@@ -353,12 +370,16 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
-        agreement: toAgreementV2({
-          ...updatableMissingCertAttributesAgreement,
-          state: agreementState.draft,
-          suspendedByPlatform: false,
-        }),
+      expect({
+        agreement: sortAgreementV2(agreementStateUpdateEventData.agreement),
+      }).toMatchObject({
+        agreement: sortAgreementV2(
+          toAgreementV2({
+            ...updatableMissingCertAttributesAgreement,
+            state: agreementState.draft,
+            suspendedByPlatform: false,
+          })
+        ),
       });
     });
 
@@ -406,12 +427,16 @@ describe("compute Agreements state by attribute", () => {
         payload: agreementStateUpdateEvent.data,
       });
 
-      expect(agreementStateUpdateEventData).toMatchObject({
-        agreement: toAgreementV2({
-          ...updatableSuspendedAgreement,
-          state: agreementState.suspended,
-          suspendedByPlatform: false,
-        }),
+      expect({
+        agreement: sortAgreementV2(agreementStateUpdateEventData.agreement),
+      }).toMatchObject({
+        agreement: sortAgreementV2(
+          toAgreementV2({
+            ...updatableSuspendedAgreement,
+            state: agreementState.suspended,
+            suspendedByPlatform: false,
+          })
+        ),
       });
     });
   });
@@ -526,12 +551,16 @@ describe("compute Agreements state by attribute", () => {
       payload: agreement1StateUpdateEvent.data,
     });
 
-    expect(agreement1StateUpdateEventData).toMatchObject({
-      agreement: toAgreementV2({
-        ...updatableAgreement1,
-        state: agreementState.missingCertifiedAttributes,
-        suspendedByPlatform: true,
-      }),
+    expect({
+      agreement: sortAgreementV2(agreement1StateUpdateEventData.agreement),
+    }).toMatchObject({
+      agreement: sortAgreementV2(
+        toAgreementV2({
+          ...updatableAgreement1,
+          state: agreementState.missingCertifiedAttributes,
+          suspendedByPlatform: true,
+        })
+      ),
     });
 
     const agreement2StateUpdateEvent = await readLastAgreementEvent(
@@ -550,12 +579,16 @@ describe("compute Agreements state by attribute", () => {
       payload: agreement2StateUpdateEvent.data,
     });
 
-    expect(agreement2StateUpdateEventData).toMatchObject({
-      agreement: toAgreementV2({
-        ...updatableAgreement2,
-        state: agreementState.suspended,
-        suspendedByPlatform: true,
-      }),
+    expect({
+      agreement: sortAgreementV2(agreement2StateUpdateEventData.agreement),
+    }).toMatchObject({
+      agreement: sortAgreementV2(
+        toAgreementV2({
+          ...updatableAgreement2,
+          state: agreementState.suspended,
+          suspendedByPlatform: true,
+        })
+      ),
     });
   });
 });

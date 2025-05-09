@@ -24,6 +24,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AppContext,
+  assertFeatureFlagEnabled,
   calculateKid,
   createJWK,
   DB,
@@ -31,6 +32,7 @@ import {
   hasAtLeastOneUserRole,
   InternalAuthData,
   isUiAuthData,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   userRole,
@@ -67,6 +69,8 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
+  toCreateEventClientAdminRemoved,
+  toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -87,6 +91,7 @@ import {
   ApiKeyUseToKeyUse,
   clientToApiClient,
 } from "../model/domain/apiConverter.js";
+import { config } from "../config/config.js";
 import {
   GetClientsFilters,
   GetProducerKeychainsFilters,
@@ -104,6 +109,8 @@ import {
   assertUserSelfcareSecurityPrivileges,
   assertSecurityRoleIsClientMember,
   assertClientIsConsumer,
+  assertClientIsAPI,
+  assertAdminInClient,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -203,7 +210,10 @@ export function authorizationServiceBuilder(
       }: {
         clientId: ClientId;
       },
-      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
@@ -1042,7 +1052,7 @@ export function authorizationServiceBuilder(
         keySeed: authorizationApi.KeySeed;
       },
       { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ProducerKeychain> {
+    ): Promise<Key> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
@@ -1097,7 +1107,7 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return updatedProducerKeychain;
+      return newKey;
     },
     async removeProducerKeychainKeyById(
       {
@@ -1309,6 +1319,57 @@ export function authorizationServiceBuilder(
           updatedProducerKeychain,
           eserviceIdToRemove,
           producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async internalRemoveClientAdmin(
+      clientId: ClientId,
+      adminId: UserId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRoleRevoked(
+          updatedClient,
+          adminId,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removeClientAdmin(
+      { clientId, adminId }: { clientId: ClientId; adminId: UserId },
+      { correlationId, logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertOrganizationIsClientConsumer(authData, client.data);
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRemoved(
+          updatedClient,
+          adminId,
+          client.metadata.version,
           correlationId
         )
       );
