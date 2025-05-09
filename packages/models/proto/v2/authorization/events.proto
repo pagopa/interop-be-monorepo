@@ -87,3 +87,8 @@ message ClientAdminRemovedBySelfcareV2 {
   ClientV2 client = 1;
   string adminId = 2;
 }
+
+message ClientAdminRemovedV2 {
+  ClientV2 client = 1;
+  string adminId = 2;
+}
