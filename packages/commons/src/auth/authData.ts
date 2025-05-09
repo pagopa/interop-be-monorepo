@@ -69,7 +69,7 @@ export const M2MAuthToken = M2MAuthTokenCommonProps.merge(
 export const M2MAdminAuthToken = M2MAuthTokenCommonProps.merge(
   z.object({
     role: z.literal(systemRole.M2M_ADMIN_ROLE),
-    userId: z.string().uuid(),
+    adminId: z.string().uuid(),
     // ^ ID of the admin user associated with the client
   })
 );
@@ -188,7 +188,7 @@ export const getAuthDataFromToken = (token: AuthToken): AuthData =>
     .with({ role: systemRole.M2M_ADMIN_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
-      userId: unsafeBrandId<UserId>(t.userId),
+      userId: unsafeBrandId<UserId>(t.adminId),
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
       systemRole: undefined,
