@@ -743,3 +743,5 @@ export function purposeServiceBuilder(
     },
   };
 }
+
+export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
