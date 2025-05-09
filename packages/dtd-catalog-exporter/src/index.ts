@@ -6,7 +6,6 @@ import {
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -21,12 +20,10 @@ const oldReadModelService = readModelServiceBuilder(
 const db = makeDrizzleConnection(config);
 const attributeReadModelService = attributeReadModelServiceBuilder(db);
 const tenantReadModelService = tenantReadModelServiceBuilder(db);
-const catalogReadModelService = catalogReadModelServiceBuilder(db);
 const readModelServiceSQL = readModelServiceBuilderSQL(
   db,
   attributeReadModelService,
-  tenantReadModelService,
-  catalogReadModelService
+  tenantReadModelService
 );
 
 const readModelService =

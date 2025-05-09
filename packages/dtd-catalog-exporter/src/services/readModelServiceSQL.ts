@@ -6,15 +6,24 @@ import {
   Attribute,
   descriptorState,
 } from "pagopa-interop-models";
-import { exists, inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import {
   attributeInReadmodelAttribute,
+  eserviceDescriptorAttributeInReadmodelCatalog,
+  eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorInterfaceInReadmodelCatalog,
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import {
-  CatalogReadModelService,
+  aggregateEserviceArray,
   TenantReadModelService,
+  toEServiceAggregatorArray,
 } from "pagopa-interop-readmodel";
 import { DrizzleReturnType } from "../../../readmodel-models/dist/types.js";
 import { AttributeReadModelService } from "../../../readmodel/dist/attributeReadModelService.js";
@@ -22,8 +31,7 @@ import { AttributeReadModelService } from "../../../readmodel/dist/attributeRead
 export function readModelServiceBuilderSQL(
   readModelDB: DrizzleReturnType,
   attributeReadModelService: AttributeReadModelService,
-  tenantReadModelService: TenantReadModelService,
-  catalogReadModelService: CatalogReadModelService
+  tenantReadModelService: TenantReadModelService
 ) {
   return {
     /**
@@ -33,21 +41,86 @@ export function readModelServiceBuilderSQL(
      * @returns The array of e-services
      */
     async getActiveEServices(): Promise<EService[]> {
-      const eservicesWithMetadata =
-        await catalogReadModelService.getEServicesByFilter(
-          exists(
-            readModelDB
-              .select()
-              .from(eserviceDescriptorInReadmodelCatalog)
-              .where(
-                inArray(eserviceDescriptorInReadmodelCatalog.state, [
-                  descriptorState.published,
-                  descriptorState.suspended,
-                ])
-              )
+      const queryResult = await readModelDB
+        .select({
+          eservice: eserviceInReadmodelCatalog,
+          descriptor: eserviceDescriptorInReadmodelCatalog,
+          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
+          document: eserviceDescriptorDocumentInReadmodelCatalog,
+          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
+          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
+          riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
+          templateVersionRef:
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+        })
+        .from(eserviceInReadmodelCatalog)
+        .where(
+          inArray(eserviceDescriptorInReadmodelCatalog.state, [
+            descriptorState.published,
+            descriptorState.suspended,
+          ])
+        )
+        .leftJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInterfaceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorDocumentInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorAttributeInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceRiskAnalysisInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceRiskAnalysisInReadmodelCatalog.eserviceId
+          )
+        )
+        .leftJoin(
+          eserviceRiskAnalysisAnswerInReadmodelCatalog,
+          eq(
+            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
           )
         );
 
+      const eservicesWithMetadata = aggregateEserviceArray(
+        toEServiceAggregatorArray(queryResult)
+      );
       return eservicesWithMetadata.map(
         (eserviceWithMetadata) => eserviceWithMetadata.data
       );
