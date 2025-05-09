@@ -13,6 +13,7 @@ import {
   getMockPurposeVersion,
   getMockTokenGenStatesConsumerClient,
   writePlatformCatalogEntry,
+  writePlatformStatesClientEntry,
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import {
@@ -59,7 +60,6 @@ import {
   addOneEService,
   addOnePurpose,
   dynamoDBClient,
-  writePlatformStatesClientEntry,
 } from "./utils.js";
 
 describe("Token Generation Read Model Checker utils tests", () => {

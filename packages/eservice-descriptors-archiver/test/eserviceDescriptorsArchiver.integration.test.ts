@@ -30,7 +30,7 @@ import {
 import { archiveDescriptorForArchivedAgreement } from "../src/services/archiveDescriptorProcessor.js";
 import { addOneAgreement, addOneEService, readModelService } from "./utils.js";
 
-describe("EService Descripors Archiver", async () => {
+describe("EService Descriptors Archiver", async () => {
   describe("archiveDescriptorsForArchivedAgreement", async () => {
     const testCorrelationId: CorrelationId = generateId();
     const testToken = "mockToken";
