@@ -107,7 +107,9 @@ describe("createPurpose", () => {
     );
     await writeInReadmodel(toReadModelEService(eService1), eservices);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
+    const {
+      data: { isRiskAnalysisValid, purpose },
+    } = await purposeService.createPurpose(
       purposeSeed,
       getMockContext({
         authData: getMockAuthData(
@@ -194,7 +196,9 @@ describe("createPurpose", () => {
     await addOneEService(eService1);
     await addOneDelegation(delegation);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
+    const {
+      data: { isRiskAnalysisValid, purpose },
+    } = await purposeService.createPurpose(
       purposeSeed,
       getMockContext({ authData: getMockAuthData(delegateTenant.id) })
     );
@@ -329,7 +333,9 @@ describe("createPurpose", () => {
     await addOneDelegation(consumerDelegation);
     await addOneDelegation(producerDelegation);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.createPurpose(
+    const {
+      data: { isRiskAnalysisValid, purpose },
+    } = await purposeService.createPurpose(
       delegatePurposeSeed,
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
