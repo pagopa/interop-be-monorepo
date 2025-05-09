@@ -1,0 +1,179 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { describe, it, expect, vi } from "vitest";
+import {
+  Client,
+  ClientId,
+  Descriptor,
+  descriptorState,
+  generateId,
+  Purpose,
+  PurposeId,
+  purposeVersionState,
+  TenantId,
+} from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockClient,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+  getMockPurpose,
+  getMockPurposeVersion,
+} from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import request from "supertest";
+import { api, authorizationService } from "../vitest.api.setup.js";
+import {
+  clientKindNotAllowed,
+  clientNotFound,
+  eserviceNotDelegableForClientAccess,
+  noAgreementFoundInRequiredState,
+  noPurposeVersionsFoundInRequiredState,
+  organizationNotAllowedOnClient,
+  organizationNotAllowedOnPurpose,
+  purposeAlreadyLinkedToClient,
+  purposeDelegationNotFound,
+  purposeNotFound,
+} from "../../src/model/domain/errors.js";
+
+describe("API /clients/{clientId}/purposes authorization test", () => {
+  const mockDescriptor: Descriptor = {
+    ...getMockDescriptor(),
+    state: descriptorState.published,
+    interface: getMockDocument(),
+    publishedAt: new Date(),
+  };
+
+  const mockEservice = {
+    ...getMockEService(),
+    descriptors: [mockDescriptor],
+  };
+  const mockConsumerId: TenantId = generateId();
+
+  const mockPurpose: Purpose = {
+    ...getMockPurpose(),
+    eserviceId: mockEservice.id,
+    consumerId: mockConsumerId,
+    versions: [getMockPurposeVersion(purposeVersionState.active)],
+  };
+
+  const mockClient: Client = {
+    ...getMockClient(),
+    consumerId: mockConsumerId,
+  };
+
+  authorizationService.addClientPurpose = vi.fn().mockResolvedValue({});
+
+  const makeRequest = async (
+    token: string,
+    clientId: string,
+    purposeId: string = mockPurpose.id
+  ) =>
+    request(api)
+      .post(`/clients/${clientId}/purposes`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send({ purposeId });
+
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockClient.id);
+      expect(res.status).toBe(204);
+    }
+  );
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token, mockClient.id);
+    expect(res.status).toBe(403);
+  });
+
+  it.each([
+    {
+      name: "clientNotFound",
+      error: clientNotFound(mockClient.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "purposeNotFound",
+      error: purposeNotFound(mockPurpose.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "noAgreementFoundInRequiredState",
+      error: noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId),
+      expectedStatus: 400,
+    },
+    {
+      name: "noPurposeVersionsFoundInRequiredState",
+      error: noPurposeVersionsFoundInRequiredState(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      name: "eserviceNotDelegableForClientAccess",
+      error: eserviceNotDelegableForClientAccess(mockEservice),
+      expectedStatus: 400,
+    },
+    {
+      name: "purposeAlreadyLinkedToClient",
+      error: purposeAlreadyLinkedToClient(mockPurpose.id, mockClient.id),
+      expectedStatus: 409,
+    },
+    {
+      name: "clientKindNotAllowed",
+      error: clientKindNotAllowed(mockClient.id),
+      expectedStatus: 403,
+    },
+    {
+      name: "organizationNotAllowedOnClient",
+      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      expectedStatus: 403,
+    },
+    {
+      name: "organizationNotAllowedOnPurpose",
+      error: organizationNotAllowedOnPurpose(generateId(), mockPurpose.id),
+      expectedStatus: 403,
+    },
+    {
+      name: "purposeDelegationNotFound",
+      error: purposeDelegationNotFound(generateId()),
+      expectedStatus: 500,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus }) => {
+      if (error) {
+        authorizationService.addClientPurpose = vi
+          .fn()
+          .mockRejectedValue(error);
+      }
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockClient.id);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    {},
+    { clientId: "invalidId", purposeId: mockPurpose.id },
+    { clientId: mockClient.id, purposeId: "invalidId" },
+  ])(
+    "Should return 400 if passed invalid params",
+    async ({ clientId, purposeId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId as ClientId,
+        purposeId as PurposeId
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
+});

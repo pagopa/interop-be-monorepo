@@ -18,12 +18,12 @@ import {
   clientKindNotAllowed,
   clientNotFound,
   organizationNotAllowedOnClient,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./integrationUtils.js";
+} from "./../integrationUtils.js";
 
 describe("clientAdminRemoved", () => {
   it("should write on event-store for the removal of an admin in a client", async () => {

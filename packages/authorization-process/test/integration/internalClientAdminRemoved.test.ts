@@ -15,12 +15,12 @@ import {
   clientAdminIdNotFound,
   clientKindNotAllowed,
   clientNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   addOneClient,
   authorizationService,
   readLastAuthorizationEvent,
-} from "./integrationUtils.js";
+} from "./../integrationUtils.js";
 
 describe("internalClientAdminRoleRevoked", () => {
   it("should write on event-store for the remove of an admin in a client", async () => {
