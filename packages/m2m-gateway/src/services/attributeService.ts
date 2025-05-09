@@ -48,7 +48,7 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
       return toM2MGatewayApiCertifiedAttribute({
         attribute: response.data,
         logger,
-        throwNotFoundError: true,
+        mapThrownErrorsToNotFound: true,
       });
     },
     async createCertifiedAttribute(

@@ -13,11 +13,11 @@ import { attributeNotFound } from "../model/errors.js";
 export function toM2MGatewayApiCertifiedAttribute({
   attribute,
   logger,
-  throwNotFoundError = false,
+  mapThrownErrorsToNotFound = false,
 }: {
   attribute: attributeRegistryApi.Attribute;
   logger: Logger;
-  throwNotFoundError?: boolean;
+  mapThrownErrorsToNotFound?: boolean;
 }): m2mGatewayApi.CertifiedAttribute {
   try {
     assertAttributeKindIs(
@@ -35,7 +35,7 @@ export function toM2MGatewayApiCertifiedAttribute({
       createdAt: attribute.creationTime,
     };
   } catch (error) {
-    if (throwNotFoundError) {
+    if (mapThrownErrorsToNotFound) {
       logger.warn(
         `Root cause for "Attribute not found" error: unexpected error while converting attribute: ${
           error instanceof ApiError ? error.detail : error
