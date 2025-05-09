@@ -67,7 +67,6 @@ export function expectApiClientPostToHaveBeenCalledWith({
       "X-Correlation-Id": expect.any(String),
       "X-Forwarded-For": undefined,
     },
-    params,
   });
 }
 
