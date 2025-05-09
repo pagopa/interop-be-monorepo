@@ -30,7 +30,7 @@ describe("API /certifiedAttributes authorization test", () => {
 
   attributeRegistryService.createCertifiedAttribute = vi
     .fn()
-    .mockResolvedValue(mockAttribute);
+    .mockResolvedValue({ data: mockAttribute, metadata: { version: 0 } });
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -39,7 +39,11 @@ describe("API /certifiedAttributes authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(mockCertifiedAttributeSeed);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.M2M_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -47,6 +51,7 @@ describe("API /certifiedAttributes authorization test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiAttribute);
+      expect(res.headers["x-metadata-version"]).toBe("0");
     }
   );
 
