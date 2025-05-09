@@ -1,10 +1,10 @@
 import {
-  type AttributeReadmodel,
-  type EServiceReadModel,
-  type TenantReadModel,
   type EserviceAttributes,
   genericError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  EService,
+  Attribute,
+  Tenant,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { getLatestActiveDescriptor } from "../utils/utils.js";
@@ -19,9 +19,9 @@ import {
 } from "./models.js";
 
 export function toPublicEService(
-  eservice: EServiceReadModel,
-  attributesMap: Map<string, AttributeReadmodel>,
-  producersMap: Map<string, TenantReadModel>
+  eservice: EService,
+  attributesMap: Map<string, Attribute>,
+  producersMap: Map<string, Tenant>
 ): PublicEService {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
 
@@ -61,7 +61,7 @@ export function toPublicEService(
 
 function toPublicAttribute(
   id: string,
-  attributesMap: Map<string, AttributeReadmodel>
+  attributesMap: Map<string, Attribute>
 ): PublicEServiceAttribute {
   const attributeData = attributesMap.get(id);
 
@@ -77,7 +77,7 @@ function toPublicAttribute(
 
 function toPublicAttributesGroup(
   attributesGroup: EserviceAttributes[keyof EserviceAttributes][0],
-  attributesMap: Map<string, AttributeReadmodel>
+  attributesMap: Map<string, Attribute>
 ): PublicEServiceAttributeGroup | PublicEServiceAttributeSingle {
   if (attributesGroup.length === 1) {
     return {
@@ -94,7 +94,7 @@ function toPublicAttributesGroup(
 
 function toPublicAttributes(
   attributes: EserviceAttributes,
-  attributesMap: Map<string, AttributeReadmodel>
+  attributesMap: Map<string, Attribute>
 ): PublicEServiceAttributes {
   const { certified, verified, declared } = attributes;
 
@@ -111,9 +111,7 @@ function toPublicAttributes(
   };
 }
 
-function toPublicTenantAttribute(
-  attribute: AttributeReadmodel
-): PublicTenantAttribute {
+function toPublicTenantAttribute(attribute: Attribute): PublicTenantAttribute {
   return {
     name: attribute.name,
     type: attribute.kind,
@@ -121,8 +119,8 @@ function toPublicTenantAttribute(
 }
 
 export function toPublicTenant(
-  tenant: TenantReadModel,
-  attributesMap: Map<string, AttributeReadmodel>
+  tenant: Tenant,
+  attributesMap: Map<string, Attribute>
 ): PublicTenant {
   const attributes = tenant.attributes.map((attr) => {
     const attribute = attributesMap.get(attr.id);
