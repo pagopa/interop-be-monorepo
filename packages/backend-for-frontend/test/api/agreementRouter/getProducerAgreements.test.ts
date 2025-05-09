@@ -32,9 +32,7 @@ describe("API GET /producers/agreements", () => {
 
   const makeRequest = async (token: string, limit: unknown = 10) =>
     request(api)
-      .get(
-        `${appBasePath}/producers/agreements`
-      )
+      .get(`${appBasePath}/producers/agreements`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query({ offset: 0, limit })
