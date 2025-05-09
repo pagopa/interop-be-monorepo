@@ -6,7 +6,7 @@ import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { DBConnection } from "../../db/db.js";
 import {
   AttributeMapping,
-  attributeSchema,
+  AttributeSchema,
 } from "../../model/attribute/attribute.js";
 import {
   generateMergeDeleteQuery,
@@ -56,7 +56,7 @@ export function attributeRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          attributeSchema,
+          AttributeSchema,
           schemaName,
           tableName,
           stagingTable,
@@ -114,7 +114,7 @@ export function attributeRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

@@ -8,7 +8,7 @@ import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceRiskAnalysisAnswerMapping,
-  eserviceRiskAnalysisAnswerSchema,
+  EserviceRiskAnalysisAnswerSchema,
 } from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
 import { CatalogDbTable } from "../../model/db.js";
 
@@ -59,7 +59,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          eserviceRiskAnalysisAnswerSchema,
+          EserviceRiskAnalysisAnswerSchema,
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,

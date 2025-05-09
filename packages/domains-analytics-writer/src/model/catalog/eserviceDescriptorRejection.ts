@@ -1,20 +1,19 @@
 import { EServiceDescriptorRejectionReasonSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
 
-export const eserviceDescriptorRejectionReasonSchema = z.object({
+export const EserviceDescriptorRejectionReasonSchema = z.object({
   eservice_id: z.string(),
   metadata_version: z.number(),
   descriptor_id: z.string(),
   rejection_reason: z.string(),
   rejected_at: z.string(),
 });
-
-type eserviceDescriptorRejectionReasonSchema = z.infer<
-  typeof eserviceDescriptorRejectionReasonSchema
+export type EserviceDescriptorRejectionReasonSchema = z.infer<
+  typeof EserviceDescriptorRejectionReasonSchema
 >;
 
-export type EserviceDescriptorRejectionMapping = {
-  [K in keyof eserviceDescriptorRejectionReasonSchema]: (
+export type EserviceDescriptorRejectionReasonMapping = {
+  [K in keyof EserviceDescriptorRejectionReasonSchema]: (
     record: EServiceDescriptorRejectionReasonSQL
-  ) => eserviceDescriptorRejectionReasonSchema[K];
+  ) => EserviceDescriptorRejectionReasonSchema[K];
 };

@@ -8,7 +8,7 @@ import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceDescriptorTemplateVersionRefMapping,
-  eserviceDescriptorTemplateVersionRefSchema,
+  EserviceDescriptorTemplateVersionRefSchema,
 } from "../../model/catalog/eserviceDescriptorTemplateVersionRef.js";
 import { CatalogDbTable } from "../../model/db.js";
 
@@ -70,7 +70,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          eserviceDescriptorTemplateVersionRefSchema,
+          EserviceDescriptorTemplateVersionRefSchema,
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,

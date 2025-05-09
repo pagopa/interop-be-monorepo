@@ -1,7 +1,7 @@
 import { EServiceDescriptorTemplateVersionRefSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
 
-export const eserviceDescriptorTemplateVersionRefSchema = z.object({
+export const EserviceDescriptorTemplateVersionRefSchema = z.object({
   eservice_template_version_id: z.string(),
   eservice_id: z.string(),
   metadata_version: z.number(),
@@ -12,8 +12,8 @@ export const eserviceDescriptorTemplateVersionRefSchema = z.object({
   terms_and_conditions_url: z.string().nullable(),
 });
 
-type EserviceDescriptorTemplateVersionRefSchema = z.infer<
-  typeof eserviceDescriptorTemplateVersionRefSchema
+export type EserviceDescriptorTemplateVersionRefSchema = z.infer<
+  typeof EserviceDescriptorTemplateVersionRefSchema
 >;
 
 export type EserviceDescriptorTemplateVersionRefMapping = {

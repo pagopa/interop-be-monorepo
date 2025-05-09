@@ -68,15 +68,23 @@ export function generateMergeDeleteQuery(
   schemaName: string,
   tableName: string,
   stagingTableName: string,
-  deletingKey: string
+  deletingKey: string[]
 ): string {
+  const quoteColumn = (c: string) => `"${c}"`;
+
+  const onCondition = deletingKey
+    .map(
+      (k) => `${schemaName}.${tableName}.${quoteColumn(String(k))} = source.id`
+    )
+    .join(" AND ");
+
   const updateSet = `${deletingKey} = source.id,
    deleted = source.deleted`;
 
   return `
   MERGE INTO ${schemaName}.${tableName}
   USING ${stagingTableName} AS source
-  ON ${schemaName}.${tableName}.${deletingKey} = source.id
+  ON ${onCondition}
   WHEN MATCHED THEN
     UPDATE SET
       ${updateSet};
@@ -95,7 +103,7 @@ export async function mergeDeletingCascadeById(
         config.dbSchemaName,
         deletingTableName,
         targetTableDeleting,
-        id
+        [id]
       );
       await t.none(mergeQuery);
     }

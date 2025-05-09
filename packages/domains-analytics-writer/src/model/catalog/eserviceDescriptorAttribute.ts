@@ -1,7 +1,7 @@
 import { EServiceDescriptorAttributeSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
 
-export const eserviceDescriptorAttributeSchema = z.object({
+export const EserviceDescriptorAttributeSchema = z.object({
   eservice_id: z.string(),
   metadata_version: z.number(),
   attribute_id: z.string(),
@@ -10,9 +10,8 @@ export const eserviceDescriptorAttributeSchema = z.object({
   kind: z.string(),
   group_id: z.number(),
 });
-
-type EserviceDescriptorAttributeSchema = z.infer<
-  typeof eserviceDescriptorAttributeSchema
+export type EserviceDescriptorAttributeSchema = z.infer<
+  typeof EserviceDescriptorAttributeSchema
 >;
 
 export type EserviceDescriptorAttributeMapping = {
