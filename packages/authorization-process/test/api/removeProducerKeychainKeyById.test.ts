@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { generateId, ProducerKeychain } from "pagopa-interop-models";
+import {
+  generateId,
+  ProducerKeychain,
+  ProducerKeychainId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockKey,
@@ -66,86 +70,65 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for producerKeychainNotFound", async () => {
-    authorizationService.removeProducerKeychainKeyById = vi
-      .fn()
-      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockProducerKeychain.id,
-      keyToRemove.kid
-    );
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for producerKeyNotFound", async () => {
-    authorizationService.removeProducerKeychainKeyById = vi
-      .fn()
-      .mockRejectedValue(
-        producerKeyNotFound(keyToNotRemove.kid, mockProducerKeychain.id)
+  it.each([
+    {
+      name: "producerKeychainNotFound",
+      error: producerKeychainNotFound(mockProducerKeychain.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "producerKeyNotFound",
+      error: producerKeyNotFound(keyToNotRemove.kid, mockProducerKeychain.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "userNotFound",
+      error: userNotFound(generateId(), mockProducerKeychain.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "organizationNotAllowedOnProducerKeychain",
+      error: organizationNotAllowedOnProducerKeychain(
+        generateId(),
+        mockProducerKeychain.id
+      ),
+      expectedStatus: 403,
+    },
+    {
+      name: "userWithoutSecurityPrivileges",
+      error: userWithoutSecurityPrivileges(
+        generateId(),
+        mockProducerKeychain.users[0]
+      ),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus }) => {
+      authorizationService.removeProducerKeychainKeyById = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockProducerKeychain.id,
+        keyToRemove.kid
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockProducerKeychain.id,
-      keyToRemove.kid
-    );
-    expect(res.status).toBe(404);
-  });
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 404 for userNotFound", async () => {
-    authorizationService.removeProducerKeychainKeyById = vi
-      .fn()
-      .mockRejectedValue(userNotFound(generateId(), mockProducerKeychain.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockProducerKeychain.id,
-      keyToRemove.kid
-    );
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnProducerKeychain", async () => {
-    authorizationService.removeProducerKeychainKeyById = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnProducerKeychain(
-          generateId(),
-          mockProducerKeychain.id
-        )
+  it.each([{}, { producerKeychainId: "invalidId", keyId: keyToNotRemove.kid }])(
+    "Should return 400 if passed invalid params",
+    async ({ producerKeychainId, keyId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        producerKeychainId as ProducerKeychainId,
+        keyId as string
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockProducerKeychain.id,
-      keyToRemove.kid
-    );
-    expect(res.status).toBe(403);
-  });
 
-  it("Should return 403 for userWithoutSecurityPrivileges", async () => {
-    authorizationService.removeProducerKeychainKeyById = vi
-      .fn()
-      .mockRejectedValue(
-        userWithoutSecurityPrivileges(
-          generateId(),
-          mockProducerKeychain.users[0]
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockProducerKeychain.id,
-      keyToRemove.kid
-    );
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid", "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

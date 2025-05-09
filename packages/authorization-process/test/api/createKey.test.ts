@@ -55,12 +55,16 @@ describe("API /clients/{clientId}/keys authorization test", () => {
 
   authorizationService.createKey = vi.fn().mockResolvedValue(key);
 
-  const makeRequest = async (token: string, clientId: string) =>
+  const makeRequest = async (
+    token: string,
+    clientId: string,
+    body: authorizationApi.KeySeed = keySeed
+  ) =>
     request(api)
       .post(`/clients/${clientId}/keys`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(keySeed);
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -84,126 +88,102 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(mockClient.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      name: "clientNotFound",
+      error: clientNotFound(mockClient.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "tooManyKeysPerClient",
+      error: tooManyKeysPerClient(mockClient.id, 1),
+      expectedStatus: 400,
+    },
+    {
+      name: "notAllowedPrivateKeyException",
+      error: notAllowedPrivateKeyException(),
+      expectedStatus: 400,
+    },
+    {
+      name: "notAllowedCertificateException",
+      error: notAllowedCertificateException(),
+      expectedStatus: 400,
+    },
+    {
+      name: "notAllowedMultipleKeysException",
+      error: notAllowedMultipleKeysException(),
+      expectedStatus: 400,
+    },
+    {
+      name: "jwkDecodingError",
+      error: jwkDecodingError(""),
+      expectedStatus: 400,
+    },
+    {
+      name: "invalidPublicKey",
+      error: invalidPublicKey(),
+      expectedStatus: 400,
+    },
+    {
+      name: "notAnRSAKey",
+      error: notAnRSAKey(),
+      expectedStatus: 400,
+    },
+    {
+      name: "invalidKeyLength",
+      error: invalidKeyLength(key.encodedPem.length),
+      expectedStatus: 400,
+    },
+    {
+      name: "keyAlreadyExists",
+      error: keyAlreadyExists(key.kid),
+      expectedStatus: 409,
+    },
+    {
+      name: "organizationNotAllowedOnClient",
+      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      expectedStatus: 403,
+    },
+    {
+      name: "userWithoutSecurityPrivileges",
+      error: userWithoutSecurityPrivileges(generateId(), userId),
+      expectedStatus: 403,
+    },
+    {
+      name: "userNotFound",
+      error: userNotFound(userId, generateId()),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus }) => {
+      authorizationService.createKey = vi.fn().mockRejectedValue(error);
 
-  it("Should return 400 for tooManyKeysPerClient", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(tooManyKeysPerClient(mockClient.id, 1));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockClient.id);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    {},
+    { ...keySeed, invalidParam: "invalidValue" },
+    { ...keySeed, name: 1 },
+    { ...keySeed, use: "invalidUse" },
+    { ...keySeed, alg: 1 },
+    { ...keySeed, key: 1 },
+    { ...keySeed, name: undefined },
+    { ...keySeed, use: undefined },
+    { ...keySeed, alg: undefined },
+    { ...keySeed, key: undefined },
+  ])("Should return 400 if passed invalid params", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
+    const res = await makeRequest(
+      token,
+      mockClient.id,
+      body as authorizationApi.KeySeed
+    );
+
     expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for notAllowedPrivateKeyException", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(notAllowedPrivateKeyException());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for notAllowedCertificateException", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(notAllowedCertificateException());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for notAllowedMultipleKeysException", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(notAllowedMultipleKeysException());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for jwkDecodingError", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(jwkDecodingError(""));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for invalidPublicKey", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(invalidPublicKey());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for notAnRSAKey", async () => {
-    authorizationService.createKey = vi.fn().mockRejectedValue(notAnRSAKey());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for invalidKeyLength", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(invalidKeyLength(key.encodedPem.length));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 409 for keyAlreadyExists", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(keyAlreadyExists(key.kid));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnClient", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnClient(generateId(), mockClient.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for userWithoutSecurityPrivileges", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(userWithoutSecurityPrivileges(generateId(), userId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for userNotFound", async () => {
-    authorizationService.createKey = vi
-      .fn()
-      .mockRejectedValue(userNotFound(userId, generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
   });
 });

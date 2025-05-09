@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateId,
   ProducerKeychain,
+  ProducerKeychainId,
   TenantId,
   UserId,
 } from "pagopa-interop-models";
@@ -44,12 +45,16 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
     showUsers: true,
   });
 
-  const makeRequest = async (token: string, producerKeychainId: string) =>
+  const makeRequest = async (
+    token: string,
+    producerKeychainId: string,
+    userIds: string[] = userIdsToAdd
+  ) =>
     request(api)
       .post(`/producerKeychains/${producerKeychainId}/users`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({ userIds: userIdsToAdd });
+      .send({ userIds });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -70,52 +75,61 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for producerKeychainNotFound", async () => {
-    authorizationService.addProducerKeychainUsers = vi
-      .fn()
-      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      name: "producerKeychainNotFound",
+      error: producerKeychainNotFound(mockProducerKeychain.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "organizationNotAllowedOnProducerKeychain",
+      error: organizationNotAllowedOnProducerKeychain(
+        generateId(),
+        mockProducerKeychain.id
+      ),
+      expectedStatus: 403,
+    },
+    {
+      name: "userWithoutSecurityPrivileges",
+      error: userWithoutSecurityPrivileges(generateId(), users[0]),
+      expectedStatus: 403,
+    },
+    {
+      name: "producerKeychainUserAlreadyAssigned",
+      error: producerKeychainUserAlreadyAssigned(
+        mockProducerKeychain.id,
+        users[0]
+      ),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus }) => {
+      authorizationService.addProducerKeychainUsers = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 403 for organizationNotAllowedOnProducerKeychain", async () => {
-    authorizationService.addProducerKeychainUsers = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnProducerKeychain(
-          generateId(),
-          mockProducerKeychain.id
-        )
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockProducerKeychain.id);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    {},
+    { producerKeychainId: "invalidId", userIds: userIdsToAdd },
+    { producerKeychainId: mockProducerKeychain.id, userIds: ["invalidId"] },
+  ])(
+    "Should return 400 if passed invalid params",
+    async ({ producerKeychainId, userIds }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        producerKeychainId as ProducerKeychainId,
+        userIds as UserId[]
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(403);
-  });
 
-  it("Should return 403 for userWithoutSecurityPrivileges", async () => {
-    authorizationService.addProducerKeychainUsers = vi
-      .fn()
-      .mockRejectedValue(userWithoutSecurityPrivileges(generateId(), users[0]));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for producerKeychainUserAlreadyAssigned", async () => {
-    authorizationService.addProducerKeychainUsers = vi
-      .fn()
-      .mockRejectedValue(
-        producerKeychainUserAlreadyAssigned(mockProducerKeychain.id, users[0])
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

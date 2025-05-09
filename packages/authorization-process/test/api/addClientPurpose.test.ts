@@ -2,10 +2,12 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   Client,
+  ClientId,
   Descriptor,
   descriptorState,
   generateId,
   Purpose,
+  PurposeId,
   purposeVersionState,
   TenantId,
 } from "pagopa-interop-models";
@@ -62,12 +64,16 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
 
   authorizationService.addClientPurpose = vi.fn().mockResolvedValue({});
 
-  const makeRequest = async (token: string, clientId: string) =>
+  const makeRequest = async (
+    token: string,
+    clientId: string,
+    purposeId: string = mockPurpose.id
+  ) =>
     request(api)
       .post(`/clients/${clientId}/purposes`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({ purposeId: mockPurpose.id });
+      .send({ purposeId });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -87,107 +93,87 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(mockClient.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      name: "clientNotFound",
+      error: clientNotFound(mockClient.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "purposeNotFound",
+      error: purposeNotFound(mockPurpose.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "noAgreementFoundInRequiredState",
+      error: noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId),
+      expectedStatus: 400,
+    },
+    {
+      name: "noPurposeVersionsFoundInRequiredState",
+      error: noPurposeVersionsFoundInRequiredState(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      name: "eserviceNotDelegableForClientAccess",
+      error: eserviceNotDelegableForClientAccess(mockEservice),
+      expectedStatus: 400,
+    },
+    {
+      name: "purposeAlreadyLinkedToClient",
+      error: purposeAlreadyLinkedToClient(mockPurpose.id, mockClient.id),
+      expectedStatus: 409,
+    },
+    {
+      name: "clientKindNotAllowed",
+      error: clientKindNotAllowed(mockClient.id),
+      expectedStatus: 403,
+    },
+    {
+      name: "organizationNotAllowedOnClient",
+      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      expectedStatus: 403,
+    },
+    {
+      name: "organizationNotAllowedOnPurpose",
+      error: organizationNotAllowedOnPurpose(generateId(), mockPurpose.id),
+      expectedStatus: 403,
+    },
+    {
+      name: "purposeDelegationNotFound",
+      error: purposeDelegationNotFound(generateId()),
+      expectedStatus: 500,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus }) => {
+      if (error) {
+        authorizationService.addClientPurpose = vi
+          .fn()
+          .mockRejectedValue(error);
+      }
 
-  it("Should return 404 for purposeNotFound", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(404);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockClient.id);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 400 for noAgreementFoundInRequiredState", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(
-        noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId)
+  it.each([
+    {},
+    { clientId: "invalidId", purposeId: mockPurpose.id },
+    { clientId: mockClient.id, purposeId: "invalidId" },
+  ])(
+    "Should return 400 if passed invalid params",
+    async ({ clientId, purposeId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId as ClientId,
+        purposeId as PurposeId
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
 
-  it("Should return 400 for noPurposeVersionsFoundInRequiredState", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(noPurposeVersionsFoundInRequiredState(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for eserviceNotDelegableForClientAccess", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(eserviceNotDelegableForClientAccess(mockEservice));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 409 for purposeAlreadyLinkedToClient", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(
-        purposeAlreadyLinkedToClient(mockPurpose.id, mockClient.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 403 for clientKindNotAllowed", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(clientKindNotAllowed(mockClient.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnClient", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnClient(generateId(), mockClient.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnPurpose", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnPurpose(generateId(), mockPurpose.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 500 for purposeDelegationNotFound", async () => {
-    authorizationService.addClientPurpose = vi
-      .fn()
-      .mockRejectedValue(purposeDelegationNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

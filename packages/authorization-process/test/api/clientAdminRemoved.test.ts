@@ -1,23 +1,29 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { ClientId, generateId, UserId } from "pagopa-interop-models";
 import { generateToken, getMockClient } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
+  clientAdminIdNotFound,
+  clientKindNotAllowed,
   clientNotFound,
   organizationNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
 
-describe("API /clients/{clientId} authorization test", () => {
-  const mockClient = getMockClient();
+describe("API /clients/{clientId}/admin/{adminId} authorization test", () => {
+  const mockClient = { ...getMockClient(), adminId: generateId<UserId>() };
 
-  authorizationService.deleteClient = vi.fn().mockResolvedValue({});
+  authorizationService.removeClientAdmin = vi.fn().mockResolvedValue({});
 
-  const makeRequest = async (token: string, clientId: string) =>
+  const makeRequest = async (
+    token: string,
+    clientId: string,
+    adminId: string
+  ) =>
     request(api)
-      .delete(`/clients/${clientId}`)
+      .delete(`/clients/${clientId}/admin/${adminId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
@@ -27,7 +33,7 @@ describe("API /clients/{clientId} authorization test", () => {
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token, mockClient.id);
+      const res = await makeRequest(token, mockClient.id, mockClient.adminId);
       expect(res.status).toBe(204);
     }
   );
@@ -36,7 +42,7 @@ describe("API /clients/{clientId} authorization test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockClient.id);
+    const res = await makeRequest(token, mockClient.id, mockClient.adminId);
     expect(res.status).toBe(403);
   });
 
@@ -47,18 +53,46 @@ describe("API /clients/{clientId} authorization test", () => {
       expectedStatus: 404,
     },
     {
+      name: "clientKindNotAllowed",
+      error: clientKindNotAllowed(mockClient.id),
+      expectedStatus: 403,
+    },
+    {
       name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
+    {
+      name: "clientAdminIdNotFound",
+      error: clientAdminIdNotFound(mockClient.id, mockClient.adminId),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $name",
     async ({ error, expectedStatus }) => {
-      authorizationService.deleteClient = vi.fn().mockRejectedValue(error);
+      authorizationService.removeClientAdmin = vi.fn().mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, mockClient.id);
+      const res = await makeRequest(token, mockClient.id, mockClient.adminId);
       expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    {},
+    { clientId: "invalidId", adminId: mockClient.adminId },
+    { clientId: mockClient.id, adminId: "invalidId" },
+  ])(
+    "Should return 400 if passed invalid params",
+    async ({ clientId, adminId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId as ClientId,
+        adminId as UserId
+      );
+
+      expect(res.status).toBe(400);
     }
   );
 });

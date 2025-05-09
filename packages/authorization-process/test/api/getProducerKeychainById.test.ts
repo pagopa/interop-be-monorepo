@@ -35,10 +35,7 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
       .get(`/producerKeychains/${producerKeychainId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit: 50,
-      });
+      .send();
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,

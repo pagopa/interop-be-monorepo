@@ -25,19 +25,22 @@ describe("API /clientsApi authorization test", () => {
     .fn()
     .mockResolvedValue({ client: mockClient, showUsers: true });
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    body: authorizationApi.ClientSeed
+  ) =>
     request(api)
       .post(`/clientsApi`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(clientSeed);
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const res = await makeRequest(token, clientSeed);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiClient);
     }
@@ -47,20 +50,21 @@ describe("API /clientsApi authorization test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token);
+    const res = await makeRequest(token, clientSeed);
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid field", async () => {
+  it.each([
+    {},
+    { ...clientSeed, invalidParam: "invalidValue" },
+    { ...clientSeed, name: 1 },
+    { ...clientSeed, members: [1] },
+    { ...clientSeed, name: undefined },
+    { ...clientSeed, members: undefined },
+  ])("Should return 400 if passed invalid params", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const invalidMakeRequest = async (token: string) =>
-      request(api)
-        .post(`/clientsApi`)
-        .set("Authorization", `Bearer ${token}`)
-        .set("X-Correlation-Id", generateId())
-        .send({});
+    const res = await makeRequest(token, body as authorizationApi.ClientSeed);
 
-    const res = await invalidMakeRequest(token);
     expect(res.status).toBe(400);
   });
 });

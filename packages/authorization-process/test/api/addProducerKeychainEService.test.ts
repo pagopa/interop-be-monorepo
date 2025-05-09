@@ -5,6 +5,7 @@ import {
   EServiceId,
   generateId,
   ProducerKeychain,
+  ProducerKeychainId,
   TenantId,
 } from "pagopa-interop-models";
 import {
@@ -42,12 +43,16 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
     .fn()
     .mockResolvedValue({});
 
-  const makeRequest = async (token: string, producerKeychainId: string) =>
+  const makeRequest = async (
+    token: string,
+    producerKeychainId: string,
+    eserviceId: string = mockEService.id
+  ) =>
     request(api)
       .post(`/producerKeychains/${producerKeychainId}/eservices`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({ eserviceId: mockEService.id });
+      .send({ eserviceId });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -67,66 +72,66 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for producerKeychainNotFound", async () => {
-    authorizationService.addProducerKeychainEService = vi
-      .fn()
-      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      name: "producerKeychainNotFound",
+      error: producerKeychainNotFound(mockProducerKeychain.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "eserviceNotFound",
+      error: eserviceNotFound(mockEService.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "eserviceAlreadyLinkedToProducerKeychain",
+      error: eserviceAlreadyLinkedToProducerKeychain(
+        mockEService.id,
+        mockProducerKeychain.id
+      ),
+      expectedStatus: 409,
+    },
+    {
+      name: "organizationNotAllowedOnProducerKeychain",
+      error: organizationNotAllowedOnProducerKeychain(
+        generateId(),
+        mockProducerKeychain.id
+      ),
+      expectedStatus: 403,
+    },
+    {
+      name: "organizationNotAllowedOnEService",
+      error: organizationNotAllowedOnEService(generateId(), mockEService.id),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus }) => {
+      authorizationService.addProducerKeychainEService = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 404 for eserviceNotFound", async () => {
-    authorizationService.addProducerKeychainEService = vi
-      .fn()
-      .mockRejectedValue(eserviceNotFound(mockEService.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(404);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockProducerKeychain.id);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 409 for eserviceAlreadyLinkedToProducerKeychain", async () => {
-    authorizationService.addProducerKeychainEService = vi
-      .fn()
-      .mockRejectedValue(
-        eserviceAlreadyLinkedToProducerKeychain(
-          mockEService.id,
-          mockProducerKeychain.id
-        )
+  it.each([
+    {},
+    { producerKeychainId: "invalidId", eserviceId: mockEService.id },
+    { producerKeychainId: mockProducerKeychain.id, eserviceId: "invalidId" },
+  ])(
+    "Should return 400 if passed invalid params",
+    async ({ producerKeychainId, eserviceId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        producerKeychainId as ProducerKeychainId,
+        eserviceId as EServiceId
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(409);
-  });
 
-  it("Should return 403 for organizationNotAllowedOnProducerKeychain", async () => {
-    authorizationService.addProducerKeychainEService = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnProducerKeychain(
-          generateId(),
-          mockProducerKeychain.id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnEService", async () => {
-    authorizationService.addProducerKeychainEService = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnEService(generateId(), mockEService.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

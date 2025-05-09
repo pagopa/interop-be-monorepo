@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { Client, generateId } from "pagopa-interop-models";
+import { Client, ClientId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockClient,
@@ -35,10 +35,7 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
       .get(`/clients/${clientId}/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit: 50,
-      });
+      .send();
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -65,71 +62,56 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientKeyNotFound", async () => {
-    authorizationService.getClientKeyById = vi
-      .fn()
-      .mockRejectedValue(clientKeyNotFound(mockKey1.kid, mockClient.id));
+  it.each([
+    {
+      name: "clientKeyNotFound",
+      error: clientKeyNotFound(mockKey1.kid, mockClient.id),
+      expectedStatus: 404,
+      clientId: generateId(),
+      keyId: mockKey1.kid,
+    },
+    {
+      name: "clientNotFound",
+      error: clientNotFound(mockClient.id),
+      expectedStatus: 404,
+      clientId: generateId(),
+      keyId: mockKey1.kid,
+    },
+    {
+      name: "organizationNotAllowedOnClient",
+      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      expectedStatus: 403,
+      clientId: mockClient.id,
+      keyId: mockKey1.kid,
+    },
+    {
+      name: "securityUserNotMember",
+      error: securityUserNotMember(mockClient.users[0]),
+      expectedStatus: 403,
+      clientId: mockClient.id,
+      keyId: mockKey1.kid,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus, clientId, keyId }) => {
+      authorizationService.getClientKeyById = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, clientId, keyId);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-    const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      generateId(),
-      mockKey1.kid
-    );
-
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.getClientKeyById = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(mockClient.id));
-
-    const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      generateId(),
-      mockKey1.kid
-    );
-
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for clientKeyNotFound", async () => {
-    authorizationService.getClientKeyById = vi
-      .fn()
-      .mockRejectedValue(clientKeyNotFound(mockKey1.kid, mockClient.id));
-
-    const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      generateId(),
-      mockKey1.kid
-    );
-
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnClient", async () => {
-    authorizationService.getClientKeyById = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnClient(generateId(), mockClient.id)
+  it.each([{}, { clientId: "invalidId", keyId: mockKey1.kid }])(
+    "Should return 400 if passed invalid params",
+    async ({ clientId, keyId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId as ClientId,
+        keyId as string
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id, mockKey1.kid);
-    expect(res.status).toBe(403);
-  });
 
-  it("Should return 403 for securityUserNotMember", async () => {
-    authorizationService.getClientKeyById = vi
-      .fn()
-      .mockRejectedValue(securityUserNotMember(mockClient.users[0]));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id, mockKey1.kid);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid", "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

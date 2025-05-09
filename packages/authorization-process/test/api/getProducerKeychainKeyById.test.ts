@@ -39,10 +39,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
       .get(`/producerKeychains/${producerKeychainId}/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit: 50,
-      });
+      .send();
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -73,43 +70,50 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for producerKeychainNotFound", async () => {
-    authorizationService.getProducerKeychainKeyById = vi
-      .fn()
-      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, generateId(), mockKey1.kid);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      name: "producerKeychainNotFound",
+      error: producerKeychainNotFound(mockProducerKeychain.id),
+      expectedStatus: 404,
+      producerKeychainId: generateId(),
+      keyId: mockKey1.kid,
+    },
+    {
+      name: "producerKeyNotFound",
+      error: producerKeyNotFound(mockKey1.userId, mockProducerKeychain.id),
+      expectedStatus: 404,
+      producerKeychainId: generateId(),
+      keyId: mockKey1.kid,
+    },
+    {
+      name: "organizationNotAllowedOnProducerKeychain",
+      error: organizationNotAllowedOnProducerKeychain(
+        generateId(),
+        mockProducerKeychain.id
+      ),
+      expectedStatus: 403,
+      producerKeychainId: mockProducerKeychain.id,
+      keyId: mockKey1.kid,
+    },
+    {
+      name: "invalidField",
+      error: null,
+      expectedStatus: 400,
+      producerKeychainId: "invalid",
+      keyId: "invalid",
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus, producerKeychainId, keyId }) => {
+      if (error) {
+        authorizationService.getProducerKeychainKeyById = vi
+          .fn()
+          .mockRejectedValue(error);
+      }
 
-  it("Should return 404 for producerKeyNotFound", async () => {
-    authorizationService.getProducerKeychainKeyById = vi
-      .fn()
-      .mockRejectedValue(
-        producerKeyNotFound(mockKey1.userId, mockProducerKeychain.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, generateId(), mockKey1.kid);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnProducerKeychain", async () => {
-    authorizationService.getProducerKeychainKeyById = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnProducerKeychain(
-          generateId(),
-          mockProducerKeychain.id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id, mockKey1.kid);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid", "invalid");
-    expect(res.status).toBe(400);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, producerKeychainId, keyId);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

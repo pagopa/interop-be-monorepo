@@ -34,19 +34,22 @@ describe("API /producerKeychains authorization test", () => {
     showUsers: true,
   });
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    body: authorizationApi.ProducerKeychainSeed
+  ) =>
     request(api)
       .post(`/producerKeychains`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(producerKeychainSeed);
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const res = await makeRequest(token, producerKeychainSeed);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiProducerKeyChain);
     }
@@ -56,20 +59,24 @@ describe("API /producerKeychains authorization test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token);
+    const res = await makeRequest(token, producerKeychainSeed);
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid field", async () => {
+  it.each([
+    {},
+    { ...producerKeychainSeed, invalidParam: "invalidValue" },
+    { ...producerKeychainSeed, name: 1 },
+    { ...producerKeychainSeed, members: [1] },
+    { ...producerKeychainSeed, name: undefined },
+    { ...producerKeychainSeed, members: undefined },
+  ])("Should return 400 if passed invalid params", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const invalidMakeRequest = async (token: string) =>
-      request(api)
-        .post(`/producerKeychains`)
-        .set("Authorization", `Bearer ${token}`)
-        .set("X-Correlation-Id", generateId())
-        .send({});
+    const res = await makeRequest(
+      token,
+      body as authorizationApi.ProducerKeychainSeed
+    );
 
-    const res = await invalidMakeRequest(token);
     expect(res.status).toBe(400);
   });
 });

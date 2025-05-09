@@ -5,6 +5,7 @@ import {
   generateId,
   EServiceId,
   ProducerKeychain,
+  ProducerKeychainId,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -70,53 +71,56 @@ describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} aut
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for producerKeychainNotFound", async () => {
-    authorizationService.removeProducerKeychainEService = vi
-      .fn()
-      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockProducerKeychain.id,
-      eserviceIdToRemove
-    );
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnProducerKeychain", async () => {
-    authorizationService.removeProducerKeychainEService = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnProducerKeychain(
-          generateId(),
-          mockProducerKeychain.id
-        )
+  it.each([
+    {
+      name: "producerKeychainNotFound",
+      error: producerKeychainNotFound(mockProducerKeychain.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "organizationNotAllowedOnProducerKeychain",
+      error: organizationNotAllowedOnProducerKeychain(
+        generateId(),
+        mockProducerKeychain.id
+      ),
+      expectedStatus: 403,
+    },
+    {
+      name: "eserviceNotFound",
+      error: eserviceNotFound(eserviceIdToRemove),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus }) => {
+      authorizationService.removeProducerKeychainEService = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockProducerKeychain.id,
+        eserviceIdToRemove
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockProducerKeychain.id,
-      eserviceIdToRemove
-    );
-    expect(res.status).toBe(403);
-  });
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 400 for eserviceNotFound", async () => {
-    authorizationService.removeProducerKeychainEService = vi
-      .fn()
-      .mockRejectedValue(eserviceNotFound(eserviceIdToRemove));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockProducerKeychain.id,
-      eserviceIdToRemove
-    );
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    {},
+    { producerKeychainId: "invalidId", eserviceId: eserviceIdToRemove },
+    { producerKeychainId: mockProducerKeychain.id, eserviceId: "invalidId" },
+  ])(
+    "Should return 400 if passed invalid params",
+    async ({ producerKeychainId, eserviceId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        producerKeychainId as ProducerKeychainId,
+        eserviceId as EServiceId
+      );
 
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid", "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

@@ -64,16 +64,22 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     totalCount: 3,
   });
 
-  const makeRequest = async (token: string, clientId: string) =>
+  const queryParams = {
+    offset: 0,
+    limit: 50,
+    userIds: [keyUserId1, keyUserId2, keyUserId3],
+  };
+
+  const makeRequest = async (
+    token: string,
+    clientId: string,
+    query: typeof queryParams = queryParams
+  ) =>
     request(api)
       .get(`/clients/${clientId}/keys`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit: 50,
-        userIds: [keyUserId1, keyUserId2, keyUserId3],
-      });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -100,42 +106,55 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.getClientKeys = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(clientWithKeyUser.id));
+  it.each([
+    {
+      name: "clientNotFound",
+      error: clientNotFound(clientWithKeyUser.id),
+      expectedStatus: 404,
+      clientId: generateId(),
+    },
+    {
+      name: "organizationNotAllowedOnClient",
+      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      expectedStatus: 403,
+      clientId: mockClient.id,
+    },
+    {
+      name: "securityUserNotMember",
+      error: securityUserNotMember(keyUserId1),
+      expectedStatus: 403,
+      clientId: mockClient.id,
+    },
+    {
+      name: "invalid parameter clientId",
+      error: null,
+      expectedStatus: 400,
+      clientId: "invalid",
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus, clientId }) => {
+      authorizationService.getClientKeys = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, clientId);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
+  it.each([
+    {},
+    { ...queryParams, offset: "invalid" },
+    { ...queryParams, limit: "invalid" },
+    { ...queryParams, offset: -2 },
+    { ...queryParams, limit: 100 },
+  ])("Should return 400 if passed invalid params", async (query) => {
+    const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      generateId()
+      token,
+      mockClient.id,
+      query as typeof queryParams
     );
 
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnClient", async () => {
-    authorizationService.getClientKeys = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnClient(generateId(), mockClient.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for securityUserNotMember", async () => {
-    authorizationService.getClientKeys = vi
-      .fn()
-      .mockRejectedValue(securityUserNotMember(keyUserId1));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
     expect(res.status).toBe(400);
   });
 });

@@ -28,10 +28,7 @@ describe("API /clients/{clientId} authorization test", () => {
       .get(`/clients/${clientId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit: 50,
-      });
+      .send();
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -58,27 +55,29 @@ describe("API /clients/{clientId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.getClientById = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(mockClient.id));
+  it.each([
+    {
+      name: "clientNotFound",
+      error: clientNotFound(mockClient.id),
+      expectedStatus: 404,
+      clientId: generateId(),
+    },
+    {
+      name: "organizationNotAllowedOnClient",
+      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      expectedStatus: 403,
+      clientId: mockClient.id,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus, clientId }) => {
+      authorizationService.getClientById = vi.fn().mockRejectedValue(error);
 
-    const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      generateId()
-    );
-
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnClient", async () => {
-    authorizationService.getClientById = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnClient(generateId(), mockClient.id)
+      const res = await makeRequest(
+        generateToken(authRole.ADMIN_ROLE),
+        clientId
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

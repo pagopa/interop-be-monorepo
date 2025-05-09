@@ -41,12 +41,16 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     .fn()
     .mockResolvedValue(mockKey);
 
-  const makeRequest = async (token: string, producerKeychainId: string) =>
+  const makeRequest = async (
+    token: string,
+    producerKeychainId: string,
+    body: authorizationApi.KeySeed = keySeed
+  ) =>
     request(api)
       .post(`/producerKeychains/${producerKeychainId}/keys`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(keySeed);
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -71,70 +75,72 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for producerKeychainNotFound", async () => {
-    authorizationService.createProducerKeychainKey = vi
-      .fn()
-      .mockRejectedValue(producerKeychainNotFound(mockProducerKeychain.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      name: "producerKeychainNotFound",
+      error: producerKeychainNotFound(mockProducerKeychain.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "tooManyKeysPerProducerKeychain",
+      error: tooManyKeysPerProducerKeychain(mockProducerKeychain.id, 1),
+      expectedStatus: 400,
+    },
+    {
+      name: "invalidPublicKey",
+      error: invalidPublicKey(),
+      expectedStatus: 400,
+    },
+    {
+      name: "notAnRSAKey",
+      error: notAnRSAKey(),
+      expectedStatus: 400,
+    },
+    {
+      name: "invalidKeyLength",
+      error: invalidKeyLength(mockKey.encodedPem.length),
+      expectedStatus: 400,
+    },
+    {
+      name: "organizationNotAllowedOnProducerKeychain",
+      error: organizationNotAllowedOnProducerKeychain(
+        generateId(),
+        mockProducerKeychain.id
+      ),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus }) => {
+      authorizationService.createProducerKeychainKey = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 400 for tooManyKeysPerProducerKeychain", async () => {
-    authorizationService.createProducerKeychainKey = vi
-      .fn()
-      .mockRejectedValue(
-        tooManyKeysPerProducerKeychain(mockProducerKeychain.id, 1)
-      );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockProducerKeychain.id);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    {},
+    { ...keySeed, invalidParam: "invalidValue" },
+    { ...keySeed, name: 1 },
+    { ...keySeed, use: "invalidUse" },
+    { ...keySeed, alg: 1 },
+    { ...keySeed, key: 1 },
+    { ...keySeed, name: undefined },
+    { ...keySeed, use: undefined },
+    { ...keySeed, alg: undefined },
+    { ...keySeed, key: undefined },
+  ])("Should return 400 if passed invalid params", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
+    const res = await makeRequest(
+      token,
+      mockProducerKeychain.id,
+      body as authorizationApi.KeySeed
+    );
+
     expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for invalidPublicKey", async () => {
-    authorizationService.createProducerKeychainKey = vi
-      .fn()
-      .mockRejectedValue(invalidPublicKey());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for notAnRSAKey", async () => {
-    authorizationService.createProducerKeychainKey = vi
-      .fn()
-      .mockRejectedValue(notAnRSAKey());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for invalidKeyLength", async () => {
-    authorizationService.createProducerKeychainKey = vi
-      .fn()
-      .mockRejectedValue(invalidKeyLength(mockKey.encodedPem.length));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnProducerKeychain", async () => {
-    authorizationService.createProducerKeychainKey = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnProducerKeychain(
-          generateId(),
-          mockProducerKeychain.id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockProducerKeychain.id);
-    expect(res.status).toBe(403);
   });
 });

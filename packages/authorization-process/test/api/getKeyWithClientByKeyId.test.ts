@@ -41,10 +41,7 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
       .get(`/clients/${clientId}/keys/${keyId}/bundle`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit: 50,
-      });
+      .send();
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,

@@ -30,10 +30,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
       .get(`/clients/${clientId}/users`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit: 50,
-      });
+      .send();
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -60,29 +57,35 @@ describe("API /clients/{clientId}/users authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.getClientUsers = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(mockClient.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      name: "clientNotFound",
+      error: clientNotFound(mockClient.id),
+      expectedStatus: 404,
+      clientId: mockClient.id,
+    },
+    {
+      name: "organizationNotAllowedOnClient",
+      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      expectedStatus: 403,
+      clientId: mockClient.id,
+    },
+    {
+      name: "invalid clientId",
+      error: null,
+      expectedStatus: 400,
+      clientId: "invalid",
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus, clientId }) => {
+      if (error) {
+        authorizationService.getClientUsers = vi.fn().mockRejectedValue(error);
+      }
 
-  it("Should return 403 for organizationNotAllowedOnClient", async () => {
-    authorizationService.getClientUsers = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnClient(generateId(), mockClient.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, clientId);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { generateId, Client, UserId } from "pagopa-interop-models";
+import { generateId, Client, UserId, ClientId } from "pagopa-interop-models";
 import { generateToken, getMockClient } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, authorizationService } from "../vitest.api.setup.js";
@@ -47,38 +47,47 @@ describe("API /clients/{clientId}/users/{userId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.removeClientUser = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(mockClient.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id, userIdToRemove);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      name: "clientNotFound",
+      error: clientNotFound(mockClient.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "clientUserIdNotFound",
+      error: clientUserIdNotFound(userIdToRemove, mockClient.id),
+      expectedStatus: 404,
+    },
+    {
+      name: "organizationNotAllowedOnClient",
+      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus }) => {
+      authorizationService.removeClientUser = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockClient.id, userIdToRemove);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 404 for clientUserIdNotFound", async () => {
-    authorizationService.removeClientUser = vi
-      .fn()
-      .mockRejectedValue(clientUserIdNotFound(userIdToRemove, mockClient.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id, userIdToRemove);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowedOnClient", async () => {
-    authorizationService.removeClientUser = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotAllowedOnClient(generateId(), mockClient.id)
+  it.each([
+    {},
+    { clientId: "invalidId", userId: userIdToRemove },
+    { clientId: mockClient.id, userId: "invalidId" },
+  ])(
+    "Should return 400 if passed invalid params",
+    async ({ clientId, userId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId as ClientId,
+        userId as UserId
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id, userIdToRemove);
-    expect(res.status).toBe(403);
-  });
 
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid", "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

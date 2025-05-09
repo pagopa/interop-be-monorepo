@@ -44,27 +44,47 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.deleteClientKeyById = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(clientId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, clientId, keyId);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      name: "clientNotFound",
+      error: clientNotFound(clientId),
+      expectedStatus: 404,
+      clientId,
+      keyId,
+    },
+    {
+      name: "clientKeyNotFound",
+      error: clientKeyNotFound(keyId, clientId),
+      expectedStatus: 404,
+      clientId,
+      keyId,
+    },
+  ])(
+    "Should return $expectedStatus for $name",
+    async ({ error, expectedStatus, clientId, keyId }) => {
+      if (error) {
+        authorizationService.deleteClientKeyById = vi
+          .fn()
+          .mockRejectedValue(error);
+      }
 
-  it("Should return 404 for clientKeyNotFound", async () => {
-    authorizationService.deleteClientKeyById = vi
-      .fn()
-      .mockRejectedValue(clientKeyNotFound(keyId, clientId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, clientId, keyId);
-    expect(res.status).toBe(404);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, clientId, keyId);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid", "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{}, { clientId: "invalidId", keyId }])(
+    "Should return 400 if passed invalid params",
+    async ({ clientId, keyId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId as ClientId,
+        keyId as string
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

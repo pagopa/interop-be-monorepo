@@ -50,17 +50,22 @@ describe("API /producerKeychains authorization test", () => {
     .fn()
     .mockResolvedValue(producerKeychainsResponse);
 
-  const makeRequest = async (token: string) =>
+  const queryParams = {
+    producerId,
+    eserviceId,
+    offset: 0,
+    limit: 50,
+  };
+
+  const makeRequest = async (
+    token: string,
+    query: typeof queryParams = queryParams
+  ) =>
     request(api)
       .get(`/producerKeychains`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        producerId,
-        eserviceId,
-        offset: 0,
-        limit: 50,
-      });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -87,20 +92,18 @@ describe("API /producerKeychains authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for invalid query parameter (invalid limit)", async () => {
+  it.each([
+    {},
+    { ...queryParams, offset: "invalid" },
+    { ...queryParams, limit: "invalid" },
+    { ...queryParams, producerId: "invalid-consumer-id" },
+    { ...queryParams, eserviceId: "invalid-eservice-Id" },
+    { ...queryParams, offset: -2 },
+    { ...queryParams, limit: 100 },
+  ])("Should return 400 if passed invalid params", async (query) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await request(api)
-      .get("/producerKeychains")
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({
-        producerId,
-        eserviceId,
-        offset: 0,
-        limit: 100,
-      });
+    const res = await makeRequest(token, query as typeof queryParams);
 
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty("title", "Bad request");
   });
 });

@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { Client, generateId, TenantId, UserId } from "pagopa-interop-models";
+import {
+  Client,
+  generateId,
+  PurposeId,
+  TenantId,
+  UserId,
+} from "pagopa-interop-models";
 import { generateToken, getMockClient } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { authorizationApi } from "pagopa-interop-api-clients";
@@ -10,21 +16,24 @@ import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 
 describe("API /clients authorization test", () => {
   const consumerId = generateId<TenantId>();
+  const purposeId = generateId<PurposeId>();
   const userId1: UserId = generateId();
   const userId2: UserId = generateId();
 
   const client1: Client = {
     ...getMockClient(),
-    name: "client1",
+    name: "client",
     consumerId,
+    purposes: [purposeId],
     users: [userId1],
     kind: "Consumer",
   };
 
   const client2: Client = {
     ...getMockClient(),
-    name: "client2",
+    name: "client",
     consumerId,
+    purposes: [purposeId],
     users: [userId2],
     kind: "Consumer",
   };
@@ -43,17 +52,25 @@ describe("API /clients authorization test", () => {
 
   authorizationService.getClients = vi.fn().mockResolvedValue(clientsResponse);
 
-  const makeRequest = async (token: string) =>
+  const queryParams = {
+    name: "client",
+    userIds: [userId1, userId2],
+    purposes: [purposeId],
+    consumerId,
+    kind: "CONSUMER",
+    offset: 0,
+    limit: 50,
+  };
+
+  const makeRequest = async (
+    token: string,
+    query: typeof queryParams = queryParams
+  ) =>
     request(api)
       .get(`/clients`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        consumerId,
-        userIds: [userId1, userId2],
-        offset: 0,
-        limit: 50,
-      });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -80,19 +97,18 @@ describe("API /clients authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for invalid query parameter (invalid limit)", async () => {
+  it.each([
+    {},
+    { ...queryParams, offset: "invalid" },
+    { ...queryParams, limit: "invalid" },
+    { ...queryParams, consumerId: "invalid-consumer-id" },
+    { ...queryParams, kind: "invalidKind" },
+    { ...queryParams, offset: -2 },
+    { ...queryParams, limit: 100 },
+  ])("Should return 400 if passed invalid params", async (query) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await request(api)
-      .get("/clients")
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({
-        consumerId,
-        offset: 0,
-        limit: 100,
-      });
+    const res = await makeRequest(token, query as typeof queryParams);
 
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty("title", "Bad request");
   });
 });
