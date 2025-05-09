@@ -1,7 +1,7 @@
 import {
   attributeRegistryApi,
   delegationApi,
-  authorizationApi
+  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
@@ -28,7 +28,7 @@ export function resourcePollingTimeout(
   return new ApiError({
     detail: `Resource polling timed out after ${maxAttempts} attempts`,
     code: "resourcePollingTimeout",
-    title: "Resource Polling Timeout",
+    title: "Resource polling timeout",
   });
 }
 
@@ -36,7 +36,7 @@ export function missingMetadata(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: "Resource metadata is missing",
     code: "missingMetadata",
-    title: "Missing Metadata",
+    title: "Missing metadata",
   });
 }
 
@@ -46,7 +46,7 @@ export function unexpectedDelegationKind(
   return new ApiError({
     detail: `Unexpected delegation kind "${delegation.kind}" for delegation ${delegation.id}`,
     code: "unexpectedDelegationKind",
-    title: "Unexpected Delegation Kind",
+    title: "Unexpected delegation kind",
   });
 }
 
