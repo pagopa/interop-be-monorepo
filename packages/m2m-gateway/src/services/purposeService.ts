@@ -1,5 +1,6 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import { PurposeId } from "pagopa-interop-models";
 import {
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
@@ -42,6 +43,25 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount,
         },
       };
+    },
+    getPurpose: async (
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> => {
+      logger.info(`Retrieving purpose with id ${purposeId}`);
+
+      const { data } = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      return toM2MGatewayApiPurpose({
+        purpose: data,
+        logger,
+        mapThrownErrorsToNotFound: true,
+      });
     },
   };
 }

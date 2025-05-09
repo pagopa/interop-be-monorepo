@@ -216,6 +216,7 @@ const purposeRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
         const { purpose, isRiskAnalysisValid } =
