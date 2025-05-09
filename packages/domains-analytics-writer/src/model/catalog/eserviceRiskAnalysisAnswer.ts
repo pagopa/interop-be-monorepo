@@ -1,7 +1,7 @@
 import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
 
-export const eserviceRiskAnalysisAnswerSchema = z.object({
+export const EserviceRiskAnalysisAnswerSchema = z.object({
   id: z.string(),
   eservice_id: z.string(),
   metadata_version: z.number(),
@@ -10,9 +10,8 @@ export const eserviceRiskAnalysisAnswerSchema = z.object({
   key: z.string(),
   value: z.string(),
 });
-
-type EserviceRiskAnalysisAnswerSchema = z.infer<
-  typeof eserviceRiskAnalysisAnswerSchema
+export type EserviceRiskAnalysisAnswerSchema = z.infer<
+  typeof EserviceRiskAnalysisAnswerSchema
 >;
 
 export type EserviceRiskAnalysisAnswerMapping = {

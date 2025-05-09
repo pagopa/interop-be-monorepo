@@ -6,18 +6,18 @@ import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { DBConnection } from "../../db/db.js";
 import {
   AttributeMapping,
-  attributeSchema,
+  AttributeSchema,
 } from "../../model/attribute/attribute.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, AttributeDbtable } from "../../model/db.js";
+import { DeletingDbTable, AttributeDbTable } from "../../model/db.js";
 
 /* eslint-disable-next-line @typescript-eslint/explicit-function-return-type */
 export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = AttributeDbtable.attribute;
+  const tableName = AttributeDbTable.attribute;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTable = DeletingDbTable.attribute_deleting_table;
 
@@ -56,7 +56,7 @@ export function attributeRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          attributeSchema,
+          AttributeSchema,
           schemaName,
           tableName,
           stagingTable,
@@ -114,7 +114,7 @@ export function attributeRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

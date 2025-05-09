@@ -11,7 +11,7 @@ import {
 import { config } from "../../config/config.js";
 import {
   EserviceMapping,
-  eserviceSchema,
+  EserviceSchema,
 } from "../../model/catalog/eservice.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
@@ -62,7 +62,7 @@ export function eserviceRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          eserviceSchema,
+          EserviceSchema,
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,
@@ -121,7 +121,7 @@ export function eserviceRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

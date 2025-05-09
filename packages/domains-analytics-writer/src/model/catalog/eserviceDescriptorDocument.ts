@@ -1,7 +1,7 @@
 import { EServiceDescriptorDocumentSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
 
-export const eserviceDescriptorDocumentSchema = z.object({
+export const EserviceDescriptorDocumentSchema = z.object({
   id: z.string(),
   eservice_id: z.string(),
   metadata_version: z.number(),
@@ -13,9 +13,8 @@ export const eserviceDescriptorDocumentSchema = z.object({
   checksum: z.string(),
   upload_date: z.string(),
 });
-
-type EserviceDescriptorDocumentSchema = z.infer<
-  typeof eserviceDescriptorDocumentSchema
+export type EserviceDescriptorDocumentSchema = z.infer<
+  typeof EserviceDescriptorDocumentSchema
 >;
 
 export type EserviceDescriptorDocumentMapping = {
@@ -24,7 +23,10 @@ export type EserviceDescriptorDocumentMapping = {
   ) => EserviceDescriptorDocumentSchema[K];
 };
 
-export const eserviceDescriptorDocumentDeletingSchema = z.object({
+export const EserviceDescriptorDocumentDeletingSchema = z.object({
   id: z.string(),
   deleted: z.boolean(),
 });
+export type EserviceDescriptorDocumentDeletingSchema = z.infer<
+  typeof EserviceDescriptorDocumentDeletingSchema
+>;

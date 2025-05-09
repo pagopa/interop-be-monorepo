@@ -3,7 +3,7 @@ import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import { config } from "../src/config/config.js";
 import {
   AgreementDbTable,
-  AttributeDbtable,
+  AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
 } from "../src/model/db.js";
@@ -14,7 +14,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
   afterAll(() => {
     vi.restoreAllMocks();
   });
-  const attributeTables = [AttributeDbtable.attribute];
+  const attributeTables = [AttributeDbTable.attribute];
 
   const agreementTables = [
     AgreementDbTable.agreement,
@@ -47,7 +47,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(attributeTables);
 
     const expectedTables = attributeTables.map(
-      (t) => `${t}_${config.mergeTableSuffix}`
+      (t) => `${t}_${config.mergeTableSuffix}`,
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -62,7 +62,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(agreementTables);
 
     const expectedTables = agreementTables.map(
-      (t) => `${t}_${config.mergeTableSuffix}`
+      (t) => `${t}_${config.mergeTableSuffix}`,
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -77,7 +77,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(catalogTables);
 
     const expectedTables = catalogTables.map(
-      (t) => `${t}_${config.mergeTableSuffix}`
+      (t) => `${t}_${config.mergeTableSuffix}`,
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -108,7 +108,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
         DeletingDbTable.attribute_deleting_table,
         DeletingDbTable.catalog_deleting_table,
         DeletingDbTable.agreement_deleting_table,
-      ].sort()
+      ].sort(),
     );
   });
 
@@ -117,7 +117,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     vi.spyOn(dbContext.conn, "query").mockRejectedValueOnce(mockQueryError);
 
     await expect(
-      dbService.setupStagingTables(stagingTables)
+      dbService.setupStagingTables(stagingTables),
     ).rejects.toThrowError(setupStagingTablesError(mockQueryError));
   });
 });

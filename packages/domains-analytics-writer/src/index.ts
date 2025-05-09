@@ -13,7 +13,7 @@ import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import {
   AgreementDbTable,
-  AttributeDbtable,
+  AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
 } from "./model/db.js";
@@ -42,7 +42,7 @@ await retryConnection(
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables([
-      AttributeDbtable.attribute,
+      AttributeDbTable.attribute,
       CatalogDbTable.eservice,
       CatalogDbTable.eservice_descriptor,
       CatalogDbTable.eservice_descriptor_template_version_ref,
@@ -64,7 +64,7 @@ await retryConnection(
       DeletingDbTable.agreement_deleting_table,
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -75,7 +75,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -92,5 +92,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch
+  processBatch,
 );

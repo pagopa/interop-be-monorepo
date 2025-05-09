@@ -1,7 +1,7 @@
 import { EServiceDescriptorInterfaceSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
 
-export const eserviceDescriptorInterfaceSchema = z.object({
+export const EserviceDescriptorInterfaceSchema = z.object({
   id: z.string(),
   eservice_id: z.string(),
   metadata_version: z.number(),
@@ -13,9 +13,8 @@ export const eserviceDescriptorInterfaceSchema = z.object({
   checksum: z.string(),
   upload_date: z.string(),
 });
-
-type EserviceDescriptorInterfaceSchema = z.infer<
-  typeof eserviceDescriptorInterfaceSchema
+export type EserviceDescriptorInterfaceSchema = z.infer<
+  typeof EserviceDescriptorInterfaceSchema
 >;
 
 export type EserviceDescriptorInterfaceMapping = {

@@ -6,29 +6,29 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
-  Attribute,
   AttributeEventEnvelope,
+  AttributeKindV1,
   attributeKind,
   generateId,
 } from "pagopa-interop-models";
 import { handleAttributeMessageV1 } from "../src/handlers/attribute/consumerServiceV1.js";
-import { AttributeDbtable, DeletingDbTable } from "../src/model/db.js";
+import { AttributeDbTable, DeletingDbTable } from "../src/model/db.js";
 import { dbContext, getAttributeFromDb } from "./utils.js";
 
 describe("SQL Attribute Service - Events V1", () => {
   beforeEach(async () => {
     await dbContext.conn.none(
-      `TRUNCATE ${AttributeDbtable.attribute} CASCADE;`
+      `TRUNCATE ${AttributeDbTable.attribute} CASCADE;`,
     );
     await dbContext.conn.none(
-      `TRUNCATE ${DeletingDbTable.attribute_deleting_table}`
+      `TRUNCATE ${DeletingDbTable.attribute_deleting_table}`,
     );
   });
 
   it("AttributeAdded - certified", async () => {
-    const attr: Attribute = {
+    const attr = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
+      kind: AttributeKindV1.CERTIFIED,
       code: "123456",
       origin: "certifier-id",
     };
@@ -42,7 +42,6 @@ describe("SQL Attribute Service - Events V1", () => {
       data: { attribute: attr as any },
       log_date: new Date(),
     };
-
     await handleAttributeMessageV1([message], dbContext);
     const stored = await getAttributeFromDb(attr.id, dbContext);
     expect(stored?.length).toBe(1);
@@ -52,9 +51,9 @@ describe("SQL Attribute Service - Events V1", () => {
   });
 
   it("AttributeAdded - declared", async () => {
-    const attr: Attribute = {
+    const attr = {
       ...getMockAttribute(),
-      kind: attributeKind.declared,
+      kind: AttributeKindV1.DECLARED,
     };
 
     const message: AttributeEventEnvelope = {
@@ -75,9 +74,9 @@ describe("SQL Attribute Service - Events V1", () => {
   });
 
   it("AttributeAdded - verified", async () => {
-    const attr: Attribute = {
+    const attr = {
       ...getMockAttribute(),
-      kind: attributeKind.verified,
+      kind: AttributeKindV1.VERIFIED,
     };
 
     const message: AttributeEventEnvelope = {
@@ -98,9 +97,9 @@ describe("SQL Attribute Service - Events V1", () => {
   });
 
   it("AttributeAdded - deduplicates batch by attribute ID, keeps only record with highest metadata_version", async () => {
-    const attr: Attribute = {
+    const attr = {
       ...getMockAttribute(),
-      kind: attributeKind.verified,
+      kind: AttributeKindV1.VERIFIED,
     };
 
     const olderVersionMessage: AttributeEventEnvelope = {
@@ -125,7 +124,7 @@ describe("SQL Attribute Service - Events V1", () => {
 
     await handleAttributeMessageV1(
       [olderVersionMessage, newerVersionMessage],
-      dbContext
+      dbContext,
     );
 
     const stored = await getAttributeFromDb(attr.id, dbContext);
@@ -133,22 +132,22 @@ describe("SQL Attribute Service - Events V1", () => {
     expect(stored?.[0].metadata_version).toBe(10);
   });
   it("AttributeAdded - batch with different attribute IDs inserts all records", async () => {
-    const attr1: Attribute = {
+    const attr1 = {
       ...getMockAttribute(),
       id: generateId(),
-      kind: attributeKind.certified,
+      kind: AttributeKindV1.CERTIFIED,
     };
 
-    const attr2: Attribute = {
+    const attr2 = {
       ...getMockAttribute(),
       id: generateId(),
-      kind: attributeKind.declared,
+      kind: AttributeKindV1.DECLARED,
     };
 
-    const attr3: Attribute = {
+    const attr3 = {
       ...getMockAttribute(),
       id: generateId(),
-      kind: attributeKind.verified,
+      kind: AttributeKindV1.VERIFIED,
     };
 
     const messages: AttributeEventEnvelope[] = [
@@ -193,9 +192,9 @@ describe("SQL Attribute Service - Events V1", () => {
     expect(stored3?.[0]?.id).toBe(attr3.id);
   });
   it("MaintenanceAttributeDeleted - flags attribute as deleted", async () => {
-    const attr: Attribute = {
+    const attr = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
+      kind: AttributeKindV1.CERTIFIED,
     };
 
     const insertMessage: AttributeEventEnvelope = {
@@ -228,7 +227,7 @@ describe("SQL Attribute Service - Events V1", () => {
     it("should skip insert/update when incoming metadata_version is lower or equal", async () => {
       const attr = {
         ...getMockAttribute(),
-        kind: attributeKind.declared,
+        kind: AttributeKindV1.DECLARED,
         code: "AAA",
       };
       const first: AttributeEventEnvelope = {
@@ -266,7 +265,7 @@ describe("SQL Attribute Service - Events V1", () => {
     it("should overwrite when incoming metadata_version is greater", async () => {
       const attr = {
         ...getMockAttribute(),
-        kind: attributeKind.verified,
+        kind: AttributeKindV1.VERIFIED,
         code: "code",
       };
       const initial: AttributeEventEnvelope = {

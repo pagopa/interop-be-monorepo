@@ -8,7 +8,7 @@ import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
   EserviceDescriptorAttributeMapping,
-  eserviceDescriptorAttributeSchema,
+  EserviceDescriptorAttributeSchema,
 } from "../../model/catalog/eserviceDescriptorAttribute.js";
 import { CatalogDbTable } from "../../model/db.js";
 
@@ -59,7 +59,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          eserviceDescriptorAttributeSchema,
+          EserviceDescriptorAttributeSchema,
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,

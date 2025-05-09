@@ -1,6 +1,5 @@
 export const CatalogDbTable = {
   eservice: "eservice",
-  eservice_deleting: "eservice_deleting",
   eservice_descriptor: "eservice_descriptor",
   eservice_descriptor_attribute: "eservice_descriptor_attribute",
   eservice_descriptor_document: "eservice_descriptor_document",
@@ -14,7 +13,7 @@ export const CatalogDbTable = {
 
 export type CatalogDbTable =
   (typeof CatalogDbTable)[keyof typeof CatalogDbTable];
-export const AttributeDbtable = {
+export const AttributeDbTable = {
   attribute: "attribute",
 } as const;
 
@@ -36,7 +35,7 @@ export type AgreementDbTable =
   (typeof AgreementDbTable)[keyof typeof AgreementDbTable];
 
 export type AttributeDbtable =
-  (typeof AttributeDbtable)[keyof typeof AttributeDbtable];
+  (typeof AttributeDbTable)[keyof typeof AttributeDbTable];
 
 export type DeletingDbTable =
   (typeof DeletingDbTable)[keyof typeof DeletingDbTable];

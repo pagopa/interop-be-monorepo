@@ -11,7 +11,7 @@ import {
 import { config } from "../../config/config.js";
 import {
   EserviceRiskAnalysisMapping,
-  eserviceRiskAnalysisSchema,
+  EserviceRiskAnalysisSchema,
 } from "../../model/catalog/eserviceRiskAnalysis.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
@@ -63,7 +63,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          eserviceRiskAnalysisSchema,
+          EserviceRiskAnalysisSchema,
           schemaName,
           tableName,
           stagingTable,
@@ -121,7 +121,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

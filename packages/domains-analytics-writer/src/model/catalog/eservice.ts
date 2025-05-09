@@ -2,7 +2,7 @@
 import { EServiceSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
 
-export const eserviceSchema = z.object({
+export const EserviceSchema = z.object({
   id: z.string(),
   metadata_version: z.number(),
   name: z.string(),
@@ -16,13 +16,13 @@ export const eserviceSchema = z.object({
   is_client_access_delegable: z.string().nullable(),
   deleted: z.boolean().default(false).optional(),
 });
+export type EserviceSchema = z.infer<typeof EserviceSchema>;
 
-export const eserviceDeletingSchema = z.object({
+export const EserviceDeletingSchema = z.object({
   id: z.string(),
   deleted: z.boolean().default(false).optional(),
 });
-
-type EserviceSchema = z.infer<typeof eserviceSchema>;
+export type EserviceDeletingSchema = z.infer<typeof EserviceDeletingSchema>;
 
 export type EserviceMapping = {
   [K in keyof EserviceSchema]: (record: EServiceSQL) => EserviceSchema[K];

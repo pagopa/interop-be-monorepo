@@ -1,7 +1,7 @@
 import { EServiceDescriptorSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
 
-export const eserviceDescriptorSchema = z.object({
+export const EserviceDescriptorSchema = z.object({
   id: z.string(),
   eservice_id: z.string(),
   metadata_version: z.number(),
@@ -20,8 +20,7 @@ export const eserviceDescriptorSchema = z.object({
   deprecated_at: z.string().nullable(),
   archived_at: z.string().nullable(),
 });
-
-type EserviceDescriptorSchema = z.infer<typeof eserviceDescriptorSchema>;
+export type EserviceDescriptorSchema = z.infer<typeof EserviceDescriptorSchema>;
 
 export type EserviceDescriptorMapping = {
   [K in keyof EserviceDescriptorSchema]: (
@@ -29,7 +28,10 @@ export type EserviceDescriptorMapping = {
   ) => EserviceDescriptorSchema[K];
 };
 
-export const descriptorDeletingSchema = z.object({
+export const EserviceDescriptorDeletingSchema = z.object({
   id: z.string(),
   deleted: z.boolean(),
 });
+export type EserviceDescriptorDeletingSchema = z.infer<
+  typeof EserviceDescriptorDeletingSchema
+>;
