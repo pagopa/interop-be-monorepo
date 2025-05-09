@@ -5,11 +5,9 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
-  FileManager,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   activateAgreementErrorMapper,
@@ -17,18 +15,15 @@ import {
   getAgreementContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
-import { agreementServiceBuilder } from "../services/agreementService.js";
+import { AgreementService } from "../services/agreementService.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients,
-  fileManager: FileManager
+  agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(bffApi.agreementsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const agreementService = agreementServiceBuilder(clients, fileManager);
 
   agreementRouter
     .get("/consumers/agreements", async (req, res) => {
