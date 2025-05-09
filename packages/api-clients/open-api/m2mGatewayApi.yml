@@ -2515,6 +2515,20 @@ paths:
           description: The version state
           schema:
             $ref: "#/components/schemas/PurposeVersionState"
+        - name: offset
+          in: query
+          description: The offset used for pagination
+          schema:
+            type: integer
+            format: int32
+          required: true
+        - name: limit
+          in: query
+          description: The limit used for pagination
+          schema:
+            type: integer
+            format: int32
+          required: true
       responses:
         "200":
           description: Purpose versions retrieved
@@ -4312,9 +4326,18 @@ components:
         - createdAt
       description: business representation of a purpose version
     PurposeVersions:
-      type: array
-      items:
-        $ref: "#/components/schemas/PurposeVersion"
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeVersion"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     PurposeVersionSeed:
       type: object
       additionalProperties: false

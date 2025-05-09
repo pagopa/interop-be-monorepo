@@ -125,7 +125,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.PurposeVersions> => {
       logger.info(`Retrieving versions for purpose ${purposeId}`);
 
-      const { state } = queryParams;
+      const { state, limit, offset } = queryParams;
 
       const { data } = await clients.purposeProcessClient.getPurpose({
         params: {
@@ -138,7 +138,16 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         ? data.versions.filter((version) => version.state === state)
         : data.versions;
 
-      return versions.map(toM2mGatewayApiPurposeVersion);
+      const paginatedVersions = versions.slice(offset, offset + limit);
+
+      return {
+        results: paginatedVersions.map(toM2mGatewayApiPurposeVersion),
+        pagination: {
+          limit,
+          offset,
+          totalCount: versions.length,
+        },
+      };
     },
     getPurposeVersion: async (
       purposeId: PurposeId,
