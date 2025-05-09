@@ -362,7 +362,7 @@ export async function handleMessageV2(
       );
     })
     .with(
-      { type: "ClientAdminRemovedBySelfcare" },
+      { type: "ClientAdminRoleRevoked" },
       { type: "ClientAdminRemoved" },
       async (msg) => {
         const client = parseClient(msg.data.client, msg.type);
