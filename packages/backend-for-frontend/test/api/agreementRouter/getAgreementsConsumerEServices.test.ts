@@ -1,18 +1,35 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { services, api } from "../../vitest.api.setup.js";
-import { getMockApiCompactEServiceLight } from "../../mockUtils.js";
+import { api, clients } from "../../vitest.api.setup.js";
+import {
+  getMockAgreementApiCompactEService,
+  getMockApiCompactEServiceLight,
+} from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /consumers/agreements/eservices", () => {
-  const mockCompactEServiceLight1 = getMockApiCompactEServiceLight();
-  const mockCompactEServiceLight2 = getMockApiCompactEServiceLight();
-  const mockCompactEServiceLight3 = getMockApiCompactEServiceLight();
+  const mockCompactEService1 = getMockAgreementApiCompactEService();
+  const mockCompactEService2 = getMockAgreementApiCompactEService();
+  const mockCompactEService3 = getMockAgreementApiCompactEService();
+  const mockCompactEServiceLight1 = getMockApiCompactEServiceLight(
+    mockCompactEService1.id
+  );
+  const mockCompactEServiceLight2 = getMockApiCompactEServiceLight(
+    mockCompactEService2.id
+  );
+  const mockCompactEServiceLight3 = getMockApiCompactEServiceLight(
+    mockCompactEService3.id
+  );
+
+  const mockCompactEServices = {
+    results: [mockCompactEService1, mockCompactEService2, mockCompactEService3],
+    totalCount: 3,
+  };
 
   const mockCompactEServicesLight = {
     results: [
@@ -31,20 +48,19 @@ describe("API GET /consumers/agreements/eservices", () => {
     mockCompactEServicesLight
   );
 
-  // eslint-disable-next-line functional/immutable-data
-  services.agreementService.getAgreementsConsumerEServices = vi
-    .fn()
-    .mockResolvedValue(apiCompactEServicesLight);
-
   const makeRequest = async (token: string, limit: unknown = 10) =>
     request(api)
-      .get(
-        `${appBasePath}/consumers/agreements/eservices`
-      )
+      .get(`${appBasePath}/consumers/agreements/eservices`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query({ offset: 0, limit })
       .send();
+
+  beforeEach(() => {
+    clients.agreementProcessClient.getAgreementsEServices = vi
+      .fn()
+      .mockResolvedValue(mockCompactEServices);
+  });
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

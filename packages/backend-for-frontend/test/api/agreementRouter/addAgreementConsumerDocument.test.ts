@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AgreementId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
@@ -10,10 +10,6 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 describe("API POST /agreements/:agreementId/consumer-documents", () => {
   const mockAgreementId = generateId<AgreementId>();
   const mockBuffer = Buffer.from("content");
-
-  services.agreementService.addAgreementConsumerDocument = vi
-    .fn()
-    .mockResolvedValue(mockBuffer);
 
   const makeRequest = async (
     token: string,
@@ -26,6 +22,12 @@ describe("API POST /agreements/:agreementId/consumer-documents", () => {
       .field("name", "name")
       .field("prettyName", "pretty name")
       .attach("doc", Buffer.from("content"), { filename: "test.txt" });
+
+  beforeEach(() => {
+    services.agreementService.addAgreementConsumerDocument = vi
+      .fn()
+      .mockResolvedValue(mockBuffer);
+  });
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

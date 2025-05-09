@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
@@ -26,10 +26,6 @@ describe("API GET /consumers/agreements", () => {
 
   const apiAgreements = bffApi.Agreements.parse(mockAgreements);
 
-  services.agreementService.getConsumerAgreements = vi
-    .fn()
-    .mockResolvedValue(mockAgreements);
-
   const makeRequest = async (token: string, limit: unknown = 10) =>
     request(api)
       .get(`${appBasePath}/consumers/agreements`)
@@ -37,6 +33,12 @@ describe("API GET /consumers/agreements", () => {
       .set("X-Correlation-Id", generateId())
       .query({ offset: 0, limit })
       .send();
+
+  beforeEach(() => {
+    services.agreementService.getConsumerAgreements = vi
+      .fn()
+      .mockResolvedValue(mockAgreements);
+  });
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

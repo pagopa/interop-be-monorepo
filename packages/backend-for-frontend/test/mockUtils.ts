@@ -1,6 +1,6 @@
-import { bffApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
+import { agreementApi, bffApi } from "pagopa-interop-api-clients";
 import {
   AgreementId,
   DelegationId,
@@ -200,7 +200,7 @@ export const getMockBffApiCompactOrganization =
 export const getMockApiAgreementListEntry = (): bffApi.AgreementListEntry => ({
   id: generateId(),
   consumer: getMockApiCompactOrganization(),
-  eservice: getMockApiCompactEService(),
+  eservice: getMockBffApiCompactEService(),
   canBeUpgraded: false,
   descriptor: getApiMockCompactDescriptor(),
   state: "DRAFT",
@@ -237,15 +237,24 @@ export const getMockApiAgreementPayload = (): bffApi.AgreementPayload => ({
   eserviceId: generateId<EServiceId>(),
 });
 
-export const getMockApiCreatedResource = (): bffApi.CreatedResource => ({
-  id: generateId(),
+export const getMockApiCreatedResource = (
+  id: string = generateId()
+): bffApi.CreatedResource => ({
+  id,
 });
 
-export const getMockApiCompactEServiceLight =
-  (): bffApi.CompactEServiceLight => ({
+export const getMockAgreementApiCompactEService =
+  (): agreementApi.CompactEService => ({
     id: generateId<EServiceId>(),
     name: "name",
   });
+
+export const getMockApiCompactEServiceLight = (
+  id: string = generateId<EServiceId>()
+): bffApi.CompactEServiceLight => ({
+  id,
+  name: "name",
+});
 
 export const getMockApiAgreementSubmissionPayload =
   (): bffApi.AgreementSubmissionPayload => ({});
@@ -259,6 +268,12 @@ export const getMockApiAgreementUpdatePayload =
 export const getMockApiHasCertifiedAttributes =
   (): bffApi.HasCertifiedAttributes => ({
     hasCertifiedAttributes: true,
+  });
+
+export const getMockAgreementApiCompactOrganization =
+  (): agreementApi.CompactOrganization => ({
+    id: generateId<TenantId>(),
+    name: "name",
   });
 
 const getMockApiAgreementsEService = (): bffApi.AgreementsEService => ({
@@ -295,7 +310,7 @@ const getMockApiCompactOrganization = (): bffApi.CompactOrganization => ({
   name: "name",
 });
 
-const getMockApiCompactEService = (): bffApi.CompactEService => ({
+const getMockBffApiCompactEService = (): bffApi.CompactEService => ({
   id: generateId<EServiceId>(),
   name: "name",
   producer: getMockApiCompactOrganization(),
