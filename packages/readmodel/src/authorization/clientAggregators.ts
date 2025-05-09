@@ -1,5 +1,6 @@
 import {
   Client,
+  ClientId,
   ClientKind,
   genericInternalError,
   Key,
@@ -79,15 +80,36 @@ export const aggregateClientArray = ({
   usersSQL: ClientUserSQL[];
   purposesSQL: ClientPurposeSQL[];
   keysSQL: ClientKeySQL[];
-}): Array<WithMetadata<Client>> =>
-  clientsSQL.map((clientSQL) =>
-    aggregateClient({
+}): Array<WithMetadata<Client>> => {
+  const usersSQLByClientId = createClientSQLPropertyMap(usersSQL);
+  const purposesSQLByClientId = createClientSQLPropertyMap(purposesSQL);
+  const keysSQLByClientId = createClientSQLPropertyMap(keysSQL);
+
+  return clientsSQL.map((clientSQL) => {
+    const clientId = unsafeBrandId<ClientId>(clientSQL.id);
+    return aggregateClient({
       clientSQL,
-      usersSQL: usersSQL.filter((u) => u.clientId === clientSQL.id),
-      purposesSQL: purposesSQL.filter((p) => p.clientId === clientSQL.id),
-      keysSQL: keysSQL.filter((k) => k.clientId === clientSQL.id),
-    })
-  );
+      usersSQL: usersSQLByClientId.get(clientId) || [],
+      purposesSQL: purposesSQLByClientId.get(clientId) || [],
+      keysSQL: keysSQLByClientId.get(clientId) || [],
+    });
+  });
+};
+
+const createClientSQLPropertyMap = <
+  T extends ClientUserSQL | ClientPurposeSQL | ClientKeySQL
+>(
+  items: T[]
+): Map<ClientId, T[]> =>
+  items.reduce((acc, item) => {
+    const clientId = unsafeBrandId<ClientId>(item.clientId);
+    const values = acc.get(clientId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(clientId, values);
+
+    return acc;
+  }, new Map<ClientId, T[]>());
 
 export const toClientAggregator = (
   queryRes: Array<{

@@ -52,6 +52,7 @@ export const toAuthorizationEventNotification = (
           "ClientUserAdded",
           "ClientUserDeleted",
           "ClientAdminRemovedBySelfcare",
+          "ClientAdminRemoved",
           "ClientPurposeAdded",
           "ClientPurposeRemoved",
           "ProducerKeychainAdded",
