@@ -77,7 +77,7 @@ describe("addCertifiedAttribute", async () => {
     await addOneTenant(targetTenant);
     await addOneAttribute(attribute);
     await addOneTenant(requesterTenant);
-    const returnedTenant = await tenantService.addCertifiedAttribute(
+    const { data: returnedTenant } = await tenantService.addCertifiedAttribute(
       {
         tenantId: targetTenant.id,
         tenantAttributeSeed,
@@ -179,7 +179,7 @@ describe("addCertifiedAttribute", async () => {
     await addOneAttribute(attribute);
     await addOneTenant(tenantWithCertifiedAttribute);
     await addOneTenant(requesterTenant);
-    const returnedTenant = await tenantService.addCertifiedAttribute(
+    const { data: returnedTenant } = await tenantService.addCertifiedAttribute(
       {
         tenantId: tenantWithCertifiedAttribute.id,
         tenantAttributeSeed,

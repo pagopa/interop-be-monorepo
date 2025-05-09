@@ -88,7 +88,14 @@ const tenantRouter = (
     .post("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        await tenantService.addCertifiedAttribute(
+          unsafeBrandId(req.params.tenantId),
+          req.body,
+          ctx
+        );
+
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
