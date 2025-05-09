@@ -142,6 +142,7 @@ export async function sendCatalogAuthUpdate(
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptionUpdated",
           "EServiceIsConsumerDelegableEnabled",
@@ -473,6 +474,7 @@ export async function sendAuthorizationAuthUpdate(
       {
         type: P.union(
           "ClientAdminRemovedBySelfcare",
+          "ClientAdminRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
           "ProducerKeychainKeyAdded",
