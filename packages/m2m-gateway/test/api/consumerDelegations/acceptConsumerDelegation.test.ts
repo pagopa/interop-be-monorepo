@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -14,39 +13,30 @@ import {
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
 import { getMockedApiDelegation } from "../../mockUtils.js";
 
-describe("POST /consumerDelegations router test", () => {
-  const mockDelegationSeed: m2mGatewayApi.DelegationSeed = {
-    eserviceId: generateId(),
-    delegateId: generateId(),
-  };
-
+describe("POST /consumerDelegations/:delegationId/accept router test", () => {
   const mockApiDelegation = getMockedApiDelegation({
     kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-    eserviceId: mockDelegationSeed.eserviceId,
-    delegateId: mockDelegationSeed.delegateId,
+    state: delegationApi.DelegationState.Values.ACTIVE,
   });
   const mockM2MDelegationResponse: m2mGatewayApi.ConsumerDelegation =
     toM2MGatewayApiConsumerDelegation(mockApiDelegation.data);
 
-  const makeRequest = async (
-    token: string,
-    body: m2mGatewayApi.DelegationSeed
-  ) =>
+  const makeRequest = async (token: string, delegationId: string) =>
     request(api)
-      .post(`${appBasePath}/consumerDelegations`)
+      .post(`${appBasePath}/consumerDelegations/${delegationId}/accept`)
       .set("Authorization", `Bearer ${token}`)
-      .send(body);
+      .send();
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 and perform API clients calls for user with role %s",
     async (role) => {
-      mockDelegationService.createConsumerDelegation = vi
+      mockDelegationService.acceptConsumerDelegation = vi
         .fn()
         .mockResolvedValue(mockM2MDelegationResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockDelegationSeed);
+      const res = await makeRequest(token, mockApiDelegation.data.id);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MDelegationResponse);
@@ -57,28 +47,16 @@ describe("POST /consumerDelegations router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockDelegationSeed);
+    const res = await makeRequest(token, mockApiDelegation.data.id);
     expect(res.status).toBe(403);
   });
 
-  it.each([
-    { ...mockDelegationSeed, invalidParam: "invalidValue" },
-    { ...mockDelegationSeed, delegateId: undefined },
-    { ...mockDelegationSeed, eserviceId: undefined },
-    { ...mockDelegationSeed, eserviceId: "invalidId" },
-    { ...mockDelegationSeed, delegateId: "invalidId" },
-  ])(
-    "Should return 400 if passed an invalid delegation seed: %s",
-    async (body) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        body as unknown as m2mGatewayApi.DelegationSeed
-      );
+  it("Should return 400 if passed an invalid delegation id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid-delegation-id");
 
-      expect(res.status).toBe(400);
-    }
-  );
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     { ...mockM2MDelegationResponse, kind: "invalidKind" },
@@ -87,11 +65,11 @@ describe("POST /consumerDelegations router test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockDelegationService.createConsumerDelegation = vi
+      mockDelegationService.acceptConsumerDelegation = vi
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockDelegationSeed);
+      const res = await makeRequest(token, mockApiDelegation.data.id);
 
       expect(res.status).toBe(500);
     }
@@ -102,11 +80,11 @@ describe("POST /consumerDelegations router test", () => {
     unexpectedDelegationKind(mockApiDelegation.data),
     resourcePollingTimeout(3),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockDelegationService.createConsumerDelegation = vi
+    mockDelegationService.acceptConsumerDelegation = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockDelegationSeed);
+    const res = await makeRequest(token, mockApiDelegation.data.id);
 
     expect(res.status).toBe(500);
   });
