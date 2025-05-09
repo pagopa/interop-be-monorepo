@@ -1,32 +1,35 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, expect, it, vi } from "vitest";
-import { AgreementId, generateId } from "pagopa-interop-models";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { services, api } from "../../vitest.api.setup.js";
-import { getMockApiCreatedResource } from "../../mockUtils.js";
+import { api, clients } from "../../vitest.api.setup.js";
+import {
+  getMockApiAgreement,
+  getMockApiCreatedResource,
+} from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /agreements/:agreementId/clone", () => {
-  const mockAgreementId = generateId<AgreementId>();
-  const mockApiCreatedResource = getMockApiCreatedResource();
-
-  services.agreementService.cloneAgreement = vi
-    .fn()
-    .mockResolvedValue(mockApiCreatedResource);
+  const mockApiAgreement = getMockApiAgreement();
+  const mockApiCreatedResource = getMockApiCreatedResource(mockApiAgreement.id);
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockAgreementId
+    agreementId: string = mockApiAgreement.id
   ) =>
     request(api)
-      .post(
-        `${appBasePath}/agreements/${agreementId}/clone`
-      )
+      .post(`${appBasePath}/agreements/${agreementId}/clone`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
+
+  beforeEach(() => {
+    clients.agreementProcessClient.cloneAgreement = vi
+      .fn()
+      .mockResolvedValue(mockApiAgreement);
+  });
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

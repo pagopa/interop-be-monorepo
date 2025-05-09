@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
@@ -15,21 +15,21 @@ describe("API POST /agreements/:agreementId/reject", () => {
   const mockApiAgreement = getMockApiAgreement();
   const mockPayload = getMockApiAgreementRejectionPayload();
 
-  services.agreementService.rejectAgreement = vi
-    .fn()
-    .mockResolvedValue(mockApiAgreement);
-
   const makeRequest = async (
     token: string,
     agreementId = mockApiAgreement.id
   ) =>
     request(api)
-      .post(
-        `${appBasePath}/agreements/${agreementId}/reject`
-      )
+      .post(`${appBasePath}/agreements/${agreementId}/reject`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(mockPayload);
+
+  beforeEach(() => {
+    services.agreementService.rejectAgreement = vi
+      .fn()
+      .mockResolvedValue(mockApiAgreement);
+  });
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DescriptorId,
   EServiceId,
@@ -9,7 +9,7 @@ import {
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { services, api } from "../../vitest.api.setup.js";
+import { api, clients } from "../../vitest.api.setup.js";
 import { getMockApiHasCertifiedAttributes } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
@@ -18,10 +18,6 @@ describe("API GET /tenants/:tenantId/eservices/:eserviceId/descriptors/:descript
   const mockEServiceId = generateId<EServiceId>();
   const mockDescriptorId = generateId<DescriptorId>();
   const mockApiHasCertifiedAttributes = getMockApiHasCertifiedAttributes();
-
-  services.agreementService.verifyTenantCertifiedAttributes = vi
-    .fn()
-    .mockResolvedValue(mockApiHasCertifiedAttributes);
 
   const makeRequest = async (
     token: string,
@@ -34,6 +30,12 @@ describe("API GET /tenants/:tenantId/eservices/:eserviceId/descriptors/:descript
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
+
+  beforeEach(() => {
+    clients.agreementProcessClient.verifyTenantCertifiedAttributes = vi
+      .fn()
+      .mockResolvedValue(mockApiHasCertifiedAttributes);
+  });
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
