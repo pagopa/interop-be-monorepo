@@ -189,7 +189,7 @@ export async function createApp(
   app.use(loggerMiddleware(serviceName));
 
   app.use(
-    `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
+    appBasePath,
     healthRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
