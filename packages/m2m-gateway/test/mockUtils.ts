@@ -48,11 +48,16 @@ export function getMockedApiDelegation({
   };
 }
 
-export function getMockedApiTenant(): WithMetadata<tenantApi.Tenant> {
+export function getMockedApiTenant({
+  attributes,
+}: {
+  attributes?: tenantApi.TenantAttribute[];
+} = {}): WithMetadata<tenantApi.Tenant> {
   return {
     data: {
       id: generateId(),
-      attributes: generateMock(z.array(tenantApi.TenantAttribute)),
+      attributes:
+        attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
       externalId: {
         origin: generateMock(z.string()),
         value: generateMock(z.string()),

@@ -111,7 +111,14 @@ const tenantRouter = (
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
-          return res.status(501).send();
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await tenantService.revokeCertifiedAttribute(
+            unsafeBrandId(req.params.tenantId),
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

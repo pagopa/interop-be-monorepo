@@ -849,8 +849,12 @@ paths:
       operationId: revokeCertifiedAttributeById
       description: Revoke a certified attribute to a Tenant by the requester Tenant
       responses:
-        "204":
-          description: Certified Attribute revoked
+        "200":
+          description: Updated Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
         "403":
           description: Forbidden
           content:
