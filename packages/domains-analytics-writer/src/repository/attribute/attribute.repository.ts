@@ -12,12 +12,12 @@ import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, AttributeDbtable } from "../../model/db.js";
+import { DeletingDbTable, AttributeDbTable } from "../../model/db.js";
 
 /* eslint-disable-next-line @typescript-eslint/explicit-function-return-type */
 export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = AttributeDbtable.attribute;
+  const tableName = AttributeDbTable.attribute;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTable = DeletingDbTable.attribute_deleting_table;
 

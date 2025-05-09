@@ -13,7 +13,7 @@ export const CatalogDbTable = {
 
 export type CatalogDbTable =
   (typeof CatalogDbTable)[keyof typeof CatalogDbTable];
-export const AttributeDbtable = {
+export const AttributeDbTable = {
   attribute: "attribute",
 } as const;
 
@@ -23,7 +23,7 @@ export const DeletingDbTable = {
 };
 
 export type AttributeDbtable =
-  (typeof AttributeDbtable)[keyof typeof AttributeDbtable];
+  (typeof AttributeDbTable)[keyof typeof AttributeDbTable];
 
 export type DeletingDbTable =
   (typeof DeletingDbTable)[keyof typeof DeletingDbTable];

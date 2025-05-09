@@ -12,7 +12,7 @@ import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import {
-  AttributeDbtable,
+  AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
 } from "./model/db.js";
@@ -41,7 +41,7 @@ await retryConnection(
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables([
-      AttributeDbtable.attribute,
+      AttributeDbTable.attribute,
       CatalogDbTable.eservice,
       CatalogDbTable.eservice_descriptor,
       CatalogDbTable.eservice_descriptor_template_version_ref,
