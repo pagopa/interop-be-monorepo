@@ -42,17 +42,17 @@ export function attributeServiceBuilder(db: DBContext) {
       attributeIds: string[],
       dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(
-        attributeIds,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          attributeIds,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await repo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for attributeIds: ${batch.join(", ")}`
           );
-        });
-      }
+        }
+      });
 
       await dbContext.conn.tx(async (t) => {
         await repo.mergeDeleting(t);

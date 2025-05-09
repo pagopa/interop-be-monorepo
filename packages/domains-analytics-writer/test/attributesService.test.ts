@@ -18,10 +18,10 @@ import { dbContext, getAttributeFromDb } from "./utils.js";
 describe("SQL Attribute Service - Events V1", () => {
   beforeEach(async () => {
     await dbContext.conn.none(
-      `TRUNCATE ${AttributeDbTable.attribute} CASCADE;`,
+      `TRUNCATE ${AttributeDbTable.attribute} CASCADE;`
     );
     await dbContext.conn.none(
-      `TRUNCATE ${DeletingDbTable.attribute_deleting_table}`,
+      `TRUNCATE ${DeletingDbTable.attribute_deleting_table}`
     );
   });
 
@@ -124,7 +124,7 @@ describe("SQL Attribute Service - Events V1", () => {
 
     await handleAttributeMessageV1(
       [olderVersionMessage, newerVersionMessage],
-      dbContext,
+      dbContext
     );
 
     const stored = await getAttributeFromDb(attr.id, dbContext);
