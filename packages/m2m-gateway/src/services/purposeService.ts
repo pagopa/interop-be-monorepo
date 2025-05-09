@@ -30,7 +30,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return {
         results: results.map((purpose) =>
-          toM2MGatewayApiPurpose({ purpose, logger, throwNotFoundError: true })
+          toM2MGatewayApiPurpose({
+            purpose,
+            logger,
+            mapThrownErrorsToNotFound: true,
+          })
         ),
         pagination: {
           limit,
