@@ -4,20 +4,21 @@ import {
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
-import { tenantProcessClientBuilder } from "./clients/tenantProcessClient.js";
-import { selfcareOnboardingProcessorBuilder } from "./services/selfcareOnboardingProcessor.js";
+import { authorizationProcessClientBuilder } from "./clients/authorizationProcessClient.js";
+import { selfcareClientUsersUpdaterProcessorBuilder } from "./services/selfcareClientUsersUpdaterProcessor.js";
 
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
 await refreshableToken.init();
 
-const tenantProcessClient = tenantProcessClientBuilder(config.tenantProcessUrl);
+const authorizationProcessClient = authorizationProcessClientBuilder(
+  config.authorizationProcessUrl
+);
 
-const processor = selfcareOnboardingProcessorBuilder(
+const processor = selfcareClientUsersUpdaterProcessorBuilder(
   refreshableToken,
-  tenantProcessClient,
-  config.interopProduct,
-  config.allowedOrigins
+  authorizationProcessClient,
+  config.interopProduct
 );
 
 await runConsumer(
