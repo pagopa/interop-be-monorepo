@@ -473,6 +473,7 @@ export async function sendAuthorizationAuthUpdate(
     .with(
       {
         type: P.union(
+          "ClientAdminSet",
           "ClientAdminRemovedBySelfcare",
           "ClientAdminRemoved",
           "ProducerKeychainAdded",
