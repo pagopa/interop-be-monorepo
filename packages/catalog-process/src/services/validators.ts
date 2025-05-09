@@ -317,13 +317,15 @@ export function assertConsistentDailyCalls({
   }
 }
 
-export function assertDescriptorUpdatable(descriptor: Descriptor): void {
+export function assertPublishedDescriptorUpdatable(
+  descriptor: Descriptor
+): void {
   if (!isDescriptorUpdatable(descriptor)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }
 
-export function assertEServiceUpdatable(eservice: EService): void {
+export function assertPublishedEServiceUpdatable(eservice: EService): void {
   const hasValidDescriptor = eservice.descriptors.some(isDescriptorUpdatable);
   if (!hasValidDescriptor) {
     throw eserviceWithoutValidDescriptors(eservice.id);

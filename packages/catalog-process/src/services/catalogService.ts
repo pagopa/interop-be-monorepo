@@ -162,8 +162,8 @@ import {
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
-  assertDescriptorUpdatable,
-  assertEServiceUpdatable,
+  assertPublishedDescriptorUpdatable,
+  assertPublishedEServiceUpdatable,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -1883,7 +1883,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorUpdatable(descriptor);
+      assertPublishedDescriptorUpdatable(descriptor);
       assertConsistentDailyCalls(seed);
 
       const updatedDescriptor: Descriptor = {
@@ -1932,7 +1932,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorUpdatable(descriptor);
+      assertPublishedDescriptorUpdatable(descriptor);
       assertConsistentDailyCalls(seed);
 
       const updatedEService = replaceDescriptor(eservice.data, {
@@ -1976,7 +1976,7 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      assertDescriptorUpdatable(descriptor);
+      assertPublishedDescriptorUpdatable(descriptor);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2211,7 +2211,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      assertEServiceUpdatable(eservice.data);
+      assertPublishedEServiceUpdatable(eservice.data);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -2247,7 +2247,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      assertEServiceUpdatable(eservice.data);
+      assertPublishedEServiceUpdatable(eservice.data);
 
       if (!isConsumerDelegable && isClientAccessDelegable) {
         throw invalidEServiceFlags(eserviceId);
@@ -2393,7 +2393,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      assertEServiceUpdatable(eservice.data);
+      assertPublishedEServiceUpdatable(eservice.data);
 
       await assertNotDuplicatedEServiceName(
         name,
@@ -2525,7 +2525,7 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      assertDescriptorUpdatable(descriptor);
+      assertPublishedDescriptorUpdatable(descriptor);
 
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
