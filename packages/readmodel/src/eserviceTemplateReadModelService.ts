@@ -199,7 +199,10 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         toEServiceTemplateAggregator(queryResult)
       );
     },
+<<<<<<< HEAD
 
+=======
+>>>>>>> e34c85eec (aling to develop)
     async deleteEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId,
       metadataVersion: number
