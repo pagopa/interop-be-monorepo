@@ -139,17 +139,17 @@ export function agreementServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchAgreement(agreementIds: string[], ctx: DBContext) {
-      for (const batch of batchMessages(
-        agreementIds,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
+      await ctx.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          agreementIds,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await agreementRepository.insertDeleting(t, ctx.pgp, batch);
-        });
-        genericLogger.info(
-          `Staging deletion inserted for agreementsId: ${batch.join(", ")}`
-        );
-      }
+          genericLogger.info(
+            `Staging deletion inserted for agreementsId: ${batch.join(", ")}`
+          );
+        }
+      });
 
       await ctx.conn.tx(async (t) => {
         await agreementRepository.mergeDeleting(t);
@@ -178,19 +178,20 @@ export function agreementServiceBuilder(db: DBContext) {
       documentIds: string[],
       dbContext: DBContext
     ) {
-      for (const batch of batchMessages(
-        documentIds,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          documentIds,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await docRepository.insertDeleting(t, dbContext.pgp, batch);
-        });
-        genericLogger.info(
-          `Staging deletion inserted for agreement documentIds: ${batch.join(
-            ", "
-          )}`
-        );
-      }
+          genericLogger.info(
+            `Staging deletion inserted for agreement documentIds: ${batch.join(
+              ", "
+            )}`
+          );
+        }
+      });
+
       await docRepository.mergeDeleting();
       genericLogger.info(
         `Staging deletion merged into target tables for all agreementsIds`

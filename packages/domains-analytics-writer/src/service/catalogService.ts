@@ -345,18 +345,19 @@ export function catalogServiceBuilder(db: DBContext) {
       eserviceIds: string[],
       dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(
-        eserviceIds,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          eserviceIds,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await eserviceRepo.insertDeleting(t, dbContext.pgp, batch);
 
           genericLogger.info(
             `Staging deletion inserted for eserviceIds: ${batch.join(", ")}`
           );
-        });
-      }
+        }
+      });
+
       await dbContext.conn.tx(async (t) => {
         await eserviceRepo.mergeDeleting(t);
         await mergeDeletingCascadeById(
@@ -389,17 +390,18 @@ export function catalogServiceBuilder(db: DBContext) {
       descriptorIds: string[],
       dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(
-        descriptorIds,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          descriptorIds,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await descriptorRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for descriptorIds: ${batch.join(", ")}`
           );
-        });
-      }
+        }
+      });
+
       await dbContext.conn.tx(async (t) => {
         await descriptorRepo.mergeDeleting(t);
         await mergeDeletingCascadeById(
@@ -427,17 +429,17 @@ export function catalogServiceBuilder(db: DBContext) {
       riskAnalysisIds: string[],
       dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(
-        riskAnalysisIds,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          riskAnalysisIds,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await riskAnalysisRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for riskAnalysisIds: ${batch.join(", ")}`
           );
-        });
-      }
+        }
+      });
       await dbContext.conn.tx(async (t) => {
         await riskAnalysisRepo.mergeDeleting(t);
       });
@@ -455,17 +457,18 @@ export function catalogServiceBuilder(db: DBContext) {
       documentIds: string[],
       dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(
-        documentIds,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          documentIds,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await documentRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for documentIds: ${batch.join(", ")}`
           );
-        });
-      }
+        }
+      });
+
       await dbContext.conn.tx(async (t) => {
         await documentRepo.mergeDeleting(t);
       });
@@ -481,19 +484,20 @@ export function catalogServiceBuilder(db: DBContext) {
       descriptorIds: string[],
       dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(
-        descriptorIds,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          descriptorIds,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await interfaceRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for interface descriptorIds: ${batch.join(
               ", "
             )}`
           );
-        });
-      }
+        }
+      });
+
       await dbContext.conn.tx(async (t) => {
         await interfaceRepo.mergeDeleting(t);
       });
