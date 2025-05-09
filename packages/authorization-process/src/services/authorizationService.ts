@@ -24,6 +24,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AppContext,
+  assertFeatureFlagEnabled,
   calculateKid,
   createJWK,
   DB,
@@ -67,6 +68,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
+  toCreateEventClientAdminRemoved,
   toCreateEventClientAdminRemovedBySelfcare,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
@@ -88,6 +90,7 @@ import {
   ApiKeyUseToKeyUse,
   clientToApiClient,
 } from "../model/domain/apiConverter.js";
+import { config } from "../config/config.js";
 import {
   GetClientsFilters,
   GetProducerKeychainsFilters,
@@ -1334,6 +1337,32 @@ export function authorizationServiceBuilder(
 
       await repository.createEvent(
         toCreateEventClientAdminRemovedBySelfcare(
+          updatedClient,
+          adminId,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removeClientAdmin(
+      { clientId, adminId }: { clientId: ClientId; adminId: UserId },
+      { correlationId, logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertOrganizationIsClientConsumer(authData, client.data);
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRemoved(
           updatedClient,
           adminId,
           client.metadata.version,
