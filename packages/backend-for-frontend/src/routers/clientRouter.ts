@@ -226,8 +226,11 @@ const clientRouter = (
 
       try {
         const users = await clientService.getClientUsers(
-          req.params.clientId,
-          ctx.authData.selfcareId,
+          {
+            clientId: req.params.clientId,
+            selfcareId: ctx.authData.selfcareId,
+            name: req.query.name,
+          },
           ctx
         );
 
