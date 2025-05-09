@@ -5,6 +5,7 @@ import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
+import { clientServiceBuilder } from "../src/services/clientService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -68,3 +69,4 @@ export function expectApiClientPostToHaveBeenCalledWith({
 export const mockInteropBeClients = {} as PagoPAInteropBeClients;
 export const delegationService = delegationServiceBuilder(mockInteropBeClients);
 export const tenantService = tenantServiceBuilder(mockInteropBeClients);
+export const clientService = clientServiceBuilder(mockInteropBeClients);
