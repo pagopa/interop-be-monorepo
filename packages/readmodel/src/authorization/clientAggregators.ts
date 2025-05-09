@@ -18,7 +18,7 @@ import {
   ClientSQL,
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateClient = ({
   clientSQL,
@@ -121,6 +121,9 @@ export const toClientAggregator = (
 ): ClientItemsSQL => {
   const { clientsSQL, usersSQL, purposesSQL, keysSQL } =
     toClientAggregatorArray(queryRes);
+
+  throwIfMultiple(clientsSQL, "client");
+
   return {
     clientSQL: clientsSQL[0],
     usersSQL,

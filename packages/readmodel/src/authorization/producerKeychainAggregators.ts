@@ -16,7 +16,7 @@ import {
   ProducerKeychainKeySQL,
   ProducerKeychainItemsSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateProducerKeychain = ({
   producerKeychainSQL,
@@ -118,6 +118,9 @@ export const toProducerKeychainAggregator = (
 ): ProducerKeychainItemsSQL => {
   const { producerKeychainsSQL, usersSQL, eservicesSQL, keysSQL } =
     toProducerKeychainAggregatorArray(queryRes);
+
+  throwIfMultiple(producerKeychainsSQL, "producer keychain");
+
   return {
     producerKeychainSQL: producerKeychainsSQL[0],
     usersSQL,
