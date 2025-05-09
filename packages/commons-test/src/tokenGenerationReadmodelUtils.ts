@@ -55,6 +55,11 @@ export const writeTokenGenStatesApiClient = async (
       GSIPK_clientId_kid: {
         S: tokenGenStatesEntry.GSIPK_clientId_kid,
       },
+      ...(tokenGenStatesEntry.adminId
+        ? {
+            adminId: { S: tokenGenStatesEntry.adminId },
+          }
+        : {}),
     },
     TableName: "token-generation-states",
   };
