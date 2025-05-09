@@ -2,7 +2,7 @@
 import { randomUUID } from "crypto";
 import { it, afterEach, beforeAll, describe, expect, vi, vitest } from "vitest";
 import {
-  InteropToken,
+  InteropInternalToken,
   InteropTokenGenerator,
   ReadModelRepository,
   RefreshableInteropToken,
@@ -48,7 +48,7 @@ describe("IVASS Certified Attributes Importer", () => {
       generateId()
     );
 
-  const interopToken: InteropToken = {
+  const interopInternalToken: InteropInternalToken = {
     header: {
       alg: "algorithm",
       use: "use",
@@ -63,12 +63,12 @@ describe("IVASS Certified Attributes Importer", () => {
       iat: 0,
       nbf: 0,
       exp: 10,
-      role: "role1",
+      role: "internal",
     },
     serialized: "the-token",
   };
-  const generateInternalTokenMock = (): Promise<InteropToken> =>
-    Promise.resolve(interopToken);
+  const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
+    Promise.resolve(interopInternalToken);
 
   const refreshableInternalTokenSpy = vi
     .spyOn(refreshableTokenMock, "get")
