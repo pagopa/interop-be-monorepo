@@ -8,7 +8,7 @@ import {
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { services, api, clients } from "../../vitest.api.setup.js";
+import { services, api } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /agreements/:agreementId/consumer-documents/:documentId", () => {
