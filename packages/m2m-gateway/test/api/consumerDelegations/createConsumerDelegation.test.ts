@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
