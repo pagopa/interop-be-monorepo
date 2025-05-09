@@ -7,7 +7,7 @@ export default defineConfig({
     hookTimeout: 60000,
     fileParallelism: false,
     pool: "forks",
-    env: { FEATURE_FLAG_SQL: "false" },
+    env: { FEATURE_FLAG_SQL: "true" },
     watch: false,
   },
 });
