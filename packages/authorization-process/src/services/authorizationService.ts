@@ -24,6 +24,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AppContext,
+  assertFeatureFlagEnabled,
   calculateKid,
   createJWK,
   DB,
@@ -67,6 +68,8 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
+  toCreateEventClientAdminRemoved,
+  toCreateEventClientAdminRemovedBySelfcare,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -87,6 +90,7 @@ import {
   ApiKeyUseToKeyUse,
   clientToApiClient,
 } from "../model/domain/apiConverter.js";
+import { config } from "../config/config.js";
 import {
   GetClientsFilters,
   GetProducerKeychainsFilters,
@@ -104,6 +108,8 @@ import {
   assertUserSelfcareSecurityPrivileges,
   assertSecurityRoleIsClientMember,
   assertClientIsConsumer,
+  assertClientIsAPI,
+  assertAdminInClient,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -712,7 +718,7 @@ export function authorizationServiceBuilder(
         correlationId,
       });
 
-      const jwk = createJWK(keySeed.key);
+      const jwk = createJWK({ pemKeyBase64: keySeed.key });
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
@@ -781,7 +787,9 @@ export function authorizationServiceBuilder(
         throw clientKeyNotFound(kid, clientId);
       }
 
-      const jwk: JsonWebKey = createJWK(key.encodedPem);
+      const jwk: JsonWebKey = createJWK({
+        pemKeyBase64: key.encodedPem,
+      });
       const jwkKey = authorizationApi.JWKKey.parse({
         ...jwk,
         kid: key.kid,
@@ -1040,7 +1048,7 @@ export function authorizationServiceBuilder(
         keySeed: authorizationApi.KeySeed;
       },
       { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ProducerKeychain> {
+    ): Promise<Key> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
@@ -1068,7 +1076,7 @@ export function authorizationServiceBuilder(
         correlationId,
       });
 
-      const jwk = createJWK(keySeed.key);
+      const jwk = createJWK({ pemKeyBase64: keySeed.key });
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
@@ -1095,7 +1103,7 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return updatedProducerKeychain;
+      return newKey;
     },
     async removeProducerKeychainKeyById(
       {
@@ -1307,6 +1315,57 @@ export function authorizationServiceBuilder(
           updatedProducerKeychain,
           eserviceIdToRemove,
           producerKeychain.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async internalRemoveClientAdmin(
+      clientId: ClientId,
+      adminId: UserId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRemovedBySelfcare(
+          updatedClient,
+          adminId,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removeClientAdmin(
+      { clientId, adminId }: { clientId: ClientId; adminId: UserId },
+      { correlationId, logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertOrganizationIsClientConsumer(authData, client.data);
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRemoved(
+          updatedClient,
+          adminId,
+          client.metadata.version,
           correlationId
         )
       );

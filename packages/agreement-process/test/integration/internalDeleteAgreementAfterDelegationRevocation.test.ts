@@ -6,6 +6,7 @@ import {
   getMockContextInternal,
   getMockDelegation,
   randomArrayItem,
+  sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
   AgreementDeletedByRevokedDelegationV2,
@@ -88,8 +89,11 @@ describe("internal delete agreement", () => {
         payload: agreementEvent.data,
       });
 
-      expect(actualData).toEqual({
-        agreement: toAgreementV2(agreement),
+      expect({
+        agreement: sortAgreementV2(actualData.agreement),
+        delegationId: actualData.delegationId,
+      }).toEqual({
+        agreement: sortAgreementV2(toAgreementV2(agreement)),
         delegationId: consumerDelegation.id,
       });
 
