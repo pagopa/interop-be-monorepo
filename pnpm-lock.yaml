@@ -2047,12 +2047,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
-      pg:
-        specifier: 8.13.1
-        version: 8.13.1
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0

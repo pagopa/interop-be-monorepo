@@ -10,6 +10,7 @@ import {
   readEventByStreamIdAndVersion,
   sortAgreements,
   sortBy,
+  addOneAgreementSQL,
 } from "pagopa-interop-commons-test";
 import { afterAll, afterEach, expect, inject, vi } from "vitest";
 import {
@@ -147,13 +148,13 @@ export const writeAgreementInEventstore = async (
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeAgreementInEventstore(agreement);
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await addOneAgreementSQL(readModelDB, agreement, 0);
 };
 export const writeOnlyOneAgreement = async (
   agreement: Agreement
 ): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await addOneAgreementSQL(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
@@ -346,10 +347,7 @@ const updateOneAgreementRelationalDB = async (
     throw new Error("Agreement not found in read model. Cannot update.");
   }
 
-  await agreementReadModelServiceSQL.upsertAgreement(
-    agreement,
-    currentVersion + 1
-  );
+  await addOneAgreementSQL(readModelDB, agreement, currentVersion + 1);
 };
 
 async function updateOneAgreementDocumentDB(

@@ -24,6 +24,7 @@ import {
 import {
   ReadEvent,
   StoredEvent,
+  addOneAgreementSQL,
   readLastEventByStreamId,
   setupTestContainersVitest,
   writeInEventstore,
@@ -183,7 +184,7 @@ export const getMockAgreement = ({
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await addOneAgreementSQL(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {

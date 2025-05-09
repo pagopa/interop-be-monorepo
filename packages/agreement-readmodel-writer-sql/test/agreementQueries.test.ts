@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { Agreement, WithMetadata } from "pagopa-interop-models";
 import {
-  getMockAgreement,
   getMockAgreementDocument,
   getMockAgreementStamp,
 } from "pagopa-interop-commons-test";
 import {
   agreementReadModelService,
   agreementWriterService,
+  getCustomMockAgreement,
   readAgreementAttributesSQLByAgreementId,
   readAgreementConsumerDocumentSQLByAgreementId,
   readAgreementContractQLByAgreementId,
@@ -19,7 +19,7 @@ describe("Agreement queries", () => {
     it("should add a complete (*all* fields) agreement", async () => {
       const agreement: WithMetadata<Agreement> = {
         data: {
-          ...getMockAgreement(),
+          ...getCustomMockAgreement(),
           suspendedByConsumer: true,
           suspendedByProducer: false,
           suspendedByPlatform: false,
@@ -73,7 +73,7 @@ describe("Agreement queries", () => {
 
     it("should add an incomplete (*only* mandatory fields) agreement", async () => {
       const agreement: WithMetadata<Agreement> = {
-        data: getMockAgreement(),
+        data: getCustomMockAgreement(),
         metadata: { version: 1 },
       };
 
@@ -110,7 +110,7 @@ describe("Agreement queries", () => {
     it("should update a complete (*all* fields) agreement", async () => {
       const agreement: WithMetadata<Agreement> = {
         data: {
-          ...getMockAgreement(),
+          ...getCustomMockAgreement(),
           suspendedByConsumer: true,
           suspendedByProducer: false,
           suspendedByPlatform: false,
@@ -183,7 +183,7 @@ describe("Agreement queries", () => {
   describe("deleteAgreementById", () => {
     it("delete one agreement", async () => {
       const agreement: WithMetadata<Agreement> = {
-        data: getMockAgreement(),
+        data: getCustomMockAgreement(),
         metadata: { version: 1 },
       };
 

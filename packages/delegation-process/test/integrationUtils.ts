@@ -1,5 +1,6 @@
 /* eslint-disable functional/no-let */
 import {
+  addOneAgreementSQL,
   ReadEvent,
   readEventByStreamIdAndVersion,
   readLastEventByStreamId,
@@ -163,5 +164,5 @@ export const addOneEservice = async (eservice: EService): Promise<void> => {
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await addOneAgreementSQL(readModelDB, agreement, 0);
 };

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { Agreement, WithMetadata } from "pagopa-interop-models";
-import { addOneAgreement, getMockAgreement } from "pagopa-interop-commons-test";
+import {
+  addOneAgreementSQL,
+  getMockAgreement,
+} from "pagopa-interop-commons-test";
 import { agreementReadModelService } from "./agreementUtils.js";
 import { readModelDB } from "./utils.js";
 
@@ -12,12 +15,12 @@ describe("Agreement queries", () => {
         metadata: { version: 1 },
       };
 
-      await addOneAgreement(
+      await addOneAgreementSQL(
         readModelDB,
         agreement.data,
         agreement.metadata.version
       );
-      await addOneAgreement(
+      await addOneAgreementSQL(
         readModelDB,
         getMockAgreement(),
         agreement.metadata.version
@@ -35,7 +38,7 @@ describe("Agreement queries", () => {
         metadata: { version: 1 },
       };
 
-      await addOneAgreement(readModelDB, getMockAgreement(), 1);
+      await addOneAgreementSQL(readModelDB, getMockAgreement(), 1);
 
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);

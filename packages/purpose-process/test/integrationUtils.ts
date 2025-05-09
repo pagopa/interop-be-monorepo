@@ -6,6 +6,7 @@ import {
 import {
   ReadEvent,
   StoredEvent,
+  addOneAgreementSQL,
   readLastEventByStreamId,
   setupTestContainersVitest,
   sortPurpose,
@@ -135,7 +136,7 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await addOneAgreementSQL(readModelDB, agreement, 0);
 };
 
 export const addOneDelegation = async (

@@ -1,8 +1,13 @@
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+/* eslint-disable functional/immutable-data */
+/* eslint-disable fp/no-delete */
+import {
+  getMockAgreement,
+  setupTestContainersVitest,
+} from "pagopa-interop-commons-test";
 import { agreementReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { afterEach, inject } from "vitest";
 import { eq } from "drizzle-orm";
-import { AgreementId } from "pagopa-interop-models";
+import { Agreement, AgreementId } from "pagopa-interop-models";
 import {
   AgreementSQL,
   agreementInReadmodelAgreement,
@@ -77,3 +82,16 @@ export const readAgreementContractQLByAgreementId = async (
     .select()
     .from(agreementContractInReadmodelAgreement)
     .where(eq(agreementContractInReadmodelAgreement.agreementId, agreementId));
+
+export const getCustomMockAgreement = (): Agreement => {
+  const agreement = getMockAgreement();
+  delete agreement.suspendedByConsumer;
+  delete agreement.suspendedByProducer;
+  delete agreement.suspendedByPlatform;
+  delete agreement.updatedAt;
+  delete agreement.consumerNotes;
+  delete agreement.contract;
+  delete agreement.rejectionReason;
+  delete agreement.suspendedAt;
+  return agreement;
+};
