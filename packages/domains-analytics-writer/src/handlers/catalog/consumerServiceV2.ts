@@ -1,14 +1,54 @@
-import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/immutable-data */
+import {
+  EServiceEventEnvelopeV2,
+  fromEServiceV2,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { EServiceItemsSQL } from "pagopa-interop-readmodel-models";
+import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { DBContext } from "../../db/db.js";
 
 export async function handleCatalogMessageV2(
   messages: EServiceEventEnvelopeV2[],
-  _dbContext: DBContext
+  dbContext: DBContext
 ): Promise<void> {
+  const catalogService = catalogServiceBuilder(dbContext);
+
+  const upsertBatch: EServiceItemsSQL[] = [];
+  const deleteEServiceBatch: string[] = [];
+  const deleteDescriptorBatch: string[] = [];
+  const deleteEServiceDocumentBatch: string[] = [];
+  const deleteEserviceRiskAnalysisBatch: string[] = [];
+  const deleteEserviceInterfaceBatch: string[] = [];
+
   for (const message of messages) {
-    await match(message)
-      .with({ type: "EServiceDeleted" }, async () => Promise.resolve())
+    match(message)
+      .with({ type: "EServiceDeleted" }, (msg) => {
+        deleteEServiceBatch.push(msg.data.eserviceId);
+      })
+      .with({ type: P.union("EServiceDraftDescriptorDeleted") }, (msg) => {
+        deleteDescriptorBatch.push(msg.data.descriptorId);
+      })
+      .with({ type: P.union("EServiceDescriptorDocumentDeleted") }, (msg) => {
+        deleteEServiceDocumentBatch.push(msg.data.descriptorId);
+      })
+      .with({ type: P.union("EServiceRiskAnalysisDeleted") }, (msg) => {
+        deleteEserviceRiskAnalysisBatch.push(msg.data.riskAnalysisId);
+      })
+      .with(
+        {
+          type: P.union("EServiceDescriptorDocumentDeletedByTemplateUpdate"),
+        },
+        (msg) => {
+          deleteEServiceDocumentBatch.push(msg.data.documentId);
+        }
+      )
+      .with({ type: P.union("EServiceDescriptorInterfaceDeleted") }, (msg) => {
+        deleteEserviceInterfaceBatch.push(msg.data.descriptorId);
+      })
       .with(
         {
           type: P.union(
@@ -16,7 +56,6 @@ export async function handleCatalogMessageV2(
             "DraftEServiceUpdated",
             "EServiceCloned",
             "EServiceDescriptorAdded",
-            "EServiceDraftDescriptorDeleted",
             "EServiceDraftDescriptorUpdated",
             "EServiceDescriptorQuotasUpdated",
             "EServiceDescriptorAgreementApprovalPolicyUpdated",
@@ -28,11 +67,8 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentAdded",
             "EServiceDescriptorInterfaceUpdated",
             "EServiceDescriptorDocumentUpdated",
-            "EServiceDescriptorInterfaceDeleted",
-            "EServiceDescriptorDocumentDeleted",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",
-            "EServiceRiskAnalysisDeleted",
             "EServiceDescriptionUpdated",
             "EServiceDescriptorSubmittedByDelegate",
             "EServiceDescriptorApprovedByDelegator",
@@ -45,15 +81,55 @@ export async function handleCatalogMessageV2(
             "EServiceIsClientAccessDelegableDisabled",
             "EServiceNameUpdatedByTemplateUpdate",
             "EServiceDescriptionUpdatedByTemplateUpdate",
+            "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
             "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-            "EServiceDescriptorDocumentAddedByTemplateUpdate",
-            "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-            "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+            "EServiceDescriptorDocumentAddedByTemplateUpdate"
           ),
         },
-        async () => Promise.resolve()
+        (msg) => {
+          if (!msg.data.eservice) {
+            throw genericInternalError(
+              `EService can't be missing in the event message`
+            );
+          }
+          const splitResult: EServiceItemsSQL = splitEserviceIntoObjectsSQL(
+            fromEServiceV2(msg.data.eservice),
+            msg.version
+          );
+          upsertBatch.push(splitResult);
+        }
       )
       .exhaustive();
+  }
+  if (upsertBatch.length > 0) {
+    await catalogService.upsertBatchEservice(upsertBatch, dbContext);
+  }
+  if (deleteEServiceBatch.length > 0) {
+    await catalogService.deleteBatchEService(deleteEServiceBatch, dbContext);
+  }
+  if (deleteDescriptorBatch.length > 0) {
+    await catalogService.deleteBatchDescriptor(
+      deleteDescriptorBatch,
+      dbContext
+    );
+  }
+  if (deleteEServiceDocumentBatch.length > 0) {
+    await catalogService.deleteBatchEServiceDocument(
+      deleteEServiceDocumentBatch,
+      dbContext
+    );
+  }
+  if (deleteEserviceRiskAnalysisBatch.length > 0) {
+    await catalogService.deleteBatchEserviceRiskAnalysis(
+      deleteEserviceRiskAnalysisBatch,
+      dbContext
+    );
+  }
+  if (deleteEserviceInterfaceBatch.length > 0) {
+    await catalogService.deleteBatchEserviceInterface(
+      deleteEserviceInterfaceBatch,
+      dbContext
+    );
   }
 }
