@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   delegationService,
@@ -20,19 +19,13 @@ import {
   getMockedApiDelegation,
 } from "../../mockUtils.js";
 
-describe("createConsumerDelegation", () => {
-  const mockDelegationSeed: m2mGatewayApi.DelegationSeed = {
-    eserviceId: generateId(),
-    delegateId: generateId(),
-  };
-
+describe("rejectConsumerDelegation", () => {
   const mockDelegationProcessResponse = getMockedApiDelegation({
     kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-    eserviceId: mockDelegationSeed.eserviceId,
-    delegateId: mockDelegationSeed.delegateId,
+    state: delegationApi.DelegationState.Values.REJECTED,
   });
 
-  const mockCreateConsumerDelegation = vi
+  const mockRejectConsumerDelegation = vi
     .fn()
     .mockResolvedValue(mockDelegationProcessResponse);
 
@@ -42,7 +35,7 @@ describe("createConsumerDelegation", () => {
 
   mockInteropBeClients.delegationProcessClient = {
     consumer: {
-      createConsumerDelegation: mockCreateConsumerDelegation,
+      rejectConsumerDelegation: mockRejectConsumerDelegation,
     },
     delegation: {
       getDelegation: mockGetDelegation,
@@ -51,7 +44,7 @@ describe("createConsumerDelegation", () => {
 
   beforeEach(() => {
     // Clear mock counters and call information before each test
-    mockCreateConsumerDelegation.mockClear();
+    mockRejectConsumerDelegation.mockClear();
     mockGetDelegation.mockClear();
   });
 
@@ -71,8 +64,9 @@ describe("createConsumerDelegation", () => {
       state: mockDelegationProcessResponse.data.state,
     };
 
-    const result = await delegationService.createConsumerDelegation(
-      mockDelegationSeed,
+    const result = await delegationService.rejectConsumerDelegation(
+      mockDelegationProcessResponse.data.id,
+      { rejectionReason: "test reason" },
       getMockM2MAdminAppContext()
     );
 
@@ -80,8 +74,13 @@ describe("createConsumerDelegation", () => {
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.delegationProcessClient.consumer
-          .createConsumerDelegation,
-      body: mockDelegationSeed,
+          .rejectConsumerDelegation,
+      params: {
+        delegationId: mockDelegationProcessResponse.data.id,
+      },
+      body: {
+        rejectionReason: "test reason",
+      },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
@@ -106,22 +105,24 @@ describe("createConsumerDelegation", () => {
       mockGetDelegation.mockResolvedValueOnce(mockResponse);
 
     await expect(
-      delegationService.createConsumerDelegation(
-        mockDelegationSeed,
+      delegationService.rejectConsumerDelegation(
+        mockDelegationProcessResponse.data.id,
+        { rejectionReason: "test reason" },
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(unexpectedDelegationKind(mockResponse.data));
   });
 
-  it("Should throw missingMetadata in case the delegation returned by the creation POST call has no metadata", async () => {
-    mockCreateConsumerDelegation.mockResolvedValueOnce({
+  it("Should throw missingMetadata in case the delegation returned by the creation POST accept call has no metadata", async () => {
+    mockRejectConsumerDelegation.mockResolvedValueOnce({
       ...mockDelegationProcessResponse,
       metadata: undefined,
     });
 
     await expect(
-      delegationService.createConsumerDelegation(
-        mockDelegationSeed,
+      delegationService.rejectConsumerDelegation(
+        mockDelegationProcessResponse.data.id,
+        { rejectionReason: "test reason" },
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -134,8 +135,9 @@ describe("createConsumerDelegation", () => {
     });
 
     await expect(
-      delegationService.createConsumerDelegation(
-        mockDelegationSeed,
+      delegationService.rejectConsumerDelegation(
+        mockDelegationProcessResponse.data.id,
+        { rejectionReason: "test reason" },
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -150,8 +152,9 @@ describe("createConsumerDelegation", () => {
     );
 
     await expect(
-      delegationService.createConsumerDelegation(
-        mockDelegationSeed,
+      delegationService.rejectConsumerDelegation(
+        mockDelegationProcessResponse.data.id,
+        { rejectionReason: "test reason" },
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
