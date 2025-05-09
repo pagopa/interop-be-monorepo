@@ -1,30 +1,25 @@
 meta {
   name: Create certified attribute
   type: http
-  seq: 6
+  seq: 2
 }
 
 post {
-  url: {{host-attribute}}/certifiedAttributes
+  url: {{host-m2m-gw}}/certifiedAttributes
   body: json
   auth: none
 }
 
 headers {
-  Authorization: {{JWT}}
-  X-Correlation-Id: {{correlation-id}}
+  Authorization: {{JWT-M2M-ADMIN}}
 }
 
 body:json {
   {
-    "description": "prova",
+    "code": "{{randomCode}}",
     "name": "{{randomName}}",
-    "code": "{{randomCode}}"
+    "description": "{{randomDescription}}"
   }
-}
-
-vars:post-response {
-  attributeId: res.body.id
 }
 
 script:pre-request {
@@ -32,4 +27,5 @@ script:pre-request {
   
   bru.setVar("randomCode", randomCode)
   bru.setVar("randomName", `test name ${randomCode}`)
+  bru.setVar("randomDescription", `test description ${randomCode}`)
 }

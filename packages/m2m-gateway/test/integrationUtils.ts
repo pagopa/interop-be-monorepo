@@ -4,6 +4,7 @@ import { expect } from "vitest";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
+import { attributeServiceBuilder } from "../src/services/attributeService.js";
 import { clientServiceBuilder } from "../src/services/clientService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
@@ -64,4 +65,5 @@ export function expectApiClientPostToHaveBeenCalledWith({
 
 export const mockInteropBeClients = {} as PagoPAInteropBeClients;
 export const delegationService = delegationServiceBuilder(mockInteropBeClients);
+export const attributeService = attributeServiceBuilder(mockInteropBeClients);
 export const clientService = clientServiceBuilder(mockInteropBeClients);

@@ -18,7 +18,7 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   attributeDuplicateByNameAndCode,
-  OrganizationIsNotACertifier,
+  tenantIsNotACertifier,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -44,19 +44,21 @@ describe("certified attribute creation", () => {
 
     await addOneTenant(tenant);
 
-    const attribute = await attributeRegistryService.createCertifiedAttribute(
-      {
-        name: mockAttribute.name,
-        code: "code",
-        description: mockAttribute.description,
-      },
-      getMockContext({ authData: getMockAuthData(tenant.id) })
-    );
-    expect(attribute).toBeDefined();
+    const createAttributeResponse =
+      await attributeRegistryService.createCertifiedAttribute(
+        {
+          name: mockAttribute.name,
+          code: "code",
+          description: mockAttribute.description,
+        },
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      );
 
-    const writtenEvent = await readLastAttributeEvent(attribute.id);
+    const writtenEvent = await readLastAttributeEvent(
+      createAttributeResponse.data.id
+    );
     expect(writtenEvent).toMatchObject({
-      stream_id: attribute.id,
+      stream_id: createAttributeResponse.data.id,
       version: "0",
       type: "AttributeAdded",
       event_version: 1,
@@ -69,7 +71,7 @@ describe("certified attribute creation", () => {
 
     const expectedAttribute: Attribute = {
       ...mockAttribute,
-      id: attribute.id,
+      id: createAttributeResponse.data.id,
       code: "code",
       kind: attributeKind.certified,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -77,7 +79,10 @@ describe("certified attribute creation", () => {
       origin: getTenantOneCertifierFeature(tenant).certifierId,
     };
     expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+    expect(createAttributeResponse).toEqual({
+      data: expectedAttribute,
+      metadata: { version: 0 },
+    });
   });
   it("should throw attributeDuplicate if an attribute with the same name and code already exists, case insensitive", async () => {
     const attribute = {
@@ -114,7 +119,7 @@ describe("certified attribute creation", () => {
       )
     );
   });
-  it("should throw OrganizationIsNotACertifier if the organization is not a certifier", async () => {
+  it("should throw tenantIsNotACertifier if the organization is not a certifier", async () => {
     await addOneTenant(mockTenant);
     await addOneAttribute(mockAttribute);
     expect(
@@ -126,7 +131,7 @@ describe("certified attribute creation", () => {
         },
         getMockContext({ authData: getMockAuthData(mockTenant.id) })
       )
-    ).rejects.toThrowError(OrganizationIsNotACertifier(mockTenant.id));
+    ).rejects.toThrowError(tenantIsNotACertifier(mockTenant.id));
   });
   it("should throw tenantNotFound if the certifier is not found", async () => {
     await addOneAttribute(mockAttribute);
