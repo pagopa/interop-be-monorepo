@@ -1,4 +1,8 @@
-import { delegationApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  authorizationApi,
+  delegationApi,
+} from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -6,6 +10,8 @@ import {
   WithMetadata,
   generateId,
 } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 
 export function getMockedApiDelegation({
@@ -41,7 +47,61 @@ export function getMockedApiDelegation({
   };
 }
 
-export const m2mTestToken = "test-token";
+export function getMockedApiAttribute({
+  kind,
+  code,
+  name,
+  description,
+}: {
+  kind?: attributeRegistryApi.AttributeKind;
+  code?: string;
+  name?: string;
+  description?: string;
+} = {}): WithMetadata<attributeRegistryApi.Attribute> {
+  return {
+    data: {
+      id: generateId(),
+      name: name ?? generateMock(z.string()),
+      description: description ?? generateMock(z.string()),
+      creationTime: new Date().toISOString(),
+      code: code ?? generateMock(z.string()),
+      origin: generateMock(z.string()),
+      kind: kind ?? attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiClient({
+  kind: paramKind,
+}: {
+  kind?: authorizationApi.ClientKind;
+} = {}): WithMetadata<authorizationApi.Client> {
+  const kind = paramKind ?? authorizationApi.ClientKind.Values.API;
+  return {
+    data: {
+      kind,
+      id: generateId(),
+      name: generateMock(z.string()),
+      description: generateMock(z.string()),
+      createdAt: new Date().toISOString(),
+      consumerId: generateId(),
+      purposes: [],
+      users: [],
+      adminId:
+        kind === authorizationApi.ClientKind.Values.API
+          ? generateId()
+          : undefined,
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export const m2mTestToken = generateMock(z.string().base64());
 export const getMockM2MAdminAppContext = ({
   organizationId,
   serviceName,
@@ -55,8 +115,9 @@ export const getMockM2MAdminAppContext = ({
       systemRole: systemRole.M2M_ADMIN_ROLE,
       organizationId: organizationId || generateId(),
       userId: generateId(),
+      clientId: generateId(),
     },
-    serviceName: serviceName || "test",
+    serviceName: serviceName || generateMock(z.string()),
     spanId: generateId(),
     logger: genericLogger,
     requestTimestamp: Date.now(),
