@@ -33,6 +33,8 @@ describe("getTenants", () => {
       const tenantsByName = await readModelService.getTenants({
         name: undefined,
         features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
@@ -47,6 +49,8 @@ describe("getTenants", () => {
       const tenantsByName = await readModelService.getTenants({
         name: "Tenant 1",
         features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
@@ -114,6 +118,8 @@ describe("getTenants", () => {
         await readModelService.getTenants({
           name: undefined,
           features: [tenantFeatureType.delegatedProducer],
+          externalIdOrigin: undefined,
+          externalIdValue: undefined,
           offset: 0,
           limit: 50,
         });
@@ -127,6 +133,8 @@ describe("getTenants", () => {
         await readModelService.getTenants({
           name: undefined,
           features: [tenantFeatureType.delegatedConsumer],
+          externalIdOrigin: undefined,
+          externalIdValue: undefined,
           offset: 0,
           limit: 50,
         });
@@ -139,6 +147,8 @@ describe("getTenants", () => {
       const tenantsByCertifierFeature = await readModelService.getTenants({
         name: undefined,
         features: [tenantFeatureType.persistentCertifier],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
@@ -152,6 +162,8 @@ describe("getTenants", () => {
           tenantFeatureType.delegatedConsumer,
           tenantFeatureType.persistentCertifier,
         ],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
@@ -210,6 +222,8 @@ describe("getTenants", () => {
           tenantFeatureType.delegatedProducer,
           tenantFeatureType.persistentCertifier,
         ],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
@@ -219,6 +233,8 @@ describe("getTenants", () => {
       const tenantsByName2 = await readModelService.getTenants({
         name: "Tenant",
         features: [tenantFeatureType.delegatedProducer],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
@@ -231,6 +247,8 @@ describe("getTenants", () => {
       const tenantsByName3 = await readModelService.getTenants({
         name: "Tenant 3",
         features: [tenantFeatureType.delegatedConsumer],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
@@ -240,6 +258,8 @@ describe("getTenants", () => {
       const tenantsByName4 = await readModelService.getTenants({
         name: "Noname",
         features: [tenantFeatureType.persistentCertifier],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
@@ -249,6 +269,8 @@ describe("getTenants", () => {
       const tenantsByName = await readModelService.getTenants({
         name: undefined,
         features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
@@ -263,13 +285,15 @@ describe("getTenants", () => {
       const tenantsByName = await readModelService.getTenants({
         name: "Tenant 6",
         features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 50,
       });
       expect(tenantsByName.totalCount).toBe(0);
       expect(tenantsByName.results).toEqual([]);
     });
-    it("should get a maximun number of tenants based on a specified limit", async () => {
+    it("should get a maximum number of tenants based on a specified limit", async () => {
       await addOneTenant(tenant1);
       await addOneTenant(tenant2);
       await addOneTenant(tenant3);
@@ -278,12 +302,14 @@ describe("getTenants", () => {
       const tenantsByName = await readModelService.getTenants({
         name: undefined,
         features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 0,
         limit: 4,
       });
       expect(tenantsByName.results.length).toBe(4);
     });
-    it("should get a maximun number of tenants based on a specified limit and offset", async () => {
+    it("should get a maximum number of tenants based on a specified limit and offset", async () => {
       await addOneTenant(tenant1);
       await addOneTenant(tenant2);
       await addOneTenant(tenant3);
@@ -292,10 +318,137 @@ describe("getTenants", () => {
       const tenantsByName = await readModelService.getTenants({
         name: undefined,
         features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         offset: 2,
         limit: 4,
       });
       expect(tenantsByName.results.length).toBe(3);
+    });
+    it("should get the tenants by externalIdOrigin", async () => {
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+      await addOneTenant(tenant4);
+      await addOneTenant(tenant5);
+
+      const tenant6: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant 6",
+        externalId: {
+          origin: "externalIdOrigin1",
+          value: "externalIdValue1",
+        },
+      };
+      const tenant7: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant 7",
+        externalId: {
+          origin: "externalIdOrigin1",
+          value: "externalIdValue1",
+        },
+      };
+
+      await addOneTenant(tenant6);
+      await addOneTenant(tenant7);
+
+      const tenantsByName = await readModelService.getTenants({
+        name: undefined,
+        features: [],
+        externalIdOrigin: tenant6.externalId.origin,
+        externalIdValue: undefined,
+        offset: 0,
+        limit: 20,
+      });
+      expect(tenantsByName.results.length).toBe(2);
+      expect(tenantsByName.results).toEqual([tenant6, tenant7]);
+    });
+    it("should get the tenants by externalIdValue", async () => {
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+      await addOneTenant(tenant4);
+      await addOneTenant(tenant5);
+
+      const tenant6: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant 6",
+        externalId: {
+          origin: "externalIdOrigin1",
+          value: "externalIdValue1",
+        },
+      };
+      const tenant7: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant 7",
+        externalId: {
+          origin: "externalIdOrigin1",
+          value: "externalIdValue1",
+        },
+      };
+
+      await addOneTenant(tenant6);
+      await addOneTenant(tenant7);
+
+      const tenantsByName = await readModelService.getTenants({
+        name: undefined,
+        features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: tenant6.externalId.value,
+        offset: 0,
+        limit: 20,
+      });
+      expect(tenantsByName.results.length).toBe(2);
+      expect(tenantsByName.results).toEqual([tenant6, tenant7]);
+    });
+    it("should get the tenants by externalIdOrigin and externalIdValue", async () => {
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+      await addOneTenant(tenant4);
+      await addOneTenant(tenant5);
+
+      const tenant6: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant 6",
+        externalId: {
+          origin: "externalIdOrigin1",
+          value: "externalIdValue1",
+        },
+      };
+
+      const tenant7: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant 7",
+        externalId: {
+          origin: "externalIdOrigin1",
+          value: "externalIdValue1",
+        },
+      };
+
+      const tenant8: Tenant = {
+        ...getMockTenant(),
+        name: "Tenant 8",
+        externalId: {
+          origin: "externalIdOrigin1",
+          value: "externalIdValue2 ",
+        },
+      };
+
+      await addOneTenant(tenant6);
+      await addOneTenant(tenant7);
+      await addOneTenant(tenant8);
+
+      const tenantsByName = await readModelService.getTenants({
+        name: undefined,
+        features: [],
+        externalIdOrigin: tenant6.externalId.origin,
+        externalIdValue: tenant6.externalId.value,
+        offset: 0,
+        limit: 20,
+      });
+      expect(tenantsByName.results.length).toBe(2);
+      expect(tenantsByName.results).toEqual([tenant6, tenant7]);
     });
   });
 });
