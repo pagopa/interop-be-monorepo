@@ -1,5 +1,6 @@
 import {
   Attribute,
+  genericInternalError,
   Tenant,
   TenantId,
   unsafeBrandId,
@@ -20,6 +21,7 @@ import {
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { IvassReadModelTenant } from "../model/tenant.js";
+import { IVASS_ORIGIN_NAME } from "../config/constants.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelQueriesBuilderSQL(
@@ -62,11 +64,10 @@ export function readModelQueriesBuilderSQL(
         )
         .where(
           and(
-            eq(tenantInReadmodelTenant.externalIdOrigin, "IVASS"),
+            eq(tenantInReadmodelTenant.externalIdOrigin, IVASS_ORIGIN_NAME),
             inArray(tenantInReadmodelTenant.externalIdValue, externalId)
           )
         );
-      // .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       const tenants = aggregateTenantArray(
         toTenantAggregatorArray(
@@ -119,7 +120,6 @@ export function readModelQueriesBuilderSQL(
             attributeIds
           )
         );
-      // .orderBy(sql`LOWER(${tenantInReadmodelTenant.name})`);
 
       const tenants = aggregateTenantArray(
         toTenantAggregatorArray(
@@ -144,7 +144,7 @@ export function readModelQueriesBuilderSQL(
       );
 
       if (tenantWithMetadata === undefined) {
-        throw Error(`Tenant with id ${tenantId} not found`);
+        throw genericInternalError(`Tenant with id ${tenantId} not found`);
       }
 
       return tenantWithMetadata.data;
@@ -163,7 +163,7 @@ export function readModelQueriesBuilderSQL(
         );
 
       if (attributeWithMetadata === undefined) {
-        throw Error(
+        throw genericInternalError(
           `Attribute with origin ${origin} and code ${code} not found`
         );
       }
