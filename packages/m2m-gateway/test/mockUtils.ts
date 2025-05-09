@@ -1,4 +1,4 @@
-import { delegationApi, tenantApi } from "pagopa-interop-api-clients";
+import { delegationApi, tenantApi, authorizationApi } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -62,6 +62,33 @@ export function getMockedApiTenant(): WithMetadata<tenantApi.Tenant> {
   };
 }
 
+export function getMockedApiClient({
+  kind: paramKind,
+}: {
+  kind?: authorizationApi.ClientKind;
+} = {}): WithMetadata<authorizationApi.Client> {
+  const kind = paramKind ?? authorizationApi.ClientKind.Values.API;
+  return {
+    data: {
+      kind,
+      id: generateId(),
+      name: "test-client",
+      description: "test-client",
+      createdAt: new Date().toISOString(),
+      consumerId: generateId(),
+      purposes: [],
+      users: [],
+      adminId:
+        kind === authorizationApi.ClientKind.Values.API
+          ? generateId()
+          : undefined,
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
 export const m2mTestToken = "test-token";
 export const getMockM2MAdminAppContext = ({
   organizationId,
@@ -76,6 +103,7 @@ export const getMockM2MAdminAppContext = ({
       systemRole: systemRole.M2M_ADMIN_ROLE,
       organizationId: organizationId || generateId(),
       userId: generateId(),
+      clientId: generateId(),
     },
     serviceName: serviceName || "test",
     spanId: generateId(),
