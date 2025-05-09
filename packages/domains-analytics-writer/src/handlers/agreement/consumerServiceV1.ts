@@ -1,11 +1,12 @@
 /* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
 import {
-  Agreement,
   AgreementEventEnvelopeV1,
   AgreementId,
-  AgreementDocument,
   unsafeBrandId,
+  genericInternalError,
+  fromAgreementV1,
+  fromAgreementDocumentV1,
 } from "pagopa-interop-models";
 import {
   AgreementItemsSQL,
@@ -45,9 +46,14 @@ export async function handleAgreementMessageV1(
           ),
         },
         ({ data, version }) => {
+          if (!data.agreement) {
+            throw genericInternalError(
+              `Agreement can't be missing in the event message`
+            );
+          }
           upsertAgreements.push(
             splitAgreementIntoObjectsSQL(
-              Agreement.parse(data.agreement),
+              fromAgreementV1(data.agreement),
               version
             )
           );
@@ -55,28 +61,34 @@ export async function handleAgreementMessageV1(
       )
 
       .with({ type: "AgreementConsumerDocumentAdded" }, ({ data, version }) => {
-        if (data.document) {
-          const agreementDocument = agreementDocumentToAgreementDocumentSQL(
-            AgreementDocument.parse(data.document),
-            unsafeBrandId<AgreementId>(data.agreementId),
-            version
+        if (!data.document) {
+          throw genericInternalError(
+            `Agreement document can't be missing in the event message`
           );
-          upsertDocs.push(agreementDocument);
         }
+        const agreementDocument = agreementDocumentToAgreementDocumentSQL(
+          fromAgreementDocumentV1(data.document),
+          unsafeBrandId<AgreementId>(data.agreementId),
+          version
+        );
+        upsertDocs.push(agreementDocument);
       })
 
       .with({ type: "AgreementConsumerDocumentRemoved" }, ({ data }) => {
         deleteDocs.push(data.documentId);
       })
       .with({ type: "AgreementContractAdded" }, ({ data, version }) => {
-        if (data.contract) {
-          const agreementContract = agreementDocumentToAgreementDocumentSQL(
-            AgreementDocument.parse(data.contract),
-            unsafeBrandId<AgreementId>(data.agreementId),
-            version
+        if (!data.contract) {
+          throw genericInternalError(
+            `Agreement contract can't be missing in the event message`
           );
-          upsertContracts.push(agreementContract);
         }
+        const agreementContract = agreementDocumentToAgreementDocumentSQL(
+          fromAgreementDocumentV1(data.contract),
+          unsafeBrandId<AgreementId>(data.agreementId),
+          version
+        );
+        upsertContracts.push(agreementContract);
       })
 
       .with({ type: "AgreementDeleted" }, ({ data }) => {

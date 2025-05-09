@@ -7,7 +7,7 @@ import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { AgreementDbTable } from "../../model/db.js";
-import { agreementAttributeSchema } from "../../model/agreement/agreementAttribute.js";
+import { AgreementAttributeSchema } from "../../model/agreement/agreementAttribute.js";
 
 export function agreementAttributeRepo(conn: DBConnection) {
   const schema = config.dbSchemaName;
@@ -45,7 +45,7 @@ export function agreementAttributeRepo(conn: DBConnection) {
     async merge(t: ITask<unknown>) {
       try {
         await t.none(
-          generateMergeQuery(agreementAttributeSchema, schema, tbl, stage, [
+          generateMergeQuery(AgreementAttributeSchema, schema, tbl, stage, [
             "agreement_id",
             "attribute_id",
           ])

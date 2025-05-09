@@ -10,7 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { AgreementDbTable, DeletingDbTable } from "../../model/db.js";
 import { config } from "../../config/config.js";
-import { agreementSchema } from "../../model/agreement/agreement.js";
+import { AgreementSchema } from "../../model/agreement/agreement.js";
 
 export function agreementRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
@@ -59,7 +59,7 @@ export function agreementRepo(conn: DBConnection) {
       try {
         await t.none(
           generateMergeQuery(
-            agreementSchema,
+            AgreementSchema,
             schemaName,
             tableName,
             stagingTable,
@@ -114,7 +114,7 @@ export function agreementRepo(conn: DBConnection) {
           schemaName,
           tableName,
           stagingDeletingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error) {

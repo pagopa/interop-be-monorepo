@@ -7,7 +7,7 @@ import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { AgreementDbTable } from "../../model/db.js";
-import { agreementStampSchema } from "../../model/agreement/agreementStamp.js";
+import { AgreementStampSchema } from "../../model/agreement/agreementStamp.js";
 
 export function agreementStampRepo(conn: DBConnection) {
   const schema = config.dbSchemaName;
@@ -43,7 +43,7 @@ export function agreementStampRepo(conn: DBConnection) {
     async merge(t: ITask<unknown>) {
       try {
         await t.none(
-          generateMergeQuery(agreementStampSchema, schema, tbl, stage, [
+          generateMergeQuery(AgreementStampSchema, schema, tbl, stage, [
             "agreement_id",
             "kind",
           ])

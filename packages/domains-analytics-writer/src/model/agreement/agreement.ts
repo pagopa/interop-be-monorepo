@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { AgreementSQL } from "pagopa-interop-readmodel-models";
 
-export const agreementSchema = z.object({
+export const AgreementSchema = z.object({
   id: z.string(),
   metadata_version: z.number(),
   eservice_id: z.string(),
@@ -19,13 +19,15 @@ export const agreementSchema = z.object({
   suspended_at: z.string().nullable(),
   deleted: z.boolean().default(false).optional(),
 });
+export type AgreementSchema = z.infer<typeof AgreementSchema>;
 
-export const agreementDeletingSchema = z.object({
+export const AgreementDeletingSchema = z.object({
   id: z.string(),
   deleted: z.boolean().default(false).optional(),
 });
 
-type AgreementSchema = z.infer<typeof agreementSchema>;
+export type AgreementDeletingSchema = z.infer<typeof AgreementSchema>;
+
 export type AgreementMapping = {
   [K in keyof AgreementSchema]: (r: AgreementSQL) => AgreementSchema[K];
 };

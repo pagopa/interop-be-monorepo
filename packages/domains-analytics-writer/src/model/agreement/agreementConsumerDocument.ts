@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { AgreementConsumerDocumentSQL } from "pagopa-interop-readmodel-models";
 
-export const agreementConsumerDocumentSchema = z.object({
+export const AgreementConsumerDocumentSchema = z.object({
   id: z.string(),
   agreement_id: z.string(),
   metadata_version: z.number(),
@@ -13,7 +13,12 @@ export const agreementConsumerDocumentSchema = z.object({
   deleted: z.boolean().default(false).optional(),
 });
 
-type DocSchema = z.infer<typeof agreementConsumerDocumentSchema>;
+export type AgreementConsumerDocumentSchema = z.infer<
+  typeof AgreementConsumerDocumentSchema
+>;
+
 export type AgreementConsumerDocumentMapping = {
-  [K in keyof DocSchema]: (r: AgreementConsumerDocumentSQL) => DocSchema[K];
+  [K in keyof AgreementConsumerDocumentSchema]: (
+    r: AgreementConsumerDocumentSQL
+  ) => AgreementConsumerDocumentSchema[K];
 };

@@ -1,9 +1,10 @@
 /* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
 import {
-  Agreement,
   AgreementEventEnvelopeV2,
   AgreementId,
+  fromAgreementV2,
+  genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { splitAgreementIntoObjectsSQL } from "pagopa-interop-readmodel";
@@ -30,11 +31,12 @@ export async function handleAgreementMessageV2(
           ),
         },
         ({ data }) => {
-          if (data.agreement?.id) {
-            deleteAgreements.push(
-              unsafeBrandId<AgreementId>(data.agreement.id)
+          if (!data.agreement) {
+            throw genericInternalError(
+              `Agreement can't be missing in the event message`
             );
           }
+          deleteAgreements.push(unsafeBrandId<AgreementId>(data.agreement.id));
         }
       )
 
@@ -63,9 +65,14 @@ export async function handleAgreementMessageV2(
           ),
         },
         ({ data, version }) => {
+          if (!data.agreement) {
+            throw genericInternalError(
+              `Agreement can't be missing in the event message`
+            );
+          }
           upsertAgreements.push(
             splitAgreementIntoObjectsSQL(
-              Agreement.parse(data.agreement),
+              fromAgreementV2(data.agreement),
               version
             )
           );

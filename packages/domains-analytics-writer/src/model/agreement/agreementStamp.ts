@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { AgreementStampSQL } from "pagopa-interop-readmodel-models";
 
-export const agreementStampSchema = z.object({
+export const AgreementStampSchema = z.object({
   agreement_id: z.string(),
   metadata_version: z.number(),
   who: z.string(),
@@ -11,7 +11,10 @@ export const agreementStampSchema = z.object({
   deleted: z.boolean().default(false).optional(),
 });
 
-type StampSchema = z.infer<typeof agreementStampSchema>;
+export type AgreementStampSchema = z.infer<typeof AgreementStampSchema>;
+
 export type AgreementStampMapping = {
-  [K in keyof StampSchema]: (r: AgreementStampSQL) => StampSchema[K];
+  [K in keyof AgreementStampSchema]: (
+    r: AgreementStampSQL
+  ) => AgreementStampSchema[K];
 };
