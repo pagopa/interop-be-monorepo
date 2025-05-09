@@ -1,10 +1,11 @@
-import { delegationApi } from "pagopa-interop-api-clients";
+import { authorizationApi, delegationApi } from "pagopa-interop-api-clients";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
 export const errorCodes = {
   resourcePollingTimeout: "0001",
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
+  clientAdminIdNotFound: "0004",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -39,5 +40,15 @@ export function unexpectedDelegationKind(
     detail: `Unexpected delegation kind "${delegation.kind}" for delegation ${delegation.id}`,
     code: "unexpectedDelegationKind",
     title: "Unexpected Delegation Kind",
+  });
+}
+
+export function clientAdminIdNotFound(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Admin id not found for client with id ${client.id}`,
+    code: "clientAdminIdNotFound",
+    title: "Client admin id not found",
   });
 }
