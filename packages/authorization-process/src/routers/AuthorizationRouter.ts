@@ -71,9 +71,9 @@ import {
   removeProducerKeychainEServiceErrorMapper,
   addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
-  addClientAdminErrorMapper,
   internalRemoveClientAdminErrorMapper,
   removeClientAdminErrorMapper,
+  addClientAdminErrorMapper,
 } from "../utilities/errorMappers.js";
 import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
@@ -877,19 +877,16 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
 
-        const producerKeychain =
-          await authorizationService.createProducerKeychainKey(
-            {
-              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-              keySeed: req.body,
-            },
-            ctx
-          );
-        return res.status(200).send(
-          authorizationApi.Keys.parse({
-            keys: producerKeychain.keys.map(keyToApiKey),
-          })
+        const key = await authorizationService.createProducerKeychainKey(
+          {
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            keySeed: req.body,
+          },
+          ctx
         );
+        return res
+          .status(200)
+          .send(authorizationApi.Key.parse(keyToApiKey(key)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -918,9 +915,12 @@ const authorizationRouter = (
           ctx
         );
 
-        return res
-          .status(200)
-          .send(authorizationApi.Keys.parse({ keys: keys.map(keyToApiKey) }));
+        return res.status(200).send(
+          authorizationApi.Keys.parse({
+            keys: keys.map(keyToApiKey),
+            totalCount: keys.length,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
