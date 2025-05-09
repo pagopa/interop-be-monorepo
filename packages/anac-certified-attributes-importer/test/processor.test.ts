@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
 import {
-  InteropToken,
+  InteropInternalToken,
   InteropTokenGenerator,
   ReadModelRepository,
   RefreshableInteropToken,
@@ -62,7 +62,8 @@ describe("ANAC Certified Attributes Importer", () => {
     config.readModelSQLDbPort
       ? readModelQueriesSQL
       : oldReadModelQueries;
-  const interopToken: InteropToken = {
+
+  const interopInternalToken: InteropInternalToken = {
     header: {
       alg: "algorithm",
       use: "use",
@@ -77,12 +78,12 @@ describe("ANAC Certified Attributes Importer", () => {
       iat: 0,
       nbf: 0,
       exp: 10,
-      role: "role1",
+      role: "internal",
     },
     serialized: "the-token",
   };
-  const generateInternalTokenMock = (): Promise<InteropToken> =>
-    Promise.resolve(interopToken);
+  const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
+    Promise.resolve(interopInternalToken);
 
   const run = () =>
     importAttributes(
