@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { WithLogger } from "pagopa-interop-commons";
-import {
-  authorizationApi,
-  bffApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
+import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
@@ -16,10 +12,9 @@ import { decorateKey } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 
 export function producerKeychainServiceBuilder(
-  apiClients: PagoPAInteropBeClients,
-  selfcareUsersClient: SelfcareV2UsersClient
+  apiClients: PagoPAInteropBeClients
 ) {
-  const { authorizationClient } = apiClients;
+  const { authorizationClient, selfcareV2UserClient } = apiClients;
 
   return {
     async getProducerKeychains(
@@ -178,7 +173,7 @@ export function producerKeychainServiceBuilder(
 
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
-          decorateKey(selfcareUsersClient, k, selfcareId, users, correlationId)
+          decorateKey(selfcareV2UserClient, k, selfcareId, users, correlationId)
         )
       );
 
@@ -207,7 +202,7 @@ export function producerKeychainServiceBuilder(
       ]);
 
       return decorateKey(
-        selfcareUsersClient,
+        selfcareV2UserClient,
         key,
         selfcareId,
         users,
@@ -250,7 +245,7 @@ export function producerKeychainServiceBuilder(
       return await Promise.all(
         producerKeychainUsers.map((id) =>
           getSelfcareCompactUserById(
-            selfcareUsersClient,
+            selfcareV2UserClient,
             id,
             selfcareId,
             correlationId

@@ -7,6 +7,7 @@ import {
   getMockDelegation,
   addSomeRandomDelegations,
   getMockContext,
+  sortAgreementV2,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
@@ -61,12 +62,14 @@ describe("update agreement", () => {
       payload: agreementEvent.data,
     }).agreement;
 
-    expect(actualAgreementUptaded).toMatchObject({
-      ...toAgreementV2(agreement),
-      consumerNotes: "Updated consumer notes",
-    });
-    expect(actualAgreementUptaded).toMatchObject(
-      toAgreementV2(returnedAgreement)
+    expect(sortAgreementV2(actualAgreementUptaded)).toMatchObject(
+      sortAgreementV2({
+        ...toAgreementV2(agreement),
+        consumerNotes: "Updated consumer notes",
+      })
+    );
+    expect(sortAgreementV2(actualAgreementUptaded)).toMatchObject(
+      sortAgreementV2(toAgreementV2(returnedAgreement))
     );
   });
 
@@ -158,12 +161,14 @@ describe("update agreement", () => {
       payload: agreementEvent.data,
     }).agreement;
 
-    expect(actualAgreementUpdated).toMatchObject({
-      ...toAgreementV2(agreement),
-      consumerNotes: "Updated consumer notes",
-    });
-    expect(actualAgreementUpdated).toMatchObject(
-      toAgreementV2(returnedAgreement)
+    expect(sortAgreementV2(actualAgreementUpdated)).toMatchObject(
+      sortAgreementV2({
+        ...toAgreementV2(agreement),
+        consumerNotes: "Updated consumer notes",
+      })
+    );
+    expect(sortAgreementV2(actualAgreementUpdated)).toMatchObject(
+      sortAgreementV2(toAgreementV2(returnedAgreement))
     );
   });
 

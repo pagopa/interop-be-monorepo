@@ -18,7 +18,6 @@ import {
   attributeKind,
   AttributeReadmodel,
   Agreement,
-  AgreementState,
   TenantReadModel,
   genericInternalError,
   AgreementId,
@@ -426,35 +425,6 @@ export function readModelServiceBuilder(
 
         return result.data;
       }
-    },
-
-    async getAgreements({
-      consumerId,
-      producerId,
-      states,
-    }: {
-      consumerId: TenantId;
-      producerId: TenantId;
-      states: AgreementState[];
-    }): Promise<Agreement[]> {
-      const data = await agreements
-        .find({
-          "data.consumerId": consumerId,
-          "data.producerId": producerId,
-          "data.state": { $in: states },
-        })
-        .toArray();
-
-      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
-
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse agreements item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-      return result.data;
     },
 
     async getAgreementById(
