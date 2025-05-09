@@ -79,7 +79,7 @@ function createM2M_AdminPayload() {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
-    userId: generateId(),
+    adminId: generateId(),
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
