@@ -1,4 +1,8 @@
-import { delegationApi, tenantApi, authorizationApi } from "pagopa-interop-api-clients";
+import {
+  delegationApi,
+  tenantApi,
+  authorizationApi,
+} from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
