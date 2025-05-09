@@ -22,7 +22,7 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, ilike, inArray } from "drizzle-orm";
+import { and, eq, getTableColumns, ilike, inArray } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -45,7 +45,7 @@ export function readModelServiceBuilderSQL({
       limit: number;
     }): Promise<ListResult<Attribute>> {
       const queryResult = await readModelDB
-        .select(withTotalCount(attributeInReadmodelAttribute))
+        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
         .from(attributeInReadmodelAttribute)
         .where(inArray(attributeInReadmodelAttribute.id, ids))
         .orderBy(ascLower(attributeInReadmodelAttribute.name))
@@ -73,7 +73,7 @@ export function readModelServiceBuilderSQL({
       limit: number;
     }): Promise<ListResult<Attribute>> {
       const queryResult = await readModelDB
-        .select(withTotalCount(attributeInReadmodelAttribute))
+        .select(withTotalCount(getTableColumns(attributeInReadmodelAttribute)))
         .from(attributeInReadmodelAttribute)
         .where(
           and(

@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import {
-  attributeKind,
-  tenantAttributeType,
-  toReadModelAttribute,
-} from "pagopa-interop-models";
+import { attributeKind, tenantAttributeType } from "pagopa-interop-models";
 import {
   generateId,
   Tenant,
@@ -16,7 +12,6 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
-  writeInReadmodel,
   getMockAttribute,
   getMockTenant,
   readEventByStreamIdAndVersion,
@@ -35,8 +30,8 @@ import {
   addOneTenant,
   getMockCertifiedTenantAttribute,
   tenantService,
-  attributes,
   postgresDB,
+  addOneAttribute,
 } from "./utils.js";
 
 describe("revokeCertifiedAttributeById", async () => {
@@ -78,7 +73,7 @@ describe("revokeCertifiedAttributeById", async () => {
       ],
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(tenantWithCertifiedAttribute);
     await addOneTenant(requesterTenant);
     await tenantService.revokeCertifiedAttributeById(
@@ -121,7 +116,7 @@ describe("revokeCertifiedAttributeById", async () => {
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     expect(
       tenantService.revokeCertifiedAttributeById(
         {
@@ -154,7 +149,7 @@ describe("revokeCertifiedAttributeById", async () => {
     };
     const authData = getMockAuthData(notCertifierTenant.id);
 
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(targetTenant);
     await addOneTenant(notCertifierTenant);
 
@@ -174,10 +169,7 @@ describe("revokeCertifiedAttributeById", async () => {
       ...attribute,
       origin: generateId(),
     };
-    await writeInReadmodel(
-      toReadModelAttribute(notCompliantOriginAttribute),
-      attributes
-    );
+    await addOneAttribute(notCompliantOriginAttribute);
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
 
@@ -208,7 +200,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(tenantAlreadyRevoked);
     await addOneTenant(requesterTenant);
     expect(
