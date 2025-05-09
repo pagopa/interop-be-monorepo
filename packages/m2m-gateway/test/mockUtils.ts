@@ -1,4 +1,8 @@
-import { authorizationApi, delegationApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  authorizationApi,
+  delegationApi,
+} from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -6,16 +10,20 @@ import {
   WithMetadata,
   generateId,
 } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 
 export function getMockedApiDelegation({
   kind,
   eserviceId,
   delegateId,
+  state,
 }: {
   kind?: delegationApi.DelegationKind;
   eserviceId?: string;
   delegateId?: string;
+  state?: delegationApi.DelegationState;
 } = {}): WithMetadata<delegationApi.Delegation> {
   return {
     data: {
@@ -25,13 +33,40 @@ export function getMockedApiDelegation({
       delegateId: delegateId ?? generateId(),
       delegatorId: generateId(),
       createdAt: new Date().toISOString(),
-      state: delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
+      state: state ?? delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
       stamps: {
         submission: {
           who: generateId(),
           when: new Date().toISOString(),
         },
       },
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiAttribute({
+  kind,
+  code,
+  name,
+  description,
+}: {
+  kind?: attributeRegistryApi.AttributeKind;
+  code?: string;
+  name?: string;
+  description?: string;
+} = {}): WithMetadata<attributeRegistryApi.Attribute> {
+  return {
+    data: {
+      id: generateId(),
+      name: name ?? generateMock(z.string()),
+      description: description ?? generateMock(z.string()),
+      creationTime: new Date().toISOString(),
+      code: code ?? generateMock(z.string()),
+      origin: generateMock(z.string()),
+      kind: kind ?? attributeRegistryApi.AttributeKind.Values.CERTIFIED,
     },
     metadata: {
       version: 0,
@@ -49,8 +84,8 @@ export function getMockedApiClient({
     data: {
       kind,
       id: generateId(),
-      name: "test-client",
-      description: "test-client",
+      name: generateMock(z.string()),
+      description: generateMock(z.string()),
       createdAt: new Date().toISOString(),
       consumerId: generateId(),
       purposes: [],
@@ -66,7 +101,7 @@ export function getMockedApiClient({
   };
 }
 
-export const m2mTestToken = "test-token";
+export const m2mTestToken = generateMock(z.string().base64());
 export const getMockM2MAdminAppContext = ({
   organizationId,
   serviceName,
@@ -82,7 +117,7 @@ export const getMockM2MAdminAppContext = ({
       userId: generateId(),
       clientId: generateId(),
     },
-    serviceName: serviceName || "test",
+    serviceName: serviceName || generateMock(z.string()),
     spanId: generateId(),
     logger: genericLogger,
     requestTimestamp: Date.now(),
