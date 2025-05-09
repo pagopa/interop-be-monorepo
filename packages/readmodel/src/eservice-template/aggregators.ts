@@ -7,7 +7,6 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
-  genericInternalError,
   stringToDate,
   Technology,
   unsafeBrandId,

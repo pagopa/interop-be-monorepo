@@ -21,7 +21,6 @@ import {
   AgreementAttribute,
   AttributeKind,
   AgreementId,
-  genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";

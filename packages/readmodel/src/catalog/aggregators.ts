@@ -20,7 +20,6 @@ import {
   RiskAnalysisAnswerKind,
   EServiceId,
   EServiceTemplateId,
-  genericInternalError,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,

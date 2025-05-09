@@ -1,6 +1,5 @@
 import {
   EServiceId,
-  genericInternalError,
   Key,
   KeyUse,
   ProducerKeychain,
