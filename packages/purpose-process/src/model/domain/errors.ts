@@ -147,7 +147,7 @@ export function purposeVersionCannotBeDeleted(
   return new ApiError({
     detail: `Version ${versionId} of Purpose ${purposeId} cannot be deleted`,
     code: "purposeVersionCannotBeDeleted",
-    title: "Purpose version canont be deleted",
+    title: "Purpose version cannot be deleted",
   });
 }
 
@@ -338,7 +338,7 @@ export function purposeVersionStateConflict(
   });
 }
 
-export function puroposeDelegationNotFound(
+export function purposeDelegationNotFound(
   purposeId: PurposeId,
   delegationId: DelegationId
 ): ApiError<ErrorCodes> {

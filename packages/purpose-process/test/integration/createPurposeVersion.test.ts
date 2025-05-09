@@ -47,7 +47,7 @@ import {
   missingRiskAnalysis,
   organizationIsNotTheConsumer,
   organizationIsNotTheDelegatedConsumer,
-  puroposeDelegationNotFound,
+  purposeDelegationNotFound,
   purposeCannotBeUpdated,
   tenantKindNotFound,
   tenantNotFound,
@@ -1035,7 +1035,7 @@ describe("createPurposeVersion", () => {
       )
     );
   });
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is creating a purpose version for a purpose created by a delegate, but the delegation cannot be found", async () => {
+  it("should throw purposeDelegationNotFound when the requester is the Consumer, is creating a purpose version for a purpose created by a delegate, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurpose: Purpose = {
@@ -1057,7 +1057,7 @@ describe("createPurposeVersion", () => {
       );
     }).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      puroposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
+      purposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
     );
   });
 

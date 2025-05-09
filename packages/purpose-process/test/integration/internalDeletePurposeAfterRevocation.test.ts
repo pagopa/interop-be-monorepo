@@ -23,7 +23,7 @@ import {
 import {
   purposeNotFound,
   purposeCannotBeDeleted,
-  puroposeDelegationNotFound,
+  purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -177,7 +177,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
       ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
     }
   );
-  it("should throw puroposeDelegationNotFound when the purpose delegationId is not equal to the one passed", async () => {
+  it("should throw purposeDelegationNotFound when the purpose delegationId is not equal to the one passed", async () => {
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
     );
@@ -204,7 +204,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
         getMockContextInternal({})
       )
     ).rejects.toThrowError(
-      puroposeDelegationNotFound(mockPurpose.id, mockDelegation.id)
+      purposeDelegationNotFound(mockPurpose.id, mockDelegation.id)
     );
   });
 });

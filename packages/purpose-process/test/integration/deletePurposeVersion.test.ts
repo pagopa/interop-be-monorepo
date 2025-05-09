@@ -35,7 +35,7 @@ import {
   organizationIsNotTheConsumer,
   purposeVersionCannotBeDeleted,
   organizationIsNotTheDelegatedConsumer,
-  puroposeDelegationNotFound,
+  purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -459,7 +459,7 @@ describe("deletePurposeVersion", () => {
       );
     }
   );
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
+  it("should throw purposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
@@ -486,7 +486,7 @@ describe("deletePurposeVersion", () => {
       )
     ).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      puroposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
+      purposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
     );
   });
   it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
