@@ -6,7 +6,7 @@ import {
   unsafeBrandId,
   fromAgreementDocumentV1,
 } from "pagopa-interop-models";
-import { ReadModelService } from "./readModelService.js";
+import { ReadModelService } from "./agreementWriterService.js";
 
 export async function handleMessageV1(
   message: AgreementEventEnvelopeV1,
