@@ -60,7 +60,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       return toM2MGatewayApiPurpose({
         purpose: data,
         logger,
-        throwNotFoundError: true,
+        mapThrownErrorsToNotFound: true,
       });
     },
   };
