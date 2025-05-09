@@ -1,5 +1,6 @@
 import {
   attributeRegistryApi,
+  authorizationApi,
   delegationApi,
 } from "pagopa-interop-api-clients";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
@@ -8,9 +9,10 @@ export const errorCodes = {
   resourcePollingTimeout: "0001",
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
-  unexpectedAttributeKind: "0004",
-  unexpectedUndefinedAttributeOriginOrCode: "0005",
-  attributeNotFound: "0006",
+  clientAdminIdNotFound: "0004",
+  unexpectedAttributeKind: "0005",
+  unexpectedUndefinedAttributeOriginOrCode: "0006",
+  attributeNotFound: "0007",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -75,5 +77,15 @@ export function attributeNotFound(
     detail: `Attribute ${attribute.id} not found`,
     code: "attributeNotFound",
     title: "Attribute not found",
+  });
+}
+
+export function clientAdminIdNotFound(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Admin id not found for client with id ${client.id}`,
+    code: "clientAdminIdNotFound",
+    title: "Client admin id not found",
   });
 }
