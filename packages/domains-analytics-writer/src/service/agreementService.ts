@@ -115,14 +115,14 @@ export function agreementServiceBuilder(db: DBContext) {
       contracts: AgreementContractSQL[],
       ctx: DBContext
     ) {
-      for (const batch of batchMessages(
-        contracts,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
+      await ctx.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          contracts,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await contractRepository.insert(t, ctx.pgp, batch);
-        });
-      }
+        }
+      });
 
       genericLogger.info(
         `Staging data inserted for batch of ${contracts.length} agreements contracts`
@@ -174,6 +174,7 @@ export function agreementServiceBuilder(db: DBContext) {
 
       genericLogger.info(`Staging data cleaned`);
     },
+
     async deleteBatchAgreementDocument(
       documentIds: string[],
       dbContext: DBContext
@@ -193,9 +194,11 @@ export function agreementServiceBuilder(db: DBContext) {
       });
 
       await docRepository.mergeDeleting();
+
       genericLogger.info(
         `Staging deletion merged into target tables for all agreementsIds`
       );
+
       await docRepository.cleanDeleting();
 
       genericLogger.info(`Staging data cleaned`);

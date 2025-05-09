@@ -20,6 +20,7 @@ export async function handleAgreementMessageV2(
 
   const upsertAgreements: AgreementItemsSQL[] = [];
   const deleteAgreements: AgreementId[] = [];
+  const deleteConsumerDocument: AgreementId[] = [];
 
   for (const msg of messages) {
     match(msg)
@@ -37,6 +38,21 @@ export async function handleAgreementMessageV2(
             );
           }
           deleteAgreements.push(unsafeBrandId<AgreementId>(data.agreement.id));
+        }
+      )
+      .with(
+        {
+          type: P.union("AgreementConsumerDocumentRemoved"),
+        },
+        ({ data }) => {
+          if (!data.agreement) {
+            throw genericInternalError(
+              `Agreement can't be missing in the event message`
+            );
+          }
+          deleteConsumerDocument.push(
+            unsafeBrandId<AgreementId>(data.documentId)
+          );
         }
       )
 
@@ -58,7 +74,6 @@ export async function handleAgreementMessageV2(
             "AgreementSuspendedByPlatform",
             "AgreementRejected",
             "AgreementConsumerDocumentAdded",
-            "AgreementConsumerDocumentRemoved",
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
             "AgreementArchivedByRevokedDelegation"
@@ -86,5 +101,11 @@ export async function handleAgreementMessageV2(
   }
   if (deleteAgreements.length) {
     await agreementService.deleteBatchAgreement(deleteAgreements, dbContext);
+  }
+  if (deleteConsumerDocument.length) {
+    await agreementService.deleteBatchAgreementDocument(
+      deleteConsumerDocument,
+      dbContext
+    );
   }
 }

@@ -1,198 +1,401 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable functional/immutable-data */
 import { describe, it, expect, beforeEach } from "vitest";
-import { AgreementId } from "pagopa-interop-models";
+import {
+  AgreementAddedV1,
+  AgreementDeletedV1,
+  AgreementConsumerDocumentAddedV1,
+  AgreementContractAddedV1,
+  AgreementEventEnvelopeV1,
+  AgreementAddedV2,
+  AgreementDeletedV2,
+  AgreementConsumerDocumentRemovedV2,
+  AgreementEventEnvelopeV2,
+  generateId,
+  unsafeBrandId,
+  AgreementDocumentId,
+  toAgreementV2,
+} from "pagopa-interop-models";
+import {
+  getMockAgreement,
+  getMockAgreementDocument,
+  toAgreementV1,
+  toAgreementDocumentV1,
+} from "pagopa-interop-commons-test";
+import { handleAgreementMessageV1 } from "../src/handlers/agreement/consumerServiceV1.js";
+import { handleAgreementMessageV2 } from "../src/handlers/agreement/consumerServiceV2.js";
 import {
   dbContext,
-  agreementService,
   resetAgreementTables,
-  agreementItem,
   getAgreementFromDb,
-  getAgreementStampFromDb,
   getAgreementAttributeFromDb,
   getAgreementConsumerDocumentFromDb,
   getAgreementContractFromDb,
-  agreementItemFromDomain,
-  getMockAgreement,
+  getAgreementStampFromDb,
 } from "./utils.js";
 
-describe("Agreement Service - Batch Operations", () => {
+describe("Agreement messages consumers - handleAgreementMessageV1", () => {
   beforeEach(async () => {
     await resetAgreementTables(dbContext);
   });
 
-  describe("Upsert", () => {
-    it("inserts a complete Agreement with all subobjects", async () => {
-      await agreementService.upsertBatchAgreement([agreementItem], dbContext);
+  it("AgreementAdded: inserts agreement with stamps, attributes, consumer docs and contract", async () => {
+    const mock = getMockAgreement();
+    const doc = getMockAgreementDocument();
+    mock.consumerDocuments = [doc];
+    const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
+    const contractDoc = { ...getMockAgreementDocument(), id: contractId };
+    mock.contract = contractDoc;
 
-      const storedAgreement = await getAgreementFromDb(
-        agreementItem.agreementSQL.id,
-        dbContext
-      );
-      expect(storedAgreement).toBeDefined();
-      expect(storedAgreement.metadata_version).toBe(1);
+    const msg: AgreementEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 1,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      log_date: new Date(),
+    };
 
-      const stamps = await getAgreementStampFromDb(
-        agreementItem.stampsSQL[0].agreementId,
-        dbContext
-      );
-      expect(stamps.length).toBeGreaterThan(0);
+    await handleAgreementMessageV1([msg], dbContext);
 
-      const attrs = await getAgreementAttributeFromDb(
-        agreementItem.attributesSQL[0].attributeId,
-        dbContext
-      );
-      expect(attrs.length).toBeGreaterThan(0);
+    const storedAgreement = await getAgreementFromDb(mock.id, dbContext);
+    expect(storedAgreement).toBeDefined();
+    expect(storedAgreement.metadata_version).toBe(1);
 
-      const docs = await getAgreementConsumerDocumentFromDb(
-        agreementItem.consumerDocumentsSQL[0].id,
-        dbContext
-      );
-      expect(docs.length).toBeGreaterThan(0);
+    const storedStamps = await getAgreementStampFromDb(mock.id, dbContext);
+    expect(storedStamps.length).toBeGreaterThan(0);
 
-      if (agreementItem.contractSQL?.id) {
-        const contract = await getAgreementContractFromDb(
-          agreementItem.contractSQL.id,
-          dbContext
-        );
-        expect(contract.length).toBe(1);
-      }
-    });
-    it("keeps only record with highest metadata_version for the same agreement ID", async () => {
-      const base = getMockAgreement();
-      const older = { ...base, metadataVersion: 1 };
-      const newer = { ...base, metadataVersion: 10 };
+    const attrId = mock.certifiedAttributes[0].id;
+    const attrs = await getAgreementAttributeFromDb(attrId, dbContext);
+    expect(attrs.length).toBeGreaterThan(0);
 
-      const olderItem = agreementItemFromDomain(older);
-      const newerItem = agreementItemFromDomain(newer);
+    const storedDocs = await getAgreementConsumerDocumentFromDb(
+      doc.id,
+      dbContext
+    );
+    expect(storedDocs.length).toBeGreaterThan(0);
+    expect(storedDocs[0].metadata_version).toBe(1);
 
-      await agreementService.upsertBatchAgreement(
-        [olderItem, newerItem],
-        dbContext
-      );
-
-      const stored = await getAgreementFromDb(base.id, dbContext);
-      expect(stored.metadata_version).toBe(10);
-    });
-
-    it("inserts all agreements when IDs differ", async () => {
-      const a1 = getMockAgreement();
-      const a2 = getMockAgreement();
-      const a3 = getMockAgreement();
-
-      const items = [
-        agreementItemFromDomain(a1),
-        agreementItemFromDomain(a2),
-        agreementItemFromDomain(a3),
-      ];
-
-      await agreementService.upsertBatchAgreement(items, dbContext);
-
-      const storedA1 = await getAgreementFromDb(a1.id, dbContext);
-      const storedA2 = await getAgreementFromDb(a2.id, dbContext);
-      const storedA3 = await getAgreementFromDb(a3.id, dbContext);
-
-      [storedA1, storedA2, storedA3].forEach((row) =>
-        expect(row).toBeDefined()
-      );
-      expect([storedA1.id, storedA2.id, storedA3.id]).toEqual(
-        expect.arrayContaining([a1.id, a2.id, a3.id])
-      );
-    });
+    const storedContract = await getAgreementContractFromDb(
+      contractId,
+      dbContext
+    );
+    expect(storedContract.length).toBeGreaterThan(0);
+    expect(storedContract[0].metadata_version).toBe(1);
   });
 
-  describe("Delete", () => {
-    beforeEach(async () => {
-      await resetAgreementTables(dbContext);
-    });
-    it("marks an Agreement and all its sub-objects as deleted", async () => {
-      await agreementService.upsertBatchAgreement([agreementItem], dbContext);
-      await agreementService.deleteBatchAgreement(
-        [agreementItem.agreementSQL.id as unknown as AgreementId],
-        dbContext
-      );
+  it("AgreementConsumerDocumentAdded: inserts new document", async () => {
+    const mock = getMockAgreement();
+    const doc = getMockAgreementDocument();
 
-      const storedAgreement = await getAgreementFromDb(
-        agreementItem.agreementSQL.id,
-        dbContext
-      );
-      expect(storedAgreement.deleted).toBe(true);
+    const addMsg: AgreementEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 1,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      log_date: new Date(),
+    };
+    const docMsg: AgreementEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      event_version: 1,
+      type: "AgreementConsumerDocumentAdded",
+      data: {
+        agreementId: mock.id,
+        document: toAgreementDocumentV1(doc),
+      } as AgreementConsumerDocumentAddedV1,
+      log_date: new Date(),
+    };
 
-      const storedStamps = await getAgreementStampFromDb(
-        agreementItem.agreementSQL.id,
-        dbContext
-      );
-      storedStamps.forEach((s: { deleted: boolean }) =>
-        expect(s.deleted).toBe(true)
-      );
+    await handleAgreementMessageV1([addMsg, docMsg], dbContext);
 
-      const storedAttrs = await getAgreementAttributeFromDb(
-        agreementItem.attributesSQL[0].attributeId,
-        dbContext
-      );
-      storedAttrs.forEach((a: { deleted: boolean }) =>
-        expect(a.deleted).toBe(true)
-      );
-
-      const storedDocs = await getAgreementConsumerDocumentFromDb(
-        agreementItem.consumerDocumentsSQL[0].id,
-        dbContext
-      );
-      storedDocs.forEach((d: { deleted: boolean }) =>
-        expect(d.deleted).toBe(true)
-      );
-      if (agreementItem.contractSQL?.id) {
-        const storedContract = await getAgreementContractFromDb(
-          agreementItem.contractSQL.id,
-          dbContext
-        );
-        storedContract.forEach((c: { deleted: boolean }) =>
-          expect(c.deleted).toBe(true)
-        );
-      }
-    });
-
-    it("marks a consumer-document as deleted", async () => {
-      await agreementService.upsertBatchAgreement([agreementItem], dbContext);
-      const docId = agreementItem.consumerDocumentsSQL[0].id;
-      await agreementService.deleteBatchAgreementDocument([docId], dbContext);
-
-      const docs = await getAgreementConsumerDocumentFromDb(docId, dbContext);
-      docs.forEach((doc) => expect(doc.deleted).toBe(true));
-    });
+    const stored = await getAgreementConsumerDocumentFromDb(doc.id, dbContext);
+    expect(stored.length).toBeGreaterThan(0);
+    expect(stored[0].metadata_version).toBe(2);
   });
-  describe("Merge and check on metadata_version", () => {
-    beforeEach(async () => {
-      await resetAgreementTables(dbContext);
-    });
 
-    it("should skip update when incoming metadata_version is lower or equal", async () => {
-      const base = getMockAgreement();
-      const v1 = { ...base, metadataVersion: 1 };
-      const v5 = { ...base, metadataVersion: 5 };
-      const v3 = { ...base, metadataVersion: 3 };
+  it("AgreementUpdated: applies update", async () => {
+    const mock = getMockAgreement();
+    const addMsg: AgreementEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 1,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      log_date: new Date(),
+    };
 
-      const item1 = agreementItemFromDomain(v1);
-      const item5 = agreementItemFromDomain(v5);
-      const item3 = agreementItemFromDomain(v3);
+    const updated = { ...mock, state: "Suspended" };
 
-      await agreementService.upsertBatchAgreement([item1], dbContext);
-      await agreementService.upsertBatchAgreement([item5], dbContext);
-      await agreementService.upsertBatchAgreement([item3], dbContext);
+    const updatedMsg: AgreementEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      event_version: 1,
+      type: "AgreementUpdated",
+      data: { agreement: toAgreementV1(updated as any) } as any,
+      log_date: new Date(),
+    };
 
-      const stored = await getAgreementFromDb(base.id, dbContext);
-      expect(stored.metadata_version).toBe(5);
-    });
+    await handleAgreementMessageV1([addMsg, updatedMsg], dbContext);
 
-    it("should apply update when incoming metadata_version is greater", async () => {
-      const base = getMockAgreement();
-      const v2 = { ...base, metadataVersion: 2 };
-      const item2 = agreementItemFromDomain(v2);
+    const stored = await getAgreementFromDb(mock.id, dbContext);
+    expect(stored.metadata_version).toBe(2);
+    expect(stored.state).toBe("Suspended");
+  });
 
-      await agreementService.upsertBatchAgreement([item2], dbContext);
+  it("AgreementDeleted: marks agreement and all subobjects deleted", async () => {
+    const doc = getMockAgreementDocument();
+    const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
+    const contractDoc = { ...getMockAgreementDocument(), id: contractId };
+    const mock = { ...getMockAgreement() };
+    mock.consumerDocuments = [doc];
+    mock.contract = contractDoc;
 
-      const stored = await getAgreementFromDb(base.id, dbContext);
-      expect(stored.metadata_version).toBe(2);
-    });
+    const addMsg: AgreementEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 1,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      log_date: new Date(),
+    };
+    const delMsg: AgreementEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      event_version: 1,
+      type: "AgreementDeleted",
+      data: { agreementId: mock.id } as AgreementDeletedV1,
+      log_date: new Date(),
+    };
+
+    await handleAgreementMessageV1([addMsg, delMsg], dbContext);
+
+    const storedAgreement = await getAgreementFromDb(mock.id, dbContext);
+    expect(storedAgreement.deleted).toBe(true);
+
+    const storedStamps = await getAgreementStampFromDb(mock.id, dbContext);
+    storedStamps.forEach((s) => expect(s.deleted).toBe(true));
+
+    const attrId = mock.certifiedAttributes[0].id;
+    const attrs = await getAgreementAttributeFromDb(attrId, dbContext);
+    attrs.forEach((a) => expect(a.deleted).toBe(true));
+
+    const docs = await getAgreementConsumerDocumentFromDb(doc.id, dbContext);
+    docs.forEach((d) => expect(d.deleted).toBe(true));
+    const ct = await getAgreementContractFromDb(contractId, dbContext);
+    ct.forEach((c) => expect(c.deleted).toBe(true));
+  });
+
+  it("AgreementContractAdded: overwrites contract if metadata_version is higher", async () => {
+    const mock = getMockAgreement();
+    const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
+    const original = {
+      ...getMockAgreementDocument(),
+      id: contractId,
+      prettyName: "orig.pdf",
+    };
+    mock.contract = original;
+
+    const addMsg: AgreementEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 1,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      log_date: new Date(),
+    };
+
+    const updated = { ...original, prettyName: "updated.pdf" };
+    const updateMsg: AgreementEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      event_version: 1,
+      type: "AgreementContractAdded",
+      data: {
+        agreementId: mock.id,
+        contract: toAgreementDocumentV1(updated),
+      } as AgreementContractAddedV1,
+      log_date: new Date(),
+    };
+
+    await handleAgreementMessageV1([addMsg, updateMsg], dbContext);
+
+    const stored = await getAgreementContractFromDb(contractId, dbContext);
+    expect(stored.length).toBe(1);
+    expect(stored[0].pretty_name).toBe("updated.pdf");
+    expect(stored[0].metadata_version).toBe(2);
+  });
+});
+
+describe("Agreement messages consumers - handleAgreementMessageV2", () => {
+  beforeEach(async () => {
+    await resetAgreementTables(dbContext);
+  });
+
+  it("AgreementAdded: inserts agreement with stamps, attributes, consumer docs and contract (V2)", async () => {
+    const mock = getMockAgreement();
+    const doc = getMockAgreementDocument();
+    mock.consumerDocuments = [doc];
+    const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
+    const contractDoc = { ...getMockAgreementDocument(), id: contractId };
+    mock.contract = contractDoc;
+
+    const msg: AgreementEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 2,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV2(mock) } as AgreementAddedV2,
+      log_date: new Date(),
+    };
+
+    await handleAgreementMessageV2([msg], dbContext);
+
+    const storedAgreement = await getAgreementFromDb(mock.id, dbContext);
+    expect(storedAgreement).toBeDefined();
+    expect(storedAgreement.metadata_version).toBe(1);
+
+    const storedStamps = await getAgreementStampFromDb(mock.id, dbContext);
+    expect(storedStamps.length).toBeGreaterThan(0);
+
+    const attrId = mock.certifiedAttributes[0].id;
+    const attrs = await getAgreementAttributeFromDb(attrId, dbContext);
+    expect(attrs.length).toBeGreaterThan(0);
+
+    const storedDocs = await getAgreementConsumerDocumentFromDb(
+      doc.id,
+      dbContext
+    );
+    expect(storedDocs.length).toBeGreaterThan(0);
+    expect(storedDocs[0].metadata_version).toBe(1);
+
+    const storedContract = await getAgreementContractFromDb(
+      contractId,
+      dbContext
+    );
+    expect(storedContract.length).toBeGreaterThan(0);
+    expect(storedContract[0].metadata_version).toBe(1);
+  });
+
+  it("AgreementConsumerDocumentRemoved: marks consumer document as deleted ", async () => {
+    const doc = getMockAgreementDocument();
+    const mock = { ...getMockAgreement(), consumerDocuments: [doc] };
+
+    const addMsg: AgreementEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 2,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV2(mock) } as AgreementAddedV2,
+      log_date: new Date(),
+    };
+    const remMsg: AgreementEventEnvelopeV2 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      event_version: 2,
+      type: "AgreementConsumerDocumentRemoved",
+      data: {
+        agreement: toAgreementV2(mock),
+        documentId: doc.id,
+      } as AgreementConsumerDocumentRemovedV2,
+      log_date: new Date(),
+    };
+
+    await handleAgreementMessageV2([addMsg, remMsg], dbContext);
+
+    const stored = await getAgreementConsumerDocumentFromDb(doc.id, dbContext);
+    expect(stored.length).toBe(1);
+    expect(stored[0].deleted).toBe(true);
+  });
+
+  it("AgreementSuspendedByProducer: applies update", async () => {
+    const mock = getMockAgreement();
+    const addMsg: AgreementEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 2,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV2(mock) } as AgreementAddedV2,
+      log_date: new Date(),
+    };
+
+    const upgraded = { ...mock, state: "Suspended" };
+
+    const upgradeMsg: AgreementEventEnvelopeV2 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      event_version: 2,
+      type: "AgreementSuspendedByProducer",
+      data: { agreement: toAgreementV2(upgraded as any) } as any,
+      log_date: new Date(),
+    };
+
+    await handleAgreementMessageV2([addMsg, upgradeMsg], dbContext);
+
+    const stored = await getAgreementFromDb(mock.id, dbContext);
+    expect(stored.metadata_version).toBe(2);
+    expect(stored.state).toBe("Suspended");
+  });
+
+  it("AgreementDeleted: marks agreement and all subobjects deleted (V2)", async () => {
+    const doc = getMockAgreementDocument();
+    const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
+    const contractDoc = { ...getMockAgreementDocument(), id: contractId };
+    const mock = { ...getMockAgreement() };
+    mock.consumerDocuments = [doc];
+    mock.contract = contractDoc;
+
+    const addMsg: AgreementEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      event_version: 2,
+      type: "AgreementAdded",
+      data: { agreement: toAgreementV2(mock) } as AgreementAddedV2,
+      log_date: new Date(),
+    };
+    const delMsg: AgreementEventEnvelopeV2 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      event_version: 2,
+      type: "AgreementDeleted",
+      data: { agreement: toAgreementV2(mock) } as AgreementDeletedV2,
+      log_date: new Date(),
+    };
+
+    await handleAgreementMessageV2([addMsg, delMsg], dbContext);
+
+    const storedAgreement = await getAgreementFromDb(mock.id, dbContext);
+    expect(storedAgreement.deleted).toBe(true);
+
+    const storedStamps = await getAgreementStampFromDb(mock.id, dbContext);
+    storedStamps.forEach((s) => expect(s.deleted).toBe(true));
+
+    const attrId = mock.certifiedAttributes[0].id;
+    const attrs = await getAgreementAttributeFromDb(attrId, dbContext);
+    attrs.forEach((a) => expect(a.deleted).toBe(true));
+
+    const docs = await getAgreementConsumerDocumentFromDb(doc.id, dbContext);
+    docs.forEach((d) => expect(d.deleted).toBe(true));
+
+    const ct = await getAgreementContractFromDb(contractId, dbContext);
+    ct.forEach((c) => expect(c.deleted).toBe(true));
   });
 });
