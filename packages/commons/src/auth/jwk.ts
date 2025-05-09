@@ -94,8 +94,9 @@ export function createPublicKey({
   strictCheck?: boolean;
 }): KeyObject {
   const pemKey = decodeBase64ToPem(key);
-
-  assertSingleKey(pemKey);
+  if (strictCheck) {
+    assertSingleKey(pemKey);
+  }
   assertNotPrivateKey(pemKey);
   assertNotCertificate(pemKey);
   const publicKey = tryToCreatePublicKey(pemKey);
