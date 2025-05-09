@@ -293,7 +293,6 @@ const errorCodes = {
   soapFileCreatingError: "10018",
   notAllowedMultipleKeysException: "10019",
   featureFlagNotEnabled: "10020",
-  notFound: "10021",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -669,13 +668,5 @@ export function featureFlagNotEnabled(
     detail: `Feature flag ${featureFlag} is not enabled`,
     code: "featureFlagNotEnabled",
     title: "Feature flag not enabled",
-  });
-}
-
-export function notFound(): ApiError<CommonErrorCodes> {
-  return new ApiError({
-    detail: `Resource not found`,
-    code: "notFound",
-    title: "Not Found",
   });
 }

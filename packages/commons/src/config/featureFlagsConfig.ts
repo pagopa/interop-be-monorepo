@@ -1,4 +1,4 @@
-import { featureFlagNotEnabled, notFound } from "pagopa-interop-models";
+import { featureFlagNotEnabled } from "pagopa-interop-models";
 import { z } from "zod";
 
 export const FeatureFlagSignalhubWhitelistConfig = z
