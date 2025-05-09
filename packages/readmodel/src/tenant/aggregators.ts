@@ -37,7 +37,7 @@ import {
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateTenant = ({
   tenantSQL,
@@ -388,13 +388,7 @@ export const toTenantAggregator = (
     featuresSQL,
   } = toTenantAggregatorArray(queryRes);
 
-  if (tenantsSQL.length > 1) {
-    throw genericInternalError(
-      `Found more than one tenant for a unique filter: ${tenantsSQL
-        .map((tenantSQL) => tenantSQL.id)
-        .join(", ")}`
-    );
-  }
+  throwIfMultiple(tenantsSQL, "tenant");
 
   return {
     tenantSQL: tenantsSQL[0],

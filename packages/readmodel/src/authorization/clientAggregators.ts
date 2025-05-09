@@ -18,7 +18,7 @@ import {
   ClientSQL,
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateClient = ({
   clientSQL,
@@ -122,13 +122,7 @@ export const toClientAggregator = (
   const { clientsSQL, usersSQL, purposesSQL, keysSQL } =
     toClientAggregatorArray(queryRes);
 
-  if (clientsSQL.length > 1) {
-    throw genericInternalError(
-      `Found more than one client for a unique filter: ${clientsSQL
-        .map((clientSQL) => clientSQL.id)
-        .join(", ")}`
-    );
-  }
+  throwIfMultiple(clientsSQL, "client");
 
   return {
     clientSQL: clientsSQL[0],

@@ -24,7 +24,7 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateAgreementArray = ({
   agreementsSQL,
@@ -289,13 +289,7 @@ export const toAgreementAggregator = (
     contractsSQL,
   } = toAgreementAggregatorArray(queryRes);
 
-  if (agreementsSQL.length > 1) {
-    throw genericInternalError(
-      `Found more than one agreement for a unique filter: ${agreementsSQL
-        .map((agreementSQL) => agreementSQL.id)
-        .join(", ")}`
-    );
-  }
+  throwIfMultiple(agreementsSQL, "agreement");
 
   return {
     agreementSQL: agreementsSQL[0],

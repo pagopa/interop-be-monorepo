@@ -39,7 +39,7 @@ import {
   EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const documentSQLtoDocument = (
   documentSQL:
@@ -469,13 +469,7 @@ export const toEServiceAggregator = (
     templateVersionRefsSQL,
   } = toEServiceAggregatorArray(queryRes);
 
-  if (eservicesSQL.length > 1) {
-    throw genericInternalError(
-      `Found more than one e-service for a unique filter: ${eservicesSQL
-        .map((eserviceSQL) => eserviceSQL.id)
-        .join(", ")}`
-    );
-  }
+  throwIfMultiple(eservicesSQL, "e-service");
 
   return {
     eserviceSQL: eservicesSQL[0],

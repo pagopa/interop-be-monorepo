@@ -29,7 +29,7 @@ import {
   attributesSQLtoAttributes,
   documentSQLtoDocument,
 } from "../catalog/aggregators.js";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateEServiceTemplateVersion = ({
   versionSQL,
@@ -280,13 +280,7 @@ export const toEServiceTemplateAggregator = (
     attributesSQL,
   } = toEServiceTemplateAggregatorArray(queryRes);
 
-  if (eserviceTemplatesSQL.length > 1) {
-    throw genericInternalError(
-      `Found more than one e-service template for a unique filter: ${eserviceTemplatesSQL
-        .map((eserviceTemplateSQL) => eserviceTemplateSQL.id)
-        .join(", ")}`
-    );
-  }
+  throwIfMultiple(eserviceTemplatesSQL, "e-service template");
 
   return {
     eserviceTemplateSQL: eserviceTemplatesSQL[0],

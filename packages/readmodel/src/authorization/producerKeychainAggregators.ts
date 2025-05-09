@@ -17,7 +17,7 @@ import {
   ProducerKeychainKeySQL,
   ProducerKeychainItemsSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateProducerKeychain = ({
   producerKeychainSQL,
@@ -120,13 +120,7 @@ export const toProducerKeychainAggregator = (
   const { producerKeychainsSQL, usersSQL, eservicesSQL, keysSQL } =
     toProducerKeychainAggregatorArray(queryRes);
 
-  if (producerKeychainsSQL.length > 1) {
-    throw genericInternalError(
-      `Found more than one producer keychain for a unique filter: ${producerKeychainsSQL
-        .map((producerKeychainSQL) => producerKeychainSQL.id)
-        .join(", ")}`
-    );
-  }
+  throwIfMultiple(producerKeychainsSQL, "producer keychain");
 
   return {
     producerKeychainSQL: producerKeychainsSQL[0],

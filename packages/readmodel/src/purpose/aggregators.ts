@@ -28,7 +28,7 @@ import {
   PurposeItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregatePurposeArray = ({
   purposesSQL,
@@ -274,13 +274,7 @@ export const toPurposeAggregator = (
     versionDocumentsSQL,
   } = toPurposeAggregatorArray(queryRes);
 
-  if (purposesSQL.length > 1) {
-    throw genericInternalError(
-      `Found more than one purpose for a unique filter: ${purposesSQL
-        .map((purposeSQL) => purposeSQL.id)
-        .join(", ")}`
-    );
-  }
+  throwIfMultiple(purposesSQL, "purpose");
 
   return {
     purposeSQL: purposesSQL[0],

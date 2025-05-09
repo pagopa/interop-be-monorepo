@@ -19,7 +19,7 @@ import {
   DelegationItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateDelegationArray = ({
   delegationsSQL,
@@ -208,13 +208,7 @@ export const toDelegationAggregator = (
   const { delegationsSQL, stampsSQL, contractDocumentsSQL } =
     toDelegationAggregatorArray(queryRes);
 
-  if (delegationsSQL.length > 1) {
-    throw genericInternalError(
-      `Found more than one delegation for a unique filter: ${delegationsSQL
-        .map((delegationSQL) => delegationSQL.id)
-        .join(", ")}`
-    );
-  }
+  throwIfMultiple(delegationsSQL, "delegation");
 
   return {
     delegationSQL: delegationsSQL[0],
