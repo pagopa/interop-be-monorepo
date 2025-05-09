@@ -4,6 +4,7 @@ import {
   getMockContextInternal,
   getMockTenant,
   readEventByStreamIdAndVersion,
+  sortTenant,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -202,8 +203,12 @@ describe("internalUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
-    expect(returnedTenant).toEqual(expectedTenant);
+    const tenantV2 = toTenantV2(expectedTenant);
+    expect(writtenPayload.tenant).toEqual({
+      ...tenantV2,
+      attributes: expect.arrayContaining(tenantV2.attributes),
+    });
+    expect(sortTenant(returnedTenant)).toEqual(sortTenant(expectedTenant));
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
     const tenantAlreadyAssigned: Tenant = {
