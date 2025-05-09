@@ -47,7 +47,7 @@ describe("GET /tenants/:tenantId route test", () => {
   });
 
   it("Should return 500 when API model parsing fails for response", async () => {
-    mockTenantService.getTenants = vi.fn().mockResolvedValue({
+    mockTenantService.getTenant = vi.fn().mockResolvedValue({
       ...mockResponse,
       kind: "INVALID_KIND",
     });
