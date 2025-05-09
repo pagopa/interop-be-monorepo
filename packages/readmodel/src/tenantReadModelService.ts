@@ -200,6 +200,7 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }
+
       const queryResult = await db
         .select({
           tenant: tenantInReadmodelTenant,
