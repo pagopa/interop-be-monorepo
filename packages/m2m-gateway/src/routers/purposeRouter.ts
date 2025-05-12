@@ -12,7 +12,10 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { getPurposesErrorMapper } from "../utils/errorMappers.js";
+import {
+  getPurposeErrorMapper,
+  getPurposesErrorMapper,
+} from "../utils/errorMappers.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -57,7 +60,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getPurposesErrorMapper,
+          getPurposeErrorMapper,
           ctx,
           `Error retrieving purpose with id ${req.params.purposeId}`
         );

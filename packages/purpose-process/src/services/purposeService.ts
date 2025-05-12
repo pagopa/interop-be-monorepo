@@ -56,8 +56,8 @@ import {
   missingRiskAnalysis,
   eserviceRiskAnalysisNotFound,
   notValidVersionState,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheProducer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheProducer,
   purposeCannotBeDeleted,
   purposeCannotBeCloned,
   purposeNotFound,
@@ -70,7 +70,7 @@ import {
   riskAnalysisConfigLatestVersionNotFound,
   tenantKindNotFound,
   unchangedDailyCalls,
-  organizationNotAllowed,
+  tenantNotAllowed,
   purposeDelegationNotFound,
   purposeCannotBeUpdated,
 } from "../model/domain/errors.js";
@@ -958,7 +958,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.PRODUCER,
           },
           () => {
-            throw organizationIsNotTheConsumer(authData.organizationId);
+            throw tenantIsNotTheConsumer(authData.organizationId);
           }
         )
         .with(
@@ -967,7 +967,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.CONSUMER,
           },
           () => {
-            throw organizationIsNotTheProducer(authData.organizationId);
+            throw tenantIsNotTheProducer(authData.organizationId);
           }
         )
         .with(
@@ -1078,7 +1078,7 @@ export function purposeServiceBuilder(
             )
         )
         .otherwise(() => {
-          throw organizationNotAllowed(authData.organizationId);
+          throw tenantNotAllowed(authData.organizationId);
         });
 
       await repository.createEvent(event);
@@ -1461,7 +1461,7 @@ const getOrganizationRole = async ({
       );
       return ownership.CONSUMER;
     } catch {
-      throw organizationNotAllowed(authData.organizationId);
+      throw tenantNotAllowed(authData.organizationId);
     }
   }
 };
