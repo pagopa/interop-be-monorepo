@@ -339,7 +339,7 @@ export function toCreateEventProducerKeychainEServiceRemoved(
   };
 }
 
-export function toCreateEventClientAdminRemovedBySelfcare(
+export function toCreateEventClientAdminRoleRevoked(
   client: Client,
   adminId: UserId,
   version: number,
@@ -349,7 +349,7 @@ export function toCreateEventClientAdminRemovedBySelfcare(
     streamId: client.id,
     version,
     event: {
-      type: "ClientAdminRemovedBySelfcare",
+      type: "ClientAdminRoleRevoked",
       event_version: 2,
       data: {
         client: toClientV2(client),

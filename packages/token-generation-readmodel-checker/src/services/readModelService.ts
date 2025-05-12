@@ -84,3 +84,4 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
     },
   };
 }
+export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
