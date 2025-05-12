@@ -1,7 +1,9 @@
 import {
   APIEndpoint,
+  FeatureFlagSQLConfig,
   LoggerConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -24,7 +26,9 @@ const AnacCertifiedAttributesImporterConfig = LoggerConfig.and(
         recordsProcessBatchSize: c.RECORDS_PROCESS_BATCH_SIZE,
         anacTenantId: c.ANAC_TENANT_ID,
       }))
-  );
+  )
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig);
 
 export type AnacCertifiedAttributesImporterConfig = z.infer<
   typeof AnacCertifiedAttributesImporterConfig
