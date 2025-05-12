@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
-import { DeletingDbTable } from "../model/db.js";
+import { DbTableNames, DeletingTableConfigMap } from "../model/db.js";
 import { setupStagingTablesError } from "../model/errors.js";
-
 export interface SetupDbConfig {
   mergeTableSuffix: string;
   dbSchemaName: string;
@@ -13,7 +12,7 @@ export function setupDbServiceBuilder(
   config: SetupDbConfig
 ) {
   return {
-    async setupStagingTables(tableNames: string[]): Promise<void> {
+    async setupStagingTables(tableNames: DbTableNames[]): Promise<void> {
       try {
         await Promise.all(
           tableNames.map((tableName) => {
@@ -30,18 +29,26 @@ export function setupDbServiceBuilder(
       }
     },
 
-    async setupStagingDeletingByIdTables(
-      deletingTableName: DeletingDbTable[]
+    async setupStagingDeletingTables(
+      configs: DeletingTableConfigMap[]
     ): Promise<void> {
       try {
         await Promise.all(
-          deletingTableName.map((deletingTableName) => {
+          configs.map(({ name, columns }) => {
+            const columnDefs = columns
+              .map((key) => `${String(key)} VARCHAR(255) NOT NULL`)
+              .concat("deleted BOOLEAN NOT NULL")
+              .join(",\n  ");
+
+            const primaryKey = `PRIMARY KEY (${columns.join(", ")})`;
+
             const query = `
-            CREATE TEMPORARY TABLE IF NOT EXISTS ${deletingTableName} (
-              id VARCHAR(36) PRIMARY KEY,
-              deleted BOOLEAN NOT NULL
-            );
-          `;
+              CREATE TEMPORARY TABLE IF NOT EXISTS ${name} (
+                ${columnDefs},
+                ${primaryKey}
+              );
+            `;
+
             return conn.query(query);
           })
         );

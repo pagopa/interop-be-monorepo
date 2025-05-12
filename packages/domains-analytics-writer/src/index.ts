@@ -12,6 +12,7 @@ import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import {
+  TenantDbTable,
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
@@ -41,6 +42,14 @@ await retryConnection(
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables([
+      TenantDbTable.tenant,
+      TenantDbTable.tenant_mail,
+      TenantDbTable.tenant_certified_attribute,
+      TenantDbTable.tenant_declared_attribute,
+      TenantDbTable.tenant_verified_attribute,
+      TenantDbTable.tenant_verified_attribute_verifier,
+      TenantDbTable.tenant_verified_attribute_revoker,
+      TenantDbTable.tenant_feature,
       AttributeDbTable.attribute,
       CatalogDbTable.eservice,
       CatalogDbTable.eservice_descriptor,
@@ -52,9 +61,17 @@ await retryConnection(
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
     ]);
-    await setupDbService.setupStagingDeletingByIdTables([
-      DeletingDbTable.attribute_deleting_table,
-      DeletingDbTable.catalog_deleting_table,
+    await setupDbService.setupStagingDeletingTables([
+      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.tenant_deleting_table,
+        columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.tenant_feature_deleting_table,
+        columns: ["tenant_id", "kind"],
+      },
     ]);
   },
   logger({ serviceName: config.serviceName })

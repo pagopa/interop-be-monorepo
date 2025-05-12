@@ -2529,6 +2529,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-zod:
+        specifier: 0.7.1
+        version: 0.7.1(drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -7463,6 +7466,12 @@ packages:
         optional: true
       sqlite3:
         optional: true
+
+  drizzle-zod@0.7.1:
+    resolution: {integrity: sha512-nZzALOdz44/AL2U005UlmMqaQ1qe5JfanvLujiTHiiT8+vZJTBFhj3pY4Vk+L6UWyKFfNmLhk602Hn4kCTynKQ==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
+      zod: '>=3.0.0'
 
   duplexer@0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
@@ -13116,7 +13125,7 @@ snapshots:
       get-func-name: 2.0.2
       loupe: 2.3.7
       pathval: 1.1.1
-      type-detect: 4.0.8
+      type-detect: 4.1.0
 
   chalk@2.4.2:
     dependencies:
@@ -13345,7 +13354,7 @@ snapshots:
 
   deep-eql@4.1.4:
     dependencies:
-      type-detect: 4.0.8
+      type-detect: 4.1.0
 
   deep-is@0.1.4: {}
 
@@ -13448,6 +13457,11 @@ snapshots:
     optionalDependencies:
       '@types/pg': 8.11.11
       pg: 8.13.1
+
+  drizzle-zod@0.7.1(drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8):
+    dependencies:
+      drizzle-orm: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      zod: 3.23.8
 
   duplexer@0.1.2: {}
 
