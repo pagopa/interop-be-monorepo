@@ -41,6 +41,23 @@ describe("API POST /clients/{clientId}/admin test", () => {
     expect(res.body).toEqual(apiResponse);
   });
 
+  it("Should return 400 if passed an invalid clientId", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid-client-id");
+    expect(res.status).toBe(400);
+  });
+
+  it.each([
+    [{}, "empty body"],
+    [{ adminId: 123 }, "adminId not a string"],
+    [{ adminId: "" }, "adminId empty string"],
+    [{ invalidField: "foo" }, "unexpected field"],
+  ])("Should return 400 if passed an invalid body: %s", async (body) => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, body as unknown as object);
+    expect(res.status).toBe(400);
+  });
+
   it.each([
     [clientNotFound(generateId()), 404],
     [clientKindNotAllowed(mockClient.id), 403],
