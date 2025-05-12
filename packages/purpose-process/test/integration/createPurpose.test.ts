@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
@@ -97,9 +98,7 @@ describe("createPurpose", () => {
     await addOneAgreement(agreementEservice1);
     await addOneEService(eService1);
 
-    const {
-      data: { isRiskAnalysisValid, purpose },
-    } = await purposeService.createPurpose(
+    const createPurposeResponse = await purposeService.createPurpose(
       purposeSeed,
       getMockContext({
         authData: getMockAuthData(
@@ -108,14 +107,16 @@ describe("createPurpose", () => {
       })
     );
 
-    const writtenEvent = await readLastPurposeEvent(purpose.id);
+    const writtenEvent = await readLastPurposeEvent(
+      createPurposeResponse.data.purpose.id
+    );
 
     if (!writtenEvent) {
       fail("Update failed: purpose not found in event-store");
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: purpose.id,
+      stream_id: createPurposeResponse.data.purpose.id,
       version: "0",
       type: "PurposeAdded",
       event_version: 2,
@@ -128,22 +129,26 @@ describe("createPurpose", () => {
 
     const expectedRiskAnalysisForm: RiskAnalysisForm = {
       ...mockValidRiskAnalysisForm,
-      id: unsafeBrandId(purpose.riskAnalysisForm!.id),
+      id: unsafeBrandId(
+        createPurposeResponse.data.purpose.riskAnalysisForm!.id
+      ),
       singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
         (answer, i) => ({
           ...answer,
-          id: purpose.riskAnalysisForm!.singleAnswers[i].id,
+          id: createPurposeResponse.data.purpose.riskAnalysisForm!
+            .singleAnswers[i].id,
         })
       ),
       multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
         ...answer,
-        id: purpose.riskAnalysisForm!.multiAnswers[i].id,
+        id: createPurposeResponse.data.purpose.riskAnalysisForm!.multiAnswers[i]
+          .id,
       })),
     };
 
     const expectedPurpose: Purpose = {
       title: purposeSeed.title,
-      id: unsafeBrandId(purpose.id),
+      id: unsafeBrandId(createPurposeResponse.data.purpose.id),
       createdAt: new Date(),
       eserviceId: unsafeBrandId(purposeSeed.eserviceId),
       consumerId: unsafeBrandId(purposeSeed.consumerId),
@@ -162,8 +167,13 @@ describe("createPurpose", () => {
     };
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(createPurposeResponse).toEqual({
+      data: {
+        purpose: expectedPurpose,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
+    });
 
     vi.useRealTimers();
   });
@@ -186,21 +196,21 @@ describe("createPurpose", () => {
     await addOneEService(eService1);
     await addOneDelegation(delegation);
 
-    const {
-      data: { isRiskAnalysisValid, purpose },
-    } = await purposeService.createPurpose(
+    const createPurposeResponse = await purposeService.createPurpose(
       purposeSeed,
       getMockContext({ authData: getMockAuthData(delegateTenant.id) })
     );
 
-    const writtenEvent = await readLastPurposeEvent(purpose.id);
+    const writtenEvent = await readLastPurposeEvent(
+      createPurposeResponse.data.purpose.id
+    );
 
     if (!writtenEvent) {
       fail("Update failed: purpose not found in event-store");
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: purpose.id,
+      stream_id: createPurposeResponse.data.purpose.id,
       version: "0",
       type: "PurposeAdded",
       event_version: 2,
@@ -213,22 +223,26 @@ describe("createPurpose", () => {
 
     const expectedRiskAnalysisForm: RiskAnalysisForm = {
       ...mockValidRiskAnalysisForm,
-      id: unsafeBrandId(purpose.riskAnalysisForm!.id),
+      id: unsafeBrandId(
+        createPurposeResponse.data.purpose.riskAnalysisForm!.id
+      ),
       singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
         (answer, i) => ({
           ...answer,
-          id: purpose.riskAnalysisForm!.singleAnswers[i].id,
+          id: createPurposeResponse.data.purpose.riskAnalysisForm!
+            .singleAnswers[i].id,
         })
       ),
       multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
         ...answer,
-        id: purpose.riskAnalysisForm!.multiAnswers[i].id,
+        id: createPurposeResponse.data.purpose.riskAnalysisForm!.multiAnswers[i]
+          .id,
       })),
     };
 
     const expectedPurpose: Purpose = {
       title: purposeSeed.title,
-      id: unsafeBrandId(purpose.id),
+      id: unsafeBrandId(createPurposeResponse.data.purpose.id),
       createdAt: new Date(),
       eserviceId: unsafeBrandId(purposeSeed.eserviceId),
       consumerId: unsafeBrandId(purposeSeed.consumerId),
@@ -247,9 +261,16 @@ describe("createPurpose", () => {
       riskAnalysisForm: expectedRiskAnalysisForm,
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    expect(purpose).toEqual(expectedPurpose);
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(writtenPayload.purpose).toEqual(
+      toPurposeV2(createPurposeResponse.data.purpose)
+    );
+    expect(createPurposeResponse).toEqual({
+      data: {
+        purpose: expectedPurpose,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
+    });
 
     vi.useRealTimers();
   });
@@ -323,21 +344,21 @@ describe("createPurpose", () => {
     await addOneDelegation(consumerDelegation);
     await addOneDelegation(producerDelegation);
 
-    const {
-      data: { isRiskAnalysisValid, purpose },
-    } = await purposeService.createPurpose(
+    const createPurposeResponse = await purposeService.createPurpose(
       delegatePurposeSeed,
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
 
-    const writtenEvent = await readLastPurposeEvent(purpose.id);
+    const writtenEvent = await readLastPurposeEvent(
+      createPurposeResponse.data.purpose.id
+    );
 
     if (!writtenEvent) {
       fail("Update failed: purpose not found in event-store");
     }
 
     expect(writtenEvent).toMatchObject({
-      stream_id: purpose.id,
+      stream_id: createPurposeResponse.data.purpose.id,
       version: "0",
       type: "PurposeAdded",
       event_version: 2,
@@ -350,22 +371,26 @@ describe("createPurpose", () => {
 
     const expectedRiskAnalysisForm: RiskAnalysisForm = {
       ...mockValidRiskAnalysisForm,
-      id: unsafeBrandId(purpose.riskAnalysisForm!.id),
+      id: unsafeBrandId(
+        createPurposeResponse.data.purpose.riskAnalysisForm!.id
+      ),
       singleAnswers: mockValidRiskAnalysisForm.singleAnswers.map(
         (answer, i) => ({
           ...answer,
-          id: purpose.riskAnalysisForm!.singleAnswers[i].id,
+          id: createPurposeResponse.data.purpose.riskAnalysisForm!
+            .singleAnswers[i].id,
         })
       ),
       multiAnswers: mockValidRiskAnalysisForm.multiAnswers.map((answer, i) => ({
         ...answer,
-        id: purpose.riskAnalysisForm!.multiAnswers[i].id,
+        id: createPurposeResponse.data.purpose.riskAnalysisForm!.multiAnswers[i]
+          .id,
       })),
     };
 
     const expectedPurpose: Purpose = {
       title: delegatePurposeSeed.title,
-      id: unsafeBrandId(purpose.id),
+      id: unsafeBrandId(createPurposeResponse.data.purpose.id),
       createdAt: new Date(),
       eserviceId: unsafeBrandId(delegatePurposeSeed.eserviceId),
       consumerId: unsafeBrandId(delegatePurposeSeed.consumerId),
@@ -384,9 +409,16 @@ describe("createPurpose", () => {
       riskAnalysisForm: expectedRiskAnalysisForm,
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
-    expect(purpose).toEqual(expectedPurpose);
-    expect(isRiskAnalysisValid).toBe(true);
+    expect(writtenPayload.purpose).toEqual(
+      toPurposeV2(createPurposeResponse.data.purpose)
+    );
+    expect(createPurposeResponse).toEqual({
+      data: {
+        purpose: expectedPurpose,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
+    });
 
     vi.useRealTimers();
   });
