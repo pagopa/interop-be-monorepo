@@ -56,7 +56,7 @@ describe("getConsumerDelegations", () => {
     mockGetDelegations.mockClear();
   });
 
-  it("Should succeed and perform service calls", async () => {
+  it("Should succeed and perform API clients calls", async () => {
     const m2mDelegationResponse1: m2mGatewayApi.ConsumerDelegation = {
       id: mockApiDelegation1.data.id,
       delegatorId: mockApiDelegation1.data.delegatorId,
