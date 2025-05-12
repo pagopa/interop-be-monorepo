@@ -67,7 +67,7 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should throw purposeVersionNotFound for version not found", async () => {
+  it("Should return 404 for purposeVersionNotFound", async () => {
     mockPurposeService.getPurposeVersion = vi
       .fn()
       .mockRejectedValue(
