@@ -9,9 +9,16 @@ import {
   genericLogger,
 } from "pagopa-interop-commons";
 import { generateId, Tenant, unsafeBrandId } from "pagopa-interop-models";
+import {
+  tenantReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnection,
+} from "pagopa-interop-readmodel";
 import { TenantProcessService } from "../src/service/tenantProcessService.js";
-import { ReadModelQueries } from "../src/service/readModelQueriesService.js";
 import { importAttributes } from "../src/service/processor.js";
+import { readModelQueriesBuilder } from "../src/service/readModelQueriesService.js";
+import { readModelQueriesBuilderSQL } from "../src/service/readModelQueriesServiceSQL.js";
+import { config } from "../src/config/config.js";
 import {
   ATTRIBUTE_IVASS_INSURANCES_ID,
   downloadCSVMock,
@@ -34,7 +41,23 @@ describe("IVASS Certified Attributes Importer", () => {
   const tenantProcessMock = new TenantProcessService("url");
   const csvDownloaderMock = downloadCSVMock;
   const readModelClient = {} as ReadModelRepository;
-  const readModelQueriesMock = new ReadModelQueries(readModelClient);
+  const oldReadModelQueries = readModelQueriesBuilder(readModelClient);
+
+  const db = makeDrizzleConnection(config);
+  const tenantReadModelService = tenantReadModelServiceBuilder(db);
+  const attributeReadModelService = attributeReadModelServiceBuilder(db);
+  const readModelQueriesSQL = readModelQueriesBuilderSQL(
+    db,
+    tenantReadModelService,
+    attributeReadModelService
+  );
+
+  const readModelQueriesMock =
+    config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+      ? readModelQueriesSQL
+      : oldReadModelQueries;
 
   const run = () =>
     importAttributes(

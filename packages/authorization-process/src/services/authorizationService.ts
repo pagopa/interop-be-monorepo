@@ -32,6 +32,7 @@ import {
   hasAtLeastOneUserRole,
   InternalAuthData,
   isUiAuthData,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   userRole,
@@ -71,7 +72,7 @@ import {
   toCreateEventClientAdded,
   toCreateEventClientAdminSet,
   toCreateEventClientAdminRemoved,
-  toCreateEventClientAdminRemovedBySelfcare,
+  toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -211,7 +212,10 @@ export function authorizationServiceBuilder(
       }: {
         clientId: ClientId;
       },
-      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
@@ -1391,7 +1395,7 @@ export function authorizationServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventClientAdminRemovedBySelfcare(
+        toCreateEventClientAdminRoleRevoked(
           updatedClient,
           adminId,
           client.metadata.version,
