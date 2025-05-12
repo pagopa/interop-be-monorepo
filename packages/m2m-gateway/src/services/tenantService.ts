@@ -82,8 +82,8 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       return {
-        results: combinedAttributes.map((args) =>
-          toM2MGatewayApiTenantCertifiedAttribute(...args)
+        results: combinedAttributes.map(([tenantCertifiedAttribute,  certifiedAttribute]) =>
+          toM2MGatewayApiTenantCertifiedAttribute(tenantCertifiedAttribute,  certifiedAttribute)
         ),
         pagination: {
           limit,
