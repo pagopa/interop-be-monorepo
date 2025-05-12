@@ -1,5 +1,113 @@
 CREATE SCHEMA IF NOT EXISTS domains;
 
+CREATE TABLE IF NOT EXISTS domains.tenant (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  kind VARCHAR,
+  selfcare_id VARCHAR,
+  external_id_origin VARCHAR NOT NULL,
+  external_id_value VARCHAR NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP,
+  name VARCHAR NOT NULL,
+  onboarded_at TIMESTAMP,
+  sub_unit_type VARCHAR,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_mail (
+  id VARCHAR,
+  tenant_id VARCHAR(36) NOT NULL,
+  metadata_version INTEGER NOT NULL,
+  kind VARCHAR NOT NULL,
+  address VARCHAR NOT NULL,
+  description VARCHAR,
+  created_at TIMESTAMP NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id, tenant_id, created_at),
+  FOREIGN KEY (tenant_id) REFERENCES domains.tenant (id),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_certified_attribute (
+  attribute_id VARCHAR(36) NOT NULL,
+  tenant_id VARCHAR(36) NOT NULL,
+  metadata_version INTEGER NOT NULL,
+  assignment_timestamp TIMESTAMP NOT NULL,
+  revocation_timestamp TIMESTAMP,
+  deleted BOOLEAN,
+  PRIMARY KEY (attribute_id, tenant_id),
+  FOREIGN KEY (tenant_id) REFERENCES domains.tenant (id),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_declared_attribute (
+  attribute_id VARCHAR(36),
+  tenant_id VARCHAR(36) NOT NULL,
+  metadata_version INTEGER NOT NULL,
+  assignment_timestamp TIMESTAMP NOT NULL,
+  revocation_timestamp TIMESTAMP,
+  delegation_id VARCHAR(36),
+  deleted BOOLEAN,
+  PRIMARY KEY (attribute_id, tenant_id),
+  FOREIGN KEY (tenant_id) REFERENCES domains.tenant (id),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute (
+  attribute_id VARCHAR(36),
+  tenant_id VARCHAR(36) NOT NULL,
+  metadata_version INTEGER NOT NULL,
+  assignment_timestamp TIMESTAMP NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (attribute_id, tenant_id),
+  FOREIGN KEY (tenant_id) REFERENCES domains.tenant (id),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_verifier (
+  tenant_id VARCHAR(36) NOT NULL,
+  metadata_version INTEGER NOT NULL,
+  tenant_verifier_id VARCHAR(36) NOT NULL,
+  tenant_verified_attribute_id VARCHAR(36) NOT NULL,
+  verification_date TIMESTAMP NOT NULL,
+  expiration_date TIMESTAMP,
+  extension_date TIMESTAMP,
+  delegation_id VARCHAR(36),
+  deleted BOOLEAN,
+  FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES domains.tenant_verified_attribute (tenant_id, attribute_id),
+  FOREIGN KEY (tenant_verifier_id) REFERENCES domains.tenant (id),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_revoker (
+  tenant_id VARCHAR(36) NOT NULL,
+  metadata_version INTEGER NOT NULL,
+  tenant_revoker_id VARCHAR(36) NOT NULL,
+  tenant_verified_attribute_id VARCHAR(36) NOT NULL,
+  verification_date TIMESTAMP NOT NULL,
+  expiration_date TIMESTAMP,
+  extension_date TIMESTAMP,
+  revocation_date TIMESTAMP NOT NULL,
+  delegation_id VARCHAR(36),
+  deleted BOOLEAN,
+  FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES domains.tenant_verified_attribute (tenant_id, attribute_id),
+  FOREIGN KEY (tenant_revoker_id) REFERENCES domains.tenant (id),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_feature (
+  tenant_id VARCHAR(36) NOT NULL,
+  metadata_version INTEGER NOT NULL,
+  kind VARCHAR NOT NULL,
+  certifier_id VARCHAR,
+  availability_timestamp TIMESTAMP,
+  deleted BOOLEAN,
+  PRIMARY KEY (tenant_id, kind),
+  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
+);
+
 CREATE TABLE IF NOT EXISTS domains.attribute (
   id VARCHAR(36),
   metadata_version INTEGER NOT NULL,
@@ -15,8 +123,8 @@ CREATE TABLE IF NOT EXISTS domains.attribute (
 
 CREATE TABLE domains.eservice (
   id VARCHAR(36),
-  metadata_version INTEGER ,
-  producer_id VARCHAR(36) ,
+  metadata_version INTEGER,
+  producer_id VARCHAR(36),
   name VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   technology VARCHAR NOT NULL,
@@ -49,8 +157,7 @@ CREATE TABLE domains.eservice_descriptor (
   archived_at TIMESTAMP,
   deleted BOOLEAN,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_template_version_ref (
@@ -64,8 +171,7 @@ CREATE TABLE domains.eservice_descriptor_template_version_ref (
   terms_and_conditions_url VARCHAR,
   deleted BOOLEAN,
   PRIMARY KEY (eservice_template_version_id, descriptor_id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_rejection_reason (
@@ -75,8 +181,7 @@ CREATE TABLE domains.eservice_descriptor_rejection_reason (
   rejection_reason VARCHAR NOT NULL,
   rejected_at TIMESTAMP NOT NULL,
   deleted BOOLEAN,
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_interface (
@@ -92,8 +197,7 @@ CREATE TABLE domains.eservice_descriptor_interface (
   upload_date TIMESTAMP NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_document (
@@ -109,8 +213,7 @@ CREATE TABLE domains.eservice_descriptor_document (
   upload_date TIMESTAMP NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_attribute (
@@ -123,8 +226,7 @@ CREATE TABLE domains.eservice_descriptor_attribute (
   group_id INTEGER NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_risk_analysis (
@@ -137,21 +239,18 @@ CREATE TABLE domains.eservice_risk_analysis (
   risk_analysis_form_version VARCHAR NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_risk_analysis_answer (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
   metadata_version INTEGER,
-  risk_analysis_form_id VARCHAR(36) NOT NULL
-    REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id),
+  risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id),
   kind VARCHAR NOT NULL,
   key VARCHAR NOT NULL,
   value VARCHAR(65535) NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
