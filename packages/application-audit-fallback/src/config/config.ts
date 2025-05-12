@@ -2,24 +2,23 @@ import {
   ApplicationAuditTopicConfig,
   KafkaProducerConfig,
   LoggerConfig,
-  SQSConsumerConfig,
+  ApplicationAuditFallbackSQSConsumerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-export const ApplicationAuditFallbackConfig = SQSConsumerConfig.and(
-  KafkaProducerConfig
-)
-  .and(ApplicationAuditTopicConfig)
-  .and(LoggerConfig)
-  .and(
-    z
-      .object({
-        SERVICE_NAME: z.string(),
-      })
-      .transform((c) => ({
-        serviceName: c.SERVICE_NAME,
-      }))
-  );
+export const ApplicationAuditFallbackConfig =
+  ApplicationAuditFallbackSQSConsumerConfig.and(KafkaProducerConfig)
+    .and(ApplicationAuditTopicConfig)
+    .and(LoggerConfig)
+    .and(
+      z
+        .object({
+          SERVICE_NAME: z.string(),
+        })
+        .transform((c) => ({
+          serviceName: c.SERVICE_NAME,
+        }))
+    );
 
 export type ApplicationAuditFallbackConfig = z.infer<
   typeof ApplicationAuditFallbackConfig
