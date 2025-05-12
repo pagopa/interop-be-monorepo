@@ -84,7 +84,7 @@ describe("getCertifiedAttributes", () => {
     mockGetBulkedAttributes.mockClear();
   });
 
-  it("Should succeed and perform service calls", async () => {
+  it("Should succeed and perform API clients calls", async () => {
     const m2mCertifiedAttributeResponse1: m2mGatewayApi.TenantCertifiedAttribute =
       {
         id: mockApiAttribute1.data.id,
