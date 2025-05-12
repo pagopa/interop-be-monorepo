@@ -19,6 +19,7 @@ import {
   EServiceDeletedV2,
   delegationState,
   delegationKind,
+  EServiceDocumentId,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { config } from "../src/config/config.js";
@@ -91,15 +92,20 @@ describe("delete draft descriptor", () => {
   it("should write on event-store for the deletion of a draft descriptor (with interface and document to delete), and delete documents and interface files from the bucket", async () => {
     vi.spyOn(fileManager, "delete");
 
+    const documentId1 = generateId<EServiceDocumentId>();
+    const documentId2 = generateId<EServiceDocumentId>();
+
     const document1 = {
       ...mockDocument,
+      id: documentId1,
       name: `${mockDocument.name}_1`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,
+      path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
     };
     const document2 = {
       ...mockDocument,
+      id: documentId2,
       name: `${mockDocument.name}_2`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
+      path: `${config.eserviceDocumentsPath}/${documentId2}/${mockDocument.name}_2`,
     };
     const interfaceDocument = {
       ...mockDocument,
@@ -362,7 +368,7 @@ describe("delete draft descriptor", () => {
     };
     const descriptorToDelete: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
-      docs: [mockDocument, mockDocument],
+      docs: [getMockDocument(), getMockDocument()],
       version: "2",
     };
     const eservice: EService = {
