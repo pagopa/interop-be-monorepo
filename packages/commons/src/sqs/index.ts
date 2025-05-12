@@ -151,7 +151,7 @@ export function initQueueManager(
 
                 const validationResult = validateSqsMessage(message, logger);
                 await match(validationResult)
-                  .with("InvalidEvent", async () => {
+                  .with("SkipEvent", async () => {
                     await deleteMessage(
                       client,
                       consumerConfig.queueUrl,

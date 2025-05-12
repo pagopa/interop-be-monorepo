@@ -2,7 +2,7 @@ import { invalidSqsMessage } from "pagopa-interop-models";
 import { Logger } from "../logging/index.js";
 import { Message } from "./index.js";
 
-type EventValidation = "ValidEvent" | "InvalidEvent";
+type EventValidation = "ValidEvent" | "SkipEvent";
 
 export const validateSqsMessage = (
   message: Message,
@@ -15,8 +15,8 @@ export const validateSqsMessage = (
   try {
     const body = JSON.parse(message.Body);
     if (body.Event === "s3:TestEvent") {
-      logger.warn(`Skipping event - ${body.Event}`);
-      return "InvalidEvent";
+      logger.debug(`Skipping TestEvent - ${body.Event}`);
+      return "SkipEvent";
     }
 
     return "ValidEvent";

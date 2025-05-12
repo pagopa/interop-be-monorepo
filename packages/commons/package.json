@@ -20,11 +20,12 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@apidevtools/swagger-parser": "10.1.0",
-    "@types/adm-zip": "0.5.5",
     "@aws-sdk/client-kms": "3.693.0",
     "@aws-sdk/client-s3": "3.693.0",
     "@aws-sdk/client-sesv2": "3.693.0",
+    "@aws-sdk/client-sqs": "3.693.0",
     "@aws-sdk/s3-request-presigner": "3.693.0",
+    "@types/adm-zip": "0.5.5",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "adm-zip": "0.5.15",
@@ -51,7 +52,7 @@
     "yaml": "2.4.5",
     "zod": "3.23.8",
     "zod-validation-error": "3.3.0",
-    "@aws-sdk/client-sqs": "3.693.0"
+    "drizzle-orm": "0.39.3"
   },
   "devDependencies": {
     "@types/express": "4.17.21",

@@ -47,7 +47,7 @@ const logFormat = (
   const correlationLogPart = correlationId
     ? `[CID=${correlationId}]`
     : undefined;
-  const spanIdLogPart = spanId ? `[SPNID=${spanId}]` : undefined;
+  const spanIdLogPart = spanId ? `[SPANID=${spanId}]` : undefined;
   const eventTypePart = eventType ? `[ET=${eventType}]` : undefined;
   const eventVersionPart = eventVersion ? `[EV=${eventVersion}]` : undefined;
   const streamVersionPart = streamVersion ? `[SV=${streamVersion}]` : undefined;
