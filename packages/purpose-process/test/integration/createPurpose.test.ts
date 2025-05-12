@@ -41,7 +41,7 @@ import {
   riskAnalysisValidationFailed,
   agreementNotFound,
   duplicatedPurposeTitle,
-  organizationIsNotTheConsumer,
+  tenantIsNotTheConsumer,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -492,7 +492,7 @@ describe("createPurpose", () => {
       )
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
   });
-  it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     await addOneTenant(tenant);
     await addOneAgreement(agreementEservice1);
     await addOneEService(getMockEService());
@@ -511,7 +511,7 @@ describe("createPurpose", () => {
           ),
         })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(tenant.id));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(tenant.id));
   });
   it("should throw riskAnalysisValidationFailed if the purpose has a non valid risk analysis ", async () => {
     await addOneTenant(tenant);

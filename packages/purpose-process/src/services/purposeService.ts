@@ -56,8 +56,8 @@ import {
   missingRiskAnalysis,
   eserviceRiskAnalysisNotFound,
   notValidVersionState,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheProducer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheProducer,
   purposeCannotBeDeleted,
   purposeCannotBeCloned,
   purposeNotFound,
@@ -70,7 +70,7 @@ import {
   riskAnalysisConfigLatestVersionNotFound,
   tenantKindNotFound,
   unchangedDailyCalls,
-  organizationNotAllowed,
+  tenantNotAllowed,
   purposeDelegationNotFound,
   purposeCannotBeUpdated,
 } from "../model/domain/errors.js";
@@ -264,7 +264,10 @@ export function purposeServiceBuilder(
   return {
     async getPurposeById(
       purposeId: PurposeId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
@@ -950,7 +953,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.PRODUCER,
           },
           () => {
-            throw organizationIsNotTheConsumer(authData.organizationId);
+            throw tenantIsNotTheConsumer(authData.organizationId);
           }
         )
         .with(
@@ -959,7 +962,7 @@ export function purposeServiceBuilder(
             purposeOwnership: ownership.CONSUMER,
           },
           () => {
-            throw organizationIsNotTheProducer(authData.organizationId);
+            throw tenantIsNotTheProducer(authData.organizationId);
           }
         )
         .with(
@@ -1070,7 +1073,7 @@ export function purposeServiceBuilder(
             )
         )
         .otherwise(() => {
-          throw organizationNotAllowed(authData.organizationId);
+          throw tenantNotAllowed(authData.organizationId);
         });
 
       await repository.createEvent(event);
@@ -1442,7 +1445,7 @@ const getOrganizationRole = async ({
       );
       return ownership.CONSUMER;
     } catch {
-      throw organizationNotAllowed(authData.organizationId);
+      throw tenantNotAllowed(authData.organizationId);
     }
   }
 };

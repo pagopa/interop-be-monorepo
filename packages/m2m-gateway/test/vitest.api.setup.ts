@@ -82,7 +82,6 @@ export const mockDelegationService = {} as DelegationService;
 export const mockPurposeService = {} as PurposeService;
 export const mockAttributeService = {} as AttributeService;
 
-
 export const api = await createApp(
   {
     agreementService: {} as AgreementService,

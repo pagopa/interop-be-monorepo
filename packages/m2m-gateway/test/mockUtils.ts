@@ -1,4 +1,3 @@
-
 import {
   attributeRegistryApi,
   authorizationApi,

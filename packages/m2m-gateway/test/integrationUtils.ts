@@ -76,4 +76,3 @@ export const purposeService = purposeServiceBuilder(mockInteropBeClients);
 export const attributeService = attributeServiceBuilder(mockInteropBeClients);
 
 export const clientService = clientServiceBuilder(mockInteropBeClients);
-

@@ -30,9 +30,9 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   purposeNotFound,
-  organizationIsNotTheConsumer,
+  tenantIsNotTheConsumer,
   purposeCannotBeDeleted,
-  organizationIsNotTheDelegatedConsumer,
+  tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -297,7 +297,7 @@ describe("deletePurpose", () => {
       )
     ).rejects.toThrowError(purposeNotFound(randomId));
   });
-  it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
@@ -316,9 +316,7 @@ describe("deletePurpose", () => {
         mockPurpose.id,
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(mockEService.producerId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheConsumer(mockEService.producerId));
   });
   it.each(
     Object.values(purposeVersionState).filter(
@@ -351,7 +349,7 @@ describe("deletePurpose", () => {
       ).rejects.toThrowError(purposeCannotBeDeleted(mockPurpose.id));
     }
   );
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is deleting a purpose created by the delegate in deletePurpose", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is deleting a purpose created by the delegate in deletePurpose", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
@@ -380,10 +378,7 @@ describe("deletePurpose", () => {
     expect(
       purposeService.deletePurpose(mockPurpose.id, getMockContext({ authData }))
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegatedConsumer(authData.organizationId, delegation.id)
     );
   });
 
@@ -414,7 +409,7 @@ describe("deletePurpose", () => {
       purposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
     );
   });
-  it("should throw organizationIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+  it("should throw tenantIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
@@ -442,10 +437,10 @@ describe("deletePurpose", () => {
         mockPurpose.id,
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
 
-  it("should throw organizationIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
       purposeVersionState.draft
@@ -486,7 +481,7 @@ describe("deletePurpose", () => {
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      tenantIsNotTheDelegatedConsumer(
         delegation.delegateId,
         mockPurpose.delegationId
       )
