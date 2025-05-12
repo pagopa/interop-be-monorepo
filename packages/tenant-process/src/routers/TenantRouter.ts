@@ -13,6 +13,14 @@ import {
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
+  agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import {
   apiTenantFeatureTypeToTenantFeatureType,
   toApiTenant,
 } from "../model/domain/apiConverter.js";
@@ -46,10 +54,34 @@ import {
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import { config } from "../config/config.js";
 import { tenantServiceBuilder } from "../services/tenantService.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
+const db = makeDrizzleConnection(config);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
+const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
+const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
+const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
+
+const readModelRepository = ReadModelRepository.init(config);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  db,
+  tenantReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+  attributeReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  delegationReadModelServiceSQL
 );
+
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 const tenantService = tenantServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
@@ -187,6 +219,7 @@ const tenantsRouter = (
           M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          INTERNAL_ROLE,
         ]);
 
         const tenant = await tenantService.getTenantById(
@@ -525,6 +558,7 @@ const tenantsRouter = (
           M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          INTERNAL_ROLE,
         ]);
 
         const tenant = await tenantService.getTenantBySelfcareId(

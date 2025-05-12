@@ -7,7 +7,6 @@ import {
   DB,
   eventRepository,
   FileManager,
-  formatDateddMMyyyyHHmmss,
   hasAtLeastOneUserRole,
   InternalAuthData,
   interpolateApiSpec,
@@ -19,6 +18,9 @@ import {
   userRole,
   verifyAndCreateDocument,
   WithLogger,
+  formatDateddMMyyyyHHmmss,
+  assertFeatureFlagEnabled,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -93,11 +95,7 @@ import {
   tenantNotFound,
   unchangedAttributes,
 } from "../model/domain/errors.js";
-import {
-  ApiGetEServicesFilters,
-  Consumer,
-  EServiceTemplateReferences,
-} from "../model/domain/models.js";
+import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   toCreateEventClonedEServiceAdded,
   toCreateEventEServiceAdded,
@@ -107,6 +105,7 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorApprovedByDelegator,
+  toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated,
   toCreateEventEServiceDescriptorArchived,
   toCreateEventEServiceDescriptorAttributesUpdated,
   toCreateEventEServiceDescriptorAttributesUpdatedByTemplateUpdate,
@@ -158,13 +157,13 @@ import {
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
-  isDescriptorUpdatable,
   isNotActiveDescriptor,
   validateRiskAnalysisSchemaOrThrow,
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
   assertDescriptorUpdatable,
+  assertEServiceUpdatable,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -284,7 +283,7 @@ const getTemplateDataFromEservice = (
   eserviceTemplateId: EServiceTemplateId;
   eserviceTemplateVersionId: EServiceTemplateVersionId;
 } => {
-  const eserviceTemplateId = eservice.templateRef?.id;
+  const eserviceTemplateId = eservice.templateId;
   const eserviceTemplateVersionId = descriptor.templateVersionRef?.id;
 
   if (!eserviceTemplateId || !eserviceTemplateVersionId) {
@@ -456,10 +455,10 @@ async function parseAndCheckAttributes(
 
 function isTenantInSignalHubWhitelist(
   organizationId: TenantId,
-  isSignalubEnabled: boolean | undefined
+  isSignalHubEnabled: boolean | undefined
 ): boolean | undefined {
   return config.signalhubWhitelistProducer?.includes(organizationId)
-    ? isSignalubEnabled
+    ? isSignalHubEnabled
     : false;
 }
 
@@ -469,7 +468,13 @@ async function innerCreateEService(
     template,
   }: {
     seed: catalogApi.EServiceSeed;
-    template: EServiceTemplateReferences | undefined;
+    template:
+      | {
+          id: EServiceTemplateId;
+          versionId: EServiceTemplateVersionId;
+          attributes: EserviceAttributes;
+        }
+      | undefined;
   },
   readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext<UIAuthData>>
@@ -499,7 +504,10 @@ async function innerCreateEService(
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: [],
-    isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+    isSignalHubEnabled: isFeatureFlagEnabled(
+      config,
+      "featureFlagSignalhubWhitelist"
+    )
       ? isTenantInSignalHubWhitelist(
           authData.organizationId,
           seed.isSignalHubEnabled
@@ -511,12 +519,7 @@ async function innerCreateEService(
       .with(false, () => false)
       .with(true, () => seed.isClientAccessDelegable)
       .exhaustive(),
-    templateRef: template
-      ? {
-          id: template.id,
-          instanceLabel: template.instanceLabel,
-        }
-      : undefined,
+    templateId: template?.id,
   };
 
   const eserviceCreationEvent = toCreateEventEServiceAdded(
@@ -826,7 +829,7 @@ export function catalogServiceBuilder(
       );
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       assertIsDraftEservice(eservice.data);
@@ -881,7 +884,10 @@ export function catalogServiceBuilder(
               serverUrls: [],
             }))
           : eservice.data.descriptors,
-        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+        isSignalHubEnabled: isFeatureFlagEnabled(
+          config,
+          "featureFlagSignalhubWhitelist"
+        )
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
               eservice.data.isSignalHubEnabled
@@ -922,31 +928,10 @@ export function catalogServiceBuilder(
       );
 
       assertEServiceIsTemplateInstance(eservice.data);
-
-      const template = await retrieveEServiceTemplate(
-        eservice.data.templateRef.id,
-        readModelService
-      );
-
       assertIsDraftEservice(eservice.data);
-
-      const newName = `${template.name} ${
-        eserviceSeed.instanceLabel ?? ""
-      }`.trim();
-
-      await assertNotDuplicatedEServiceName(
-        newName,
-        eservice.data,
-        readModelService
-      );
 
       const updatedEService: EService = {
         ...eservice.data,
-        name: newName,
-        templateRef: {
-          id: eservice.data.templateRef.id,
-          instanceLabel: eserviceSeed.instanceLabel,
-        },
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
@@ -1049,7 +1034,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       const { eService: updatedEService, event } =
@@ -1093,7 +1078,7 @@ export function catalogServiceBuilder(
       } else {
         assertEServiceNotTemplateInstance(
           eservice.data.id,
-          eservice.data.templateRef?.id
+          eservice.data.templateId
         );
         assertDocumentDeletableDescriptorState(descriptor);
       }
@@ -1156,7 +1141,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -1246,7 +1231,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -1411,7 +1396,7 @@ export function catalogServiceBuilder(
       );
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
@@ -1732,7 +1717,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
@@ -1886,7 +1871,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -1967,6 +1952,57 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
+    async updateAgreementApprovalPolicy(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      assertFeatureFlagEnabled(
+        config,
+        "featureFlagAgreementApprovalPolicyUpdate"
+      );
+
+      logger.info(
+        `Updating Agreement approval policy of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDescriptorUpdatable(descriptor);
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event =
+        toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
     async createRiskAnalysis(
       eserviceId: EServiceId,
       eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
@@ -1978,7 +2014,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -2048,7 +2084,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -2124,7 +2160,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -2165,7 +2201,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -2175,12 +2211,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const hasValidDescriptor = eservice.data.descriptors.some(
-        isDescriptorUpdatable
-      );
-      if (!hasValidDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
+      assertEServiceUpdatable(eservice.data);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -2216,12 +2247,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const hasValidDescriptor = eservice.data.descriptors.some(
-        isDescriptorUpdatable
-      );
-      if (!hasValidDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
+      assertEServiceUpdatable(eservice.data);
 
       if (!isConsumerDelegable && isClientAccessDelegable) {
         throw invalidEServiceFlags(eserviceId);
@@ -2358,7 +2384,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -2366,15 +2392,8 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
-      if (
-        eservice.data.descriptors.every(
-          (descriptor) =>
-            descriptor.state === descriptorState.draft ||
-            descriptor.state === descriptorState.archived
-        )
-      ) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
+
+      assertEServiceUpdatable(eservice.data);
 
       await assertNotDuplicatedEServiceName(
         name,
@@ -2495,7 +2514,7 @@ export function catalogServiceBuilder(
 
       assertEServiceNotTemplateInstance(
         eservice.data.id,
-        eservice.data.templateRef?.id
+        eservice.data.templateId
       );
 
       await assertRequesterIsDelegateProducerOrProducer(
@@ -2506,13 +2525,7 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
-      ) {
-        throw notValidDescriptorState(descriptorId, descriptor.state);
-      }
+      assertDescriptorUpdatable(descriptor);
 
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
@@ -2555,24 +2568,19 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      const instanceLabel = eservice.data.templateRef?.instanceLabel;
-      const updatedName = instanceLabel
-        ? `${newName} ${instanceLabel}`
-        : newName;
-
-      if (updatedName === eservice.data.name) {
+      if (newName === eservice.data.name) {
         return;
       }
 
       await assertNotDuplicatedEServiceName(
-        updatedName,
+        newName,
         eservice.data,
         readModelService
       );
 
       const updatedEservice: EService = {
         ...eservice.data,
-        name: updatedName,
+        name: newName,
       };
 
       await repository.createEvent(
@@ -2847,7 +2855,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const templateId = eservice.data.templateRef?.id;
+      const templateId = eservice.data.templateId;
       if (!templateId) {
         throw eServiceNotAnInstance(eserviceId);
       }
@@ -2948,7 +2956,7 @@ export function catalogServiceBuilder(
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
-            name: `${template.name} ${seed.instanceLabel ?? ""}`.trim(),
+            name: template.name,
             description: template.description,
             technology: technologyToApiTechnology(template.technology),
             mode: eServiceModeToApiEServiceMode(template.mode),
@@ -2972,7 +2980,6 @@ export function catalogServiceBuilder(
           template: {
             id: template.id,
             versionId: publishedVersion.id,
-            instanceLabel: seed.instanceLabel,
             attributes: publishedVersion.attributes,
           },
         },
@@ -3107,7 +3114,7 @@ export function catalogServiceBuilder(
       assertEServiceIsTemplateInstance(eservice.data);
 
       const template = await retrieveEServiceTemplate(
-        eservice.data.templateRef.id,
+        eservice.data.templateId,
         readModelService
       );
 

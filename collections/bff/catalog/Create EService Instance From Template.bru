@@ -18,12 +18,6 @@ headers {
   Authorization: {{JWT}}
 }
 
-body:json {
-  {
-    "instanceLabel": "{{randomUuid}}"
-  }
-}
-
 script:pre-request {
   const { v4 } = require('uuid');
   bru.setVar("randomUuid", v4() );
@@ -31,9 +25,6 @@ script:pre-request {
 
 docs {
   This endpoint creates a new EService instance from an existing template.
-  
-  Request body fields:
-  - instanceLabel: (Optional) Custom name to identify the new instance
   
   Returns a CreatedEServiceDescriptor object with status 200 on success containing:
   - id: ID of the created EService
