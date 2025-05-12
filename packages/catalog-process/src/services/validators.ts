@@ -88,7 +88,7 @@ export function isActiveDescriptor(descriptor: Descriptor): boolean {
   return !isNotActiveDescriptor(descriptor);
 }
 
-export function isDescriptorUpdatableAfterPublication(
+function isDescriptorUpdatableAfterPublication(
   descriptor: Descriptor
 ): boolean {
   return match(descriptor.state)
