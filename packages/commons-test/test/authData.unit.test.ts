@@ -40,6 +40,7 @@ const mockM2MAdminAuthData: M2MAdminAuthData = {
   systemRole: "m2m-admin",
   organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
   userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
+  clientId: unsafeBrandId("e61249fc-fa7e-4aaf-abc7-5bd069cb56d4"),
 };
 
 describe("authData", () => {

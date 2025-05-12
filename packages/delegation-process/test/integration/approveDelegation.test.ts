@@ -92,7 +92,10 @@ describe.each([
     const { version } = await readLastDelegationEvent(delegation.id);
     expect(version).toBe("0");
 
-    await approveFn(delegation.id, getMockContext({ authData }));
+    const approveDelegationResponse = await approveFn(
+      delegation.id,
+      getMockContext({ authData })
+    );
 
     const event = await readLastDelegationEvent(delegation.id);
     expect(event.version).toBe("1");
@@ -121,7 +124,7 @@ describe.each([
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedContract.path);
 
-    const approvedDelegationWithoutContract: Delegation = {
+    const expectedDelegation: Delegation = {
       ...delegation,
       state: delegationState.active,
       createdAt: currentExecutionTime,
@@ -133,13 +136,16 @@ describe.each([
           when: currentExecutionTime,
         },
       },
+      activationContract: expectedContract,
     };
 
-    const expectedDelegation = toDelegationV2({
-      ...approvedDelegationWithoutContract,
-      activationContract: expectedContract,
+    expect(actualDelegation).toEqual(toDelegationV2(expectedDelegation));
+    expect(approveDelegationResponse).toEqual({
+      data: expectedDelegation,
+      metadata: {
+        version: 1,
+      },
     });
-    expect(actualDelegation).toEqual(expectedDelegation);
 
     const expectedPdfPayload: DelegationActivationPDFPayload = {
       delegationKindText:
@@ -152,17 +158,17 @@ describe.each([
           : "ad erogare l’",
       todayDate: dateAtRomeZone(currentExecutionTime),
       todayTime: timeAtRomeZone(currentExecutionTime),
-      delegationId: approvedDelegationWithoutContract.id,
+      delegationId: expectedDelegation.id,
       delegatorName: delegator.name,
       delegateIpaCode: delegate.externalId.value,
       delegateName: delegate.name,
       delegatorIpaCode: delegator.externalId.value,
       eserviceId: eservice.id,
       eserviceName: eservice.name,
-      submitterId: approvedDelegationWithoutContract.stamps.submission.who,
+      submitterId: expectedDelegation.stamps.submission.who,
       submissionDate: dateAtRomeZone(currentExecutionTime),
       submissionTime: timeAtRomeZone(currentExecutionTime),
-      activatorId: approvedDelegationWithoutContract.stamps.activation!.who,
+      activatorId: expectedDelegation.stamps.activation!.who,
       activationDate: dateAtRomeZone(currentExecutionTime),
       activationTime: timeAtRomeZone(currentExecutionTime),
     };
@@ -180,8 +186,7 @@ describe.each([
 
   it("should throw delegationNotFound when delegation doesn't exist", async () => {
     const delegateId = getMockTenant().id;
-    const nonExistentDelegationId =
-      unsafeBrandId<DelegationId>("non-existent-id");
+    const nonExistentDelegationId = generateId<DelegationId>();
 
     await expect(
       approveFn(
@@ -261,7 +266,7 @@ describe.each([
     }
   );
 
-  it("should generete a pdf document for a delegation", async () => {
+  it("should generate a pdf document for a delegation", async () => {
     const delegation = getMockDelegation({
       kind,
       state: "WaitingForApproval",
