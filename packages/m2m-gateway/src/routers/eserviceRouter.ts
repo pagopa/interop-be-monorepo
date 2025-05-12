@@ -24,6 +24,7 @@ const eserviceRouter = (
   eserviceRouter
     .get("/eservices", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
         return res.status(501).send();
       } catch (error) {
