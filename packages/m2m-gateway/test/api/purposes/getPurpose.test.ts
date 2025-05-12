@@ -35,7 +35,7 @@ describe("GET /purpose/:purposeId router test", () => {
   );
 
   it.each(authorizedRoles)(
-    "Should return 200 and perform API clients calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockPurposeService.getPurpose = vi
         .fn()
