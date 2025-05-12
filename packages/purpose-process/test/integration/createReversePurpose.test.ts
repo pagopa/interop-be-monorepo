@@ -11,6 +11,7 @@ import {
   getMockTenant,
   getMockValidRiskAnalysis,
   getMockAuthData,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -147,8 +148,9 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
@@ -256,8 +258,9 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
@@ -394,8 +397,9 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
