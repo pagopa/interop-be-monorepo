@@ -60,8 +60,8 @@ export function getMockedApiTenant(): WithMetadata<tenantApi.Tenant> {
       name: generateMock(z.string()),
       createdAt: new Date().toISOString(),
       kind: tenantApi.TenantKind.Values.GSP,
-      mails: [],
-      features: [],
+      mails: generateMock(z.array(tenantApi.Mail)),
+      features: generateMock(z.array(tenantApi.TenantFeature)),
     },
     metadata: {
       version: 0,
