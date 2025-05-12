@@ -2,7 +2,7 @@ import {
   attributeRegistryApi,
   authorizationApi,
   delegationApi,
-  purposeApi
+  purposeApi,
 } from "pagopa-interop-api-clients";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
