@@ -2517,6 +2517,7 @@ paths:
             $ref: "#/components/schemas/PurposeVersionState"
         - name: offset
           in: query
+          description: The offset used for pagination
           required: true
           schema:
             type: integer
@@ -2524,6 +2525,7 @@ paths:
             minimum: 0
         - name: limit
           in: query
+          description: The limit used for pagination
           required: true
           schema:
             type: integer
