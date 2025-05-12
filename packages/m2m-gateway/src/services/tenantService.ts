@@ -32,10 +32,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
   return {
-    getTenants: async (
+    async getTenants(
       queryParams: m2mGatewayApi.GetTenantsQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Tenants> => {
+    ): Promise<m2mGatewayApi.Tenants> {
       const { externalIdOrigin, externalIdValue, limit, offset } = queryParams;
 
       logger.info(
@@ -58,10 +58,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    getTenant: async (
+    async getTenant(
       tenantId: TenantId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Tenant> => {
+    ): Promise<m2mGatewayApi.Tenant> {
       logger.info(`Retrieving tenant with id ${tenantId}`);
 
       const { data: tenant } =
@@ -72,11 +72,11 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiTenant(tenant);
     },
-    getCertifiedAttributes: async (
+    async getCertifiedAttributes(
       tenantId: TenantId,
       { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantCertifiedAttributes> => {
+    ): Promise<m2mGatewayApi.TenantCertifiedAttributes> {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);
 
       const { data: tenant } =
