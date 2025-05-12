@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { ClientId, generateId } from "pagopa-interop-models";
 import { generateToken, getMockClient } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -15,7 +15,7 @@ describe("API /clients/{clientId} authorization test", () => {
 
   authorizationService.deleteClient = vi.fn().mockResolvedValue({});
 
-  const makeRequest = async (token: string, clientId: string) =>
+  const makeRequest = async (token: string, clientId: ClientId) =>
     request(api)
       .delete(`/clients/${clientId}`)
       .set("Authorization", `Bearer ${token}`)
