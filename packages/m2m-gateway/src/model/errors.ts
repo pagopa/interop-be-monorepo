@@ -112,23 +112,3 @@ export function missingActivePurposeVersion(
     title: "Missing active purpose version",
   });
 }
-
-export function purposeNotFound(
-  purposeId: purposeApi.Purpose["id"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} not found`,
-    code: "purposeNotFound",
-    title: "Purpose not found",
-  });
-}
-
-export function missingActivePurposeVersion(
-  purposeId: purposeApi.Purpose["id"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `There is no active version for purpose ${purposeId}`,
-    code: "missingActivePurposeVersion",
-    title: "Missing active purpose version",
-  });
-}
