@@ -8,7 +8,7 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
@@ -57,7 +57,18 @@ const tenantRouter = (
     .get("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const certifiedAttributes = await tenantService.getCertifiedAttributes(
+          unsafeBrandId(req.params.tenantId),
+          req.query,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(
+            m2mGatewayApi.TenantCertifiedAttributes.parse(certifiedAttributes)
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

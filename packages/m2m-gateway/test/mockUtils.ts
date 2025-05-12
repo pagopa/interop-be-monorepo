@@ -1,8 +1,8 @@
 import {
+  attributeRegistryApi,
   delegationApi,
   tenantApi,
   authorizationApi,
-  attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {

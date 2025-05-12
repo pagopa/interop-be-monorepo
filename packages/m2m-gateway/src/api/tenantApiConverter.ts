@@ -1,4 +1,12 @@
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  m2mGatewayApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
+import {
+  assertAttributeKindIs,
+  assertAttributeOriginAndCodeAreDefined,
+} from "../utils/validators/attributeValidators.js";
 
 export function toM2MGatewayApiTenant(
   tenant: tenantApi.Tenant
@@ -25,5 +33,26 @@ export function toGetTenantsApiQueryParams(
     features: [],
     offset: params.offset,
     limit: params.limit,
+  };
+}
+
+export function toM2MGatewayApiTenantCertifiedAttribute(
+  tenantCertifiedAttribute: tenantApi.CertifiedTenantAttribute,
+  certifiedAttribute: attributeRegistryApi.Attribute
+): m2mGatewayApi.TenantCertifiedAttribute {
+  assertAttributeKindIs(
+    certifiedAttribute,
+    attributeRegistryApi.AttributeKind.Values.CERTIFIED
+  );
+  assertAttributeOriginAndCodeAreDefined(certifiedAttribute);
+
+  return {
+    id: certifiedAttribute.id,
+    description: certifiedAttribute.description,
+    name: certifiedAttribute.name,
+    code: certifiedAttribute.code,
+    origin: certifiedAttribute.origin,
+    assignedAt: tenantCertifiedAttribute.assignmentTimestamp,
+    revokedAt: tenantCertifiedAttribute.revocationTimestamp,
   };
 }
