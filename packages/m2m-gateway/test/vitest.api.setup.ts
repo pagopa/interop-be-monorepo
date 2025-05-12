@@ -86,7 +86,7 @@ export const api = await createApp(
   {
     agreementService: mockAgreementService,
     attributeService: mockAttributeService,
-    clientService: {} as ClientService,
+    clientService: mockClientService,
     delegationService: mockDelegationService,
     eserviceService: {} as EserviceService,
     eserviceTemplateService: {} as EserviceTemplateService,
