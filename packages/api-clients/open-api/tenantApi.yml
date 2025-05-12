@@ -442,6 +442,9 @@ paths:
       operationId: getTenant
       description: Retrieve the Tenant
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Tenant retrieved
           content:
@@ -808,6 +811,9 @@ paths:
               $ref: "#/components/schemas/CertifiedTenantAttributeSeed"
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Updated Tenant
           content:
