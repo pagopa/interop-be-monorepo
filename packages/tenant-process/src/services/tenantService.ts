@@ -534,7 +534,10 @@ export function tenantServiceBuilder(
           tenantKindUpdatedEvent,
         ]);
 
-const newVersion = Math.max(0, ...createdEvents.map(event => event.newVersion));
+        const newVersion = Math.max(
+          0,
+          ...createdEvents.map((event) => event.newVersion)
+        );
 
         return {
           data: updatedTenant,
