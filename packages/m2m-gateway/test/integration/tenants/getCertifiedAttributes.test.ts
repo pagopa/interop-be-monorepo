@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
+  expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
   tenantService,
@@ -120,6 +121,12 @@ describe("getCertifiedAttributes", () => {
     );
 
     expect(result).toEqual(m2mTenantsResponse);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
+      params: {
+        id: mockApiTenant.id,
+      },
+    });
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.attributeProcessClient.getBulkedAttributes,
       body: [mockTenantAttribute1.id, mockTenantAttribute2.id],
