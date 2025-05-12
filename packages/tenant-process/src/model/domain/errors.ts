@@ -209,7 +209,7 @@ export function tenantIsNotACertifier(
   organizationId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} not allowed to assign attributes`,
+    detail: `Tenant ${organizationId} not allowed to assign attributes`,
     code: "tenantIsNotACertifier",
     title: "Tenant is not a certifier",
   });
@@ -221,7 +221,7 @@ export function attributeDoesNotBelongToCertifier(
   tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} not allowed to assign certified attribute ${attributeId} to tenant ${tenantId}`,
+    detail: `Tenant ${organizationId} not allowed to assign certified attribute ${attributeId} to tenant ${tenantId}`,
     code: "attributeDoesNotBelongToCertifier",
     title: "Attribute does not belong to certifier",
   });
