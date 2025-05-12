@@ -70,12 +70,10 @@ describe("API /producerKeychains/{producerKeychainId}/users/{userId} authorizati
 
   it.each([
     {
-      name: "producerKeychainNotFound",
       error: producerKeychainNotFound(mockProducerKeychain.id),
       expectedStatus: 404,
     },
     {
-      name: "producerKeychainUserIdNotFound",
       error: producerKeychainUserIdNotFound(
         userIdToRemove,
         mockProducerKeychain.id
@@ -83,7 +81,6 @@ describe("API /producerKeychains/{producerKeychainId}/users/{userId} authorizati
       expectedStatus: 404,
     },
     {
-      name: "organizationNotAllowedOnProducerKeychain",
       error: organizationNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
@@ -91,7 +88,7 @@ describe("API /producerKeychains/{producerKeychainId}/users/{userId} authorizati
       expectedStatus: 403,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.removeProducerKeychainUser = vi
         .fn()
@@ -111,7 +108,7 @@ describe("API /producerKeychains/{producerKeychainId}/users/{userId} authorizati
     { producerKeychainId: "invalidId", userId: userIdToRemove },
     { producerKeychainId: mockProducerKeychain.id, userId: "invalidId" },
   ])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ producerKeychainId, userId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

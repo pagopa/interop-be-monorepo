@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { Client, generateId, UserId } from "pagopa-interop-models";
+import { Client, ClientId, generateId, UserId } from "pagopa-interop-models";
 import { generateToken, getMockClient } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { authorizationApi } from "pagopa-interop-api-clients";
@@ -59,25 +59,17 @@ describe("API /clients/{clientId}/users authorization test", () => {
 
   it.each([
     {
-      name: "clientNotFound",
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
       clientId: mockClient.id,
     },
     {
-      name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
       clientId: mockClient.id,
     },
-    {
-      name: "invalid clientId",
-      error: null,
-      expectedStatus: 400,
-      clientId: "invalid",
-    },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus, clientId }) => {
       if (error) {
         authorizationService.getClientUsers = vi.fn().mockRejectedValue(error);
@@ -86,6 +78,16 @@ describe("API /clients/{clientId}/users authorization test", () => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, clientId);
       expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([{}, { clientId: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ clientId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, clientId as ClientId);
+
+      expect(res.status).toBe(400);
     }
   );
 });

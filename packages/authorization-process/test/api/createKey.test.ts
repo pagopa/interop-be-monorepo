@@ -90,72 +90,59 @@ describe("API /clients/{clientId}/keys authorization test", () => {
 
   it.each([
     {
-      name: "clientNotFound",
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
     },
     {
-      name: "tooManyKeysPerClient",
       error: tooManyKeysPerClient(mockClient.id, 1),
       expectedStatus: 400,
     },
     {
-      name: "notAllowedPrivateKeyException",
       error: notAllowedPrivateKeyException(),
       expectedStatus: 400,
     },
     {
-      name: "notAllowedCertificateException",
       error: notAllowedCertificateException(),
       expectedStatus: 400,
     },
     {
-      name: "notAllowedMultipleKeysException",
       error: notAllowedMultipleKeysException(),
       expectedStatus: 400,
     },
     {
-      name: "jwkDecodingError",
       error: jwkDecodingError(""),
       expectedStatus: 400,
     },
     {
-      name: "invalidPublicKey",
       error: invalidPublicKey(),
       expectedStatus: 400,
     },
     {
-      name: "notAnRSAKey",
       error: notAnRSAKey(),
       expectedStatus: 400,
     },
     {
-      name: "invalidKeyLength",
       error: invalidKeyLength(key.encodedPem.length),
       expectedStatus: 400,
     },
     {
-      name: "keyAlreadyExists",
       error: keyAlreadyExists(key.kid),
       expectedStatus: 409,
     },
     {
-      name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {
-      name: "userWithoutSecurityPrivileges",
       error: userWithoutSecurityPrivileges(generateId(), userId),
       expectedStatus: 403,
     },
     {
-      name: "userNotFound",
       error: userNotFound(userId, generateId()),
       expectedStatus: 403,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.createKey = vi.fn().mockRejectedValue(error);
 
@@ -176,7 +163,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     { ...keySeed, use: undefined },
     { ...keySeed, alg: undefined },
     { ...keySeed, key: undefined },
-  ])("Should return 400 if passed invalid params", async (body) => {
+  ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,

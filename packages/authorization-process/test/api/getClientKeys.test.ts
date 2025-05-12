@@ -108,53 +108,45 @@ describe("API /clients/{clientId}/keys authorization test", () => {
 
   it.each([
     {
-      name: "clientNotFound",
       error: clientNotFound(clientWithKeyUser.id),
       expectedStatus: 404,
-      clientId: generateId(),
     },
     {
-      name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
-      clientId: mockClient.id,
     },
     {
-      name: "securityUserNotMember",
       error: securityUserNotMember(keyUserId1),
       expectedStatus: 403,
-      clientId: mockClient.id,
-    },
-    {
-      name: "invalid parameter clientId",
-      error: null,
-      expectedStatus: 400,
-      clientId: "invalid",
     },
   ])(
-    "Should return $expectedStatus for $name",
-    async ({ error, expectedStatus, clientId }) => {
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
       authorizationService.getClientKeys = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, clientId);
+      const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
   it.each([
-    {},
-    { ...queryParams, offset: "invalid" },
-    { ...queryParams, limit: "invalid" },
-    { ...queryParams, offset: -2 },
-    { ...queryParams, limit: 100 },
-  ])("Should return 400 if passed invalid params", async (query) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockClient.id,
-      query as typeof queryParams
-    );
+    [{}, mockClient.id],
+    [{ ...queryParams, offset: "invalid" }, mockClient.id],
+    [{ ...queryParams, limit: "invalid" }, mockClient.id],
+    [{ ...queryParams, offset: -2 }, mockClient.id],
+    [{ ...queryParams, limit: 100 }, mockClient.id],
+    [{ ...queryParams }, "invalid"],
+  ])(
+    "Should return 400 if passed invalid params: %s (clientId: %s)",
+    async (query, clientId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId,
+        query as typeof queryParams
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

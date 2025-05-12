@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { generateId, ProducerKeychain, UserId } from "pagopa-interop-models";
+import {
+  generateId,
+  ProducerKeychain,
+  ProducerKeychainId,
+  UserId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockProducerKeychain,
@@ -66,29 +71,19 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
 
   it.each([
     {
-      name: "producerKeychainNotFound",
       error: producerKeychainNotFound(mockProducerKeychain.id),
       expectedStatus: 404,
-      producerKeychainId: generateId(),
     },
     {
-      name: "organizationNotAllowedOnProducerKeychain",
       error: organizationNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
       ),
       expectedStatus: 403,
-      producerKeychainId: mockProducerKeychain.id,
-    },
-    {
-      name: "invalid producerKeychainId",
-      error: null,
-      expectedStatus: 400,
-      producerKeychainId: "invalid",
     },
   ])(
-    "Should return $expectedStatus for $name",
-    async ({ error, expectedStatus, producerKeychainId }) => {
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
       if (error) {
         authorizationService.getProducerKeychainUsers = vi
           .fn()
@@ -96,8 +91,21 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
       }
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, producerKeychainId);
+      const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([{}, { producerKeychainId: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ producerKeychainId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        producerKeychainId as ProducerKeychainId
+      );
+
+      expect(res.status).toBe(400);
     }
   );
 });

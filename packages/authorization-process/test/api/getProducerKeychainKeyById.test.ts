@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { generateId, ProducerKeychain } from "pagopa-interop-models";
+import {
+  generateId,
+  ProducerKeychain,
+  ProducerKeychainId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockKey,
@@ -72,39 +76,23 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
 
   it.each([
     {
-      name: "producerKeychainNotFound",
       error: producerKeychainNotFound(mockProducerKeychain.id),
       expectedStatus: 404,
-      producerKeychainId: generateId(),
-      keyId: mockKey1.kid,
     },
     {
-      name: "producerKeyNotFound",
       error: producerKeyNotFound(mockKey1.userId, mockProducerKeychain.id),
       expectedStatus: 404,
-      producerKeychainId: generateId(),
-      keyId: mockKey1.kid,
     },
     {
-      name: "organizationNotAllowedOnProducerKeychain",
       error: organizationNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
       ),
       expectedStatus: 403,
-      producerKeychainId: mockProducerKeychain.id,
-      keyId: mockKey1.kid,
-    },
-    {
-      name: "invalidField",
-      error: null,
-      expectedStatus: 400,
-      producerKeychainId: "invalid",
-      keyId: "invalid",
     },
   ])(
-    "Should return $expectedStatus for $name",
-    async ({ error, expectedStatus, producerKeychainId, keyId }) => {
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
       if (error) {
         authorizationService.getProducerKeychainKeyById = vi
           .fn()
@@ -112,8 +100,26 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
       }
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, producerKeychainId, keyId);
+      const res = await makeRequest(
+        token,
+        mockProducerKeychain.id,
+        mockKey2.kid
+      );
       expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([{}, { producerKeychainId: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ producerKeychainId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        producerKeychainId as ProducerKeychainId,
+        mockKey1.kid
+      );
+
+      expect(res.status).toBe(400);
     }
   );
 });

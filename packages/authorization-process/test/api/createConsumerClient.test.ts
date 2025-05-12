@@ -61,7 +61,7 @@ describe("API /clientsConsumer authorization test", () => {
     { ...clientSeed, members: [1] },
     { ...clientSeed, name: undefined },
     { ...clientSeed, members: undefined },
-  ])("Should return 400 if passed invalid params", async (body) => {
+  ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, body as authorizationApi.ClientSeed);
 

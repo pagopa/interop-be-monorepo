@@ -68,28 +68,39 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.getKeyWithClientByKeyId = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(mockClient.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id, mockKey.kid);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: clientNotFound(mockClient.id),
+      expectedStatus: 404,
+      clientId: mockClient.id,
+    },
+    {
+      error: clientKeyNotFound(generateId(), mockClient.id),
+      expectedStatus: 404,
+      clientId: mockClient.id,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus, clientId }) => {
+      if (error) {
+        authorizationService.getKeyWithClientByKeyId = vi
+          .fn()
+          .mockRejectedValue(error);
+      }
 
-  it("Should return 404 for clientKeyNotFound", async () => {
-    authorizationService.getKeyWithClientByKeyId = vi
-      .fn()
-      .mockRejectedValue(clientKeyNotFound(generateId(), mockClient.id));
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, clientId, mockKey.kid);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockClient.id, mockKey.kid);
-    expect(res.status).toBe(404);
-  });
+  it.each([{}, { clientId: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ clientId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, clientId as ClientId, mockKey.kid);
 
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid", "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

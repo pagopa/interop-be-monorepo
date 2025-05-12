@@ -95,64 +95,49 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
 
   it.each([
     {
-      name: "clientNotFound",
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
     },
     {
-      name: "purposeNotFound",
       error: purposeNotFound(mockPurpose.id),
       expectedStatus: 404,
     },
     {
-      name: "noAgreementFoundInRequiredState",
       error: noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId),
       expectedStatus: 400,
     },
     {
-      name: "noPurposeVersionsFoundInRequiredState",
       error: noPurposeVersionsFoundInRequiredState(mockPurpose.id),
       expectedStatus: 400,
     },
     {
-      name: "eserviceNotDelegableForClientAccess",
       error: eserviceNotDelegableForClientAccess(mockEservice),
       expectedStatus: 400,
     },
     {
-      name: "purposeAlreadyLinkedToClient",
       error: purposeAlreadyLinkedToClient(mockPurpose.id, mockClient.id),
       expectedStatus: 409,
     },
     {
-      name: "clientKindNotAllowed",
       error: clientKindNotAllowed(mockClient.id),
       expectedStatus: 403,
     },
     {
-      name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {
-      name: "organizationNotAllowedOnPurpose",
       error: organizationNotAllowedOnPurpose(generateId(), mockPurpose.id),
       expectedStatus: 403,
     },
     {
-      name: "purposeDelegationNotFound",
       error: purposeDelegationNotFound(generateId()),
       expectedStatus: 500,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      if (error) {
-        authorizationService.addClientPurpose = vi
-          .fn()
-          .mockRejectedValue(error);
-      }
-
+      authorizationService.addClientPurpose = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(expectedStatus);
@@ -164,7 +149,7 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     { clientId: "invalidId", purposeId: mockPurpose.id },
     { clientId: mockClient.id, purposeId: "invalidId" },
   ])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ clientId, purposeId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

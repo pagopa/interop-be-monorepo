@@ -5,6 +5,7 @@ import {
   generateId,
   Key,
   ProducerKeychain,
+  ProducerKeychainId,
   TenantId,
   unsafeBrandId,
   UserId,
@@ -98,29 +99,19 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
 
   it.each([
     {
-      name: "producerKeychainNotFound",
       error: producerKeychainNotFound(mockProducerKeychain.id),
       expectedStatus: 404,
-      producerKeychainId: generateId(),
     },
     {
-      name: "organizationNotAllowedOnProducerKeychain",
       error: organizationNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
       ),
       expectedStatus: 403,
-      producerKeychainId: mockProducerKeychain.id,
-    },
-    {
-      name: "invalid producerKeychainId",
-      error: null,
-      expectedStatus: 400,
-      producerKeychainId: "invalid",
     },
   ])(
-    "Should return $expectedStatus for $name",
-    async ({ error, expectedStatus, producerKeychainId }) => {
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
       if (error) {
         authorizationService.getProducerKeychainKeys = vi
           .fn()
@@ -128,8 +119,21 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
       }
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, producerKeychainId);
+      const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([{}, { producerKeychainId: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ producerKeychainId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        producerKeychainId as ProducerKeychainId
+      );
+
+      expect(res.status).toBe(400);
     }
   );
 });

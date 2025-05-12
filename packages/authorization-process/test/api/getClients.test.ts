@@ -105,7 +105,7 @@ describe("API /clients authorization test", () => {
     { ...queryParams, kind: "invalidKind" },
     { ...queryParams, offset: -2 },
     { ...queryParams, limit: 100 },
-  ])("Should return 400 if passed invalid params", async (query) => {
+  ])("Should return 400 if passed invalid params: %s", async (query) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof queryParams);
 

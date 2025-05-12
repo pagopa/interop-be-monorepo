@@ -53,22 +53,19 @@ describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () =
 
   it.each([
     {
-      name: "clientNotFound",
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
     },
     {
-      name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {
-      name: "clientKindNotAllowed",
       error: clientKindNotAllowed(mockClient.id),
       expectedStatus: 403,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.removeClientPurpose = vi
         .fn()
@@ -84,7 +81,7 @@ describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () =
     { clientId: "invalidId", purposeId: purposeIdToRemove },
     { clientId: mockClient.id, purposeId: "invalidId" },
   ])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ clientId, purposeId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

@@ -77,32 +77,26 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
 
   it.each([
     {
-      name: "producerKeychainNotFound",
       error: producerKeychainNotFound(mockProducerKeychain.id),
       expectedStatus: 404,
     },
     {
-      name: "tooManyKeysPerProducerKeychain",
       error: tooManyKeysPerProducerKeychain(mockProducerKeychain.id, 1),
       expectedStatus: 400,
     },
     {
-      name: "invalidPublicKey",
       error: invalidPublicKey(),
       expectedStatus: 400,
     },
     {
-      name: "notAnRSAKey",
       error: notAnRSAKey(),
       expectedStatus: 400,
     },
     {
-      name: "invalidKeyLength",
       error: invalidKeyLength(mockKey.encodedPem.length),
       expectedStatus: 400,
     },
     {
-      name: "organizationNotAllowedOnProducerKeychain",
       error: organizationNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
@@ -110,7 +104,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
       expectedStatus: 403,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.createProducerKeychainKey = vi
         .fn()
@@ -133,7 +127,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
     { ...keySeed, use: undefined },
     { ...keySeed, alg: undefined },
     { ...keySeed, key: undefined },
-  ])("Should return 400 if passed invalid params", async (body) => {
+  ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,

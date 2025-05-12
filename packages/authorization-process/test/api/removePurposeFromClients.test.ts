@@ -49,9 +49,13 @@ describe("API /clients/purposes/{purposeId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{}, { purposeIdToRemove: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ purposeIdToRemove }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, purposeIdToRemove as PurposeId);
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

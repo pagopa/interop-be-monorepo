@@ -68,32 +68,25 @@ describe("API /clients/{clientId}/users authorization test", () => {
 
   it.each([
     {
-      name: "clientNotFound",
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
     },
     {
-      name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {
-      name: "userWithoutSecurityPrivileges",
       error: userWithoutSecurityPrivileges(generateId(), usersToAdd[0]),
       expectedStatus: 403,
     },
     {
-      name: "clientUserAlreadyAssigned",
       error: clientUserAlreadyAssigned(mockClient.id, userIds[0]),
       expectedStatus: 400,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      if (error) {
-        authorizationService.addClientUsers = vi.fn().mockRejectedValue(error);
-      }
-
+      authorizationService.addClientUsers = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(expectedStatus);
@@ -105,7 +98,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
     { clientId: "invalidId", userIds: usersToAdd },
     { clientId: mockClient.id, userIds: ["invalidId"] },
   ])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ clientId, userIds }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

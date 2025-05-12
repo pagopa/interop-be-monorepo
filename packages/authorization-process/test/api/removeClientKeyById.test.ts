@@ -46,27 +46,19 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
 
   it.each([
     {
-      name: "clientNotFound",
       error: clientNotFound(clientId),
       expectedStatus: 404,
-      clientId,
-      keyId,
     },
     {
-      name: "clientKeyNotFound",
       error: clientKeyNotFound(keyId, clientId),
       expectedStatus: 404,
-      clientId,
-      keyId,
     },
   ])(
-    "Should return $expectedStatus for $name",
-    async ({ error, expectedStatus, clientId, keyId }) => {
-      if (error) {
-        authorizationService.deleteClientKeyById = vi
-          .fn()
-          .mockRejectedValue(error);
-      }
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      authorizationService.deleteClientKeyById = vi
+        .fn()
+        .mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, clientId, keyId);
@@ -75,7 +67,7 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
   );
 
   it.each([{}, { clientId: "invalidId", keyId }])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ clientId, keyId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

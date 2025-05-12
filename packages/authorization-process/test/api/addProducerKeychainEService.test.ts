@@ -74,17 +74,14 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
 
   it.each([
     {
-      name: "producerKeychainNotFound",
       error: producerKeychainNotFound(mockProducerKeychain.id),
       expectedStatus: 404,
     },
     {
-      name: "eserviceNotFound",
       error: eserviceNotFound(mockEService.id),
       expectedStatus: 404,
     },
     {
-      name: "eserviceAlreadyLinkedToProducerKeychain",
       error: eserviceAlreadyLinkedToProducerKeychain(
         mockEService.id,
         mockProducerKeychain.id
@@ -92,7 +89,6 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
       expectedStatus: 409,
     },
     {
-      name: "organizationNotAllowedOnProducerKeychain",
       error: organizationNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
@@ -100,12 +96,11 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
       expectedStatus: 403,
     },
     {
-      name: "organizationNotAllowedOnEService",
       error: organizationNotAllowedOnEService(generateId(), mockEService.id),
       expectedStatus: 403,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.addProducerKeychainEService = vi
         .fn()
@@ -122,7 +117,7 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
     { producerKeychainId: "invalidId", eserviceId: mockEService.id },
     { producerKeychainId: mockProducerKeychain.id, eserviceId: "invalidId" },
   ])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ producerKeychainId, eserviceId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

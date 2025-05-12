@@ -64,45 +64,33 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
 
   it.each([
     {
-      name: "clientKeyNotFound",
       error: clientKeyNotFound(mockKey1.kid, mockClient.id),
       expectedStatus: 404,
-      clientId: generateId(),
-      keyId: mockKey1.kid,
     },
     {
-      name: "clientNotFound",
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
-      clientId: generateId(),
-      keyId: mockKey1.kid,
     },
     {
-      name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
-      clientId: mockClient.id,
-      keyId: mockKey1.kid,
     },
     {
-      name: "securityUserNotMember",
       error: securityUserNotMember(mockClient.users[0]),
       expectedStatus: 403,
-      clientId: mockClient.id,
-      keyId: mockKey1.kid,
     },
   ])(
-    "Should return $expectedStatus for $name",
-    async ({ error, expectedStatus, clientId, keyId }) => {
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
       authorizationService.getClientKeyById = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, clientId, keyId);
+      const res = await makeRequest(token, mockClient.id, mockKey1.kid);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
   it.each([{}, { clientId: "invalidId", keyId: mockKey1.kid }])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ clientId, keyId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

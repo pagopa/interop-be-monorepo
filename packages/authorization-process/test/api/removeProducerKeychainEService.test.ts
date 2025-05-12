@@ -73,12 +73,10 @@ describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} aut
 
   it.each([
     {
-      name: "producerKeychainNotFound",
       error: producerKeychainNotFound(mockProducerKeychain.id),
       expectedStatus: 404,
     },
     {
-      name: "organizationNotAllowedOnProducerKeychain",
       error: organizationNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
@@ -86,12 +84,11 @@ describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} aut
       expectedStatus: 403,
     },
     {
-      name: "eserviceNotFound",
       error: eserviceNotFound(eserviceIdToRemove),
       expectedStatus: 400,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.removeProducerKeychainEService = vi
         .fn()
@@ -111,7 +108,7 @@ describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} aut
     { producerKeychainId: "invalidId", eserviceId: eserviceIdToRemove },
     { producerKeychainId: mockProducerKeychain.id, eserviceId: "invalidId" },
   ])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ producerKeychainId, eserviceId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

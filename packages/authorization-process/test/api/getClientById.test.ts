@@ -58,25 +58,21 @@ describe("API /clients/{clientId} authorization test", () => {
 
   it.each([
     {
-      name: "clientNotFound",
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
-      clientId: generateId(),
     },
     {
-      name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
-      clientId: mockClient.id,
     },
   ])(
-    "Should return $expectedStatus for $name",
-    async ({ error, expectedStatus, clientId }) => {
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
       authorizationService.getClientById = vi.fn().mockRejectedValue(error);
 
       const res = await makeRequest(
         generateToken(authRole.ADMIN_ROLE),
-        clientId
+        mockClient.id
       );
       expect(res.status).toBe(expectedStatus);
     }

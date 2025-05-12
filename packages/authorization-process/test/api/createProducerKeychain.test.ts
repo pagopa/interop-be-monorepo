@@ -70,7 +70,7 @@ describe("API /producerKeychains authorization test", () => {
     { ...producerKeychainSeed, members: [1] },
     { ...producerKeychainSeed, name: undefined },
     { ...producerKeychainSeed, members: undefined },
-  ])("Should return 400 if passed invalid params", async (body) => {
+  ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,

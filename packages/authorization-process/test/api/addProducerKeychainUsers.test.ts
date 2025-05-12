@@ -77,12 +77,10 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
 
   it.each([
     {
-      name: "producerKeychainNotFound",
       error: producerKeychainNotFound(mockProducerKeychain.id),
       expectedStatus: 404,
     },
     {
-      name: "organizationNotAllowedOnProducerKeychain",
       error: organizationNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
@@ -90,12 +88,10 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
       expectedStatus: 403,
     },
     {
-      name: "userWithoutSecurityPrivileges",
       error: userWithoutSecurityPrivileges(generateId(), users[0]),
       expectedStatus: 403,
     },
     {
-      name: "producerKeychainUserAlreadyAssigned",
       error: producerKeychainUserAlreadyAssigned(
         mockProducerKeychain.id,
         users[0]
@@ -103,7 +99,7 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
       expectedStatus: 400,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.addProducerKeychainUsers = vi
         .fn()
@@ -120,7 +116,7 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
     { producerKeychainId: "invalidId", userIds: userIdsToAdd },
     { producerKeychainId: mockProducerKeychain.id, userIds: ["invalidId"] },
   ])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ producerKeychainId, userIds }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

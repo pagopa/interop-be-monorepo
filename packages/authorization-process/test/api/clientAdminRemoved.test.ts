@@ -48,27 +48,23 @@ describe("API /clients/{clientId}/admin/{adminId} authorization test", () => {
 
   it.each([
     {
-      name: "clientNotFound",
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
     },
     {
-      name: "clientKindNotAllowed",
       error: clientKindNotAllowed(mockClient.id),
       expectedStatus: 403,
     },
     {
-      name: "organizationNotAllowedOnClient",
       error: organizationNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {
-      name: "clientAdminIdNotFound",
       error: clientAdminIdNotFound(mockClient.id, mockClient.adminId),
       expectedStatus: 400,
     },
   ])(
-    "Should return $expectedStatus for $name",
+    "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.removeClientAdmin = vi.fn().mockRejectedValue(error);
 
@@ -83,7 +79,7 @@ describe("API /clients/{clientId}/admin/{adminId} authorization test", () => {
     { clientId: "invalidId", adminId: mockClient.adminId },
     { clientId: mockClient.id, adminId: "invalidId" },
   ])(
-    "Should return 400 if passed invalid params",
+    "Should return 400 if passed invalid params: %s",
     async ({ clientId, adminId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
