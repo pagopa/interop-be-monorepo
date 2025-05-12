@@ -41,21 +41,20 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       };
     },
     getAgreement: async (
-      ctx: WithLogger<M2MGatewayAppContext>,
-      agreementId: AgreementId
+      agreementId: AgreementId,
+      ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> => {
       ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
 
-      const { data: agreement } = await agreementProcessClient.getAgreementById(
-        {
+      const { data: agreement } =
+        await clients.agreementProcessClient.getAgreementById({
           params: {
             agreementId,
           },
           headers: ctx.headers,
-        }
-      );
+        });
 
-      return toM2MAgreement(agreement);
+      return toM2MGatewayApiAgreement(agreement);
     },
   };
 }
