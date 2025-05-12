@@ -473,10 +473,14 @@ const agreementRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const agreement = await agreementService.getAgreementById(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.getAgreementById(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
