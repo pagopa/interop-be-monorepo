@@ -28,7 +28,7 @@ describe("getTenant", () => {
     mockGetTenant.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
+  it("Should succeed and perform service calls", async () => {
     const m2mTenantResponse: m2mGatewayApi.Tenant = {
       id: mockApiTenant.data.id,
       createdAt: mockApiTenant.data.createdAt,

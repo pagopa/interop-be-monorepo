@@ -43,7 +43,7 @@ describe("GET /tenants route test", () => {
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 and perform API clients calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockTenantService.getTenants = vi.fn().mockResolvedValue(mockResponse);
 
