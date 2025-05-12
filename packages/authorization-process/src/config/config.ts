@@ -4,6 +4,7 @@ import {
   EventStoreConfig,
   SelfCareClientConfig,
   ApplicationAuditProducerConfig,
+  FeatureFlagAdminClientConfig,
   FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
@@ -24,6 +25,7 @@ const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
       }))
   )
   .and(ApplicationAuditProducerConfig)
+  .and(FeatureFlagAdminClientConfig)
   .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig);
 
