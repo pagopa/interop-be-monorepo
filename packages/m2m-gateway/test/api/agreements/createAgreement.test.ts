@@ -8,7 +8,7 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockedApiAgreement } from "../../mockUtils.js";
-import { toM2MAgreement } from "../../../src/api/agreementApiConverter.js";
+import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 import {
   missingMetadata,
   resourcePollingTimeout,
@@ -21,9 +21,8 @@ describe("POST /agreements router test", () => {
   };
 
   const mockApiAgreement = getMockedApiAgreement();
-  const mockM2MAgreementResponse: m2mGatewayApi.Agreement = toM2MAgreement(
-    mockApiAgreement.data
-  );
+  const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
+    toM2MGatewayApiAgreement(mockApiAgreement.data);
 
   const makeRequest = async (token: string, body: Record<string, unknown>) =>
     request(api)
