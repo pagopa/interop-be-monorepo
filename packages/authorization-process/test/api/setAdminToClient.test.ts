@@ -41,21 +41,37 @@ describe("API POST /clients/{clientId}/admin test", () => {
     expect(res.body).toEqual(apiResponse);
   });
 
-  it("Should return 400 if passed an invalid clientId", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid-client-id");
-    expect(res.status).toBe(400);
-  });
-
-  it.each([{}, { adminId: 123 }, { adminId: "" }, { invalidField: "foo" }])(
-    "Should return 400 if passed an invalid body: %s",
-    async (testBody) => {
+  it.each([
+    {
+      description: "invalid clientId",
+      clientId: "invalid-client-id",
+      body,
+    },
+    { description: "invalid body: {}", clientId: mockClient.id, body: {} },
+    {
+      description: "invalid body: { adminId: 123 }",
+      clientId: mockClient.id,
+      body: { adminId: 123 },
+    },
+    {
+      description: "invalid body: { adminId: '' }",
+      clientId: mockClient.id,
+      body: { adminId: "" },
+    },
+    {
+      description: "invalid body: { invalidField: 'foo' }",
+      clientId: mockClient.id,
+      body: { invalidField: "foo" },
+    },
+  ])(
+    "Should return 400 if passed an $description",
+    async ({ clientId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await request(api)
-        .post(`/clients/${mockClient.id}/admin`)
+        .post(`/clients/${clientId}/admin`)
         .set("Authorization", `Bearer ${token}`)
         .set("X-Correlation-Id", generateId())
-        .send(testBody);
+        .send(body);
       expect(res.status).toBe(400);
     }
   );
@@ -71,7 +87,7 @@ describe("API POST /clients/{clientId}/admin test", () => {
       403,
     ],
     [clientAdminAlreadyAssignedToUser(mockClient.id, body.adminId), 409],
-  ])("Should return %s for status %s", async (error, expectedStatus) => {
+  ])("Should return %j for status %i", async (error, expectedStatus) => {
     authorizationService.setAdminToClient = vi.fn().mockRejectedValue(error);
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
