@@ -36,7 +36,11 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
     client: clientToApiClient(mockClient, { showUsers: false }),
   });
 
-  const makeRequest = async (token: string, clientId: string, keyId: string) =>
+  const makeRequest = async (
+    token: string,
+    clientId: ClientId,
+    keyId: string
+  ) =>
     request(api)
       .get(`/clients/${clientId}/keys/${keyId}/bundle`)
       .set("Authorization", `Bearer ${token}`)

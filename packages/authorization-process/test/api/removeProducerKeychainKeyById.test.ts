@@ -31,7 +31,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
   };
   const makeRequest = async (
     token: string,
-    producerKeychainId: string,
+    producerKeychainId: ProducerKeychainId,
     keyId: string
   ) =>
     request(api)

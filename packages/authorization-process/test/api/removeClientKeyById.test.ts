@@ -14,7 +14,11 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
   const clientId = generateId<ClientId>();
   const keyId = generateId();
 
-  const makeRequest = async (token: string, clientId: string, keyId: string) =>
+  const makeRequest = async (
+    token: string,
+    clientId: ClientId,
+    keyId: string
+  ) =>
     request(api)
       .delete(`/clients/${clientId}/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)

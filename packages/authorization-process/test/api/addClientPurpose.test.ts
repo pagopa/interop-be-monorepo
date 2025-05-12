@@ -66,8 +66,8 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: string,
-    purposeId: string = mockPurpose.id
+    clientId: ClientId,
+    purposeId: PurposeId = mockPurpose.id
   ) =>
     request(api)
       .post(`/clients/${clientId}/purposes`)

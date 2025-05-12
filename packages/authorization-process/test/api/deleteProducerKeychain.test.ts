@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateId, ProducerKeychain } from "pagopa-interop-models";
+import {
+  generateId,
+  ProducerKeychain,
+  ProducerKeychainId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockProducerKeychain,
@@ -22,7 +26,10 @@ describe("API /clients/{clientId} authorization test", () => {
 
   authorizationService.deleteProducerKeychain = vi.fn().mockResolvedValue({});
 
-  const makeRequest = async (token: string, producerKeychainId: string) =>
+  const makeRequest = async (
+    token: string,
+    producerKeychainId: ProducerKeychainId
+  ) =>
     request(api)
       .delete(`/producerKeychains/${producerKeychainId}`)
       .set("Authorization", `Bearer ${token}`)

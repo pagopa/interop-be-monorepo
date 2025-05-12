@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Client,
+  ClientId,
   generateId,
   Key,
   unsafeBrandId,
@@ -72,7 +73,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: string,
+    clientId: ClientId,
     query: typeof queryParams = queryParams
   ) =>
     request(api)
@@ -142,7 +143,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        clientId,
+        clientId as ClientId,
         query as typeof queryParams
       );
 

@@ -20,7 +20,11 @@ describe("API /clients/{clientId}/users/{userId} authorization test", () => {
     users: [userIdToRemove, userIdToNotRemove],
   };
 
-  const makeRequest = async (token: string, clientId: string, userId: string) =>
+  const makeRequest = async (
+    token: string,
+    clientId: ClientId,
+    userId: UserId
+  ) =>
     request(api)
       .delete(`/clients/${clientId}/users/${userId}`)
       .set("Authorization", `Bearer ${token}`)

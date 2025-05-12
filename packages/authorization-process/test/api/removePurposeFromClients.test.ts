@@ -18,7 +18,7 @@ describe("API /clients/purposes/{purposeId} authorization test", () => {
     ...getMockClient(),
     purposes: [purposeIdToRemove, purposeIdToNotRemove],
   };
-  const makeRequest = async (token: string, purposeId: string) =>
+  const makeRequest = async (token: string, purposeId: PurposeId) =>
     request(api)
       .delete(`/clients/purposes/${purposeId}`)
       .set("Authorization", `Bearer ${token}`)

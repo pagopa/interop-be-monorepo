@@ -6,6 +6,7 @@ import {
   invalidPublicKey,
   notAnRSAKey,
   ProducerKeychain,
+  ProducerKeychainId,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -43,7 +44,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
 
   const makeRequest = async (
     token: string,
-    producerKeychainId: string,
+    producerKeychainId: ProducerKeychainId,
     body: authorizationApi.KeySeed = keySeed
   ) =>
     request(api)
@@ -117,24 +118,28 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
   );
 
   it.each([
-    {},
-    { ...keySeed, invalidParam: "invalidValue" },
-    { ...keySeed, name: 1 },
-    { ...keySeed, use: "invalidUse" },
-    { ...keySeed, alg: 1 },
-    { ...keySeed, key: 1 },
-    { ...keySeed, name: undefined },
-    { ...keySeed, use: undefined },
-    { ...keySeed, alg: undefined },
-    { ...keySeed, key: undefined },
-  ])("Should return 400 if passed invalid params: %s", async (body) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockProducerKeychain.id,
-      body as authorizationApi.KeySeed
-    );
+    [{}, mockProducerKeychain.id],
+    [{ ...keySeed, invalidParam: "invalidValue" }, mockProducerKeychain.id],
+    [{ ...keySeed, name: 1 }, mockProducerKeychain.id],
+    [{ ...keySeed, use: "invalidUse" }, mockProducerKeychain.id],
+    [{ ...keySeed, alg: 1 }, mockProducerKeychain.id],
+    [{ ...keySeed, key: 1 }, mockProducerKeychain.id],
+    [{ ...keySeed, name: undefined }, mockProducerKeychain.id],
+    [{ ...keySeed, use: undefined }, mockProducerKeychain.id],
+    [{ ...keySeed, alg: undefined }, mockProducerKeychain.id],
+    [{ ...keySeed, key: undefined }, mockProducerKeychain.id],
+    [{ ...keySeed }, "invalidId"],
+  ])(
+    "Should return 400 if passed invalid params: %s (producerKeychainId: %s)",
+    async (body, producerKeychainId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        producerKeychainId as ProducerKeychainId,
+        body as authorizationApi.KeySeed
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

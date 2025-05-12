@@ -25,7 +25,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
     .fn()
     .mockResolvedValue({ users: [userId1, userId2] });
 
-  const makeRequest = async (token: string, clientId: string) =>
+  const makeRequest = async (token: string, clientId: ClientId) =>
     request(api)
       .get(`/clients/${clientId}/users`)
       .set("Authorization", `Bearer ${token}`)

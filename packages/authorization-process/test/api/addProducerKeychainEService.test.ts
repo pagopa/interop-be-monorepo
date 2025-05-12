@@ -45,8 +45,8 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
 
   const makeRequest = async (
     token: string,
-    producerKeychainId: string,
-    eserviceId: string = mockEService.id
+    producerKeychainId: ProducerKeychainId,
+    eserviceId: EServiceId = mockEService.id
   ) =>
     request(api)
       .post(`/producerKeychains/${producerKeychainId}/eservices`)

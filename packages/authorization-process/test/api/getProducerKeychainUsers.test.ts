@@ -37,7 +37,10 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
     .fn()
     .mockResolvedValue([userId1, userId2]);
 
-  const makeRequest = async (token: string, producerKeychainId: string) =>
+  const makeRequest = async (
+    token: string,
+    producerKeychainId: ProducerKeychainId
+  ) =>
     request(api)
       .get(`/producerKeychains/${producerKeychainId}/users`)
       .set("Authorization", `Bearer ${token}`)

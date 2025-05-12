@@ -30,8 +30,8 @@ describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} aut
 
   const makeRequest = async (
     token: string,
-    producerKeychainId: string,
-    eserviceId: string
+    producerKeychainId: ProducerKeychainId,
+    eserviceId: EServiceId
   ) =>
     request(api)
       .delete(

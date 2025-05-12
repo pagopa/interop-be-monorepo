@@ -47,8 +47,8 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
 
   const makeRequest = async (
     token: string,
-    producerKeychainId: string,
-    userIds: string[] = userIdsToAdd
+    producerKeychainId: ProducerKeychainId,
+    userIds: UserId[] = userIdsToAdd
   ) =>
     request(api)
       .post(`/producerKeychains/${producerKeychainId}/users`)

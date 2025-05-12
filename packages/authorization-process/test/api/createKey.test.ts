@@ -2,6 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   Client,
+  ClientId,
   generateId,
   invalidKeyLength,
   invalidPublicKey,
@@ -57,7 +58,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: string,
+    clientId: ClientId,
     body: authorizationApi.KeySeed = keySeed
   ) =>
     request(api)
@@ -153,24 +154,28 @@ describe("API /clients/{clientId}/keys authorization test", () => {
   );
 
   it.each([
-    {},
-    { ...keySeed, invalidParam: "invalidValue" },
-    { ...keySeed, name: 1 },
-    { ...keySeed, use: "invalidUse" },
-    { ...keySeed, alg: 1 },
-    { ...keySeed, key: 1 },
-    { ...keySeed, name: undefined },
-    { ...keySeed, use: undefined },
-    { ...keySeed, alg: undefined },
-    { ...keySeed, key: undefined },
-  ])("Should return 400 if passed invalid params: %s", async (body) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockClient.id,
-      body as authorizationApi.KeySeed
-    );
+    [{}, mockClient.id],
+    [{ ...keySeed, invalidParam: "invalidValue" }, mockClient.id],
+    [{ ...keySeed, name: 1 }, mockClient.id],
+    [{ ...keySeed, use: "invalidUse" }, mockClient.id],
+    [{ ...keySeed, alg: 1 }, mockClient.id],
+    [{ ...keySeed, key: 1 }, mockClient.id],
+    [{ ...keySeed, name: undefined }, mockClient.id],
+    [{ ...keySeed, use: undefined }, mockClient.id],
+    [{ ...keySeed, alg: undefined }, mockClient.id],
+    [{ ...keySeed, key: undefined }, mockClient.id],
+    [{ ...keySeed }, "invalidId"],
+  ])(
+    "Should return 400 if passed invalid params: %s (clientId: %s)",
+    async (body, clientId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId as ClientId,
+        body as authorizationApi.KeySeed
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

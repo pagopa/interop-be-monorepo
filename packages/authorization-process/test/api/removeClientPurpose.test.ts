@@ -22,8 +22,8 @@ describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () =
 
   const makeRequest = async (
     token: string,
-    clientId: string,
-    purposeId: string
+    clientId: ClientId,
+    purposeId: PurposeId
   ) =>
     request(api)
       .delete(`/clients/${clientId}/purposes/${purposeId}`)

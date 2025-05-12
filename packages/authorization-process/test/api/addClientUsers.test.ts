@@ -38,8 +38,8 @@ describe("API /clients/{clientId}/users authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: string,
-    userIds: string[] = usersToAdd
+    clientId: ClientId,
+    userIds: UserId[] = usersToAdd
   ) =>
     request(api)
       .post(`/clients/${clientId}/users`)

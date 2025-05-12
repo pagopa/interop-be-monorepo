@@ -19,8 +19,8 @@ describe("API /clients/{clientId}/admin/{adminId} authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: string,
-    adminId: string
+    clientId: ClientId,
+    adminId: UserId
   ) =>
     request(api)
       .delete(`/clients/${clientId}/admin/${adminId}`)

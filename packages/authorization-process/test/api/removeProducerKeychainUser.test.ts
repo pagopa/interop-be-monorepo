@@ -29,8 +29,8 @@ describe("API /producerKeychains/{producerKeychainId}/users/{userId} authorizati
   };
   const makeRequest = async (
     token: string,
-    producerKeychainId: string,
-    userId: string
+    producerKeychainId: ProducerKeychainId,
+    userId: UserId
   ) =>
     request(api)
       .delete(`/producerKeychains/${producerKeychainId}/users/${userId}`)

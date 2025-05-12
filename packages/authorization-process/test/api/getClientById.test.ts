@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { Client, generateId } from "pagopa-interop-models";
+import { Client, ClientId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockClient,
@@ -23,7 +23,7 @@ describe("API /clients/{clientId} authorization test", () => {
     .fn()
     .mockResolvedValue({ client: mockClient, showUsers: true });
 
-  const makeRequest = async (token: string, clientId: string) =>
+  const makeRequest = async (token: string, clientId: ClientId) =>
     request(api)
       .get(`/clients/${clientId}`)
       .set("Authorization", `Bearer ${token}`)

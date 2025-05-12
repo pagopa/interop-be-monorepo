@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { generateId, ProducerKeychain, UserId } from "pagopa-interop-models";
+import {
+  generateId,
+  ProducerKeychain,
+  ProducerKeychainId,
+  UserId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockProducerKeychain,
@@ -30,7 +35,10 @@ describe("API /producerKeychains/{producerKeychainId} authorization test", () =>
     showUsers: false,
   });
 
-  const makeRequest = async (token: string, producerKeychainId: string) =>
+  const makeRequest = async (
+    token: string,
+    producerKeychainId: ProducerKeychainId
+  ) =>
     request(api)
       .get(`/producerKeychains/${producerKeychainId}`)
       .set("Authorization", `Bearer ${token}`)

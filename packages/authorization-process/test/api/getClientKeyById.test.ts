@@ -30,7 +30,11 @@ describe("API /clients/{clientId}/keys/{keyId} authorization test", () => {
 
   authorizationService.getClientKeyById = vi.fn().mockResolvedValue(mockKey1);
 
-  const makeRequest = async (token: string, clientId: string, keyId: string) =>
+  const makeRequest = async (
+    token: string,
+    clientId: ClientId,
+    keyId: string
+  ) =>
     request(api)
       .get(`/clients/${clientId}/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
