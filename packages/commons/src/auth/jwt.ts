@@ -37,35 +37,33 @@ export const readAuthDataFromJwtToken = (
   }
 };
 
-const extractUserInfoForFailedToken = (
-  jwtToken: string,
-  logger: Logger
-): AuthDataUserInfo => {
-  try {
-    const decoded = decodeJwtToken(jwtToken, logger);
-    if (!decoded) {
-      logger.warn("Failed to decode JWT token");
-      return getUserInfoFromAuthData(undefined);
-    }
-
-    try {
-      const authData = readAuthDataFromJwtToken(decoded);
-      return getUserInfoFromAuthData(authData);
-    } catch (authDataError) {
-      logger.warn(`Invalid auth data from JWT token: ${authDataError}`);
-      return getUserInfoFromAuthData(undefined);
-    }
-  } catch (decodeError) {
-    logger.warn(`Error decoding JWT token: ${decodeError}`);
-    return getUserInfoFromAuthData(undefined);
-  }
-};
-
 export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,
   logger: Logger
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Promise<{ decoded: JwtPayload | string }> => {
+  const extractUserInfoForFailedToken = (): AuthDataUserInfo => {
+    try {
+      const decoded = decodeJwtToken(jwtToken, logger);
+      if (!decoded) {
+        logger.warn("Failed to decode JWT token");
+        return getUserInfoFromAuthData(undefined);
+      }
+
+      try {
+        const authData = readAuthDataFromJwtToken(decoded);
+        return getUserInfoFromAuthData(authData);
+      } catch (authDataError) {
+        logger.warn(`Invalid auth data from JWT token: ${authDataError}`);
+        return getUserInfoFromAuthData(undefined);
+      }
+    } catch (decodeError) {
+      logger.warn(`Error decoding JWT token: ${decodeError}`);
+      return getUserInfoFromAuthData(undefined);
+    }
+  };
+
   try {
     const jwksClients = buildJwksClients(config);
     /**
@@ -105,10 +103,7 @@ export const verifyJwtToken = async (
         (err, decoded) => {
           if (err || !decoded) {
             logger.warn(`Token verification failed: ${err}`);
-            const { userId, selfcareId } = extractUserInfoForFailedToken(
-              jwtToken,
-              logger
-            );
+            const { userId, selfcareId } = extractUserInfoForFailedToken();
             return reject(tokenVerificationFailed(userId, selfcareId));
           }
           return resolve({ decoded });
@@ -117,10 +112,7 @@ export const verifyJwtToken = async (
     });
   } catch (error) {
     logger.error(`Error building JWKS clients: ${error}`);
-    const { userId, selfcareId } = extractUserInfoForFailedToken(
-      jwtToken,
-      logger
-    );
+    const { userId, selfcareId } = extractUserInfoForFailedToken();
     return Promise.reject(tokenVerificationFailed(userId, selfcareId));
   }
 };
