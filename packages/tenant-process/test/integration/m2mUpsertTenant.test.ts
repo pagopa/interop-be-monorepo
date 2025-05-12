@@ -4,7 +4,6 @@ import {
   getMockContextM2M,
   getMockTenant,
   readEventByStreamIdAndVersion,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -13,7 +12,6 @@ import {
   Tenant,
   toTenantV2,
   Attribute,
-  toReadModelAttribute,
   TenantCertifiedAttributeAssignedV2,
   tenantAttributeType,
 } from "pagopa-interop-models";
@@ -27,10 +25,10 @@ import {
   tenantNotFoundByExternalId,
 } from "../../src/model/domain/errors.js";
 import {
+  addOneAttribute,
   addOneTenant,
   tenantService,
   readLastTenantEvent,
-  attributes,
   postgresDB,
 } from "../integrationUtils.js";
 
@@ -88,8 +86,8 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
+    await addOneAttribute(attribute);
+    await addOneAttribute(attribute2);
 
     await addOneTenant(mockTenant);
     const returnedTenant = await tenantService.m2mUpsertTenant(
@@ -212,8 +210,8 @@ describe("m2mUpsertTenant", async () => {
       creationTime: new Date(),
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
+    await addOneAttribute(attribute);
+    await addOneAttribute(attribute2);
 
     const tenant: Tenant = {
       ...mockTenant,
@@ -308,7 +306,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     await addOneTenant(tenantAlreadyAssigned);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     expect(
       tenantService.m2mUpsertTenant(
         tenantSeed,
@@ -322,7 +320,7 @@ describe("m2mUpsertTenant", async () => {
   });
   it("Should throw tenantNotFound if the requester doesn't exist", async () => {
     const tenant = getMockTenant();
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     expect(
       tenantService.m2mUpsertTenant(
         tenantSeed,
@@ -349,7 +347,7 @@ describe("m2mUpsertTenant", async () => {
     };
 
     await addOneTenant(mockTenant);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
 
     const tenantSeed: tenantApi.M2MTenantSeed = {
       externalId: {
@@ -406,7 +404,7 @@ describe("m2mUpsertTenant", async () => {
   });
   it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
     const tenant: Tenant = getMockTenant();
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(tenant);
     expect(
       tenantService.m2mUpsertTenant(

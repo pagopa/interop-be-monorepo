@@ -4,7 +4,7 @@ import {
   getMockContextInternal,
   getMockTenant,
   readEventByStreamIdAndVersion,
-  writeInReadmodel,
+  sortTenant,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -14,7 +14,6 @@ import {
   toTenantV2,
   Attribute,
   unsafeBrandId,
-  toReadModelAttribute,
   TenantCertifiedAttributeAssignedV2,
   tenantAttributeType,
 } from "pagopa-interop-models";
@@ -26,10 +25,10 @@ import {
   tenantNotFoundByExternalId,
 } from "../../src/model/domain/errors.js";
 import {
+  addOneAttribute,
   addOneTenant,
   tenantService,
   readLastTenantEvent,
-  attributes,
   postgresDB,
 } from "../integrationUtils.js";
 
@@ -71,7 +70,7 @@ describe("internalUpsertTenant", async () => {
       kind: tenantKind.PA,
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+    await addOneAttribute(attribute1);
     await addOneTenant(mockTenant);
     const returnedTenant = await tenantService.internalUpsertTenant(
       tenantSeed,
@@ -142,8 +141,8 @@ describe("internalUpsertTenant", async () => {
       creationTime: new Date(),
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
-    await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
+    await addOneAttribute(attribute1);
+    await addOneAttribute(attribute2);
 
     const tenant: Tenant = {
       ...mockTenant,
@@ -204,8 +203,12 @@ describe("internalUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
-    expect(returnedTenant).toEqual(expectedTenant);
+    const tenantV2 = toTenantV2(expectedTenant);
+    expect(writtenPayload.tenant).toEqual({
+      ...tenantV2,
+      attributes: expect.arrayContaining(tenantV2.attributes),
+    });
+    expect(sortTenant(returnedTenant)).toEqual(sortTenant(expectedTenant));
   });
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
     const tenantAlreadyAssigned: Tenant = {
@@ -225,7 +228,7 @@ describe("internalUpsertTenant", async () => {
       kind: tenantKind.PA,
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+    await addOneAttribute(attribute1);
     await addOneTenant(tenantAlreadyAssigned);
     expect(
       tenantService.internalUpsertTenant(tenantSeed, getMockContextInternal({}))
@@ -246,7 +249,7 @@ describe("internalUpsertTenant", async () => {
       kind: tenantKind.PA,
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute1), attributes);
+    await addOneAttribute(attribute1);
     expect(
       tenantService.internalUpsertTenant(tenantSeed, getMockContextInternal({}))
     ).rejects.toThrowError(

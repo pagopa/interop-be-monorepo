@@ -28,12 +28,7 @@ const purposeRouter = (
   });
 
   const purposeService = purposeServiceBuilder(
-    clients.purposeProcessClient,
-    clients.catalogProcessClient,
-    clients.tenantProcessClient,
-    clients.agreementProcessClient,
-    clients.delegationProcessClient,
-    clients.authorizationClient,
+    clients,
     initFileManager(config)
   );
 

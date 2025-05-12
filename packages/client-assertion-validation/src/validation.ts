@@ -233,7 +233,7 @@ export const verifyClientAssertionSignature = async (
     // - jose throws and error in case of keys with missing trailing newline, while crypto does not
     // See keyImport.test.ts
     // See also Jose docs, it accepts crypto KeyObject as well: https://github.com/panva/jose/blob/main/docs/types/types.KeyLike.md
-    const publicKey = createPublicKey(key.publicKey);
+    const publicKey = createPublicKey({ key: key.publicKey });
 
     const result = await jose.jwtVerify(clientAssertionJws, publicKey, {
       algorithms: [clientAssertionAlgorithm],
