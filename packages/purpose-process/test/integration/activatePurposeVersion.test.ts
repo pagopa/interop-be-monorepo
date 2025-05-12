@@ -56,12 +56,12 @@ import {
   tenantKindNotFound,
   missingRiskAnalysis,
   eserviceNotFound,
-  organizationNotAllowed,
   riskAnalysisValidationFailed,
-  organizationIsNotTheProducer,
-  organizationIsNotTheConsumer,
   tenantNotFound,
   agreementNotFound,
+  tenantIsNotTheProducer,
+  tenantIsNotTheConsumer,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import { RiskAnalysisDocumentPDFPayload } from "../../src/model/domain/models.js";
@@ -938,7 +938,7 @@ describe("activatePurposeVersion", () => {
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
   });
 
-  it("should throw organizationIsNotTheProducer if the caller is the consumer trying to activate a waiting for approval purpose version", async () => {
+  it("should throw tenantIsNotTheProducer if the caller is the consumer trying to activate a waiting for approval purpose version", async () => {
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.waitingForApproval,
@@ -959,10 +959,10 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockConsumer.id) })
       );
-    }).rejects.toThrowError(organizationIsNotTheProducer(mockConsumer.id));
+    }).rejects.toThrowError(tenantIsNotTheProducer(mockConsumer.id));
   });
 
-  it("should organizationIsNotTheConsumer if the caller is the producer trying to activate a draft purpose version", async () => {
+  it("should tenantIsNotTheConsumer if the caller is the producer trying to activate a draft purpose version", async () => {
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -983,7 +983,7 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockProducer.id) })
       );
-    }).rejects.toThrowError(organizationIsNotTheConsumer(mockProducer.id));
+    }).rejects.toThrowError(tenantIsNotTheConsumer(mockProducer.id));
   });
 
   it("should throw tenantKindNotFound if the purpose consumer has no kind", async () => {
@@ -1125,7 +1125,7 @@ describe("activatePurposeVersion", () => {
     }
   );
 
-  it("should throw organizationNotAllowed if the caller is neither the producer or the consumer of the purpose, nor the delegate", async () => {
+  it("should throw tenantNotAllowed if the caller is neither the producer or the consumer of the purpose, nor the delegate", async () => {
     const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
     await addOnePurpose(mockPurpose);
@@ -1143,10 +1143,10 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(anotherTenant.id) })
       );
-    }).rejects.toThrowError(organizationNotAllowed(anotherTenant.id));
+    }).rejects.toThrowError(tenantNotAllowed(anotherTenant.id));
   });
 
-  it("should throw organizationNotAllowed if the caller is the producer but the purpose e-service has an active delegation", async () => {
+  it("should throw tenantNotAllowed if the caller is the producer but the purpose e-service has an active delegation", async () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
@@ -1170,13 +1170,13 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockProducer.id) })
       );
-    }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
+    }).rejects.toThrowError(tenantNotAllowed(mockProducer.id));
   });
 
   it.each(
     Object.values(delegationState).filter((s) => s !== delegationState.active)
   )(
-    "should throw organizationNotAllowed if the caller is the purpose e-service delegate but the delegation is in %s state",
+    "should throw tenantNotAllowed if the caller is the purpose e-service delegate but the delegation is in %s state",
     async (delegationState) => {
       await addOnePurpose(mockPurpose);
       await addOneEService(mockEService);
@@ -1201,7 +1201,7 @@ describe("activatePurposeVersion", () => {
           },
           getMockContext({ authData: getMockAuthData(delegation.delegateId) })
         );
-      }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+      }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
     }
   );
 
@@ -1369,7 +1369,7 @@ describe("activatePurposeVersion", () => {
     purposeVersionState.archived,
     purposeVersionState.rejected,
   ])(
-    `should throw organizationNotAllowed if the purpose version is in %s state and the caller is the producer`,
+    `should throw tenantNotAllowed if the purpose version is in %s state and the caller is the producer`,
     async (state) => {
       const purposeVersion: PurposeVersion = {
         ...mockPurposeVersion,
@@ -1391,7 +1391,7 @@ describe("activatePurposeVersion", () => {
           },
           getMockContext({ authData: getMockAuthData(mockProducer.id) })
         );
-      }).rejects.toThrowError(organizationNotAllowed(mockProducer.id));
+      }).rejects.toThrowError(tenantNotAllowed(mockProducer.id));
     }
   );
 
@@ -1400,7 +1400,7 @@ describe("activatePurposeVersion", () => {
     purposeVersionState.archived,
     purposeVersionState.rejected,
   ])(
-    `should throw organizationNotAllowed if the purpose version is in %s state and the caller is the consumer`,
+    `should throw tenantNotAllowed if the purpose version is in %s state and the caller is the consumer`,
     async (state) => {
       const purposeVersion: PurposeVersion = {
         ...mockPurposeVersion,
@@ -1422,11 +1422,11 @@ describe("activatePurposeVersion", () => {
           },
           getMockContext({ authData: getMockAuthData(mockConsumer.id) })
         );
-      }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
+      }).rejects.toThrowError(tenantNotAllowed(mockConsumer.id));
     }
   );
 
-  it(`should throw organizationNotAllowed when the requester is the Consumer but there is a Consumer Delegation`, async () => {
+  it(`should throw tenantNotAllowed when the requester is the Consumer but there is a Consumer Delegation`, async () => {
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -1462,10 +1462,10 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockConsumer.id) })
       );
-    }).rejects.toThrowError(organizationNotAllowed(mockConsumer.id));
+    }).rejects.toThrowError(tenantNotAllowed(mockConsumer.id));
   });
 
-  it("should throw organizationNotAllowed if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+  it("should throw tenantNotAllowed if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -1500,10 +1500,10 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
-    }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+    }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
   });
 
-  it("should throw organizationNotAllowed if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw tenantNotAllowed if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const purposeVersionMock: PurposeVersion = {
       ...mockPurposeVersion,
       state: purposeVersionState.draft,
@@ -1539,6 +1539,6 @@ describe("activatePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
-    }).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+    }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
   });
 });
