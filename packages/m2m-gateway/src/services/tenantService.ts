@@ -14,10 +14,10 @@ export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
-    getTenants: async (
+    async getTenants(
       queryParams: m2mGatewayApi.GetTenantsQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Tenants> => {
+    ): Promise<m2mGatewayApi.Tenants> {
       const { externalIdOrigin, externalIdValue, limit, offset } = queryParams;
 
       logger.info(
@@ -40,11 +40,11 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    getCertifiedAttributes: async (
+    async getCertifiedAttributes(
       tenantId: TenantId,
       { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantCertifiedAttributes> => {
+    ): Promise<m2mGatewayApi.TenantCertifiedAttributes> {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);
 
       const { data: tenant } =
