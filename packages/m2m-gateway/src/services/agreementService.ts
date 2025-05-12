@@ -3,18 +3,19 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { AgreementId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { toM2MAgreement } from "../api/agreementApiConverter.js";
+import {
+  toGetAgreementsApiQueryParams,
+  toM2MGatewayApiAgreement,
+} from "../api/agreementApiConverter.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function agreementServiceBuilder({
-  agreementProcessClient,
-}: PagoPAInteropBeClients) {
+export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getAgreements: async (
-      ctx: WithLogger<M2MGatewayAppContext>,
-      queryParams: m2mGatewayApi.GetAgreementsQueryParams
+      queryParams: m2mGatewayApi.GetAgreementsQueryParams,
+      ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreements> => {
       const { producerIds, consumerIds, eserviceIds, states, limit, offset } =
         queryParams;
@@ -25,20 +26,13 @@ export function agreementServiceBuilder({
 
       const {
         data: { results, totalCount },
-      } = await agreementProcessClient.getAgreements({
-        queries: {
-          consumersIds: consumerIds,
-          producersIds: producerIds,
-          eservicesIds: eserviceIds,
-          states,
-          limit,
-          offset,
-        },
+      } = await clients.agreementProcessClient.getAgreements({
+        queries: toGetAgreementsApiQueryParams(queryParams),
         headers: ctx.headers,
       });
 
       return {
-        results: results.map(toM2MAgreement),
+        results: results.map(toM2MGatewayApiAgreement),
         pagination: {
           limit,
           offset,

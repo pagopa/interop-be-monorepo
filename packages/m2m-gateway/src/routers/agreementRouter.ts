@@ -28,7 +28,7 @@ const agreementRouter = (
 
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        const agreements = await agreementService.getAgreements(ctx, req.query);
+        const agreements = await agreementService.getAgreements(req.query, ctx);
 
         return res.status(200).send(m2mGatewayApi.Agreements.parse(agreements));
       } catch (error) {
