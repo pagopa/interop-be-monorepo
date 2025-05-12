@@ -855,6 +855,9 @@ paths:
       operationId: revokeCertifiedAttributeById
       description: Revoke a certified attribute to a Tenant by the requester Tenant
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Updated Tenant
           content:
