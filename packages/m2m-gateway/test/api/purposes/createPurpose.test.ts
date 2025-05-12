@@ -17,7 +17,6 @@ describe("POST /purposes router test", () => {
   const mockPurpose: WithMetadata<purposeApi.Purpose> = getMockedApiPurpose();
 
   const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
-    consumerId: mockPurpose.data.id,
     dailyCalls: mockPurpose.data.versions[0].dailyCalls,
     description: mockPurpose.data.description,
     eserviceId: mockPurpose.data.eserviceId,

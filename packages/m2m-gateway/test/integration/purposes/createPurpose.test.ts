@@ -24,7 +24,6 @@ describe("createPurpose", () => {
   const mockPurposeProcessGetResponse = getMockedApiPurpose();
 
   const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
-    consumerId: mockPurposeProcessGetResponse.data.id,
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
     description: mockPurposeProcessGetResponse.data.description,
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
