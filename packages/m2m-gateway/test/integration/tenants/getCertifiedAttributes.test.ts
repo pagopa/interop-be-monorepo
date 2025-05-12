@@ -5,7 +5,11 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { mockInteropBeClients, tenantService } from "../../integrationUtils.js";
+import {
+  expectApiClientPostToHaveBeenCalledWith,
+  mockInteropBeClients,
+  tenantService,
+} from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
@@ -116,6 +120,14 @@ describe("getCertifiedAttributes", () => {
     );
 
     expect(result).toEqual(m2mTenantsResponse);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost: mockInteropBeClients.attributeProcessClient.getBulkedAttributes,
+      body: [mockTenantAttribute1.id, mockTenantAttribute2.id],
+      queries: {
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+      },
+    });
   });
 
   it.each([
