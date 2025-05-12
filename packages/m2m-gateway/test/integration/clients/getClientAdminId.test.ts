@@ -34,7 +34,7 @@ describe("getClientAdminId", () => {
     mockGetClient.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
+  it("Should succeed and perform service calls", async () => {
     mockGetClient.mockResolvedValueOnce(mockAuthProcessResponseWithAdminId);
     const result = await clientService.getClientAdminId(
       unsafeBrandId(mockAuthProcessResponseWithAdminId.data.id),
