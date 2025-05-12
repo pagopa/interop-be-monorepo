@@ -1,5 +1,5 @@
 import { WithLogger, isDefined, zipBy } from "pagopa-interop-commons";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -8,11 +8,29 @@ import {
   toGetTenantsApiQueryParams,
   toM2MGatewayApiTenant,
 } from "../api/tenantApiConverter.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResource,
+} from "../utils/polling.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const pollTenant = (
+    response: WithMaybeMetadata<tenantApi.Tenant>,
+    headers: M2MGatewayAppContext["headers"]
+  ) =>
+    pollResource(() =>
+      clients.tenantProcessClient.tenant.getTenant({
+        params: { id: response.data.id },
+        headers,
+      })
+    )({
+      checkFn: isPolledVersionAtLeastResponseVersion(response),
+    });
   return {
     async getTenants(
       queryParams: m2mGatewayApi.GetTenantsQueryParams,
@@ -109,6 +127,26 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount,
         },
       };
+    },
+    async addCertifiedAttribute(
+      tenantId: TenantId,
+      seed: m2mGatewayApi.TenantCertifiedAttributeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Assigning certified attribute ${seed.id} to tenant ${tenantId}`
+      );
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.addCertifiedAttribute(
+          seed,
+          {
+            params: { tenantId },
+            headers,
+          }
+        );
+
+      await pollTenant(response, headers);
     },
   };
 }
