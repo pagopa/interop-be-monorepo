@@ -19,7 +19,7 @@ import {
   getMockedApiTenant,
 } from "../../mockUtils.js";
 
-describe("createConsumerDelegation", () => {
+describe("addCertifiedAttribute", () => {
   const mockTenantCertifiedAttributeSeed: m2mGatewayApi.TenantCertifiedAttributeSeed =
     {
       id: generateId(),

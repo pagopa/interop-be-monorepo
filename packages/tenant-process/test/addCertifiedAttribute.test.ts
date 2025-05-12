@@ -77,23 +77,24 @@ describe("addCertifiedAttribute", async () => {
     await addOneTenant(targetTenant);
     await addOneAttribute(attribute);
     await addOneTenant(requesterTenant);
-    const { data: returnedTenant } = await tenantService.addCertifiedAttribute(
-      {
-        tenantId: targetTenant.id,
-        tenantAttributeSeed,
-      },
-      getMockContext({
-        authData: getMockAuthData(requesterTenant.id),
-      })
-    );
+    const addCertifiedAttributeReponse =
+      await tenantService.addCertifiedAttribute(
+        {
+          tenantId: targetTenant.id,
+          tenantAttributeSeed,
+        },
+        getMockContext({
+          authData: getMockAuthData(requesterTenant.id),
+        })
+      );
     const writtenEvent = await readLastEventByStreamId(
-      targetTenant.id,
+      addCertifiedAttributeReponse.data.id,
       "tenant",
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: targetTenant.id,
+      stream_id: addCertifiedAttributeReponse.data.id,
       version: "1",
       type: "TenantCertifiedAttributeAssigned",
       event_version: 2,
@@ -115,7 +116,10 @@ describe("addCertifiedAttribute", async () => {
       updatedAt: new Date(),
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
-    expect(returnedTenant).toEqual(updatedTenant);
+    expect(addCertifiedAttributeReponse).toEqual({
+      data: updatedTenant,
+      metadata: { version: 1 },
+    });
   });
   it("Should store TenantCertifiedAttributeAssigned and tenantUpdatedKind events", async () => {
     await addOneAttribute(attribute);
