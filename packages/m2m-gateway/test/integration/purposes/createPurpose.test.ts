@@ -53,22 +53,25 @@ describe("createPurpose", () => {
     mockGetPurpose.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mPurposeResponse: m2mGatewayApi.Purpose = mockM2MPurpose;
+  it("Should succeed and perform service calls", async () => {
+    const mockAppContext = getMockM2MAdminAppContext();
 
     const result = await purposeService.createPurpose(
       mockPurposeSeed,
-      getMockM2MAdminAppContext()
+      mockAppContext
     );
 
-    expect(result).toEqual(m2mPurposeResponse);
+    expect(result).toEqual(mockM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.createPurpose,
-      body: mockPurposeSeed,
+      body: {
+        ...mockPurposeSeed,
+        consumerId: mockAppContext.authData.organizationId,
+      },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
-      params: { id: m2mPurposeResponse.id },
+      params: { id: mockM2MPurpose.id },
     });
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
