@@ -19,6 +19,6 @@ export * from "./selfcareConfig.js";
 export * from "./featureFlagsConfig.js";
 export * from "./authorizationServerTokenGenerationConfig.js";
 export * from "./applicationAuditProducerConfig.js";
-export * from "./sqsConsumerConfig.js";
-export * from "./sqsProducerConfig.js";
+export * from "./applicationAuditFallbackSQSConsumerConfig.js";
+export * from "./applicationAuditFallbackSQSProducerConfig.js";
 export * from "./analyticsSQLDbConfig.js";

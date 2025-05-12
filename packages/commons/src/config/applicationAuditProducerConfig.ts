@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { KafkaProducerConfig } from "./producerServiceConfig.js";
 import { ApplicationAuditTopicConfig } from "./kafkaTopicConfig.js";
-import { ApplicationAuditFallbackSQSProducerConfig } from "./sqsProducerConfig.js";
+import { ApplicationAuditFallbackSQSProducerConfig } from "./applicationAuditFallbackSQSProducerConfig.js";
 import { LoggerConfig } from "./loggerConfig.js";
 
 export const ApplicationAuditProducerConfig = z
