@@ -11,12 +11,14 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
+  missingActivePurposeVersion,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
+  getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
@@ -116,5 +118,20 @@ describe("createPurpose", () => {
     expect(mockGetPurpose).toHaveBeenCalledTimes(
       config.defaultPollingMaxAttempts
     );
+  });
+
+  it("Should throw missingActivePurposeVersion due to missing valid current version", async () => {
+    const invalidPurpose = getMockedApiPurpose({
+      versions: [
+        getMockedApiPurposeVersion({ state: "WAITING_FOR_APPROVAL" }),
+        getMockedApiPurposeVersion({ state: "REJECTED" }),
+      ],
+    });
+
+    mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
+
+    await expect(
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
+    ).rejects.toThrow(missingActivePurposeVersion(invalidPurpose.data.id));
   });
 });
