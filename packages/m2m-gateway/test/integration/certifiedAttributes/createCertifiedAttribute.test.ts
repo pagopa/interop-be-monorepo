@@ -54,7 +54,7 @@ describe("createCertifiedAttribute", () => {
     mockGetAttribute.mockClear();
   });
 
-  it("Should succeed and perform service calls", async () => {
+  it("Should succeed and perform API clients calls", async () => {
     const m2mAttributeResponse: m2mGatewayApi.CertifiedAttribute = {
       id: mockAttributeProcessResponse.data.id,
       code: mockAttributeProcessResponse.data.code!,
