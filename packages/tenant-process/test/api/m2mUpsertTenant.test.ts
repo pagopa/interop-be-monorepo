@@ -55,57 +55,30 @@ describe("API POST /m2m/tenants test", () => {
     }
   );
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.m2mUpsertTenant = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(generateId()));
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for attributeNotFound", async () => {
-    tenantService.m2mUpsertTenant = vi
-      .fn()
-      .mockRejectedValue(attributeNotFound(generateId()));
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for tenantNotFoundByExternalId", async () => {
-    tenantService.m2mUpsertTenant = vi
-      .fn()
-      .mockRejectedValue(
-        tenantNotFoundByExternalId(
-          tenantSeed.externalId.origin,
-          tenantSeed.externalId.value
-        )
-      );
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 409 for certifiedAttributeAlreadyAssigned", async () => {
-    tenantService.m2mUpsertTenant = vi
-      .fn()
-      .mockRejectedValue(
-        certifiedAttributeAlreadyAssigned(generateId(), generateId())
-      );
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 403 for tenantIsNotACertifier", async () => {
-    tenantService.m2mUpsertTenant = vi
-      .fn()
-      .mockRejectedValue(tenantIsNotACertifier(generateId()));
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: tenantNotFound(generateId()), expectedStatus: 404 },
+    { error: attributeNotFound(generateId()), expectedStatus: 404 },
+    {
+      error: tenantNotFoundByExternalId(
+        tenantSeed.externalId.origin,
+        tenantSeed.externalId.value
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: certifiedAttributeAlreadyAssigned(generateId(), generateId()),
+      expectedStatus: 409,
+    },
+    { error: tenantIsNotACertifier(generateId()), expectedStatus: 403 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.m2mUpsertTenant = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid tenant seed", async () => {
     const token = generateToken(authRole.M2M_ROLE);

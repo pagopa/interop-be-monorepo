@@ -51,72 +51,32 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.verifyVerifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for attributeNotFound", async () => {
-    tenantService.verifyVerifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(attributeNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for agreementNotFound", async () => {
-    tenantService.verifyVerifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for eServiceNotFound", async () => {
-    tenantService.verifyVerifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(eServiceNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for descriptorNotFoundInEservice", async () => {
-    tenantService.verifyVerifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(
-        descriptorNotFoundInEservice(generateId(), generateId())
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for verifiedAttributeSelfVerificationNotAllowed", async () => {
-    tenantService.verifyVerifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(verifiedAttributeSelfVerificationNotAllowed());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for attributeVerificationNotAllowed", async () => {
-    tenantService.verifyVerifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(
-        attributeVerificationNotAllowed(generateId(), generateId())
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    { error: attributeNotFound(generateId()), expectedStatus: 404 },
+    { error: agreementNotFound(generateId()), expectedStatus: 404 },
+    { error: eServiceNotFound(generateId()), expectedStatus: 404 },
+    {
+      error: descriptorNotFoundInEservice(generateId(), generateId()),
+      expectedStatus: 404,
+    },
+    {
+      error: verifiedAttributeSelfVerificationNotAllowed(),
+      expectedStatus: 403,
+    },
+    {
+      error: attributeVerificationNotAllowed(generateId(), generateId()),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.verifyVerifiedAttribute = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid tenant id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

@@ -48,41 +48,20 @@ describe("API POST /tenants/attributes/declared test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.addDeclaredAttribute = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for attributeNotFound", async () => {
-    tenantService.addDeclaredAttribute = vi
-      .fn()
-      .mockRejectedValue(attributeNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for delegationNotFound", async () => {
-    tenantService.addDeclaredAttribute = vi
-      .fn()
-      .mockRejectedValue(delegationNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for operationRestrictedToDelegate", async () => {
-    tenantService.addDeclaredAttribute = vi
-      .fn()
-      .mockRejectedValue(operationRestrictedToDelegate());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    { error: attributeNotFound(generateId()), expectedStatus: 404 },
+    { error: delegationNotFound(generateId()), expectedStatus: 404 },
+    { error: operationRestrictedToDelegate(), expectedStatus: 403 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.addDeclaredAttribute = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed invalid data", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

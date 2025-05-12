@@ -73,58 +73,33 @@ describe("API DELETE /m2m/origin/{origin}/externalId/{externalId}/attributes/{co
     }
   );
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.m2mRevokeCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(targetTenant.id));
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for tenantNotFoundByExternalId", async () => {
-    tenantService.m2mRevokeCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(
-        tenantNotFoundByExternalId(
-          targetTenant.externalId.origin,
-          targetTenant.externalId.value
-        )
-      );
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 400 for attributeNotFound", async () => {
-    tenantService.m2mRevokeCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(attributeNotFound(mockAttribute.code));
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for attributeNotFoundInTenant", async () => {
-    tenantService.m2mRevokeCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(
-        attributeNotFoundInTenant(
-          unsafeBrandId(mockAttribute.code),
-          targetTenant.id
-        )
-      );
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for tenantIsNotACertifier", async () => {
-    tenantService.m2mRevokeCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(tenantIsNotACertifier(targetTenant.id));
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: tenantNotFound(targetTenant.id), expectedStatus: 404 },
+    {
+      error: tenantNotFoundByExternalId(
+        targetTenant.externalId.origin,
+        targetTenant.externalId.value
+      ),
+      expectedStatus: 404,
+    },
+    { error: attributeNotFound(mockAttribute.code), expectedStatus: 400 },
+    {
+      error: attributeNotFoundInTenant(
+        unsafeBrandId(mockAttribute.code),
+        targetTenant.id
+      ),
+      expectedStatus: 400,
+    },
+    { error: tenantIsNotACertifier(targetTenant.id), expectedStatus: 403 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.m2mRevokeCertifiedAttribute = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

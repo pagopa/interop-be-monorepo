@@ -44,30 +44,19 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.addTenantMail = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for operationForbidden", async () => {
-    tenantService.addTenantMail = vi.fn().mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for mailAlreadyExists", async () => {
-    tenantService.addTenantMail = vi
-      .fn()
-      .mockRejectedValue(mailAlreadyExists());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    { error: operationForbidden, expectedStatus: 403 },
+    { error: mailAlreadyExists(), expectedStatus: 409 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.addTenantMail = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid mail seed", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

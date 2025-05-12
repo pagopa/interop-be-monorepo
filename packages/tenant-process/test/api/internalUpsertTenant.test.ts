@@ -52,34 +52,22 @@ describe("API POST /internal/tenants test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.internalUpsertTenant = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for attributeNotFound", async () => {
-    tenantService.internalUpsertTenant = vi
-      .fn()
-      .mockRejectedValue(attributeNotFound(generateId()));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 409 for certifiedAttributeAlreadyAssigned", async () => {
-    tenantService.internalUpsertTenant = vi
-      .fn()
-      .mockRejectedValue(
-        certifiedAttributeAlreadyAssigned(generateId(), generateId())
-      );
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    { error: attributeNotFound(generateId()), expectedStatus: 404 },
+    {
+      error: certifiedAttributeAlreadyAssigned(generateId(), generateId()),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.internalUpsertTenant = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.INTERNAL_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid tenant seed", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);

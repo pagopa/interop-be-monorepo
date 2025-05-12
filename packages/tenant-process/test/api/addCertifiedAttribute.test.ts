@@ -57,54 +57,31 @@ describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.addCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for tenantIsNotACertifier", async () => {
-    tenantService.addCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(tenantIsNotACertifier(tenant.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for attributeNotFound", async () => {
-    tenantService.addCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(attributeNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for attributeDoesNotBelongToCertifier", async () => {
-    tenantService.addCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(
-        attributeDoesNotBelongToCertifier(generateId(), generateId(), tenant.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for certifiedAttributeAlreadyAssigned", async () => {
-    tenantService.addCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(
-        certifiedAttributeAlreadyAssigned(generateId(), generateId())
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    { error: tenantIsNotACertifier(tenant.id), expectedStatus: 403 },
+    { error: attributeNotFound(generateId()), expectedStatus: 400 },
+    {
+      error: attributeDoesNotBelongToCertifier(
+        generateId(),
+        generateId(),
+        tenant.id
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: certifiedAttributeAlreadyAssigned(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.addCertifiedAttribute = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid tenant attribute seed", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

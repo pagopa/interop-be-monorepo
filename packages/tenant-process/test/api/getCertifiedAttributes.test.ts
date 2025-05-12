@@ -107,23 +107,18 @@ describe("API GET /tenants/attributes/certified test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.getCertifiedAttributes = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for tenantIsNotACertifier", async () => {
-    tenantService.getCertifiedAttributes = vi
-      .fn()
-      .mockRejectedValue(tenantIsNotACertifier(tenant.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    { error: tenantIsNotACertifier(tenant.id), expectedStatus: 403 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.getCertifiedAttributes = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid limit", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

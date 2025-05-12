@@ -73,50 +73,42 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for verifiedAttributeNotFoundInTenant", async () => {
-    tenantService.updateVerifiedAttributeExtensionDate = vi
-      .fn()
-      .mockRejectedValue(
-        verifiedAttributeNotFoundInTenant(tenant.id, attributeId)
-      );
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotFoundInVerifiers", async () => {
-    tenantService.updateVerifiedAttributeExtensionDate = vi
-      .fn()
-      .mockRejectedValue(
-        organizationNotFoundInVerifiers("requesterId", tenant.id, attributeId)
-      );
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for expirationDateNotFoundInVerifier", async () => {
-    tenantService.updateVerifiedAttributeExtensionDate = vi
-      .fn()
-      .mockRejectedValue(
-        expirationDateNotFoundInVerifier(verifierId, attributeId, tenant.id)
-      );
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.updateVerifiedAttributeExtensionDate = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: verifiedAttributeNotFoundInTenant(tenant.id, attributeId),
+      expectedStatus: 404,
+    },
+    {
+      error: organizationNotFoundInVerifiers(
+        "requesterId",
+        tenant.id,
+        attributeId
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: expirationDateNotFoundInVerifier(
+        verifierId,
+        attributeId,
+        tenant.id
+      ),
+      expectedStatus: 400,
+    },
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.updateVerifiedAttributeExtensionDate = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.INTERNAL_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid tenant id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token, "invalid");
     expect(res.status).toBe(400);
   });

@@ -59,21 +59,21 @@ describe("API DELETE /internal/origin/{tOrigin}/externalId/{tExternalId}/attribu
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.internalRevokeCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(targetTenant.id));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for attributeNotFoundInTenant", async () => {
-    tenantService.internalRevokeCertifiedAttribute = vi
-      .fn()
-      .mockRejectedValue(attributeNotFoundInTenant(generateId(), generateId()));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    { error: tenantNotFound(targetTenant.id), expectedStatus: 404 },
+    {
+      error: attributeNotFoundInTenant(generateId(), generateId()),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.internalRevokeCertifiedAttribute = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.INTERNAL_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

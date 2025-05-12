@@ -42,14 +42,15 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.maintenanceTenantUpdate = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenantId));
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([{ error: tenantNotFound(tenantId), expectedStatus: 404 }])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.maintenanceTenantUpdate = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.MAINTENANCE_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed invalid data", async () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);

@@ -45,34 +45,25 @@ describe("API POST /maintenance/tenants/{tenantId}/certifier test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.addCertifierId = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 409 for tenantIsAlreadyACertifier", async () => {
-    tenantService.addCertifierId = vi
-      .fn()
-      .mockRejectedValue(tenantIsAlreadyACertifier(tenant.id, certifierId));
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 409 for certifierWithExistingAttributes", async () => {
-    tenantService.addCertifierId = vi
-      .fn()
-      .mockRejectedValue(
-        certifierWithExistingAttributes(tenant.id, certifierId)
-      );
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    {
+      error: tenantIsAlreadyACertifier(tenant.id, certifierId),
+      expectedStatus: 409,
+    },
+    {
+      error: certifierWithExistingAttributes(tenant.id, certifierId),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.addCertifierId = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.MAINTENANCE_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed invalid data", async () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);

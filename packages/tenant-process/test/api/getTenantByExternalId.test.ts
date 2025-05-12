@@ -52,19 +52,23 @@ describe("API GET /tenants/origin/{origin}/code/{code} test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFoundByExternalId", async () => {
-    tenantService.getTenantByExternalId = vi
-      .fn()
-      .mockRejectedValue(
-        tenantNotFoundByExternalId(
-          tenant.externalId.origin,
-          tenant.externalId.value
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: tenantNotFoundByExternalId(
+        tenant.externalId.origin,
+        tenant.externalId.value
+      ),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.getTenantByExternalId = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an empty origin and no code", async () => {
     const res = await request(api)

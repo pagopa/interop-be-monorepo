@@ -64,27 +64,25 @@ describe("API POST /selfcare/tenants test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 403 for operationForbidden", async () => {
-    tenantService.selfcareUpsertTenant = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for selfcareIdConflict", async () => {
-    tenantService.selfcareUpsertTenant = vi.fn().mockRejectedValue(
-      selfcareIdConflict({
+  it.each([
+    { error: operationForbidden, expectedStatus: 403 },
+    {
+      error: selfcareIdConflict({
         tenantId: tenant.id,
         existingSelfcareId: selfcareId,
         newSelfcareId: selfcareId,
-      })
-    );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+      }),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.selfcareUpsertTenant = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid tenant seed", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

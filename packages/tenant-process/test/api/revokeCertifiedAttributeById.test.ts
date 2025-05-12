@@ -48,54 +48,33 @@ describe("API DELETE /tenants/{tenantId}/attributes/certified/{attributeId} test
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    tenantService.revokeCertifiedAttributeById = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for attributeNotFound", async () => {
-    tenantService.revokeCertifiedAttributeById = vi
-      .fn()
-      .mockRejectedValue(attributeNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for attributeDoesNotBelongToCertifier", async () => {
-    tenantService.revokeCertifiedAttributeById = vi
-      .fn()
-      .mockRejectedValue(
-        attributeDoesNotBelongToCertifier(generateId(), generateId(), tenant.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for tenantIsNotACertifier", async () => {
-    tenantService.revokeCertifiedAttributeById = vi
-      .fn()
-      .mockRejectedValue(tenantIsNotACertifier(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for attributeAlreadyRevoked", async () => {
-    tenantService.revokeCertifiedAttributeById = vi
-      .fn()
-      .mockRejectedValue(
-        attributeAlreadyRevoked(generateId(), generateId(), generateId())
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    { error: attributeNotFound(generateId()), expectedStatus: 404 },
+    {
+      error: attributeDoesNotBelongToCertifier(
+        generateId(),
+        generateId(),
+        tenant.id
+      ),
+      expectedStatus: 403,
+    },
+    { error: tenantIsNotACertifier(generateId()), expectedStatus: 403 },
+    {
+      error: attributeAlreadyRevoked(generateId(), generateId(), generateId()),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.revokeCertifiedAttributeById = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid tenant id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
