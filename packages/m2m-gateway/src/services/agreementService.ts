@@ -30,7 +30,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
-  
+
   return {
     getAgreements: async (
       queryParams: m2mGatewayApi.GetAgreementsQueryParams,
@@ -81,13 +81,16 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Agreement> => {
       logger.info(`Creating agreement`);
 
-      const response = await agreementProcessClient.createAgreement(seed, {
-        headers,
-      });
+      const response = await clients.agreementProcessClient.createAgreement(
+        seed,
+        {
+          headers,
+        }
+      );
 
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MAgreement(polledResource.data);
+      return toM2MGatewayApiAgreement(polledResource.data);
     },
   };
 }
