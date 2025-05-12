@@ -34,10 +34,10 @@ import {
 import { describe, expect, it, vi } from "vitest";
 import {
   purposeNotFound,
-  organizationIsNotTheConsumer,
+  tenantIsNotTheConsumer,
   purposeVersionNotFound,
   notValidVersionState,
-  organizationIsNotTheDelegatedConsumer,
+  tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -380,7 +380,7 @@ describe("archivePurposeVersion", () => {
       )
     ).rejects.toThrowError(purposeNotFound(randomPurposeId));
   });
-  it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const randomOrganizationId: TenantId = generateId();
 
     const mockPurposeVersion: PurposeVersion = {
@@ -402,7 +402,7 @@ describe("archivePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(randomOrganizationId) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(randomOrganizationId));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(randomOrganizationId));
   });
   it("should throw purposeVersionNotFound if the purpose version doesn't exist", async () => {
     const randomVersionId: PurposeVersionId = generateId();
@@ -458,7 +458,7 @@ describe("archivePurposeVersion", () => {
       );
     }
   );
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is archiving a purpose version created by the delegate in archivePurposeVersion", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is archiving a purpose version created by the delegate in archivePurposeVersion", async () => {
     const authData = getMockAuthData();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -491,7 +491,7 @@ describe("archivePurposeVersion", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      tenantIsNotTheDelegatedConsumer(
         authData.organizationId,
         mockPurpose.delegationId
       )
@@ -527,7 +527,7 @@ describe("archivePurposeVersion", () => {
     );
   });
 
-  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose in archivePurposeVersion", async () => {
+  it("should throw tenantIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose in archivePurposeVersion", async () => {
     const authData = getMockAuthData();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -558,10 +558,10 @@ describe("archivePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
 
-  it("should throw organizationIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
@@ -607,7 +607,7 @@ describe("archivePurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      tenantIsNotTheDelegatedConsumer(
         delegation.delegateId,
         mockPurpose.delegationId
       )

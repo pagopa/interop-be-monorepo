@@ -41,7 +41,7 @@ import {
   eServiceModeNotAllowed,
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
-  organizationIsNotTheConsumer,
+  tenantIsNotTheConsumer,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
@@ -400,7 +400,7 @@ describe("createReversePurpose", () => {
 
     vi.useRealTimers();
   });
-  it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const consumer = { ...getMockTenant(), kind: tenantKind.PA };
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
@@ -448,7 +448,7 @@ describe("createReversePurpose", () => {
         reversePurposeSeed,
         getMockContext({ authData: getMockAuthData(producer.id) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(producer.id));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(producer.id));
   });
   it("should throw eserviceModeNotAllowed if the eservice is in deliver mode", async () => {
     const consumer = getMockTenant();

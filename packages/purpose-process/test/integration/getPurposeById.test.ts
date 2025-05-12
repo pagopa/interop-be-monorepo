@@ -34,7 +34,7 @@ import {
   eserviceNotFound,
   tenantNotFound,
   tenantKindNotFound,
-  organizationNotAllowed,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -195,7 +195,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should throw organizationNotAllowed if the requester is not the producer, the consumer, or a delegate", async () => {
+  it("should throw tenantNotAllowed if the requester is not the producer, the consumer, or a delegate", async () => {
     const mockTenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -219,13 +219,13 @@ describe("getPurposeById", () => {
         mockPurpose1.id,
         getMockContext({ authData: getMockAuthData(mockTenant.id) })
       )
-    ).rejects.toThrowError(organizationNotAllowed(mockTenant.id));
+    ).rejects.toThrowError(tenantNotAllowed(mockTenant.id));
   });
 
   it.each(
     Object.values(delegationState).filter((s) => s !== delegationState.active)
   )(
-    "should throw organizationNotAllowed if the requester has a producer delegation with state %s with the e-service purpose",
+    "should throw tenantNotAllowed if the requester has a producer delegation with state %s with the e-service purpose",
     async (delegationState) => {
       const producerDelegate = {
         ...getMockTenant(),
@@ -259,7 +259,7 @@ describe("getPurposeById", () => {
           mockPurpose1.id,
           getMockContext({ authData: getMockAuthData(producerDelegate.id) })
         )
-      ).rejects.toThrowError(organizationNotAllowed(producerDelegate.id));
+      ).rejects.toThrowError(tenantNotAllowed(producerDelegate.id));
     }
   );
 
@@ -530,7 +530,7 @@ describe("getPurposeById", () => {
     });
   });
 
-  it("should throw organizationNotAllowed if the requester is a delegate for the eservice when retrieving a purpose created by the consumer", async () => {
+  it("should throw tenantNotAllowed if the requester is a delegate for the eservice when retrieving a purpose created by the consumer", async () => {
     const tenant = { ...getMockTenant(), kind: tenantKind.PA };
     const eservice = getMockEService();
     const purpose: Purpose = {
@@ -558,11 +558,9 @@ describe("getPurposeById", () => {
           authData: getMockAuthData(purposeDelegation.delegateId),
         })
       )
-    ).rejects.toThrowError(
-      organizationNotAllowed(purposeDelegation.delegateId)
-    );
+    ).rejects.toThrowError(tenantNotAllowed(purposeDelegation.delegateId));
   });
-  it("should throw organizationNotAllowed if there exists a purpose delegation but the requester is not the purpose delegate", async () => {
+  it("should throw tenantNotAllowed if there exists a purpose delegation but the requester is not the purpose delegate", async () => {
     const eservice = getMockEService();
     const delegate = { ...getMockTenant(), kind: tenantKind.PA };
     const purpose: Purpose = {
@@ -598,7 +596,7 @@ describe("getPurposeById", () => {
         purpose.id,
         getMockContext({ authData: getMockAuthData(delegate.id) })
       )
-    ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+    ).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
   });
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const notExistingId: PurposeId = generateId();

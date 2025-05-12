@@ -45,8 +45,8 @@ import {
   agreementNotFound,
   eserviceNotFound,
   missingRiskAnalysis,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
   purposeCannotBeUpdated,
   tenantKindNotFound,
@@ -781,7 +781,7 @@ describe("createPurposeVersion", () => {
     ).rejects.toThrowError(unchangedDailyCalls(mockPurpose.id));
   });
 
-  it("should throw organizationIsNotTheConsumer if the caller is the producer", async () => {
+  it("should throw tenantIsNotTheConsumer if the caller is the producer", async () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
@@ -796,9 +796,7 @@ describe("createPurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       );
-    }).rejects.toThrowError(
-      organizationIsNotTheConsumer(mockEService.producerId)
-    );
+    }).rejects.toThrowError(tenantIsNotTheConsumer(mockEService.producerId));
   });
 
   it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
@@ -818,7 +816,7 @@ describe("createPurposeVersion", () => {
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
 
-  it("should throw organizationIsNotTheConsumer if the caller is not the consumer", async () => {
+  it("should throw tenantIsNotTheConsumer if the caller is not the consumer", async () => {
     const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
     await addOnePurpose(mockPurpose);
@@ -836,7 +834,7 @@ describe("createPurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(anotherTenant.id) })
       );
-    }).rejects.toThrowError(organizationIsNotTheConsumer(anotherTenant.id));
+    }).rejects.toThrowError(tenantIsNotTheConsumer(anotherTenant.id));
   });
 
   it("should throw agreementNotFound if the caller has no agreement associated with the purpose in the read model", async () => {
@@ -996,7 +994,7 @@ describe("createPurposeVersion", () => {
       );
     }).rejects.toThrowError(missingRiskAnalysis(purpose.id));
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is creating a purpose version for a purpose created by the delegate", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is creating a purpose version for a purpose created by the delegate", async () => {
     const authData = getMockAuthData();
     const purpose = {
       ...mockPurpose,
@@ -1029,10 +1027,7 @@ describe("createPurposeVersion", () => {
         getMockContext({ authData })
       );
     }).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegatedConsumer(authData.organizationId, delegation.id)
     );
   });
   it("should throw purposeDelegationNotFound when the requester is the Consumer, is creating a purpose version for a purpose created by a delegate, but the delegation cannot be found", async () => {
@@ -1061,7 +1056,7 @@ describe("createPurposeVersion", () => {
     );
   });
 
-  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+  it("should throw tenantIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const delegatePurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockConsumer.id,
@@ -1090,11 +1085,9 @@ describe("createPurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
-    }).rejects.toThrowError(
-      organizationIsNotTheConsumer(delegation.delegateId)
-    );
+    }).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
-  it("should throw organizationIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
@@ -1137,7 +1130,7 @@ describe("createPurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       );
     }).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      tenantIsNotTheDelegatedConsumer(
         delegation.delegateId,
         mockPurpose.delegationId
       )
