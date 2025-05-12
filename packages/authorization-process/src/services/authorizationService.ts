@@ -32,6 +32,7 @@ import {
   hasAtLeastOneUserRole,
   InternalAuthData,
   isUiAuthData,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   userRole,
@@ -71,7 +72,7 @@ import {
   toCreateEventClientAdded,
   toCreateEventClientAdminSet,
   toCreateEventClientAdminRemoved,
-  toCreateEventClientAdminRemovedBySelfcare,
+  toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -211,7 +212,10 @@ export function authorizationServiceBuilder(
       }: {
         clientId: ClientId;
       },
-      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
@@ -579,7 +583,7 @@ export function authorizationServiceBuilder(
         adminId: UserId;
       },
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Client> {
+    ): Promise<{ client: Client; showUsers: boolean }> {
       assertFeatureFlagEnabled(config, "featureFlagAdminClient");
 
       logger.info(`Set user ${adminId} in client ${clientId} as admin`);
@@ -617,7 +621,7 @@ export function authorizationServiceBuilder(
           oldAdminId
         )
       );
-      return updatedClient;
+      return { client: updatedClient, showUsers: true };
     },
     async getClientKeys(
       {
@@ -1102,7 +1106,7 @@ export function authorizationServiceBuilder(
         keySeed: authorizationApi.KeySeed;
       },
       { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ProducerKeychain> {
+    ): Promise<Key> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
@@ -1158,7 +1162,7 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return updatedProducerKeychain;
+      return newKey;
     },
     async removeProducerKeychainKeyById(
       {
@@ -1391,7 +1395,7 @@ export function authorizationServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventClientAdminRemovedBySelfcare(
+        toCreateEventClientAdminRoleRevoked(
           updatedClient,
           adminId,
           client.metadata.version,

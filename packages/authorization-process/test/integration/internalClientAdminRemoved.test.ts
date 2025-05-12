@@ -22,7 +22,7 @@ import {
   readLastAuthorizationEvent,
 } from "../integrationUtils.js";
 
-describe("internalClientAdminRemovedBySelfcare", () => {
+describe("internalClientAdminRoleRevoked", () => {
   it("should write on event-store for the remove of an admin in a client", async () => {
     const mockClient: Client = {
       ...getMockClient(),
@@ -43,7 +43,7 @@ describe("internalClientAdminRemovedBySelfcare", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: mockClient.id,
       version: "1",
-      type: "ClientAdminRemovedBySelfcare",
+      type: "ClientAdminRoleRevoked",
       event_version: 2,
     });
   });

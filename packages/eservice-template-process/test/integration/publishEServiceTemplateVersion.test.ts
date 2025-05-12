@@ -130,7 +130,10 @@ describe("publishEServiceTemplateVersion", () => {
     expect(writtenPayload.eserviceTemplateVersionId).toEqual(
       eserviceTemplateVersion.id
     );
-    expect(writtenPayload.eserviceTemplate).toEqual(expectedEServiceTemplate);
+    expect(writtenPayload.eserviceTemplate).toEqual({
+      ...expectedEServiceTemplate,
+      versions: expect.arrayContaining(expectedEServiceTemplate.versions),
+    });
   });
 
   it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", () => {

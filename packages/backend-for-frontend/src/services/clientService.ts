@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+import {
+  getAllFromPaginated,
+  WithLogger,
+  escapeRegExp,
+} from "pagopa-interop-commons";
 import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
 import { CorrelationId } from "pagopa-interop-models";
 import {
@@ -249,8 +253,11 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     },
 
     async getClientUsers(
-      clientId: string,
-      selfcareId: string,
+      {
+        clientId,
+        selfcareId,
+        name,
+      }: { clientId: string; selfcareId: string; name?: string },
       { logger, headers, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactUsers> {
       logger.info(`Retrieving users for client ${clientId}`);
@@ -260,7 +267,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         headers,
       });
 
-      return await Promise.all(
+      const users = await Promise.all(
         clientUsers.map(async (id) =>
           getSelfcareCompactUserById(
             selfcareV2UserClient,
@@ -270,6 +277,12 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
           )
         )
       );
+
+      return name
+        ? users.filter((user) =>
+            new RegExp(escapeRegExp(name), "i").test(user.name)
+          )
+        : users;
     },
 
     async getClientKeyById(
