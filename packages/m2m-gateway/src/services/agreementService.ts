@@ -10,9 +10,7 @@ import {
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function agreementServiceBuilder({
-  agreementProcessClient,
-}: PagoPAInteropBeClients) {
+export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getAgreements: async (
       queryParams: m2mGatewayApi.GetAgreementsQueryParams,
@@ -27,7 +25,7 @@ export function agreementServiceBuilder({
 
       const {
         data: { results, totalCount },
-      } = await agreementProcessClient.getAgreements({
+      } = await clients.agreementProcessClient.getAgreements({
         queries: toGetAgreementsApiQueryParams(queryParams),
         headers: ctx.headers,
       });

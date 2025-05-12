@@ -102,9 +102,11 @@ describe("getAgreements", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreements,
       queries: {
-        consumerIds: mockQueryParams.consumerIds,
-        eserviceIds: mockQueryParams.eserviceIds,
-        producerIds: mockQueryParams.producerIds,
+        consumersIds: mockQueryParams.consumerIds,
+        eservicesIds: mockQueryParams.eserviceIds,
+        producersIds: mockQueryParams.producerIds,
+        descriptorsIds: [],
+        showOnlyUpgradeable: false,
         states: mockQueryParams.states,
         offset: mockQueryParams.offset,
         limit: mockQueryParams.limit,
