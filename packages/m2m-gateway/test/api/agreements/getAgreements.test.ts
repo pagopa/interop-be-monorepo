@@ -6,12 +6,12 @@ import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { toM2MAgreement } from "../../../src/api/agreementApiConverter.js";
+import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 import { getMockedApiAgreement } from "../../mockUtils.js";
 
 describe("GET /agreements route test", () => {
   const mockResponse: m2mGatewayApi.Agreements = {
-    results: [toM2MAgreement(getMockedApiAgreement().data)],
+    results: [toM2MGatewayApiAgreement(getMockedApiAgreement().data)],
     pagination: {
       limit: 10,
       offset: 0,
