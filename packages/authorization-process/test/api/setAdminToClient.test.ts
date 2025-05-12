@@ -47,16 +47,18 @@ describe("API POST /clients/{clientId}/admin test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([
-    [{}, "empty body"],
-    [{ adminId: 123 }, "adminId not a string"],
-    [{ adminId: "" }, "adminId empty string"],
-    [{ invalidField: "foo" }, "unexpected field"],
-  ])("Should return 400 if passed an invalid body: %s", async (body) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body as unknown as object);
-    expect(res.status).toBe(400);
-  });
+  it.each([{}, { adminId: 123 }, { adminId: "" }, { invalidField: "foo" }])(
+    "Should return 400 if passed an invalid body: %s",
+    async (testBody) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await request(api)
+        .post(`/clients/${mockClient.id}/admin`)
+        .set("Authorization", `Bearer ${token}`)
+        .set("X-Correlation-Id", generateId())
+        .send(testBody);
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([
     [clientNotFound(generateId()), 404],
@@ -69,7 +71,7 @@ describe("API POST /clients/{clientId}/admin test", () => {
       403,
     ],
     [clientAdminAlreadyAssignedToUser(mockClient.id, body.adminId), 409],
-  ])("Should return %i for error %p", async (error, expectedStatus) => {
+  ])("Should return %s for status %s", async (error, expectedStatus) => {
     authorizationService.setAdminToClient = vi.fn().mockRejectedValue(error);
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
