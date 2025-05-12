@@ -1278,3 +1278,26 @@ export const createTokenGenStatesConsumerClient = ({
     }),
   };
 };
+
+export const removeAdminIdFromTokenGenStatesApiClient = async (
+  primaryKey: TokenGenerationStatesClientKidPK,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(PK)",
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    UpdateExpression: "REMOVE adminId",
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+  logger.info(
+    `Token-generation-states. Removed adminId from api client ${primaryKey}`
+  );
+};
