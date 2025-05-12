@@ -1,6 +1,6 @@
 import { WithLogger, isDefined, zipBy } from "pagopa-interop-commons";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
-import { TenantId } from "pagopa-interop-models";
+import { AttributeId, TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -142,6 +142,26 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           seed,
           {
             params: { tenantId },
+            headers,
+          }
+        );
+
+      await pollTenant(response, headers);
+    },
+    revokeCertifiedAttribute: async (
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Revoking certified attribute ${attributeId} from tenant ${tenantId}`
+      );
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.revokeCertifiedAttributeById(
+          undefined,
+          {
+            params: { tenantId, attributeId },
             headers,
           }
         );

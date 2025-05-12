@@ -824,17 +824,23 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
 
           const { tenantId, attributeId } = req.params;
-          await tenantService.revokeCertifiedAttributeById(
-            {
-              tenantId: unsafeBrandId(tenantId),
-              attributeId: unsafeBrandId(attributeId),
-            },
-            ctx
-          );
-          return res.status(204).send();
+          const { data: tenant, metadata } =
+            await tenantService.revokeCertifiedAttributeById(
+              {
+                tenantId: unsafeBrandId(tenantId),
+                attributeId: unsafeBrandId(attributeId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
