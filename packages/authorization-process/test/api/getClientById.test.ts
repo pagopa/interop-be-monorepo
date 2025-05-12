@@ -34,6 +34,7 @@ describe("API /clients/{clientId} authorization test", () => {
     authRole.ADMIN_ROLE,
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
   ];
   it.each(authorizedRoles)(
