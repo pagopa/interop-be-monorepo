@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { Logger, ReadModelRepository } from "pagopa-interop-commons";
+import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementId,
@@ -56,7 +56,7 @@ import {
   ComparisonPlatformStatesPurposeEntry,
   ComparisonTokenGenStatesGenericClient,
 } from "../models/types.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
+import { ReadModelService } from "../services/readModelService.js";
 import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
 
 export function getLastPurposeVersion(
@@ -154,16 +154,9 @@ function getPurposeIdFromTokenGenStatesPK(
 
 export async function compareTokenGenerationReadModel(
   dynamoDBClient: DynamoDBClient,
+  readModelService: ReadModelService,
   logger: Logger
 ): Promise<number> {
-  logger.info(
-    "Token generation read model and read model comparison started.\n"
-  );
-  logger.info("> Connecting to database...");
-  const readModel = ReadModelRepository.init(config);
-  const readModelService = readModelServiceBuilder(readModel);
-  logger.info("> Connected to database!\n");
-
   const tokenGenerationService =
     tokenGenerationReadModelServiceBuilder(dynamoDBClient);
   const platformStatesEntries =
