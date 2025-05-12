@@ -3185,7 +3185,7 @@ describe("integration tests V2 events", async () => {
     });
   });
 
-  describe("ClientAdminRemovedBySelfcare", () => {
+  describe("ClientAdminRoleRevoked", () => {
     it("should do no operation if the existing table entry is more recent", async () => {
       const previousPlatformEntryVersion = 2;
       const messageVersion = 1;
@@ -3205,7 +3205,7 @@ describe("integration tests V2 events", async () => {
         sequence_num: 1,
         stream_id: client.id,
         version: messageVersion,
-        type: "ClientAdminRemovedBySelfcare",
+        type: "ClientAdminRoleRevoked",
         event_version: 2,
         data: payload,
         log_date: new Date(),
@@ -3288,7 +3288,7 @@ describe("integration tests V2 events", async () => {
         sequence_num: 1,
         stream_id: client.id,
         version: messageVersion,
-        type: "ClientAdminRemovedBySelfcare",
+        type: "ClientAdminRoleRevoked",
         event_version: 2,
         data: payload,
         log_date: new Date(),
@@ -3403,7 +3403,7 @@ describe("integration tests V2 events", async () => {
         sequence_num: 1,
         stream_id: client.id,
         version: messageVersion,
-        type: "ClientAdminRemovedBySelfcare",
+        type: "ClientAdminRoleRevoked",
         event_version: 2,
         data: payload,
         log_date: new Date(),

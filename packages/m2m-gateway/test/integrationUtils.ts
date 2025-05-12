@@ -55,13 +55,16 @@ export function expectApiClientPostToHaveBeenCalledWith({
   mockPost,
   body,
   params,
+  queries,
 }: {
   mockPost: Function;
-  body?: Record<string, unknown>;
+  body?: Record<string, unknown> | unknown[];
   params?: Record<string, unknown>;
+  queries?: Record<string, unknown>;
 }): void {
   expect(mockPost).toHaveBeenCalledWith(body ?? undefined, {
     params,
+    queries,
     headers: {
       Authorization: `Bearer ${m2mTestToken}`,
       "X-Correlation-Id": expect.any(String),
