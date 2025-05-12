@@ -23,11 +23,16 @@ describe("getTenantById", () => {
     await addOneTenant(tenant1);
     await addOneTenant(tenant2);
     await addOneTenant(tenant3);
-    const { data: returnedTenant } = await tenantService.getTenantById(
+    const getTenantByIdResponse = await tenantService.getTenantById(
       tenant1.id,
       getMockContext({})
     );
-    expect(returnedTenant).toEqual(tenant1);
+    expect(getTenantByIdResponse).toEqual({
+      data: tenant1,
+      metadata: {
+        version: 0,
+      },
+    });
   });
   it("should throw tenantNotFound if the tenant isn't in DB", async () => {
     await addOneTenant(tenant2);
