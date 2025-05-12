@@ -31,7 +31,7 @@ describe("API POST /clients/{clientId}/admin test", () => {
   beforeEach(() => {
     authorizationService.setAdminToClient = vi
       .fn()
-      .mockResolvedValue(mockClient);
+      .mockResolvedValue({ client: mockClient, showUsers: false });
   });
 
   it("Should return 200 for user with role Admin", async () => {
@@ -41,52 +41,29 @@ describe("API POST /clients/{clientId}/admin test", () => {
     expect(res.body).toEqual(apiResponse);
   });
 
+  it.each([
+    [clientNotFound(generateId()), 404],
+    [clientKindNotAllowed(mockClient.id), 403],
+    [
+      userWithoutSecurityPrivileges(
+        generateId<TenantId>(),
+        generateId<UserId>()
+      ),
+      403,
+    ],
+    [clientAdminAlreadyAssignedToUser(mockClient.id, body.adminId), 409],
+  ])("Should return %i for error %p", async (error, expectedStatus) => {
+    authorizationService.setAdminToClient = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(expectedStatus);
+  });
+
   it.each(
     Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
-  });
-
-  it("Should return 404 for clientNotFound", async () => {
-    authorizationService.setAdminToClient = vi
-      .fn()
-      .mockRejectedValue(clientNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for clientKindNotAllowed", async () => {
-    authorizationService.setAdminToClient = vi
-      .fn()
-      .mockRejectedValue(clientKindNotAllowed(mockClient.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-  it("Should return 403 for userWithoutSecurityPrivileges", async () => {
-    authorizationService.setAdminToClient = vi
-      .fn()
-      .mockRejectedValue(
-        userWithoutSecurityPrivileges(
-          generateId<TenantId>(),
-          generateId<UserId>()
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-  it("Should return 409 for userAlreadyClientAdmin", async () => {
-    authorizationService.setAdminToClient = vi
-      .fn()
-      .mockRejectedValue(
-        clientAdminAlreadyAssignedToUser(mockClient.id, body.adminId)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
   });
 });

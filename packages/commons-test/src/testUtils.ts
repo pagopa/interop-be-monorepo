@@ -394,6 +394,7 @@ export const getMockClient = (): Client => ({
   kind: clientKind.consumer,
   createdAt: new Date(),
   keys: [],
+  adminId: generateId<UserId>(),
 });
 
 export const getMockProducerKeychain = (): ProducerKeychain => ({
