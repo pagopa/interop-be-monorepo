@@ -630,6 +630,9 @@ importers:
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -649,9 +652,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      kafkajs:
-        specifier: 2.2.4
-        version: 2.2.4
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
