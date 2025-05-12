@@ -4,7 +4,12 @@ import {
   delegationApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  makeApiProblemBuilder,
+  PurposeId,
+  PurposeVersionId,
+} from "pagopa-interop-models";
 
 export const errorCodes = {
   resourcePollingTimeout: "0001",
