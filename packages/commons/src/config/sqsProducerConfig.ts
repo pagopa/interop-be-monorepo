@@ -1,11 +1,13 @@
 import { z } from "zod";
 
-export const SQSProducerConfig = z
+export const ApplicationAuditFallbackSQSProducerConfig = z
   .object({
-    PRODUCER_SQS_QUEUE_URL: z.string(),
+    APPLICATION_AUDIT_FALLBACK_SQS_URL: z.string(),
   })
   .transform((c) => ({
-    producerQueueUrl: c.PRODUCER_SQS_QUEUE_URL,
+    producerQueueUrl: c.APPLICATION_AUDIT_FALLBACK_SQS_URL,
   }));
 
-export type SQSProducerConfig = z.infer<typeof SQSProducerConfig>;
+export type ApplicationAuditFallbackSQSProducerConfig = z.infer<
+  typeof ApplicationAuditFallbackSQSProducerConfig
+>;
