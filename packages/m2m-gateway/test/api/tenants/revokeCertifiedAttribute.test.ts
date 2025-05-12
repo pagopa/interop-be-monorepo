@@ -21,7 +21,7 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and perform API clients calls for user with role %s",
+    "Should return 204 and perform service calls for user with role %s",
     async (role) => {
       mockTenantService.revokeCertifiedAttribute = vi.fn();
 
