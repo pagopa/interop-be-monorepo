@@ -3,8 +3,10 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
@@ -92,58 +94,53 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/clone authoriza
     expect(res.status).toBe(403);
   });
 
-  it("Should return 409 for eServiceNameDuplicate", async () => {
-    catalogService.cloneDescriptor = vi
-      .fn()
-      .mockRejectedValue(eServiceNameDuplicate(eservice.name));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id, descriptor.id);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    {
+      error: eServiceNameDuplicate(eservice.name),
+      expectedStatus: 409,
+    },
+    {
+      error: eServiceNotFound(eservice.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(eservice.id, descriptor.id),
+      expectedStatus: 404,
+    },
+    {
+      error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
+      expectedStatus: 403,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.cloneDescriptor = vi.fn().mockRejectedValue(error);
 
-  it("Should return 404 for eserviceNotFound", async () => {
-    catalogService.cloneDescriptor = vi
-      .fn()
-      .mockRejectedValue(eServiceNotFound(eservice.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id, descriptor.id);
-    expect(res.status).toBe(404);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eservice.id, descriptor.id);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 404 for eServiceDescriptorNotFound", async () => {
-    catalogService.cloneDescriptor = vi
-      .fn()
-      .mockRejectedValue(
-        eServiceDescriptorNotFound(eservice.id, descriptor.id)
+  it.each([
+    {},
+    { eServiceId: "invalidId", descriptorId: descriptor.id },
+    { eServiceId: eservice.id, descriptorId: "invalidId" },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ eServiceId, descriptorId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        descriptorId as DescriptorId
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id, descriptor.id);
-    expect(res.status).toBe(404);
-  });
 
-  it("Should return 403 for templateInstanceNotAllowed", async () => {
-    catalogService.cloneDescriptor = vi
-      .fn()
-      .mockRejectedValue(
-        templateInstanceNotAllowed(eservice.id, eservice.templateId!)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id, descriptor.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for operationForbidden", async () => {
-    catalogService.cloneDescriptor = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id, descriptor.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid", "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

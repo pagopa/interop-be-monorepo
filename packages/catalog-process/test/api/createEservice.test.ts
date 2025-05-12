@@ -41,12 +41,15 @@ describe("API /eservices authorization test", () => {
 
   catalogService.createEService = vi.fn().mockResolvedValue(mockEService);
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    body: EServiceSeed = eserviceSeed
+  ) =>
     request(api)
       .post("/eservices")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(eserviceSeed);
+      .send(body);
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -68,33 +71,74 @@ describe("API /eservices authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 409 for eServiceNameDuplicate", async () => {
-    catalogService.createEService = vi
-      .fn()
-      .mockRejectedValue(eServiceNameDuplicate(mockEService.name));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    {
+      error: eServiceNameDuplicate(mockEService.name),
+      expectedStatus: 409,
+    },
+    {
+      error: originNotCompliant("Not compliant origin"),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.createEService = vi.fn().mockRejectedValue(error);
 
-  it("Should return 403 for originNotCompliant", async () => {
-    catalogService.createEService = vi
-      .fn()
-      .mockRejectedValue(originNotCompliant("IPA"));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 400 if passed an invalid field", async () => {
+  it.each([
+    {},
+    { ...eserviceSeed, invalidParam: "invalidValue" },
+    { ...eserviceSeed, name: 1 },
+    { ...eserviceSeed, description: 2 },
+    { ...eserviceSeed, technology: "INVALID_TECH" },
+    { ...eserviceSeed, mode: "INVALID_MODE" },
+    { ...eserviceSeed, name: undefined },
+    { ...eserviceSeed, descriptor: undefined },
+    {
+      ...eserviceSeed,
+      descriptor: {
+        ...eserviceSeed.descriptor,
+        audience: undefined,
+      },
+    },
+    {
+      ...eserviceSeed,
+      descriptor: {
+        ...eserviceSeed.descriptor,
+        voucherLifespan: "not-a-number",
+      },
+    },
+    {
+      ...eserviceSeed,
+      descriptor: {
+        ...eserviceSeed.descriptor,
+        dailyCallsPerConsumer: "not-a-number",
+      },
+    },
+    {
+      ...eserviceSeed,
+      descriptor: {
+        ...eserviceSeed.descriptor,
+        dailyCallsTotal: "not-a-number",
+      },
+    },
+    {
+      ...eserviceSeed,
+      descriptor: {
+        ...eserviceSeed.descriptor,
+        agreementApprovalPolicy: "INVALID_POLICY",
+      },
+    },
+  ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const invalidMakeRequest = async (token: string) =>
-      request(api)
-        .post("/eservices")
-        .set("Authorization", `Bearer ${token}`)
-        .set("X-Correlation-Id", generateId())
-        .send({});
-    const res = await invalidMakeRequest(token);
+    const res = await makeRequest(token, body as EServiceSeed);
+
     expect(res.status).toBe(400);
   });
 });

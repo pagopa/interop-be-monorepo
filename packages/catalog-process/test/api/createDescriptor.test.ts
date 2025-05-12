@@ -5,6 +5,7 @@ import {
   Attribute,
   Descriptor,
   EService,
+  EServiceId,
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
@@ -121,65 +122,49 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eserviceNotFound", async () => {
-    catalogService.createDescriptor = vi
-      .fn()
-      .mockRejectedValue(eServiceNotFound(eservice.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(eservice.id),
+      expectedStatus: 404,
+    },
+    {
+      error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
+      expectedStatus: 403,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: draftDescriptorAlreadyExists(eservice.id),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeNotFound(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.createDescriptor = vi.fn().mockRejectedValue(error);
 
-  it("Should return 403 for templateInstanceNotAllowed", async () => {
-    catalogService.createDescriptor = vi
-      .fn()
-      .mockRejectedValue(
-        templateInstanceNotAllowed(eservice.id, eservice.templateId!)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id);
-    expect(res.status).toBe(403);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eservice.id);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 403 for operationForbidden", async () => {
-    catalogService.createDescriptor = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id);
-    expect(res.status).toBe(403);
-  });
+  it.each([{}, { eServiceId: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ eServiceId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eServiceId as EServiceId);
 
-  it("Should return 400 for draftDescriptorAlreadyExists", async () => {
-    catalogService.createDescriptor = vi
-      .fn()
-      .mockRejectedValue(draftDescriptorAlreadyExists(eservice.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for attributeNotFound", async () => {
-    catalogService.createDescriptor = vi
-      .fn()
-      .mockRejectedValue(attributeNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for inconsistentDailyCalls", async () => {
-    catalogService.createDescriptor = vi
-      .fn()
-      .mockRejectedValue(inconsistentDailyCalls());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eservice.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

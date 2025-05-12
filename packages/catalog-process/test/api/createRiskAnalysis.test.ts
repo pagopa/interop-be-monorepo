@@ -4,6 +4,7 @@ import request from "supertest";
 import {
   descriptorState,
   EService,
+  EServiceId,
   generateId,
   operationForbidden,
   tenantKind,
@@ -41,12 +42,16 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
 
   catalogService.createRiskAnalysis = vi.fn().mockResolvedValue({});
 
-  const makeRequest = async (token: string, eServiceId: string) =>
+  const makeRequest = async (
+    token: string,
+    eServiceId: string,
+    body: catalogApi.EServiceRiskAnalysisSeed = riskAnalysisSeed
+  ) =>
     request(api)
       .post(`/eservices/${eServiceId}/riskAnalysis`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(riskAnalysisSeed);
+      .send(body);
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",
@@ -67,76 +72,96 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 409 for riskAnalysisDuplicated", async () => {
-    catalogService.createRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(
-        riskAnalysisDuplicated("riskAnalysName", mockEService.id)
+  it.each([
+    {
+      error: riskAnalysisDuplicated("riskAnalysName", mockEService.id),
+      expectedStatus: 409,
+    },
+    {
+      error: eServiceNotFound(mockEService.id),
+      expectedStatus: 404,
+    },
+    {
+      error: templateInstanceNotAllowed(
+        mockEService.id,
+        mockEService.templateId!
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: eserviceNotInDraftState(mockEService.id),
+      expectedStatus: 400,
+    },
+    {
+      error: eserviceNotInReceiveMode(mockEService.id),
+      expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisValidationFailed([]),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.createRiskAnalysis = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id);
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    [{}, mockEService.id],
+    [{ ...riskAnalysisSeed, invalidParam: "invalidValue" }, mockEService.id],
+    [{ ...riskAnalysisSeed, name: 123 }, mockEService.id],
+    [{ ...riskAnalysisSeed, riskAnalysisForm: undefined }, mockEService.id],
+    [{ ...riskAnalysisSeed, riskAnalysisForm: null }, mockEService.id],
+    [
+      {
+        ...riskAnalysisSeed,
+        riskAnalysisForm: { version: 1, answers: {} },
+      },
+      mockEService.id,
+    ],
+    [
+      {
+        ...riskAnalysisSeed,
+        riskAnalysisForm: { version: "1.0", answers: "not-an-object" },
+      },
+      mockEService.id,
+    ],
+    [
+      {
+        ...riskAnalysisSeed,
+        riskAnalysisForm: { version: "1.0", answers: { q1: "not-an-array" } },
+      },
+      mockEService.id,
+    ],
+    [
+      {
+        ...riskAnalysisSeed,
+        riskAnalysisForm: { version: "1.0", answers: { q1: [123] } },
+      },
+      mockEService.id,
+    ],
+    [{ ...riskAnalysisSeed }, "invalidId"],
+  ])(
+    "Should return 400 if passed invalid params: %s (eServiceId: %s)",
+    async (body, eServiceId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        body as catalogApi.EServiceRiskAnalysisSeed
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id);
-    expect(res.status).toBe(409);
-  });
 
-  it("Should return 404 for eServiceNotFound", async () => {
-    catalogService.createRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(eServiceNotFound(mockEService.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for templateInstanceNotAllowed", async () => {
-    catalogService.createRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(
-        templateInstanceNotAllowed(mockEService.id, mockEService.templateId!)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for operationForbidden", async () => {
-    catalogService.createRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for eserviceNotInDraftState", async () => {
-    catalogService.createRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(eserviceNotInDraftState(mockEService.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for eserviceNotInReceiveMode", async () => {
-    catalogService.createRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(eserviceNotInReceiveMode(mockEService.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for riskAnalysisValidationFailed", async () => {
-    catalogService.createRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(riskAnalysisValidationFailed([]));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

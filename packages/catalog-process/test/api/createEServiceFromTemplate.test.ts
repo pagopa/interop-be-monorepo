@@ -5,6 +5,7 @@ import {
   descriptorState,
   EService,
   EServiceTemplate,
+  EServiceTemplateId,
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   generateId,
@@ -86,85 +87,63 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 409 for interfaceAlreadyExists", async () => {
-    catalogService.createEServiceInstanceFromTemplate = vi
-      .fn()
-      .mockRejectedValue(interfaceAlreadyExists(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eServiceTemplate.id);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    {
+      error: interfaceAlreadyExists(generateId()),
+      expectedStatus: 409,
+    },
+    {
+      error: documentPrettyNameDuplicate("test", generateId()),
+      expectedStatus: 409,
+    },
+    {
+      error: eServiceNameDuplicate(eService.name),
+      expectedStatus: 409,
+    },
+    {
+      error: eServiceTemplateNotFound(eServiceTemplate.id),
+      expectedStatus: 404,
+    },
+    {
+      error: originNotCompliant("IPA"),
+      expectedStatus: 403,
+    },
+    {
+      error: notValidDescriptorState(generateId(), descriptorState.draft),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: eServiceTemplateWithoutPublishedVersion(eServiceTemplate.id),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.createEServiceInstanceFromTemplate = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 409 for documentPrettyNameDuplicate", async () => {
-    catalogService.createEServiceInstanceFromTemplate = vi
-      .fn()
-      .mockRejectedValue(documentPrettyNameDuplicate("test", generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eServiceTemplate.id);
-    expect(res.status).toBe(409);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eServiceTemplate.id);
 
-  it("Should return 409 for eServiceNameDuplicate", async () => {
-    catalogService.createEServiceInstanceFromTemplate = vi
-      .fn()
-      .mockRejectedValue(eServiceNameDuplicate(eService.name));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eServiceTemplate.id);
-    expect(res.status).toBe(409);
-  });
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 404 for eServiceTemplateNotFound", async () => {
-    catalogService.createEServiceInstanceFromTemplate = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(eServiceTemplate.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eServiceTemplate.id);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for originNotCompliant", async () => {
-    catalogService.createEServiceInstanceFromTemplate = vi
-      .fn()
-      .mockRejectedValue(originNotCompliant("IPA"));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eServiceTemplate.id);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for notValidDescriptor", async () => {
-    catalogService.createEServiceInstanceFromTemplate = vi
-      .fn()
-      .mockRejectedValue(
-        notValidDescriptorState(generateId(), descriptorState.draft)
+  it.each([{}, { eServiceTemplateId: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ eServiceTemplateId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceTemplateId as EServiceTemplateId
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eServiceTemplate.id);
-    expect(res.status).toBe(400);
-  });
 
-  it("Should return 400 for inconsistentDailyCalls", async () => {
-    catalogService.createEServiceInstanceFromTemplate = vi
-      .fn()
-      .mockRejectedValue(inconsistentDailyCalls());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eServiceTemplate.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for eServiceTemplateWithoutPublishedVersion", async () => {
-    catalogService.createEServiceInstanceFromTemplate = vi
-      .fn()
-      .mockRejectedValue(
-        eServiceTemplateWithoutPublishedVersion(eServiceTemplate.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, eServiceTemplate.id);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed an invalid field", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });
