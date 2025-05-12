@@ -9,7 +9,11 @@ import {
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
 
-import { emptyErrorMapper } from "pagopa-interop-models";
+import {
+  ApiError,
+  emptyErrorMapper,
+  genericError,
+} from "pagopa-interop-models";
 import { authorizationServiceBuilder } from "../services/authorizationService.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../model/errors.js";
@@ -43,8 +47,13 @@ const supportRouter = (
       );
       return res.status(200).send(bffApi.SessionToken.parse(sessionToken));
     } catch (error) {
+      ctx.logger.info(
+        `Error creating a session token: ${
+          error instanceof ApiError ? error.detail : error
+        }. Returning a generic error response.`
+      );
       const errorRes = makeApiProblem(
-        error,
+        genericError("Error creating a session token"),
         emptyErrorMapper,
         ctx,
         "Error creating a session token"
