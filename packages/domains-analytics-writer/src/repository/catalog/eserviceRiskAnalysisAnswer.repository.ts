@@ -40,15 +40,13 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
         stagingTable
       );
       try {
-        if (records.length > 0) {
-          await t.none(pgp.helpers.insert(records, cs));
-          await t.none(`
+        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(`
           DELETE FROM ${stagingTable} a
           USING ${stagingTable} b
           WHERE a.id = b.id
           AND a.metadata_version < b.metadata_version;
         `);
-        }
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTable}: ${error}`

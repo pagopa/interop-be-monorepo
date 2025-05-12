@@ -54,9 +54,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         stagingTable
       );
       try {
-        if (records.length > 0) {
-          await t.none(pgp.helpers.insert(records, cs));
-        }
+        await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
         DELETE FROM ${stagingTable} a
         USING ${stagingTable} b
