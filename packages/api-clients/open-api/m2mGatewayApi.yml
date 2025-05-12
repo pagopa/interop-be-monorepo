@@ -3599,6 +3599,37 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /riskAnalysisFormConfiguration:
+    get:
+      operationId: retrieveLatestRiskAnalysisConfiguration
+      description: Retrieve latest risk analysis configuration
+      responses:
+        "200":
+          description: Risk analysis requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskAnalysisFormConfig"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /status:
     get:
       tags:
@@ -4342,6 +4373,63 @@ components:
         - WAITING_FOR_APPROVAL
         - ARCHIVED
         - REJECTED
+    RiskAnalysisFormConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        version:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisFormConfigEntry"
+      required:
+        - version
+        - questions
+    RiskAnalysisFormConfigEntry:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        label:
+          $ref: "#/components/schemas/RiskAnalysisFormConfigLocalizedText"
+        dataType:
+          $ref: "#/components/schemas/RiskAnalysisFormConfigDataType"
+        options:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisFormConfigLabeledValue"
+      required:
+        - id
+        - label
+        - dataType
+    RiskAnalysisFormConfigDataType:
+      type: string
+      description: Data Type Question
+      enum:
+        - SINGLE
+        - MULTI
+        - FREETEXT
+    RiskAnalysisFormConfigLocalizedText:
+      type: object
+      additionalProperties: false
+      properties:
+        it:
+          type: string
+      required:
+        - it
+    RiskAnalysisFormConfigLabeledValue:
+      type: object
+      additionalProperties: false
+      properties:
+        label:
+          $ref: "#/components/schemas/RiskAnalysisFormConfigLocalizedText"
+        value:
+          type: string
+      required:
+        - label
+        - value
     RiskAnalysisFormSeed:
       type: object
       additionalProperties: false
