@@ -11,12 +11,14 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
+  missingActivePurposeVersion,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
+  getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
@@ -24,7 +26,6 @@ describe("createPurpose", () => {
   const mockPurposeProcessGetResponse = getMockedApiPurpose();
 
   const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
-    consumerId: mockPurposeProcessGetResponse.data.id,
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
     description: mockPurposeProcessGetResponse.data.description,
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
@@ -54,22 +55,25 @@ describe("createPurpose", () => {
     mockGetPurpose.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mPurposeResponse: m2mGatewayApi.Purpose = mockM2MPurpose;
+  it("Should succeed and perform service calls", async () => {
+    const mockAppContext = getMockM2MAdminAppContext();
 
     const result = await purposeService.createPurpose(
       mockPurposeSeed,
-      getMockM2MAdminAppContext()
+      mockAppContext
     );
 
-    expect(result).toEqual(m2mPurposeResponse);
+    expect(result).toEqual(mockM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.createPurpose,
-      body: mockPurposeSeed,
+      body: {
+        ...mockPurposeSeed,
+        consumerId: mockAppContext.authData.organizationId,
+      },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
-      params: { id: m2mPurposeResponse.id },
+      params: { id: mockM2MPurpose.id },
     });
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
@@ -114,5 +118,20 @@ describe("createPurpose", () => {
     expect(mockGetPurpose).toHaveBeenCalledTimes(
       config.defaultPollingMaxAttempts
     );
+  });
+
+  it("Should throw missingActivePurposeVersion due to missing valid current version", async () => {
+    const invalidPurpose = getMockedApiPurpose({
+      versions: [
+        getMockedApiPurposeVersion({ state: "WAITING_FOR_APPROVAL" }),
+        getMockedApiPurposeVersion({ state: "REJECTED" }),
+      ],
+    });
+
+    mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
+
+    await expect(
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
+    ).rejects.toThrow(missingActivePurposeVersion(invalidPurpose.data.id));
   });
 });

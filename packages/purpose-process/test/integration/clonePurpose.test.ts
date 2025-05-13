@@ -32,8 +32,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
 import {
   duplicatedPurposeTitle,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
   purposeCannotBeCloned,
   purposeNotFound,
@@ -616,7 +616,7 @@ describe("clonePurpose", async () => {
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is cloning a purpose created by the delegate in clonePurpose", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is cloning a purpose created by the delegate in clonePurpose", async () => {
     const consumer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -667,7 +667,7 @@ describe("clonePurpose", async () => {
         ctx: getMockContext({ authData: getMockAuthData(consumer.id) }),
       })
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(consumer.id, delegation.id)
+      tenantIsNotTheDelegatedConsumer(consumer.id, delegation.id)
     );
   });
   it("should throw purposeDelegationNotFound when the requester is the Consumer, is cloning a purpose created by a delegate in clonePurpose, but the delegation cannot be found", async () => {
@@ -715,7 +715,7 @@ describe("clonePurpose", async () => {
       purposeDelegationNotFound(purpose.id, purpose.delegationId!)
     );
   });
-  it("should throw organizationIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+  it("should throw tenantIsNotTheConsumer if the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const consumer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -766,9 +766,9 @@ describe("clonePurpose", async () => {
           authData: getMockAuthData(delegation.delegateId),
         }),
       })
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const consumer = {
       ...getMockTenant(),
       kind: tenantKind.PA,
@@ -829,10 +829,7 @@ describe("clonePurpose", async () => {
         }),
       })
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
-        consumerDelegate.id,
-        purpose.delegationId
-      )
+      tenantIsNotTheDelegatedConsumer(consumerDelegate.id, purpose.delegationId)
     );
   });
 });

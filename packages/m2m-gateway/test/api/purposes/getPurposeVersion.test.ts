@@ -33,7 +33,7 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
   });
 
   it.each(authorizedRoles)(
-    "Should return 200 and perform API clients calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockPurposeService.getPurposeVersion = vi
         .fn()
@@ -67,7 +67,7 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should throw purposeVersionNotFound for version not found", async () => {
+  it("Should return 404 for purposeVersionNotFound", async () => {
     mockPurposeService.getPurposeVersion = vi
       .fn()
       .mockRejectedValue(

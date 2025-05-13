@@ -52,10 +52,10 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     });
 
   return {
-    getPurposes: async (
+    async getPurposes(
       queryParams: m2mGatewayApi.GetPurposesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Purposes> => {
+    ): Promise<m2mGatewayApi.Purposes> {
       const { eserviceIds, limit, offset } = queryParams;
 
       logger.info(
@@ -70,7 +70,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return {
         results: results.map((purpose) =>
-          toM2MGatewayApiPurpose({ purpose, logger, throwNotFoundError: true })
+          toM2MGatewayApiPurpose({
+            purpose,
+            logger,
+            mapThrownErrorsToNotFound: true,
+          })
         ),
         pagination: {
           limit,
@@ -79,10 +83,10 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    getPurpose: async (
+    async getPurpose(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Purpose> => {
+    ): Promise<m2mGatewayApi.Purpose> {
       logger.info(`Retrieving purpose with id ${purposeId}`);
 
       const { data } = await clients.purposeProcessClient.getPurpose({
@@ -95,20 +99,23 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       return toM2MGatewayApiPurpose({
         purpose: data,
         logger,
-        throwNotFoundError: true,
+        mapThrownErrorsToNotFound: true,
       });
     },
-    createPurpose: async (
+    async createPurpose(
       purposeSeed: m2mGatewayApi.PurposeSeed,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Purpose> => {
-      logger.info(`Creating purpose`);
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> {
+      logger.info(
+        `Creating purpose for ${purposeSeed.eserviceId} and consumer ${authData.organizationId}`
+      );
 
       const purposeResponse = await clients.purposeProcessClient.createPurpose(
-        purposeSeed,
         {
-          headers,
-        }
+          ...purposeSeed,
+          consumerId: authData.organizationId,
+        },
+        { headers }
       );
 
       const polledResource = await pollPurpose(purposeResponse, headers);
@@ -118,11 +125,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         logger,
       });
     },
-    getPurposeVersion: async (
+    async getPurposeVersion(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.PurposeVersion> => {
+    ): Promise<m2mGatewayApi.PurposeVersion> {
       logger.info(`Retrieving version ${versionId} of purpose ${purposeId}`);
 
       const { data } = await clients.purposeProcessClient.getPurpose({

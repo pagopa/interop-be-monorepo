@@ -15,6 +15,7 @@ import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getPurposesErrorMapper,
   getPurposeVersionErrorMapper,
+  getPurposeErrorMapper,
 } from "../utils/errorMappers.js";
 
 const purposeRouter = (
@@ -60,7 +61,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getPurposesErrorMapper,
+          getPurposeErrorMapper,
           ctx,
           `Error retrieving purpose with id ${req.params.purposeId}`
         );
