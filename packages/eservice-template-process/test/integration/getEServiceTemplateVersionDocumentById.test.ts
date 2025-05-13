@@ -58,7 +58,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
       {
         eServiceTemplateId: mockEServiceTemplate.id,
         eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
-        eServiceDocumentId: unsafeBrandId(documentId),
+        documentId: unsafeBrandId(documentId),
       },
       getMockContext({})
     );
@@ -80,7 +80,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         {
           eServiceTemplateId: invalidEServiceTemplateId,
           eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
-          eServiceDocumentId: unsafeBrandId(generateId()),
+          documentId: unsafeBrandId(generateId()),
         },
         getMockContext({})
       )
@@ -102,7 +102,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         {
           eServiceTemplateId: mockEServiceTemplate.id,
           eServiceTemplateVersionId: invalidEServiceTemplateVersionId,
-          eServiceDocumentId: unsafeBrandId(generateId()),
+          documentId: unsafeBrandId(generateId()),
         },
         getMockContext({})
       )
@@ -135,7 +135,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         {
           eServiceTemplateId: mockEServiceTemplate.id,
           eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
-          eServiceDocumentId: unsafeBrandId(documentId),
+          documentId: unsafeBrandId(documentId),
         },
         getMockContext({})
       )
@@ -161,7 +161,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         {
           eServiceTemplateId: mockEServiceTemplate.id,
           eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
-          eServiceDocumentId: unsafeBrandId(documentId),
+          documentId: unsafeBrandId(documentId),
         },
         getMockContext({})
       )
