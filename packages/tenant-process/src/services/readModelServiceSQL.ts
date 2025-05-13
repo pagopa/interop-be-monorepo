@@ -16,7 +16,6 @@ import {
   Delegation,
   delegationKind,
   delegationState,
-  TenantFeatureType,
 } from "pagopa-interop-models";
 import {
   aggregateTenantArray,
@@ -51,6 +50,7 @@ import {
   lowerCase,
   withTotalCount,
 } from "pagopa-interop-commons";
+import { ApiGetTenantsFilters } from "../model/domain/models.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
@@ -65,14 +65,11 @@ export function readModelServiceBuilderSQL(
     async getTenants({
       name,
       features,
+      externalIdOrigin,
+      externalIdValue,
       offset,
       limit,
-    }: {
-      name: string | undefined;
-      features: TenantFeatureType[];
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Tenant>> {
+    }: ApiGetTenantsFilters): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
         .selectDistinct(
           withTotalCount({
@@ -97,6 +94,12 @@ export function readModelServiceBuilderSQL(
               : undefined,
             name
               ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
+              : undefined,
+            externalIdOrigin
+              ? eq(tenantInReadmodelTenant.externalIdOrigin, externalIdOrigin)
+              : undefined,
+            externalIdValue
+              ? eq(tenantInReadmodelTenant.externalIdValue, externalIdValue)
               : undefined,
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
