@@ -74,95 +74,43 @@ describe("API POST /reverse/purposes test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    purposeService.createReversePurpose = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegatedConsumer", async () => {
-    purposeService.createReversePurpose = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegatedConsumer(
-          generateId(),
-          generateId<DelegationId>()
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for eserviceNotFound", async () => {
-    purposeService.createReversePurpose = vi
-      .fn()
-      .mockRejectedValue(eserviceNotFound(mockEService.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for eServiceModeNotAllowed", async () => {
-    purposeService.createReversePurpose = vi
-      .fn()
-      .mockRejectedValue(
-        eServiceModeNotAllowed(mockEService.id, eserviceMode.receive)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for eserviceRiskAnalysisNotFound", async () => {
-    purposeService.createReversePurpose = vi
-      .fn()
-      .mockRejectedValue(
-        eserviceRiskAnalysisNotFound(mockEService.id, generateId())
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for missingFreeOfChargeReason", async () => {
-    purposeService.createReversePurpose = vi
-      .fn()
-      .mockRejectedValue(missingFreeOfChargeReason());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for agreementNotFound", async () => {
-    purposeService.createReversePurpose = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(generateId(), generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for riskAnalysisValidationFailed", async () => {
-    purposeService.createReversePurpose = vi
-      .fn()
-      .mockRejectedValue(riskAnalysisValidationFailed([]));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 409 for duplicatedPurposeTitle", async () => {
-    purposeService.createReversePurpose = vi
-      .fn()
-      .mockRejectedValue(duplicatedPurposeTitle(mockReversePurposeSeed.title));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegatedConsumer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
+      expectedStatus: 403,
+    },
+    { error: eserviceNotFound(mockEService.id), expectedStatus: 400 },
+    {
+      error: eServiceModeNotAllowed(mockEService.id, eserviceMode.receive),
+      expectedStatus: 400,
+    },
+    {
+      error: eserviceRiskAnalysisNotFound(mockEService.id, generateId()),
+      expectedStatus: 400,
+    },
+    { error: missingFreeOfChargeReason(), expectedStatus: 400 },
+    {
+      error: agreementNotFound(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+    { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
+    {
+      error: duplicatedPurposeTitle(mockReversePurposeSeed.title),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.createReversePurpose = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid reverse purpose seed", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

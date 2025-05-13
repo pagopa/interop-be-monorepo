@@ -61,79 +61,30 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for missingRiskAnalysis", async () => {
-    purposeService.activatePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(missingRiskAnalysis(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for agreementNotFound", async () => {
-    purposeService.activatePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(generateId(), generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for riskAnalysisValidationFailed", async () => {
-    purposeService.activatePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(riskAnalysisValidationFailed([]));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    purposeService.activatePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheProducer", async () => {
-    purposeService.activatePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheProducer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationNotAllowed", async () => {
-    purposeService.activatePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(organizationNotAllowed(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 404 for purposeNotFound", async () => {
-    purposeService.activatePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for purposeVersionNotFound", async () => {
-    purposeService.activatePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(
-        purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    { error: missingRiskAnalysis(mockPurpose.id), expectedStatus: 400 },
+    {
+      error: agreementNotFound(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+    { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: organizationIsNotTheProducer(generateId()), expectedStatus: 403 },
+    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
+    {
+      error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.activatePurposeVersion = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

@@ -60,59 +60,36 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () =
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for purposeNotFound", async () => {
-    purposeService.rejectPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for purposeVersionNotFound", async () => {
-    purposeService.rejectPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(
-        purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationIsNotTheProducer", async () => {
-    purposeService.rejectPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheProducer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegatedProducer", async () => {
-    purposeService.rejectPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegatedProducer(
-          generateId(),
-          generateId<DelegationId>()
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for notValidVersionState", async () => {
-    purposeService.rejectPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(
-        notValidVersionState(mockPurposeVersion.id, purposeVersionState.draft)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
+    {
+      error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
+      expectedStatus: 404,
+    },
+    { error: organizationIsNotTheProducer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegatedProducer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: notValidVersionState(
+        mockPurposeVersion.id,
+        purposeVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.rejectPurposeVersion = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

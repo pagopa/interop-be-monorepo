@@ -66,28 +66,26 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eserviceNotFound", async () => {
-    purposeService.retrieveRiskAnalysisConfigurationByVersion = vi
-      .fn()
-      .mockRejectedValue(eserviceNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for riskAnalysisConfigVersionNotFound", async () => {
-    purposeService.retrieveRiskAnalysisConfigurationByVersion = vi
-      .fn()
-      .mockRejectedValue(
-        riskAnalysisConfigVersionNotFound(
-          mockRiskAnalysisConfiguration.version,
-          tenantKind.PA
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    { error: eserviceNotFound(generateId()), expectedStatus: 404 },
+    {
+      error: riskAnalysisConfigVersionNotFound(
+        mockRiskAnalysisConfiguration.version,
+        tenantKind.PA
+      ),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.retrieveRiskAnalysisConfigurationByVersion = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid eservice id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

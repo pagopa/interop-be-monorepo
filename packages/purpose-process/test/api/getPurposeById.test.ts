@@ -61,23 +61,18 @@ describe("API GET /purposes/{purposeId} test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for purposeNotFound", async () => {
-    purposeService.getPurposeById = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowed", async () => {
-    purposeService.getPurposeById = vi
-      .fn()
-      .mockRejectedValue(organizationNotAllowed(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
+    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.getPurposeById = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

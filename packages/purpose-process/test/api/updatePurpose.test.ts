@@ -77,86 +77,36 @@ describe("API POST /purposes/{purposeId} test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for eServiceModeNotAllowed", async () => {
-    purposeService.updatePurpose = vi
-      .fn()
-      .mockRejectedValue(
-        eServiceModeNotAllowed(generateId(), eserviceMode.deliver)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for missingFreeOfChargeReason", async () => {
-    purposeService.updatePurpose = vi
-      .fn()
-      .mockRejectedValue(missingFreeOfChargeReason());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for riskAnalysisValidationFailed", async () => {
-    purposeService.updatePurpose = vi
-      .fn()
-      .mockRejectedValue(riskAnalysisValidationFailed([]));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    purposeService.updatePurpose = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for purposeNotInDraftState", async () => {
-    purposeService.updatePurpose = vi
-      .fn()
-      .mockRejectedValue(purposeNotInDraftState(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegatedConsumer", async () => {
-    purposeService.updatePurpose = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegatedConsumer(
-          generateId(),
-          generateId<DelegationId>()
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 404 for purposeNotFound", async () => {
-    purposeService.updatePurpose = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 409 for duplicatedPurposeTitle", async () => {
-    purposeService.updatePurpose = vi
-      .fn()
-      .mockRejectedValue(
-        duplicatedPurposeTitle(mockPurposeUpdateContent.title)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    {
+      error: eServiceModeNotAllowed(generateId(), eserviceMode.deliver),
+      expectedStatus: 400,
+    },
+    { error: missingFreeOfChargeReason(), expectedStatus: 400 },
+    { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegatedConsumer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
+      expectedStatus: 403,
+    },
+    { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
+    {
+      error: duplicatedPurposeTitle(mockPurposeUpdateContent.title),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.updatePurpose = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

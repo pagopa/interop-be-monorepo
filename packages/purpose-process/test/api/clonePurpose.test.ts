@@ -58,32 +58,19 @@ describe("API POST /purposes/{purposeId}/clone test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for purposeNotFound", async () => {
-    purposeService.clonePurpose = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 409 for duplicatedPurposeTitle", async () => {
-    purposeService.clonePurpose = vi
-      .fn()
-      .mockRejectedValue(duplicatedPurposeTitle(mockPurpose.title));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 409 for purposeCannotBeCloned", async () => {
-    purposeService.clonePurpose = vi
-      .fn()
-      .mockRejectedValue(purposeCannotBeCloned(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
+    { error: duplicatedPurposeTitle(mockPurpose.title), expectedStatus: 409 },
+    { error: purposeCannotBeCloned(mockPurpose.id), expectedStatus: 409 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.clonePurpose = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

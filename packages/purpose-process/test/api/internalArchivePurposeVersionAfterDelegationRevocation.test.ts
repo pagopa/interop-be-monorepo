@@ -58,59 +58,38 @@ describe("API POST /internal/delegations/{delegationId}/purposes/{purposeId}/ver
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for notValidVersionState", async () => {
-    purposeService.internalArchivePurposeVersionAfterDelegationRevocation = vi
-      .fn()
-      .mockRejectedValue(
-        notValidVersionState(mockPurposeVersion.id, purposeVersionState.draft)
-      );
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    purposeService.internalArchivePurposeVersionAfterDelegationRevocation = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegatedConsumer", async () => {
-    purposeService.internalArchivePurposeVersionAfterDelegationRevocation = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegatedConsumer(
-          generateId(),
-          generateId<DelegationId>()
-        )
-      );
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 404 for purposeNotFound", async () => {
-    purposeService.internalArchivePurposeVersionAfterDelegationRevocation = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.id));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for purposeVersionNotFound", async () => {
-    purposeService.internalArchivePurposeVersionAfterDelegationRevocation = vi
-      .fn()
-      .mockRejectedValue(
-        purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id)
-      );
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: notValidVersionState(
+        mockPurposeVersion.id,
+        purposeVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegatedConsumer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
+      expectedStatus: 403,
+    },
+    { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
+    {
+      error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.internalArchivePurposeVersionAfterDelegationRevocation = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.INTERNAL_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);

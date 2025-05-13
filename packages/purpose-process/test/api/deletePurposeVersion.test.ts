@@ -48,45 +48,29 @@ describe("API DELETE /purposes/{purposeId}/versions/{versionId} test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for purposeNotFound", async () => {
-    purposeService.deletePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for purposeVersionNotFound", async () => {
-    purposeService.deletePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(
-        purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    purposeService.deletePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for purposeVersionCannotBeDeleted", async () => {
-    purposeService.deletePurposeVersion = vi
-      .fn()
-      .mockRejectedValue(
-        purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
+    {
+      error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
+      expectedStatus: 404,
+    },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: purposeVersionCannotBeDeleted(
+        mockPurpose.id,
+        mockPurposeVersion.id
+      ),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.deletePurposeVersion = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

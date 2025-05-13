@@ -57,45 +57,29 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for purposeNotFound", async () => {
-    purposeService.suspendPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for purposeVersionNotFound", async () => {
-    purposeService.suspendPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(
-        purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowed", async () => {
-    purposeService.suspendPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(organizationNotAllowed(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for notValidVersionState", async () => {
-    purposeService.suspendPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(
-        notValidVersionState(mockPurposeVersion.id, purposeVersionState.draft)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
+    {
+      error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
+      expectedStatus: 404,
+    },
+    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    {
+      error: notValidVersionState(
+        mockPurposeVersion.id,
+        purposeVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.suspendPurposeVersion = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

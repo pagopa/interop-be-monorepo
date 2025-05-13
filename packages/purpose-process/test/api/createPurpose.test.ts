@@ -59,64 +59,34 @@ describe("API POST /purposes test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    purposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegatedConsumer", async () => {
-    purposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegatedConsumer(
-          generateId(),
-          generateId<DelegationId>()
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for missingFreeOfChargeReason", async () => {
-    purposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(missingFreeOfChargeReason());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for agreementNotFound", async () => {
-    purposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(generateId(), generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for riskAnalysisValidationFailed", async () => {
-    purposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(riskAnalysisValidationFailed([]));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 409 for duplicatedPurposeTitle", async () => {
-    purposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(duplicatedPurposeTitle(mockPurposeSeed.title));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegatedConsumer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
+      expectedStatus: 403,
+    },
+    { error: missingFreeOfChargeReason(), expectedStatus: 400 },
+    {
+      error: agreementNotFound(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+    { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
+    {
+      error: duplicatedPurposeTitle(mockPurposeSeed.title),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.createPurpose = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose seed", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
