@@ -54,7 +54,7 @@ export const createCertifiedAttributesErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("OrganizationIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
     .with("attributeDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -62,6 +62,6 @@ export const createInternalCertifiedAttributesErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("OrganizationIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
     .with("attributeDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

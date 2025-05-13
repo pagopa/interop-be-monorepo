@@ -1,5 +1,5 @@
 import { and, eq, ilike, inArray, sql } from "drizzle-orm";
-import { escapeRegExp } from "pagopa-interop-commons";
+import { escapeRegExp, withTotalCount } from "pagopa-interop-commons";
 import {
   Client,
   WithMetadata,
@@ -98,10 +98,11 @@ export function readModelServiceBuilderSQL({
       const { name, userIds, consumerId, purposeId, kind } = filters;
 
       const subquery = readModelDB
-        .select({
-          clientId: clientInReadmodelClient.id,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            clientId: clientInReadmodelClient.id,
+          })
+        )
         .from(clientInReadmodelClient)
         .leftJoin(
           clientUserInReadmodelClient,
@@ -275,10 +276,11 @@ export function readModelServiceBuilderSQL({
       const { name, userIds, producerId, eserviceId } = filters;
 
       const subquery = readModelDB
-        .select({
-          producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
+          })
+        )
         .from(producerKeychainInReadmodelProducerKeychain)
         .leftJoin(
           producerKeychainUserInReadmodelProducerKeychain,

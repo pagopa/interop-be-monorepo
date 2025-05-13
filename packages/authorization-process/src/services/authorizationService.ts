@@ -24,6 +24,7 @@ import {
 } from "pagopa-interop-models";
 import {
   AppContext,
+  assertFeatureFlagEnabled,
   calculateKid,
   createJWK,
   DB,
@@ -31,6 +32,7 @@ import {
   hasAtLeastOneUserRole,
   InternalAuthData,
   isUiAuthData,
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   userRole,
@@ -67,7 +69,8 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
-  toCreateEventClientAdminRemovedBySelfcare,
+  toCreateEventClientAdminRemoved,
+  toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -88,6 +91,7 @@ import {
   ApiKeyUseToKeyUse,
   clientToApiClient,
 } from "../model/domain/apiConverter.js";
+import { config } from "../config/config.js";
 import {
   GetClientsFilters,
   GetProducerKeychainsFilters,
@@ -206,7 +210,10 @@ export function authorizationServiceBuilder(
       }: {
         clientId: ClientId;
       },
-      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
@@ -1333,7 +1340,33 @@ export function authorizationServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventClientAdminRemovedBySelfcare(
+        toCreateEventClientAdminRoleRevoked(
+          updatedClient,
+          adminId,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removeClientAdmin(
+      { clientId, adminId }: { clientId: ClientId; adminId: UserId },
+      { correlationId, logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertOrganizationIsClientConsumer(authData, client.data);
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRemoved(
           updatedClient,
           adminId,
           client.metadata.version,

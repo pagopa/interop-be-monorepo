@@ -6,6 +6,7 @@ import {
   UIAuthData,
   M2MAuthData,
   InternalAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -22,7 +23,7 @@ import {
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
-  OrganizationIsNotACertifier,
+  tenantIsNotACertifier,
   attributeDuplicateByName,
   attributeDuplicateByNameAndCode,
   attributeNotFound,
@@ -218,8 +219,8 @@ export function attributeRegistryServiceBuilder(
         authData,
         logger,
         correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<Attribute> {
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Attribute>> {
       logger.info(
         `Creating certified attribute with code ${apiCertifiedAttributeSeed.code}`
       );
@@ -258,13 +259,16 @@ export function attributeRegistryServiceBuilder(
         `Certified attribute created with id ${newCertifiedAttribute.id}`
       );
 
-      const event = toCreateEventAttributeAdded(
-        newCertifiedAttribute,
-        correlationId
+      const event = await repository.createEvent(
+        toCreateEventAttributeAdded(newCertifiedAttribute, correlationId)
       );
-      await repository.createEvent(event);
 
-      return newCertifiedAttribute;
+      return {
+        data: newCertifiedAttribute,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
     async internalCreateCertifiedAttribute(
@@ -331,7 +335,7 @@ async function getCertifierId(
   if (certifier) {
     return certifier.certifierId;
   }
-  throw OrganizationIsNotACertifier(tenantId);
+  throw tenantIsNotACertifier(tenantId);
 }
 
 export type AttributeRegistryService = ReturnType<

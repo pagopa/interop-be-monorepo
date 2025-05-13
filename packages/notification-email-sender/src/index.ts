@@ -92,6 +92,7 @@ export async function handleCatalogMessage(
           "EServiceDescriptorSuspended",
           "EServiceDescriptorArchived",
           "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",

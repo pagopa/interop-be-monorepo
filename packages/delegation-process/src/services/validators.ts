@@ -13,7 +13,11 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { M2MAuthData, UIAuthData } from "pagopa-interop-commons";
+import {
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
 import {
   delegationAlreadyExists,
   delegationRelatedAgreementExists,
@@ -122,7 +126,7 @@ export const assertDelegationNotExists = async (
 
 export const assertIsDelegate = (
   delegation: Delegation,
-  authData: UIAuthData
+  authData: UIAuthData | M2MAdminAuthData
 ): void => {
   if (delegation.delegateId !== authData.organizationId) {
     throw operationRestrictedToDelegate(authData.organizationId, delegation.id);

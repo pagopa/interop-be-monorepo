@@ -404,7 +404,6 @@ describe("update descriptor", () => {
     descriptorState.draft,
     descriptorState.waitingForApproval,
     descriptorState.archived,
-    descriptorState.deprecated,
   ])(
     "should throw notValidDescriptorState if the descriptor is in %s state",
     async (descriptorState) => {

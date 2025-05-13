@@ -23,6 +23,10 @@ body:json {
   }
 }
 
+vars:post-response {
+  attributeId: res.body.id
+}
+
 script:pre-request {
   const randomCode = Math.round(Math.random() * 10000)
   

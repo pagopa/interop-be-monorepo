@@ -232,6 +232,26 @@ export const toCreateEventEServiceDescriptorQuotasUpdated = (
   correlationId,
 });
 
+export const toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "EServiceDescriptorAgreementApprovalPolicyUpdated",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventEServiceDescriptorActivated = (
   streamId: string,
   version: number,

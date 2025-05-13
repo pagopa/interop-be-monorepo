@@ -1,6 +1,7 @@
 import {
   EServiceTemplate,
   EServiceTemplateId,
+  genericInternalError,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -13,7 +14,7 @@ import {
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, lte } from "drizzle-orm";
+import { and, eq, lte, SQL } from "drizzle-orm";
 import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
 import {
   aggregateEServiceTemplate,
@@ -109,6 +110,17 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
     async getEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId
     ): Promise<WithMetadata<EServiceTemplate> | undefined> {
+      return this.getEServiceTemplateByFilter(
+        eq(eserviceTemplateInReadmodelEserviceTemplate.id, eserviceTemplateId)
+      );
+    },
+    async getEServiceTemplateByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<EServiceTemplate> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       /*
         eservice template   ->1 version ->2 interface
                                 version ->3 document
@@ -129,9 +141,7 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
-        .where(
-          eq(eserviceTemplateInReadmodelEserviceTemplate.id, eserviceTemplateId)
-        )
+        .where(filter)
         .leftJoin(
           // 1
           eserviceTemplateVersionInReadmodelEserviceTemplate,

@@ -33,6 +33,7 @@ describe("API /attributes/{attributeId} authorization test", () => {
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
   ];
   it.each(authorizedRoles)(
@@ -42,6 +43,7 @@ describe("API /attributes/{attributeId} authorization test", () => {
       const res = await makeRequest(token, attribute.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiAttribute);
+      expect(res.headers["x-metadata-version"]).toBe("1");
     }
   );
 

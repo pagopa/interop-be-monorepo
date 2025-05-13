@@ -83,8 +83,8 @@ app.use(
   await applicationAuditEndSessionTokenExchangeMiddleware(serviceName, config),
   authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
   authenticationMiddleware(config),
+  // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
   uiAuthDataValidationMiddleware(),
-  // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
   catalogRouter(zodiosCtx, clients, fileManager),
   attributeRouter(zodiosCtx, clients),

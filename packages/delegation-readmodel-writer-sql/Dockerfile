@@ -39,7 +39,7 @@ RUN pnpm build && \
   packages/commons \
   packages/models \
   packages/readmodel/ \
-  packages/readmodel-models/ \  
+  packages/readmodel-models/ \
   packages/kafka-iam-auth \
   packages/delegation-readmodel-writer-sql/dist && \
   find /out -exec touch -h --date=@0 {} \;

@@ -29,6 +29,7 @@ import { EserviceService } from "./services/eserviceService.js";
 import { EserviceTemplateService } from "./services/eserviceTemplateService.js";
 import { PurposeService } from "./services/purposeService.js";
 import { TenantService } from "./services/tenantService.js";
+import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;
@@ -79,7 +80,8 @@ export async function createApp(
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
     authenticationMiddleware(config),
-    // Authenticated routes - rate limiter relies on auth data to work
+    // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
+    m2mAuthDataValidationMiddleware(clientService),
     rateLimiterMiddleware,
     eserviceRouter(zodiosCtx, eserviceService),
     attributeRouter(zodiosCtx, attributeService),

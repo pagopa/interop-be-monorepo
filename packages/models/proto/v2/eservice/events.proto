@@ -38,6 +38,11 @@ message EServiceDescriptorQuotasUpdatedV2 {
   EServiceV2 eservice = 2;
 }
 
+message EServiceDescriptorAgreementApprovalPolicyUpdatedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
 message EServiceDescriptorActivatedV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;

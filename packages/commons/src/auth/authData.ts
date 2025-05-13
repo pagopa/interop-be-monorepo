@@ -3,6 +3,7 @@ import {
   UserId,
   unsafeBrandId,
   SelfcareId,
+  ClientId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -69,7 +70,7 @@ export const M2MAuthToken = M2MAuthTokenCommonProps.merge(
 export const M2MAdminAuthToken = M2MAuthTokenCommonProps.merge(
   z.object({
     role: z.literal(systemRole.M2M_ADMIN_ROLE),
-    userId: z.string().uuid(),
+    adminId: z.string().uuid(),
     // ^ ID of the admin user associated with the client
   })
 );
@@ -155,6 +156,7 @@ export type M2MAdminAuthData = {
   systemRole: Extract<SystemRole, "m2m-admin">;
   organizationId: TenantId;
   userId: UserId;
+  clientId: ClientId;
 };
 
 export type InternalAuthData = {
@@ -188,7 +190,8 @@ export const getAuthDataFromToken = (token: AuthToken): AuthData =>
     .with({ role: systemRole.M2M_ADMIN_ROLE }, (t) => ({
       systemRole: t.role,
       organizationId: unsafeBrandId<TenantId>(t.organizationId),
-      userId: unsafeBrandId<UserId>(t.userId),
+      clientId: unsafeBrandId<ClientId>(t.client_id),
+      userId: unsafeBrandId<UserId>(t.adminId),
     }))
     .with({ "user-roles": P.not(P.nullish) }, (t) => ({
       systemRole: undefined,

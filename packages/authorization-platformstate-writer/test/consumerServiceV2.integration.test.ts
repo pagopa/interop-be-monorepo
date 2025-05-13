@@ -3185,7 +3185,7 @@ describe("integration tests V2 events", async () => {
     });
   });
 
-  describe("ClientAdminRemovedBySelfcare", () => {
+  describe("ClientAdminRoleRevoked", () => {
     it("should do no operation if the existing table entry is more recent", async () => {
       const previousPlatformEntryVersion = 2;
       const messageVersion = 1;
@@ -3205,7 +3205,7 @@ describe("integration tests V2 events", async () => {
         sequence_num: 1,
         stream_id: client.id,
         version: messageVersion,
-        type: "ClientAdminRemovedBySelfcare",
+        type: "ClientAdminRoleRevoked",
         event_version: 2,
         data: payload,
         log_date: new Date(),
@@ -3288,7 +3288,7 @@ describe("integration tests V2 events", async () => {
         sequence_num: 1,
         stream_id: client.id,
         version: messageVersion,
-        type: "ClientAdminRemovedBySelfcare",
+        type: "ClientAdminRoleRevoked",
         event_version: 2,
         data: payload,
         log_date: new Date(),
@@ -3403,7 +3403,266 @@ describe("integration tests V2 events", async () => {
         sequence_num: 1,
         stream_id: client.id,
         version: messageVersion,
-        type: "ClientAdminRemovedBySelfcare",
+        type: "ClientAdminRoleRevoked",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      // token-generation-states
+      const key = getMockKey();
+      const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: key.kid,
+      });
+      const tokenClientEntry: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK),
+        GSIPK_clientId: client.id,
+        adminId,
+      };
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      // platform-states
+      const platformClientPK = makePlatformStatesClientPK(client.id);
+      const retrievedPlatformClientEntry = await readPlatformClientEntry(
+        platformClientPK,
+        dynamoDBClient
+      );
+      expect(retrievedPlatformClientEntry).toBeUndefined();
+
+      // token-generation-states
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
+      expect(retrievedTokenGenStatesEntries).toEqual([tokenClientEntry]);
+    });
+  });
+
+  describe("ClientAdminRemoved", () => {
+    it("should do no operation if the existing table entry is more recent", async () => {
+      const previousPlatformEntryVersion = 2;
+      const messageVersion = 1;
+
+      const adminId = generateId<UserId>();
+
+      const client: Client = {
+        ...getMockClient(),
+        adminId: undefined,
+      };
+
+      const payload = {
+        adminId,
+        client: toClientV2(client),
+      };
+      const message: AuthorizationEventEnvelope = {
+        sequence_num: 1,
+        stream_id: client.id,
+        version: messageVersion,
+        type: "ClientAdminRemoved",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      // platform-states
+      const platformClientPK = makePlatformStatesClientPK(client.id);
+      const previousPlatformClientEntry: PlatformStatesClientEntry = {
+        PK: platformClientPK,
+        version: previousPlatformEntryVersion,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+        updatedAt: new Date().toISOString(),
+        clientPurposesIds: [],
+        clientAdminId: adminId,
+      };
+      await writePlatformClientEntry(
+        previousPlatformClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      // token-generation-states
+      const key = getMockKey();
+      const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: key.kid,
+      });
+      const tokenClientEntry: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK),
+        GSIPK_clientId: client.id,
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId: client.id,
+          kid: key.kid,
+        }),
+        adminId,
+      };
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      // platform-states
+      const retrievedPlatformClientEntry = await readPlatformClientEntry(
+        platformClientPK,
+        dynamoDBClient
+      );
+      expect(retrievedPlatformClientEntry).toEqual(previousPlatformClientEntry);
+
+      // token-generation-states
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
+      expect(retrievedTokenGenStatesEntries).toEqual([tokenClientEntry]);
+    });
+
+    it("should update platform-states entry and remove adminId from token-generation-states entries", async () => {
+      const previousPlatformEntryVersion = 1;
+      const messageVersion = 2;
+
+      const adminId = generateId<UserId>();
+
+      const key1 = getMockKey();
+      const key2 = getMockKey();
+      const client: Client = {
+        ...getMockClient(),
+        keys: [key1, key2],
+        adminId,
+      };
+
+      const payload = {
+        adminId,
+        client: toClientV2(client),
+      };
+      const message: AuthorizationEventEnvelope = {
+        sequence_num: 1,
+        stream_id: client.id,
+        version: messageVersion,
+        type: "ClientAdminRemoved",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      // platform-states
+      const platformClientPK = makePlatformStatesClientPK(client.id);
+      const previousPlatformClientEntry: PlatformStatesClientEntry = {
+        PK: platformClientPK,
+        version: previousPlatformEntryVersion,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+        updatedAt: new Date().toISOString(),
+        clientPurposesIds: [],
+        clientAdminId: adminId,
+      };
+      await writePlatformClientEntry(
+        previousPlatformClientEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      // token-generation-states
+      const tokenClientKidPK1 = makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: key1.kid,
+      });
+      const tokenClientKidPK2 = makeTokenGenerationStatesClientKidPK({
+        clientId: client.id,
+        kid: key2.kid,
+      });
+      const tokenClientEntry1: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK1),
+        consumerId: client.consumerId,
+        GSIPK_clientId: client.id,
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId: client.id,
+          kid: key1.kid,
+        }),
+        adminId,
+      };
+      const tokenClientEntry2: TokenGenerationStatesApiClient = {
+        ...getMockTokenGenStatesApiClient(tokenClientKidPK2),
+        consumerId: client.consumerId,
+        GSIPK_clientId: client.id,
+        GSIPK_clientId_kid: makeGSIPKClientIdKid({
+          clientId: client.id,
+          kid: key2.kid,
+        }),
+        adminId,
+      };
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry1,
+        dynamoDBClient,
+        genericLogger
+      );
+      await writeTokenGenStatesApiClient(
+        tokenClientEntry2,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      // platform-states
+      const retrievedPlatformClientEntry = await readPlatformClientEntry(
+        platformClientPK,
+        dynamoDBClient
+      );
+      const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
+        ...previousPlatformClientEntry,
+        clientAdminId: undefined,
+        version: messageVersion,
+        updatedAt: new Date().toISOString(),
+      };
+      expect(retrievedPlatformClientEntry).toEqual(expectedPlatformStatesEntry);
+
+      // token-generation-states
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
+      const expectedTokenClientEntry1 = {
+        ...tokenClientEntry1,
+        adminId: undefined,
+      };
+      const expectedTokenClientEntry2 = {
+        ...tokenClientEntry2,
+        adminId: undefined,
+      };
+
+      expect(retrievedTokenGenStatesEntries).toHaveLength(2);
+      expect(retrievedTokenGenStatesEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenClientEntry1,
+          expectedTokenClientEntry2,
+        ])
+      );
+    });
+
+    it("should do nothing if client entry doesn't exist in platform-states", async () => {
+      const messageVersion = 1;
+      const adminId = generateId<UserId>();
+
+      const client: Client = getMockClient();
+
+      const payload = {
+        adminId,
+        client: toClientV2(client),
+      };
+      const message: AuthorizationEventEnvelope = {
+        sequence_num: 1,
+        stream_id: client.id,
+        version: messageVersion,
+        type: "ClientAdminRemoved",
         event_version: 2,
         data: payload,
         log_date: new Date(),

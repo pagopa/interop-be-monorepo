@@ -2,7 +2,7 @@
 /* eslint-disable functional/immutable-data */
 
 import { InteropTokenGenerator } from "./interopTokenService.js";
-import { InteropToken } from "./models.js";
+import { InteropInternalToken } from "./models.js";
 
 export const MAX_EXP_SECONDS_DELAY_BEFORE_REFRESH = 30;
 
@@ -17,7 +17,7 @@ export const MAX_EXP_SECONDS_DELAY_BEFORE_REFRESH = 30;
  * allow the application to work properly
  */
 export class RefreshableInteropToken {
-  private token: InteropToken | null = null;
+  private token: InteropInternalToken | null = null;
 
   constructor(private tokenGenerator: InteropTokenGenerator) {}
 
@@ -25,7 +25,7 @@ export class RefreshableInteropToken {
    * If this class is used on "parallel" invocation,
    * it is suggested to initialize the token to avoid multiple generation on the first use
    */
-  public async init(): Promise<InteropToken> {
+  public async init(): Promise<InteropInternalToken> {
     this.token = await this.tokenGenerator.generateInternalToken();
     return this.token;
   }
@@ -33,7 +33,7 @@ export class RefreshableInteropToken {
   /**
    * The valid token, or a new token if required.
    */
-  public async get(): Promise<InteropToken> {
+  public async get(): Promise<InteropInternalToken> {
     if (!this.token) {
       this.token = await this.tokenGenerator.generateInternalToken();
       return this.token;

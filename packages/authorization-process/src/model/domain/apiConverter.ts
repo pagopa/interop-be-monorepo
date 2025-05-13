@@ -46,6 +46,7 @@ export function clientToApiClientWithKeys(
       purposes: client.purposes,
       kind: clientKindToApiClientKind(client.kind),
       description: client.description,
+      adminId: client.adminId,
     },
     keys: client.keys.map(keyToApiKey),
   };
@@ -64,6 +65,7 @@ export function clientToApiClient(
     purposes: client.purposes,
     kind: clientKindToApiClientKind(client.kind),
     description: client.description,
+    adminId: client.adminId,
   };
 }
 

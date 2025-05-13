@@ -1285,6 +1285,24 @@ export function catalogServiceBuilder(
         },
       });
     },
+    updateAgreementApprovalPolicy: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Updating descriptor ${descriptorId} agreementApprovalPolicy of EService ${eServiceId}`
+      );
+
+      return await catalogProcessClient.updateAgreementApprovalPolicy(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
     publishDescriptor: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,

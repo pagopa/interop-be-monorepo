@@ -42,22 +42,14 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  and,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  isNull,
-  or,
-  sql,
-} from "drizzle-orm";
+import { and, eq, ilike, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
   createListResult,
   escapeRegExp,
   lowerCase,
+  withTotalCount,
 } from "pagopa-interop-commons";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
@@ -82,11 +74,12 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
-        .selectDistinct({
-          tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .selectDistinct(
+          withTotalCount({
+            tenantId: tenantInReadmodelTenant.id,
+            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
+          })
+        )
         .from(tenantInReadmodelTenant)
         .leftJoin(
           tenantFeatureInReadmodelTenant,
@@ -251,11 +244,12 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
-        .selectDistinct({
-          tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .selectDistinct(
+          withTotalCount({
+            tenantId: tenantInReadmodelTenant.id,
+            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
+          })
+        )
         .from(tenantInReadmodelTenant)
         .innerJoin(
           agreementInReadmodelAgreement,
@@ -365,11 +359,12 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
-        .selectDistinct({
-          tenantId: tenantInReadmodelTenant.id,
-          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .selectDistinct(
+          withTotalCount({
+            tenantId: tenantInReadmodelTenant.id,
+            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
+          })
+        )
         .from(tenantInReadmodelTenant)
         .innerJoin(
           eserviceInReadmodelCatalog,
@@ -530,14 +525,15 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const res = await readModelDB
-        .selectDistinct({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-          nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-          attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
-          attributeName: attributeInReadmodelAttribute.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .selectDistinct(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
+            attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
+            attributeName: attributeInReadmodelAttribute.name,
+          })
+        )
         .from(tenantCertifiedAttributeInReadmodelTenant)
         .innerJoin(
           attributeInReadmodelAttribute,
