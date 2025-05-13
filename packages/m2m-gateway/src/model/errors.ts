@@ -21,6 +21,7 @@ export const errorCodes = {
   purposeNotFound: "0008",
   missingActivePurposeVersion: "0009",
   purposeVersionNotFound: "0010",
+  missingPurposeVersions: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

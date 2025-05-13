@@ -3,10 +3,12 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingMetadata,
+  purposeVersionNotFound,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
@@ -15,13 +17,13 @@ import {
 } from "../../mockUtils.js";
 
 describe("POST /purposes/:purposeId/versions router test", () => {
-  const getMockPurposeVersion = getMockedApiPurposeVersion();
+  const mockPurposeVersion = getMockedApiPurposeVersion();
   const mockPurpose = getMockedApiPurpose({
-    versions: [getMockPurposeVersion],
+    versions: [mockPurposeVersion],
   });
 
   const mockPurposeVersionSeed: m2mGatewayApi.PurposeVersionSeed = {
-    dailyCalls: getMockPurposeVersion.dailyCalls,
+    dailyCalls: mockPurposeVersion.dailyCalls,
   };
 
   const makeRequest = async (
@@ -40,7 +42,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
     async (role) => {
       mockPurposeService.createPurposeVersion = vi
         .fn()
-        .mockResolvedValue(getMockPurposeVersion);
+        .mockResolvedValue(mockPurposeVersion);
 
       const token = generateToken(role);
       const res = await makeRequest(
@@ -50,7 +52,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
       );
 
       expect(res.status).toBe(201);
-      expect(res.body).toEqual(getMockPurposeVersion);
+      expect(res.body).toEqual(mockPurposeVersion);
     }
   );
 
@@ -81,24 +83,15 @@ describe("POST /purposes/:purposeId/versions router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 500 in case of missingMetadata error", async () => {
-    mockPurposeService.createPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(missingMetadata());
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockPurpose.data.id,
-      mockPurposeVersionSeed
-    );
-
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of resourcePollingTimeout error", async () => {
-    mockPurposeService.createPurposeVersion = vi
-      .fn()
-      .mockRejectedValue(resourcePollingTimeout(3));
+  it.each([
+    missingMetadata(),
+    purposeVersionNotFound(
+      unsafeBrandId(mockPurpose.data.id),
+      mockPurposeVersion.id
+    ),
+    resourcePollingTimeout(3),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockPurposeService.createPurposeVersion = vi.fn().mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
