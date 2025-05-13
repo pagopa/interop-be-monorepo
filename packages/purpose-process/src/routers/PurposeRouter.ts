@@ -343,18 +343,23 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const purposeVersion = await purposeService.createPurposeVersion(
+        const {
+          data: { purpose, isRiskAnalysisValid, createdVersionId },
+          metadata,
+        } = await purposeService.createPurposeVersion(
           unsafeBrandId(req.params.purposeId),
           req.body,
           ctx
         );
-        return res
-          .status(200)
-          .send(
-            purposeApi.PurposeVersion.parse(
-              purposeVersionToApiPurposeVersion(purposeVersion)
-            )
-          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res.status(200).send(
+          purposeApi.CreatedPurposeVersion.parse({
+            purpose: purposeToApiPurpose(purpose, isRiskAnalysisValid),
+            createdVersionId,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

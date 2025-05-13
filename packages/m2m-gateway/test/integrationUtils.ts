@@ -57,7 +57,6 @@ export function expectApiClientPostToHaveBeenCalledWith({
   params,
 }: {
   mockPost: Function;
-  body: Record<string, unknown>;
   body?: Record<string, unknown>;
   params?: Record<string, unknown>;
 }): void {
@@ -68,7 +67,6 @@ export function expectApiClientPostToHaveBeenCalledWith({
       "X-Correlation-Id": expect.any(String),
       "X-Forwarded-For": undefined,
     },
-    params,
   });
 }
 

@@ -33,24 +33,6 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const pollPurposeVersion = (
-    purposeId: PurposeId,
-    newVersion: WithMaybeMetadata<purposeApi.PurposeVersion>,
-    headers: M2MGatewayAppContext["headers"]
-  ) =>
-    pollResource(() =>
-      clients.purposeProcessClient.getPurpose({
-        params: { id: purposeId },
-        headers,
-      })
-    )({
-      checkFn: (polledPurpose) =>
-        polledPurpose.data.versions.some(
-          (version) => version.id === newVersion.data.id
-        ),
-    });
-
   return {
     async getPurposes(
       queryParams: m2mGatewayApi.GetPurposesQueryParams,
@@ -178,31 +160,37 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2mGatewayApiPurposeVersion(version);
     },
-    createPurposeVersion: async (
+    async createPurposeVersion(
       purposeId: PurposeId,
       versionSeed: m2mGatewayApi.PurposeVersionSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.PurposeVersion> => {
-      logger.info(`Creating purpose version`);
+    ): Promise<m2mGatewayApi.PurposeVersion> {
+      logger.info(
+        `Creating version for purpose ${purposeId} with dailyCalls ${versionSeed.dailyCalls}`
+      );
 
-      const versionResponse =
-        await clients.purposeProcessClient.createPurposeVersion(versionSeed, {
-          params: { purposeId },
-          headers,
-        });
+      const {
+        data: { createdVersionId, purpose },
+        metadata,
+      } = await clients.purposeProcessClient.createPurposeVersion(versionSeed, {
+        params: { purposeId },
+        headers,
+      });
 
-      const polledPurpose = await pollPurposeVersion(
-        purposeId,
-        versionResponse,
+      await pollPurpose(
+        {
+          data: purpose,
+          metadata,
+        },
         headers
       );
 
-      const createdVersion = polledPurpose.data.versions.find(
-        (version) => version.id === versionResponse.data.id
+      const createdVersion = purpose.versions.find(
+        (v) => v.id === createdVersionId
       );
 
       if (!createdVersion) {
-        throw purposeVersionNotFound(purposeId, versionResponse.data.id);
+        throw purposeVersionNotFound(purposeId, createdVersionId);
       }
 
       return toM2mGatewayApiPurposeVersion(createdVersion);

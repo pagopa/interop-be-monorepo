@@ -10,7 +10,10 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { resourcePollingTimeout } from "../../../src/model/errors.js";
+import {
+  purposeVersionNotFound,
+  resourcePollingTimeout,
+} from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
@@ -19,7 +22,7 @@ import {
 
 describe("createPurposeVersion", () => {
   const mockApiPurposeVersion = getMockedApiPurposeVersion();
-  const mockPurposeProcessGetResponse = getMockedApiPurpose({
+  const mockApiPurpose = getMockedApiPurpose({
     versions: [mockApiPurposeVersion],
   });
 
@@ -27,12 +30,14 @@ describe("createPurposeVersion", () => {
     dailyCalls: mockApiPurposeVersion.dailyCalls,
   };
 
-  const mockCreatePurposeVersion = vi
-    .fn()
-    .mockResolvedValue({ data: mockApiPurposeVersion, metadata: undefined });
-  const mockGetPurpose = vi.fn(
-    mockPollingResponse(mockPurposeProcessGetResponse, 2)
-  );
+  const mockCreatePurposeVersion = vi.fn().mockResolvedValue({
+    data: {
+      purpose: mockApiPurpose.data,
+      createdVersionId: mockApiPurposeVersion.id,
+    },
+    metadata: { version: 0 },
+  });
+  const mockGetPurpose = vi.fn(mockPollingResponse(mockApiPurpose, 2));
 
   mockInteropBeClients.purposeProcessClient = {
     getPurpose: mockGetPurpose,
@@ -46,7 +51,7 @@ describe("createPurposeVersion", () => {
 
   it("Should succeed and perform API clients calls", async () => {
     const result = await purposeService.createPurposeVersion(
-      unsafeBrandId(mockPurposeProcessGetResponse.data.id),
+      unsafeBrandId(mockApiPurpose.data.id),
       mockPurposeVersionSeed,
       getMockM2MAdminAppContext()
     );
@@ -55,28 +60,49 @@ describe("createPurposeVersion", () => {
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.createPurposeVersion,
       body: mockPurposeVersionSeed,
-      params: { purposeId: mockPurposeProcessGetResponse.data.id },
+      params: { purposeId: mockApiPurpose.data.id },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
-      params: { id: mockPurposeProcessGetResponse.data.id },
+      params: { id: mockApiPurpose.data.id },
     });
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
     ).toHaveBeenCalledTimes(2);
   });
 
+  it("Should throw purposeVersionNotFound in case of version missing in purpose returned by the process", async () => {
+    const invalidPurpose = getMockedApiPurpose({ versions: [] });
+    mockCreatePurposeVersion.mockResolvedValue({
+      data: {
+        purpose: invalidPurpose.data,
+        createdVersionId: mockApiPurposeVersion.id,
+      },
+      metadata: { version: 0 },
+    });
+
+    await expect(
+      purposeService.createPurposeVersion(
+        unsafeBrandId(mockApiPurpose.data.id),
+        mockPurposeVersionSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      purposeVersionNotFound(
+        unsafeBrandId(mockApiPurpose.data.id),
+        mockApiPurposeVersion.id
+      )
+    );
+  });
+
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
     mockGetPurpose.mockImplementation(
-      mockPollingResponse(
-        mockPurposeProcessGetResponse,
-        config.defaultPollingMaxAttempts + 1
-      )
+      mockPollingResponse(mockApiPurpose, config.defaultPollingMaxAttempts + 1)
     );
 
     await expect(
       purposeService.createPurposeVersion(
-        unsafeBrandId(mockPurposeProcessGetResponse.data.id),
+        unsafeBrandId(mockApiPurpose.data.id),
         mockPurposeVersionSeed,
         getMockM2MAdminAppContext()
       )
