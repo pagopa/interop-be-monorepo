@@ -4,10 +4,11 @@ import {
   FileManagerConfig,
   EventStoreConfig,
   S3Config,
-  FeatureFlagsConfig,
   ApplicationAuditProducerConfig,
   FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
+  FeatureFlagSignalhubWhitelistConfig,
+  FeatureFlagAgreementApprovalPolicyUpdateConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -26,7 +27,8 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(EventStoreConfig)
-  .and(FeatureFlagsConfig)
+  .and(FeatureFlagSignalhubWhitelistConfig)
+  .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
   .and(
     z
       .object({
@@ -42,8 +44,8 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   )
   .and(EServiceTemplateS3Config)
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagSQLConfig.optional())
-  .and(ReadModelSQLDbConfig.optional());
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig);
 
 export type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 

@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import {
-  authorizationApi,
-  bffApi,
-  SelfcareV2UsersClient,
-} from "pagopa-interop-api-clients";
+  getAllFromPaginated,
+  WithLogger,
+  escapeRegExp,
+} from "pagopa-interop-commons";
+import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
 import { CorrelationId } from "pagopa-interop-models";
 import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
+  SelfcareV2UserClient,
 } from "../clients/clientsProvider.js";
 import { BffAppContext } from "../utilities/context.js";
 import {
@@ -18,11 +19,8 @@ import {
 } from "../api/authorizationApiConverter.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 
-export function clientServiceBuilder(
-  apiClients: PagoPAInteropBeClients,
-  selfcareUsersClient: SelfcareV2UsersClient
-) {
-  const { authorizationClient } = apiClients;
+export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
+  const { authorizationClient, selfcareV2UserClient } = apiClients;
 
   return {
     async getClients(
@@ -41,7 +39,7 @@ export function clientServiceBuilder(
         name?: string;
         kind?: bffApi.ClientKind;
       },
-      { logger, headers }: WithLogger<BffAppContext>
+      { logger, headers, correlationId, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactClients> {
       logger.info(`Retrieving clients`);
 
@@ -59,7 +57,16 @@ export function clientServiceBuilder(
       });
 
       return {
-        results: clients.results.map(toBffApiCompactClient),
+        results: await Promise.all(
+          clients.results.map((client) =>
+            toBffApiCompactClient(
+              selfcareV2UserClient,
+              client,
+              authData.selfcareId,
+              correlationId
+            )
+          )
+        ),
         pagination: {
           limit,
           offset,
@@ -195,7 +202,7 @@ export function clientServiceBuilder(
       const decoratedKeys = await Promise.all(
         keys.map((k) =>
           decorateKey(
-            selfcareUsersClient,
+            selfcareV2UserClient,
             k,
             authData.selfcareId,
             users,
@@ -228,8 +235,11 @@ export function clientServiceBuilder(
     },
 
     async getClientUsers(
-      clientId: string,
-      selfcareId: string,
+      {
+        clientId,
+        selfcareId,
+        name,
+      }: { clientId: string; selfcareId: string; name?: string },
       { logger, headers, correlationId }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactUsers> {
       logger.info(`Retrieving users for client ${clientId}`);
@@ -239,16 +249,22 @@ export function clientServiceBuilder(
         headers,
       });
 
-      return await Promise.all(
+      const users = await Promise.all(
         clientUsers.map(async (id) =>
           getSelfcareCompactUserById(
-            selfcareUsersClient,
+            selfcareV2UserClient,
             id,
             selfcareId,
             correlationId
           )
         )
       );
+
+      return name
+        ? users.filter((user) =>
+            new RegExp(escapeRegExp(name), "i").test(user.name)
+          )
+        : users;
     },
 
     async getClientKeyById(
@@ -271,7 +287,7 @@ export function clientServiceBuilder(
       ]);
 
       return decorateKey(
-        selfcareUsersClient,
+        selfcareV2UserClient,
         key,
         selfcareId,
         users,
@@ -321,6 +337,19 @@ export function clientServiceBuilder(
 
       return { id };
     },
+
+    async removeClientAdmin(
+      clientId: string,
+      adminId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+
+      return authorizationClient.client.removeClientAdmin(undefined, {
+        params: { clientId, adminId },
+        headers,
+      });
+    },
   };
 }
 
@@ -338,7 +367,7 @@ async function enhanceClient(
     }),
     client.adminId
       ? getSelfcareCompactUserById(
-          apiClients.selfcareV2UserClient.user,
+          apiClients.selfcareV2UserClient,
           client.adminId,
           ctx.authData.selfcareId,
           ctx.correlationId
@@ -402,7 +431,7 @@ async function enhancePurpose(
 }
 
 export async function decorateKey(
-  selfcareClient: SelfcareV2UsersClient,
+  selfcareClient: SelfcareV2UserClient,
   key: authorizationApi.Key,
   selfcareId: string,
   members: string[],
