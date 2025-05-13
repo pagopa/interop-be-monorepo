@@ -4,16 +4,27 @@ import request from "supertest";
 import {
   attributeKind,
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
-import { unchangedAttributes } from "../../src/model/domain/errors.js";
+import {
+  attributeNotFound,
+  descriptorAttributeGroupSupersetMissingInAttributesSeed,
+  eServiceDescriptorNotFound,
+  eServiceNotFound,
+  inconsistentAttributesSeedGroupsCount,
+  templateInstanceNotAllowed,
+  unchangedAttributes,
+} from "../../src/model/domain/errors.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update authorization test", () => {
@@ -99,7 +110,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
   const makeRequest = async (
     token: string,
     eServiceId: string,
-    descriptorId: string
+    descriptorId: string,
+    body: catalogApi.AttributesSeed = validMockDescriptorAttributeSeed
   ) =>
     request(api)
       .post(
@@ -107,7 +119,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(validMockDescriptorAttributeSeed);
+      .send(body);
 
   it("Should return 200 for user with role admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -125,22 +137,153 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: unchangedAttributes(mockEService.id, descriptor.id),
+      expectedStatus: 409,
+    },
+    {
+      error: eServiceNotFound(mockEService.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
+      expectedStatus: 404,
+    },
+    {
+      error: attributeNotFound(mockVerifiedAttribute1.id),
+      expectedStatus: 404,
+    },
+    {
+      error: templateInstanceNotAllowed(
+        mockEService.id,
+        mockEService.templateId!
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: inconsistentAttributesSeedGroupsCount(
+        mockEService.id,
+        descriptor.id
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: descriptorAttributeGroupSupersetMissingInAttributesSeed(
+        mockEService.id,
+        descriptor.id
+      ),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.updateDescriptorAttributes = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 409 Conflict if descriptor update has a conflict", async () => {
-    vi.spyOn(catalogService, "updateDescriptorAttributes").mockRejectedValue(
-      unchangedAttributes(mockEService.id, descriptor.id)
-    );
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id, descriptor.id);
 
-    const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      mockEService.id,
-      descriptor.id
-    );
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: {},
+    },
+    {
+      eServiceId: "invalidId",
+      descriptorId: descriptor.id,
+      body: validMockDescriptorAttributeSeed,
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: "invalidId",
+      body: validMockDescriptorAttributeSeed,
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { ...validMockDescriptorAttributeSeed, certified: {} },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { ...validMockDescriptorAttributeSeed, certified: [123] },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { ...validMockDescriptorAttributeSeed, certified: [[{ id: 123 }]] },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: {
+        ...validMockDescriptorAttributeSeed,
+        verified: [
+          [{ id: "", explicitAttributeVerification: "not-a-boolean" }],
+        ],
+      },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: {
+        ...validMockDescriptorAttributeSeed,
+        verified: [[{ noId: true }]],
+      },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { ...validMockDescriptorAttributeSeed, declared: ["not-an-array"] },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { ...validMockDescriptorAttributeSeed, declared: [[{ id: null }]] },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { ...validMockDescriptorAttributeSeed, certified: null },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { ...validMockDescriptorAttributeSeed, verified: null },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { ...validMockDescriptorAttributeSeed, declared: null },
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { certified: "wrong", verified: "wrong", declared: "wrong" },
+    },
+  ])(
+    "Should return 400 if passed invalid params",
+    async ({ eServiceId, descriptorId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        descriptorId as DescriptorId,
+        body as catalogApi.AttributesSeed
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

@@ -3,9 +3,12 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -17,6 +20,14 @@ import {
   getMockEService,
 } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import {
+  attributeNotFound,
+  eServiceDescriptorNotFound,
+  eServiceNotFound,
+  inconsistentDailyCalls,
+  notValidDescriptorState,
+  templateInstanceNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization test", () => {
   const descriptor: Descriptor = {
@@ -52,13 +63,14 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
   const makeRequest = async (
     token: string,
     eServiceId: string,
-    descriptorId: string
+    descriptorId: string,
+    body: catalogApi.UpdateEServiceDescriptorSeed = descriptorSeed
   ) =>
     request(api)
       .put(`/eservices/${eServiceId}/descriptors/${descriptorId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(descriptorSeed);
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
@@ -80,8 +92,78 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(mockEService.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
+      expectedStatus: 404,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: notValidDescriptorState(descriptor.id, descriptor.state),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeNotFound(descriptorSeed.attributes.declared[0][0].id),
+      expectedStatus: 400,
+    },
+    {
+      error: templateInstanceNotAllowed(
+        mockEService.id,
+        mockEService.templateId!
+      ),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.updateDraftDescriptor = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id, descriptor.id);
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    [{}, mockEService.id, descriptor.id],
+    [{ dailyCallsTotal: "invalid" }, mockEService.id, descriptor.id],
+    [{ attributes: undefined }, mockEService.id, descriptor.id],
+    [
+      { ...descriptorSeed, dailyCallsTotal: -1 },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      { ...descriptorSeed, attributes: { certified: [], declared: [] } },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [{ ...descriptorSeed }, "invalidId", descriptor.id],
+    [{ ...descriptorSeed }, mockEService.id, "invalidId"],
+  ])(
+    "Should return 400 if passed invalid params: %s (eserviceId: %s, descriptorId: %s)",
+    async (body, eServiceId, descriptorId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        descriptorId as DescriptorId,
+        body as catalogApi.UpdateEServiceDescriptorSeed
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

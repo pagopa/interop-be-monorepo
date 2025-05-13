@@ -44,7 +44,7 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
+    eServiceId: EServiceId,
     body: catalogApi.EServiceRiskAnalysisSeed = riskAnalysisSeed
   ) =>
     request(api)
@@ -52,6 +52,7 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
+
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",

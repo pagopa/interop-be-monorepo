@@ -60,12 +60,13 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
     .fn()
     .mockResolvedValue(eService);
 
-  const makeRequest = async (token: string, templateId: string) =>
+  const makeRequest = async (token: string, templateId: EServiceTemplateId) =>
     request(api)
       .post(`/templates/${templateId}/eservices`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(templateId);
+      .send();
+
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",

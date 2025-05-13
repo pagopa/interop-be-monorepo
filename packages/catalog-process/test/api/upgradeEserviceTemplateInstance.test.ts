@@ -5,9 +5,11 @@ import {
   Descriptor,
   descriptorState,
   EService,
+  EServiceId,
   EServiceTemplate,
   EServiceTemplateVersion,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -23,6 +25,13 @@ import {
   getMockEService,
 } from "../mockUtils.js";
 import { descriptorToApiDescriptor } from "../../src/model/domain/apiConverter.js";
+import {
+  eServiceAlreadyUpgraded,
+  eServiceDescriptorNotFound,
+  eServiceNotAnInstance,
+  eServiceNotFound,
+  eServiceTemplateNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /templates/eservices/{eServiceId}/upgrade authorization test", () => {
   const firstTemplateVersion: EServiceTemplateVersion = {
@@ -94,8 +103,50 @@ describe("API /templates/eservices/{eServiceId}/upgrade authorization test", () 
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "");
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(eservice.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(eservice.id, descriptor.id),
+      expectedStatus: 404,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: eServiceNotAnInstance(eservice.id),
+      expectedStatus: 400,
+    },
+    {
+      error: eServiceAlreadyUpgraded(eservice.id),
+      expectedStatus: 400,
+    },
+    {
+      error: eServiceTemplateNotFound(eservice.templateId!),
+      expectedStatus: 500,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.upgradeEServiceInstance = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eservice.id);
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([{}, { eserviceId: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s (eServiceId: %s, descriptorId: %s)",
+    async ({ eserviceId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eserviceId as EServiceId);
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

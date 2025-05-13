@@ -39,8 +39,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/descriptors/${descriptorId}/archive`)
@@ -82,7 +82,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
     async ({ error, expectedStatus }) => {
       catalogService.archiveDescriptor = vi.fn().mockRejectedValue(error);
 
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(token, mockEService.id, descriptor.id);
       expect(res.status).toBe(expectedStatus);
     }
@@ -95,7 +95,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/archive authori
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ eServiceId, descriptorId }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken(authRole.INTERNAL_ROLE);
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,

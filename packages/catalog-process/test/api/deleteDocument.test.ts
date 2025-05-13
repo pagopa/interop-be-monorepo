@@ -3,10 +3,14 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Descriptor,
+  DescriptorId,
   descriptorState,
   Document,
   EService,
+  EServiceDocumentId,
+  EServiceId,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -16,6 +20,13 @@ import {
   getMockEService,
   getMockDocument,
 } from "../mockUtils.js";
+import {
+  eServiceDescriptorNotFound,
+  eServiceDocumentNotFound,
+  eServiceNotFound,
+  notValidDescriptorState,
+  templateInstanceNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId} authorization test", () => {
   const document: Document = getMockDocument();
@@ -33,9 +44,9 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string,
-    documentId: string
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
+    documentId: EServiceDocumentId
   ) =>
     request(api)
       .delete(
@@ -74,13 +85,77 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      "",
-      "",
-      ""
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(eservice.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(eservice.id, descriptor.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDocumentNotFound(eservice.id, descriptor.id, document.id),
+      expectedStatus: 404,
+    },
+    {
+      error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
+      expectedStatus: 403,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: notValidDescriptorState(descriptor.id, descriptor.state),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.deleteDocument = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eservice.id,
+        descriptor.id,
+        document.id
+      );
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    {},
+    {
+      eServiceId: "invalidId",
+      descriptorId: descriptor.id,
+      documentId: document.id,
+    },
+    {
+      eServiceId: eservice.id,
+      descriptorId: "invalidId",
+      documentId: document.id,
+    },
+    {
+      eServiceId: eservice.id,
+      descriptorId: descriptor.id,
+      documentId: "invalidId",
+    },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ eServiceId, descriptorId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        descriptorId as DescriptorId,
+        documentId as EServiceDocumentId
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

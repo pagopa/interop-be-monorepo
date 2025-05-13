@@ -3,14 +3,26 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
+import {
+  audienceCannotBeEmpty,
+  eServiceDescriptorNotFound,
+  eServiceDescriptorWithoutInterface,
+  eServiceNotFound,
+  eServiceRiskAnalysisIsRequired,
+  notValidDescriptorState,
+  riskAnalysisNotValid,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/publish authorization test", () => {
   const descriptor: Descriptor = {
@@ -27,8 +39,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/publish authori
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/descriptors/${descriptorId}/publish`)
@@ -56,8 +68,66 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/publish authori
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(mockEService.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
+      expectedStatus: 409,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: eServiceDescriptorWithoutInterface(descriptor.id),
+      expectedStatus: 400,
+    },
+    {
+      error: eServiceRiskAnalysisIsRequired(mockEService.id),
+      expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisNotValid(),
+      expectedStatus: 400,
+    },
+    {
+      error: notValidDescriptorState(descriptor.id, descriptor.state),
+      expectedStatus: 400,
+    },
+    {
+      error: audienceCannotBeEmpty(descriptor.id),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.publishDescriptor = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id, descriptor.id);
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    {},
+    { eServiceId: "invalidId", descriptorId: descriptor.id },
+    { eServiceId: mockEService.id, descriptorId: "invalidId" },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ eServiceId, descriptorId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        descriptorId as DescriptorId
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

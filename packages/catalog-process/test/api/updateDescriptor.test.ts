@@ -3,9 +3,12 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -13,6 +16,13 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import {
+  eServiceDescriptorNotFound,
+  eServiceNotFound,
+  inconsistentDailyCalls,
+  notValidDescriptorState,
+  templateInstanceNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/update authorization test", () => {
   const descriptor: Descriptor = {
@@ -31,20 +41,24 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/update authoriz
 
   catalogService.updateDescriptor = vi.fn().mockResolvedValue(mockEService);
 
+  const mockUpdateEServiceDescriptorQuotasSeed: catalogApi.UpdateEServiceDescriptorQuotasSeed =
+    {
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
+      dailyCallsTotal: descriptor.dailyCallsTotal + 10,
+    };
+
   const makeRequest = async (
     token: string,
     eServiceId: string,
-    descriptorId: string
+    descriptorId: string,
+    body: catalogApi.UpdateEServiceDescriptorQuotasSeed = mockUpdateEServiceDescriptorQuotasSeed
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/descriptors/${descriptorId}/update`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({
-        voucherLifespan: 1000,
-        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
-        dailyCallsTotal: descriptor.dailyCallsTotal + 10,
-      });
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
@@ -66,8 +80,69 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/update authoriz
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(mockEService.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
+      expectedStatus: 409,
+    },
+    {
+      error: templateInstanceNotAllowed(
+        mockEService.id,
+        mockEService.templateId!
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: notValidDescriptorState(descriptor.id, descriptor.state),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.updateDescriptor = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id, descriptor.id);
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    [{}, mockEService.id, descriptor.id],
+    [{ voucherLifespan: "invalid" }, mockEService.id, descriptor.id],
+    [{ dailyCallsPerConsumer: -1 }, mockEService.id, descriptor.id],
+    [{ dailyCallsTotal: null }, mockEService.id, descriptor.id],
+    [{ ...mockUpdateEServiceDescriptorQuotasSeed }, "invalidId", descriptor.id],
+    [
+      { ...mockUpdateEServiceDescriptorQuotasSeed },
+      mockEService.id,
+      "invalidId",
+    ],
+  ])(
+    "Should return 400 if passed invalid quota update params: %s (eserviceId: %s, descriptorId: %s)",
+    async (body, eServiceId, descriptorId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        descriptorId as DescriptorId,
+        body as catalogApi.UpdateEServiceDescriptorQuotasSeed
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

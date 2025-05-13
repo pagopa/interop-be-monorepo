@@ -94,12 +94,16 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
 
   catalogService.createDescriptor = vi.fn().mockResolvedValue(newDescriptor);
 
-  const makeRequest = async (token: string, eServiceId: string) =>
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId,
+    body: catalogApi.EServiceDescriptorSeed = descriptorSeed
+  ) =>
     request(api)
       .post(`/eservices/${eServiceId}/descriptors`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(descriptorSeed);
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
@@ -158,11 +162,24 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     }
   );
 
-  it.each([{}, { eServiceId: "invalidId" }])(
-    "Should return 400 if passed invalid params: %s",
-    async ({ eServiceId }) => {
+  it.each([
+    [{}, eservice.id],
+    [{ ...descriptorSeed, voucherLifespan: "invalid" }, eservice.id],
+    [{ ...descriptorSeed, audience: 123 }, eservice.id],
+    [{ ...descriptorSeed, agreementApprovalPolicy: null }, eservice.id],
+    [{ ...descriptorSeed, dailyCallsTotal: -1 }, eservice.id],
+    [{ ...descriptorSeed, attributes: undefined }, eservice.id],
+    [{ ...descriptorSeed, docs: [{}] }, eservice.id],
+    [{}, "invalidId"],
+  ])(
+    "Should return 400 if passed invalid descriptor params: %s (eserviceId: %s)",
+    async (body, eserviceId) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, eServiceId as EServiceId);
+      const res = await makeRequest(
+        token,
+        eserviceId as EServiceId,
+        body as catalogApi.EServiceDescriptorSeed
+      );
 
       expect(res.status).toBe(400);
     }

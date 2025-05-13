@@ -65,15 +65,17 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/clone authoriza
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/descriptors/${descriptorId}/clone`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(eservice);
+      .send();
+
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {

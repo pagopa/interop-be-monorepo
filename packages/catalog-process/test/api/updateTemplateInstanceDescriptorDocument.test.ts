@@ -3,18 +3,27 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
+  EServiceDocumentId,
+  EServiceId,
   generateId,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
 } from "../mockUtils.js";
+import {
+  eServiceDescriptorNotFound,
+  eServiceDocumentNotFound,
+  eServiceNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update authorization test", () => {
   const mockDocument = getMockDocument();
@@ -34,11 +43,15 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
     .fn()
     .mockResolvedValue({});
 
+  const mockUpdateEServiceDescriptorDocumentSeed: catalogApi.UpdateEServiceDescriptorDocumentSeed =
+    { prettyName: "updated prettyName" };
+
   const makeRequest = async (
     token: string,
     eServiceId: string,
     descriptorId: string,
-    documentId: string
+    documentId: string,
+    body: catalogApi.UpdateEServiceDescriptorDocumentSeed = mockUpdateEServiceDescriptorDocumentSeed
   ) =>
     request(api)
       .post(
@@ -46,7 +59,7 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({ prettyName: "updated prettyName" });
+      .send(body);
 
   it("Should return 204 for user with role internal", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
@@ -73,13 +86,76 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(authRole.INTERNAL_ROLE),
-      "",
-      "",
-      ""
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(mockEService.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDocumentNotFound(
+        mockEService.id,
+        descriptor.id,
+        mockDocument.id
+      ),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.innerUpdateTemplateInstanceDescriptorDocument = vi
+        .fn()
+        .mockRejectedValue(error);
+
+      const token = generateToken(authRole.INTERNAL_ROLE);
+      const res = await makeRequest(
+        token,
+        mockEService.id,
+        descriptor.id,
+        mockDocument.id
+      );
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    [{}, mockEService.id, descriptor.id, mockDocument.id],
+    [{ prettyName: 123 }, mockEService.id, descriptor.id, mockDocument.id],
+    [
+      { ...mockUpdateEServiceDescriptorDocumentSeed },
+      "invalidId",
+      descriptor.id,
+      mockDocument.id,
+    ],
+    [
+      { ...mockUpdateEServiceDescriptorDocumentSeed },
+      mockEService.id,
+      "invalidId",
+      mockDocument.id,
+    ],
+    [
+      { ...mockUpdateEServiceDescriptorDocumentSeed },
+      mockEService.id,
+      descriptor.id,
+      "invalidId",
+    ],
+  ])(
+    "Should return 400 if passed invalid params: %s (eServiceId: %s, descriptorId: %s, documentId: %s)",
+    async (body, eServiceId, descriptorId, documentId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        descriptorId as DescriptorId,
+        documentId as EServiceDocumentId,
+        body as catalogApi.UpdateEServiceDescriptorDocumentSeed
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

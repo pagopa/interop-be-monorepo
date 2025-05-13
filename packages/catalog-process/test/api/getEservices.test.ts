@@ -6,15 +6,21 @@ import {
   generateId,
   descriptorState,
   Descriptor,
+  TenantId,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
-import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import {
+  eServiceModeToApiEServiceMode,
+  eServiceToApiEService,
+} from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices authorization test", () => {
+  const producerId: TenantId = generateId();
   const descriptor1: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
@@ -22,6 +28,7 @@ describe("API /eservices authorization test", () => {
 
   const eservice1: EService = {
     ...getMockEService(),
+    producerId,
     descriptors: [descriptor1],
   };
 
@@ -32,6 +39,7 @@ describe("API /eservices authorization test", () => {
 
   const eservice2: EService = {
     ...getMockEService(),
+    producerId,
     descriptors: [descriptor2],
   };
 
@@ -47,12 +55,30 @@ describe("API /eservices authorization test", () => {
 
   catalogService.getEServices = vi.fn().mockResolvedValue(mockResponse);
 
-  const makeRequest = async (token: string) =>
+  const queryParams = {
+    name: "",
+    eservicesIds: [eservice1.id, eservice2.id],
+    producersIds: [producerId],
+    attributesIds: [],
+    states: [],
+    agreementStates: [],
+    mode: eServiceModeToApiEServiceMode(eserviceMode.deliver),
+    isConsumerDelegable: false,
+    delegated: false,
+    templatesIds: [],
+    offset: 0,
+    limit: 50,
+  };
+
+  const makeRequest = async (
+    token: string,
+    query: typeof queryParams = queryParams
+  ) =>
     request(api)
       .get("/eservices")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit: 10 });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -81,5 +107,22 @@ describe("API /eservices authorization test", () => {
     const res = await makeRequest(token);
 
     expect(res.status).toBe(403);
+  });
+
+  it.each([
+    { ...queryParams, offset: -1 },
+    { ...queryParams, offset: "not-a-number" },
+    { ...queryParams, limit: -10 },
+    { ...queryParams, limit: "not-a-number" },
+    { ...queryParams, mode: "invalid-mode" },
+    { ...queryParams, isConsumerDelegable: "yes" },
+    { ...queryParams, delegated: 1 },
+    { ...queryParams, states: ["invalid-state"] },
+    { ...queryParams, agreementStates: ["wrong"] },
+  ])("Should return 400 if passed invalid params: %s", async (query) => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, query as typeof queryParams);
+
+    expect(res.status).toBe(400);
   });
 });

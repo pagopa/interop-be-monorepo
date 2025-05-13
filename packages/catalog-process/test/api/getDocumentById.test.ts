@@ -3,9 +3,12 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Descriptor,
+  DescriptorId,
   descriptorState,
   Document,
   EService,
+  EServiceDocumentId,
+  EServiceId,
   generateId,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
@@ -18,6 +21,11 @@ import {
   getMockDocument,
 } from "../mockUtils.js";
 import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
+import {
+  eServiceDescriptorNotFound,
+  eServiceDocumentNotFound,
+  eServiceNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId} authorization test", () => {
   const document: Document = getMockDocument();
@@ -39,9 +47,9 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string,
-    documentId: string
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
+    documentId: EServiceDocumentId
   ) =>
     request(api)
       .get(
@@ -87,13 +95,33 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      "",
-      "",
-      ""
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(eservice.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(eservice.id, descriptor.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDocumentNotFound(eservice.id, descriptor.id, document.id),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.getDocumentById = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eservice.id,
+        descriptor.id,
+        document.id
+      );
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

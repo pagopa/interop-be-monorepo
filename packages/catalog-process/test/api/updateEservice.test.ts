@@ -5,7 +5,9 @@ import {
   Descriptor,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { generateToken, randomArrayItem } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -14,6 +16,12 @@ import { match } from "ts-pattern";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import {
+  eServiceDescriptorNotFound,
+  eServiceNotFound,
+  eserviceNotInDraftState,
+  templateInstanceNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId} authorization test", () => {
   const descriptor: Descriptor = {
@@ -50,12 +58,16 @@ describe("API /eservices/{eServiceId} authorization test", () => {
 
   catalogService.updateEService = vi.fn().mockResolvedValue(mockEService);
 
-  const makeRequest = async (token: string, eServiceId: string) =>
+  const makeRequest = async (
+    token: string,
+    eServiceId: string,
+    body: catalogApi.UpdateEServiceSeed = eserviceSeed
+  ) =>
     request(api)
       .put(`/eservices/${eServiceId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(eserviceSeed);
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
@@ -77,8 +89,63 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "");
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(mockEService.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
+      expectedStatus: 404,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: eserviceNotInDraftState(mockEService.id),
+      expectedStatus: 400,
+    },
+    {
+      error: templateInstanceNotAllowed(
+        mockEService.id,
+        mockEService.templateId!
+      ),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.updateEService = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id);
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    [{}, mockEService.id],
+    [{ name: 123 }, mockEService.id],
+    [{ description: null }, mockEService.id],
+    [{ technology: "invalidTechnology" }, mockEService.id],
+    [{ mode: "invalidMode" }, mockEService.id],
+    [{ isSignalHubEnabled: undefined }, mockEService.id],
+    [{ isConsumerDelegable: "stringInsteadOfBool" }, mockEService.id],
+    [{ ...eserviceSeed }, "invalidId"],
+    [{ ...eserviceSeed }, mockEService.id],
+  ])(
+    "Should return 400 if passed invalid eService update params: %s (eServiceId: %s)",
+    async (body, eServiceId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        body as catalogApi.UpdateEServiceSeed
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

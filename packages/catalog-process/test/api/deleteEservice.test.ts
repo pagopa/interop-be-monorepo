@@ -1,18 +1,27 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { EService, generateId } from "pagopa-interop-models";
+import {
+  EService,
+  EServiceId,
+  generateId,
+  operationForbidden,
+} from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockEService } from "../mockUtils.js";
+import {
+  eServiceNotFound,
+  eserviceNotInDraftState,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId} authorization test", () => {
   const eservice: EService = getMockEService();
 
   catalogService.deleteEService = vi.fn().mockResolvedValue({});
 
-  const makeRequest = async (token: string, eServiceId: string) =>
+  const makeRequest = async (token: string, eServiceId: EServiceId) =>
     request(api)
       .delete(`/eservices/${eServiceId}`)
       .set("Authorization", `Bearer ${token}`)
@@ -38,8 +47,38 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "");
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eserviceNotInDraftState(eservice.id),
+      expectedStatus: 409,
+    },
+    {
+      error: eServiceNotFound(eservice.id),
+      expectedStatus: 404,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.deleteEService = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eservice.id);
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([{}, { eServiceId: "invalidId" }])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ eServiceId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eServiceId as EServiceId);
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

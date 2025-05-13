@@ -103,8 +103,8 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string,
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
     technology: Technology
   ) =>
     request(api)

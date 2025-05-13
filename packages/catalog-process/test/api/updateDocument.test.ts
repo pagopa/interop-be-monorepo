@@ -3,9 +3,13 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
+  EServiceDocumentId,
+  EServiceId,
   generateId,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -17,6 +21,14 @@ import {
   getMockEService,
 } from "../mockUtils.js";
 import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
+import {
+  documentPrettyNameDuplicate,
+  eServiceNotFound,
+  eServiceDescriptorNotFound,
+  eServiceDocumentNotFound,
+  templateInstanceNotAllowed,
+  notValidDescriptorState,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update authorization test", () => {
   const mockDocument = getMockDocument();
@@ -38,11 +50,15 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
 
   catalogService.updateDocument = vi.fn().mockResolvedValue(mockDocument);
 
+  const mockUpdateEServiceDescriptorDocumentSeed: catalogApi.UpdateEServiceDescriptorDocumentSeed =
+    { prettyName: "updated prettyName" };
+
   const makeRequest = async (
     token: string,
     eServiceId: string,
     descriptorId: string,
-    documentId: string
+    documentId: string,
+    body: catalogApi.UpdateEServiceDescriptorDocumentSeed = mockUpdateEServiceDescriptorDocumentSeed
   ) =>
     request(api)
       .post(
@@ -50,7 +66,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({ prettyName: "updated prettyName" });
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
@@ -82,13 +98,93 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      "",
-      "",
-      ""
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: documentPrettyNameDuplicate("pretty name", descriptor.id),
+      expectedStatus: 409,
+    },
+    {
+      error: eServiceNotFound(mockEService.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDocumentNotFound(
+        mockEService.id,
+        descriptor.id,
+        mockDocument.id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: templateInstanceNotAllowed(
+        mockEService.id,
+        mockEService.templateId!
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: notValidDescriptorState(descriptor.id, descriptor.state),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.updateDocument = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockEService.id,
+        descriptor.id,
+        mockDocument.id
+      );
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    [{}, mockEService.id, descriptor.id, mockDocument.id],
+    [{ prettyName: 123 }, mockEService.id, descriptor.id, mockDocument.id],
+    [
+      { ...mockUpdateEServiceDescriptorDocumentSeed },
+      "invalidId",
+      descriptor.id,
+      mockDocument.id,
+    ],
+    [
+      { ...mockUpdateEServiceDescriptorDocumentSeed },
+      mockEService.id,
+      "invalidId",
+      mockDocument.id,
+    ],
+    [
+      { ...mockUpdateEServiceDescriptorDocumentSeed },
+      mockEService.id,
+      descriptor.id,
+      "invalidId",
+    ],
+  ])(
+    "Should return 400 if passed invalid params: %s (eserviceId: %s) (descriptorId: %s) (documentId: %s)",
+    async (body, eServiceId, descriptorId, documentId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        descriptorId as DescriptorId,
+        documentId as EServiceDocumentId,
+        body as catalogApi.UpdateEServiceDescriptorDocumentSeed
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

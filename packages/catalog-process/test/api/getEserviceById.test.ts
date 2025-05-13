@@ -53,14 +53,12 @@ describe("API /eservices/{eServiceId} authorization test", () => {
   });
 
   it("Should return 404 for eServiceNotFound", async () => {
-    vi.spyOn(catalogService, "getEServiceById").mockRejectedValue(
-      eServiceNotFound(eservice.id)
-    );
+    catalogService.getEServiceById = vi
+      .fn()
+      .mockRejectedValue(eServiceNotFound(eservice.id));
 
-    const res = await makeRequest(
-      generateToken(authRole.ADMIN_ROLE),
-      generateId()
-    );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, eservice.id);
 
     expect(res.status).toBe(404);
   });

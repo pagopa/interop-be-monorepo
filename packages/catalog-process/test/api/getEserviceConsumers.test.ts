@@ -5,6 +5,7 @@ import {
   Descriptor,
   descriptorState,
   EService,
+  EServiceId,
   generateId,
 } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
@@ -68,12 +69,18 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
 
   catalogService.getEServiceConsumers = vi.fn().mockResolvedValue(mockResponse);
 
-  const makeRequest = async (token: string, eServiceId: string) =>
+  const queryParams = { offset: 0, limit: 10 };
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId,
+    query: typeof queryParams = queryParams
+  ) =>
     request(api)
       .get(`/eservices/${eServiceId}/consumers`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit: 10 });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -101,8 +108,24 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "");
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    [{}, eservice.id],
+    [{ ...queryParams, offset: "invalid" }, eservice.id],
+    [{ ...queryParams, limit: "invalid" }, eservice.id],
+    [{ ...queryParams, offset: -2 }, eservice.id],
+    [{ ...queryParams, limit: 100 }, eservice.id],
+    [{ ...queryParams }, "invalid"],
+  ])(
+    "Should return 400 if passed invalid params: %s (eserviceId: %s)",
+    async (query, eserviceId) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eserviceId as EServiceId,
+        query as typeof queryParams
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

@@ -1,7 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { EService, generateId, tenantKind } from "pagopa-interop-models";
+import {
+  EService,
+  EServiceId,
+  generateId,
+  operationForbidden,
+  RiskAnalysisId,
+  tenantKind,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockValidRiskAnalysis,
@@ -9,6 +16,13 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockEService } from "../mockUtils.js";
+import {
+  eServiceNotFound,
+  eserviceNotInDraftState,
+  eserviceNotInReceiveMode,
+  eServiceRiskAnalysisNotFound,
+  templateInstanceNotAllowed,
+} from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorization test", () => {
   const riskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
@@ -21,8 +35,8 @@ describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorizatio
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    riskAnalysisId: string
+    eServiceId: EServiceId,
+    riskAnalysisId: RiskAnalysisId
   ) =>
     request(api)
       .delete(`/eservices/${eServiceId}/riskAnalysis/${riskAnalysisId}`)
@@ -49,8 +63,58 @@ describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorizatio
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 not found", async () => {
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceNotFound(eservice.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceRiskAnalysisNotFound(eservice.id, riskAnalysis.id),
+      expectedStatus: 404,
+    },
+    {
+      error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
+      expectedStatus: 403,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: eserviceNotInDraftState(eservice.id),
+      expectedStatus: 400,
+    },
+    {
+      error: eserviceNotInReceiveMode(eservice.id),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      catalogService.deleteRiskAnalysis = vi.fn().mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eservice.id, riskAnalysis.id);
+
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    {},
+    { eServiceId: "invalidId", riskAnalysisId: riskAnalysis.id },
+    { eServiceId: eservice.id, riskAnalysisId: "invalid" },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ eServiceId, riskAnalysisId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId as EServiceId,
+        riskAnalysisId as RiskAnalysisId
+      );
+
+      expect(res.status).toBe(400);
+    }
+  );
 });

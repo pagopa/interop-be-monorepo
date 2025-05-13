@@ -41,8 +41,8 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authoriza
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/descriptors/${descriptorId}/approve`)
