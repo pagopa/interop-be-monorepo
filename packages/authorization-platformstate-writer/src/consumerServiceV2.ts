@@ -164,6 +164,7 @@ export async function handleMessageV2(
               kid: msg.data.kid,
             }),
             updatedAt: new Date().toISOString(),
+            adminId: client.adminId,
           };
           await upsertTokenGenStatesApiClient(
             tokenGenStatesApiClient,
@@ -362,7 +363,7 @@ export async function handleMessageV2(
       );
     })
     .with(
-      { type: "ClientAdminRemovedBySelfcare" },
+      { type: "ClientAdminRoleRevoked" },
       { type: "ClientAdminRemoved" },
       async (msg) => {
         const client = parseClient(msg.data.client, msg.type);
@@ -416,6 +417,63 @@ export async function handleMessageV2(
         );
       }
     )
+    .with({ type: "ClientAdminSet" }, async (msg) => {
+      const client = parseClient(msg.data.client, msg.type);
+      const pk = makePlatformStatesClientPK(client.id);
+      const clientEntry = await readPlatformClientEntry(pk, dynamoDBClient);
+
+      if (clientEntry && clientEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${clientEntry.PK}. Reason: a more recent entry already exists`
+        );
+        return Promise.resolve();
+      }
+
+      // platform-states
+      const platformClientEntry: PlatformStatesClientEntry = {
+        PK: pk,
+        state: itemState.active,
+        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
+        clientConsumerId: client.consumerId,
+        clientPurposesIds: [],
+        version: msg.version,
+        updatedAt: new Date().toISOString(),
+        clientAdminId: client.adminId,
+      };
+      await upsertPlatformClientEntry(
+        platformClientEntry,
+        dynamoDBClient,
+        logger
+      );
+
+      // token-generation-states
+      await Promise.all(
+        client.keys.map(async (key) => {
+          const tokenGenStatesApiClient: TokenGenerationStatesApiClient = {
+            PK: makeTokenGenerationStatesClientKidPK({
+              clientId: client.id,
+              kid: key.kid,
+            }),
+            consumerId: client.consumerId,
+            clientKind: clientKindTokenGenStates.api,
+            publicKey: key.encodedPem,
+            GSIPK_clientId: client.id,
+            GSIPK_clientId_kid: makeGSIPKClientIdKid({
+              clientId: client.id,
+              kid: key.kid,
+            }),
+            updatedAt: new Date().toISOString(),
+            adminId: client.adminId,
+          };
+
+          await upsertTokenGenStatesApiClient(
+            tokenGenStatesApiClient,
+            dynamoDBClient,
+            logger
+          );
+        })
+      );
+    })
     .with(
       {
         type: P.union(

@@ -17,7 +17,8 @@ import {
 } from "../gen/v1/authorization/events.js";
 import {
   ClientAddedV2,
-  ClientAdminRemovedBySelfcareV2,
+  ClientAdminSetV2,
+  ClientAdminRoleRevokedV2,
   ClientAdminRemovedV2,
   ClientDeletedV2,
   ClientKeyAddedV2,
@@ -83,8 +84,8 @@ export function authorizationEventToBinaryDataV2(
     .with({ type: "ClientDeleted" }, ({ data }) =>
       ClientDeletedV2.toBinary(data)
     )
-    .with({ type: "ClientAdminRemovedBySelfcare" }, ({ data }) =>
-      ClientAdminRemovedBySelfcareV2.toBinary(data)
+    .with({ type: "ClientAdminRoleRevoked" }, ({ data }) =>
+      ClientAdminRoleRevokedV2.toBinary(data)
     )
     .with({ type: "ClientAdminRemoved" }, ({ data }) =>
       ClientAdminRemovedV2.toBinary(data)
@@ -100,6 +101,9 @@ export function authorizationEventToBinaryDataV2(
     )
     .with({ type: "ClientUserDeleted" }, ({ data }) =>
       ClientUserDeletedV2.toBinary(data)
+    )
+    .with({ type: "ClientAdminSet" }, ({ data }) =>
+      ClientAdminSetV2.toBinary(data)
     )
     .with({ type: "ClientPurposeAdded" }, ({ data }) =>
       ClientPurposeAddedV2.toBinary(data)
@@ -206,8 +210,8 @@ export const AuthorizationEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("ClientAdminRemovedBySelfcare"),
-    data: protobufDecoder(ClientAdminRemovedBySelfcareV2),
+    type: z.literal("ClientAdminRoleRevoked"),
+    data: protobufDecoder(ClientAdminRoleRevokedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -233,6 +237,11 @@ export const AuthorizationEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("ClientUserDeleted"),
     data: protobufDecoder(ClientUserDeletedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("ClientAdminSet"),
+    data: protobufDecoder(ClientAdminSetV2),
   }),
   z.object({
     event_version: z.literal(2),

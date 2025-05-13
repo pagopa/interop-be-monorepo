@@ -8,6 +8,7 @@ export const eventV2TypeMapper = (
 ): string =>
   match(eventType)
     .with("ClientAdded", () => "client-added")
+    .with("ClientAdminSet", () => "admin-set")
     .with("ClientDeleted", () => "client-deleted")
     .with("ClientKeyAdded", () => "keys-added")
     .with("ClientKeyDeleted", () => "key-deleted")
@@ -16,7 +17,7 @@ export const eventV2TypeMapper = (
     .with("ClientPurposeAdded", () => "client-purpose-added")
     .with("ClientPurposeRemoved", () => "client-purpose-removed")
     .with(
-      "ClientAdminRemovedBySelfcare",
+      "ClientAdminRoleRevoked",
       "ClientAdminRemoved",
       "ProducerKeychainAdded",
       "ProducerKeychainDeleted",
