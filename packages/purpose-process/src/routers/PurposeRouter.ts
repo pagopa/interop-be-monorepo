@@ -11,6 +11,7 @@ import {
   initPDFGenerator,
   authRole,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import {
   EServiceId,
@@ -19,6 +20,14 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  makeDrizzleConnection,
+  purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import {
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
@@ -48,10 +57,35 @@ import {
   getPurposesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
+const readModelDB = makeDrizzleConnection(config);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  purposeReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+  delegationReadModelServiceSQL,
+});
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 const fileManager = initFileManager(config);
 const pdfGenerator = await initPDFGenerator();
 
@@ -83,6 +117,7 @@ const purposeRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
+    M2M_ADMIN_ROLE,
   } = authRole;
   purposeRouter
     .get("/purposes", async (req, res) => {
@@ -95,6 +130,7 @@ const purposeRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
         const {
@@ -136,10 +172,15 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.createPurpose(req.body, ctx);
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.createPurpose(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -214,13 +255,19 @@ const purposeRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.getPurposeById(
-            unsafeBrandId(req.params.id),
-            ctx
-          );
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.getPurposeById(
+          unsafeBrandId(req.params.id),
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -294,20 +341,25 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const purposeVersion = await purposeService.createPurposeVersion(
+        const {
+          data: { purpose, isRiskAnalysisValid, createdVersionId },
+          metadata,
+        } = await purposeService.createPurposeVersion(
           unsafeBrandId(req.params.purposeId),
           req.body,
           ctx
         );
-        return res
-          .status(200)
-          .send(
-            purposeApi.PurposeVersion.parse(
-              purposeVersionToApiPurposeVersion(purposeVersion)
-            )
-          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res.status(200).send(
+          purposeApi.CreatedPurposeVersion.parse({
+            purpose: purposeToApiPurpose(purpose, isRiskAnalysisValid),
+            createdVersionId,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

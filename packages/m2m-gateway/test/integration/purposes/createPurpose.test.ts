@@ -1,6 +1,6 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -11,34 +11,38 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
+  missingActivePurposeVersion,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
+  getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
-import { toM2MPurpose } from "../../../src/api/purposeApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("createPurpose", () => {
-  const mockPurposeProcessResponse = getMockedApiPurpose();
+  const mockPurposeProcessGetResponse = getMockedApiPurpose();
 
   const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
-    consumerId: mockPurposeProcessResponse.data.id,
-    dailyCalls: mockPurposeProcessResponse.data.versions[0].dailyCalls,
-    description: mockPurposeProcessResponse.data.description,
-    eserviceId: mockPurposeProcessResponse.data.eserviceId,
-    isFreeOfCharge: mockPurposeProcessResponse.data.isFreeOfCharge,
-    title: mockPurposeProcessResponse.data.title,
+    dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
+    description: mockPurposeProcessGetResponse.data.description,
+    eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
+    isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
+    title: mockPurposeProcessGetResponse.data.title,
   };
 
-  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MPurpose(
-    mockPurposeProcessResponse.data
-  );
+  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose({
+    purpose: mockPurposeProcessGetResponse.data,
+    logger: genericLogger,
+  });
 
-  const mockCreatePurpose = vi.fn().mockResolvedValue(mockM2MPurpose);
+  const mockCreatePurpose = vi
+    .fn()
+    .mockResolvedValue(mockPurposeProcessGetResponse);
   const mockGetPurpose = vi.fn(
-    mockPollingResponse(mockPurposeProcessResponse, 2)
+    mockPollingResponse(mockPurposeProcessGetResponse, 2)
   );
 
   mockInteropBeClients.purposeProcessClient = {
@@ -47,27 +51,29 @@ describe("createPurpose", () => {
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
     mockCreatePurpose.mockClear();
     mockGetPurpose.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mPurposeResponse: m2mGatewayApi.Purpose = mockM2MPurpose;
+  it("Should succeed and perform service calls", async () => {
+    const mockAppContext = getMockM2MAdminAppContext();
 
     const result = await purposeService.createPurpose(
-      getMockM2MAdminAppContext(),
-      mockPurposeSeed
+      mockPurposeSeed,
+      mockAppContext
     );
 
-    expect(result).toEqual(m2mPurposeResponse);
+    expect(result).toEqual(mockM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.createPurpose,
-      body: mockPurposeSeed,
+      body: {
+        ...mockPurposeSeed,
+        consumerId: mockAppContext.authData.organizationId,
+      },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
-      params: { delegationId: m2mPurposeResponse.id },
+      params: { id: mockM2MPurpose.id },
     });
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
@@ -76,41 +82,56 @@ describe("createPurpose", () => {
 
   it("Should throw missingMetadata in case the purpose returned by the creation POST call has no metadata", async () => {
     mockCreatePurpose.mockResolvedValueOnce({
-      ...mockPurposeProcessResponse,
+      ...mockPurposeProcessGetResponse,
       metadata: undefined,
     });
 
     await expect(
-      purposeService.createPurpose(getMockM2MAdminAppContext(), mockPurposeSeed)
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
     ).rejects.toThrowError(missingMetadata());
   });
 
   it("Should throw missingMetadata in case the purpose returned by the polling GET call has no metadata", async () => {
     mockGetPurpose.mockResolvedValueOnce({
-      ...mockPurposeProcessResponse,
+      ...mockPurposeProcessGetResponse,
       metadata: undefined,
     });
 
     await expect(
-      purposeService.createPurpose(getMockM2MAdminAppContext(), mockPurposeSeed)
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
     ).rejects.toThrowError(missingMetadata());
   });
 
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
     mockGetPurpose.mockImplementation(
       mockPollingResponse(
-        mockPurposeProcessResponse,
+        mockPurposeProcessGetResponse,
         config.defaultPollingMaxAttempts + 1
       )
     );
 
     await expect(
-      purposeService.createPurpose(getMockM2MAdminAppContext(), mockPurposeSeed)
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
     ).rejects.toThrowError(
       resourcePollingTimeout(config.defaultPollingMaxAttempts)
     );
     expect(mockGetPurpose).toHaveBeenCalledTimes(
       config.defaultPollingMaxAttempts
     );
+  });
+
+  it("Should throw missingActivePurposeVersion due to missing valid current version", async () => {
+    const invalidPurpose = getMockedApiPurpose({
+      versions: [
+        getMockedApiPurposeVersion({ state: "WAITING_FOR_APPROVAL" }),
+        getMockedApiPurposeVersion({ state: "REJECTED" }),
+      ],
+    });
+
+    mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
+
+    await expect(
+      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
+    ).rejects.toThrow(missingActivePurposeVersion(invalidPurpose.data.id));
   });
 });
