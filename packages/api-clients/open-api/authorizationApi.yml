@@ -435,7 +435,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: clientId
         in: path
-        description: ID of Client the users belong to
+        description: ID of the client where to set the admin user
         required: true
         schema:
           type: string
