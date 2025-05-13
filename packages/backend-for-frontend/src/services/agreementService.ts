@@ -877,12 +877,12 @@ async function getConsumerProducerEserviceDelegation(
       headers,
     }));
 
-  const eservice = await catalogProcessClient.getEServiceById({
+  const eserviceTask = catalogProcessClient.getEServiceById({
     params: { eServiceId: agreement.eserviceId },
     headers,
   });
 
-  const delegation = await delegationProcessClient.delegation.getDelegations({
+  const delegationTask = delegationProcessClient.delegation.getDelegations({
     queries: {
       delegatorIds: [agreement.consumerId],
       eserviceIds: [agreement.eserviceId],
@@ -893,6 +893,11 @@ async function getConsumerProducerEserviceDelegation(
     },
     headers,
   });
+
+  const [eservice, delegation] = await Promise.all([
+    eserviceTask,
+    delegationTask,
+  ]);
 
   return {
     consumer,
