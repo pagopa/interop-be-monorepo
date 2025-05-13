@@ -1,4 +1,4 @@
-import { and, eq, ilike, inArray, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray } from "drizzle-orm";
 import { ascLower, escapeRegExp, withTotalCount } from "pagopa-interop-commons";
 import {
   Client,
@@ -136,9 +136,9 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(clientInReadmodelClient.id)
+        .orderBy(ascLower(clientInReadmodelClient.name))
         .limit(limit)
         .offset(offset)
-        .orderBy(ascLower(clientInReadmodelClient.name))
         .as("subquery");
 
       const queryResult = await readModelDB
@@ -327,9 +327,9 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(producerKeychainInReadmodelProducerKeychain.id)
+        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
         .limit(limit)
         .offset(offset)
-        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
         .as("subquery");
 
       const queryResult = await readModelDB

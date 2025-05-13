@@ -441,6 +441,10 @@ export function readModelServiceBuilderSQL(
             agreementInReadmodelAgreement.id,
             agreementStampInReadmodelAgreement.agreementId
           )
+        )
+        .orderBy(
+          ascLower(eserviceInReadmodelCatalog.name),
+          agreementInReadmodelAgreement.id
         );
 
       const agreements = aggregateAgreementArray(
@@ -630,6 +634,10 @@ export function readModelServiceBuilderSQL(
             agreementInReadmodelAgreement.id,
             agreementStampInReadmodelAgreement.agreementId
           )
+        )
+        .orderBy(
+          ascLower(eserviceInReadmodelCatalog.name),
+          agreementInReadmodelAgreement.id
         );
 
       return aggregateAgreementArray(toAgreementAggregatorArray(resultSet));
