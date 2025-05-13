@@ -9,7 +9,6 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingActivePurposeVersion,
   missingMetadata,
-  purposeNotFound,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import { getMockedApiPurpose } from "../../mockUtils.js";
