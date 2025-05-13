@@ -37,12 +37,12 @@ describe("API POST /purposes test", () => {
       .mockResolvedValue({ purpose: mockPurpose, isRiskAnalysisValid });
   });
 
-  const makeRequest = async (token: string, data: object = mockPurposeSeed) =>
+  const makeRequest = async (token: string, body: object = mockPurposeSeed) =>
     request(api)
       .post("/purposes")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -88,16 +88,14 @@ describe("API POST /purposes test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid purpose seed", async () => {
+  it.each([
+    { body: {} },
+    { body: { ...mockPurposeSeed, eserviceId: undefined } },
+    { body: { ...mockPurposeSeed, eserviceId: "invalid" } },
+    { body: { ...mockPurposeSeed, extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      eserviceId: mockEService.id,
-      title: "test",
-      dailyCalls: 10,
-      description: "test",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "reason",
-    });
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });

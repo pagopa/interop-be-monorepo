@@ -33,13 +33,13 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
   const makeRequest = async (
     token: string,
     riskAnalysisVersion: string = "1",
-    eserviceId: string = generateId()
+    query: object = { eserviceId: generateId() }
   ) =>
     request(api)
       .get(`/purposes/riskAnalysis/version/${riskAnalysisVersion}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ eserviceId });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -87,9 +87,12 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
     }
   );
 
-  it("Should return 400 if passed an invalid eservice id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "1", "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ query: { eserviceId: "invalid" } }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ query }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, undefined, query);
+      expect(res.status).toBe(400);
+    }
+  );
 });

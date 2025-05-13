@@ -91,9 +91,16 @@ describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{document
     }
   );
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { purposeId: "invalid" },
+    { versionId: "invalid" },
+    { documentId: "invalid" },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ purposeId, versionId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, purposeId, versionId, documentId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

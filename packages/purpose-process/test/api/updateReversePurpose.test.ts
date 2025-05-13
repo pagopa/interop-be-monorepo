@@ -45,13 +45,14 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id
+    purposeId: string = mockPurpose.id,
+    body: object = mockReversePurposeUpdateContent
   ) =>
     request(api)
       .post(`/reverse/purposes/${purposeId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(mockReversePurposeUpdateContent);
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -99,9 +100,17 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { purposeId: "invalid" },
+    { body: {} },
+    { body: { ...mockReversePurposeUpdateContent, dailyCalls: -1 } },
+    { body: { ...mockReversePurposeUpdateContent, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ purposeId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, purposeId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });

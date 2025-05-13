@@ -27,6 +27,7 @@ import {
 describe("API POST /purposes/{purposeId}/versions test", () => {
   const mockPurpose: Purpose = getMockPurpose();
   const mockPurposeVersion = getMockPurposeVersion();
+  const defaultBody = { dailyCalls: 10 };
 
   const apiResponse = purposeApi.PurposeVersion.parse(
     purposeVersionToApiPurposeVersion(mockPurposeVersion)
@@ -45,13 +46,13 @@ describe("API POST /purposes/{purposeId}/versions test", () => {
   const makeRequest = async (
     token: string,
     purposeId: string = mockPurpose.id,
-    data: object = { dailyCalls: 10 }
+    body: object = defaultBody
   ) =>
     request(api)
       .post(`/purposes/${purposeId}/versions`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -97,9 +98,17 @@ describe("API POST /purposes/{purposeId}/versions test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { purposeId: "invalid" },
+    { body: {} },
+    { body: { dailyCalls: -1 } },
+    { body: { ...defaultBody, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ purposeId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, purposeId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });

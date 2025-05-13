@@ -26,12 +26,15 @@ describe("API GET /purposes/riskAnalysis/latest test", () => {
       .mockResolvedValue(mockRiskAnalysisConfiguration);
   });
 
-  const makeRequest = async (token: string, kind: string = tenantKind.PA) =>
+  const makeRequest = async (
+    token: string,
+    query: object = { tenantKind: tenantKind.PA }
+  ) =>
     request(api)
       .get("/purposes/riskAnalysis/latest")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ tenantKind: kind });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -58,9 +61,12 @@ describe("API GET /purposes/riskAnalysis/latest test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid tenant kind", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ query: { tenantKind: "invalid" } }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ query }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, query);
+      expect(res.status).toBe(400);
+    }
+  );
 });

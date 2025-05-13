@@ -51,13 +51,13 @@ describe("API POST /reverse/purposes test", () => {
 
   const makeRequest = async (
     token: string,
-    data: object = mockReversePurposeSeed
+    body: object = mockReversePurposeSeed
   ) =>
     request(api)
       .post("/reverse/purposes")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -112,16 +112,14 @@ describe("API POST /reverse/purposes test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid reverse purpose seed", async () => {
+  it.each([
+    { body: {} },
+    { body: { ...mockReversePurposeSeed, eServiceId: undefined } },
+    { body: { ...mockReversePurposeSeed, eServiceId: "invalid" } },
+    { body: { ...mockReversePurposeSeed, extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      eserviceId: mockEService.id,
-      title: "test",
-      dailyCalls: 10,
-      description: "test",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "reason",
-    });
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });
