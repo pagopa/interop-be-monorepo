@@ -5,13 +5,18 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/purposes/:purposeId/versions
+  url: {{host-m2m-gw}}/purposes/:purposeId/versions?offset=0&limit=10
   body: none
   auth: none
 }
 
 params:path {
   purposeId: {{purposeId}}
+}
+
+params:query {
+  offset: 0
+  limit: 10
 }
 
 headers {
