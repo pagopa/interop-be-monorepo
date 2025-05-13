@@ -667,12 +667,15 @@ paths:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Activated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PurposeVersion"
+                $ref: "#/components/schemas/UpdatedPurposeVersion"
         "400":
           description: Bad Request
           content:
@@ -1379,6 +1382,18 @@ components:
         purpose:
           $ref: "#/components/schemas/Purpose"
         createdVersionId:
+          type: string
+          format: uuid
+    UpdatedPurposeVersion:
+      type: object
+      additionalProperties: false
+      required:
+        - purpose
+        - updatedVersionId
+      properties:
+        purpose:
+          $ref: "#/components/schemas/Purpose"
+        updatedVersionId:
           type: string
           format: uuid
     Problem:

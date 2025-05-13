@@ -16,6 +16,7 @@ import {
   getPurposesErrorMapper,
   getPurposeVersionErrorMapper,
   getPurposeErrorMapper,
+  activatePurposeVersionErrorMapper,
 } from "../utils/errorMappers.js";
 
 const purposeRouter = (
@@ -158,31 +159,27 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post(
-      "/purposes/:purposeId/versions/:versionId/activate",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-        try {
-          validateAuthorization(ctx, [M2M_ROLE]);
+    .post("/purposes/:purposeId/activate", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          await purposeService.activatePurposeVersion(
-            ctx,
-            unsafeBrandId(req.params.purposeId),
-            unsafeBrandId(req.params.versionId)
-          );
+        await purposeService.activatePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
 
-          return res.status(204);
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error activating purpose ${req.params.purposeId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res.status(204);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          activatePurposeVersionErrorMapper,
+          ctx,
+          `Error activating purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post("/purposes/:purposeId/approve", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {

@@ -597,7 +597,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId,
-        versionId: result.id,
+        versionId: result.updatedVersionId,
       };
     },
     async deletePurpose(

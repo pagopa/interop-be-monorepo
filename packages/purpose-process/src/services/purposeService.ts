@@ -904,17 +904,27 @@ export function purposeServiceBuilder(
         purposeId: PurposeId;
         versionId: PurposeVersionId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<PurposeVersion> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        purpose: Purpose;
+        isRiskAnalysisValid: boolean;
+        updatedVersionId: string;
+      }>
+    > {
       logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      const eservice = await retrieveEService(
-        purpose.data.eserviceId,
-        readModelService
-      );
+      const [eservice, tenantKind] = await Promise.all([
+        retrieveEService(purpose.data.eserviceId, readModelService),
+        retrieveTenantKind(authData.organizationId, readModelService),
+      ]);
 
       if (purposeVersion.state === purposeVersionState.draft) {
         const riskAnalysisForm = purpose.data.riskAnalysisForm;
@@ -1113,8 +1123,25 @@ export function purposeServiceBuilder(
           throw tenantNotAllowed(authData.organizationId);
         });
 
-      await repository.createEvent(event);
-      return updatedPurposeVersion;
+      const createdEvent = await repository.createEvent(event);
+
+      const updatedPurpose = replacePurposeVersion(
+        purpose.data,
+        updatedPurposeVersion
+      );
+
+      return {
+        data: {
+          purpose: updatedPurpose,
+          isRiskAnalysisValid: isRiskAnalysisFormValid(
+            updatedPurpose.riskAnalysisForm,
+            false,
+            tenantKind
+          ),
+          updatedVersionId: updatedPurposeVersion.id,
+        },
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async createPurpose(
       purposeSeed: purposeApi.PurposeSeed,
@@ -1465,7 +1492,7 @@ const getOrganizationRole = async ({
 }: {
   purpose: Purpose;
   producerId: TenantId;
-  authData: UIAuthData;
+  authData: UIAuthData | M2MAdminAuthData;
   readModelService: ReadModelService;
 }): Promise<Ownership> => {
   if (

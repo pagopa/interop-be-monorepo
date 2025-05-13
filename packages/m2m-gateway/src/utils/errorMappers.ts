@@ -5,7 +5,11 @@ import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
 type ErrorCodes = M2MGatewayErrorCodes | CommonErrorCodes;
 
-const { HTTP_STATUS_NOT_FOUND, HTTP_STATUS_INTERNAL_SERVER_ERROR } = constants;
+const {
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_BAD_REQUEST,
+} = constants;
 
 export const getCertifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -30,4 +34,11 @@ export const getPurposeVersionErrorMapper = (
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const activatePurposeVersionErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("missingActivePurposeVersion", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
