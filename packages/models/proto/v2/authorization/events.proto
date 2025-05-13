@@ -34,6 +34,12 @@ message ClientUserDeletedV2 {
   ClientV2 client = 2;
 }
 
+message ClientAdminSetV2 {
+  string adminId = 1;
+  ClientV2 client = 2;
+  optional string oldAdminId = 3;
+}
+
 message ClientPurposeAddedV2 {
   string purposeId = 1;
   ClientV2 client = 2;
@@ -83,7 +89,12 @@ message ProducerKeychainEServiceRemovedV2 {
   ProducerKeychainV2 producerKeychain = 2;
 }
 
-message ClientAdminRemovedBySelfcareV2 {
+message ClientAdminRoleRevokedV2 {
+  ClientV2 client = 1;
+  string adminId = 2;
+}
+
+message ClientAdminRemovedV2 {
   ClientV2 client = 1;
   string adminId = 2;
 }

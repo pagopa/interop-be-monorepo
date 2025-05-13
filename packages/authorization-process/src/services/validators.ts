@@ -1,9 +1,11 @@
 import {
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   hasAtLeastOneUserRole,
   isUiAuthData,
   userRole,
+  UserRole,
 } from "pagopa-interop-commons";
 import {
   Client,
@@ -44,6 +46,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareV2InstitutionClient,
   userIdToCheck,
   correlationId,
+  userRolesToCheck,
 }: {
   selfcareId: string;
   requesterUserId: UserId;
@@ -51,13 +54,14 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   userIdToCheck: UserId;
   correlationId: CorrelationId;
+  userRolesToCheck: UserRole[];
 }): Promise<void> => {
   const users =
     await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
       params: { institutionId: selfcareId },
       queries: {
         userId: userIdToCheck,
-        productRoles: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE].join(","),
+        productRoles: userRolesToCheck.join(","),
       },
       headers: {
         "X-Correlation-Id": correlationId,
@@ -69,7 +73,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
 };
 
 export const assertOrganizationIsClientConsumer = (
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   client: Client
 ): void => {
   if (client.consumerId !== authData.organizationId) {
