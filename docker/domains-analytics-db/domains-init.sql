@@ -155,3 +155,70 @@ CREATE TABLE domains.eservice_risk_analysis_answer (
   FOREIGN KEY (eservice_id)
     REFERENCES domains.eservice (id)
 );
+
+CREATE TABLE IF NOT EXISTS domains.purpose (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  eservice_id VARCHAR(36) NOT NULL,
+  consumer_id VARCHAR(36) NOT NULL,
+  delegation_id VARCHAR(36),
+  suspended_by_consumer BOOLEAN,
+  suspended_by_producer BOOLEAN,
+  title VARCHAR NOT NULL,
+  description VARCHAR NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP,
+  is_free_of_charge BOOLEAN NOT NULL,
+  free_of_charge_reason VARCHAR,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_form (
+  id VARCHAR(36),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  version VARCHAR NOT NULL,
+  risk_analysis_id VARCHAR(36),
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
+  id VARCHAR(36),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_risk_analysis_form(id),
+  kind VARCHAR NOT NULL,
+  key VARCHAR NOT NULL,
+  value VARCHAR(65535),
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_version (
+  id VARCHAR(36),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  state VARCHAR NOT NULL,
+  daily_calls INTEGER NOT NULL,
+  rejection_reason VARCHAR,
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP,
+  first_activation_at TIMESTAMP,
+  suspended_at TIMESTAMP,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
+  id VARCHAR(36),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);

@@ -20,9 +20,11 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
+  PurposeDbTable,
 } from "../src/model/db.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
+import { purposeServiceBuilder } from "../src/service/purposeService.js";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
@@ -57,11 +59,17 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      PurposeDbTable.purpose,
+      PurposeDbTable.purpose_version,
+      PurposeDbTable.purpose_version_document,
+      PurposeDbTable.purpose_risk_analysis_form,
+      PurposeDbTable.purpose_risk_analysis_answer,
     ]);
     await setupDbServiceBuilder(db.conn, config).setupStagingDeletingByIdTables(
       [
         DeletingDbTable.catalog_deleting_table,
         DeletingDbTable.attribute_deleting_table,
+        DeletingDbTable.purpose_deleting_table,
       ]
     );
   },
@@ -70,6 +78,7 @@ await retryConnection(
 
 export const attributeService = attributeServiceBuilder(dbContext);
 export const catalogService = catalogServiceBuilder(dbContext);
+export const purposeService = purposeServiceBuilder(dbContext);
 export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
@@ -377,4 +386,34 @@ export function createBaseEserviceItem(overrides?: any): any {
     rejectionReasonsSQL: [],
     templateVersionRefsSQL: [],
   };
+}
+
+export async function resetPurposeTables(dbContext: any): Promise<void> {
+  const tables = [
+    PurposeDbTable.purpose,
+    PurposeDbTable.purpose_version,
+    PurposeDbTable.purpose_version_document,
+    PurposeDbTable.purpose_risk_analysis_form,
+    PurposeDbTable.purpose_risk_analysis_answer,
+  ];
+  await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
+}
+
+export async function getPurposeFromDb(
+  purposeId: string,
+  db: DBContext
+): Promise<any> {
+  return db.conn.oneOrNone(`SELECT * FROM domains.purpose WHERE id = $1`, [
+    purposeId,
+  ]);
+}
+
+export async function getVersionFromDb(
+  versionId: string,
+  db: DBContext
+): Promise<any> {
+  return db.conn.oneOrNone(
+    `SELECT * FROM domains.purpose_version WHERE id = $1`,
+    [versionId]
+  );
 }

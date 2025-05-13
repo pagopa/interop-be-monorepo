@@ -5,6 +5,7 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
+  PurposeDbTable,
 } from "../src/model/db.js";
 import { setupStagingTablesError } from "../src/model/errors.js";
 import { dbContext, getTablesByName } from "./utils.js";
@@ -25,6 +26,11 @@ describe("Setup DB Service tests for attribute tables", async () => {
     CatalogDbTable.eservice_descriptor_template_version_ref,
     CatalogDbTable.eservice_risk_analysis,
     CatalogDbTable.eservice_risk_analysis_answer,
+    PurposeDbTable.purpose,
+    PurposeDbTable.purpose_version,
+    PurposeDbTable.purpose_version_document,
+    PurposeDbTable.purpose_risk_analysis_form,
+    PurposeDbTable.purpose_risk_analysis_answer,
   ];
 
   const stagingTables = [...attributeTables, ...catalogTables];
@@ -65,19 +71,22 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingDeletingByIdTables([
       DeletingDbTable.attribute_deleting_table,
       DeletingDbTable.catalog_deleting_table,
+      DeletingDbTable.purpose_deleting_table,
     ]);
 
     const result = await getTablesByName(dbContext.conn, [
       DeletingDbTable.attribute_deleting_table,
       DeletingDbTable.catalog_deleting_table,
+      DeletingDbTable.purpose_deleting_table,
     ]);
-    expect(result.length).toBe(2);
+    expect(result.length).toBe(3);
 
     const tableNames = result.map((t) => t.tablename);
     expect(tableNames).toStrictEqual(
       [
         DeletingDbTable.attribute_deleting_table,
         DeletingDbTable.catalog_deleting_table,
+        DeletingDbTable.purpose_deleting_table,
       ].sort()
     );
   });

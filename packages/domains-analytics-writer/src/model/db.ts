@@ -11,19 +11,32 @@ export const CatalogDbTable = {
   eservice_risk_analysis_answer: "eservice_risk_analysis_answer",
 } as const;
 
-export type CatalogDbTable =
-  (typeof CatalogDbTable)[keyof typeof CatalogDbTable];
+export const DeletingDbTable = {
+  attribute_deleting_table: "attribute_deleting_table",
+  catalog_deleting_table: "catalog_deleting_table",
+  purpose_deleting_table: "purpose_deleting_table",
+};
+
 export const AttributeDbTable = {
   attribute: "attribute",
 } as const;
 
-export const DeletingDbTable = {
-  attribute_deleting_table: "attribute_deleting_table",
-  catalog_deleting_table: "catalog_deleting_table",
-};
+export const PurposeDbTable = {
+  purpose: "purpose",
+  purpose_risk_analysis_form: "purpose_risk_analysis_form",
+  purpose_risk_analysis_answer: "purpose_risk_analysis_answer",
+  purpose_version: "purpose_version",
+  purpose_version_document: "purpose_version_document",
+} as const;
 
-export type AttributeDbtable =
+export type AttributeDbTable =
   (typeof AttributeDbTable)[keyof typeof AttributeDbTable];
+
+export type CatalogDbTable =
+  (typeof CatalogDbTable)[keyof typeof CatalogDbTable];
 
 export type DeletingDbTable =
   (typeof DeletingDbTable)[keyof typeof DeletingDbTable];
+
+export type PurposeDbTable =
+  (typeof PurposeDbTable)[keyof typeof PurposeDbTable];

@@ -15,6 +15,7 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
+  PurposeDbTable,
 } from "./model/db.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
@@ -51,10 +52,16 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      PurposeDbTable.purpose,
+      PurposeDbTable.purpose_version,
+      PurposeDbTable.purpose_version_document,
+      PurposeDbTable.purpose_risk_analysis_form,
+      PurposeDbTable.purpose_risk_analysis_answer,
     ]);
     await setupDbService.setupStagingDeletingByIdTables([
       DeletingDbTable.attribute_deleting_table,
       DeletingDbTable.catalog_deleting_table,
+      DeletingDbTable.purpose_deleting_table,
     ]);
   },
   logger({ serviceName: config.serviceName })
