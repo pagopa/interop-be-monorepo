@@ -11,6 +11,7 @@ import {
   NewPurposeVersionActivatedV2,
   PurposeEventEnvelopeV2,
   toPurposeV2,
+  generateId,
 } from "pagopa-interop-models";
 import {
   getMockPurpose,
@@ -66,7 +67,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
           log_date: new Date(),
         },
       ],
-      dbContext
+      dbContext,
     );
 
     const version = getMockPurposeVersion();
@@ -121,6 +122,8 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
 
   it("PurposeVersionDeleted: marks version deleted", async () => {
     const mock = getMockPurpose();
+    const versionId = generateId();
+    console.log("AO ", mock);
     await handlePurposeMessageV1(
       [
         {
@@ -133,9 +136,10 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
           log_date: new Date(),
         },
       ],
-      dbContext
+      dbContext,
     );
     const version = getMockPurposeVersion();
+    version.id = versionId as any;
     await handlePurposeMessageV1(
       [
         {
@@ -151,7 +155,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
           log_date: new Date(),
         },
       ],
-      dbContext
+      dbContext,
     );
 
     const deleteVer: PurposeEventEnvelopeV1 = {
@@ -160,7 +164,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       version: 3,
       type: "PurposeVersionDeleted",
       event_version: 1,
-      data: { purposeVersionId: version.id } as any,
+      data: { versionId: version.id } as any,
       log_date: new Date(),
     };
     await handlePurposeMessageV1([deleteVer], dbContext);
@@ -243,7 +247,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext
+      dbContext,
     );
     const updated = { ...mock, title: "updated" };
     const msg: PurposeEventEnvelopeV2 = {
@@ -275,7 +279,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext
+      dbContext,
     );
 
     const msg: PurposeEventEnvelopeV2 = {
@@ -306,7 +310,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext
+      dbContext,
     );
     const version = getMockPurposeVersion();
     const payload: NewPurposeVersionActivatedV2 = {
@@ -341,7 +345,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext
+      dbContext,
     );
     const version = getMockPurposeVersion();
     await handlePurposeMessageV2(
@@ -356,7 +360,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext
+      dbContext,
     );
 
     const msg: PurposeEventEnvelopeV2 = {
