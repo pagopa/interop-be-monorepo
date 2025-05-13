@@ -20,7 +20,7 @@ export function tenantMailRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = TenantDbTable.tenant_mail;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = DeletingDbTable.tenant_deleting_table;
+  const stagingDeletingTable = DeletingDbTable.tenant_mail_deleting_table;
 
   return {
     async insert(
@@ -88,7 +88,7 @@ export function tenantMailRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      recordsId: Array<TenantMailSQL["id"]>
+      records: Array<TenantMailSQL["id"]>
     ): Promise<void> {
       const mapping: TenantMailDeletingMapping = {
         id: (r) => r.id,
@@ -101,8 +101,6 @@ export function tenantMailRepository(conn: DBConnection) {
           mapping,
           stagingDeletingTable
         );
-
-        const records = recordsId.map((id: string) => ({ id, deleted: true }));
 
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
@@ -121,6 +119,51 @@ export function tenantMailRepository(conn: DBConnection) {
           tableName,
           stagingDeletingTable,
           ["id"]
+        );
+        await conn.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging deleting table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async insertDeletingByMailIdAndTenantId(
+      t: ITask<unknown>,
+      pgp: IMain,
+      records: Array<Pick<TenantMailSQL, "id" | "tenantId">>
+    ): Promise<void> {
+      const mapping: TenantMailDeletingMapping = {
+        id: (r) => r.id,
+        tenant_id: (r) => r.tenantId,
+        deleted: () => true,
+      };
+
+      try {
+        const cs = buildColumnSet<TenantMailSQL>(
+          pgp,
+          mapping,
+          stagingDeletingTable
+        );
+
+        await t.none(
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
+        );
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into deleting table ${stagingDeletingTable}: ${error}`
+        );
+      }
+    },
+
+    async mergeDeletingByMailIdAndTenantId(): Promise<void> {
+      try {
+        const mergeQuery = generateMergeDeleteQuery(
+          schemaName,
+          tableName,
+          stagingDeletingTable,
+          ["id", "tenant_id"],
+          false
         );
         await conn.none(mergeQuery);
       } catch (error: unknown) {

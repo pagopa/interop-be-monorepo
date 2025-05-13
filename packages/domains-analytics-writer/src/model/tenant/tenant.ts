@@ -16,9 +16,21 @@ export const TenantSchema = z.object({
   deleted: z.boolean().default(false),
 });
 export type TenantSchema = z.infer<typeof TenantSchema>;
-
 export type TenantMapping = {
   [K in keyof TenantSchema]: (record: TenantSQL) => TenantSchema[K];
+};
+
+export const TenantSelfcareIdSchema = TenantSchema.pick({
+  id: true,
+  selfcare_id: true,
+  metadata_version: true,
+  deleted: true,
+});
+export type TenantSelfcareIdSchema = z.infer<typeof TenantSelfcareIdSchema>;
+export type TenantSelfcareIdMapping = {
+  [K in keyof TenantSelfcareIdSchema]: (
+    record: Pick<TenantSQL, "id" | "selfcareId" | "metadataVersion">
+  ) => TenantSelfcareIdSchema[K];
 };
 
 export const TenantDeletingSchema = z.object({
@@ -26,9 +38,8 @@ export const TenantDeletingSchema = z.object({
   deleted: z.boolean().default(false),
 });
 export type TenantDeletingSchema = z.infer<typeof TenantDeletingSchema>;
-
 export type TenantDeletingMapping = {
   [K in keyof TenantDeletingSchema]: (
-    record: TenantSQL
+    record: Pick<TenantSQL, "id">
   ) => TenantDeletingSchema[K];
 };

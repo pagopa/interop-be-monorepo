@@ -9,9 +9,7 @@ export const TenantFeatureSchema = z.object({
   availability_timestamp: z.string().nullable(),
   deleted: z.boolean().default(false),
 });
-
 export type TenantFeatureSchema = z.infer<typeof TenantFeatureSchema>;
-
 export type TenantFeatureMapping = {
   [K in keyof TenantFeatureSchema]: (
     record: TenantFeatureSQL
@@ -26,9 +24,8 @@ export const TenantFeatureDeletingSchema = z.object({
 export type TenantFeatureDeletingSchema = z.infer<
   typeof TenantFeatureDeletingSchema
 >;
-
 export type TenantFeatureDeletingMapping = {
   [K in keyof TenantFeatureDeletingSchema]: (
-    record: TenantFeatureSQL
+    record: Pick<TenantFeatureSQL, "tenantId" | "kind">
   ) => TenantFeatureDeletingSchema[K];
 };

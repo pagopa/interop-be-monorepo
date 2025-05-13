@@ -11,7 +11,10 @@ import {
 } from "./tenant/tenantFeature.js";
 import { TenantCertifiedAttributeSchema } from "./tenant/tenantCertifiedAttribute.js";
 import { TenantDeclaredAttributeSchema } from "./tenant/tenantDeclaredAttribute.js";
-import { TenantMailSchema } from "./tenant/tenantMail.js";
+import {
+  TenantMailDeletingSchema,
+  TenantMailSchema,
+} from "./tenant/tenantMail.js";
 import { TenantVerifiedAttributeSchema } from "./tenant/tenantVerifiedAttribute.js";
 import { TenantVerifiedAttributeRevokerSchema } from "./tenant/tenantVerifiedAttributeRevoker.js";
 import { TenantVerifiedAttributeVerifierSchema } from "./tenant/tenantVerifiedAttributeVerifier.js";
@@ -74,6 +77,7 @@ export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
   catalog_deleting_table: EserviceDeletingSchema,
   tenant_deleting_table: TenantDeletingSchema,
+  tenant_mail_deleting_table: TenantMailDeletingSchema,
   tenant_feature_deleting_table: TenantFeatureDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;

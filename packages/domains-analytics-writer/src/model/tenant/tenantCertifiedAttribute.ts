@@ -12,6 +12,11 @@ export const TenantCertifiedAttributeSchema = z.object({
 export type TenantCertifiedAttributeSchema = z.infer<
   typeof TenantCertifiedAttributeSchema
 >;
+export type TenantCertifiedAttributeMapping = {
+  [K in keyof TenantCertifiedAttributeSchema]: (
+    record: TenantCertifiedAttributeSQL
+  ) => TenantCertifiedAttributeSchema[K];
+};
 
 export const TenantCertifiedAttributeDeletingSchema = z.object({
   attribute_id: z.string(),
@@ -21,9 +26,3 @@ export const TenantCertifiedAttributeDeletingSchema = z.object({
 export type TenantCertifiedAttributeDeletingSchema = z.infer<
   typeof TenantCertifiedAttributeDeletingSchema
 >;
-
-export type TenantCertifiedAttributeMapping = {
-  [K in keyof TenantCertifiedAttributeSchema]: (
-    record: TenantCertifiedAttributeSQL
-  ) => TenantCertifiedAttributeSchema[K];
-};

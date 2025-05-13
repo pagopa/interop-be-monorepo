@@ -16,6 +16,11 @@ export const TenantVerifiedAttributeRevokerSchema = z.object({
 export type TenantVerifiedAttributeRevokerSchema = z.infer<
   typeof TenantVerifiedAttributeRevokerSchema
 >;
+export type TenantVerifiedAttributeRevokerMapping = {
+  [K in keyof TenantVerifiedAttributeRevokerSchema]: (
+    record: TenantVerifiedAttributeRevokerSQL
+  ) => TenantVerifiedAttributeRevokerSchema[K];
+};
 
 export const TenantVerifiedAttributeRevokerDeletingSchema = z.object({
   tenant_id: z.string(),
@@ -26,9 +31,3 @@ export const TenantVerifiedAttributeRevokerDeletingSchema = z.object({
 export type TenantVerifiedAttributeRevokerDeletingSchema = z.infer<
   typeof TenantVerifiedAttributeRevokerDeletingSchema
 >;
-
-export type TenantVerifiedAttributeRevokerMapping = {
-  [K in keyof TenantVerifiedAttributeRevokerSchema]: (
-    record: TenantVerifiedAttributeRevokerSQL
-  ) => TenantVerifiedAttributeRevokerSchema[K];
-};

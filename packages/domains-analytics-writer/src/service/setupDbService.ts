@@ -36,7 +36,7 @@ export function setupDbServiceBuilder(
         await Promise.all(
           configs.map(({ name, columns }) => {
             const columnDefs = columns
-              .map((key) => `${String(key)} VARCHAR(255) NOT NULL`)
+              .map((key) => `${String(key)} VARCHAR(255)`)
               .concat("deleted BOOLEAN NOT NULL")
               .join(",\n  ");
 

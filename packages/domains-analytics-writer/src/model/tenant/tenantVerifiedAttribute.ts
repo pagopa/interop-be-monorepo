@@ -11,6 +11,11 @@ export const TenantVerifiedAttributeSchema = z.object({
 export type TenantVerifiedAttributeSchema = z.infer<
   typeof TenantVerifiedAttributeSchema
 >;
+export type TenantVerifiedAttributeMapping = {
+  [K in keyof TenantVerifiedAttributeSchema]: (
+    record: TenantVerifiedAttributeSQL
+  ) => TenantVerifiedAttributeSchema[K];
+};
 
 export const TenantVerifiedAttributeDeletingSchema = z.object({
   attribute_id: z.string(),
@@ -20,9 +25,3 @@ export const TenantVerifiedAttributeDeletingSchema = z.object({
 export type TenantVerifiedAttributeDeletingSchema = z.infer<
   typeof TenantVerifiedAttributeDeletingSchema
 >;
-
-export type TenantVerifiedAttributeMapping = {
-  [K in keyof TenantVerifiedAttributeSchema]: (
-    record: TenantVerifiedAttributeSQL
-  ) => TenantVerifiedAttributeSchema[K];
-};

@@ -21,10 +21,12 @@ export async function handleTenantMessageV2(
 ): Promise<void> {
   const tenantService = tenantServiceBuilder(dbContext);
 
-  const upsertBatch: TenantItemsSQL[] = [];
+  const upsertTenantBatch: TenantItemsSQL[] = [];
   const deleteTenantBatch: Array<TenantSQL["id"]> = [];
   const deleteTenantMailBatch: Array<TenantMailSQL["id"]> = [];
-  const deleteTenantFeatureBatch: TenantFeatureSQL[] = [];
+  const deleteTenantFeatureBatch: Array<
+    Pick<TenantFeatureSQL, "tenantId" | "kind">
+  > = [];
 
   for (const message of messages) {
     match(message)
@@ -51,7 +53,13 @@ export async function handleTenantMessageV2(
             message.version
           );
 
-          deleteTenantFeatureBatch.push(...splitResult.featuresSQL);
+          const features: Array<Pick<TenantFeatureSQL, "tenantId" | "kind">> =
+            splitResult.featuresSQL.map((r) => ({
+              tenantId: r.tenantId,
+              kind: r.kind,
+            }));
+
+          deleteTenantFeatureBatch.push(...features);
         }
       )
       .with(
@@ -85,14 +93,14 @@ export async function handleTenantMessageV2(
             message.version
           );
 
-          upsertBatch.push(splitResult);
+          upsertTenantBatch.push(splitResult);
         }
       )
       .exhaustive();
   }
 
-  if (upsertBatch.length > 0) {
-    await tenantService.upsertBatchTenantItems(upsertBatch, dbContext);
+  if (upsertTenantBatch.length > 0) {
+    await tenantService.upsertBatchTenantItems(upsertTenantBatch, dbContext);
   }
 
   if (deleteTenantBatch.length > 0) {

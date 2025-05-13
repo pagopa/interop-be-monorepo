@@ -13,6 +13,11 @@ export const TenantDeclaredAttributeSchema = z.object({
 export type TenantDeclaredAttributeSchema = z.infer<
   typeof TenantDeclaredAttributeSchema
 >;
+export type TenantDeclaredAttributeMapping = {
+  [K in keyof TenantDeclaredAttributeSchema]: (
+    record: TenantDeclaredAttributeSQL
+  ) => TenantDeclaredAttributeSchema[K];
+};
 
 export const TenantDeclaredAttributeDeletingSchema = z.object({
   attribute_id: z.string(),
@@ -22,9 +27,3 @@ export const TenantDeclaredAttributeDeletingSchema = z.object({
 export type TenantDeclaredAttributeDeletingSchema = z.infer<
   typeof TenantDeclaredAttributeDeletingSchema
 >;
-
-export type TenantDeclaredAttributeMapping = {
-  [K in keyof TenantDeclaredAttributeSchema]: (
-    record: TenantDeclaredAttributeSQL
-  ) => TenantDeclaredAttributeSchema[K];
-};

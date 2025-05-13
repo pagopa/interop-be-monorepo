@@ -137,6 +137,34 @@ export function tenantServiceBuilder(db: DBContext) {
       genericLogger.info(`Cleaned all tenant staging data`);
     },
 
+    async setBatchTenantSelfCareIdItems(
+      items: Array<Pick<TenantSQL, "id" | "selfcareId" | "metadataVersion">>,
+      dbContext: DBContext
+    ) {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await tenantRepo.insertTenantSelfcareId(t, dbContext.pgp, batch);
+
+          genericLogger.info(
+            `Staging data inserted for tenant batch of ${batch.length}`
+          );
+        }
+      });
+
+      await tenantRepo.mergeTenantSelfcareId();
+
+      genericLogger.info(
+        `Staging data merged into target tables for all tenant batches`
+      );
+
+      await tenantRepo.clean();
+
+      genericLogger.info(`Cleaned all tenant staging data`);
+    },
+
     async deleteBatchTenants(
       tenantIds: Array<TenantSQL["id"]>,
       dbContext: DBContext
@@ -177,6 +205,42 @@ export function tenantServiceBuilder(db: DBContext) {
       genericLogger.info(`Staging tenant table cleaned`);
     },
 
+    async deleteBatchTenantMailsByTenantId(
+      records: Array<Pick<TenantMailSQL, "id" | "tenantId">>,
+      dbContext: DBContext
+    ) {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          records,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await tenantMailRepo.insertDeletingByMailIdAndTenantId(
+            t,
+            dbContext.pgp,
+            batch
+          );
+
+          genericLogger.info(
+            `Staging deletion inserted for tenant mails by tenantId: ${batch.join(
+              ", "
+            )}`
+          );
+        }
+      });
+
+      await tenantMailRepo.mergeDeletingByMailIdAndTenantId();
+
+      genericLogger.info(
+        `Staging deletion merged into target tables for tenant mails by tenantId`
+      );
+
+      await tenantRepo.cleanDeleting();
+
+      genericLogger.info(
+        `Staging deletion cleaned for tenant mails by tenantId`
+      );
+    },
+
     async deleteBatchTenantMails(
       mailIds: Array<TenantMailSQL["id"]>,
       dbContext: DBContext
@@ -189,7 +253,7 @@ export function tenantServiceBuilder(db: DBContext) {
           await tenantMailRepo.insertDeleting(t, dbContext.pgp, batch);
 
           genericLogger.info(
-            `Staging deletion inserted for tenant mailIds: ${batch.join(", ")}`
+            `Staging deletion inserted tenant mails: ${batch.join(", ")}`
           );
         }
       });
@@ -202,11 +266,11 @@ export function tenantServiceBuilder(db: DBContext) {
 
       await tenantRepo.cleanDeleting();
 
-      genericLogger.info(`Staging table cleaned for tenant mails`);
+      genericLogger.info(`Staging deletion cleaned for tenant mails`);
     },
 
     async deleteBatchTenantFeatures(
-      features: TenantFeatureSQL[],
+      features: Array<Pick<TenantFeatureSQL, "tenantId" | "kind">>,
       dbContext: DBContext
     ) {
       await dbContext.conn.tx(async (t) => {
@@ -217,8 +281,8 @@ export function tenantServiceBuilder(db: DBContext) {
           await tenantFeatureRepo.insertDeleting(t, dbContext.pgp, batch);
 
           genericLogger.info(
-            `Staging deletion inserted features for tenants: ${batch
-              .map((r: TenantFeatureSQL) => `(${r.tenantId}-${r.kind})`)
+            `Staging deletion inserted tenant features: ${batch
+              .map((r) => `(${r.tenantId}-${r.kind})`)
               .join(", ")}`
           );
         }
@@ -232,7 +296,7 @@ export function tenantServiceBuilder(db: DBContext) {
 
       await tenantFeatureRepo.cleanDeleting();
 
-      genericLogger.info(`Staging table cleaned for tenant features`);
+      genericLogger.info(`Staging deletion cleaned for tenant features`);
     },
   };
 }

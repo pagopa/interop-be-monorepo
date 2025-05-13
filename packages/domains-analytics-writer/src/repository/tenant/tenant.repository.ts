@@ -13,6 +13,8 @@ import {
   TenantSchema,
   TenantMapping,
   TenantDeletingMapping,
+  TenantSelfcareIdMapping,
+  TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";
 import { TenantDbTable, DeletingDbTable } from "../../model/db.js";
 
@@ -138,6 +140,54 @@ export function tenantRepository(conn: DBConnection) {
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning deleting staging table ${stagingDeletingTable}: ${error}`
+        );
+      }
+    },
+
+    async insertTenantSelfcareId(
+      t: ITask<unknown>,
+      pgp: IMain,
+      records: Array<Pick<TenantSQL, "id" | "selfcareId" | "metadataVersion">>
+    ): Promise<void> {
+      try {
+        const mapping: TenantSelfcareIdMapping = {
+          id: (r) => r.id,
+          selfcare_id: (r) => r.selfcareId,
+          metadata_version: (r) => r.metadataVersion,
+          deleted: () => false,
+        };
+
+        const cs = buildColumnSet<
+          Pick<TenantSQL, "id" | "selfcareId" | "metadataVersion">
+        >(pgp, mapping, stagingTable);
+
+        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(`
+          DELETE FROM ${stagingTable} a
+          USING ${stagingTable} b
+          WHERE a.id = b.id
+          AND a.metadata_version < b.metadata_version;
+        `);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingTable}: ${error}`
+        );
+      }
+    },
+
+    async mergeTenantSelfcareId(): Promise<void> {
+      try {
+        const mergeQuery = generateMergeQuery(
+          TenantSelfcareIdSchema,
+          schemaName,
+          tableName,
+          stagingTable,
+          ["id"]
+        );
+        await conn.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },

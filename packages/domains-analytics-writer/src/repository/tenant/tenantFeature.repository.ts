@@ -85,7 +85,7 @@ export function tenantFeatureRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: TenantFeatureSQL[]
+      records: Array<Pick<TenantFeatureSQL, "tenantId" | "kind">>
     ): Promise<void> {
       const mapping: TenantFeatureDeletingMapping = {
         tenant_id: (r) => r.tenantId,
@@ -100,13 +100,8 @@ export function tenantFeatureRepository(conn: DBConnection) {
           stagingDeletingTable
         );
 
-        const results = records.map((record: TenantFeatureSQL) => ({
-          ...record,
-          deleted: true,
-        }));
-
         await t.none(
-          pgp.helpers.insert(results, cs) + " ON CONFLICT DO NOTHING"
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
