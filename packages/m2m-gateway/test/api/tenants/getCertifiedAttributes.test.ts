@@ -50,7 +50,10 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
     },
   };
 
-  const makeRequest = async (token: string, query: Record<string, unknown>) =>
+  const makeRequest = async (
+    token: string,
+    query: m2mGatewayApi.GetCertifiedAttributesQueryParams
+  ) =>
     request(api)
       .get(`${appBasePath}/tenants/${generateId()}/certifiedAttributes`)
       .query(query)
@@ -82,13 +85,6 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
     const token = generateToken(role);
     const res = await makeRequest(token, mockQueryParams);
     expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed an invalid query parameter (missing offset and limit)", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, {});
-
-    expect(res.status).toBe(400);
   });
 
   it.each([

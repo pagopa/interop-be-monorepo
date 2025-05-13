@@ -31,7 +31,10 @@ describe("GET /tenants route test", () => {
     limit: 10,
   };
 
-  const makeRequest = async (token: string, query: Record<string, unknown>) =>
+  const makeRequest = async (
+    token: string,
+    query: m2mGatewayApi.GetTenantsQueryParams
+  ) =>
     request(api)
       .get(`${appBasePath}/tenants`)
       .query(query)
