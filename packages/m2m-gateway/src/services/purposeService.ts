@@ -87,7 +87,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
-        `Creating purpose for ${purposeSeed.eserviceId} and consumer ${authData.organizationId}`
+        `Creating purpose for e-service ${purposeSeed.eserviceId} and consumer ${authData.organizationId}`
       );
 
       const purposeResponse = await clients.purposeProcessClient.createPurpose(
