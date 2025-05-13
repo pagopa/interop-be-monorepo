@@ -80,6 +80,7 @@ export const mockClientService = {
 
 export const mockDelegationService = {} as DelegationService;
 export const mockAttributeService = {} as AttributeService;
+export const mockEserviceService = {} as EserviceService;
 
 export const api = await createApp(
   {
@@ -87,7 +88,7 @@ export const api = await createApp(
     attributeService: mockAttributeService,
     clientService: mockClientService,
     delegationService: mockDelegationService,
-    eserviceService: {} as EserviceService,
+    eserviceService: mockEserviceService,
     eserviceTemplateService: {} as EserviceTemplateService,
     purposeService: {} as PurposeService,
     tenantService: {} as TenantService,
