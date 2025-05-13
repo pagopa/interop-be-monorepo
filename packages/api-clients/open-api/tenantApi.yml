@@ -358,6 +358,14 @@ paths:
           default: []
         explode: false
       - in: query
+        name: externalIdOrigin
+        schema:
+          type: string
+      - in: query
+        name: externalIdValue
+        schema:
+          type: string
+      - in: query
         name: offset
         required: true
         schema:
