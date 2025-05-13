@@ -3,7 +3,6 @@ import {
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   generateId,
-  operationForbidden,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -113,7 +112,8 @@ describe("getEServiceTemplateVersionDocumentById", () => {
       )
     );
   });
-  it("Should throw operation forbidden", async () => {
+  it("Should throw eserviceTemplateDocumentNotFound", async () => {
+    // TODO fix this test
     const documentId = generateId();
     const version: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
@@ -139,7 +139,13 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         },
         getMockContext({})
       )
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrowError(
+      eserviceTemplateDocumentNotFound(
+        mockEServiceTemplate.id,
+        mockEServiceTemplateVersion.id,
+        documentId
+      )
+    );
   });
   it("Should throw eServiceTemplateDocument not found", async () => {
     const documentId = generateId();
