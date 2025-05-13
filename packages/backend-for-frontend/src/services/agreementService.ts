@@ -897,9 +897,6 @@ async function getConsumerProducerEserviceDelegation(
     delegationTask,
   ]);
 
-  cachedTenants.set(agreement.consumerId, consumer);
-  cachedTenants.set(agreement.producerId, producer);
-
   return {
     consumer,
     producer,
