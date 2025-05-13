@@ -863,22 +863,26 @@ async function getConsumerProducerEserviceDelegation(
   eservice: catalogApi.EService;
   delegation: delegationApi.Delegation | undefined;
 }> {
-  const consumerTask = tenantProcessClient.tenant.getTenant({
-    params: { id: agreement.consumerId },
-    headers,
-  });
+  const consumer =
+    cachedTenants.get(agreement.consumerId) ??
+    (await tenantProcessClient.tenant.getTenant({
+      params: { id: agreement.consumerId },
+      headers,
+    }));
 
-  const producerTask = tenantProcessClient.tenant.getTenant({
-    params: { id: agreement.producerId },
-    headers,
-  });
+  const producer =
+    cachedTenants.get(agreement.producerId) ??
+    (await tenantProcessClient.tenant.getTenant({
+      params: { id: agreement.producerId },
+      headers,
+    }));
 
-  const eserviceTask = catalogProcessClient.getEServiceById({
+  const eservice = await catalogProcessClient.getEServiceById({
     params: { eServiceId: agreement.eserviceId },
     headers,
   });
 
-  const delegationTask = delegationProcessClient.delegation.getDelegations({
+  const delegation = await delegationProcessClient.delegation.getDelegations({
     queries: {
       delegatorIds: [agreement.consumerId],
       eserviceIds: [agreement.eserviceId],
@@ -889,13 +893,6 @@ async function getConsumerProducerEserviceDelegation(
     },
     headers,
   });
-
-  const [consumer, producer, eservice, delegation] = await Promise.all([
-    cachedTenants.get(agreement.consumerId) ?? consumerTask,
-    cachedTenants.get(agreement.producerId) ?? producerTask,
-    eserviceTask,
-    delegationTask,
-  ]);
 
   return {
     consumer,
