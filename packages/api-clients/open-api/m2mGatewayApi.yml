@@ -3600,9 +3600,20 @@ paths:
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
   /riskAnalysisFormConfiguration:
+    parameters:
+      - name: formVersion
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+            - V2
+            - V3
+            - LATEST
+          default: LATEST
     get:
-      operationId: retrieveLatestRiskAnalysisConfiguration
-      description: Retrieve latest risk analysis configuration
+      operationId: retrieveRiskAnalysisConfiguration
+      description: Retrieve risk analysis configuration
       responses:
         "200":
           description: Risk analysis requested
