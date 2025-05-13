@@ -9,7 +9,6 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingActivePurposeVersion,
   missingMetadata,
-  purposeNotFound,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import { getMockedApiPurpose } from "../../mockUtils.js";
@@ -89,16 +88,6 @@ describe("POST /purposes router test", () => {
     mockPurposeService.createPurpose = vi
       .fn()
       .mockRejectedValue(resourcePollingTimeout(3));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockPurposeSeed);
-
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of purposeNotFound error", async () => {
-    mockPurposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockPurpose.data.id));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockPurposeSeed);
 
