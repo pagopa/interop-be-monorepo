@@ -715,16 +715,8 @@ export async function enrichAgreement(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
-  // TODO: add cachedTenants logic
-  const cachedTenants = new Map<string, tenantApi.Tenant>();
-
   const { consumer, producer, eservice, delegation } =
-    await getConsumerProducerEserviceDelegation(
-      agreement,
-      clients,
-      ctx,
-      cachedTenants
-    );
+    await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
   const currentDescriptor = getCurrentDescriptor(eservice, agreement);
   const activeDescriptor = getLatestActiveDescriptor(eservice);
@@ -856,7 +848,7 @@ async function getConsumerProducerEserviceDelegation(
     delegationProcessClient,
   }: PagoPAInteropBeClients,
   { headers }: WithLogger<BffAppContext>,
-  cachedTenants: Map<string, tenantApi.Tenant>
+  cachedTenants: Map<string, tenantApi.Tenant> = new Map()
 ): Promise<{
   consumer: tenantApi.Tenant;
   producer: tenantApi.Tenant;
