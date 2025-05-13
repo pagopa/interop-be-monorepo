@@ -19,12 +19,12 @@ describe("API POST /tenants/delegatedFeatures/update test", () => {
       .mockResolvedValue(undefined);
   });
 
-  const makeRequest = async (token: string, data: object = tenantFeatures) =>
+  const makeRequest = async (token: string, body: object = tenantFeatures) =>
     request(api)
       .post("/tenants/delegatedFeatures/update")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 204 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -55,11 +55,14 @@ describe("API POST /tenants/delegatedFeatures/update test", () => {
     }
   );
 
-  it("Should return 400 if passed invalid tenant data", async () => {
+  it.each([
+    { body: {} },
+    { body: { isDelegatedConsumerFeatureEnabled: true } },
+    { body: { ...tenantFeatures, isDelegatedConsumerFeatureEnabled: 1 } },
+    { body: { ...tenantFeatures, extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      isDelegatedConsumerFeatureEnabled: true,
-    });
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });

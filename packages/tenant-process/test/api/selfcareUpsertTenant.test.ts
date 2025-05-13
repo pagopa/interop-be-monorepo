@@ -39,12 +39,12 @@ describe("API POST /selfcare/tenants test", () => {
     authRole.INTERNAL_ROLE,
   ];
 
-  const makeRequest = async (token: string, data: object = tenantSeed) =>
+  const makeRequest = async (token: string, body: object = tenantSeed) =>
     request(api)
       .post("/selfcare/tenants")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -84,17 +84,17 @@ describe("API POST /selfcare/tenants test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid tenant seed", async () => {
+  it.each([
+    { body: {} },
+    { body: { ...tenantSeed, externalId: { origin: "IPA" } } },
+    { body: { ...tenantSeed, externalId: { origin: 1, value: "123456" } } },
+    { body: { ...tenantSeed, name: 1 } },
+    { body: { ...tenantSeed, name: "" } },
+    { body: { ...tenantSeed, subUnitType: "invalid" } },
+    { body: { ...tenantSeed, extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      externalId: {
-        origin: tenant.externalId.origin,
-        value: tenant.externalId.value,
-      },
-      selfcareId,
-      onboardedAt: tenant.onboardedAt.toISOString(),
-      subUnitType: tenant.subUnitType,
-    });
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });

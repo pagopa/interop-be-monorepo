@@ -12,14 +12,18 @@ import { api, tenantService } from "../vitest.api.setup.js";
 import { mailNotFound, tenantNotFound } from "../../src/model/domain/errors.js";
 
 describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
-  const tenantId = generateId<TenantId>();
-  const mailId = generateId();
+  const mockTenantId = generateId<TenantId>();
+  const mockMailId = generateId();
 
   beforeEach(() => {
     tenantService.deleteTenantMailById = vi.fn().mockResolvedValue(undefined);
   });
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    tenantId: string = mockTenantId,
+    mailId: string = mockMailId
+  ) =>
     request(api)
       .delete(`/tenants/${tenantId}/mails/${mailId}`)
       .set("Authorization", `Bearer ${token}`)
@@ -40,9 +44,9 @@ describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
   });
 
   it.each([
-    { error: tenantNotFound(tenantId), expectedStatus: 404 },
+    { error: tenantNotFound(mockTenantId), expectedStatus: 404 },
     { error: operationForbidden, expectedStatus: 403 },
-    { error: mailNotFound(mailId), expectedStatus: 404 },
+    { error: mailNotFound(mockMailId), expectedStatus: 404 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -53,12 +57,15 @@ describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid tenant id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await request(api)
-      .delete(`/tenants/invalid-id/mails/${mailId}`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
-    expect(res.status).toBe(400);
-  });
+  it.each([{ tenantId: "invalid" }, { mailId: "invalid" }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, mailId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await request(api)
+        .delete(`/tenants/${tenantId}/mails/${mailId}`)
+        .set("Authorization", `Bearer ${token}`)
+        .set("X-Correlation-Id", generateId());
+      expect(res.status).toBe(400);
+    }
+  );
 });

@@ -32,12 +32,12 @@ describe("API POST /m2m/tenants test", () => {
     tenantService.m2mUpsertTenant = vi.fn().mockResolvedValue(tenant);
   });
 
-  const makeRequest = async (token: string, data: object = tenantSeed) =>
+  const makeRequest = async (token: string, body: object = tenantSeed) =>
     request(api)
       .post("/m2m/tenants")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 200 for user with role M2M", async () => {
     const token = generateToken(authRole.M2M_ROLE);
@@ -80,15 +80,17 @@ describe("API POST /m2m/tenants test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid tenant seed", async () => {
+  it.each([
+    { body: {} },
+    { body: { ...tenantSeed, externalId: { origin: "IPA" } } },
+    { body: { ...tenantSeed, externalId: { origin: 1, value: "123456" } } },
+    { body: { ...tenantSeed, certifiedAttributes: [{}] } },
+    { body: { ...tenantSeed, name: 1 } },
+    { body: { ...tenantSeed, name: "" } },
+    { body: { ...tenantSeed, extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token, {
-      externalId: {
-        origin: "IPA",
-        value: "123456",
-      },
-      certifiedAttributes: [{ code: "CODE" }],
-    });
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });

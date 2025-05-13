@@ -22,6 +22,8 @@ describe("API GET /consumers test", () => {
     name: "Tenant 3",
   };
 
+  const defaultQuery = { offset: 0, limit: 10 };
+
   const mockResponse = {
     results: [tenant1, tenant2, tenant3],
     totalCount: 3,
@@ -43,12 +45,12 @@ describe("API GET /consumers test", () => {
     authRole.SUPPORT_ROLE,
   ];
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (token: string, query: object = defaultQuery) =>
     request(api)
       .get("/consumers")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit });
+      .query(query);
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -68,9 +70,18 @@ describe("API GET /consumers test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid limit", async () => {
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -2 } },
+    { query: { offset: 0, limit: 55 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+  ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, query);
     expect(res.status).toBe(400);
   });
 });

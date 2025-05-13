@@ -76,9 +76,12 @@ describe("API DELETE /tenants/{tenantId}/attributes/certified/{attributeId} test
     }
   );
 
-  it("Should return 400 if passed an invalid tenant id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ tenantId: "invalid" }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, tenantId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

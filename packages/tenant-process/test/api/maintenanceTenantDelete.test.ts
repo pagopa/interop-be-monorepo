@@ -9,6 +9,7 @@ import { tenantNotFound } from "../../src/model/domain/errors.js";
 
 describe("API DELETE /maintenance/tenants/{tenantId} test", () => {
   const tenant: Tenant = getMockTenant();
+  const defaultBody = { currentVersion: 0 };
 
   beforeEach(() => {
     tenantService.maintenanceTenantDelete = vi
@@ -16,12 +17,16 @@ describe("API DELETE /maintenance/tenants/{tenantId} test", () => {
       .mockResolvedValue(undefined);
   });
 
-  const makeRequest = async (token: string, tenantId: string = tenant.id) =>
+  const makeRequest = async (
+    token: string,
+    tenantId: string = tenant.id,
+    body: object = defaultBody
+  ) =>
     request(api)
       .delete(`/maintenance/tenants/${tenantId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({ currentVersion: 0 });
+      .send(body);
 
   it("Should return 204 for user with role Maintenance", async () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);
@@ -47,9 +52,17 @@ describe("API DELETE /maintenance/tenants/{tenantId} test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid tenant id", async () => {
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { tenantId: "invalid" },
+    { body: {} },
+    { body: { currentVersion: "0" } },
+    { body: { currentVersion: 0, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, body }) => {
+      const token = generateToken(authRole.MAINTENANCE_ROLE);
+      const res = await makeRequest(token, tenantId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });

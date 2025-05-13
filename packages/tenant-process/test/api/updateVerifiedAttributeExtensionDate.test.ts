@@ -50,10 +50,15 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
       .mockResolvedValue(tenant);
   });
 
-  const makeRequest = async (token: string, tenantId: string = tenant.id) =>
+  const makeRequest = async (
+    token: string,
+    tenantId: string = tenant.id,
+    _attributeId: string = attributeId,
+    _verifierId: string = verifierId
+  ) =>
     request(api)
       .post(
-        `/tenants/${tenantId}/attributes/verified/${attributeId}/verifier/${verifierId}`
+        `/tenants/${tenantId}/attributes/verified/${_attributeId}/verifier/${_verifierId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
@@ -107,9 +112,16 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
     }
   );
 
-  it("Should return 400 if passed an invalid tenant id", async () => {
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { tenantId: "invalid" },
+    { attributeId: "invalid" },
+    { verifierId: "invalid" },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, attributeId, verifierId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, tenantId, attributeId, verifierId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

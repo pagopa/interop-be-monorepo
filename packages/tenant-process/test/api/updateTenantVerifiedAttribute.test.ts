@@ -49,9 +49,13 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId} test", 
       .mockResolvedValue(tenant);
   });
 
-  const makeRequest = async (token: string, tenantId: string = tenant.id) =>
+  const makeRequest = async (
+    token: string,
+    tenantId: string = tenant.id,
+    _attributeId: string = attributeId
+  ) =>
     request(api)
-      .post(`/tenants/${tenantId}/attributes/verified/${attributeId}`)
+      .post(`/tenants/${tenantId}/attributes/verified/${_attributeId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -100,9 +104,12 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId} test", 
     }
   );
 
-  it("Should return 400 if passed an invalid tenant id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ tenantId: "invalid" }, { attributeId: "invalid" }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, attributeId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, tenantId, attributeId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

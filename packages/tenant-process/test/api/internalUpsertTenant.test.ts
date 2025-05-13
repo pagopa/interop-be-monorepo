@@ -30,12 +30,12 @@ describe("API POST /internal/tenants test", () => {
     tenantService.internalUpsertTenant = vi.fn().mockResolvedValue(tenant);
   });
 
-  const makeRequest = async (token: string, data: object = tenantSeed) =>
+  const makeRequest = async (token: string, body: object = tenantSeed) =>
     request(api)
       .post("/internal/tenants")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 200 for user with role Internal", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
@@ -69,15 +69,15 @@ describe("API POST /internal/tenants test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid tenant seed", async () => {
+  it.each([
+    { body: {} },
+    { body: { ...tenantSeed, externalId: { origin: "IPA" } } },
+    { body: { ...tenantSeed, externalId: { origin: 1, value: "123456" } } },
+    { body: { ...tenantSeed, certifiedAttributes: [{}] } },
+    { body: { ...tenantSeed, extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token, {
-      externalId: {
-        origin: "IPA",
-        value: "123456",
-      },
-      certifiedAttributes: [{ origin: "ORIGIN", code: "CODE" }],
-    });
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });

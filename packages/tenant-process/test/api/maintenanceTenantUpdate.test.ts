@@ -9,8 +9,9 @@ import { tenantNotFound } from "../../src/model/domain/errors.js";
 import { getMockMaintenanceTenantUpdate } from "../mockUtils.js";
 
 describe("API POST /maintenance/tenants/{tenantId} test", () => {
-  const tenantId = generateId<TenantId>();
+  const defaultTenantId = generateId<TenantId>();
   const maintenanceTenantUpdate = getMockMaintenanceTenantUpdate();
+  const defaultBody = { currentVersion: 0, tenant: maintenanceTenantUpdate };
 
   beforeEach(() => {
     tenantService.maintenanceTenantUpdate = vi
@@ -20,13 +21,14 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
 
   const makeRequest = async (
     token: string,
-    data: object = { currentVersion: 0, tenant: maintenanceTenantUpdate }
+    tenantId: string = defaultTenantId,
+    body: object = defaultBody
   ) =>
     request(api)
       .post(`/maintenance/tenants/${tenantId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 204 for user with role Maintenance", async () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);
@@ -42,7 +44,7 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([{ error: tenantNotFound(tenantId), expectedStatus: 404 }])(
+  it.each([{ error: tenantNotFound(defaultTenantId), expectedStatus: 404 }])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       tenantService.maintenanceTenantUpdate = vi.fn().mockRejectedValue(error);
@@ -52,9 +54,29 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
     }
   );
 
-  it("Should return 400 if passed invalid data", async () => {
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
-    const res = await makeRequest(token, { tenant: maintenanceTenantUpdate });
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { tenantId: "invalid" },
+    { body: {} },
+    { body: { ...defaultBody, currentVersion: "invalid" } },
+    {
+      body: {
+        ...defaultBody,
+        tenant: { ...defaultBody.tenant, kind: "invalid" },
+      },
+    },
+    { body: { ...defaultBody, extraField: 1 } },
+    {
+      body: {
+        ...defaultBody,
+        tenant: { ...defaultBody.tenant, extraField: "1" },
+      },
+    },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, body }) => {
+      const token = generateToken(authRole.MAINTENANCE_ROLE);
+      const res = await makeRequest(token, tenantId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });

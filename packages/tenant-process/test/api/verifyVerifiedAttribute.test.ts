@@ -19,6 +19,10 @@ import {
 
 describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
   const tenant: Tenant = getMockTenant();
+  const defaultBody = {
+    id: generateId(),
+    agreementId: generateId(),
+  };
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
@@ -26,15 +30,16 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     tenantService.verifyVerifiedAttribute = vi.fn().mockResolvedValue(tenant);
   });
 
-  const makeRequest = async (token: string, tenantId: string = tenant.id) =>
+  const makeRequest = async (
+    token: string,
+    tenantId: string = tenant.id,
+    body: object = defaultBody
+  ) =>
     request(api)
       .post(`/tenants/${tenantId}/attributes/verified`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({
-        id: generateId(),
-        agreementId: generateId(),
-      });
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -78,9 +83,21 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid tenant id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { tenantId: "invalid" },
+    { body: {} },
+    { body: { id: generateId() } },
+    { body: { ...defaultBody, id: 1 } },
+    { body: { ...defaultBody, id: "invalid" } },
+    { body: { ...defaultBody, agreementId: 1 } },
+    { body: { ...defaultBody, agreementId: "invalid" } },
+    { body: { ...defaultBody, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, tenantId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });

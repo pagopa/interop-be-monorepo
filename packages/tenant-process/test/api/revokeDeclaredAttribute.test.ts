@@ -28,8 +28,7 @@ describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
     request(api)
       .delete(`/tenants/attributes/declared/${attributeId}`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send({ agreementId: generateId() });
+      .set("X-Correlation-Id", generateId());
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -59,9 +58,12 @@ describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid attribute id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ attributeId: "invalid" }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ attributeId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, attributeId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

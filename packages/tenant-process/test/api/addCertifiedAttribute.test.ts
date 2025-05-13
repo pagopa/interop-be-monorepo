@@ -31,13 +31,14 @@ describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
 
   const makeRequest = async (
     token: string,
-    data: object = tenantAttributeSeed
+    tenantId: string = tenant.id,
+    body: object = tenantAttributeSeed
   ) =>
     request(api)
-      .post(`/tenants/${tenant.id}/attributes/certified`)
+      .post(`/tenants/${tenantId}/attributes/certified`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -83,9 +84,17 @@ describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid tenant attribute seed", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {});
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { tenantId: "invalid" },
+    { body: {} },
+    { body: { id: "invalid" } },
+    { body: { ...tenantAttributeSeed, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, tenantId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });

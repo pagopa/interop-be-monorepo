@@ -25,13 +25,13 @@ describe("API POST /tenants/attributes/declared test", () => {
 
   const makeRequest = async (
     token: string,
-    data: object = { id: generateId() }
+    body: object = { id: generateId() }
   ) =>
     request(api)
       .post("/tenants/attributes/declared")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -63,9 +63,13 @@ describe("API POST /tenants/attributes/declared test", () => {
     }
   );
 
-  it("Should return 400 if passed invalid data", async () => {
+  it.each([
+    { body: {} },
+    { body: { id: "invalid" } },
+    { body: { id: generateId(), extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {});
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });

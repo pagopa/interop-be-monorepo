@@ -23,12 +23,16 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
     tenantService.addTenantMail = vi.fn().mockResolvedValue(undefined);
   });
 
-  const makeRequest = async (token: string, data: object = mailSeed) =>
+  const makeRequest = async (
+    token: string,
+    tenantId: string = tenant.id,
+    body: object = mailSeed
+  ) =>
     request(api)
-      .post(`/tenants/${tenant.id}/mails`)
+      .post(`/tenants/${tenantId}/mails`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -58,12 +62,18 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid mail seed", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      kind: "CONTACT_EMAIL",
-      description: "mail description",
-    });
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { tenantId: "invalid" },
+    { body: {} },
+    { body: { ...mailSeed, address: "" } },
+    { body: { ...mailSeed, extraField: 1 } },
+    { body: { kind: "CONTACT_EMAIL", description: "mail description" } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, tenantId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });

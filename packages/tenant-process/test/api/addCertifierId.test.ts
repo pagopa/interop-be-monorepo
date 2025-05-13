@@ -23,12 +23,16 @@ describe("API POST /maintenance/tenants/{tenantId}/certifier test", () => {
     tenantService.addCertifierId = vi.fn().mockResolvedValue(tenant);
   });
 
-  const makeRequest = async (token: string, data: object = { certifierId }) =>
+  const makeRequest = async (
+    token: string,
+    tenantId: string = tenant.id,
+    body: object = { certifierId }
+  ) =>
     request(api)
-      .post(`/maintenance/tenants/${tenant.id}/certifier`)
+      .post(`/maintenance/tenants/${tenantId}/certifier`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(data);
+      .send(body);
 
   it("Should return 200 for user with role Maintenance", async () => {
     const token = generateToken(authRole.MAINTENANCE_ROLE);
@@ -65,9 +69,16 @@ describe("API POST /maintenance/tenants/{tenantId}/certifier test", () => {
     }
   );
 
-  it("Should return 400 if passed invalid data", async () => {
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
-    const res = await makeRequest(token, {});
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { tenantId: "invalid" },
+    { body: {} },
+    { body: { certifierId, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, body }) => {
+      const token = generateToken(authRole.MAINTENANCE_ROLE);
+      const res = await makeRequest(token, tenantId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });
