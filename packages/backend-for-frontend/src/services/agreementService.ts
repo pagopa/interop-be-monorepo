@@ -120,16 +120,14 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         });
 
-      const agreements = results.map((a) =>
-        enrichAgreementListEntry(a, clients, ctx)
-      );
+      const agreements = await enrichAgreementListEntry(results, clients, ctx);
       return {
         pagination: {
           limit,
           offset,
           totalCount,
         },
-        results: await Promise.all(agreements),
+        results: agreements,
       };
     },
 
@@ -167,16 +165,15 @@ export function agreementServiceBuilder(
           headers: ctx.headers,
         });
 
-      const agreements = results.map((a) =>
-        enrichAgreementListEntry(a, clients, ctx)
-      );
+      const agreements = await enrichAgreementListEntry(results, clients, ctx);
+
       return {
         pagination: {
           limit,
           offset,
           totalCount,
         },
-        results: await Promise.all(agreements),
+        results: agreements,
       };
     },
 
@@ -646,57 +643,71 @@ export const getLatestAgreement = async (
 };
 
 async function enrichAgreementListEntry(
-  agreement: agreementApi.Agreement,
+  agreements: agreementApi.Agreement[],
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
-): Promise<bffApi.AgreementListEntry> {
-  const { consumer, producer, eservice, delegation } =
-    await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
+): Promise<bffApi.AgreementListEntry[]> {
+  const cachedTenants = new Map<string, tenantApi.Tenant>();
 
-  const currentDescriptor = getCurrentDescriptor(eservice, agreement);
+  const agreementsResult = [];
+  for (const agreement of agreements) {
+    const { consumer, producer, eservice, delegation } =
+      await getConsumerProducerEserviceDelegation(
+        agreement,
+        clients,
+        ctx,
+        cachedTenants
+      );
+    cachedTenants.set(consumer.id, consumer);
+    cachedTenants.set(producer.id, producer);
 
-  const delegate =
-    delegation !== undefined
-      ? await getTenantById(
+    const currentDescriptor = getCurrentDescriptor(eservice, agreement);
+
+    const delegate = delegation
+      ? cachedTenants.get(delegation.delegateId) ??
+        (await getTenantById(
           clients.tenantProcessClient,
           ctx.headers,
           delegation.delegateId
-        )
+        ))
       : undefined;
 
-  return {
-    id: agreement.id,
-    state: agreement.state,
-    consumer: {
-      id: consumer.id,
-      name: consumer.name,
-      kind: consumer.kind,
-    },
-    eservice: toCompactEservice(eservice, producer),
-    descriptor: toCompactDescriptor(currentDescriptor),
-    canBeUpgraded: isAgreementUpgradable(eservice, agreement),
-    suspendedByConsumer: agreement.suspendedByConsumer,
-    suspendedByProducer: agreement.suspendedByProducer,
-    suspendedByPlatform: agreement.suspendedByPlatform,
-    delegation:
-      delegation !== undefined && delegate !== undefined
-        ? {
-            id: delegation.id,
-            delegate: {
-              id: delegation.delegateId,
-              name: delegate.name,
-              kind: delegate.kind,
-              contactMail: getLatestTenantContactEmail(delegate),
-            },
-            delegator: {
-              id: delegation.delegatorId,
-              name: consumer.name,
-              kind: consumer.kind,
-              contactMail: getLatestTenantContactEmail(consumer),
-            },
-          }
-        : undefined,
-  };
+    agreementsResult.push({
+      id: agreement.id,
+      state: agreement.state,
+      consumer: {
+        id: consumer.id,
+        name: consumer.name,
+        kind: consumer.kind,
+      },
+      eservice: toCompactEservice(eservice, producer),
+      descriptor: toCompactDescriptor(currentDescriptor),
+      canBeUpgraded: isAgreementUpgradable(eservice, agreement),
+      suspendedByConsumer: agreement.suspendedByConsumer,
+      suspendedByProducer: agreement.suspendedByProducer,
+      suspendedByPlatform: agreement.suspendedByPlatform,
+      delegation:
+        delegation !== undefined && delegate !== undefined
+          ? {
+              id: delegation.id,
+              delegate: {
+                id: delegation.delegateId,
+                name: delegate.name,
+                kind: delegate.kind,
+                contactMail: getLatestTenantContactEmail(delegate),
+              },
+              delegator: {
+                id: delegation.delegatorId,
+                name: consumer.name,
+                kind: consumer.kind,
+                contactMail: getLatestTenantContactEmail(consumer),
+              },
+            }
+          : undefined,
+    });
+  }
+
+  return agreementsResult;
 }
 
 export async function enrichAgreement(
@@ -704,8 +715,16 @@ export async function enrichAgreement(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
+  // TODO: add cachedTenants logic
+  const cachedTenants = new Map<string, tenantApi.Tenant>();
+
   const { consumer, producer, eservice, delegation } =
-    await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
+    await getConsumerProducerEserviceDelegation(
+      agreement,
+      clients,
+      ctx,
+      cachedTenants
+    );
 
   const currentDescriptor = getCurrentDescriptor(eservice, agreement);
   const activeDescriptor = getLatestActiveDescriptor(eservice);
@@ -836,7 +855,8 @@ async function getConsumerProducerEserviceDelegation(
     catalogProcessClient,
     delegationProcessClient,
   }: PagoPAInteropBeClients,
-  { headers }: WithLogger<BffAppContext>
+  { headers }: WithLogger<BffAppContext>,
+  cachedTenants: Map<string, tenantApi.Tenant>
 ): Promise<{
   consumer: tenantApi.Tenant;
   producer: tenantApi.Tenant;
@@ -871,11 +891,14 @@ async function getConsumerProducerEserviceDelegation(
   });
 
   const [consumer, producer, eservice, delegation] = await Promise.all([
-    consumerTask,
-    producerTask,
+    cachedTenants.get(agreement.consumerId) ?? consumerTask,
+    cachedTenants.get(agreement.producerId) ?? producerTask,
     eserviceTask,
     delegationTask,
   ]);
+
+  cachedTenants.set(agreement.consumerId, consumer);
+  cachedTenants.set(agreement.producerId, producer);
 
   return {
     consumer,
