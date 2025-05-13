@@ -102,8 +102,15 @@ export function authorizationServiceBuilder(
   const buildSupportClaims = (
     selfcareId: string,
     tenant: tenantApi.Tenant
-  ): SupportJwtPayload => {
-    const organization = {
+  ): SupportJwtPayload => ({
+    ...buildJwtCustomClaims(
+      userRole.SUPPORT_ROLE,
+      tenant.id,
+      selfcareId,
+      tenant.externalId.origin,
+      tenant.externalId.value
+    ),
+    organization: {
       id: selfcareId,
       name: tenant.name,
       roles: [
@@ -111,23 +118,10 @@ export function authorizationServiceBuilder(
           role: userRole.SUPPORT_ROLE,
         },
       ],
-    };
-
-    return {
-      ...buildJwtCustomClaims(
-        userRole.SUPPORT_ROLE,
-        tenant.id,
-        selfcareId,
-        tenant.externalId.origin,
-        tenant.externalId.value
-      ),
-      ...{
-        organization,
-      },
-      uid: SUPPORT_USER_ID,
-      "user-roles": userRole.SUPPORT_ROLE,
-    };
-  };
+    },
+    uid: SUPPORT_USER_ID,
+    "user-roles": userRole.SUPPORT_ROLE,
+  });
 
   const retrieveSupportClaims = (
     tenant: tenantApi.Tenant

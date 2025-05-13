@@ -17,15 +17,9 @@ import {
 export const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
   z
     .string()
-    .min(1)
+    .nonempty()
     .transform((s: string) => s.split(","))
     .pipe(z.array(t));
-
-const Organization = z.object({
-  id: z.string(),
-  name: z.string(),
-  roles: z.array(z.object({ role: z.string() })),
-});
 
 export const InteropJwtHeader = z.object({
   alg: z.string(),
@@ -197,7 +191,11 @@ export type InteropInternalToken = {
 // ==========================================
 export const SessionClaims = z.object({
   uid: z.string(),
-  organization: Organization,
+  organization: z.object({
+    id: z.string(),
+    name: z.string(),
+    roles: z.array(z.object({ role: z.string() })),
+  }),
   name: z.string().optional(),
   family_name: z.string().optional(),
   email: z.string().optional(),
