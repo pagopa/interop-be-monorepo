@@ -20,6 +20,7 @@ import { getMockConsumerDocument, getMockDocumentSeed } from "../mockUtils.js";
 describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
   const mockAgreement = getMockAgreement();
   const mockConsumerDocument = getMockConsumerDocument(mockAgreement.id);
+  const defaultBody = getMockDocumentSeed(mockConsumerDocument);
 
   const apiResponse = agreementApi.Document.parse(
     agreementDocumentToApiAgreementDocument(mockConsumerDocument)
@@ -33,13 +34,14 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockAgreement.id
+    agreementId: string = mockAgreement.id,
+    body: object = defaultBody
   ) =>
     request(api)
       .post(`/agreements/${agreementId}/consumer-documents`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(getMockDocumentSeed(mockConsumerDocument));
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -82,9 +84,17 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid agreement id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { agreementId: "invalid" },
+    { body: {} },
+    { body: { ...defaultBody, id: "invalid" } },
+    { body: { ...defaultBody, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ agreementId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, agreementId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });

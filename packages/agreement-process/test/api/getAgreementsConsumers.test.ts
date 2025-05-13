@@ -11,6 +11,11 @@ describe("API GET /consumers test", () => {
   const mockConsumer1 = { id: generateId(), name: "Consumer 1" };
   const mockConsumer2 = { id: generateId(), name: "Consumer 2" };
 
+  const defaultQuery = {
+    offset: 0,
+    limit: 10,
+  };
+
   const consumers: ListResult<agreementApi.CompactOrganization> = {
     results: [mockConsumer1, mockConsumer2],
     totalCount: 2,
@@ -27,15 +32,12 @@ describe("API GET /consumers test", () => {
       .mockResolvedValue(consumers);
   });
 
-  const makeRequest = async (token: string, limit: unknown = 5) =>
+  const makeRequest = async (token: string, query: object = defaultQuery) =>
     request(api)
       .get("/consumers")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit,
-      });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -62,9 +64,18 @@ describe("API GET /consumers test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid limit", async () => {
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -2 } },
+    { query: { offset: 0, limit: 55 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+  ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, query);
     expect(res.status).toBe(400);
   });
 });

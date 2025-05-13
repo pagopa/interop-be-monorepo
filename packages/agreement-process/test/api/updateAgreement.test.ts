@@ -16,6 +16,7 @@ import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js"
 
 describe("API POST /agreements/{agreementId}/update test", () => {
   const mockAgreement = getMockAgreement();
+  const defaultBody = { consumerNotes: "Mock consumer notes" };
 
   const apiResponse = agreementApi.Agreement.parse(
     agreementToApiAgreement(mockAgreement)
@@ -27,13 +28,14 @@ describe("API POST /agreements/{agreementId}/update test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockAgreement.id
+    agreementId: string = mockAgreement.id,
+    body: object = defaultBody
   ) =>
     request(api)
       .post(`/agreements/${agreementId}/update`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({ consumerNotes: "Mock consumer notes" });
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -74,9 +76,18 @@ describe("API POST /agreements/{agreementId}/update test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid agreement id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { agreementId: "invalid" },
+    { body: {} },
+    { body: { consumerNotes: 1 } },
+    { body: { consumerNotes: new Array(1002).join("a") } },
+    { body: { ...defaultBody, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ agreementId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, agreementId, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });

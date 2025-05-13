@@ -76,9 +76,12 @@ describe("API DELETE /agreements/{agreementId}/consumer-documents/{documentId} t
     }
   );
 
-  it("Should return 400 if passed an invalid agreement id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ agreementId: "invalid" }, { documentId: "invalid" }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ agreementId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, agreementId, documentId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

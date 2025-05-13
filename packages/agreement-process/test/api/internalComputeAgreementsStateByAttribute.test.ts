@@ -7,24 +7,23 @@ import request from "supertest";
 import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API POST /internal/compute/agreementsState test", () => {
+  const defaultBody = {
+    attributeId: generateId(),
+    consumer: { id: generateId(), attributes: [] },
+  };
+
   beforeEach(() => {
     agreementService.internalComputeAgreementsStateByAttribute = vi
       .fn()
       .mockResolvedValue(undefined);
   });
 
-  const makeRequest = async (
-    token: string,
-    attributeId: string = generateId()
-  ) =>
+  const makeRequest = async (token: string, body: object = defaultBody) =>
     request(api)
       .post("/internal/compute/agreementsState")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({
-        attributeId,
-        consumer: { id: generateId(), attributes: [] },
-      });
+      .send(body);
 
   it("Should return 204 for user with role Internal", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
@@ -52,9 +51,16 @@ describe("API POST /internal/compute/agreementsState test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid attribute id", async () => {
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token, "invalid");
+  it.each([
+    { body: {} },
+    { body: { ...defaultBody, attributeId: undefined } },
+    { body: { ...defaultBody, consumer: undefined } },
+    { body: { ...defaultBody, attributeId: "invalid" } },
+    { body: { ...defaultBody, consumer: { id: "invalid", attributes: [] } } },
+    { body: { ...defaultBody, extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });

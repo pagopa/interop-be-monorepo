@@ -13,6 +13,12 @@ describe("API GET /agreements test", () => {
   const mockAgreement2 = getMockAgreement();
   const mockAgreement3 = getMockAgreement();
 
+  const defaultQuery = {
+    offset: 0,
+    limit: 10,
+    states: "DRAFT,ACTIVE",
+  };
+
   const agreements: ListResult<Agreement> = {
     results: [mockAgreement1, mockAgreement2, mockAgreement3],
     totalCount: 3,
@@ -29,15 +35,12 @@ describe("API GET /agreements test", () => {
     agreementService.getAgreements = vi.fn().mockResolvedValue(agreements);
   });
 
-  const makeRequest = async (token: string, limit: unknown = 5) =>
+  const makeRequest = async (token: string, query: object = defaultQuery) =>
     request(api)
       .get("/agreements")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit,
-      });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -65,9 +68,21 @@ describe("API GET /agreements test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid limit", async () => {
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -2 } },
+    { query: { offset: 0, limit: 55 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+    {
+      query: { offset: 0, limit: 10, states: "ACTIVE,invalid" },
+    },
+  ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, query);
     expect(res.status).toBe(400);
   });
 });

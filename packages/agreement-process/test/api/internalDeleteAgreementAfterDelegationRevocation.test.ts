@@ -75,9 +75,12 @@ describe("API DELETE /internal/delegations/{delegationId}/agreements/{agreementI
     }
   );
 
-  it("Should return 400 if passed an invalid delegation id", async () => {
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ agreementId: "invalid" }, { delegationId: "invalid" }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ delegationId, agreementId }) => {
+      const token = generateToken(authRole.INTERNAL_ROLE);
+      const res = await makeRequest(token, delegationId, agreementId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

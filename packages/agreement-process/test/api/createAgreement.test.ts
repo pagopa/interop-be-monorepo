@@ -24,6 +24,10 @@ import {
 
 describe("API POST /agreements test", () => {
   const mockAgreement = getMockAgreement();
+  const defaultBody = {
+    eserviceId: mockAgreement.eserviceId,
+    descriptorId: mockAgreement.descriptorId,
+  };
 
   const apiResponse = agreementApi.Agreement.parse(
     agreementToApiAgreement(mockAgreement)
@@ -33,18 +37,12 @@ describe("API POST /agreements test", () => {
     agreementService.createAgreement = vi.fn().mockResolvedValue(mockAgreement);
   });
 
-  const makeRequest = async (
-    token: string,
-    eserviceId: string = mockAgreement.eserviceId
-  ) =>
+  const makeRequest = async (token: string, body: object = defaultBody) =>
     request(api)
       .post("/agreements")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({
-        eserviceId,
-        descriptorId: mockAgreement.descriptorId,
-      });
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -108,9 +106,16 @@ describe("API POST /agreements test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid eservice id", async () => {
+  it.each([
+    { body: {} },
+    { body: { ...defaultBody, eserviceId: undefined } },
+    { body: { ...defaultBody, descriptorId: undefined } },
+    { body: { ...defaultBody, eserviceId: "invalid" } },
+    { body: { ...defaultBody, descriptorId: "invalid" } },
+    { body: { ...defaultBody, extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });

@@ -83,9 +83,16 @@ describe("API GET /tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descri
     }
   );
 
-  it("Should return 400 if passed an invalid tenant id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { tenantId: "invalid" },
+    { eserviceId: "invalid" },
+    { descriptorId: "invalid" },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, eserviceId, descriptorId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, tenantId, eserviceId, descriptorId);
+      expect(res.status).toBe(400);
+    }
+  );
 });
