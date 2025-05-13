@@ -1,22 +1,17 @@
 import { unauthorizedError } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
 import { AppContext } from "../context/context.js";
+import { NonEmptyArray } from "../utils/arrays.js";
 import {
-  NonEmptyArray,
-  SystemRole,
-  systemRole,
-  UserRole,
-  userRole,
-} from "../index.js";
-import {
-  UIAuthData,
-  M2MAuthData,
-  InternalAuthData,
-  MaintenanceAuthData,
   AuthData,
+  InternalAuthData,
   M2MAdminAuthData,
+  M2MAuthData,
+  MaintenanceAuthData,
+  UIAuthData,
 } from "./authData.js";
+import { userRole, UserRole, systemRole, SystemRole } from "./roles.js";
 
 export const authRole = {
   ...userRole,
