@@ -24,7 +24,7 @@ export const getPurposeVersionErrorMapper = (
 ): number =>
   match(error.code)
     .with("purposeVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
-  .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 // eslint-disable-next-line sonarjs/no-identical-functions
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
