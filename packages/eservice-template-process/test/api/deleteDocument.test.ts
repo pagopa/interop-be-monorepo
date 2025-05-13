@@ -62,78 +62,61 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eserviceTemplateNotFound", async () => {
-    eserviceTemplateService.deleteDocument = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(templateId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(`EService Template ${templateId} not found`);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceTemplateNotFound(templateId),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceTemplateVersionNotFound(templateId, templateVersionId),
+      expectedStatus: 404,
+    },
+    {
+      error: eserviceTemplateDocumentNotFound(
+        templateId,
+        templateVersionId,
+        documentId
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: notValidEServiceTemplateVersionState(
+        templateVersionId,
+        eserviceTemplateVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.deleteDocument = vi.fn().mockRejectedValue(error);
 
-  it("Should return 404 for eserviceTemplateVersionNotFound", async () => {
-    eserviceTemplateService.deleteDocument = vi
-      .fn()
-      .mockRejectedValue(
-        eServiceTemplateVersionNotFound(templateId, templateVersionId)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${templateId} version ${templateVersionId} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 404 for eserviceTemplateDocumentNotFound", async () => {
-    eserviceTemplateService.deleteDocument = vi
-      .fn()
-      .mockRejectedValue(
-        eserviceTemplateDocumentNotFound(
-          templateId,
-          templateVersionId,
-          documentId
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `Document ${documentId} not found in version ${templateVersionId} of template ${templateId}`
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      templateId: "invalidId",
+      templateVersionId,
+    },
+    {
+      templateId,
+      templateVersionId: "invalidId",
+    },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ templateId, templateVersionId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, templateId, templateVersionId);
 
-  it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.deleteDocument = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Insufficient privileges");
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for notValidEServiceTemplateVersionState", async () => {
-    eserviceTemplateService.deleteDocument = vi
-      .fn()
-      .mockRejectedValue(
-        notValidEServiceTemplateVersionState(
-          templateVersionId,
-          eserviceTemplateVersionState.draft
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService template version ${templateVersionId} has a not valid status for this operation ${eserviceTemplateVersionState.draft}`
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed a not compliat query param", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "111");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

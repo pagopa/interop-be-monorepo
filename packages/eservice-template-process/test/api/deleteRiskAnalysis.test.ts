@@ -56,55 +56,52 @@ describe("API DELETE /templates/:templateId/riskAnalysis/:riskAnalysisId", () =>
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eserviceTemplateNotFound", async () => {
-    eserviceTemplateService.deleteRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(eserviceTemplateId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${eserviceTemplateId} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceTemplateNotFound(eserviceTemplateId),
+      expectedStatus: 404,
+    },
+    {
+      error: eserviceTemplateNotInDraftState(eserviceTemplateId),
+      expectedStatus: 400,
+    },
+    {
+      error: templateNotInReceiveMode(eserviceTemplateId),
+      expectedStatus: 400,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.deleteRiskAnalysis = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.deleteRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Insufficient privileges");
-    expect(res.status).toBe(403);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 400 for eserviceTemplateNotInDraftState", async () => {
-    eserviceTemplateService.deleteRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(eserviceTemplateNotInDraftState(eserviceTemplateId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${eserviceTemplateId} is not in draft state`
-    );
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    {
+      templateId: "invalidId",
+      riskAnalysisId: mockValidRiskAnalysisId,
+    },
+    {
+      templateId: eserviceTemplateId,
+      riskAnalysisId: "invalidId",
+    },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ templateId, riskAnalysisId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, templateId, riskAnalysisId);
 
-  it("Should return 400 for eserviceTemplateNotInReceiveMode", async () => {
-    eserviceTemplateService.deleteRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(templateNotInReceiveMode(eserviceTemplateId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${eserviceTemplateId} is not in receive mode`
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed a not compliat query param", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "111");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

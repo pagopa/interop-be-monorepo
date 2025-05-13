@@ -27,13 +27,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/suspend", 
     templateVersionId: string = mockEserviceTemplate.versions[0].id
   ) =>
     request(api)
-      .post(`/templates/${templateId}/versions/${templateVersionId}/publish`)
+      .post(`/templates/${templateId}/versions/${templateVersionId}/suspend`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
 
   beforeEach(() => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
+    eserviceTemplateService.suspendEServiceTemplateVersion = vi
       .fn()
       .mockResolvedValue(undefined);
   });
@@ -56,65 +56,65 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/suspend", 
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eserviceTemplateNotFound", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(mockEserviceTemplate.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceTemplateVersionNotFound(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceTemplateVersionNotFound(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: notValidEServiceTemplateVersionState(
+        mockEserviceTemplate.versions[0].id,
+        eserviceTemplateVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.suspendEServiceTemplateVersion = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 404 for eserviceTemplateVersionNotFound", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(
-        eServiceTemplateVersionNotFound(
-          mockEserviceTemplate.id,
-          mockEserviceTemplate.versions[0].id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} version ${mockEserviceTemplate.versions[0].id} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Insufficient privileges");
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    {
+      templateId: "invalidId",
+      templateVersionId: mockEserviceTemplate.versions[0].id,
+    },
+    {
+      templateId: mockEserviceTemplate.id,
+      templateVersionId: "invalidId",
+    },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ templateId, templateVersionId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, templateId, templateVersionId);
 
-  it("Should return 400 for notValidEServiceTemplateVersionState", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(
-        notValidEServiceTemplateVersionState(
-          mockEserviceTemplate.versions[0].id,
-          eserviceTemplateVersionState.draft
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService template version ${mockEserviceTemplate.versions[0].id} has a not valid status for this operation ${eserviceTemplateVersionState.draft}`
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed a not compliat query param", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "111");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

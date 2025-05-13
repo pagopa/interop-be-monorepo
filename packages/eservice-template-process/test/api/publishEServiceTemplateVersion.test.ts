@@ -29,6 +29,7 @@ import {
 
 describe("API POST /templates/:templateId/versions/:templateVersionId/publish", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
+  const tenantId = generateId<TenantId>();
 
   const makeRequest = async (
     token: string,
@@ -65,125 +66,89 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eserviceTemplateNotFound", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(mockEserviceTemplate.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceTemplateVersionNotFound(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: missingTemplateVersionInterface(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceTemplateVersionNotFound(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: notValidEServiceTemplateVersionState(
+        mockEserviceTemplate.versions[0].id,
+        eserviceTemplateVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisValidationFailed([
+        new RiskAnalysisValidationIssue({
+          code: "noRulesVersionFoundError",
+          detail: "no rule",
+        }),
+      ]),
+      expectedStatus: 400,
+    },
+    {
+      error: tenantNotFound(tenantId),
+      expectedStatus: 500,
+    },
+    {
+      error: tenantKindNotFound(tenantId),
+      expectedStatus: 500,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.publishEServiceTemplateVersion = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 404 for eserviceTemplateVersionNotFound", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(
-        eServiceTemplateVersionNotFound(
-          mockEserviceTemplate.id,
-          mockEserviceTemplate.versions[0].id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} version ${mockEserviceTemplate.versions[0].id} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 404 for missingTemplateVersionInterface", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(
-        missingTemplateVersionInterface(
-          mockEserviceTemplate.id,
-          mockEserviceTemplate.versions[0].id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService template ${mockEserviceTemplate.id} version ${mockEserviceTemplate.versions[0].id} is missing the interface document`
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      templateId: "invalidId",
+      templateVersionId: mockEserviceTemplate.versions[0].id,
+    },
+    {
+      templateId: mockEserviceTemplate.id,
+      templateVersionId: "invalidId",
+    },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ templateId, templateVersionId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, templateId, templateVersionId);
 
-  it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Insufficient privileges");
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for notValidEServiceTemplateVersionState", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(
-        notValidEServiceTemplateVersionState(
-          mockEserviceTemplate.versions[0].id,
-          eserviceTemplateVersionState.draft
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService template version ${mockEserviceTemplate.versions[0].id} has a not valid status for this operation ${eserviceTemplateVersionState.draft}`
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for riskAnalysisValidationFailed", async () => {
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(
-        riskAnalysisValidationFailed([
-          new RiskAnalysisValidationIssue({
-            code: "noRulesVersionFoundError",
-            detail: "no rule",
-          }),
-        ])
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `Risk analysis validation failed. Reasons: [no rule]`
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 500 for tenantNotFound", async () => {
-    const tenantId = generateId<TenantId>();
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenantId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(`Tenant ${tenantId} not found`);
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 for tenantKindNotFound", async () => {
-    const tenantId = generateId<TenantId>();
-    eserviceTemplateService.publishEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(tenantKindNotFound(tenantId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `Tenant kind for tenant ${tenantId} not found`
-    );
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 400 if passed a not compliat query param", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "111");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

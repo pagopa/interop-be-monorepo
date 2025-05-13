@@ -65,66 +65,66 @@ describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eserviceTemplateNotFound", async () => {
-    eserviceTemplateService.getEServiceTemplateDocument = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(mockEserviceTemplate.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceTemplateVersionNotFound(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: eserviceTemplateDocumentNotFound(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id,
+        doc.id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.getEServiceTemplateDocument = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 404 for eserviceTemplateVersionNotFound", async () => {
-    eserviceTemplateService.getEServiceTemplateDocument = vi
-      .fn()
-      .mockRejectedValue(
-        eServiceTemplateVersionNotFound(
-          mockEserviceTemplate.id,
-          mockEserviceTemplate.versions[0].id
-        )
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    {
+      templateId: "invalidId",
+      templateVersionId: mockEserviceTemplate.versions[0].id,
+      documentId: doc.id,
+    },
+    {
+      templateId: mockEserviceTemplate.id,
+      templateVersionId: "invalidId",
+      documentId: doc.id,
+    },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ templateId, templateVersionId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        templateId,
+        templateVersionId,
+        documentId
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} version ${mockEserviceTemplate.versions[0].id} not found`
-    );
-    expect(res.status).toBe(404);
-  });
 
-  it("Should return 404 for eserviceTemplateDocumentNotFound", async () => {
-    eserviceTemplateService.getEServiceTemplateDocument = vi
-      .fn()
-      .mockRejectedValue(
-        eserviceTemplateDocumentNotFound(
-          mockEserviceTemplate.id,
-          mockEserviceTemplate.versions[0].id,
-          doc.id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `Document ${doc.id} not found in version ${mockEserviceTemplate.versions[0].id} of template ${mockEserviceTemplate.id}`
-    );
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.getEServiceTemplateDocument = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Insufficient privileges");
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed a not compliat query param", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "111");
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 });

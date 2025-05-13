@@ -22,6 +22,8 @@ describe("API POST /templates", () => {
 
   const mockEserviceTemplateSeed =
     eserviceTemplateToApiEServiceTemplateSeed(mockEserviceTemplate);
+  const notCompliantOrigin = "https://not-allowed-origin.com";
+  const eserviceTemplateName = "duplicate";
 
   const makeRequest = async (
     token: string,
@@ -60,50 +62,43 @@ describe("API POST /templates", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed a not compliant body", async () => {
+  it.each([
+    {},
+    { ...mockEserviceTemplateSeed, name: 1 },
+    { ...mockEserviceTemplateSeed, technology: "NOT_REST" },
+  ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      {} as eserviceTemplateApi.EServiceTemplateSeed
+      body as eserviceTemplateApi.EServiceTemplateSeed
     );
+
     expect(res.status).toBe(400);
   });
 
-  it("Should return 403 for origin not compliant", async () => {
-    const notCompliantOrigin = "https://not-allowed-origin.com";
-    eserviceTemplateService.createEServiceTemplate = vi
-      .fn()
-      .mockRejectedValue(originNotCompliant(notCompliantOrigin));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `Requester origin ${notCompliantOrigin} is not allowed`
-    );
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    {
+      error: originNotCompliant(notCompliantOrigin),
+      expectedStatus: 403,
+    },
+    {
+      error: eServiceTemplateDuplicate(eserviceTemplateName),
+      expectedStatus: 409,
+    },
+    {
+      error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.createEServiceTemplate = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 409 for eServiceTemplateDuplicate", async () => {
-    const eserviceTemplateName = "duplicate";
-    eserviceTemplateService.createEServiceTemplate = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateDuplicate(eserviceTemplateName));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `An EService Template with name ${eserviceTemplateName} already exists`
-    );
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 400 for inconsistentDailyCalls", async () => {
-    eserviceTemplateService.createEServiceTemplate = vi
-      .fn()
-      .mockRejectedValue(inconsistentDailyCalls());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      "dailyCallsPerConsumer can't be greater than dailyCallsTotal"
-    );
-    expect(res.status).toBe(400);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

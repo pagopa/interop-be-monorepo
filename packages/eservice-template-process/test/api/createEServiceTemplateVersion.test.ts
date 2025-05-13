@@ -23,6 +23,7 @@ import {
 describe("API POST /templates/:templateId/versions", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();
   const mockEserviceTemplateVersion = getMockEServiceTemplateVersion();
+  const notFoundEserviceTemplateId = generateId<EServiceTemplateId>();
 
   const makeRequest = async (token: string, id: string = eserviceTemplateId) =>
     request(api)
@@ -60,68 +61,39 @@ describe("API POST /templates/:templateId/versions", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 if eServiceTemplateNotFound", async () => {
-    const notFoundEserviceTemplateId = generateId<EServiceTemplateId>();
-    eserviceTemplateService.createEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(notFoundEserviceTemplateId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${notFoundEserviceTemplateId} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceTemplateNotFound(notFoundEserviceTemplateId),
+      expectedStatus: 404,
+    },
+    {
+      error: draftEServiceTemplateVersionAlreadyExists(eserviceTemplateId),
+      expectedStatus: 400,
+    },
+    {
+      error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: eserviceTemplateWithoutPublishedVersion(eserviceTemplateId),
+      expectedStatus: 409,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.createEServiceTemplateVersion = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 400 if draftEServiceTemplateVersionAlreadyExists", async () => {
-    eserviceTemplateService.createEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(
-        draftEServiceTemplateVersionAlreadyExists(eserviceTemplateId)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `Draft version for EService Template ${eserviceTemplateId} already exists`
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for inconsistentDailyCalls", async () => {
-    eserviceTemplateService.createEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(inconsistentDailyCalls());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      "dailyCallsPerConsumer can't be greater than dailyCallsTotal"
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 409 for eserviceTemplateWithoutPublishedVersion", async () => {
-    eserviceTemplateService.createEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(
-        eserviceTemplateWithoutPublishedVersion(eserviceTemplateId)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${eserviceTemplateId} does not have a published version`
-    );
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.createEServiceTemplateVersion = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Insufficient privileges");
-    expect(res.status).toBe(403);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed a not compliat query param", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

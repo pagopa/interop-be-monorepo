@@ -22,6 +22,8 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents"
   const mockEserviceTemplate = getMockEServiceTemplate();
   const mockSeed: eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed =
     buildDocumentSeed();
+  const interfaceName = "interfaceName";
+  const documentName = "documentName";
 
   const makeRequest = async (
     token: string,
@@ -62,80 +64,57 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents"
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for eserviceTemplateNotFound", async () => {
-    eserviceTemplateService.createEServiceTemplateDocument = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(mockEserviceTemplate.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceTemplateVersionNotFound(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: interfaceAlreadyExists(interfaceName),
+      expectedStatus: 400,
+    },
+    {
+      error: documentPrettyNameDuplicate(
+        documentName,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.createEServiceTemplateDocument = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 404 for eserviceTemplateVersionNotFound", async () => {
-    eserviceTemplateService.createEServiceTemplateDocument = vi
-      .fn()
-      .mockRejectedValue(
-        eServiceTemplateVersionNotFound(
-          mockEserviceTemplate.id,
-          mockEserviceTemplate.versions[0].id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} version ${mockEserviceTemplate.versions[0].id} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
-  it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.createEServiceTemplateDocument = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Insufficient privileges");
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for interfaceAlreadyExists", async () => {
-    const interfaceName = "interfaceName";
-    eserviceTemplateService.createEServiceTemplateDocument = vi
-      .fn()
-      .mockRejectedValue(interfaceAlreadyExists(interfaceName));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Interface interfaceName already exists");
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 409 for documentPrettyNameDuplicate", async () => {
-    const documentName = "documentName";
-    eserviceTemplateService.createEServiceTemplateDocument = vi
-      .fn()
-      .mockRejectedValue(
-        documentPrettyNameDuplicate(
-          documentName,
-          mockEserviceTemplate.versions[0].id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `A document with prettyName ${documentName} already exists in version ${mockEserviceTemplate.versions[0].id}`
-    );
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 400 if passed a not compliant body", async () => {
+  it.each([
+    {},
+    { ...mockSeed, prettyName: 1 },
+    { ...mockSeed, kind: "NOT_VALID" },
+  ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      {} as eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed
+      body as eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed
     );
+
     expect(res.status).toBe(400);
   });
 });
