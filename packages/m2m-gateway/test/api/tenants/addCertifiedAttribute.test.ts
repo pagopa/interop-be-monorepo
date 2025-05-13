@@ -4,6 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -12,7 +13,10 @@ import {
 } from "../../../src/model/errors.js";
 
 describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
-  const makeRequest = async (token: string, body: Record<string, unknown>) =>
+  const makeRequest = async (
+    token: string,
+    body: m2mGatewayApi.TenantCertifiedAttributeSeed
+  ) =>
     request(api)
       .post(`${appBasePath}/tenants/${generateId()}/certifiedAttributes`)
       .set("Authorization", `Bearer ${token}`)
@@ -43,7 +47,7 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, {
       invalidParam: "invalidValue",
-    });
+    } as unknown as m2mGatewayApi.TenantCertifiedAttributeSeed);
 
     expect(res.status).toBe(400);
   });
