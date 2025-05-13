@@ -10,6 +10,7 @@ import {
   MockInstance,
   it,
   expect,
+  inject,
 } from "vitest";
 import {
   InteropTokenGenerator,
@@ -17,20 +18,42 @@ import {
   userRole,
 } from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
-import { getMockClient } from "pagopa-interop-commons-test";
-import { clientKind } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
+import {
+  getMockClient,
+  setupTestContainersVitest,
+} from "pagopa-interop-commons-test";
+import {
+  Client,
+  clientKind,
+  unsafeBrandId,
+  UserId,
+} from "pagopa-interop-models";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
 import { config } from "../src/config/config.js";
 import { AuthorizationProcessClient } from "../src/clients/authorizationProcessClient.js";
 import { relationshipStatus } from "../src/model/UsersEventPayload.js";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import {
   correctEventPayload,
   generateInternalTokenMock,
   kafkaMessagePayload,
 } from "./utils.js";
 
+export const { cleanup, readModelRepository, postgresDB } =
+  await setupTestContainersVitest(
+    inject("readModelConfig"),
+    inject("eventStoreConfig")
+  );
+
+afterEach(cleanup);
+
 describe("selfcareClientUsersUpdaterProcessor", () => {
+  const readModelService = readModelServiceBuilder(readModelRepository);
+
+  async function seedCollection(data: Array<{ data: Client }>): Promise<void> {
+    await readModelRepository.clients.insertMany(data as never);
+  }
+
   const userId: UUID = randomUUID();
   const clientMock = {
     ...getMockClient(),
@@ -44,10 +67,6 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
   };
   const authorizationProcessClientMock = {
     client: {
-      getClients: vi.fn().mockResolvedValue({
-        results: [clientMock, clientMock2],
-        totalCount: 2,
-      }),
       internalRemoveClientAdmin: vi.fn().mockResolvedValue(undefined),
     },
   } as unknown as AuthorizationProcessClient;
@@ -62,6 +81,7 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
       selfcareClientUsersUpdaterProcessorBuilder(
         refreshableTokenMock,
         authorizationProcessClientMock,
+        readModelService,
         config.interopProduct
       );
   });
@@ -106,19 +126,25 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
         },
       };
 
+      await seedCollection([
+        {
+          data: {
+            ...clientMock,
+            consumerId: unsafeBrandId(correctEventPayload.institutionId),
+            adminId: unsafeBrandId<UserId>(userId),
+          },
+        },
+        {
+          data: {
+            ...clientMock2,
+            consumerId: unsafeBrandId(correctEventPayload.institutionId),
+            adminId: unsafeBrandId<UserId>(userId),
+          },
+        },
+      ]);
+
       await selfcareClientUsersUpdaterProcessor.processMessage(message);
 
-      expect(
-        authorizationProcessClientMock.client.getClients
-      ).toHaveBeenCalledWith({
-        queries: {
-          consumerId: correctEventPayload.institutionId,
-          kind: bffApi.ClientKind.Values.API,
-          limit: expect.any(Number),
-          offset: expect.any(Number),
-        },
-        headers: expect.any(Object),
-      });
       expect(
         authorizationProcessClientMock.client.internalRemoveClientAdmin
       ).toHaveBeenCalledWith(

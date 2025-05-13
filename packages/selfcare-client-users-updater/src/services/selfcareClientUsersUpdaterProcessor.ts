@@ -1,5 +1,4 @@
 import {
-  getAllFromPaginated,
   getInteropHeaders,
   logger,
   RefreshableInteropToken,
@@ -10,20 +9,23 @@ import {
   generateId,
   CorrelationId,
   genericInternalError,
+  UserId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
-import { AuthorizationProcessClient } from "../clients/authorizationProcessClient.js";
 import {
   selfcareUserEventType,
   UsersEventPayload,
   relationshipStatus,
 } from "../model/UsersEventPayload.js";
+import { AuthorizationProcessClient } from "../clients/authorizationProcessClient.js";
+import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function selfcareClientUsersUpdaterProcessorBuilder(
   refreshableToken: RefreshableInteropToken,
   authorizationProcessClient: AuthorizationProcessClient,
+  readModelService: ReadModelService,
   productId: string
 ) {
   return {
@@ -78,27 +80,10 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
             async (payload) => {
               const eventUserId = payload.user.userId;
               const token = (await refreshableToken.get()).serialized;
-              const headers = getInteropHeaders({ token, correlationId });
-              const response = await getAllFromPaginated(
-                async (offset, limit) =>
-                  await authorizationProcessClient.client.getClients({
-                    queries: {
-                      consumerId: userEventPayload.institutionId,
-                      kind: bffApi.ClientKind.Values.API,
-                      offset,
-                      limit,
-                    },
-                    headers,
-                  })
-              );
-
-              const clients = response.filter(
-                (client) => client.adminId === eventUserId
-              );
-
-              loggerInstance.info(
-                `Found ${clients.length} clients with user as admin`
-              );
+              const clients = await readModelService.getClients({
+                consumerId: unsafeBrandId(userEventPayload.institutionId),
+                adminId: unsafeBrandId<UserId>(eventUserId),
+              });
 
               await Promise.all(
                 clients.map(async (client) =>
