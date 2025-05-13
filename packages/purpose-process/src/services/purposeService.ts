@@ -268,7 +268,9 @@ export function purposeServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -292,7 +294,10 @@ export function purposeServiceBuilder(
           )
         : true;
 
-      return { purpose: purpose.data, isRiskAnalysisValid };
+      return {
+        data: { purpose: purpose.data, isRiskAnalysisValid },
+        metadata: purpose.metadata,
+      };
     },
     async getRiskAnalysisDocument({
       purposeId,
@@ -1081,8 +1086,14 @@ export function purposeServiceBuilder(
     },
     async createPurpose(
       purposeSeed: purposeApi.PurposeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(
         `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
       );
@@ -1137,10 +1148,15 @@ export function purposeServiceBuilder(
         freeOfChargeReason: purposeSeed.freeOfChargeReason,
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventPurposeAdded(purpose, correlationId)
       );
-      return { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined };
+      return {
+        data: { purpose, isRiskAnalysisValid: validatedFormSeed !== undefined },
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async createReversePurpose(
       seed: purposeApi.EServicePurposeSeed,

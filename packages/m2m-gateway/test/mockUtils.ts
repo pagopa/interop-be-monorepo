@@ -2,7 +2,7 @@ import {
   attributeRegistryApi,
   authorizationApi,
   delegationApi,
-  purposeApi
+  purposeApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
@@ -40,7 +40,7 @@ export function getMockedApiPurpose({
       consumerId: generateId(),
       versions: versions ?? [getMockedApiPurposeVersion()],
       title: generateMock(z.string()),
-      description: generateMock(z.string()),
+      description: generateMock(z.string().length(10)),
       createdAt: new Date().toISOString(),
       isRiskAnalysisValid: true,
       isFreeOfCharge: true,

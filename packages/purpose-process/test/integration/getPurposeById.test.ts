@@ -72,13 +72,16 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
     await addOneTenant(producer);
 
-    const result = await purposeService.getPurposeById(
+    const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(producer.id) })
     );
-    expect(result).toMatchObject({
-      purpose: mockPurpose1,
-      isRiskAnalysisValid: true,
+    expect(purposeResponse).toMatchObject({
+      data: {
+        purpose: mockPurpose1,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
     });
   });
 
@@ -102,13 +105,16 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
     await addOneTenant(consumer);
 
-    const result = await purposeService.getPurposeById(
+    const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(consumer.id) })
     );
-    expect(result).toMatchObject({
-      purpose: mockPurpose1,
-      isRiskAnalysisValid: true,
+    expect(purposeResponse).toMatchObject({
+      data: {
+        purpose: mockPurpose1,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
     });
   });
 
@@ -138,22 +144,28 @@ describe("getPurposeById", () => {
     await addOneTenant(consumer);
     await addOneTenant(producer);
 
-    const producerResult = await purposeService.getPurposeById(
+    const producerResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(producer.id) })
     );
-    expect(producerResult).toMatchObject({
-      purpose: mockPurpose1,
-      isRiskAnalysisValid: false,
+    expect(producerResponse).toMatchObject({
+      data: {
+        purpose: mockPurpose1,
+        isRiskAnalysisValid: false,
+      },
+      metadata: { version: 0 },
     });
 
-    const consumerResult = await purposeService.getPurposeById(
+    const consumerResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(consumer.id) })
     );
-    expect(consumerResult).toMatchObject({
-      purpose: mockPurpose1,
-      isRiskAnalysisValid: false,
+    expect(consumerResponse).toMatchObject({
+      data: {
+        purpose: mockPurpose1,
+        isRiskAnalysisValid: false,
+      },
+      metadata: { version: 0 },
     });
   });
 
@@ -185,13 +197,16 @@ describe("getPurposeById", () => {
     await addOneTenant(producerDelegate);
     await addOneDelegation(mockProducerDelegation);
 
-    const result = await purposeService.getPurposeById(
+    const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(producerDelegate.id) })
     );
-    expect(result).toMatchObject({
-      purpose: mockPurpose1,
-      isRiskAnalysisValid: true,
+    expect(purposeResponse).toMatchObject({
+      data: {
+        purpose: mockPurpose1,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
     });
   });
 
@@ -295,13 +310,16 @@ describe("getPurposeById", () => {
     await addOneTenant(consumerDelegate);
     await addOneDelegation(mockConsumerDelegation);
 
-    const result = await purposeService.getPurposeById(
+    const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
-    expect(result).toMatchObject({
-      purpose: mockPurpose1,
-      isRiskAnalysisValid: true,
+    expect(purposeResponse).toMatchObject({
+      data: {
+        purpose: mockPurpose1,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
     });
   });
 
@@ -351,13 +369,16 @@ describe("getPurposeById", () => {
     await addOneTenant(producer);
     await addOneTenant(producerDelegate);
 
-    const result = await purposeService.getPurposeById(
+    const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(producerDelegate.id) })
     );
-    expect(result).toMatchObject({
-      purpose: mockPurpose1,
-      isRiskAnalysisValid: true,
+    expect(purposeResponse).toMatchObject({
+      data: {
+        purpose: mockPurpose1,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
     });
   });
 
@@ -393,13 +414,16 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
     await addOneTenant(producer);
 
-    const result = await purposeService.getPurposeById(
+    const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(producer.id) })
     );
-    expect(result).toMatchObject({
-      purpose: mockPurpose1,
-      isRiskAnalysisValid: true,
+    expect(purposeResponse).toMatchObject({
+      data: {
+        purpose: mockPurpose1,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
     });
   });
 
@@ -434,13 +458,16 @@ describe("getPurposeById", () => {
     await addOneEService(mockEService);
     await addOneTenant(consumer);
 
-    const result = await purposeService.getPurposeById(
+    const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
       getMockContext({ authData: getMockAuthData(consumer.id) })
     );
-    expect(result).toMatchObject({
-      purpose: mockPurpose1,
-      isRiskAnalysisValid: true,
+    expect(purposeResponse).toMatchObject({
+      data: {
+        purpose: mockPurpose1,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
     });
   });
 
@@ -520,13 +547,16 @@ describe("getPurposeById", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const result = await purposeService.getPurposeById(
+    const purposeResponse = await purposeService.getPurposeById(
       delegatePurpose.id,
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
-    expect(result).toMatchObject({
-      purpose: delegatePurpose,
-      isRiskAnalysisValid: true,
+    expect(purposeResponse).toMatchObject({
+      data: {
+        purpose: delegatePurpose,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 0 },
     });
   });
 

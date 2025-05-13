@@ -98,7 +98,11 @@ const purposeRouter = (
     .post("/purposes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.createPurpose(req.body, ctx);
+
+        return res.status(201).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
