@@ -8,13 +8,21 @@ import {
 import {
   DrizzleReturnType,
   tenantCertifiedAttributeInReadmodelTenant,
+  TenantCertifiedAttributeSQL,
   tenantDeclaredAttributeInReadmodelTenant,
+  TenantDeclaredAttributeSQL,
   tenantFeatureInReadmodelTenant,
+  TenantFeatureSQL,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  TenantMailSQL,
+  TenantSQL,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
+  TenantVerifiedAttributeRevokerSQL,
+  TenantVerifiedAttributeSQL,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
+  TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import {
@@ -98,12 +106,74 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         }
       });
     },
+    // TODO: getTenantById with joins is too slow. await Promise.all is faster.
+    // async getTenantById(
+    //   tenantId: TenantId
+    // ): Promise<WithMetadata<Tenant> | undefined> {
+    //   return await this.getTenantByFilter(
+    //     eq(tenantInReadmodelTenant.id, tenantId),
+    //     tenantId
+    //   );
+    // },
     async getTenantById(
       tenantId: TenantId
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return await this.getTenantByFilter(
-        eq(tenantInReadmodelTenant.id, tenantId)
-      );
+      const [
+        tenantSQL,
+        mailsSQL,
+        certifiedAttributesSQL,
+        declaredAttributesSQL,
+        verifiedAttributesSQL,
+        verifiedAttributeVerifiersSQL,
+        verifiedAttributeRevokersSQL,
+        featuresSQL,
+      ] = await Promise.all([
+        await retrieveTenantSQL(eq(tenantInReadmodelTenant.id, tenantId), db),
+        await retrieveTenantMailsSQL(
+          eq(tenantMailInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+        await retrieveTenantCertifiedAttributesSQL(
+          eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+        await retrieveTenantDeclaredAttributesSQL(
+          eq(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+        await retrieveTenantVerifiedAttributesSQL(
+          eq(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+        await retrieveTenantVerifiedAttributeVerifiersSQL(
+          eq(
+            tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
+            tenantId
+          ),
+          db
+        ),
+        await retrieveTenantVerifiedAttributeRevokersSQL(
+          eq(
+            tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
+            tenantId
+          ),
+          db
+        ),
+        await retrieveTenantFeaturesSQL(
+          eq(tenantFeatureInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+      ]);
+      return aggregateTenant({
+        tenantSQL: tenantSQL!,
+        mailsSQL,
+        certifiedAttributesSQL,
+        declaredAttributesSQL,
+        verifiedAttributesSQL,
+        verifiedAttributeVerifiersSQL,
+        verifiedAttributeRevokersSQL,
+        featuresSQL,
+      });
     },
     async getTenantByFilter(
       filter: SQL | undefined
@@ -279,3 +349,69 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
 export type TenantReadModelService = ReturnType<
   typeof tenantReadModelServiceBuilder
 >;
+
+// TODO: these are used for getTenantByid with await Promise.all.
+export const retrieveTenantSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantSQL | undefined> => {
+  const result = await db.select().from(tenantInReadmodelTenant).where(filter);
+  return result[0];
+};
+
+export const retrieveTenantMailsSQL = async (
+  filter: SQL | undefined,
+  db: DrizzleReturnType
+): Promise<TenantMailSQL[]> =>
+  await db.select().from(tenantMailInReadmodelTenant).where(filter);
+
+export const retrieveTenantCertifiedAttributesSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantCertifiedAttributeSQL[]> =>
+  await db
+    .select()
+    .from(tenantCertifiedAttributeInReadmodelTenant)
+    .where(filter);
+
+export const retrieveTenantDeclaredAttributesSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantDeclaredAttributeSQL[]> =>
+  await db
+    .select()
+    .from(tenantDeclaredAttributeInReadmodelTenant)
+    .where(filter);
+
+export const retrieveTenantVerifiedAttributesSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantVerifiedAttributeSQL[]> =>
+  await db
+    .select()
+    .from(tenantVerifiedAttributeInReadmodelTenant)
+    .where(filter);
+
+export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantVerifiedAttributeVerifierSQL[]> =>
+  await db
+    .select()
+    .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
+    .where(filter);
+
+export const retrieveTenantVerifiedAttributeRevokersSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantVerifiedAttributeRevokerSQL[]> =>
+  await db
+    .select()
+    .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
+    .where(filter);
+
+export const retrieveTenantFeaturesSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantFeatureSQL[]> =>
+  await db.select().from(tenantFeatureInReadmodelTenant).where(filter);
