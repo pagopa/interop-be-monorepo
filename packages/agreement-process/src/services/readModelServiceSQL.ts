@@ -443,7 +443,7 @@ export function readModelServiceBuilderSQL(
           )
         )
         .orderBy(
-          ascLower(eserviceInReadmodelCatalog.name),
+          ascLower(queryAgreementIds.eserviceName),
           agreementInReadmodelAgreement.id
         );
 
