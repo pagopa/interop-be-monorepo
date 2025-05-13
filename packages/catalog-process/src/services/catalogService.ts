@@ -7,7 +7,6 @@ import {
   DB,
   eventRepository,
   FileManager,
-  hasAtLeastOneUserRole,
   InternalAuthData,
   interpolateApiSpec,
   Logger,
@@ -15,7 +14,6 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
-  userRole,
   verifyAndCreateDocument,
   WithLogger,
   formatDateddMMyyyyHHmmss,
@@ -157,13 +155,13 @@ import {
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
-  isNotActiveDescriptor,
   validateRiskAnalysisSchemaOrThrow,
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
   assertDescriptorUpdatable,
   assertEServiceUpdatable,
+  hasAccessToInactiveDescriptors,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -3308,39 +3306,40 @@ async function applyVisibilityToEService(
   authData: UIAuthData | M2MAuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
-  if (
-    hasAtLeastOneUserRole(authData, [
-      userRole.ADMIN_ROLE,
-      userRole.API_ROLE,
-      userRole.SUPPORT_ROLE,
-    ]) &&
-    authData.organizationId === eservice.producerId
-  ) {
-    return eservice;
+  if (hasAccessToInactiveDescriptors(authData)) {
+    /* Inactive descriptors are visible only if both conditions are met:
+       1) The request is made with a role that can access inactive descriptors.
+          (see the condition above)
+       2) The request originates from the producer tenant or a delegate producer tenant.
+          (see the following code)
+    */
+    if (authData.organizationId === eservice.producerId) {
+      return eservice;
+    }
+
+    const producerDelegation = await readModelService.getLatestDelegation({
+      eserviceId: eservice.id,
+      states: [delegationState.active],
+      kind: delegationKind.delegatedProducer,
+    });
+
+    if (authData.organizationId === producerDelegation?.delegateId) {
+      return eservice;
+    }
   }
 
-  const producerDelegation = await readModelService.getLatestDelegation({
-    eserviceId: eservice.id,
-    delegateId: authData.organizationId,
-    kind: delegationKind.delegatedProducer,
-  });
-
-  if (producerDelegation?.state === delegationState.active) {
-    return eservice;
+  /* If the conditions above are not met:
+    - we filter out the draft descriptors.
+    - we throw a not found error if there are no active descriptors
+  */
+  if (eservice.descriptors.some(isActiveDescriptor)) {
+    return {
+      ...eservice,
+      descriptors: eservice.descriptors.filter(isActiveDescriptor),
+    };
   }
 
-  const hasNoActiveDescriptor = eservice.descriptors.every(
-    isNotActiveDescriptor
-  );
-
-  if (!producerDelegation && hasNoActiveDescriptor) {
-    throw eServiceNotFound(eservice.id);
-  }
-
-  return {
-    ...eservice,
-    descriptors: eservice.descriptors.filter(isActiveDescriptor),
-  };
+  throw eServiceNotFound(eservice.id);
 }
 
 const deleteDescriptorInterfaceAndDocs = async (
