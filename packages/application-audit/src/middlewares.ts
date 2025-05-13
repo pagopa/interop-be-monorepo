@@ -117,7 +117,7 @@ export async function applicationAuditBeginMiddleware(
       }
     } catch (e) {
       loggerInstance.warn(
-        `Initializing fallback SQS for application auditing. Error: ${e}`
+        `Initializing fallback SQS for application auditing begin middleware. Error: ${e}`
       );
       await fallbackApplicationAudit(
         queueManager,
@@ -208,7 +208,7 @@ export async function applicationAuditEndMiddleware(
           }
         } catch (e) {
           loggerInstance.warn(
-            `Initializing fallback SQS for application auditing. Error: ${e}`
+            `Initializing fallback SQS for application auditing end middleware. Error: ${e}`
           );
           await fallbackApplicationAudit(
             queueManager,
@@ -324,7 +324,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           }
         } catch (e) {
           loggerInstance.warn(
-            `Initializing fallback SQS for application auditing. Error: ${e}`
+            `Initializing fallback SQS for application auditing end session token exchange middleware. Error: ${e}`
           );
           await fallbackApplicationAudit(
             queueManager,
