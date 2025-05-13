@@ -103,6 +103,7 @@ const tenantsRouter = (
     SECURITY_ROLE,
     API_ROLE,
     M2M_ROLE,
+    M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     MAINTENANCE_ROLE,
@@ -184,13 +185,24 @@ const tenantsRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          M2M_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
-        const { name, features, offset, limit } = req.query;
+        const {
+          name,
+          features,
+          externalIdOrigin,
+          externalIdValue,
+          offset,
+          limit,
+        } = req.query;
         const tenants = await tenantService.getTenants(
           {
             name,
             features: features.map(apiTenantFeatureTypeToTenantFeatureType),
+            externalIdOrigin,
+            externalIdValue,
             offset,
             limit,
           },
@@ -217,6 +229,7 @@ const tenantsRouter = (
           ADMIN_ROLE,
           API_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
           INTERNAL_ROLE,

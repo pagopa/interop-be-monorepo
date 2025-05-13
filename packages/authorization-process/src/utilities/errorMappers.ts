@@ -106,7 +106,7 @@ export const addClientAdminErrorMapper = (
       "userWithoutSecurityPrivileges",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("userAlreadyClientAdmin", () => HTTP_STATUS_CONFLICT)
+    .with("userAlreadyAssignedAsAdmin", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientPurposeErrorMapper = (
