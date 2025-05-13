@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { RequestHandler, Request } from "express";
 import { initProducer } from "kafka-iam-auth";
 import {
