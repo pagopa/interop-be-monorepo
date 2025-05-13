@@ -3332,7 +3332,8 @@ async function applyVisibilityToEService(
     - we filter out the draft descriptors.
     - we throw a not found error if there are no active descriptors
   */
-  if (eservice.descriptors.some(isActiveDescriptor)) {
+  const hasActiveDescriptors = eservice.descriptors.some(isActiveDescriptor);
+  if (hasActiveDescriptors) {
     return {
       ...eservice,
       descriptors: eservice.descriptors.filter(isActiveDescriptor),
