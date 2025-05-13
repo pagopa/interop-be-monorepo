@@ -32,7 +32,7 @@ describe("POST /agreements router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform API clients calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockAgreementService.createAgreement = vi
         .fn()
@@ -63,23 +63,14 @@ describe("POST /agreements router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 500 in case of missingMetadata error", async () => {
-    mockAgreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(missingMetadata());
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockAgreementSeed);
+  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+    "Should return 500 in case of $code error",
+    async (error) => {
+      mockAgreementService.createAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, { id: generateId() });
 
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of resourcePollingTimeout error", async () => {
-    mockAgreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(resourcePollingTimeout(3));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockAgreementSeed);
-
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });
