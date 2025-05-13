@@ -22,11 +22,11 @@ export function toGetPurposesApiQueryParams(
 export function toM2MGatewayApiPurpose({
   purpose,
   logger,
-  throwNotFoundError = false,
+  mapThrownErrorsToNotFound = false,
 }: {
   purpose: purposeApi.Purpose;
   logger: Logger;
-  throwNotFoundError?: boolean;
+  mapThrownErrorsToNotFound?: boolean;
 }): m2mGatewayApi.Purpose {
   try {
     const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
@@ -71,7 +71,7 @@ export function toM2MGatewayApiPurpose({
       rejectedVersion,
     };
   } catch (error) {
-    if (throwNotFoundError) {
+    if (mapThrownErrorsToNotFound) {
       logger.warn(
         `Root cause for "purposeNotFound" error: unexpected error while converting attribute: ${
           error instanceof ApiError ? error.detail : error

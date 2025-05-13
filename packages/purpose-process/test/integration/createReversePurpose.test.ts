@@ -11,6 +11,7 @@ import {
   getMockTenant,
   getMockValidRiskAnalysis,
   getMockAuthData,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -41,7 +42,7 @@ import {
   eServiceModeNotAllowed,
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
-  organizationIsNotTheConsumer,
+  tenantIsNotTheConsumer,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
@@ -147,8 +148,9 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
@@ -256,8 +258,9 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
@@ -394,13 +397,14 @@ describe("createReversePurpose", () => {
       },
     };
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    expect(sortPurpose(writtenPayload.purpose)).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
     expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
-  it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const consumer = { ...getMockTenant(), kind: tenantKind.PA };
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
@@ -448,7 +452,7 @@ describe("createReversePurpose", () => {
         reversePurposeSeed,
         getMockContext({ authData: getMockAuthData(producer.id) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(producer.id));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(producer.id));
   });
   it("should throw eserviceModeNotAllowed if the eservice is in deliver mode", async () => {
     const consumer = getMockTenant();

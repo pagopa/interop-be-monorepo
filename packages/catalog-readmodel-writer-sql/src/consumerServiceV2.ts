@@ -26,6 +26,7 @@ export async function handleMessageV2(
       { type: "EServiceDraftDescriptorDeleted" },
       { type: "EServiceDraftDescriptorUpdated" },
       { type: "EServiceDescriptorQuotasUpdated" },
+      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       { type: "EServiceDescriptorActivated" },
       { type: "EServiceDescriptorArchived" },
       { type: "EServiceDescriptorPublished" },
@@ -64,7 +65,6 @@ export async function handleMessageV2(
             "Eservice can't be missing in event message"
           );
         }
-
         return await catalogReadModelService.upsertEService(
           fromEServiceV2(eservice),
           message.version

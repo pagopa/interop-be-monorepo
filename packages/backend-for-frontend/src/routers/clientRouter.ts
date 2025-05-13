@@ -6,10 +6,8 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { selfcareV2UsersClientBuilder } from "pagopa-interop-api-clients";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { clientServiceBuilder } from "../services/clientService.js";
-import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
@@ -23,10 +21,7 @@ const clientRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const clientService = clientServiceBuilder(
-    interopBeClients,
-    selfcareV2UsersClientBuilder(config)
-  );
+  const clientService = clientServiceBuilder(interopBeClients);
 
   clientRouter
     .get("/clients", async (req, res) => {
@@ -231,8 +226,11 @@ const clientRouter = (
 
       try {
         const users = await clientService.getClientUsers(
-          req.params.clientId,
-          ctx.authData.selfcareId,
+          {
+            clientId: req.params.clientId,
+            selfcareId: ctx.authData.selfcareId,
+            name: req.query.name,
+          },
           ctx
         );
 
@@ -345,7 +343,29 @@ const clientRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+
+    .delete("/clients/:clientId/admin/:adminId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await clientService.removeClientAdmin(
+          req.params.clientId,
+          req.params.adminId,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error removing client admin ${req.params.adminId} from client ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
+
   return clientRouter;
 };
 
