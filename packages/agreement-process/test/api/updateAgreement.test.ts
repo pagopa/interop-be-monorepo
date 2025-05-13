@@ -50,45 +50,29 @@ describe("API POST /agreements/{agreementId}/update test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for agreementNotFound", async () => {
-    agreementService.updateAgreement = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 400 for agreementNotInExpectedState", async () => {
-    agreementService.updateAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        agreementNotInExpectedState(mockAgreement.id, agreementState.active)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    agreementService.updateAgreement = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegateConsumer", async () => {
-    agreementService.updateAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegateConsumer(generateId(), undefined)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
+    {
+      error: agreementNotInExpectedState(
+        mockAgreement.id,
+        agreementState.active
+      ),
+      expectedStatus: 400,
+    },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.updateAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid agreement id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

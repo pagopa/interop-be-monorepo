@@ -56,61 +56,31 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for agreementNotFound", async () => {
-    agreementService.addConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    agreementService.addConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegateConsumer", async () => {
-    agreementService.addConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegateConsumer(generateId(), undefined)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationNotAllowed", async () => {
-    agreementService.addConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(organizationNotAllowed(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for documentsChangeNotAllowed", async () => {
-    agreementService.addConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(documentsChangeNotAllowed(agreementState.active));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for agreementDocumentAlreadyExists", async () => {
-    agreementService.addConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(agreementDocumentAlreadyExists(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      expectedStatus: 403,
+    },
+    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    {
+      error: documentsChangeNotAllowed(agreementState.active),
+      expectedStatus: 403,
+    },
+    {
+      error: agreementDocumentAlreadyExists(mockAgreement.id),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.addConsumerDocument = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid agreement id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

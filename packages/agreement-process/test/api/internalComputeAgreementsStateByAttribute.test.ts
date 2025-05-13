@@ -40,14 +40,17 @@ describe("API POST /internal/compute/agreementsState test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for badRequestError", async () => {
-    agreementService.internalComputeAgreementsStateByAttribute = vi
-      .fn()
-      .mockRejectedValue(badRequestError("bad request", []));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
+  it.each([{ error: badRequestError("bad request", []), expectedStatus: 400 }])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.internalComputeAgreementsStateByAttribute = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.INTERNAL_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid attribute id", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);

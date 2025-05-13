@@ -50,34 +50,25 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for agreementNotFound", async () => {
-    agreementService.suspendAgreement = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationNotAllowed", async () => {
-    agreementService.suspendAgreement = vi
-      .fn()
-      .mockRejectedValue(organizationNotAllowed(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for agreementNotInExpectedState", async () => {
-    agreementService.suspendAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        agreementNotInExpectedState(mockAgreement.id, agreementState.draft)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
+    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    {
+      error: agreementNotInExpectedState(
+        mockAgreement.id,
+        agreementState.draft
+      ),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.suspendAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid agreement id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

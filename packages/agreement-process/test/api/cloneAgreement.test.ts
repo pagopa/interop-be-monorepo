@@ -52,82 +52,44 @@ describe("API POST /agreements/{agreementId}/clone test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for agreementNotFound", async () => {
-    agreementService.cloneAgreement = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 400 for agreementNotInExpectedState", async () => {
-    agreementService.cloneAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        agreementNotInExpectedState(mockAgreement.id, agreementState.active)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for missingCertifiedAttributesError", async () => {
-    agreementService.cloneAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        missingCertifiedAttributesError(
-          mockAgreement.descriptorId,
-          mockAgreement.consumerId
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for eServiceNotFound", async () => {
-    agreementService.cloneAgreement = vi
-      .fn()
-      .mockRejectedValue(eServiceNotFound(mockAgreement.eserviceId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 409 for agreementAlreadyExists", async () => {
-    agreementService.cloneAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        agreementAlreadyExists(
-          mockAgreement.consumerId,
-          mockAgreement.eserviceId
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    agreementService.cloneAgreement = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegateConsumer", async () => {
-    agreementService.cloneAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegateConsumer(generateId(), undefined)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
+    {
+      error: agreementNotInExpectedState(
+        mockAgreement.id,
+        agreementState.active
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: missingCertifiedAttributesError(
+        mockAgreement.descriptorId,
+        mockAgreement.consumerId
+      ),
+      expectedStatus: 400,
+    },
+    { error: eServiceNotFound(mockAgreement.eserviceId), expectedStatus: 400 },
+    {
+      error: agreementAlreadyExists(
+        mockAgreement.consumerId,
+        mockAgreement.eserviceId
+      ),
+      expectedStatus: 409,
+    },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.cloneAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid agreement id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

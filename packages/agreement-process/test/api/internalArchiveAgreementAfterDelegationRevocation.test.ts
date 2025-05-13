@@ -51,48 +51,34 @@ describe("API POST /internal/delegations/{delegationId}/agreements/{agreementId}
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for agreementNotFound", async () => {
-    agreementService.internalArchiveAgreementAfterDelegationRevocation = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(mockAgreement.id));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 400 for agreementNotInExpectedState", async () => {
-    agreementService.internalArchiveAgreementAfterDelegationRevocation = vi
-      .fn()
-      .mockRejectedValue(
-        agreementNotInExpectedState(mockAgreement.id, agreementState.draft)
-      );
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    agreementService.internalArchiveAgreementAfterDelegationRevocation = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegateConsumer", async () => {
-    agreementService.internalArchiveAgreementAfterDelegationRevocation = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegateConsumer(
-          generateId(),
-          generateId<DelegationId>()
-        )
-      );
-    const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
+    {
+      error: agreementNotInExpectedState(
+        mockAgreement.id,
+        agreementState.draft
+      ),
+      expectedStatus: 400,
+    },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegateConsumer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.internalArchiveAgreementAfterDelegationRevocation = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.INTERNAL_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid delegation id", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);

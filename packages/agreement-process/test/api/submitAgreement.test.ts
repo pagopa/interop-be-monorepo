@@ -60,117 +60,51 @@ describe("API POST /agreements/{agreementId}/submit test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for notLatestEServiceDescriptor", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(notLatestEServiceDescriptor(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for agreementNotInExpectedState", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        agreementNotInExpectedState(mockAgreement.id, agreementState.draft)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for consumerWithNotValidEmail", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        consumerWithNotValidEmail(mockAgreement.id, generateId())
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for agreementSubmissionFailed", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(agreementSubmissionFailed(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for missingCertifiedAttributesError", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        missingCertifiedAttributesError(generateId(), generateId())
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for descriptorNotInExpectedState", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        descriptorNotInExpectedState(generateId(), generateId(), [])
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 404 for agreementNotFound", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegateConsumer", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegateConsumer(
-          generateId(),
-          generateId<DelegationId>()
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for agreementAlreadyExists", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(agreementAlreadyExists(generateId(), generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 409 for contractAlreadyExists", async () => {
-    agreementService.submitAgreement = vi
-      .fn()
-      .mockRejectedValue(contractAlreadyExists(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: notLatestEServiceDescriptor(generateId()), expectedStatus: 400 },
+    {
+      error: agreementNotInExpectedState(
+        mockAgreement.id,
+        agreementState.draft
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: consumerWithNotValidEmail(mockAgreement.id, generateId()),
+      expectedStatus: 400,
+    },
+    { error: agreementSubmissionFailed(mockAgreement.id), expectedStatus: 400 },
+    {
+      error: missingCertifiedAttributesError(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: descriptorNotInExpectedState(generateId(), generateId(), []),
+      expectedStatus: 400,
+    },
+    { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegateConsumer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: agreementAlreadyExists(generateId(), generateId()),
+      expectedStatus: 409,
+    },
+    { error: contractAlreadyExists(mockAgreement.id), expectedStatus: 409 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.submitAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid agreement id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

@@ -60,95 +60,43 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for notLatestEServiceDescriptor", async () => {
-    agreementService.activateAgreement = vi
-      .fn()
-      .mockRejectedValue(notLatestEServiceDescriptor(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for agreementNotInExpectedState", async () => {
-    agreementService.activateAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        agreementNotInExpectedState(mockAgreement.id, agreementState.draft)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for agreementActivationFailed", async () => {
-    agreementService.activateAgreement = vi
-      .fn()
-      .mockRejectedValue(agreementActivationFailed(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for descriptorNotInExpectedState", async () => {
-    agreementService.activateAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        descriptorNotInExpectedState(generateId(), generateId(), [])
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 404 for agreementNotFound", async () => {
-    agreementService.activateAgreement = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(mockAgreement.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegateProducer", async () => {
-    agreementService.activateAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegateProducer(
-          generateId(),
-          generateId<DelegationId>()
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheProducer", async () => {
-    agreementService.activateAgreement = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheProducer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationNotAllowed", async () => {
-    agreementService.activateAgreement = vi
-      .fn()
-      .mockRejectedValue(organizationNotAllowed(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for agreementAlreadyExists", async () => {
-    agreementService.activateAgreement = vi
-      .fn()
-      .mockRejectedValue(agreementAlreadyExists(generateId(), generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: notLatestEServiceDescriptor(generateId()), expectedStatus: 400 },
+    {
+      error: agreementNotInExpectedState(
+        mockAgreement.id,
+        agreementState.draft
+      ),
+      expectedStatus: 400,
+    },
+    { error: agreementActivationFailed(mockAgreement.id), expectedStatus: 400 },
+    {
+      error: descriptorNotInExpectedState(generateId(), generateId(), []),
+      expectedStatus: 400,
+    },
+    { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
+    {
+      error: organizationIsNotTheDelegateProducer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
+      expectedStatus: 403,
+    },
+    { error: organizationIsNotTheProducer(generateId()), expectedStatus: 403 },
+    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    {
+      error: agreementAlreadyExists(generateId(), generateId()),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.activateAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid agreement id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

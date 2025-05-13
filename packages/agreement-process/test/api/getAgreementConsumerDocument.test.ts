@@ -60,25 +60,26 @@ describe("API GET /agreements/{agreementId}/consumer-documents/{documentId} test
     expect(res.status).toBe(403);
   });
 
-  it("Should return 403 for organizationNotAllowed", async () => {
-    agreementService.getAgreementConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(organizationNotAllowed(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 404 for documentNotFound", async () => {
-    agreementService.getAgreementConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(
-        agreementDocumentNotFound(mockConsumerDocument.id, mockAgreement.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    {
+      error: agreementDocumentNotFound(
+        mockConsumerDocument.id,
+        mockAgreement.id
+      ),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.getAgreementConsumerDocument = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid limit", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

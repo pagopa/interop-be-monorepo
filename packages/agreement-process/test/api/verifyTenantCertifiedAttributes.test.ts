@@ -59,52 +59,29 @@ describe("API GET /tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descri
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    agreementService.verifyTenantCertifiedAttributes = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 400 for eServiceNotFound", async () => {
-    agreementService.verifyTenantCertifiedAttributes = vi
-      .fn()
-      .mockRejectedValue(eServiceNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for descriptorNotFound", async () => {
-    agreementService.verifyTenantCertifiedAttributes = vi
-      .fn()
-      .mockRejectedValue(descriptorNotFound(generateId(), generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    agreementService.verifyTenantCertifiedAttributes = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegateConsumer", async () => {
-    agreementService.verifyTenantCertifiedAttributes = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegateConsumer(generateId(), undefined)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    { error: tenantNotFound(generateId()), expectedStatus: 404 },
+    { error: eServiceNotFound(generateId()), expectedStatus: 400 },
+    {
+      error: descriptorNotFound(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.verifyTenantCertifiedAttributes = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid tenant id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

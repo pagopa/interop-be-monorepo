@@ -47,45 +47,34 @@ describe("API DELETE /agreements/{agreementId}/consumer-documents/{documentId} t
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for documentNotFound", async () => {
-    agreementService.removeAgreementConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(
-        agreementDocumentNotFound(mockConsumerDocument.id, mockAgreement.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for organizationIsNotTheConsumer", async () => {
-    agreementService.removeAgreementConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(organizationIsNotTheConsumer(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegateConsumer", async () => {
-    agreementService.removeAgreementConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegateConsumer(generateId(), undefined)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for documentsChangeNotAllowed", async () => {
-    agreementService.removeAgreementConsumerDocument = vi
-      .fn()
-      .mockRejectedValue(documentsChangeNotAllowed(agreementState.active));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    {
+      error: agreementDocumentNotFound(
+        mockConsumerDocument.id,
+        mockAgreement.id
+      ),
+      expectedStatus: 404,
+    },
+    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    {
+      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      expectedStatus: 403,
+    },
+    {
+      error: documentsChangeNotAllowed(agreementState.active),
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.removeAgreementConsumerDocument = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid agreement id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

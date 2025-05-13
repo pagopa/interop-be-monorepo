@@ -61,97 +61,52 @@ describe("API POST /agreements test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for notLatestEServiceDescriptor", async () => {
-    agreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        notLatestEServiceDescriptor(mockAgreement.descriptorId)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for descriptorNotInExpectedState", async () => {
-    agreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        descriptorNotInExpectedState(
-          mockAgreement.eserviceId,
-          mockAgreement.descriptorId,
-          [descriptorState.draft]
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for missingCertifiedAttributesError", async () => {
-    agreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        missingCertifiedAttributesError(
-          mockAgreement.descriptorId,
-          mockAgreement.consumerId
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for eServiceNotFound", async () => {
-    agreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(eServiceNotFound(mockAgreement.eserviceId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for delegationNotFound", async () => {
-    agreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(delegationNotFound(generateId<DelegationId>()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for tenantNotFound", async () => {
-    agreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for organizationIsNotTheDelegateConsumer", async () => {
-    agreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        organizationIsNotTheDelegateConsumer(generateId(), undefined)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for agreementAlreadyExists", async () => {
-    agreementService.createAgreement = vi
-      .fn()
-      .mockRejectedValue(
-        agreementAlreadyExists(
-          mockAgreement.consumerId,
-          mockAgreement.eserviceId
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    {
+      error: notLatestEServiceDescriptor(mockAgreement.descriptorId),
+      expectedStatus: 400,
+    },
+    {
+      error: descriptorNotInExpectedState(
+        mockAgreement.eserviceId,
+        mockAgreement.descriptorId,
+        [descriptorState.draft]
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: missingCertifiedAttributesError(
+        mockAgreement.descriptorId,
+        mockAgreement.consumerId
+      ),
+      expectedStatus: 400,
+    },
+    { error: eServiceNotFound(mockAgreement.eserviceId), expectedStatus: 400 },
+    {
+      error: delegationNotFound(generateId<DelegationId>()),
+      expectedStatus: 400,
+    },
+    { error: tenantNotFound(generateId()), expectedStatus: 400 },
+    {
+      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      expectedStatus: 403,
+    },
+    {
+      error: agreementAlreadyExists(
+        mockAgreement.consumerId,
+        mockAgreement.eserviceId
+      ),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      agreementService.createAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid eservice id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
