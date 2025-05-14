@@ -122,7 +122,7 @@ describe("suspendPurposeVersion", () => {
       expect(suspendResponse).toMatchObject({
         data: {
           purpose: expectedPurpose,
-          createdVersionId: updatedVersion.id,
+          updatedVersionId: updatedVersion.id,
           isRiskAnalysisValid: true,
         },
         metadata: { version: 1 },
@@ -194,7 +194,7 @@ describe("suspendPurposeVersion", () => {
     expect(suspendResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
-        createdVersionId: updatedVersion.id,
+        updatedVersionId: updatedVersion.id,
         isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
@@ -274,7 +274,7 @@ describe("suspendPurposeVersion", () => {
     expect(suspendResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
-        createdVersionId: updatedVersion.id,
+        updatedVersionId: updatedVersion.id,
         isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
@@ -346,7 +346,7 @@ describe("suspendPurposeVersion", () => {
     expect(suspendResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
-        createdVersionId: updatedVersion.id,
+        updatedVersionId: updatedVersion.id,
         isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
@@ -431,7 +431,7 @@ describe("suspendPurposeVersion", () => {
     expect(suspendResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
-        createdVersionId: updatedVersion.id,
+        updatedVersionId: updatedVersion.id,
         isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
@@ -518,7 +518,7 @@ describe("suspendPurposeVersion", () => {
     expect(suspendResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
-        createdVersionId: updatedVersion.id,
+        updatedVersionId: updatedVersion.id,
         isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
@@ -651,7 +651,7 @@ describe("suspendPurposeVersion", () => {
     expect(suspendResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
-        createdVersionId: updatedVersion.id,
+        updatedVersionId: updatedVersion.id,
         isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
