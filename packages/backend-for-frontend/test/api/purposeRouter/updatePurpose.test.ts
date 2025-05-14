@@ -6,19 +6,14 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import {
+  getMockBffApiPurposeUpdateContent,
+  getMockBffApiPurposeVersionResource,
+} from "../../mockUtils.js";
 
 describe("API POST /purposes/{purposeId} test", () => {
-  const mockPurposeUpdateContent = {
-    title: "Mock purpose title",
-    description: "Mock purpose description",
-    isFreeOfCharge: true,
-    freeOfChargeReason: "Mock reason",
-    dailyCalls: 10,
-  };
-  const mockPurposeVersionResource = {
-    purposeId: generateId(),
-    versionId: generateId(),
-  };
+  const mockPurposeUpdateContent = getMockBffApiPurposeUpdateContent();
+  const mockPurposeVersionResource = getMockBffApiPurposeVersionResource();
 
   beforeEach(() => {
     clients.purposeProcessClient.updatePurpose = vi.fn().mockResolvedValue({
