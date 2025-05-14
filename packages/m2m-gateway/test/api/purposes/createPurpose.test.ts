@@ -72,23 +72,14 @@ describe("POST /purposes router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 500 in case of missingMetadata error", async () => {
-    mockPurposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(missingMetadata());
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockPurposeSeed);
+  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+    "Should return 500 in case of $code error",
+    async (error) => {
+      mockPurposeService.createPurpose = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockPurposeSeed);
 
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of resourcePollingTimeout error", async () => {
-    mockPurposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(resourcePollingTimeout(3));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockPurposeSeed);
-
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });
