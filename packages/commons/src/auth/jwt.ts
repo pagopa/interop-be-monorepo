@@ -5,7 +5,9 @@ import {
   jwtDecodingError,
   tokenVerificationFailed,
 } from "pagopa-interop-models";
-import { buildJwksClients, JWTConfig, Logger } from "../index.js";
+import { Logger } from "../logging/index.js";
+import { JWTConfig } from "../config/index.js";
+import { buildJwksClients } from "../auth/index.js";
 import {
   AuthData,
   AuthToken,

@@ -2,7 +2,7 @@ import { unauthorizedError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
 import { AppContext } from "../context/context.js";
-import { NonEmptyArray } from "../index.js";
+import { NonEmptyArray } from "../utils/arrays.js";
 import {
   UserRole,
   UIAuthData,

@@ -11,8 +11,9 @@ import {
   TooManyRequestsException,
 } from "@aws-sdk/client-sesv2";
 import Mail from "nodemailer/lib/mailer/index.js";
-import { PecEmailManagerConfig, Logger } from "../index.js";
-import { AWSSesConfig } from "../config/awsSesConfig.js";
+import { Logger } from "../logging/index.js";
+import { PecEmailManagerConfig } from "../config/index.js";
+import { AWSSesConfig } from "../config/index.js";
 
 export type EmailManagerKind = "PEC" | "SES";
 
