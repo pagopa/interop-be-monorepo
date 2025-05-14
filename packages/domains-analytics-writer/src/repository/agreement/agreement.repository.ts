@@ -28,12 +28,9 @@ export function agreementRepo(conn: DBConnection) {
         producer_id: (r: AgreementSQL) => r.producerId,
         consumer_id: (r: AgreementSQL) => r.consumerId,
         state: (r: AgreementSQL) => r.state,
-        suspended_by_consumer: (r: AgreementSQL) =>
-          r.suspendedByConsumer ? "true" : "false",
-        suspended_by_producer: (r: AgreementSQL) =>
-          r.suspendedByProducer ? "true" : "false",
-        suspended_by_platform: (r: AgreementSQL) =>
-          r.suspendedByPlatform ? "true" : "false",
+        suspended_by_consumer: (r: AgreementSQL) => r.suspendedByConsumer,
+        suspended_by_producer: (r: AgreementSQL) => r.suspendedByProducer,
+        suspended_by_platform: (r: AgreementSQL) => r.suspendedByPlatform,
         created_at: (r: AgreementSQL) => r.createdAt,
         updated_at: (r: AgreementSQL) => r.updatedAt,
         consumer_notes: (r: AgreementSQL) => r.consumerNotes,
