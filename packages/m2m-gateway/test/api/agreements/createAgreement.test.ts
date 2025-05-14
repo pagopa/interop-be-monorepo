@@ -24,7 +24,10 @@ describe("POST /agreements router test", () => {
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
     toM2MGatewayApiAgreement(mockApiAgreement.data);
 
-  const makeRequest = async (token: string, body: Record<string, unknown>) =>
+  const makeRequest = async (
+    token: string,
+    body: m2mGatewayApi.AgreementSeed
+  ) =>
     request(api)
       .post(`${appBasePath}/agreements`)
       .set("Authorization", `Bearer ${token}`)
@@ -41,7 +44,7 @@ describe("POST /agreements router test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockAgreementSeed);
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MAgreementResponse);
     }
   );
@@ -58,7 +61,7 @@ describe("POST /agreements router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, {
       invalidParam: "invalidValue",
-    });
+    } as unknown as m2mGatewayApi.AgreementSeed);
 
     expect(res.status).toBe(400);
   });
@@ -68,7 +71,7 @@ describe("POST /agreements router test", () => {
     async (error) => {
       mockAgreementService.createAgreement = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, { id: generateId() });
+      const res = await makeRequest(token, mockAgreementSeed);
 
       expect(res.status).toBe(500);
     }
