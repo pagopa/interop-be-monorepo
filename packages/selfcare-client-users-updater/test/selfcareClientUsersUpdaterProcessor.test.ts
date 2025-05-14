@@ -59,7 +59,6 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     await readModelRepository.clients.insertMany(data as never);
   }
 
-  const userId: UUID = randomUUID();
   const authorizationProcessClientMock = {
     client: {
       internalRemoveClientAdmin: vi.fn().mockResolvedValue(undefined),
@@ -96,8 +95,9 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
   });
 
   it.each([relationshipStatus.suspended, relationshipStatus.deleted])(
-    "should remove admin when user has relationshipStatus %s",
+    "should remove admin when event has productRole admin and relationshipStatus %s",
     async (status) => {
+      const userId: UUID = randomUUID();
       const clientMock = {
         ...getMockClient(),
         adminId: userId,
@@ -132,14 +132,14 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
           data: {
             ...clientMock,
             consumerId: unsafeBrandId(correctEventPayload.institutionId),
-            adminId: unsafeBrandId<UserId>(userId),
+            adminId: unsafeBrandId<UserId>(correctEventPayload.user.userId),
           },
         },
         {
           data: {
             ...clientMock2,
             consumerId: unsafeBrandId(correctEventPayload.institutionId),
-            adminId: unsafeBrandId<UserId>(userId),
+            adminId: unsafeBrandId<UserId>(correctEventPayload.user.userId),
           },
         },
       ]);
@@ -153,7 +153,7 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
         expect.objectContaining({
           params: {
             clientId: clientMock.id,
-            adminId: clientMock.adminId,
+            adminId: correctEventPayload.user.userId,
           },
           headers: expect.any(Object),
         })
@@ -165,7 +165,7 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
         expect.objectContaining({
           params: {
             clientId: clientMock2.id,
-            adminId: clientMock2.adminId,
+            adminId: correctEventPayload.user.userId,
           },
           headers: expect.any(Object),
         })

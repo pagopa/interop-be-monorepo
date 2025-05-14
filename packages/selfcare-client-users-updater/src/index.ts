@@ -1,33 +1,14 @@
 import { runConsumer } from "kafka-iam-auth";
 import {
   InteropTokenGenerator,
-  ReadModelRepository,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import {
-  clientReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
+import { getReadModelService } from "../test/utils.js";
 import { config } from "./config/config.js";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "./services/selfcareClientUsersUpdaterProcessor.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { authorizationProcessClientBuilder } from "./clients/authorizationProcessClient.js";
 
-const readModelDB = makeDrizzleConnection(config);
-const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const readModelServiceSQL = readModelServiceBuilderSQL({
-  clientReadModelServiceSQL,
-});
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
+const readModelService = getReadModelService(config);
 
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
