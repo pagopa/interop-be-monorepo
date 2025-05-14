@@ -505,6 +505,7 @@ describe("integration tests for events V2", () => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         agreementTimestamp: mockAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: mockAgreement.descriptorId,
+        producerId: mockAgreement.producerId,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
@@ -1309,6 +1310,7 @@ describe("integration tests for events V2", () => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         agreementTimestamp: mockAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: mockAgreement.descriptorId,
+        producerId: mockAgreement.producerId,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
