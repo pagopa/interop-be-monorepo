@@ -6,12 +6,10 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { getMockBffApiPurposeVersionResource } from "../../mockUtils.js";
 
 describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () => {
-  const mockPurposeVersionResource = {
-    purposeId: generateId(),
-    versionId: generateId(),
-  };
+  const mockPurposeVersionResource = getMockBffApiPurposeVersionResource();
 
   beforeEach(() => {
     clients.purposeProcessClient.rejectPurposeVersion = vi

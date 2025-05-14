@@ -4,21 +4,17 @@ import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, clients } from "../../vitest.api.setup.js";
+import { api, clients, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { purposeNotFound } from "../../../src/model/errors.js";
+import {
+  getMockBffApiPurposeUpdateContent,
+  getMockBffApiPurposeVersionResource,
+} from "../../mockUtils.js";
 
 describe("API POST /reverse/purposes/{purposeId} test", () => {
-  const mockPurposeUpdateContent = {
-    title: "Mock purpose title",
-    description: "Mock purpose description",
-    isFreeOfCharge: true,
-    freeOfChargeReason: "Mock reason",
-    dailyCalls: 10,
-  };
-  const mockPurposeVersionResource = {
-    purposeId: generateId(),
-    versionId: generateId(),
-  };
+  const mockPurposeUpdateContent = getMockBffApiPurposeUpdateContent();
+  const mockPurposeVersionResource = getMockBffApiPurposeVersionResource();
 
   beforeEach(() => {
     clients.purposeProcessClient.updateReversePurpose = vi
@@ -45,16 +41,22 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
     expect(res.body).toEqual(mockPurposeVersionResource);
   });
 
-  it("Should return 404 for purposeNotFound", async () => {
-    clients.purposeProcessClient.updateReversePurpose = vi
-      .fn()
-      .mockResolvedValue({
-        versions: [],
-      });
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    {
+      error: purposeNotFound(mockPurposeVersionResource.purposeId),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      services.purposeService.reversePurposeUpdate = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

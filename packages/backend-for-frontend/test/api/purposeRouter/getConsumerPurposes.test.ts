@@ -45,43 +45,25 @@ describe("API GET /consumers/purposes test", () => {
     expect(res.body).toEqual(mockPurposes);
   });
 
-  it("Should return 404 for tenantNotFound", async () => {
-    services.purposeService.getConsumerPurposes = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for eServiceNotFound", async () => {
-    services.purposeService.getConsumerPurposes = vi
-      .fn()
-      .mockRejectedValue(eServiceNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for agreementNotFound", async () => {
-    services.purposeService.getConsumerPurposes = vi
-      .fn()
-      .mockRejectedValue(agreementNotFound(generateId()));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for eserviceDescriptorNotFound", async () => {
-    services.purposeService.getConsumerPurposes = vi
-      .fn()
-      .mockRejectedValue(
-        eserviceDescriptorNotFound(generateId(), generateId())
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    { error: tenantNotFound(generateId()), expectedStatus: 404 },
+    { error: eServiceNotFound(generateId()), expectedStatus: 404 },
+    { error: agreementNotFound(generateId()), expectedStatus: 404 },
+    {
+      error: eserviceDescriptorNotFound(generateId(), generateId()),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      services.purposeService.getConsumerPurposes = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid limit", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

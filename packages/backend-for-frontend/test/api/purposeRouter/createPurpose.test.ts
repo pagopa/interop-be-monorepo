@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
@@ -11,11 +13,11 @@ describe("API POST /purposes test", () => {
   const mockPurposeSeed = {
     eserviceId: generateId(),
     consumerId: generateId(),
-    title: "Mock purpose title",
-    description: "Mock purpose description",
-    isFreeOfCharge: true,
-    freeOfChargeReason: "Mock reason",
-    dailyCalls: 10,
+    title: generateMock(z.string()),
+    description: generateMock(z.string()),
+    isFreeOfCharge: generateMock(z.boolean()),
+    freeOfChargeReason: generateMock(z.string().optional()),
+    dailyCalls: generateMock(z.number().int().min(0)),
   };
   const mockCreatedResource = {
     id: generateId(),
