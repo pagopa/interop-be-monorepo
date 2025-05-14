@@ -169,7 +169,7 @@ const purposeRouter = (
           ctx
         );
 
-        return res.status(204);
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

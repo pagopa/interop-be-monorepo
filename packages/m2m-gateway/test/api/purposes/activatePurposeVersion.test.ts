@@ -21,9 +21,7 @@ describe("POST /purposes/:purposeId/activate router test", () => {
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
-      mockPurposeService.activatePurpose = vi
-        .fn()
-        .mockResolvedValue({ something: true });
+      mockPurposeService.activatePurpose = vi.fn().mockResolvedValue(undefined);
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId());
@@ -37,7 +35,7 @@ describe("POST /purposes/:purposeId/activate router test", () => {
       .fn()
       .mockRejectedValue(missingActivePurposeVersion(generateId<PurposeId>()));
 
-    const token = generateToken(authRole.M2M_ROLE);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, generateId());
     expect(res.status).toBe(400);
   });

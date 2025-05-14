@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { unsafeBrandId, WithMetadata } from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -9,7 +10,10 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { resourcePollingTimeout } from "../../../src/model/errors.js";
+import {
+  missingActivePurposeVersion,
+  resourcePollingTimeout,
+} from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
@@ -25,14 +29,22 @@ describe("activatePurposeVersion", () => {
     versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
   });
 
-  const mockActivatePurposeVersion = vi.fn().mockResolvedValue({
-    data: {
-      purpose: mockApiPurpose.data,
-      updatedVersionId: mockApiPurposeVersion1.id,
-    },
-    metadata: { version: 0 },
-  });
-  const mockGetPurpose = vi.fn(mockPollingResponse(mockApiPurpose, 2));
+  const activatePurposeApiResponse: WithMetadata<purposeApi.UpdatedPurposeVersion> =
+    {
+      data: {
+        purpose: mockApiPurpose.data,
+        updatedVersionId: mockApiPurposeVersion1.id,
+      },
+      metadata: { version: 0 },
+    };
+
+  const pollingTentatives = 2;
+  const mockActivatePurposeVersion = vi
+    .fn()
+    .mockResolvedValue(activatePurposeApiResponse);
+  const mockGetPurpose = vi.fn(
+    mockPollingResponse(mockApiPurpose, pollingTentatives)
+  );
 
   mockInteropBeClients.purposeProcessClient = {
     getPurpose: mockGetPurpose,
@@ -45,6 +57,8 @@ describe("activatePurposeVersion", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
+
     await purposeService.activatePurpose(
       unsafeBrandId(mockApiPurpose.data.id),
       getMockM2MAdminAppContext()
@@ -64,15 +78,33 @@ describe("activatePurposeVersion", () => {
     });
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(pollingTentatives + 1);
   });
 
-  // TODO: test for error in service
+  it("Should throw missingActivePurposeVersion in case of missing active version to activate", async () => {
+    const invalidPurpose = getMockedApiPurpose({
+      versions: [getMockedApiPurposeVersion({ state: "REJECTED" })],
+    });
+    mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
+
+    await expect(
+      purposeService.activatePurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingActivePurposeVersion(invalidPurpose.data.id));
+  });
 
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
-    mockGetPurpose.mockImplementation(
-      mockPollingResponse(mockApiPurpose, config.defaultPollingMaxAttempts + 1)
-    );
+    // The activate will first get the purpose, then perform the polling
+    mockGetPurpose
+      .mockResolvedValueOnce(mockApiPurpose)
+      .mockImplementation(
+        mockPollingResponse(
+          mockApiPurpose,
+          config.defaultPollingMaxAttempts + 1
+        )
+      );
 
     await expect(
       purposeService.activatePurpose(
@@ -83,7 +115,7 @@ describe("activatePurposeVersion", () => {
       resourcePollingTimeout(config.defaultPollingMaxAttempts)
     );
     expect(mockGetPurpose).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxAttempts + 1
     );
   });
 });
