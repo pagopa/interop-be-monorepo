@@ -16,7 +16,7 @@ import {
   getPurposesErrorMapper,
   getPurposeVersionErrorMapper,
   getPurposeErrorMapper,
-  activatePurposeVersionErrorMapper,
+  activatePurposeErrorMapper,
 } from "../utils/errorMappers.js";
 
 const purposeRouter = (
@@ -173,7 +173,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          activatePurposeVersionErrorMapper,
+          activatePurposeErrorMapper,
           ctx,
           `Error activating purpose ${req.params.purposeId}`
         );
