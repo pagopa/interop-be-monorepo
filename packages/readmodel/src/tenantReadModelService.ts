@@ -255,8 +255,8 @@ export type TenantReadModelService = ReturnType<
   typeof tenantReadModelServiceBuilder
 >;
 
-// TODO: these are used for getTenantByid with await Promise.all.
-export const readTenantSQL = async (
+// these are used for getTenantByid with await Promise.all.
+const readTenantSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantSQL | undefined> => {
@@ -264,13 +264,13 @@ export const readTenantSQL = async (
   return result[0];
 };
 
-export const readTenantMailsSQL = async (
+const readTenantMailsSQL = async (
   filter: SQL | undefined,
   db: DrizzleReturnType
 ): Promise<TenantMailSQL[]> =>
   await db.select().from(tenantMailInReadmodelTenant).where(filter);
 
-export const readTenantCertifiedAttributesSQL = async (
+const readTenantCertifiedAttributesSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantCertifiedAttributeSQL[]> =>
@@ -279,7 +279,7 @@ export const readTenantCertifiedAttributesSQL = async (
     .from(tenantCertifiedAttributeInReadmodelTenant)
     .where(filter);
 
-export const readTenantDeclaredAttributesSQL = async (
+const readTenantDeclaredAttributesSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantDeclaredAttributeSQL[]> =>
@@ -288,7 +288,7 @@ export const readTenantDeclaredAttributesSQL = async (
     .from(tenantDeclaredAttributeInReadmodelTenant)
     .where(filter);
 
-export const readTenantVerifiedAttributesSQL = async (
+const readTenantVerifiedAttributesSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeSQL[]> =>
@@ -297,7 +297,7 @@ export const readTenantVerifiedAttributesSQL = async (
     .from(tenantVerifiedAttributeInReadmodelTenant)
     .where(filter);
 
-export const readTenantVerifiedAttributeVerifiersSQL = async (
+const readTenantVerifiedAttributeVerifiersSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeVerifierSQL[]> =>
@@ -306,7 +306,7 @@ export const readTenantVerifiedAttributeVerifiersSQL = async (
     .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
     .where(filter);
 
-export const readTenantVerifiedAttributeRevokersSQL = async (
+const readTenantVerifiedAttributeRevokersSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeRevokerSQL[]> =>
@@ -315,7 +315,7 @@ export const readTenantVerifiedAttributeRevokersSQL = async (
     .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
     .where(filter);
 
-export const readTenantFeaturesSQL = async (
+const readTenantFeaturesSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantFeatureSQL[]> =>
