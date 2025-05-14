@@ -1,14 +1,40 @@
 import { runConsumer } from "kafka-iam-auth";
 import {
   InteropTokenGenerator,
+  ReadModelRepository,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { getReadModelService } from "../test/utils.js";
-import { config } from "./config/config.js";
+import {
+  clientReadModelServiceBuilder,
+  makeDrizzleConnection,
+} from "pagopa-interop-readmodel";
+import {
+  config,
+  SelfcareClientUsersUpdaterConsumerConfig,
+} from "./config/config.js";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "./services/selfcareClientUsersUpdaterProcessor.js";
 import { authorizationProcessClientBuilder } from "./clients/authorizationProcessClient.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
 
-const readModelService = getReadModelService(config);
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function getReadModelService(
+  config: SelfcareClientUsersUpdaterConsumerConfig
+) {
+  const readModelDB = makeDrizzleConnection(config);
+  const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
+  const oldReadModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
+  const readModelServiceSQL = readModelServiceBuilderSQL({
+    clientReadModelServiceSQL,
+  });
+  return config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+}
 
 const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
@@ -21,7 +47,7 @@ const authorizationProcessClient = authorizationProcessClientBuilder(
 const processor = selfcareClientUsersUpdaterProcessorBuilder(
   refreshableToken,
   authorizationProcessClient,
-  readModelService,
+  getReadModelService(config),
   config.interopProduct
 );
 

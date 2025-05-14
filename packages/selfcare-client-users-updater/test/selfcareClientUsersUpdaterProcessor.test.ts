@@ -10,7 +10,6 @@ import {
   MockInstance,
   it,
   expect,
-  inject,
 } from "vitest";
 import {
   InteropTokenGenerator,
@@ -18,10 +17,7 @@ import {
   userRole,
 } from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
-import {
-  getMockClient,
-  setupTestContainersVitest,
-} from "pagopa-interop-commons-test";
+import { getMockClient } from "pagopa-interop-commons-test";
 import {
   Client,
   clientKind,
@@ -38,17 +34,7 @@ import {
   generateInternalTokenMock,
   kafkaMessagePayload,
 } from "./utils.js";
-
-export const { cleanup, readModelRepository, postgresDB } =
-  await setupTestContainersVitest(
-    inject("readModelConfig"),
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+import { cleanup, readModelRepository } from "./utils.js";
 
 afterEach(cleanup);
 

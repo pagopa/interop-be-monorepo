@@ -1,18 +1,9 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { EachMessagePayload } from "kafkajs";
-import {
-  InteropToken,
-  ReadModelRepository,
-  userRole,
-} from "pagopa-interop-commons";
+import { InteropToken, userRole } from "pagopa-interop-commons";
 import { generateId, UserId } from "pagopa-interop-models";
-import {
-  clientReadModelServiceBuilder,
-  makeDrizzleConnection,
-} from "pagopa-interop-readmodel";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { SelfcareClientUsersUpdaterConsumerConfig } from "../src/config/config.js";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { inject } from "vitest";
 
 export const correctEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
@@ -72,21 +63,13 @@ export const interopToken: InteropToken = {
   serialized: "the-token",
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function getReadModelService(
-  config: SelfcareClientUsersUpdaterConsumerConfig
-) {
-  const readModelDB = makeDrizzleConnection(config);
-  const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
-  const oldReadModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
+export const { cleanup, readModelRepository, postgresDB } =
+  await setupTestContainersVitest(
+    inject("readModelConfig"),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
   );
-  const readModelServiceSQL = readModelServiceBuilderSQL({
-    clientReadModelServiceSQL,
-  });
-  return config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-}
