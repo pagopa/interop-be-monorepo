@@ -35,7 +35,7 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(
   errorCodes,
-  false // API Gateway shall not let Problem errors from other services to pass through
+  { problemErrorsPassthrough: false } // API Gateway shall not let Problem errors from other services to pass through
 );
 
 export function producerAndConsumerParamMissing(): ApiError<ErrorCodes> {

@@ -18,7 +18,6 @@ import {
   getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
@@ -26,6 +25,8 @@ import {
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
+  sortAgreementV2,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -77,9 +78,9 @@ import {
   addOneTenant,
   agreementService,
   fileManager,
+  uploadDocument,
   pdfGenerator,
   readAgreementEventByVersion,
-  uploadDocument,
 } from "../integrationUtils.js";
 import {
   authDataAndDelegationsFromRequesterIs,
@@ -264,8 +265,8 @@ describe("upgrade Agreement", () => {
         },
       };
 
-      expect(actualAgreementArchived).toEqual(
-        toAgreementV2(expectedAgreementArchived)
+      expect(sortAgreementV2(actualAgreementArchived)).toEqual(
+        sortAgreementV2(toAgreementV2(expectedAgreementArchived))
       );
 
       expect(newAgreementId).toBeDefined();
@@ -520,8 +521,8 @@ describe("upgrade Agreement", () => {
             },
           };
 
-          expect(actualAgreementArchived).toEqual(
-            toAgreementV2(expectedAgreementArchived)
+          expect(sortAgreementV2(actualAgreementArchived)).toEqual(
+            sortAgreementV2(toAgreementV2(expectedAgreementArchived))
           );
 
           expect(newAgreementId).toBeDefined();
@@ -700,6 +701,7 @@ describe("upgrade Agreement", () => {
             extensionDate: new Date(), // invalid because of this
           },
         ],
+        revokedBy: [],
       };
 
       const declaredAttribute = getMockAttribute(attributeKind.declared);
@@ -722,8 +724,8 @@ describe("upgrade Agreement", () => {
         ...getMockTenant(),
         attributes: [validCertifiedTenantAttribute, invalidAttribute],
       };
-      await addOneTenant(consumer);
       await addOneTenant(producer);
+      await addOneTenant(consumer);
       await addOneAttribute(certifiedAttribute);
       await addOneAttribute(verifiedAttribute);
       await addOneAttribute(declaredAttribute);

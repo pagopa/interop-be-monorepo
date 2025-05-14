@@ -19,6 +19,7 @@ import {
 } from "./utils.js";
 
 describe("getConsumers", () => {
+  const producer = getMockTenant();
   const tenant1: Tenant = {
     ...getMockTenant(),
     name: "Tenant 1",
@@ -32,6 +33,7 @@ describe("getConsumers", () => {
     name: "Tenant 3",
   };
   it("should get the tenants consuming any of the eservices of a specific producerId", async () => {
+    await addOneTenant(producer);
     await addOneTenant(tenant1);
 
     const descriptor1: Descriptor = {
@@ -43,6 +45,7 @@ describe("getConsumers", () => {
       ...getMockEService(),
       name: "A",
       descriptors: [descriptor1],
+      producerId: producer.id,
     };
     await addOneEService(eService1);
 
@@ -65,14 +68,14 @@ describe("getConsumers", () => {
       ...getMockEService(),
       name: "B",
       descriptors: [descriptor2],
-      producerId: eService1.producerId,
+      producerId: producer.id,
     };
     await addOneEService(eService2);
 
     const agreementEservice2 = getMockAgreement({
       eserviceId: eService2.id,
       descriptorId: descriptor2.id,
-      producerId: eService2.producerId,
+      producerId: producer.id,
       consumerId: tenant2.id,
     });
     await addOneAgreement(agreementEservice2);
@@ -88,14 +91,14 @@ describe("getConsumers", () => {
       ...getMockEService(),
       name: "C",
       descriptors: [descriptor3],
-      producerId: eService1.producerId,
+      producerId: producer.id,
     };
     await addOneEService(eService3);
 
     const agreementEservice3 = getMockAgreement({
       eserviceId: eService3.id,
       descriptorId: descriptor3.id,
-      producerId: eService3.producerId,
+      producerId: producer.id,
       consumerId: tenant3.id,
     });
     await addOneAgreement(agreementEservice3);
