@@ -28,7 +28,6 @@ import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import {
   aggregateTenant,
   aggregateTenantArray,
-  toTenantAggregator,
   toTenantAggregatorArray,
 } from "./tenant/aggregators.js";
 import { checkMetadataVersion } from "./index.js";
@@ -128,38 +127,38 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         verifiedAttributeRevokersSQL,
         featuresSQL,
       ] = await Promise.all([
-        await retrieveTenantSQL(eq(tenantInReadmodelTenant.id, tenantId), db),
-        await retrieveTenantMailsSQL(
+        readTenantSQL(eq(tenantInReadmodelTenant.id, tenantId), db),
+        readTenantMailsSQL(
           eq(tenantMailInReadmodelTenant.tenantId, tenantId),
           db
         ),
-        await retrieveTenantCertifiedAttributesSQL(
+        readTenantCertifiedAttributesSQL(
           eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
           db
         ),
-        await retrieveTenantDeclaredAttributesSQL(
+        readTenantDeclaredAttributesSQL(
           eq(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantId),
           db
         ),
-        await retrieveTenantVerifiedAttributesSQL(
+        readTenantVerifiedAttributesSQL(
           eq(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantId),
           db
         ),
-        await retrieveTenantVerifiedAttributeVerifiersSQL(
+        readTenantVerifiedAttributeVerifiersSQL(
           eq(
             tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
             tenantId
           ),
           db
         ),
-        await retrieveTenantVerifiedAttributeRevokersSQL(
+        readTenantVerifiedAttributeRevokersSQL(
           eq(
             tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
             tenantId
           ),
           db
         ),
-        await retrieveTenantFeaturesSQL(
+        readTenantFeaturesSQL(
           eq(tenantFeatureInReadmodelTenant.tenantId, tenantId),
           db
         ),
@@ -179,95 +178,95 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         featuresSQL,
       });
     },
-    async getTenantByFilter(
-      filter: SQL | undefined
-    ): Promise<WithMetadata<Tenant> | undefined> {
-      if (filter === undefined) {
-        throw genericInternalError("Filter cannot be undefined");
-      }
+    // async getTenantByFilter(
+    //   filter: SQL | undefined
+    // ): Promise<WithMetadata<Tenant> | undefined> {
+    //   if (filter === undefined) {
+    //     throw genericInternalError("Filter cannot be undefined");
+    //   }
 
-      /*
-      tenant  ->1 tenant_mail
-				      ->2 tenant_certified_attribute
-				      ->3 tenant_declared_attribute
-				      ->4 tenant_verified_attribute ->5 tenant_verified_attribute_verifier
-																		        ->6 tenant_verified_attribute_revoker
-				      ->7 tenant_feature
-      */
-      const queryResult = await db
-        .select({
-          tenant: tenantInReadmodelTenant,
-          mail: tenantMailInReadmodelTenant,
-          certifiedAttribute: tenantCertifiedAttributeInReadmodelTenant,
-          declaredAttribute: tenantDeclaredAttributeInReadmodelTenant,
-          verifiedAttribute: tenantVerifiedAttributeInReadmodelTenant,
-          verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
-          revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
-          feature: tenantFeatureInReadmodelTenant,
-        })
-        .from(tenantInReadmodelTenant)
-        .where(filter)
-        .leftJoin(
-          // 1
-          tenantMailInReadmodelTenant,
-          eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
-        )
-        .leftJoin(
-          // 2
-          tenantCertifiedAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantCertifiedAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          // 3
-          tenantDeclaredAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantDeclaredAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          // 4
-          tenantVerifiedAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantVerifiedAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          // 5
-          tenantVerifiedAttributeVerifierInReadmodelTenant,
-          eq(
-            tenantVerifiedAttributeInReadmodelTenant.attributeId,
-            tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId
-          )
-        )
-        .leftJoin(
-          // 6
-          tenantVerifiedAttributeRevokerInReadmodelTenant,
-          eq(
-            tenantVerifiedAttributeInReadmodelTenant.attributeId,
-            tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId
-          )
-        )
-        .leftJoin(
-          // 7
-          tenantFeatureInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantFeatureInReadmodelTenant.tenantId
-          )
-        );
+    //   /*
+    //   tenant  ->1 tenant_mail
+    // 		      ->2 tenant_certified_attribute
+    // 		      ->3 tenant_declared_attribute
+    // 		      ->4 tenant_verified_attribute ->5 tenant_verified_attribute_verifier
+    // 																        ->6 tenant_verified_attribute_revoker
+    // 		      ->7 tenant_feature
+    //   */
+    //   const queryResult = await db
+    //     .select({
+    //       tenant: tenantInReadmodelTenant,
+    //       mail: tenantMailInReadmodelTenant,
+    //       certifiedAttribute: tenantCertifiedAttributeInReadmodelTenant,
+    //       declaredAttribute: tenantDeclaredAttributeInReadmodelTenant,
+    //       verifiedAttribute: tenantVerifiedAttributeInReadmodelTenant,
+    //       verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
+    //       revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
+    //       feature: tenantFeatureInReadmodelTenant,
+    //     })
+    //     .from(tenantInReadmodelTenant)
+    //     .where(filter)
+    //     .leftJoin(
+    //       // 1
+    //       tenantMailInReadmodelTenant,
+    //       eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
+    //     )
+    //     .leftJoin(
+    //       // 2
+    //       tenantCertifiedAttributeInReadmodelTenant,
+    //       eq(
+    //         tenantInReadmodelTenant.id,
+    //         tenantCertifiedAttributeInReadmodelTenant.tenantId
+    //       )
+    //     )
+    //     .leftJoin(
+    //       // 3
+    //       tenantDeclaredAttributeInReadmodelTenant,
+    //       eq(
+    //         tenantInReadmodelTenant.id,
+    //         tenantDeclaredAttributeInReadmodelTenant.tenantId
+    //       )
+    //     )
+    //     .leftJoin(
+    //       // 4
+    //       tenantVerifiedAttributeInReadmodelTenant,
+    //       eq(
+    //         tenantInReadmodelTenant.id,
+    //         tenantVerifiedAttributeInReadmodelTenant.tenantId
+    //       )
+    //     )
+    //     .leftJoin(
+    //       // 5
+    //       tenantVerifiedAttributeVerifierInReadmodelTenant,
+    //       eq(
+    //         tenantVerifiedAttributeInReadmodelTenant.attributeId,
+    //         tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId
+    //       )
+    //     )
+    //     .leftJoin(
+    //       // 6
+    //       tenantVerifiedAttributeRevokerInReadmodelTenant,
+    //       eq(
+    //         tenantVerifiedAttributeInReadmodelTenant.attributeId,
+    //         tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId
+    //       )
+    //     )
+    //     .leftJoin(
+    //       // 7
+    //       tenantFeatureInReadmodelTenant,
+    //       eq(
+    //         tenantInReadmodelTenant.id,
+    //         tenantFeatureInReadmodelTenant.tenantId
+    //       )
+    //     );
 
-      if (queryResult.length === 0) {
-        return undefined;
-      }
+    //   if (queryResult.length === 0) {
+    //     return undefined;
+    //   }
 
-      // TODO how to ensure that this is used with filters that match always one tenant at most?
-      return aggregateTenant(toTenantAggregator(queryResult));
-    },
+    //   // TODO how to ensure that this is used with filters that match always one tenant at most?
+    //   return aggregateTenant(toTenantAggregator(queryResult));
+    // },
     async getTenantsByFilter(
       filter: SQL | undefined
     ): Promise<Array<WithMetadata<Tenant>>> {
@@ -355,7 +354,7 @@ export type TenantReadModelService = ReturnType<
 >;
 
 // TODO: these are used for getTenantByid with await Promise.all.
-export const retrieveTenantSQL = async (
+export const readTenantSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantSQL | undefined> => {
@@ -363,13 +362,13 @@ export const retrieveTenantSQL = async (
   return result[0];
 };
 
-export const retrieveTenantMailsSQL = async (
+export const readTenantMailsSQL = async (
   filter: SQL | undefined,
   db: DrizzleReturnType
 ): Promise<TenantMailSQL[]> =>
   await db.select().from(tenantMailInReadmodelTenant).where(filter);
 
-export const retrieveTenantCertifiedAttributesSQL = async (
+export const readTenantCertifiedAttributesSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantCertifiedAttributeSQL[]> =>
@@ -378,7 +377,7 @@ export const retrieveTenantCertifiedAttributesSQL = async (
     .from(tenantCertifiedAttributeInReadmodelTenant)
     .where(filter);
 
-export const retrieveTenantDeclaredAttributesSQL = async (
+export const readTenantDeclaredAttributesSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantDeclaredAttributeSQL[]> =>
@@ -387,7 +386,7 @@ export const retrieveTenantDeclaredAttributesSQL = async (
     .from(tenantDeclaredAttributeInReadmodelTenant)
     .where(filter);
 
-export const retrieveTenantVerifiedAttributesSQL = async (
+export const readTenantVerifiedAttributesSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeSQL[]> =>
@@ -396,7 +395,7 @@ export const retrieveTenantVerifiedAttributesSQL = async (
     .from(tenantVerifiedAttributeInReadmodelTenant)
     .where(filter);
 
-export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
+export const readTenantVerifiedAttributeVerifiersSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeVerifierSQL[]> =>
@@ -405,7 +404,7 @@ export const retrieveTenantVerifiedAttributeVerifiersSQL = async (
     .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
     .where(filter);
 
-export const retrieveTenantVerifiedAttributeRevokersSQL = async (
+export const readTenantVerifiedAttributeRevokersSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantVerifiedAttributeRevokerSQL[]> =>
@@ -414,7 +413,7 @@ export const retrieveTenantVerifiedAttributeRevokersSQL = async (
     .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
     .where(filter);
 
-export const retrieveTenantFeaturesSQL = async (
+export const readTenantFeaturesSQL = async (
   filter: SQL,
   db: DrizzleReturnType
 ): Promise<TenantFeatureSQL[]> =>
