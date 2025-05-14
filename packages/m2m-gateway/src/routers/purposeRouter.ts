@@ -16,7 +16,6 @@ import {
   getPurposesErrorMapper,
   getPurposeVersionErrorMapper,
   getPurposeErrorMapper,
-  activatePurposeVersionErrorMapper,
   suspendPurposeErrorMapper,
   archivePurposeErrorMapper,
   activatePurposeErrorMapper,
