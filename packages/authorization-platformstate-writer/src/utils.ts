@@ -1113,6 +1113,7 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
             })
           ),
           ...setIfChanged("agreementState", agreementEntry.state),
+          ...setIfChanged("producerId", agreementEntry.producerId),
         }
       : {}),
     ...(catalogEntry
@@ -1270,6 +1271,7 @@ export const createTokenGenStatesConsumerClient = ({
           eserviceId: purposeEntry.purposeEserviceId,
           descriptorId: agreementEntry.agreementDescriptorId,
         }),
+        producerId: agreementEntry.producerId,
       }),
     ...(catalogEntry && {
       descriptorState: catalogEntry.state,
