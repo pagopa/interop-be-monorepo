@@ -149,7 +149,7 @@ export function tenantServiceBuilder(db: DBContext) {
           await tenantRepo.insertTenantSelfcareId(t, dbContext.pgp, batch);
 
           genericLogger.info(
-            `Staging data inserted for tenant batch of ${batch.length}`
+            `Staging data inserted for tenant selfCareId batch of ${batch.length}`
           );
         }
       });
@@ -157,12 +157,12 @@ export function tenantServiceBuilder(db: DBContext) {
       await tenantRepo.mergeTenantSelfcareId();
 
       genericLogger.info(
-        `Staging data merged into target tables for all tenant batches`
+        `Staging data merged into target tables for all tenant selfCareId batches`
       );
 
       await tenantRepo.clean();
 
-      genericLogger.info(`Cleaned all tenant staging data`);
+      genericLogger.info(`Cleaned all tenant selfCareId staging data`);
     },
 
     async deleteBatchTenants(
