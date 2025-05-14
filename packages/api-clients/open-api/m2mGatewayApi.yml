@@ -4025,8 +4025,9 @@ components:
         archivedAt:
           type: string
           format: date-time
-        templateVersion:
-          $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        templateVersionId:
+          type: string
+          format: uuid
       required:
         - id
         - version
@@ -4167,15 +4168,6 @@ components:
         - state
         - creationDate
         - voucherLifespan
-    EServiceTemplateVersionRef:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          format: uuid
     EServiceTemplateVersionState:
       type: string
       description: E-Service Template Version State
