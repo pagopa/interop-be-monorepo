@@ -42,7 +42,12 @@ import {
 export const { cleanup, readModelRepository, postgresDB } =
   await setupTestContainersVitest(
     inject("readModelConfig"),
-    inject("eventStoreConfig")
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
   );
 
 afterEach(cleanup);
@@ -55,16 +60,6 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
   }
 
   const userId: UUID = randomUUID();
-  const clientMock = {
-    ...getMockClient(),
-    adminId: userId,
-    kind: clientKind.api,
-  };
-  const clientMock2 = {
-    ...getMockClient(),
-    adminId: userId,
-    kind: clientKind.api,
-  };
   const authorizationProcessClientMock = {
     client: {
       internalRemoveClientAdmin: vi.fn().mockResolvedValue(undefined),
@@ -103,6 +98,17 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
   it.each([relationshipStatus.suspended, relationshipStatus.deleted])(
     "should remove admin when user has relationshipStatus %s",
     async (status) => {
+      const clientMock = {
+        ...getMockClient(),
+        adminId: userId,
+        kind: clientKind.api,
+      };
+      const clientMock2 = {
+        ...getMockClient(),
+        adminId: userId,
+        kind: clientKind.api,
+      };
+
       const message: EachMessagePayload = {
         ...kafkaMessagePayload,
         message: {
@@ -112,14 +118,9 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
               ...correctEventPayload,
               productId: config.interopProduct,
               user: {
-                userId,
-                name: "Test Name",
-                familyName: "Test FamilyName",
-                email: "test@example.com",
-                role: "Test Role",
+                ...correctEventPayload.user,
                 productRole: userRole.ADMIN_ROLE,
                 relationshipStatus: status,
-                mobilePhone: "1234567890",
               },
             })
           ),
