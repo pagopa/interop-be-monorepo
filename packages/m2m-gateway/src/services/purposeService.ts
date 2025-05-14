@@ -329,5 +329,42 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers
       );
     },
+    async approvePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieveing current version for purpose ${purposeId} approval`
+      );
+      const purposeResponse = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const versionToApprove = retrievePurposeCurrentVersion(
+        purposeResponse.data
+      );
+      logger.info(
+        `Approving (activating) version ${versionToApprove.id} of purpose ${purposeId}`
+      );
+
+      const {
+        data: { purpose },
+        metadata,
+      } = await clients.purposeProcessClient.activatePurposeVersion(undefined, {
+        params: { purposeId, versionId: versionToApprove.id },
+        headers,
+      });
+
+      await pollPurpose(
+        {
+          data: purpose,
+          metadata,
+        },
+        headers
+      );
+    },
   };
 }

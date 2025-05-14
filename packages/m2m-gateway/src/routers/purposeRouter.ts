@@ -19,6 +19,7 @@ import {
   activatePurposeVersionErrorMapper,
   suspendPurposeErrorMapper,
   archivePurposeErrorMapper,
+  approvePurposeErrorMapper,
 } from "../utils/errorMappers.js";
 
 const purposeRouter = (
@@ -185,11 +186,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/approve", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.approvePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          approvePurposeErrorMapper,
           ctx,
           `Error approving purpose ${req.params.purposeId}`
         );
