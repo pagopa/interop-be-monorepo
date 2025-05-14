@@ -232,7 +232,7 @@ describe("activatePurposeVersion", () => {
   it("should write on event-store for the activation of a purpose version in the waiting for approval state (With producer delegation)", async () => {
     vi.spyOn(pdfGenerator, "generate");
 
-    const delegate = getMockTenant();
+    const delegate: Tenant = { ...getMockTenant(), kind: "PA" };
 
     const producerDelegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -1298,17 +1298,21 @@ describe("activatePurposeVersion", () => {
   )(
     "should throw tenantNotAllowed if the caller is the purpose e-service delegate but the delegation is in %s state",
     async (delegationState) => {
+      const delegate: Tenant = { ...getMockTenant(), kind: "PA" };
+
       await addOnePurpose(mockPurpose);
       await addOneEService(mockEService);
       await addOneAgreement(mockAgreement);
       await addOneTenant(mockConsumer);
       await addOneTenant(mockProducer);
+      await addOneTenant(delegate);
 
       const delegation = getMockDelegation({
         delegatorId: mockEService.producerId,
         kind: delegationKind.delegatedProducer,
         eserviceId: mockEService.id,
         state: delegationState,
+        delegateId: delegate.id,
       });
 
       await addOneDelegation(delegation);
@@ -1319,9 +1323,9 @@ describe("activatePurposeVersion", () => {
             purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
           },
-          getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+          getMockContext({ authData: getMockAuthData(delegate.id) })
         );
-      }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
+      }).rejects.toThrowError(tenantNotAllowed(delegate.id));
     }
   );
 
@@ -1558,12 +1562,14 @@ describe("activatePurposeVersion", () => {
       consumerId: mockConsumer.id,
     };
 
+    const delegate: Tenant = { ...getMockTenant(), kind: "PA" };
+
     const delegation = getMockDelegation({
       id: purpose.delegationId,
       kind: delegationKind.delegatedConsumer,
       eserviceId: purpose.eserviceId,
       delegatorId: purpose.consumerId,
-      delegateId: generateId<TenantId>(),
+      delegateId: delegate.id,
       state: delegationState.active,
     });
 
@@ -1572,6 +1578,7 @@ describe("activatePurposeVersion", () => {
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
+    await addOneTenant(delegate);
     await addOneDelegation(delegation);
 
     expect(async () => {
@@ -1596,11 +1603,13 @@ describe("activatePurposeVersion", () => {
       delegationId: undefined,
     };
 
+    const delegate: Tenant = { ...getMockTenant(), kind: "PA" };
+
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
       eserviceId: purpose.eserviceId,
       delegatorId: purpose.consumerId,
-      delegateId: generateId<TenantId>(),
+      delegateId: delegate.id,
       state: delegationState.active,
     });
 
@@ -1611,6 +1620,7 @@ describe("activatePurposeVersion", () => {
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
+    await addOneTenant(delegate);
 
     expect(async () => {
       await purposeService.activatePurposeVersion(
@@ -1618,9 +1628,9 @@ describe("activatePurposeVersion", () => {
           purposeId: purpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegate.id) })
       );
-    }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
+    }).rejects.toThrowError(tenantNotAllowed(delegate.id));
   });
 
   it("should throw tenantNotAllowed if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
@@ -1634,12 +1644,14 @@ describe("activatePurposeVersion", () => {
       delegationId: generateId<DelegationId>(),
     };
 
+    const delegate: Tenant = { ...getMockTenant(), kind: "PA" };
+
     const delegation = getMockDelegation({
       id: generateId<DelegationId>(),
       kind: delegationKind.delegatedConsumer,
       eserviceId: purpose.eserviceId,
       delegatorId: purpose.consumerId,
-      delegateId: generateId<TenantId>(),
+      delegateId: delegate.id,
       state: delegationState.active,
     });
 
@@ -1650,6 +1662,7 @@ describe("activatePurposeVersion", () => {
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
+    await addOneTenant(delegate);
 
     expect(async () => {
       await purposeService.activatePurposeVersion(
@@ -1657,8 +1670,8 @@ describe("activatePurposeVersion", () => {
           purposeId: purpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData(delegate.id) })
       );
-    }).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
+    }).rejects.toThrowError(tenantNotAllowed(delegate.id));
   });
 });
