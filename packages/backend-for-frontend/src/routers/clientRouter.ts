@@ -6,16 +6,12 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { selfcareV2UsersClientBuilder } from "pagopa-interop-api-clients";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { clientServiceBuilder } from "../services/clientService.js";
-import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import {
-  emptyErrorMapper,
-  getClientUsersErrorMapper,
-} from "../utilities/errorMappers.js";
+import { getClientUsersErrorMapper } from "../utilities/errorMappers.js";
 
 const clientRouter = (
   ctx: ZodiosContext,
@@ -25,10 +21,7 @@ const clientRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const clientService = clientServiceBuilder(
-    interopBeClients,
-    selfcareV2UsersClientBuilder(config)
-  );
+  const clientService = clientServiceBuilder(interopBeClients);
 
   clientRouter
     .get("/clients", async (req, res) => {
@@ -53,8 +46,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error retrieving clients"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -74,8 +66,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -92,8 +83,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -114,8 +104,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error removing purpose ${req.params.purposeId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -137,8 +126,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving keys of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -159,8 +147,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting key ${req.params.keyId} of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -181,11 +168,31 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error adding users ${req.body.userIds.join(",")} to client ${
             req.params.clientId
           }`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
+    .post("/clients/:clientId/admin", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const client = await clientService.setAdminToClient(
+          req.body.adminId,
+          req.params.clientId,
+          ctx
+        );
+
+        return res.status(200).send(bffApi.Client.parse(client));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding user ${req.body.adminId} to client ${req.params.clientId} as admin`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -206,8 +213,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error removing user ${req.params.userId} from client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -229,8 +235,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error adding purpose to client ${req.body.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -242,8 +247,11 @@ const clientRouter = (
 
       try {
         const users = await clientService.getClientUsers(
-          req.params.clientId,
-          ctx.authData.selfcareId,
+          {
+            clientId: req.params.clientId,
+            selfcareId: ctx.authData.selfcareId,
+            name: req.query.name,
+          },
           ctx
         );
 
@@ -252,8 +260,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           getClientUsersErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving users of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -270,8 +277,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating keys for client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -296,8 +302,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving keys of client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -318,8 +323,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving key ${req.params.keyId} for client ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -337,8 +341,7 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating consumer client with name ${req.body.name}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -356,13 +359,34 @@ const clientRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating api client with name ${req.body.name}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+
+    .delete("/clients/:clientId/admin/:adminId", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await clientService.removeClientAdmin(
+          req.params.clientId,
+          req.params.adminId,
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error removing client admin ${req.params.adminId} from client ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
+
   return clientRouter;
 };
 

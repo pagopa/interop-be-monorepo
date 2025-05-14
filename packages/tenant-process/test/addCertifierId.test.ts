@@ -5,16 +5,14 @@ import {
   Tenant,
   generateId,
   protobufDecoder,
-  toReadModelAttribute,
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAttribute,
+  getMockContextMaintenance,
   getMockTenant,
   readLastEventByStreamId,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -22,8 +20,8 @@ import {
   certifierWithExistingAttributes,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAttribute,
   addOneTenant,
-  attributes,
   postgresDB,
   tenantService,
 } from "./utils.js";
@@ -47,9 +45,8 @@ describe("addCertifierId", async () => {
       {
         tenantId: mockTenant.id,
         certifierId,
-        correlationId: generateId(),
       },
-      genericLogger
+      getMockContextMaintenance({})
     );
     const writtenEvent = await readLastEventByStreamId(
       mockTenant.id,
@@ -91,9 +88,8 @@ describe("addCertifierId", async () => {
         {
           tenantId: mockTenant.id,
           certifierId,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextMaintenance({})
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });
@@ -115,9 +111,8 @@ describe("addCertifierId", async () => {
         {
           tenantId: certifierTenant.id,
           certifierId,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextMaintenance({})
       )
     ).rejects.toThrowError(
       tenantIsAlreadyACertifier(certifierTenant.id, certifierId)
@@ -143,15 +138,14 @@ describe("addCertifierId", async () => {
     };
 
     await addOneTenant(certifierTenant);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     expect(
       tenantService.addCertifierId(
         {
           tenantId: certifierTenant.id,
           certifierId,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContextMaintenance({})
       )
     ).rejects.toThrowError(
       certifierWithExistingAttributes(certifierTenant.id, previousCertifierId)

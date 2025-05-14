@@ -8,24 +8,19 @@ import {
 } from "pagopa-interop-readmodel-models";
 import {
   Agreement,
-  AgreementId,
   unsafeBrandId,
   WithMetadata,
-  EServiceId,
-  TenantId,
-  DescriptorId,
   AgreementState,
   stringToDate,
   attributeKind,
   AttributeId,
   AgreementDocument,
-  AgreementDocumentId,
   AgreementStamp,
-  UserId,
   DelegationId,
   AgreementStampKind,
   AgreementAttribute,
   AttributeKind,
+  AgreementId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { makeUniqueKey } from "../utils.js";
@@ -42,24 +37,45 @@ export const aggregateAgreementArray = ({
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractsSQL: AgreementContractSQL[];
   attributesSQL: AgreementAttributeSQL[];
-}): Array<WithMetadata<Agreement>> =>
-  agreementsSQL.map((agreementSQL) =>
-    aggregateAgreement({
+}): Array<WithMetadata<Agreement>> => {
+  const stampsSQLByAgreementId = createAgreementSQLPropertyMap(stampsSQL);
+  const consumerDocumentsSQLByAgreementId =
+    createAgreementSQLPropertyMap(consumerDocumentsSQL);
+  const contractsSQLByAgreementId = createAgreementSQLPropertyMap(contractsSQL);
+  const attributesSQLByAgreementId =
+    createAgreementSQLPropertyMap(attributesSQL);
+
+  return agreementsSQL.map((agreementSQL) => {
+    const agreementId = unsafeBrandId<AgreementId>(agreementSQL.id);
+    return aggregateAgreement({
       agreementSQL,
-      stampsSQL: stampsSQL.filter(
-        (stampSQL) => stampSQL.agreementId === agreementSQL.id
-      ),
-      consumerDocumentsSQL: consumerDocumentsSQL.filter(
-        (documentSQL) => documentSQL.agreementId === agreementSQL.id
-      ),
-      contractSQL: contractsSQL.find(
-        (contractSQL) => contractSQL.agreementId === agreementSQL.id
-      ),
-      attributesSQL: attributesSQL.filter(
-        (attributeSQL) => attributeSQL.agreementId === agreementSQL.id
-      ),
-    })
-  );
+      stampsSQL: stampsSQLByAgreementId.get(agreementId) || [],
+      consumerDocumentsSQL:
+        consumerDocumentsSQLByAgreementId.get(agreementId) || [],
+      contractSQL: contractsSQLByAgreementId.get(agreementId)?.[0],
+      attributesSQL: attributesSQLByAgreementId.get(agreementId) || [],
+    });
+  });
+};
+
+const createAgreementSQLPropertyMap = <
+  T extends
+    | AgreementStampSQL
+    | AgreementConsumerDocumentSQL
+    | AgreementContractSQL
+    | AgreementAttributeSQL
+>(
+  items: T[]
+): Map<AgreementId, T[]> =>
+  items.reduce((acc, item) => {
+    const agreementId = unsafeBrandId<AgreementId>(item.agreementId);
+    const values = acc.get(agreementId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(agreementId, values);
+
+    return acc;
+  }, new Map<AgreementId, T[]>());
 
 export const aggregateAgreement = ({
   agreementSQL,
@@ -156,11 +172,11 @@ export const aggregateAgreement = ({
   );
 
   const agreement: Agreement = {
-    id: unsafeBrandId<AgreementId>(agreementSQL.id),
-    eserviceId: unsafeBrandId<EServiceId>(agreementSQL.eserviceId),
-    descriptorId: unsafeBrandId<DescriptorId>(agreementSQL.descriptorId),
-    producerId: unsafeBrandId<TenantId>(agreementSQL.producerId),
-    consumerId: unsafeBrandId<TenantId>(agreementSQL.consumerId),
+    id: unsafeBrandId(agreementSQL.id),
+    eserviceId: unsafeBrandId(agreementSQL.eserviceId),
+    descriptorId: unsafeBrandId(agreementSQL.descriptorId),
+    producerId: unsafeBrandId(agreementSQL.producerId),
+    consumerId: unsafeBrandId(agreementSQL.consumerId),
     state: AgreementState.parse(agreementSQL.state),
     verifiedAttributes,
     certifiedAttributes,
@@ -237,7 +253,7 @@ export const aggregateAgreement = ({
 const documentSQLtoDocument = (
   documentSQL: AgreementContractSQL | AgreementConsumerDocumentSQL
 ): AgreementDocument => ({
-  id: unsafeBrandId<AgreementDocumentId>(documentSQL.id),
+  id: unsafeBrandId(documentSQL.id),
   path: documentSQL.path,
   name: documentSQL.name,
   prettyName: documentSQL.prettyName,
@@ -246,7 +262,7 @@ const documentSQLtoDocument = (
 });
 
 const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
-  who: unsafeBrandId<UserId>(stampSQL.who),
+  who: unsafeBrandId(stampSQL.who),
   when: stringToDate(stampSQL.when),
   ...(stampSQL.delegationId !== null
     ? {
@@ -340,8 +356,11 @@ export const toAgreementAggregatorArray = (
     }
 
     const contractSQL = row.contract;
-    if (contractSQL && !contractIdSet.has(contractSQL.id)) {
-      contractIdSet.add(contractSQL.id);
+    const contractPK = contractSQL
+      ? makeUniqueKey([contractSQL.agreementId, contractSQL.id])
+      : undefined;
+    if (contractSQL && contractPK && !contractIdSet.has(contractPK)) {
+      contractIdSet.add(contractPK);
       // eslint-disable-next-line functional/immutable-data
       contractsSQL.push(contractSQL);
     }

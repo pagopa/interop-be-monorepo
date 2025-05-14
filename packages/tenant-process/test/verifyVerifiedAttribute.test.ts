@@ -16,12 +16,10 @@ import {
   delegationState,
   delegationKind,
   AttributeId,
-  toReadModelAgreement,
-  toReadModelAttribute,
-  toReadModelEService,
+  TenantVerifier,
+  TenantRevoker,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAttribute,
   readLastEventByStreamId,
@@ -29,7 +27,8 @@ import {
   getMockEService,
   getMockTenant,
   getMockDelegation,
-  writeInReadmodel,
+  getMockAuthData,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   tenantNotFound,
@@ -50,9 +49,6 @@ import {
   addOneAttribute,
   addOneEService,
   addOneDelegation,
-  agreements,
-  attributes,
-  eservices,
 } from "./utils.js";
 
 describe("verifyVerifiedAttribute", async () => {
@@ -136,10 +132,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       );
 
       const writtenEvent = await readLastEventByStreamId(
@@ -196,8 +190,16 @@ describe("verifyVerifiedAttribute", async () => {
   ])(
     "Should verify the VerifiedAttribute if verifiedTenantAttribute exist $desc",
     async (hasDelegation) => {
-      const mockVerifiedBy = getMockVerifiedBy();
-      const mockRevokedBy = getMockRevokedBy();
+      const mockVerifier = getMockTenant();
+      const mockRevoker = getMockTenant();
+      const mockVerifiedBy: TenantVerifier = {
+        ...getMockVerifiedBy(),
+        id: mockVerifier.id,
+      };
+      const mockRevokedBy: TenantRevoker = {
+        ...getMockRevokedBy(),
+        id: mockRevoker.id,
+      };
 
       const tenantWithVerifiedAttribute: Tenant = {
         ...targetTenant,
@@ -215,6 +217,8 @@ describe("verifyVerifiedAttribute", async () => {
         ],
       };
 
+      await addOneTenant(mockVerifier);
+      await addOneTenant(mockRevoker);
       await addOneTenant(tenantWithVerifiedAttribute);
       await addOneTenant(requesterTenant);
       await addOneAttribute(attribute);
@@ -229,10 +233,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: tenantWithVerifiedAttribute.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithVerifiedAttribute.id,
@@ -286,10 +288,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       )
     ).rejects.toThrowError(tenantNotFound(targetTenant.id));
   });
@@ -305,10 +305,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
   });
@@ -351,10 +349,8 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: targetTenant.id,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEserviceWithNotAllowedDescriptor.id,
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       )
     ).rejects.toThrowError(
       attributeVerificationNotAllowed(
@@ -375,16 +371,24 @@ describe("verifyVerifiedAttribute", async () => {
           tenantId: agreementEservice1.producerId,
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
-          organizationId: agreementEservice1.producerId,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({
+          authData: getMockAuthData(agreementEservice1.producerId),
+        })
       )
     ).rejects.toThrowError(verifiedAttributeSelfVerificationNotAllowed());
   });
   it("Should throw expirationDateCannotBeInThePast if the expirationDate is in the past", async () => {
-    const mockVerifiedBy = getMockVerifiedBy();
-    const mockRevokedBy = getMockRevokedBy();
+    const mockVerifier = getMockTenant();
+    const mockRevoker = getMockTenant();
+    const mockVerifiedBy: TenantVerifier = {
+      ...getMockVerifiedBy(),
+      id: mockVerifier.id,
+    };
+    const mockRevokedBy: TenantRevoker = {
+      ...getMockRevokedBy(),
+      id: mockRevoker.id,
+    };
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -405,15 +409,14 @@ describe("verifyVerifiedAttribute", async () => {
       ],
     };
 
+    await addOneTenant(mockVerifier);
+    await addOneTenant(mockRevoker);
     await addOneTenant(tenantWithVerifiedAttribute);
     await addOneTenant(requesterTenant);
     await addOneAgreement(agreementEservice1);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    await writeInReadmodel(toReadModelEService(eService1), eservices);
-    await writeInReadmodel(
-      toReadModelAgreement(agreementEservice1),
-      agreements
-    );
+    await addOneAttribute(attribute);
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
 
     expect(
       tenantService.verifyVerifiedAttribute(
@@ -422,10 +425,8 @@ describe("verifyVerifiedAttribute", async () => {
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
           expirationDate: yesterday.toISOString(),
-          organizationId: requesterTenant.id,
-          correlationId: generateId(),
         },
-        genericLogger
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
       )
     ).rejects.toThrowError(expirationDateCannotBeInThePast(yesterday));
   });

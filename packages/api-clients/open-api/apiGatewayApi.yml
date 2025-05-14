@@ -2635,9 +2635,6 @@ components:
         templateId:
           type: string
           format: uuid
-        instanceLabel:
-          type: string
-          format: uuid
         templateVersionId:
           type: string
           format: uuid
