@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { AgreementId, generateId } from "pagopa-interop-models";
 import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -27,7 +27,7 @@ describe("API GET /agreements/{agreementId} test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: string = generateId()
+    agreementId: AgreementId = generateId()
   ) =>
     request(api)
       .get(`/agreements/${agreementId}`)
@@ -73,7 +73,7 @@ describe("API GET /agreements/{agreementId} test", () => {
     }
   );
 
-  it.each([{ agreementId: "invalid" }])(
+  it.each([{ agreementId: "invalid" as AgreementId }])(
     "Should return 400 if passed invalid data: %s",
     async ({ agreementId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

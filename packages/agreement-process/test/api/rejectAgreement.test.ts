@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  AgreementId,
   DelegationId,
   agreementState,
   generateId,
@@ -32,7 +33,7 @@ describe("API POST /agreements/{agreementId}/reject test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockAgreement.id,
+    agreementId: AgreementId = mockAgreement.id,
     body: object = defaultBody
   ) =>
     request(api)
@@ -84,7 +85,7 @@ describe("API POST /agreements/{agreementId}/reject test", () => {
   );
 
   it.each([
-    { agreementId: "invalid" },
+    { agreementId: "invalid" as AgreementId },
     { body: {} },
     { body: { reason: 1 } },
     { body: { reason: "too short" } },

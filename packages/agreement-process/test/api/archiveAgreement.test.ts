@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  AgreementId,
   DelegationId,
   agreementState,
   generateId,
@@ -33,7 +34,7 @@ describe("API POST /agreements/{agreementId}/archive test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockAgreement.id
+    agreementId: AgreementId = mockAgreement.id
   ) =>
     request(api)
       .post(`/agreements/${agreementId}/archive`)
@@ -82,7 +83,7 @@ describe("API POST /agreements/{agreementId}/archive test", () => {
     }
   );
 
-  it.each([{ agreementId: "invalid" }])(
+  it.each([{ agreementId: "invalid" as AgreementId }])(
     "Should return 400 if passed invalid data: %s",
     async ({ agreementId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

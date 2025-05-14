@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import {
+  DescriptorId,
+  EServiceId,
+  TenantId,
+  generateId,
+} from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -25,9 +30,9 @@ describe("API GET /tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descri
 
   const makeRequest = async (
     token: string,
-    tenantId: string = generateId(),
-    eserviceId: string = generateId(),
-    descriptorId: string = generateId()
+    tenantId: TenantId = generateId(),
+    eserviceId: EServiceId = generateId(),
+    descriptorId: DescriptorId = generateId()
   ) =>
     request(api)
       .get(
@@ -84,9 +89,9 @@ describe("API GET /tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descri
   );
 
   it.each([
-    { tenantId: "invalid" },
-    { eserviceId: "invalid" },
-    { descriptorId: "invalid" },
+    { tenantId: "invalid" as TenantId },
+    { eserviceId: "invalid" as EServiceId },
+    { descriptorId: "invalid" as DescriptorId },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ tenantId, eserviceId, descriptorId }) => {

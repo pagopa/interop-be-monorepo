@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { agreementState, generateId } from "pagopa-interop-models";
+import { AgreementId, agreementState, generateId } from "pagopa-interop-models";
 import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -34,7 +34,7 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockAgreement.id,
+    agreementId: AgreementId = mockAgreement.id,
     body: object = defaultBody
   ) =>
     request(api)
@@ -85,7 +85,7 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
   );
 
   it.each([
-    { agreementId: "invalid" },
+    { agreementId: "invalid" as AgreementId },
     { body: {} },
     { body: { ...defaultBody, id: "invalid" } },
     { body: { ...defaultBody, extraField: 1 } },
