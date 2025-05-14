@@ -79,6 +79,7 @@ export const mockClientService = {
 // pass in all the api tests
 
 export const mockDelegationService = {} as DelegationService;
+export const mockTenantService = {} as TenantService;
 export const mockAttributeService = {} as AttributeService;
 export const mockAgreementService = {} as AgreementService;
 
@@ -91,7 +92,7 @@ export const api = await createApp(
     eserviceService: {} as EserviceService,
     eserviceTemplateService: {} as EserviceTemplateService,
     purposeService: {} as PurposeService,
-    tenantService: {} as TenantService,
+    tenantService: mockTenantService,
   },
   (_req, _res, next): void => next()
 );

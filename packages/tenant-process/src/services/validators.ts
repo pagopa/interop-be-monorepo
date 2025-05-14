@@ -25,7 +25,7 @@ import {
 import { match } from "ts-pattern";
 import {
   expirationDateCannotBeInThePast,
-  organizationNotFoundInVerifiers,
+  tenantNotFoundInVerifiers,
   verifiedAttributeNotFoundInTenant,
   selfcareIdConflict,
   expirationDateNotFoundInVerifier,
@@ -105,7 +105,7 @@ export function assertOrganizationVerifierExist(
   tenantVerifier: TenantVerifier | undefined
 ): asserts tenantVerifier is NonNullable<TenantVerifier> {
   if (tenantVerifier === undefined) {
-    throw organizationNotFoundInVerifiers(verifierId, tenantId, attributeId);
+    throw tenantNotFoundInVerifiers(verifierId, tenantId, attributeId);
   }
 }
 
@@ -211,7 +211,7 @@ export function assertOrganizationIsInAttributeVerifiers(
   attribute: VerifiedTenantAttribute
 ): void {
   if (!attribute.verifiedBy.some((v) => v.id === verifierId)) {
-    throw organizationNotFoundInVerifiers(verifierId, tenantId, attribute.id);
+    throw tenantNotFoundInVerifiers(verifierId, tenantId, attribute.id);
   }
 }
 
