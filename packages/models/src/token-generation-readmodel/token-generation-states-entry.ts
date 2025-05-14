@@ -32,6 +32,7 @@ export const TokenGenerationStatesConsumerClient =
       TokenGenerationStatesClientKidPK
     ),
     clientKind: z.literal(clientKindTokenGenStates.consumer),
+    producerId: TenantId.optional(),
     consumerId: TenantId.optional(),
     GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId.optional(),
     agreementId: AgreementId.optional(),
