@@ -3,6 +3,7 @@ import {
   authorizationApi,
   catalogApi,
   delegationApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
@@ -41,6 +42,32 @@ export function getMockedApiDelegation({
           when: new Date().toISOString(),
         },
       },
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiTenant({
+  attributes,
+}: {
+  attributes?: tenantApi.TenantAttribute[];
+} = {}): WithMetadata<tenantApi.Tenant> {
+  return {
+    data: {
+      id: generateId(),
+      attributes:
+        attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
+      externalId: {
+        origin: generateMock(z.string()),
+        value: generateMock(z.string()),
+      },
+      name: generateMock(z.string()),
+      createdAt: new Date().toISOString(),
+      kind: tenantApi.TenantKind.Values.GSP,
+      mails: generateMock(z.array(tenantApi.Mail)),
+      features: generateMock(z.array(tenantApi.TenantFeature)),
     },
     metadata: {
       version: 0,
