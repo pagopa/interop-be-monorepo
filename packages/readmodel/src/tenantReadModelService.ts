@@ -164,8 +164,12 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           db
         ),
       ]);
+
+      if (!tenantSQL) {
+        return undefined;
+      }
       return aggregateTenant({
-        tenantSQL: tenantSQL!,
+        tenantSQL,
         mailsSQL,
         certifiedAttributesSQL,
         declaredAttributesSQL,
