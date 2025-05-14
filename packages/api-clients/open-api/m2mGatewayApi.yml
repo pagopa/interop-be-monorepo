@@ -4297,7 +4297,6 @@ components:
         - createdAt
         - isRiskAnalysisValid
         - isFreeOfCharge
-        - currentVersion
     PurposeSeed:
       type: object
       additionalProperties: false

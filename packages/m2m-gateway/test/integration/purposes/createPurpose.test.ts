@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -11,14 +10,12 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
-  missingActivePurposeVersion,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
-  getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
@@ -33,10 +30,9 @@ describe("createPurpose", () => {
     title: mockPurposeProcessGetResponse.data.title,
   };
 
-  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose({
-    purpose: mockPurposeProcessGetResponse.data,
-    logger: genericLogger,
-  });
+  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
+    mockPurposeProcessGetResponse.data
+  );
 
   const mockCreatePurpose = vi
     .fn()
@@ -118,20 +114,5 @@ describe("createPurpose", () => {
     expect(mockGetPurpose).toHaveBeenCalledTimes(
       config.defaultPollingMaxAttempts
     );
-  });
-
-  it("Should throw missingActivePurposeVersion due to missing valid current version", async () => {
-    const invalidPurpose = getMockedApiPurpose({
-      versions: [
-        getMockedApiPurposeVersion({ state: "WAITING_FOR_APPROVAL" }),
-        getMockedApiPurposeVersion({ state: "REJECTED" }),
-      ],
-    });
-
-    mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
-
-    await expect(
-      purposeService.createPurpose(mockPurposeSeed, getMockM2MAdminAppContext())
-    ).rejects.toThrow(missingActivePurposeVersion(invalidPurpose.data.id));
   });
 });

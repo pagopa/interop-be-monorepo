@@ -1,7 +1,6 @@
 import {
   attributeRegistryApi,
   delegationApi,
-  purposeApi,
   authorizationApi,
 } from "pagopa-interop-api-clients";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
@@ -90,25 +89,5 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
-  });
-}
-
-export function purposeNotFound(
-  purposeId: purposeApi.Purpose["id"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} not found`,
-    code: "purposeNotFound",
-    title: "Purpose not found",
-  });
-}
-
-export function missingActivePurposeVersion(
-  purposeId: purposeApi.Purpose["id"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `There is no active version for purpose ${purposeId}`,
-    code: "missingActivePurposeVersion",
-    title: "Missing active purpose version",
   });
 }
