@@ -76,7 +76,7 @@ describe("API /templates/eservices/{eServiceId}/upgrade authorization test", () 
     .fn()
     .mockResolvedValue(descriptor);
 
-  const makeRequest = async (token: string, eServiceId: string) =>
+  const makeRequest = async (token: string, eServiceId: EServiceId) =>
     request(api)
       .post(`/templates/eservices/${eServiceId}/upgrade`)
       .set("Authorization", `Bearer ${token}`)
@@ -125,6 +125,7 @@ describe("API /templates/eservices/{eServiceId}/upgrade authorization test", () 
       expectedStatus: 400,
     },
     {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       error: eServiceTemplateNotFound(eservice.templateId!),
       expectedStatus: 500,
     },

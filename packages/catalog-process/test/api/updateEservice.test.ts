@@ -17,7 +17,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
-  eServiceDescriptorNotFound,
+  eServiceNameDuplicate,
   eServiceNotFound,
   eserviceNotInDraftState,
   templateInstanceNotAllowed,
@@ -91,11 +91,11 @@ describe("API /eservices/{eServiceId} authorization test", () => {
 
   it.each([
     {
-      error: eServiceNotFound(mockEService.id),
-      expectedStatus: 404,
+      error: eServiceNameDuplicate(mockEService.name),
+      expectedStatus: 409,
     },
     {
-      error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
+      error: eServiceNotFound(mockEService.id),
       expectedStatus: 404,
     },
     {
@@ -109,6 +109,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     {
       error: templateInstanceNotAllowed(
         mockEService.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
       expectedStatus: 400,

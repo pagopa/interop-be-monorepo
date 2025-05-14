@@ -75,7 +75,6 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
       descriptor.id,
       document.id
     );
-
     expect(res.status).toBe(403);
   });
 

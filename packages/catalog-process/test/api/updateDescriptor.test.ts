@@ -87,11 +87,12 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/update authoriz
     },
     {
       error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
-      expectedStatus: 409,
+      expectedStatus: 404,
     },
     {
       error: templateInstanceNotAllowed(
         mockEService.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
       expectedStatus: 403,

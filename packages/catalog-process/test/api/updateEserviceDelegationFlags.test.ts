@@ -50,7 +50,7 @@ describe("API /eservices/{eServiceId}/delegationFlags/update authorization test"
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
+    eServiceId: EServiceId,
     body: catalogApi.EServiceDelegationFlagsUpdateSeed = eserviceSeed
   ) =>
     request(api)

@@ -85,6 +85,7 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
     {
       error: templateInstanceNotAllowed(
         mockEService.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
       expectedStatus: 403,

@@ -55,9 +55,9 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string,
-    documentId: string,
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
+    documentId: EServiceDocumentId,
     body: catalogApi.UpdateEServiceDescriptorDocumentSeed = mockUpdateEServiceDescriptorDocumentSeed
   ) =>
     request(api)
@@ -122,6 +122,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
     {
       error: templateInstanceNotAllowed(
         mockEService.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
       expectedStatus: 403,
@@ -173,7 +174,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
       "invalidId",
     ],
   ])(
-    "Should return 400 if passed invalid params: %s (eserviceId: %s) (descriptorId: %s) (documentId: %s)",
+    "Should return 400 if passed invalid params: %s (eserviceId: %s, descriptorId: %s, documentId: %s)",
     async (body, eServiceId, descriptorId, documentId) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

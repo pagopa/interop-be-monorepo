@@ -62,7 +62,7 @@ describe("API /templates/eservices/{eServiceId} authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
+    eServiceId: EServiceId,
     body: catalogApi.UpdateEServiceTemplateInstanceSeed = eserviceTemplateInstanceSeed
   ) =>
     request(api)

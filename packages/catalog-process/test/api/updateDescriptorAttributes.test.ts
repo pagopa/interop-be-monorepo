@@ -109,8 +109,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string,
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
     body: catalogApi.AttributesSeed = validMockDescriptorAttributeSeed
   ) =>
     request(api)
@@ -157,6 +157,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     {
       error: templateInstanceNotAllowed(
         mockEService.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
       expectedStatus: 403,
@@ -194,87 +195,75 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
   );
 
   it.each([
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: {},
-    },
-    {
-      eServiceId: "invalidId",
-      descriptorId: descriptor.id,
-      body: validMockDescriptorAttributeSeed,
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: "invalidId",
-      body: validMockDescriptorAttributeSeed,
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: { ...validMockDescriptorAttributeSeed, certified: {} },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: { ...validMockDescriptorAttributeSeed, certified: [123] },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: { ...validMockDescriptorAttributeSeed, certified: [[{ id: 123 }]] },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: {
+    [{}, mockEService.id, descriptor.id],
+    [validMockDescriptorAttributeSeed, "invalidId", descriptor.id],
+    [validMockDescriptorAttributeSeed, mockEService.id, "invalidId"],
+    [
+      { ...validMockDescriptorAttributeSeed, certified: {} },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      { ...validMockDescriptorAttributeSeed, certified: [123] },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      { ...validMockDescriptorAttributeSeed, certified: [[{ id: 123 }]] },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
         ...validMockDescriptorAttributeSeed,
         verified: [
           [{ id: "", explicitAttributeVerification: "not-a-boolean" }],
         ],
       },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: {
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
         ...validMockDescriptorAttributeSeed,
         verified: [[{ noId: true }]],
       },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: { ...validMockDescriptorAttributeSeed, declared: ["not-an-array"] },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: { ...validMockDescriptorAttributeSeed, declared: [[{ id: null }]] },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: { ...validMockDescriptorAttributeSeed, certified: null },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: { ...validMockDescriptorAttributeSeed, verified: null },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: { ...validMockDescriptorAttributeSeed, declared: null },
-    },
-    {
-      eServiceId: mockEService.id,
-      descriptorId: descriptor.id,
-      body: { certified: "wrong", verified: "wrong", declared: "wrong" },
-    },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      { ...validMockDescriptorAttributeSeed, declared: ["not-an-array"] },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      { ...validMockDescriptorAttributeSeed, declared: [[{ id: null }]] },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      { ...validMockDescriptorAttributeSeed, certified: null },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      { ...validMockDescriptorAttributeSeed, verified: null },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      { ...validMockDescriptorAttributeSeed, declared: null },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      { certified: "wrong", verified: "wrong", declared: "wrong" },
+      mockEService.id,
+      descriptor.id,
+    ],
   ])(
-    "Should return 400 if passed invalid params",
-    async ({ eServiceId, descriptorId, body }) => {
+    "Should return 400 if passed invalid attribute seed params: %s (eserviceId: %s, descriptorId: %s)",
+    async (body, eServiceId, descriptorId) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,

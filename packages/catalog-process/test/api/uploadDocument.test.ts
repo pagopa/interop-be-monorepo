@@ -53,8 +53,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string,
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
     body: catalogApi.CreateEServiceDescriptorDocumentSeed = mockCreateEServiceDescriptorDocumentSeed
   ) =>
     request(api)
@@ -99,6 +99,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     {
       error: templateInstanceNotAllowed(
         mockEService.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
       expectedStatus: 403,

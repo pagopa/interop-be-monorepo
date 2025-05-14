@@ -42,8 +42,8 @@ describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorizatio
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    riskAnalysisId: string,
+    eServiceId: EServiceId,
+    riskAnalysisId: RiskAnalysisId,
     body: catalogApi.EServiceRiskAnalysisSeed = riskAnalysisSeed
   ) =>
     request(api)
@@ -87,6 +87,7 @@ describe("API /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId} authorizatio
     {
       error: templateInstanceNotAllowed(
         mockEService.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
       expectedStatus: 403,

@@ -71,7 +71,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/suspend autho
     },
     {
       error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
-      expectedStatus: 409,
+      expectedStatus: 404,
     },
     {
       error: operationForbidden,

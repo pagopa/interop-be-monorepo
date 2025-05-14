@@ -41,8 +41,8 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string,
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
     body: catalogApi.EServiceDescriptorVoucherLifespanUpdateSeed = mockEServiceDescriptorVoucherLifespanUpdateSeed
   ) =>
     request(api)

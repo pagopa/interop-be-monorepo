@@ -75,7 +75,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/publish authori
     },
     {
       error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
-      expectedStatus: 409,
+      expectedStatus: 404,
     },
     {
       error: operationForbidden,

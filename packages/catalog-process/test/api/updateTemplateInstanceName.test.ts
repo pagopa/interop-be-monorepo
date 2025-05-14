@@ -22,7 +22,7 @@ describe("API /internal/templates/eservices/{eServiceId}/name/update authorizati
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
+    eServiceId: EServiceId,
     body: catalogApi.EServiceNameUpdateSeed = mockEServiceNameUpdateSeed
   ) =>
     request(api)

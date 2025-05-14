@@ -99,6 +99,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
       expectedStatus: 404,
     },
     {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
       expectedStatus: 403,
     },

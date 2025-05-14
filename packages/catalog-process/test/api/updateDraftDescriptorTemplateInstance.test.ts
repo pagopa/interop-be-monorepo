@@ -58,8 +58,8 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} autho
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string,
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
     body: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed = descriptorSeed
   ) =>
     request(api)

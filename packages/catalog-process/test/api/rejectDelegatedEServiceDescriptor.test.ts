@@ -79,7 +79,7 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/reject authorizat
     },
     {
       error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
-      expectedStatus: 409,
+      expectedStatus: 404,
     },
     {
       error: operationForbidden,
@@ -105,7 +105,7 @@ describe("API /eservices/:eServiceId/descriptors/:descriptorId/reject authorizat
     [{ ...mockRejectionReason }, mockEService.id, "invalidId"],
     [{ ...mockRejectionReason }, "invalidId", descriptor.id],
   ])(
-    "Should return 400 if passed invalid params: %s (eserviceId: %s) (descriptorId: %s)",
+    "Should return 400 if passed invalid params: %s (eserviceId: %s, descriptorId: %s)",
     async (body, eServiceId, descriptorId) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(

@@ -62,8 +62,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
 
   const makeRequest = async (
     token: string,
-    eServiceId: string,
-    descriptorId: string,
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
     body: catalogApi.UpdateEServiceDescriptorSeed = descriptorSeed
   ) =>
     request(api)
@@ -120,6 +120,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     {
       error: templateInstanceNotAllowed(
         mockEService.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
       expectedStatus: 400,
