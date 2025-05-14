@@ -146,19 +146,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(mockProducer.id) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockProducer.id) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -221,7 +219,7 @@ describe("activatePurposeVersion", () => {
     ).toContain(updatedVersion.riskAnalysis!.path);
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
@@ -252,19 +250,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(delegate.id) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(delegate.id) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -327,7 +323,7 @@ describe("activatePurposeVersion", () => {
     ).toContain(updatedVersion.riskAnalysis!.path);
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
@@ -356,19 +352,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -397,7 +391,7 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
@@ -426,19 +420,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(mockProducer.id) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockProducer.id) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -467,7 +459,7 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
@@ -497,19 +489,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -547,7 +537,7 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
@@ -577,19 +567,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -618,7 +606,7 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
@@ -646,19 +634,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -685,7 +671,7 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
@@ -713,19 +699,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: purposeVersionMock.dailyCalls.toString(),
@@ -786,7 +770,7 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
@@ -832,19 +816,17 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
     await addOneTenant(consumerDelegate);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: purpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: purpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: purposeVersionMock.dailyCalls.toString(),
@@ -905,7 +887,7 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
@@ -995,19 +977,17 @@ describe("activatePurposeVersion", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const purposeVersionActivateResponse =
-      await purposeService.activatePurposeVersion(
-        {
-          purposeId: mockPurpose.id,
-          versionId: mockPurposeVersion.id,
-        },
-        getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
-      );
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: mockPurpose.id,
+        versionId: mockPurposeVersion.id,
+      },
+      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+    );
 
-    const updatedVersion =
-      purposeVersionActivateResponse.data.purpose.versions.find(
-        (v) => v.id === purposeVersionActivateResponse.data.updatedVersionId
-      )!;
+    const updatedVersion = activateResponse.data.purpose.versions.find(
+      (v) => v.id === activateResponse.data.updatedVersionId
+    )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: purposeVersionMock.dailyCalls.toString(),
@@ -1068,7 +1048,7 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(purposeVersionActivateResponse).toMatchObject({
+    expect(activateResponse).toMatchObject({
       data: {
         purpose: expectedPurpose,
         createdVersionId: updatedVersion.id,
