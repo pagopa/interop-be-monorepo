@@ -3,6 +3,7 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
 import { api, mockDelegationService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { unexpectedDelegationKind } from "../../../src/model/errors.js";
@@ -27,9 +28,9 @@ describe("GET /consumerDelegations router test", () => {
 
   const mockQueryParams: m2mGatewayApi.GetConsumerDelegationsQueryParams = {
     states: ["WAITING_FOR_APPROVAL"],
-    eserviceIds: [],
-    delegateIds: [],
-    delegatorIds: [],
+    eserviceIds: [generateId()],
+    delegateIds: [generateId()],
+    delegatorIds: [generateId()],
     offset: 0,
     limit: 10,
   };

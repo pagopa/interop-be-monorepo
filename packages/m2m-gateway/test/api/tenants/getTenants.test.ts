@@ -3,6 +3,8 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
@@ -25,8 +27,8 @@ describe("GET /tenants route test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetTenantsQueryParams = {
-    externalIdOrigin: undefined,
-    externalIdValue: undefined,
+    externalIdOrigin: generateMock(z.string()),
+    externalIdValue: generateMock(z.string()),
     offset: 0,
     limit: 10,
   };

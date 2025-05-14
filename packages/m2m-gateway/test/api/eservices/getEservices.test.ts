@@ -3,6 +3,7 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockedApiEservice } from "../../mockUtils.js";
@@ -21,8 +22,8 @@ describe("GET /eservices router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEServicesQueryParams = {
-    producersIds: [],
-    templatesIds: [],
+    producersIds: [generateId()],
+    templatesIds: [generateId()],
     offset: 0,
     limit: 10,
   };
