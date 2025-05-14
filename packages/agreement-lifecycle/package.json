@@ -13,7 +13,6 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --loader ts-node/esm --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -21,10 +20,10 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/node": "20.14.6",
     "pagopa-interop-models": "workspace:*"
   },
   "devDependencies": {
+    "@types/node": "20.14.6",
     "eslint": "8.57.0",
     "prettier": "2.8.8",
     "typescript": "5.4.5"

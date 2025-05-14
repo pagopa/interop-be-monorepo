@@ -4,6 +4,7 @@ import {
   AgreementDocumentId,
   AgreementEventV2,
   CorrelationId,
+  DelegationId,
   toAgreementV2,
 } from "pagopa-interop-models";
 
@@ -26,13 +27,34 @@ export function toCreateEventAgreementDeleted(
   };
 }
 
+export function toCreateEventAgreementDeletedByRevokedDelegation(
+  agreement: Agreement,
+  delegationId: DelegationId,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementDeletedByRevokedDelegation",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+        delegationId,
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventAgreementAdded(
   agreement: Agreement,
   correlationId: CorrelationId
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
-    version: 0,
+    version: undefined,
     event: {
       type: "AgreementAdded",
       event_version: 2,
@@ -101,6 +123,27 @@ export function toCreateEventAgreementArchivedByConsumer(
   };
 }
 
+export function toCreateEventAgreementArchivedByRevokedDelegation(
+  agreement: Agreement,
+  delegationId: DelegationId,
+  version: number,
+  correlationId: CorrelationId
+): CreateEvent<AgreementEventV2> {
+  return {
+    streamId: agreement.id,
+    version,
+    event: {
+      type: "AgreementArchivedByRevokedDelegation",
+      event_version: 2,
+      data: {
+        agreement: toAgreementV2(agreement),
+        delegationId,
+      },
+    },
+    correlationId,
+  };
+}
+
 export function toCreateEventAgreementArchivedByUpgrade(
   agreement: Agreement,
   version: number,
@@ -126,7 +169,7 @@ export function toCreateEventAgreementUpgraded(
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
-    version: 0,
+    version: undefined,
     event: {
       type: "AgreementUpgraded",
       event_version: 2,

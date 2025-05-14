@@ -19,8 +19,10 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
+    "csv-stringify": "6.5.2",
     "dotenv-flow": "4.1.0",
     "mongodb": "6.7.0",
+    "octokit": "4.1.2",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",

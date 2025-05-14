@@ -19,6 +19,19 @@ export const FeatureFlagSignalhubWhitelistConfig = z
     signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
   }));
 
+export const FeatureFlagSQLConfig = z
+  .object({
+    FEATURE_FLAG_SQL: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagSQL: c.FEATURE_FLAG_SQL ?? false,
+  }));
+export type FeatureFlagSQLConfig = z.infer<typeof FeatureFlagSQLConfig>;
+
 export type FeatureFlagSignalhubWhitelistConfig = z.infer<
   typeof FeatureFlagSignalhubWhitelistConfig
 >;
@@ -40,8 +53,25 @@ export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
   typeof FeatureFlagAgreementApprovalPolicyUpdateConfig
 >;
 
+export const FeatureFlagAdminClientConfig = z
+  .object({
+    FEATURE_FLAG_ADMIN_CLIENT: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+  })
+  .transform((c) => ({
+    featureFlagAdminClient: c.FEATURE_FLAG_ADMIN_CLIENT ?? false,
+  }));
+
+export type FeatureFlagAdminClientConfig = z.infer<
+  typeof FeatureFlagAdminClientConfig
+>;
+
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
-  FeatureFlagAgreementApprovalPolicyUpdateConfig;
+  FeatureFlagAgreementApprovalPolicyUpdateConfig &
+  FeatureFlagSQLConfig &
+  FeatureFlagAdminClientConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

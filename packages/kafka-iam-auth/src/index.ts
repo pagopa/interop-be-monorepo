@@ -1,9 +1,12 @@
 import { generateAuthToken } from "aws-msk-iam-sasl-signer-js";
 import {
   Consumer,
+  ConsumerRunConfig,
+  EachBatchPayload,
   EachMessagePayload,
   Kafka,
   KafkaConfig,
+  KafkaMessage,
   OauthbearerProviderResponse,
   Producer,
   ProducerRecord,
@@ -16,6 +19,7 @@ import {
   Logger,
   genericLogger,
   KafkaProducerConfig,
+  KafkaBatchConsumerConfig,
 } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -23,9 +27,9 @@ import { P, match } from "ts-pattern";
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
-const processExit = (existStatusCode: number = 1): void => {
-  genericLogger.debug(`Process exit with code ${existStatusCode}`);
-  process.exit(existStatusCode);
+const processExit = (exitStatusCode: number = 1): void => {
+  genericLogger.debug(`Process exit with code ${exitStatusCode}`);
+  process.exit(exitStatusCode);
 };
 
 const errorEventsListener = (consumerOrProducer: Consumer | Producer): void => {
@@ -77,7 +81,7 @@ const consumerKafkaEventsListener = (consumer: Consumer): void => {
   });
 
   consumer.on(consumer.events.REQUEST_TIMEOUT, (e) => {
-    genericLogger.error(
+    genericLogger.warn(
       `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
     );
   });
@@ -91,7 +95,7 @@ const producerKafkaEventsListener = (producer: Producer): void => {
   }
   // eslint-disable-next-line sonarjs/no-identical-functions
   producer.on(producer.events.REQUEST_TIMEOUT, (e) => {
-    genericLogger.error(
+    genericLogger.warn(
       `Error Request to a broker has timed out : ${JSON.stringify(e)}.`
     );
   });
@@ -213,6 +217,16 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
               error.includes("The group is rebalancing, so a rejoin is needed"),
             () => logLevel.INFO
           )
+          .with(
+            P.string,
+            (error) =>
+              level === logLevel.ERROR &&
+              (error.includes("Connection error: read ECONNRESET") ||
+                error.includes(
+                  "The replica is not available for the requested topic-partition"
+                )),
+            () => logLevel.WARN
+          )
           .otherwise(() => level);
 
         // eslint-disable-next-line sonarjs/no-nested-template-literals
@@ -230,11 +244,17 @@ const initKafka = (config: InteropKafkaConfig): Kafka => {
   });
 };
 
-const initConsumer = async (
-  config: KafkaConsumerConfig,
-  topics: string[],
-  consumerHandler: (payload: EachMessagePayload) => Promise<void>
-): Promise<Consumer> => {
+const initCustomConsumer = async ({
+  config,
+  topics,
+  consumerRunConfig,
+  batchConsumerConfig,
+}: {
+  config: KafkaConsumerConfig;
+  topics: string[];
+  consumerRunConfig: (consumer: Consumer) => ConsumerRunConfig;
+  batchConsumerConfig?: KafkaBatchConsumerConfig;
+}): Promise<Consumer> => {
   genericLogger.debug(
     `Consumer connecting to topics ${JSON.stringify(topics)}`
   );
@@ -248,10 +268,14 @@ const initConsumer = async (
       maxRetryTime: 3000,
       retries: 3,
       restartOnFailure: (error) => {
-        genericLogger.error(`Error during restart service: ${error.message}`);
+        genericLogger.warn(`Error during restart service: ${error.message}`);
         return Promise.resolve(false);
       },
     },
+    maxWaitTimeInMs: batchConsumerConfig?.maxWaitKafkaBatchMillis,
+    minBytes: batchConsumerConfig?.minBytes,
+    maxBytes: batchConsumerConfig?.maxBytes,
+    sessionTimeout: batchConsumerConfig?.sessionTimeoutMillis,
   });
 
   if (config.resetConsumerOffsets) {
@@ -276,23 +300,7 @@ const initConsumer = async (
 
   genericLogger.info(`Consumer subscribed topic ${topics}`);
 
-  await consumer.run({
-    autoCommit: false,
-    eachMessage: async (payload: EachMessagePayload) => {
-      try {
-        await consumerHandler(payload);
-        await kafkaCommitMessageOffsets(consumer, payload);
-      } catch (e) {
-        throw kafkaMessageProcessError(
-          payload.topic,
-          payload.partition,
-          payload.message.offset,
-          e
-        );
-      }
-    },
-  });
-
+  await consumer.run(consumerRunConfig(consumer));
   return consumer;
 };
 
@@ -323,7 +331,7 @@ export const initProducer = async (
         maxRetryTime: 3000,
         retries: 3,
         restartOnFailure: (error) => {
-          genericLogger.error(`Error during restart service: ${error.message}`);
+          genericLogger.warn(`Error during restart service: ${error.message}`);
           return Promise.resolve(false);
         },
       },
@@ -351,7 +359,7 @@ export const initProducer = async (
     };
   } catch (e) {
     genericLogger.error(
-      `Generic error occurs during consumer initialization: ${e}`
+      `Generic error occurs during producer initialization: ${e}`
     );
     processExit();
     return undefined as never;
@@ -364,7 +372,59 @@ export const runConsumer = async (
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
 ): Promise<void> => {
   try {
-    await initConsumer(config, topics, consumerHandler);
+    const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
+      autoCommit: false,
+      eachMessage: async (payload: EachMessagePayload): Promise<void> => {
+        try {
+          await consumerHandler(payload);
+          await kafkaCommitMessageOffsets(consumer, payload);
+        } catch (e) {
+          const messageInfo = extractBasicMessageInfo(payload.message);
+          throw kafkaMessageProcessError(
+            payload.topic,
+            payload.partition,
+            messageInfo,
+            e
+          );
+        }
+      },
+    });
+    await initCustomConsumer({ config, topics, consumerRunConfig });
+  } catch (e) {
+    genericLogger.error(
+      `Generic error occurs during consumer initialization: ${e}`
+    );
+    processExit();
+  }
+};
+
+export const runBatchConsumer = async (
+  baseConsumerConfig: KafkaConsumerConfig,
+  batchConsumerConfig: KafkaBatchConsumerConfig,
+  topics: string[],
+  consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>
+): Promise<void> => {
+  try {
+    const consumerRunConfig = (): ConsumerRunConfig => ({
+      eachBatch: async (payload: EachBatchPayload): Promise<void> => {
+        try {
+          await consumerHandlerBatch(payload);
+        } catch (e) {
+          throw kafkaMessageProcessError(
+            payload.batch.topic,
+            payload.batch.partition,
+            { offset: payload.batch.lastOffset().toString() },
+            e
+          );
+        }
+      },
+    });
+    await initCustomConsumer({
+      config: baseConsumerConfig,
+      topics,
+      consumerRunConfig,
+      batchConsumerConfig,
+    });
   } catch (e) {
     genericLogger.error(
       `Generic error occurs during consumer initialization: ${e}`
@@ -401,3 +461,28 @@ export const validateTopicMetadata = async (
     return false;
   }
 };
+
+export function extractBasicMessageInfo(message: KafkaMessage): {
+  offset: string;
+  streamId?: string;
+  eventType?: string;
+  eventVersion?: number;
+} {
+  try {
+    if (!message.value) {
+      return { offset: message.offset };
+    }
+
+    const rawMessage = JSON.parse(message.value.toString());
+    const dataSource = rawMessage.value?.after || rawMessage;
+
+    return {
+      offset: message.offset,
+      streamId: dataSource.stream_id || dataSource.streamId || dataSource.id,
+      eventType: dataSource.type,
+      eventVersion: dataSource.event_version,
+    };
+  } catch {
+    return { offset: message.offset };
+  }
+}

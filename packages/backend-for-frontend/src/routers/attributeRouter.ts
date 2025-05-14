@@ -6,11 +6,11 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { attributeServiceBuilder } from "../services/attributeService.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
@@ -37,8 +37,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating certified attribute with seed ${JSON.stringify(
             req.body
           )}`
@@ -61,8 +60,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating verified attribute with seed ${JSON.stringify(
             req.body
           )}`
@@ -85,8 +83,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating declared attribute with seed ${JSON.stringify(
             req.body
           )}`
@@ -117,8 +114,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving attributes with name = ${req.query.q}, limit = ${req.query.limit}, offset = ${req.query.offset}, kinds = ${req.query.kinds}`
         );
         return res.status(errorRes.status).send();
@@ -139,8 +135,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving attribute with id ${req.params.attributeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -162,8 +157,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving attribute with origin = ${req.params.origin} and code = ${req.params.code}`
         );
         return res.status(errorRes.status).send(errorRes);

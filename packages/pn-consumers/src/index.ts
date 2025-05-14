@@ -44,16 +44,16 @@ async function main(): Promise<void> {
 
   const mailer = initSesMailManager(config);
 
-  await mailer.sendWithAttachments(
-    {
+  await mailer.send({
+    from: {
       name: config.reportSenderLabel,
       address: config.reportSenderMail,
     },
-    config.mailRecipients,
-    MAIL_SUBJECT,
-    MAIL_BODY,
-    [{ filename: CSV_FILENAME, content: csv }]
-  );
+    to: config.mailRecipients,
+    subject: MAIL_SUBJECT,
+    html: MAIL_BODY,
+    attachments: [{ filename: CSV_FILENAME, content: csv }],
+  });
 
   loggerInstance.info("> Success!\n");
 }

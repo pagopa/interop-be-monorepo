@@ -3,7 +3,7 @@ import {
   getMockClient,
   getMockKey,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Key,
   Client,
@@ -85,53 +85,6 @@ describe("Events V1", async () => {
       expect(retrievedKey?.metadata).toEqual({
         version: 1,
       });
-    });
-    it.each(["prime256v1", "secp256k1"])("KeysAdded - EC", async (curve) => {
-      const key = crypto.generateKeyPairSync("ec", {
-        namedCurve: curve,
-      }).publicKey;
-
-      const base64Key = Buffer.from(
-        key.export({ type: "spki", format: "pem" })
-      ).toString("base64url");
-
-      const mockClient: Client = {
-        ...getMockClient(),
-        keys: [],
-      };
-
-      const addedKey: Key = {
-        ...getMockKey(),
-        encodedPem: base64Key,
-      };
-
-      const payload: KeysAddedV1 = {
-        clientId: mockClient.id,
-        keys: [
-          {
-            keyId: generateId(),
-            value: toKeyV1(addedKey),
-          },
-        ],
-      };
-
-      const message: AuthorizationEventEnvelopeV1 = {
-        sequence_num: 1,
-        stream_id: mockClient.id,
-        version: 1,
-        type: "KeysAdded",
-        event_version: 1,
-        data: payload,
-        log_date: new Date(),
-      };
-
-      await handleMessageV1(message, keys);
-
-      const retrievedKey = await keys.findOne({
-        "data.kid": addedKey.kid,
-      });
-
-      expect(retrievedKey).toBeNull();
     });
   });
 

@@ -50,6 +50,7 @@ export function toOutboundEventV1(
           purpose: msg.data.purpose && toOutboundPurposeV1(msg.data.purpose),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -66,6 +67,7 @@ export function toOutboundEventV1(
             msg.data.version && toOutboundPurposeVersionV1(msg.data.version),
         },
         stream_id: msg.stream_id,
+        streamVersion: msg.version,
         timestamp: new Date(),
       })
     )
@@ -78,6 +80,7 @@ export function toOutboundEventV1(
         versionId: msg.data.versionId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "PurposeDeleted" }, (msg) => ({
@@ -88,6 +91,7 @@ export function toOutboundEventV1(
         purposeId: msg.data.purposeId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
     .with({ type: "PurposeVersionDeleted" }, (msg) => ({
@@ -99,6 +103,7 @@ export function toOutboundEventV1(
         versionId: msg.data.versionId,
       },
       stream_id: msg.stream_id,
+      streamVersion: msg.version,
       timestamp: new Date(),
     }))
 

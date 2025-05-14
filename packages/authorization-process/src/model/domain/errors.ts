@@ -1,7 +1,9 @@
 import {
   ApiError,
   ClientId,
+  DelegationId,
   DescriptorId,
+  EService,
   EServiceId,
   ProducerKeychainId,
   PurposeId,
@@ -39,6 +41,12 @@ export const errorCodes = {
   eserviceAlreadyLinkedToProducerKeychain: "0026",
   userNotAllowedToDeleteClientKey: "0027",
   userNotAllowedToDeleteProducerKeychainKey: "0028",
+  purposeDelegationNotFound: "0029",
+  eserviceNotDelegableForClientAccess: "0030",
+  clientKindNotAllowed: "0031",
+  securityUserNotMember: "0032",
+  clientAdminIdNotFound: "0033",
+  userAlreadyAssignedAsAdmin: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -72,6 +80,17 @@ export function clientUserIdNotFound(
     detail: `User ${userId} not found in client ${clientId}`,
     code: "clientUserIdNotFound",
     title: "User id not found in client",
+  });
+}
+
+export function clientAdminIdNotFound(
+  clientId: ClientId,
+  adminId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client admin ${adminId} not found in client ${clientId}`,
+    code: "clientAdminIdNotFound",
+    title: "Client admin id not found in client",
   });
 }
 
@@ -124,6 +143,17 @@ export function clientUserAlreadyAssigned(
     detail: `User ${userId} is already assigned to the client ${clientId}`,
     code: "clientUserAlreadyAssigned",
     title: "User already assigned to the client",
+  });
+}
+
+export function clientAdminAlreadyAssignedToUser(
+  clientId: ClientId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is already assigned as admin to the client ${clientId}`,
+    code: "userAlreadyAssignedAsAdmin",
+    title: "User already assigned as admin to the client",
   });
 }
 
@@ -180,10 +210,15 @@ export function purposeAlreadyLinkedToClient(
 
 export function organizationNotAllowedOnPurpose(
   organizationId: TenantId,
-  purposeId: PurposeId
+  purposeId: PurposeId,
+  delegationId?: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on purpose ${purposeId}`,
+    detail: `Organization ${organizationId} is not allowed on purpose ${purposeId} ${
+      delegationId
+        ? `as delegate for delegation ${delegationId}`
+        : `as consumer`
+    }`,
     code: "organizationNotAllowedOnPurpose",
     title: "Organization not allowed on purpose",
   });
@@ -338,5 +373,41 @@ export function eserviceAlreadyLinkedToProducerKeychain(
     detail: `EService ${eserviceId} is already linked to producer keychain ${producerKeychainId}`,
     code: "eserviceAlreadyLinkedToProducerKeychain",
     title: "EService already linked to producer keychain",
+  });
+}
+
+export function purposeDelegationNotFound(
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found`,
+    code: "purposeDelegationNotFound",
+    title: "Deleagtion not found",
+  });
+}
+
+export function eserviceNotDelegableForClientAccess(
+  eservice: EService
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eservice.id} is not delegable for client access`,
+    code: "eserviceNotDelegableForClientAccess",
+    title: "EService not delegable for client access",
+  });
+}
+
+export function clientKindNotAllowed(clientId: ClientId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${clientId} kind is not allowed for requested operation`,
+    code: "clientKindNotAllowed",
+    title: "Operation not allowed on client kind",
+  });
+}
+
+export function securityUserNotMember(userId: UserId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} with user role "security" is not a member of the client`,
+    code: "securityUserNotMember",
+    title: "Security user not member",
   });
 }

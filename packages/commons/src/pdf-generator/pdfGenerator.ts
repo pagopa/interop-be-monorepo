@@ -1,14 +1,18 @@
 /* eslint-disable functional/no-let */
 import path from "path";
 import { fileURLToPath } from "url";
-import { pdfGenerationError } from "pagopa-interop-models";
+import {
+  pdfGenerationError,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  Tenant,
+} from "pagopa-interop-models";
 import puppeteer, { Browser } from "puppeteer";
 import { buildHTMLTemplateService } from "../index.js";
 
 export interface PDFGenerator {
   generate: (
     templatePath: string,
-    context: Record<string, string>
+    context: Record<string, unknown>
   ) => Promise<Buffer>;
 }
 
@@ -54,7 +58,7 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
   return {
     generate: async (
       templatePath: string,
-      context: Record<string, string>
+      context: Record<string, unknown>
     ): Promise<Buffer> => {
       const filename = fileURLToPath(import.meta.url);
       const dirname = path.dirname(filename);
@@ -73,7 +77,9 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
           ...context,
           "paged-pdf-polyfill": `<script src="file://${polyfillFilePath}"></script>`,
         });
-        await page.setContent(htmlCompiled, { waitUntil: "networkidle2" });
+        await page.setContent(htmlCompiled, {
+          waitUntil: "networkidle2",
+        });
 
         return await page.pdf({
           format: "A4",
@@ -93,3 +99,8 @@ export async function initPDFGenerator(): Promise<PDFGenerator> {
     },
   };
 }
+
+export const getIpaCode = (tenant: Tenant): string | undefined =>
+  tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
+    ? tenant.externalId.value
+    : undefined;

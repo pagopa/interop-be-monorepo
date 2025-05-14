@@ -6,6 +6,16 @@ import {
   RiskAnalysisSingleAnswerId,
 } from "../brandedIds.js";
 
+export const riskAnalysisAnswerKind = {
+  single: "SINGLE",
+  multi: "MULTI",
+} as const;
+export const RiskAnalysisAnswerKind = z.enum([
+  Object.values(riskAnalysisAnswerKind)[0],
+  ...Object.values(riskAnalysisAnswerKind).slice(1),
+]);
+export type RiskAnalysisAnswerKind = z.infer<typeof RiskAnalysisAnswerKind>;
+
 export const RiskAnalysisSingleAnswer = z.object({
   id: RiskAnalysisSingleAnswerId,
   key: z.string(),

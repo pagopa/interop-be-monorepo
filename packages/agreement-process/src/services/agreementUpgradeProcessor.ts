@@ -2,7 +2,7 @@ import {
   FileManager,
   Logger,
   CreateEvent,
-  AuthData,
+  UIAuthData,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -27,6 +27,7 @@ import {
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUpgraded,
 } from "../model/domain/toEvent.js";
+import { ActiveDelegations } from "../model/domain/models.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelService } from "./readModelService.js";
@@ -42,6 +43,7 @@ export async function createUpgradeOrNewDraft({
   canBeUpgraded,
   copyFile,
   authData,
+  activeDelegations,
   contractBuilder,
   correlationId,
   logger,
@@ -54,7 +56,8 @@ export async function createUpgradeOrNewDraft({
   readModelService: ReadModelService;
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
-  authData: AuthData;
+  authData: UIAuthData;
+  activeDelegations: ActiveDelegations;
   contractBuilder: ContractBuilder;
   correlationId: CorrelationId;
   logger: Logger;
@@ -65,7 +68,8 @@ export async function createUpgradeOrNewDraft({
     // Creates a new Agreement linked to the new descriptor version,
     // with the same state of the old agreement, and archives the old agreement.
 
-    const stamp = createStamp(authData.userId);
+    const stamp = createStamp(authData, activeDelegations);
+
     const archived: Agreement = {
       ...agreement.data,
       state: agreementState.archived,
@@ -113,7 +117,8 @@ export async function createUpgradeOrNewDraft({
       upgraded,
       eservice,
       consumer,
-      producer
+      producer,
+      activeDelegations
     );
 
     const upgradedWithContract: Agreement = {

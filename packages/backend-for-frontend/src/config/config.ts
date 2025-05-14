@@ -1,5 +1,6 @@
 import {
   APIEndpoint,
+  ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FileManagerConfig,
@@ -9,6 +10,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
+import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 
 export const TenantProcessServerConfig = z
   .object({
@@ -102,6 +104,41 @@ export type AuthorizationProcessServerConfig = z.infer<
   typeof AuthorizationProcessServerConfig
 >;
 
+export const DelegationProcessServerConfig = z
+  .object({
+    DELEGATION_PROCESS_URL: APIEndpoint,
+    DELEGATION_CONTRACTS_CONTAINER: z.string(),
+  })
+  .transform((c) => ({
+    delegationProcessUrl: c.DELEGATION_PROCESS_URL,
+    delegationContractsContainer: c.DELEGATION_CONTRACTS_CONTAINER,
+  }));
+export type DelegationProcessServerConfig = z.infer<
+  typeof DelegationProcessServerConfig
+>;
+
+export const EServiceTemplateProcessServerConfig = z
+  .object({
+    ESERVICE_TEMPLATE_PROCESS_URL: APIEndpoint,
+  })
+  .transform((c) => ({
+    eserviceTemplateProcessUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
+  }));
+export type EServiceTemplateProcessServerConfig = z.infer<
+  typeof EServiceTemplateProcessServerConfig
+>;
+
+export const EServiceTemplateS3Config = z
+  .object({
+    ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
+  })
+  .transform((c) => ({
+    eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
+    eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
+  }));
+export type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
+
 export const S3PrivacyNoticeConfig = z
   .object({
     PRIVACY_NOTICES_CONTAINER: z.string(),
@@ -117,7 +154,7 @@ export const S3PrivacyNoticeConfig = z
   }));
 export type S3PrivacyNoticeConfig = z.infer<typeof S3PrivacyNoticeConfig>;
 
-export const PrivactNoticeConfig = z
+export const PrivacyNoticeConfig = z
   .object({
     PRIVACY_NOTICES_TOS_UUID: z.string(),
     PRIVACY_NOTICES_PP_UUID: z.string(),
@@ -131,7 +168,7 @@ export const PrivactNoticeConfig = z
     privacyNoticesUsersDynamoTableName:
       c.PRIVACY_NOTICES_USERS_DYNAMO_TABLE_NAME,
   }));
-export type PrivactNoticeConfig = z.infer<typeof PrivactNoticeConfig>;
+export type PrivacyNoticeConfig = z.infer<typeof PrivacyNoticeConfig>;
 
 export const AllowListConfig = z
   .object({
@@ -189,6 +226,7 @@ export const SelfcareProcessConfig = z
     selfcareProductName: c.INTEROP_SELFCARE_PRODUCT_NAME,
   }));
 export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -197,16 +235,21 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(PurposeProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
+  .and(DelegationProcessServerConfig)
+  .and(EServiceTemplateProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
   .and(FileManagerConfig)
   .and(AllowListConfig)
-  .and(PrivactNoticeConfig)
+  .and(PrivacyNoticeConfig)
   .and(S3PrivacyNoticeConfig)
   .and(ExportFileConfig)
   .and(ImportFileConfig)
   .and(InterfaceVersion)
   .and(SelfcareProcessConfig)
+  .and(ClientAssertionValidationConfig)
+  .and(EServiceTemplateS3Config)
+  .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig);
 
 export type BffProcessConfig = z.infer<typeof BffProcessConfig>;

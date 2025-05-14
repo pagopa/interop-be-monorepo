@@ -9,21 +9,24 @@ import {
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 
-function toApiCompactTenantCertifiedDeclaredAttribute(
+function toApiCompactTenantCertifiedAttribute(
   attr: CertifiedTenantAttribute
-): agreementApi.CertifiedTenantAttribute;
-function toApiCompactTenantCertifiedDeclaredAttribute(
-  attr: DeclaredTenantAttribute
-): agreementApi.DeclaredTenantAttribute;
-function toApiCompactTenantCertifiedDeclaredAttribute(
-  attr: CertifiedTenantAttribute | DeclaredTenantAttribute
-):
-  | agreementApi.CertifiedTenantAttribute
-  | agreementApi.DeclaredTenantAttribute {
+): agreementApi.CertifiedTenantAttribute {
   return {
     id: attr.id,
     assignmentTimestamp: attr.assignmentTimestamp.toISOString(),
     revocationTimestamp: attr.revocationTimestamp?.toISOString(),
+  };
+}
+
+function toApiCompactTenantDeclaredAttribute(
+  attr: DeclaredTenantAttribute
+): agreementApi.DeclaredTenantAttribute {
+  return {
+    id: attr.id,
+    assignmentTimestamp: attr.assignmentTimestamp.toISOString(),
+    revocationTimestamp: attr.revocationTimestamp?.toISOString(),
+    delegationId: attr.delegationId,
   };
 }
 
@@ -38,6 +41,7 @@ function toApiCompactTenantVerifiedAttribute(
       extensionDate: v.extensionDate?.toISOString(),
       verificationDate: v.verificationDate?.toISOString(),
       expirationDate: v.expirationDate?.toISOString(),
+      delegationId: v.delegationId,
     })),
     revokedBy: attr.revokedBy.map((v) => ({
       id: v.id,
@@ -45,6 +49,7 @@ function toApiCompactTenantVerifiedAttribute(
       verificationDate: v.verificationDate.toISOString(),
       revocationDate: v.revocationDate.toISOString(),
       expirationDate: v.expirationDate?.toISOString(),
+      delegationId: v.delegationId,
     })),
   };
 }
@@ -55,10 +60,10 @@ function toCompactTenantAttribute(
   return match(attribute)
     .returnType<agreementApi.TenantAttribute>()
     .with({ type: tenantAttributeType.CERTIFIED }, (attr) => ({
-      certified: toApiCompactTenantCertifiedDeclaredAttribute(attr),
+      certified: toApiCompactTenantCertifiedAttribute(attr),
     }))
     .with({ type: tenantAttributeType.DECLARED }, (attr) => ({
-      declared: toApiCompactTenantCertifiedDeclaredAttribute(attr),
+      declared: toApiCompactTenantDeclaredAttribute(attr),
     }))
     .with({ type: tenantAttributeType.VERIFIED }, (attr) => ({
       verified: toApiCompactTenantVerifiedAttribute(attr),

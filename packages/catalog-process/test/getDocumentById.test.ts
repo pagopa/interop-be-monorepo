@@ -1,21 +1,28 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { AuthData, userRoles, genericLogger } from "pagopa-interop-commons";
+import { AuthData, userRole } from "pagopa-interop-commons";
 import {
   Descriptor,
   EService,
   generateId,
   descriptorState,
+  delegationState,
+  delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockDelegation,
+} from "pagopa-interop-commons-test";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   eServiceDocumentNotFound,
 } from "../src/model/domain/errors.js";
 import {
+  addOneDelegation,
   addOneEService,
   catalogService,
-  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -38,7 +45,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     const result = await catalogService.getDocumentById(
@@ -47,12 +54,7 @@ describe("get document by id", () => {
         descriptorId: descriptor.id,
         documentId: mockDocument.id,
       },
-      {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
+      getMockContext({ authData })
     );
     expect(result).toEqual(mockDocument);
   });
@@ -71,7 +73,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     const result = await catalogService.getDocumentById(
@@ -80,12 +82,45 @@ describe("get document by id", () => {
         descriptorId: descriptor.id,
         documentId: mockDocument.id,
       },
+      getMockContext({ authData })
+    );
+    expect(result).toEqual(mockDocument);
+  });
+
+  it("should get the interface if it exists (requester is the delegate, admin)", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      interface: mockDocument,
+      docs: [],
+    };
+    const eservice: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: "eservice 001",
+      descriptors: [descriptor],
+    };
+
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    const authData: AuthData = {
+      ...getMockAuthData(delegation.delegateId),
+      userRoles: [userRole.ADMIN_ROLE],
+    };
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    const result = await catalogService.getDocumentById(
       {
-        authData,
-        logger: genericLogger,
-        correlationId: generateId(),
-        serviceName: "",
-      }
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+        documentId: mockDocument.id,
+      },
+      getMockContext({ authData })
     );
     expect(result).toEqual(mockDocument);
   });
@@ -93,7 +128,7 @@ describe("get document by id", () => {
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     expect(
       catalogService.getDocumentById(
@@ -102,12 +137,7 @@ describe("get document by id", () => {
           descriptorId: mockDescriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -121,7 +151,7 @@ describe("get document by id", () => {
     await addOneEService(eservice);
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     expect(
       catalogService.getDocumentById(
@@ -130,12 +160,7 @@ describe("get document by id", () => {
           descriptorId: mockDescriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -156,7 +181,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     expect(
@@ -166,12 +191,7 @@ describe("get document by id", () => {
           descriptorId: mockDescriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, mockDescriptor.id, mockDocument.id)
@@ -189,7 +209,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     expect(
@@ -199,12 +219,7 @@ describe("get document by id", () => {
           descriptorId: descriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -220,7 +235,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(eservice.producerId),
-      userRoles: [userRoles.SECURITY_ROLE],
+      userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(eservice);
     expect(
@@ -230,12 +245,7 @@ describe("get document by id", () => {
           descriptorId: descriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -251,7 +261,7 @@ describe("get document by id", () => {
     };
     const authData: AuthData = {
       ...getMockAuthData(),
-      userRoles: [userRoles.ADMIN_ROLE],
+      userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
     expect(
@@ -261,12 +271,7 @@ describe("get document by id", () => {
           descriptorId: descriptor.id,
           documentId: mockDocument.id,
         },
-        {
-          authData,
-          logger: genericLogger,
-          correlationId: generateId(),
-          serviceName: "",
-        }
+        getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });

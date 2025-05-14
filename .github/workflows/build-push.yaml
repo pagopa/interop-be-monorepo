@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "develop"
+      - "PIN-6201-auth-server-perf-test"
     tags:
       - "*"
     paths:
@@ -29,11 +30,12 @@ jobs:
     name: ${{ matrix.package }}
     needs: [find_dockerfiles]
     runs-on: ubuntu-latest
-    environment: dev
+    environment: ecr
     permissions:
       contents: read
       id-token: write
     strategy:
+      max-parallel: 5
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
@@ -95,6 +97,8 @@ jobs:
         with:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile
+          build-args: |
+            NODE_REGISTRY=${{ vars.NODE_REGISTRY }}
           push: true
           tags: ${{ github.ref_type == 'branch' && steps.meta_branch.outputs.tags || steps.meta_tag.outputs.tags }}
           labels: ${{ github.ref_type == 'branch' && steps.meta_branch.outputs.labels || steps.meta_tag.outputs.labels }}

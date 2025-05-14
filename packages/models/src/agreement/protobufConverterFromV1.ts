@@ -37,26 +37,21 @@ export const fromAgreementStampV1 = (
 export const fromAgreementStampsV1 = (
   input: StampsV1 | undefined
 ): AgreementStamps => ({
-  ...input,
-  submission: input?.submission
-    ? fromAgreementStampV1(input.submission)
-    : undefined,
-  activation: input?.activation
-    ? fromAgreementStampV1(input.activation)
-    : undefined,
-  rejection: input?.rejection
-    ? fromAgreementStampV1(input.rejection)
-    : undefined,
-  suspensionByProducer: input?.suspensionByProducer
-    ? fromAgreementStampV1(input.suspensionByProducer)
-    : undefined,
-  suspensionByConsumer: input?.suspensionByConsumer
-    ? fromAgreementStampV1(input.suspensionByConsumer)
-    : undefined,
-  upgrade: input?.upgrade ? fromAgreementStampV1(input.upgrade) : undefined,
-  archiving: input?.archiving
-    ? fromAgreementStampV1(input.archiving)
-    : undefined,
+  ...(input?.submission && {
+    submission: fromAgreementStampV1(input.submission),
+  }),
+  ...(input?.activation && {
+    activation: fromAgreementStampV1(input.activation),
+  }),
+  ...(input?.rejection && { rejection: fromAgreementStampV1(input.rejection) }),
+  ...(input?.suspensionByProducer && {
+    suspensionByProducer: fromAgreementStampV1(input.suspensionByProducer),
+  }),
+  ...(input?.suspensionByConsumer && {
+    suspensionByConsumer: fromAgreementStampV1(input.suspensionByConsumer),
+  }),
+  ...(input?.upgrade && { upgrade: fromAgreementStampV1(input.upgrade) }),
+  ...(input?.archiving && { archiving: fromAgreementStampV1(input.archiving) }),
 });
 
 export const fromAgreementStateV1 = (
@@ -83,12 +78,16 @@ export const fromAgreementStateV1 = (
 };
 
 export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
-  ...input,
   id: unsafeBrandId(input.id),
   eserviceId: unsafeBrandId(input.eserviceId),
   descriptorId: unsafeBrandId(input.descriptorId),
   producerId: unsafeBrandId(input.producerId),
   consumerId: unsafeBrandId(input.consumerId),
+  state: fromAgreementStateV1(input.state),
+  verifiedAttributes: input.verifiedAttributes.map((a) => ({
+    ...a,
+    id: unsafeBrandId(a.id),
+  })),
   certifiedAttributes: input.certifiedAttributes.map((a) => ({
     ...a,
     id: unsafeBrandId(a.id),
@@ -97,17 +96,21 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
     ...a,
     id: unsafeBrandId(a.id),
   })),
-  verifiedAttributes: input.verifiedAttributes.map((a) => ({
-    ...a,
-    id: unsafeBrandId(a.id),
-  })),
-  state: fromAgreementStateV1(input.state),
+  ...(input.suspendedByConsumer !== undefined && {
+    suspendedByConsumer: input.suspendedByConsumer,
+  }),
+  ...(input.suspendedByProducer !== undefined && {
+    suspendedByProducer: input.suspendedByProducer,
+  }),
+  ...(input.suspendedByPlatform !== undefined && {
+    suspendedByPlatform: input.suspendedByPlatform,
+  }),
   createdAt: bigIntToDate(input.createdAt),
-  updatedAt: bigIntToDate(input.updatedAt),
-  suspendedAt: bigIntToDate(input.suspendedAt),
+  ...(input.updatedAt && { updatedAt: bigIntToDate(input.updatedAt) }),
+  ...(input.consumerNotes && { consumerNotes: input.consumerNotes }),
   consumerDocuments: input.consumerDocuments.map(fromAgreementDocumentV1),
-  contract: input.contract
-    ? fromAgreementDocumentV1(input.contract)
-    : undefined,
+  ...(input.contract && { contract: fromAgreementDocumentV1(input.contract) }),
   stamps: fromAgreementStampsV1(input.stamps),
+  ...(input.rejectionReason && { rejectionReason: input.rejectionReason }),
+  ...(input.suspendedAt && { suspendedAt: bigIntToDate(input.suspendedAt) }),
 });

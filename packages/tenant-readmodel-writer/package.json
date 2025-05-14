@@ -11,7 +11,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -23,7 +23,7 @@
     "@types/node": "20.14.6",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
-    "ts-node": "10.9.2",
+    "tsx": "4.19.1",
     "typescript": "5.4.5",
     "vitest": "1.6.0"
   },

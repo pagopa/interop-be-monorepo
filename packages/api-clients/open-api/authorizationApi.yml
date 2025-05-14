@@ -430,6 +430,72 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Add users to a Client
+  "/clients/{clientId}/admin":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: clientId
+        in: path
+        description: ID of the client where to set the admin user
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - client
+      summary: Set Admin to a Client
+      operationId: setAdminToClient
+      requestBody:
+        required: true
+        description: AdminId to be set to the Client
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - adminId
+              properties:
+                adminId:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: Admin set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Missing Required Information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: User already an admin for the client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/users/{userId}":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -486,15 +552,15 @@ paths:
     post:
       tags:
         - client
-      summary: Create Keys for the specific clientId.
-      operationId: createKeys
+      summary: Create Key for the specific clientId.
+      operationId: createKey
       responses:
         "200":
-          description: Keys created
+          description: Key created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Keys"
+                $ref: "#/components/schemas/Key"
         "400":
           description: Bad Request
           content:
@@ -525,7 +591,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/KeysSeed"
+              $ref: "#/components/schemas/KeySeed"
       description: Creates one or more keys for the corresponding client.
       parameters:
         - name: clientId
@@ -559,6 +625,21 @@ paths:
               format: uuid
             default: []
           explode: false
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: returns the corresponding array of keys
@@ -876,6 +957,106 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/clients/{clientId}/admin/{adminId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: clientId
+        in: path
+        description: ID of Client
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adminId
+        in: path
+        description: ID of Admin
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - client
+      summary: Removes an admin from a client
+      description: Removes an admin from a client
+      operationId: internalRemoveClientAdmin
+      responses:
+        "204":
+          description: Request succeed
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /clients/{clientId}/admin/{adminId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: clientId
+        in: path
+        description: ID of Client
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adminId
+        in: path
+        description: ID of Admin
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - client
+      summary: Removes an admin from a client
+      description: Removes an admin from a client
+      operationId: removeClientAdmin
+      responses:
+        "204":
+          description: Request succeed
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
           content:
             application/json:
               schema:
@@ -1217,7 +1398,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Keys"
+                $ref: "#/components/schemas/Key"
         "400":
           description: Bad Request
           content:
@@ -1544,6 +1725,9 @@ components:
         consumerId:
           type: string
           format: uuid
+        adminId:
+          type: string
+          format: uuid
         createdAt:
           type: string
           format: date-time
@@ -1661,8 +1845,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Key"
+        totalCount:
+          type: integer
+          format: int32
       required:
         - keys
+        - totalCount
     KeyWithClient:
       type: object
       additionalProperties: false
@@ -1750,10 +1938,6 @@ components:
         - r
         - d
         - t
-    KeysSeed:
-      type: array
-      items:
-        $ref: "#/components/schemas/KeySeed"
     KeySeed:
       description: "Models the seed for a public key to be persisted"
       type: object

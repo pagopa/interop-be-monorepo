@@ -8,6 +8,12 @@ import {
   rateLimiterMiddleware,
 } from "pagopa-interop-commons";
 import express from "express";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndSessionTokenExchangeMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
+import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -25,11 +31,17 @@ import getAllowList from "./utilities/getAllowList.js";
 import {
   fromFilesToBodyMiddleware,
   multerMiddleware,
+  uiAuthDataValidationMiddleware,
 } from "./utilities/middlewares.js";
 import clientRouter from "./routers/clientRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
+import delegationRouter from "./routers/delegationRouter.js";
+import producerDelegationRouter from "./routers/producerDelegationRouter.js";
+import consumerDelegationRouter from "./routers/consumerDelegationRouter.js";
+import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
 
-const serviceName = "backend-for-frontend";
+const serviceName = modelsServiceName.BACKEND_FOR_FRONTEND;
+
 const fileManager = initFileManager(config);
 const allowList = await getAllowList(serviceName, fileManager, config);
 
@@ -66,9 +78,13 @@ app.use(
   `/backend-for-frontend/${config.backendForFrontendInterfaceVersion}`,
   healthRouter,
   contextMiddleware(serviceName, false),
+  await applicationAuditBeginMiddleware(serviceName, config),
+  await applicationAuditEndMiddleware(serviceName, config),
+  await applicationAuditEndSessionTokenExchangeMiddleware(serviceName, config),
   authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
   authenticationMiddleware(config),
-  // Authenticated routes - rate limiter relies on auth data to work
+  // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
+  uiAuthDataValidationMiddleware(),
   rateLimiterMiddleware(redisRateLimiter),
   catalogRouter(zodiosCtx, clients, fileManager),
   attributeRouter(zodiosCtx, clients),
@@ -80,7 +96,11 @@ app.use(
   tenantRouter(zodiosCtx, clients),
   clientRouter(zodiosCtx, clients),
   privacyNoticeRouter(zodiosCtx),
-  producerKeychainRouter(zodiosCtx, clients)
+  producerKeychainRouter(zodiosCtx, clients),
+  delegationRouter(zodiosCtx, clients, fileManager),
+  producerDelegationRouter(zodiosCtx, clients, fileManager),
+  consumerDelegationRouter(zodiosCtx, clients, fileManager),
+  eserviceTemplateRouter(zodiosCtx, clients, fileManager)
 );
 
 export default app;

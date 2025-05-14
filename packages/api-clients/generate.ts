@@ -79,6 +79,7 @@ const main = async () => {
         groupStrategy: "tag",
         strictObjects: true,
         apiClientName: fileName,
+        additionalPropertiesDefaultValue: false,
       },
     });
   }

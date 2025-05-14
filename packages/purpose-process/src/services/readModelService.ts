@@ -4,6 +4,7 @@ import {
   TenantCollection,
   PurposeCollection,
   ReadModelFilter,
+  DelegationCollection,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -23,10 +24,14 @@ import {
   agreementState,
   PurposeVersionState,
   TenantReadModel,
+  delegationState,
+  Delegation,
+  delegationKind,
+  DelegationReadModel,
+  DelegationId,
 } from "pagopa-interop-models";
 import { Document, Filter, WithId } from "mongodb";
 import { z } from "zod";
-import { match } from "ts-pattern";
 
 export type GetPurposesFilters = {
   title?: string;
@@ -108,19 +113,199 @@ async function getTenant(
   }
 }
 
-async function buildGetPurposesAggregation(
-  filters: GetPurposesFilters,
-  eservices: EServiceCollection
-): Promise<Document[]> {
-  const {
-    title,
-    eservicesIds,
-    consumersIds,
-    producersIds,
-    states,
-    excludeDraft,
-  } = filters;
+async function getDelegation(
+  delegations: DelegationCollection,
+  filter: Filter<{ data: DelegationReadModel }>
+): Promise<Delegation | undefined> {
+  const data = await delegations.findOne(filter, {
+    projection: { data: true },
+  });
+  if (data) {
+    const result = Delegation.safeParse(data.data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse delegation item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+  return undefined;
+}
 
+function getConsumerOrDelegateFilter(consumerIds: TenantId[]): Document[] {
+  return consumerIds && consumerIds.length > 0
+    ? [
+        {
+          $match: {
+            $or: [
+              { "data.consumerId": { $in: consumerIds } },
+              {
+                activeConsumerDelegations: {
+                  $elemMatch: {
+                    "data.delegateId": {
+                      $in: consumerIds,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ]
+    : [];
+}
+
+function getProducerOrDelegateFilter(producerIds: TenantId[]): Document[] {
+  return producerIds && producerIds.length > 0
+    ? [
+        {
+          $match: {
+            $or: [
+              { producerId: { $in: producerIds } },
+              {
+                activeProducerDelegations: {
+                  $elemMatch: {
+                    "data.delegateId": { $in: producerIds },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ]
+    : [];
+}
+
+const addProducerId: Document = {
+  $addFields: {
+    producerId: {
+      $ifNull: [{ $arrayElemAt: ["$eservices.data.producerId", 0] }, null],
+    },
+  },
+};
+
+const addProducerDelegationData: Document = {
+  $addFields: {
+    activeProducerDelegations: {
+      $filter: {
+        input: "$delegations",
+        as: "delegation",
+        cond: {
+          $and: [
+            {
+              $eq: ["$$delegation.data.kind", delegationKind.delegatedProducer],
+            },
+            { $eq: ["$$delegation.data.state", delegationState.active] },
+            {
+              $eq: ["$$delegation.data.delegatorId", "$producerId"],
+            },
+          ],
+        },
+      },
+    },
+  },
+};
+
+const addConsumerDelegationData: Document = {
+  $addFields: {
+    activeConsumerDelegations: {
+      $filter: {
+        input: "$delegations",
+        as: "delegation",
+        cond: {
+          $and: [
+            {
+              $eq: ["$$delegation.data.kind", delegationKind.delegatedConsumer],
+            },
+            { $eq: ["$$delegation.data.state", delegationState.active] },
+            {
+              $eq: ["$$delegation.data.delegatorId", "$data.consumerId"],
+            },
+            // Unlike in agreements, here it's not sufficient to have an active delegation
+            // to be able to see a purpose, we also need to have the delegationId in the purpose
+            {
+              $eq: ["$$delegation.data.id", "$data.delegationId"],
+            },
+          ],
+        },
+      },
+    },
+  },
+};
+
+const addDelegationDataPipeline: Document[] = [
+  {
+    $lookup: {
+      from: "delegations",
+      localField: "data.eserviceId",
+      foreignField: "data.eserviceId",
+      as: "delegations",
+    },
+  },
+  {
+    // the lookup on e-services is needed because unlike in agreements,
+    // here we don't have the producerId in the purpose and need to get it from the e-service
+    $lookup: {
+      from: "eservices",
+      localField: "data.eserviceId",
+      foreignField: "data.id",
+      as: "eservices",
+    },
+  },
+  addProducerId,
+  addProducerDelegationData,
+  addConsumerDelegationData,
+];
+
+function applyVisibilityToPurposes(requesterId: TenantId): Document {
+  return {
+    $match: {
+      $or: [
+        {
+          producerId: requesterId,
+        },
+        {
+          "data.consumerId": requesterId,
+        },
+        {
+          activeProducerDelegations: {
+            $elemMatch: {
+              "data.delegateId": requesterId,
+            },
+          },
+        },
+        {
+          activeConsumerDelegations: {
+            $elemMatch: {
+              "data.delegateId": requesterId,
+            },
+          },
+        },
+      ],
+    },
+  };
+}
+
+const getPurposesPipeline = (
+  requesterId: TenantId,
+  producerIds: TenantId[] = [],
+  consumerIds: TenantId[] = []
+): Document[] => [
+  ...addDelegationDataPipeline,
+  ...getProducerOrDelegateFilter(producerIds),
+  ...getConsumerOrDelegateFilter(consumerIds),
+  applyVisibilityToPurposes(requesterId),
+];
+
+function getPurposesFilters(
+  filters: Pick<
+    GetPurposesFilters,
+    "title" | "eservicesIds" | "states" | "excludeDraft"
+  >
+): Document {
+  const { title, eservicesIds, states, excludeDraft } = filters;
   const titleFilter: ReadModelFilter<Purpose> = title
     ? {
         "data.title": {
@@ -130,10 +315,14 @@ async function buildGetPurposesAggregation(
       }
     : {};
 
-  const consumersIdsFilter: ReadModelFilter<Purpose> =
-    ReadModelRepository.arrayToFilter(consumersIds, {
-      "data.consumerId": { $in: consumersIds },
-    });
+  const eservicesIdsFilter = ReadModelRepository.arrayToFilter<Purpose>(
+    eservicesIds,
+    {
+      "data.eserviceId": {
+        $in: eservicesIds,
+      },
+    }
+  );
 
   const notArchivedStates = Object.values(PurposeVersionState.Values).filter(
     (state) => state !== purposeVersionState.archived
@@ -173,67 +362,22 @@ async function buildGetPurposesAggregation(
       }
     : {};
 
-  const producerEServicesIds =
-    producersIds.length > 0
-      ? await eservices
-          .find({ "data.producerId": { $in: producersIds } })
-          .toArray()
-          .then((results) =>
-            results.map((eservice) => eservice.data.id.toString())
-          )
-      : [];
-
-  const eservicesIdsFilter = match({
-    hasProducersFilter: producersIds.length > 0,
-    hasEServiceFilter: eservicesIds.length > 0,
-  })
-    .returnType<ReadModelFilter<Purpose>>()
-    .with({ hasProducersFilter: true, hasEServiceFilter: true }, () => ({
-      "data.eserviceId": {
-        $in: eservicesIds.filter((eserviceId) =>
-          producerEServicesIds.includes(eserviceId)
-        ),
-      },
-    }))
-    .with({ hasProducersFilter: true }, () => ({
-      "data.eserviceId": {
-        $in: producerEServicesIds,
-      },
-    }))
-    .with({ hasEServiceFilter: true }, () => ({
-      "data.eserviceId": {
-        $in: eservicesIds,
-      },
-    }))
-    .otherwise(() => ({}));
-
-  return [
-    {
-      $match: {
-        ...titleFilter,
-        ...eservicesIdsFilter,
-        ...consumersIdsFilter,
-        ...versionStateFilter,
-        ...draftFilter,
-      } satisfies ReadModelFilter<Purpose>,
-    },
-    {
-      $project: {
-        data: 1,
-        computedColumn: { $toLower: ["$data.title"] },
-      },
-    },
-    {
-      $sort: { computedColumn: 1 },
-    },
-  ];
+  return {
+    $match: {
+      ...titleFilter,
+      ...eservicesIdsFilter,
+      ...versionStateFilter,
+      ...draftFilter,
+    } satisfies ReadModelFilter<Purpose>,
+  };
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { eservices, purposes, tenants, agreements } = readModelRepository;
+  const { eservices, purposes, tenants, agreements, delegations } =
+    readModelRepository;
 
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -262,13 +406,24 @@ export function readModelServiceBuilder(
       } satisfies ReadModelFilter<Purpose>);
     },
     async getPurposes(
+      requesterId: TenantId,
       filters: GetPurposesFilters,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<Purpose>> {
-      const aggregationPipeline = await buildGetPurposesAggregation(
-        filters,
-        eservices
-      );
+      const { producersIds, consumersIds, ...otherFilters } = filters;
+      const aggregationPipeline = [
+        ...getPurposesPipeline(requesterId, producersIds, consumersIds),
+        getPurposesFilters(otherFilters),
+        {
+          $project: {
+            data: 1,
+            computedColumn: { $toLower: ["$data.title"] },
+          },
+        },
+        {
+          $sort: { computedColumn: 1 },
+        },
+      ];
       const data = await purposes
         .aggregate(
           [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
@@ -312,14 +467,14 @@ export function readModelServiceBuilder(
         return result.data;
       }
     },
-    async getAllPurposes(filters: GetPurposesFilters): Promise<Purpose[]> {
-      const aggregationPipeline = await buildGetPurposesAggregation(
-        filters,
-        eservices
-      );
-
+    async getAllPurposes(
+      filters: Pick<
+        GetPurposesFilters,
+        "eservicesIds" | "states" | "excludeDraft"
+      >
+    ): Promise<Purpose[]> {
       const data = await purposes
-        .aggregate(aggregationPipeline, { allowDiskUse: true })
+        .aggregate([getPurposesFilters(filters)], { allowDiskUse: true })
         .toArray();
 
       const result = z.array(Purpose).safeParse(data.map((d) => d.data));
@@ -332,6 +487,38 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+    async getActiveProducerDelegationByEserviceId(
+      eserviceId: EServiceId
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": eserviceId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedProducer,
+      } satisfies ReadModelFilter<Delegation>);
+    },
+    async getActiveConsumerDelegationByEserviceAndConsumerIds({
+      eserviceId,
+      consumerId,
+    }: {
+      eserviceId: EServiceId;
+      consumerId: TenantId;
+    }): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": eserviceId,
+        "data.delegatorId": consumerId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      } satisfies ReadModelFilter<Delegation>);
+    },
+    async getActiveConsumerDelegationByDelegationId(
+      delegationId: DelegationId
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.id": delegationId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      } satisfies ReadModelFilter<Delegation>);
     },
   };
 }

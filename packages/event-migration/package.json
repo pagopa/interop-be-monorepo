@@ -10,15 +10,14 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start:migrate": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/index.ts",
-    "start:verify": "node --loader ts-node/esm -r 'dotenv-flow/config' ./src/read-models-migration-check.ts",
+    "start:migrate": "tsx -r 'dotenv-flow/config' ./src/index.ts",
+    "start:verify": "tsx -r 'dotenv-flow/config' ./src/read-models-migration-check.ts",
     "build": "tsc"
   },
   "keywords": [],
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/node": "20.14.6",
     "connection-string": "4.4.0",
     "dotenv-flow": "4.1.0",
     "json-diff": "1.0.6",
@@ -32,11 +31,12 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
+    "@types/node": "20.14.6",
     "@types/json-diff": "1.0.3",
     "@types/lodash.isequal": "4.5.8",
     "eslint": "8.57.0",
     "prettier": "2.8.8",
-    "ts-node": "10.9.2",
+    "tsx": "4.19.1",
     "typescript": "5.4.5",
     "vitest": "1.6.0"
   }

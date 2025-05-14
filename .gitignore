@@ -50,6 +50,9 @@ docker/minio-data
 # DynamoDB container data
 docker/dynamo-db-data
 
+# MongoDB container data (readmodel)
+docker/mongo-data
+
 ### Turbo ###
 # Turborepo task cache
 .turbo
@@ -61,3 +64,6 @@ packages/**/pnpm-lock.yaml
 # General
 .DS_Store
 .env.local
+
+# IntelliJ
+.idea

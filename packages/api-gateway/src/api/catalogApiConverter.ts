@@ -5,12 +5,15 @@ import {
 } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
 import {
-  assertNonDraftDescriptor,
+  assertIsValidDescriptor,
   assertRegistryAttributeExists,
 } from "../services/validators.js";
 
-export type NonDraftCatalogApiDescriptor = catalogApi.EServiceDescriptor & {
-  state: Exclude<catalogApi.EServiceDescriptorState, "DRAFT">;
+export type ValidCatalogApiDescriptor = catalogApi.EServiceDescriptor & {
+  state: Exclude<
+    catalogApi.EServiceDescriptorState,
+    "DRAFT" | "WAITING_FOR_APPROVAL"
+  >;
 };
 
 export function toApiGatewayCatalogEservice(
@@ -94,12 +97,12 @@ export function toApiGatewayDescriptorDocument(
   };
 }
 
-export function toApiGatewayDescriptorIfNotDraft(
+export function toApiGatewayDescriptorIfIsValid(
   descriptor: catalogApi.EServiceDescriptor,
   eserviceId: catalogApi.EService["id"],
   logger: Logger
 ): apiGatewayApi.EServiceDescriptor {
-  assertNonDraftDescriptor(descriptor, descriptor.id, eserviceId, logger);
+  assertIsValidDescriptor(descriptor, eserviceId, logger);
 
   return {
     id: descriptor.id,
