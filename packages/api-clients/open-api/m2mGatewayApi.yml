@@ -1210,6 +1210,12 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
@@ -2279,8 +2285,34 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Name Conflict
           content:
             application/json:
               schema:
@@ -2327,6 +2359,7 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 0
         - name: limit
           in: query
           description: The limit used for pagination
@@ -2334,6 +2367,8 @@ paths:
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Purposes retrieved
@@ -2499,6 +2534,23 @@ paths:
           description: The version state
           schema:
             $ref: "#/components/schemas/PurposeVersionState"
+        - name: offset
+          in: query
+          description: The offset used for pagination
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - name: limit
+          in: query
+          description: The limit used for pagination
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Purpose versions retrieved
@@ -2655,6 +2707,19 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "429":
           description: Too Many Requests
           content:
@@ -2768,15 +2833,9 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /purposes/{purposeId}/versions/{versionId}/activate:
+  /purposes/{purposeId}/activate:
     parameters:
       - name: purposeId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: versionId
         in: path
         required: true
         schema:
@@ -2862,15 +2921,9 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /purposes/{purposeId}/versions/{versionId}/archive:
+  /purposes/{purposeId}/archive:
     parameters:
       - name: purposeId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: versionId
         in: path
         required: true
         schema:
@@ -4255,16 +4308,13 @@ components:
         dailyCalls:
           type: integer
           format: int32
-        consumerId:
-          type: string
-          format: uuid
+          minimum: 0
       required:
         - eserviceId
         - title
         - description
         - isFreeOfCharge
         - dailyCalls
-        - consumerId
     Purposes:
       type: object
       additionalProperties: false
@@ -4320,8 +4370,11 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PurposeVersion"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - results
+        - pagination
     PurposeVersionSeed:
       type: object
       additionalProperties: false

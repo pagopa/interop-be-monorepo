@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS readmodel_client.client_purpose (
 CREATE TABLE IF NOT EXISTS readmodel_client.client_key (
   metadata_version INTEGER NOT NULL,
   client_id UUID NOT NULL REFERENCES readmodel_client.client (id) ON DELETE CASCADE,
-  user_id UUID NOT NULL,
+  user_id UUID,
   kid VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   encoded_pem VARCHAR NOT NULL,
