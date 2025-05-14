@@ -220,7 +220,7 @@ export async function getAttributesToAssign(
     platformTenants.map((t) => [toTenantKey(t.externalId), t])
   );
 
-  const certifiedsAttribute = new Map(
+  const certifiedAttributes = new Map(
     platformAttributes
       .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
       .map((a) => [a.id, a])
@@ -244,7 +244,7 @@ export async function getAttributesToAssign(
               attribute.type === tenantAttributeType.CERTIFIED &&
               !attribute.revocationTimestamp
           )
-          .map((attribute) => certifiedsAttribute.get(attribute.id))
+          .map((attribute) => certifiedAttributes.get(attribute.id))
           .filter((a): a is NonNullable<typeof a> => a !== undefined)
           .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
       );
@@ -302,7 +302,7 @@ export async function getAttributesToRevoke(
 ): Promise<
   Array<{
     tOrigin: string;
-    tExtenalId: string;
+    tExternalId: string;
     aOrigin: string;
     aCode: string;
   }>
@@ -370,7 +370,7 @@ export async function getAttributesToRevoke(
       )
       .map((a) => ({
         tOrigin: t.externalId.origin,
-        tExtenalId: t.externalId.value,
+        tExternalId: t.externalId.value,
         aOrigin: a.origin,
         aCode: a.code,
       }))
@@ -380,7 +380,7 @@ export async function getAttributesToRevoke(
 export async function revokeAttributes(
   attributesToRevoke: Array<{
     tOrigin: string;
-    tExtenalId: string;
+    tExternalId: string;
     aOrigin: string;
     aCode: string;
   }>,
@@ -393,12 +393,12 @@ export async function revokeAttributes(
 
   for (const a of attributesToRevoke) {
     loggerInstance.info(
-      `Updating tenant ${a.tExtenalId}. Revoking attribute ${a.aCode}`
+      `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`
     );
     await tenantClient.internalRevokeCertifiedAttribute(undefined, {
       params: {
         tOrigin: a.tOrigin,
-        tExternalId: a.tExtenalId,
+        tExternalId: a.tExternalId,
         aOrigin: a.aOrigin,
         aExternalId: a.aCode,
       },

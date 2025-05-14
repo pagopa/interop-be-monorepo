@@ -5,8 +5,6 @@ import {
   authRole,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  ReadModelRepository,
-  initDB,
   fromAppContext,
   validateAuthorization,
 } from "pagopa-interop-commons";
@@ -17,13 +15,8 @@ import {
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  authorizationApi,
-  selfcareV2InstitutionClientBuilder,
-} from "pagopa-interop-api-clients";
-import { config } from "../config/config.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { authorizationServiceBuilder } from "../services/authorizationService.js";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { AuthorizationService } from "../services/authorizationService.js";
 import {
   apiClientKindToClientKind,
   clientToApiClient,
@@ -60,35 +53,22 @@ import {
   addProducerKeychainUserErrorMapper,
   removeProducerKeychainUserErrorMapper,
   removeProducerKeychainEServiceErrorMapper,
-  addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
+  addProducerKeychainEServiceErrorMapper,
+  internalRemoveClientAdminErrorMapper,
+  removeClientAdminErrorMapper,
+  addClientAdminErrorMapper,
 } from "../utilities/errorMappers.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-
-const authorizationService = authorizationServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  selfcareV2InstitutionClientBuilder(config)
-);
-
 const authorizationRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  authorizationService: AuthorizationService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,
     M2M_ROLE,
+    M2M_ADMIN_ROLE,
     SUPPORT_ROLE,
     API_ROLE,
     INTERNAL_ROLE,
@@ -254,6 +234,7 @@ const authorizationRouter = (
           ADMIN_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
@@ -361,6 +342,32 @@ const authorizationRouter = (
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, addClientUserErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/clients/:clientId/admin", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { client, showUsers } =
+          await authorizationService.setAdminToClient(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              adminId: unsafeBrandId(req.body.adminId),
+            },
+            ctx
+          );
+        return res
+          .status(200)
+          .send(
+            authorizationApi.Client.parse(
+              clientToApiClient(client, { showUsers })
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, addClientAdminErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -529,6 +536,47 @@ const authorizationRouter = (
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/internal/clients/:clientId/admin/:adminId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+        await authorizationService.internalRemoveClientAdmin(
+          unsafeBrandId(req.params.clientId),
+          unsafeBrandId(req.params.adminId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          internalRemoveClientAdminErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
+    .delete("/clients/:clientId/admin/:adminId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+        await authorizationService.removeClientAdmin(
+          {
+            clientId: unsafeBrandId(req.params.clientId),
+            adminId: unsafeBrandId(req.params.adminId),
+          },
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          removeClientAdminErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     });
@@ -771,19 +819,16 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
 
-        const producerKeychain =
-          await authorizationService.createProducerKeychainKey(
-            {
-              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-              keySeed: req.body,
-            },
-            ctx
-          );
-        return res.status(200).send(
-          authorizationApi.Keys.parse({
-            keys: producerKeychain.keys.map(keyToApiKey),
-          })
+        const key = await authorizationService.createProducerKeychainKey(
+          {
+            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+            keySeed: req.body,
+          },
+          ctx
         );
+        return res
+          .status(200)
+          .send(authorizationApi.Key.parse(keyToApiKey(key)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -812,9 +857,12 @@ const authorizationRouter = (
           ctx
         );
 
-        return res
-          .status(200)
-          .send(authorizationApi.Keys.parse({ keys: keys.map(keyToApiKey) }));
+        return res.status(200).send(
+          authorizationApi.Keys.parse({
+            keys: keys.map(keyToApiKey),
+            totalCount: keys.length,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -903,7 +951,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addPurposeKeychainEServiceErrorMapper,
+            addProducerKeychainEServiceErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

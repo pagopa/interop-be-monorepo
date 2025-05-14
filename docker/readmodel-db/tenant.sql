@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_mail (
   address VARCHAR NOT NULL,
   description VARCHAR NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  PRIMARY KEY (id, tenant_id),
+  PRIMARY KEY (id, tenant_id, created_at),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -67,11 +67,6 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_verifier (
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
   delegation_id UUID,
-  PRIMARY KEY (
-    tenant_verifier_id,
-    tenant_verified_attribute_id,
-    tenant_id
-  ),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel_tenant.tenant_verified_attribute (tenant_id, attribute_id),
   FOREIGN KEY (tenant_verifier_id) REFERENCES readmodel_tenant.tenant (id) DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
@@ -87,11 +82,6 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_verified_attribute_revoker (
   extension_date TIMESTAMP WITH TIME ZONE,
   revocation_date TIMESTAMP WITH TIME ZONE NOT NULL,
   delegation_id UUID,
-  PRIMARY KEY (
-    tenant_revoker_id,
-    tenant_verified_attribute_id,
-    tenant_id
-  ),
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES readmodel_tenant.tenant_verified_attribute (tenant_id, attribute_id),
   FOREIGN KEY (tenant_revoker_id) REFERENCES readmodel_tenant.tenant (id) DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES readmodel_tenant.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED

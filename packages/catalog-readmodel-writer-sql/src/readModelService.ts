@@ -140,35 +140,37 @@ export function customReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          eserviceDescriptorDocumentInReadmodelCatalog,
+          eserviceInReadmodelCatalog,
           metadataVersion,
-          document.id
+          eserviceId
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(eserviceDescriptorDocumentInReadmodelCatalog)
-            .where(
-              eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id)
-            );
-
-          const documentSQL = documentToDocumentSQL(
-            document,
-            descriptorId,
-            eserviceId,
-            metadataVersion
-          );
-
-          await tx
-            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-            .values(documentSQL);
-
-          await updateMetadataVersionInCatalogTables(
-            tx,
-            eserviceId,
-            metadataVersion
-          );
+        if (!shouldUpsert) {
+          return;
         }
+
+        await tx
+          .delete(eserviceDescriptorDocumentInReadmodelCatalog)
+          .where(
+            eq(eserviceDescriptorDocumentInReadmodelCatalog.id, document.id)
+          );
+
+        const documentSQL = documentToDocumentSQL(
+          document,
+          descriptorId,
+          eserviceId,
+          metadataVersion
+        );
+
+        await tx
+          .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+          .values(documentSQL);
+
+        await updateMetadataVersionInCatalogTables(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
       });
     },
 
@@ -188,44 +190,116 @@ export function customReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          eserviceDescriptorInterfaceInReadmodelCatalog,
+          eserviceInReadmodelCatalog,
           metadataVersion,
-          descriptorInterface.id
+          eserviceId
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .where(
-              eq(
-                eserviceDescriptorInterfaceInReadmodelCatalog.id,
-                descriptorInterface.id
-              )
-            );
+        if (!shouldUpsert) {
+          return;
+        }
 
-          const interfaceSQL = documentToDocumentSQL(
-            descriptorInterface,
-            descriptorId,
-            eserviceId,
-            metadataVersion
+        await tx
+          .delete(eserviceDescriptorInterfaceInReadmodelCatalog)
+          .where(
+            eq(
+              eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId,
+              descriptorId
+            )
           );
 
-          await tx
-            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-            .values(interfaceSQL);
+        const interfaceSQL = documentToDocumentSQL(
+          descriptorInterface,
+          descriptorId,
+          eserviceId,
+          metadataVersion
+        );
+
+        await tx
+          .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+          .values(interfaceSQL);
+        await setServerUrls({
+          tx,
+          descriptorId,
+          serverUrls,
+          metadataVersion,
+        });
+
+        await updateMetadataVersionInCatalogTables(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
+      });
+    },
+
+    async updateDocOrInterface({
+      eserviceId,
+      descriptorId,
+      docOrInterface,
+      metadataVersion,
+      serverUrls,
+    }: {
+      eserviceId: EServiceId;
+      descriptorId: DescriptorId;
+      docOrInterface: Document;
+      serverUrls: string[];
+      metadataVersion: number;
+    }): Promise<void> {
+      await db.transaction(async (tx) => {
+        const docOrInterfaceSQL = documentToDocumentSQL(
+          docOrInterface,
+          descriptorId,
+          eserviceId,
+          metadataVersion
+        );
+
+        const res = await tx
+          .update(eserviceDescriptorInterfaceInReadmodelCatalog)
+          .set(docOrInterfaceSQL)
+          .where(
+            and(
+              eq(
+                eserviceDescriptorInterfaceInReadmodelCatalog.id,
+                docOrInterface.id
+              ),
+              lte(
+                eserviceDescriptorInterfaceInReadmodelCatalog.metadataVersion,
+                metadataVersion
+              )
+            )
+          );
+
+        if (res.rowCount !== null && res.rowCount > 0) {
           await setServerUrls({
             tx,
             descriptorId,
             serverUrls,
             metadataVersion,
           });
-
-          await updateMetadataVersionInCatalogTables(
-            tx,
-            eserviceId,
-            metadataVersion
-          );
         }
+
+        await tx
+          .update(eserviceDescriptorDocumentInReadmodelCatalog)
+          .set(docOrInterfaceSQL)
+          .where(
+            and(
+              eq(
+                eserviceDescriptorDocumentInReadmodelCatalog.id,
+                docOrInterface.id
+              ),
+              lte(
+                eserviceDescriptorDocumentInReadmodelCatalog.metadataVersion,
+                metadataVersion
+              )
+            )
+          );
+
+        await updateMetadataVersionInCatalogTables(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
       });
     },
 
@@ -304,62 +378,64 @@ export function customReadModelServiceBuilder(
       await db.transaction(async (tx) => {
         const shouldUpsert = await checkMetadataVersion(
           tx,
-          eserviceDescriptorInReadmodelCatalog,
+          eserviceInReadmodelCatalog,
           metadataVersion,
-          descriptor.id
+          eserviceId
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(eserviceDescriptorInReadmodelCatalog)
-            .where(eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id));
-
-          const {
-            descriptorSQL,
-            attributesSQL,
-            interfaceSQL,
-            documentsSQL,
-            rejectionReasonsSQL,
-          } = splitDescriptorIntoObjectsSQL(
-            eserviceId,
-            descriptor,
-            metadataVersion
-          );
-
-          await tx
-            .insert(eserviceDescriptorInReadmodelCatalog)
-            .values(descriptorSQL);
-
-          if (interfaceSQL) {
-            await tx
-              .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
-              .values(interfaceSQL);
-          }
-
-          for (const docSQL of documentsSQL) {
-            await tx
-              .insert(eserviceDescriptorDocumentInReadmodelCatalog)
-              .values(docSQL);
-          }
-
-          for (const attributeSQL of attributesSQL) {
-            await tx
-              .insert(eserviceDescriptorAttributeInReadmodelCatalog)
-              .values(attributeSQL);
-          }
-
-          for (const rejectionReasonSQL of rejectionReasonsSQL) {
-            await tx
-              .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
-              .values(rejectionReasonSQL);
-          }
-
-          await updateMetadataVersionInCatalogTables(
-            tx,
-            eserviceId,
-            metadataVersion
-          );
+        if (!shouldUpsert) {
+          return;
         }
+
+        await tx
+          .delete(eserviceDescriptorInReadmodelCatalog)
+          .where(eq(eserviceDescriptorInReadmodelCatalog.id, descriptor.id));
+
+        const {
+          descriptorSQL,
+          attributesSQL,
+          interfaceSQL,
+          documentsSQL,
+          rejectionReasonsSQL,
+        } = splitDescriptorIntoObjectsSQL(
+          eserviceId,
+          descriptor,
+          metadataVersion
+        );
+
+        await tx
+          .insert(eserviceDescriptorInReadmodelCatalog)
+          .values(descriptorSQL);
+
+        if (interfaceSQL) {
+          await tx
+            .insert(eserviceDescriptorInterfaceInReadmodelCatalog)
+            .values(interfaceSQL);
+        }
+
+        for (const docSQL of documentsSQL) {
+          await tx
+            .insert(eserviceDescriptorDocumentInReadmodelCatalog)
+            .values(docSQL);
+        }
+
+        for (const attributeSQL of attributesSQL) {
+          await tx
+            .insert(eserviceDescriptorAttributeInReadmodelCatalog)
+            .values(attributeSQL);
+        }
+
+        for (const rejectionReasonSQL of rejectionReasonsSQL) {
+          await tx
+            .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+            .values(rejectionReasonSQL);
+        }
+
+        await updateMetadataVersionInCatalogTables(
+          tx,
+          eserviceId,
+          metadataVersion
+        );
       });
     },
   };

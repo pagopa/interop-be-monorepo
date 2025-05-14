@@ -33,11 +33,13 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
+  UserId,
 } from "pagopa-interop-models";
 import {
   formatDateyyyyMMdd,
   genericLogger,
   secondsToMilliseconds,
+  systemRole,
 } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
@@ -769,7 +771,7 @@ describe("authorization server tests", () => {
     expect(parsedAuditSent).toEqual(expectedMessageBody);
   });
 
-  it("should succeed - api key - no audit", async () => {
+  it("should succeed - api key - no audit - M2M role", async () => {
     vi.spyOn(fileManager, "storeBytes");
 
     const clientId = generateId<ClientId>();
@@ -818,7 +820,75 @@ describe("authorization server tests", () => {
     expect(fileManager.storeBytes).not.toHaveBeenCalled();
 
     expect(response.limitReached).toBe(false);
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ROLE,
+    });
+    expect(response.token?.payload).not.toMatchObject({
+      adminId: expect.any(String),
+    });
+    expect(response.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
+  });
+
+  it("should succeed - api key - no audit - M2M_ADMIN role", async () => {
+    vi.spyOn(fileManager, "storeBytes");
+
+    const clientId = generateId<ClientId>();
+    const clientAdminId = generateId<UserId>();
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: { sub: clientId },
+      });
+
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+
+    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
+      clientId,
+      kid: clientAssertion.header.kid!,
+    });
+
+    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
+      ...getMockTokenGenStatesApiClient(tokenClientKidK),
+      clientKind: clientKindTokenGenStates.api,
+      publicKey: publicKeyEncodedPem,
+      adminId: clientAdminId,
+    };
+
+    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
+
+    const fileListBefore = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListBefore).toHaveLength(0);
+
+    const response = await tokenService.generateToken(
+      request,
+      generateId(),
+      genericLogger
+    );
+
+    const fileListAfter = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListAfter).toHaveLength(0);
+    expect(fileManager.storeBytes).not.toHaveBeenCalled();
+
+    expect(response.limitReached).toBe(false);
     expect(response.token).toBeDefined();
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ADMIN_ROLE,
+      adminId: tokenClientKidEntry.adminId,
+    });
     expect(response.rateLimiterStatus).toEqual({
       maxRequests: config.rateLimiterMaxRequests,
       rateInterval: config.rateLimiterRateInterval,
