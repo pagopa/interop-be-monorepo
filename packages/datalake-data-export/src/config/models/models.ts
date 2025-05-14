@@ -63,6 +63,7 @@ export const ExportedEService = EService.pick({
   description: true,
   mode: true,
   createdAt: true,
+  technology: true,
 } satisfies StrictPick<EService>).and(
   z.object({
     descriptors: z.array(ExportedDescriptor),
