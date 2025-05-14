@@ -18,6 +18,9 @@ export const FeatureFlagSignalhubWhitelistConfig = z
     featureFlagSignalhubWhitelist: c.FEATURE_FLAG_SIGNALHUB_WHITELIST ?? false,
     signalhubWhitelistProducer: c.SIGNALHUB_WHITELIST_PRODUCER,
   }));
+export type FeatureFlagSignalhubWhitelistConfig = z.infer<
+  typeof FeatureFlagSignalhubWhitelistConfig
+>;
 
 export const FeatureFlagSQLConfig = z
   .object({
@@ -32,10 +35,6 @@ export const FeatureFlagSQLConfig = z
   }));
 export type FeatureFlagSQLConfig = z.infer<typeof FeatureFlagSQLConfig>;
 
-export type FeatureFlagSignalhubWhitelistConfig = z.infer<
-  typeof FeatureFlagSignalhubWhitelistConfig
->;
-
 export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
   .object({
     FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE: z
@@ -48,7 +47,6 @@ export const FeatureFlagAgreementApprovalPolicyUpdateConfig = z
     featureFlagAgreementApprovalPolicyUpdate:
       c.FEATURE_FLAG_AGREEMENT_APPROVAL_POLICY_UPDATE ?? false,
   }));
-
 export type FeatureFlagAgreementApprovalPolicyUpdateConfig = z.infer<
   typeof FeatureFlagAgreementApprovalPolicyUpdateConfig
 >;
@@ -63,15 +61,29 @@ export const FeatureFlagAdminClientConfig = z
   .transform((c) => ({
     featureFlagAdminClient: c.FEATURE_FLAG_ADMIN_CLIENT ?? false,
   }));
-
 export type FeatureFlagAdminClientConfig = z.infer<
   typeof FeatureFlagAdminClientConfig
+>;
+
+export const FeatureFlagTokenClaimsConfig = z
+  .object({
+    FEATURE_FLAG_TOKEN_CLAIMS: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+  })
+  .transform((c) => ({
+    featureFlagTokenClaims: c.FEATURE_FLAG_TOKEN_CLAIMS ?? false,
+  }));
+export type FeatureFlagTokenClaimsConfig = z.infer<
+  typeof FeatureFlagTokenClaimsConfig
 >;
 
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagSQLConfig &
-  FeatureFlagAdminClientConfig;
+  FeatureFlagAdminClientConfig &
+  FeatureFlagTokenClaimsConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
