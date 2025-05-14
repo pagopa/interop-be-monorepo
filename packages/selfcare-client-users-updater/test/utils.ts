@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { EachMessagePayload } from "kafkajs";
-import { InteropToken, userRole } from "pagopa-interop-commons";
+import { InteropInternalToken, userRole } from "pagopa-interop-commons";
 import { generateId, UserId } from "pagopa-interop-models";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject } from "vitest";
@@ -40,10 +40,10 @@ export const kafkaMessagePayload: EachMessagePayload = {
   pause: () => () => {},
 };
 
-export const generateInternalTokenMock = (): Promise<InteropToken> =>
+export const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
   Promise.resolve(interopToken);
 
-export const interopToken: InteropToken = {
+export const interopToken: InteropInternalToken = {
   header: {
     alg: "algorithm",
     use: "use",
@@ -58,7 +58,7 @@ export const interopToken: InteropToken = {
     iat: 0,
     nbf: 0,
     exp: 10,
-    role: "role1",
+    role: "internal",
   },
   serialized: "the-token",
 };
