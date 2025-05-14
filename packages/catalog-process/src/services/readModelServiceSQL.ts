@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   AttributeId,
+  Descriptor,
   EService,
   Agreement,
   AgreementState,
@@ -42,6 +43,7 @@ import {
   toAgreementAggregatorArray,
   toDelegationAggregator,
   toEServiceAggregatorArray,
+  toEServiceDescriptorAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementAttributeInReadmodelAgreement,
@@ -67,6 +69,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 import {
   and,
+  asc,
   desc,
   eq,
   exists,
@@ -639,6 +642,87 @@ export function readModelServiceBuilderSQL(
       const templateWithMetadata =
         await eserviceTemplateReadModelService.getEServiceTemplateById(id);
       return templateWithMetadata?.data;
+    },
+    async getEserviceDescriptors(
+      eserviceId: EServiceId,
+      states: DescriptorState[] | undefined,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<Descriptor>> {
+      const queryDescriptorIds = readmodelDB
+        .select(
+          withTotalCount({
+            id: eserviceDescriptorInReadmodelCatalog.id,
+            state: eserviceDescriptorInReadmodelCatalog.state,
+          })
+        )
+        .from(eserviceDescriptorInReadmodelCatalog)
+        .where(
+          and(
+            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
+            states && states.length > 0
+              ? inArray(eserviceDescriptorInReadmodelCatalog.state, states)
+              : undefined
+          )
+        )
+        .limit(limit)
+        .offset(offset)
+        .orderBy(asc(eserviceDescriptorInReadmodelCatalog.version))
+        .as("queryDescriptorIds");
+
+      const queryResult = await readmodelDB
+        .select({
+          descriptor: eserviceDescriptorInReadmodelCatalog,
+          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
+          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
+          document: eserviceDescriptorDocumentInReadmodelCatalog,
+          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          templateVersionRef:
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+        })
+        .from(eserviceDescriptorInReadmodelCatalog)
+        .innerJoin(
+          queryDescriptorIds,
+          eq(eserviceDescriptorInReadmodelCatalog.id, queryDescriptorIds.id)
+        )
+        .leftJoin(
+          eserviceDescriptorAttributeInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorInterfaceInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorDocumentInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorRejectionReasonInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+          )
+        )
+        .orderBy(asc(eserviceDescriptorInReadmodelCatalog.version));
+
+      // TODO
     },
   };
 }

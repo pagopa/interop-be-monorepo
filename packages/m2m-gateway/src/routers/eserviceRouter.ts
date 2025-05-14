@@ -68,8 +68,18 @@ const eserviceRouter = (
     })
     .get("/eservices/:eserviceId/descriptors", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const descriptors = await eserviceService.getEServiceDescriptors(
+          unsafeBrandId(req.params.eserviceId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.EServiceDescriptors.parse(descriptors));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
