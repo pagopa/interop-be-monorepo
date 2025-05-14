@@ -465,8 +465,8 @@ export function tenantServiceBuilder(
         authData,
         logger,
         correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<Tenant> {
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Add certified attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
       );
@@ -529,15 +529,28 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
-      } else {
-        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
-      }
 
-      return updatedTenant;
+        const newVersion = Math.max(
+          0,
+          ...createdEvents.map((event) => event.newVersion)
+        );
+
+        return {
+          data: updatedTenant,
+          metadata: { version: newVersion },
+        };
+      }
+      const { newVersion } = await repository.createEvent(
+        tenantCertifiedAttributeAssignedEvent
+      );
+      return {
+        data: updatedTenant,
+        metadata: { version: newVersion },
+      };
     },
 
     async addDeclaredAttribute(
@@ -639,8 +652,8 @@ export function tenantServiceBuilder(
         authData,
         correlationId,
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<void> {
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Revoke certified attribute ${attributeId} to tenantId ${tenantId}`
       );
@@ -716,13 +729,29 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
-      } else {
-        await repository.createEvent(tenantCertifiedAttributeRevokedEvent);
+
+        const newVersion = Math.max(
+          0,
+          ...createdEvents.map((event) => event.newVersion)
+        );
+
+        return {
+          data: updatedTenant,
+          metadata: { version: newVersion },
+        };
       }
+
+      const { newVersion } = await repository.createEvent(
+        tenantCertifiedAttributeRevokedEvent
+      );
+      return {
+        data: tenantWithRevokedAttribute,
+        metadata: { version: newVersion },
+      };
     },
 
     async verifyVerifiedAttribute(
@@ -1320,11 +1349,9 @@ export function tenantServiceBuilder(
           UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
         >
       >
-    ): Promise<Tenant> {
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(`Retrieving tenant ${id}`);
-      const tenant = await retrieveTenant(id, readModelService);
-
-      return tenant.data;
+      return await retrieveTenant(id, readModelService);
     },
     async getTenantByExternalId(
       externalId: ExternalId,
