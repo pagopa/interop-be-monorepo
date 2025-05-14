@@ -57,6 +57,7 @@ import {
   addProducerKeychainEServiceErrorMapper,
   internalRemoveClientAdminErrorMapper,
   removeClientAdminErrorMapper,
+  addClientAdminErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const authorizationRouter = (
@@ -341,6 +342,32 @@ const authorizationRouter = (
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, addClientUserErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/clients/:clientId/admin", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { client, showUsers } =
+          await authorizationService.setAdminToClient(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              adminId: unsafeBrandId(req.body.adminId),
+            },
+            ctx
+          );
+        return res
+          .status(200)
+          .send(
+            authorizationApi.Client.parse(
+              clientToApiClient(client, { showUsers })
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, addClientAdminErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
