@@ -1637,18 +1637,21 @@ paths:
               format: uuid
             default: []
           explode: false
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Eservices retrieved
@@ -1802,18 +1805,21 @@ paths:
           description: The descriptor state
           schema:
             $ref: "#/components/schemas/EServiceDescriptorState"
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: E-Service descriptors retrieved
@@ -2066,18 +2072,21 @@ paths:
           description: The version state
           schema:
             $ref: "#/components/schemas/EServiceTemplateVersionState"
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: E-Service template versions retrieved
@@ -2326,18 +2335,21 @@ paths:
               format: uuid
             default: []
           explode: false
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Purposes retrieved
@@ -2505,18 +2517,21 @@ paths:
           description: The version state
           schema:
             $ref: "#/components/schemas/PurposeVersionState"
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Purpose versions retrieved
@@ -4185,12 +4200,16 @@ components:
         offset:
           type: integer
           format: int32
+          minimum: 0
         limit:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 50
         totalCount:
           type: integer
           format: int32
+          minimum: 0
       required:
         - offset
         - limit

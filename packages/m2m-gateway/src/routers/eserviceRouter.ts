@@ -28,7 +28,11 @@ const eserviceRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const eservices = await eserviceService.getEServices(req.query, ctx);
+
+        return res.status(200).send(m2mGatewayApi.EServices.parse(eservices));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
