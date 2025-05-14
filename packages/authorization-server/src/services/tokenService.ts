@@ -41,6 +41,7 @@ import {
   InteropApiToken,
   InteropConsumerToken,
   InteropTokenGenerator,
+  isFeatureFlagEnabled,
   Logger,
   RateLimiter,
   RateLimiterStatus,
@@ -190,12 +191,24 @@ export function tokenServiceBuilder({
         .with(
           { clientKind: clientKindTokenGenStates.consumer },
           async (key) => {
+            const { eserviceId, descriptorId } =
+              deconstructGSIPK_eserviceId_descriptorId(
+                key.GSIPK_eserviceId_descriptorId
+              );
             const token = await tokenGenerator.generateInteropConsumerToken({
               sub: jwt.payload.sub,
               audience: key.descriptorAudience,
               purposeId: key.GSIPK_purposeId,
               tokenDurationInSeconds: key.descriptorVoucherLifespan,
               digest: jwt.payload.digest || undefined,
+              ...(isFeatureFlagEnabled(config, "featureFlagTokenClaims")
+                ? {
+                    producerId: key.producerId,
+                    consumerId: key.consumerId,
+                    eserviceId,
+                    descriptorId,
+                  }
+                : {}),
             });
 
             await publishAudit({
@@ -312,6 +325,9 @@ export const publishAudit = async ({
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
+  const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
+    key.GSIPK_eserviceId_descriptorId
+  );
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,
@@ -319,12 +335,8 @@ export const publishAudit = async ({
     clientId: clientAssertion.payload.sub,
     organizationId: key.consumerId,
     agreementId: key.agreementId,
-    eserviceId: deconstructGSIPK_eserviceId_descriptorId(
-      key.GSIPK_eserviceId_descriptorId
-    ).eserviceId,
-    descriptorId: deconstructGSIPK_eserviceId_descriptorId(
-      key.GSIPK_eserviceId_descriptorId
-    ).descriptorId,
+    eserviceId,
+    descriptorId,
     purposeId: key.GSIPK_purposeId,
     purposeVersionId: unsafeBrandId(key.purposeVersionId),
     algorithm: generatedToken.header.alg,
