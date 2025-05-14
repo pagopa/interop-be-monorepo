@@ -40,7 +40,7 @@ export function getMockedApiPurpose({
       eserviceId: generateId(),
       consumerId: generateId(),
       versions: versions ?? [getMockedApiPurposeVersion()],
-      title: generateMock(z.string()),
+      title: generateMock(z.string().length(10)),
       description: generateMock(z.string().length(10)),
       createdAt: new Date().toISOString(),
       isRiskAnalysisValid: true,
