@@ -4,11 +4,7 @@ import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  ReadModelRepository,
-  initDB,
-  initFileManager,
   fromAppContext,
-  initPDFGenerator,
   authRole,
   validateAuthorization,
 } from "pagopa-interop-commons";
@@ -20,22 +16,12 @@ import {
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
-  agreementReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  makeDrizzleConnection,
-  purposeReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
-import {
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activatePurposeVersionErrorMapper,
@@ -55,56 +41,11 @@ import {
   updateReversePurposeErrorMapper,
   getPurposesErrorMapper,
 } from "../utilities/errorMappers.js";
-import { purposeServiceBuilder } from "../services/purposeService.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
-
-const readModelDB = makeDrizzleConnection(config);
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
-const delegationReadModelServiceSQL =
-  delegationReadModelServiceBuilder(readModelDB);
-
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const readModelServiceSQL = readModelServiceBuilderSQL({
-  readModelDB,
-  purposeReadModelServiceSQL,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-  agreementReadModelServiceSQL,
-  delegationReadModelServiceSQL,
-});
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
-const fileManager = initFileManager(config);
-const pdfGenerator = await initPDFGenerator();
-
-const purposeService = purposeServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  fileManager,
-  pdfGenerator
-);
+import { PurposeService } from "../services/purposeService.js";
 
 const purposeRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  purposeService: PurposeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeRouter = ctx.router(purposeApi.purposeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,

@@ -55,7 +55,7 @@ import {
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
+import { getMockEService, getMockReversePurposeSeed } from "../mockUtils.js";
 
 describe("createReversePurpose", () => {
   it("should write in event-store for the creation of a reverse purpose", async () => {
@@ -88,16 +88,11 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
-      consumerId: consumer.id,
-      riskAnalysisId: mockRiskAnalysis.id,
-      title: "test purpose title",
-      description: "test purpose description",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "test",
-      dailyCalls: 1,
-    };
+    const reversePurposeSeed = getMockReversePurposeSeed(
+      mockEService.id,
+      consumer.id,
+      mockRiskAnalysis.id
+    );
 
     await addOneEService(mockEService);
     await addOneTenant(producer);

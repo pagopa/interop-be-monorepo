@@ -545,18 +545,21 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: versionId
           in: path
           description: the version Id
           required: true
           schema:
             type: string
+            format: uuid
         - name: documentId
           in: path
           description: the document id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: Risk Analysis document retrieved
