@@ -15,7 +15,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 
-describe("API POST /templates/:templateId/description/update", () => {
+describe("API POST /templates/:templateId/name/update", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
 
   const name = {
@@ -60,57 +60,56 @@ describe("API POST /templates/:templateId/description/update", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for not valid body", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, { name: "" });
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 404 for eserviceTemplateNotFound", async () => {
-    eserviceTemplateService.updateEServiceTemplateName = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(mockEserviceTemplate.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} not found`
-    );
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.updateEServiceTemplateName = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Insufficient privileges");
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for eserviceTemplateWithoutPublishedVersion", async () => {
-    eserviceTemplateService.updateEServiceTemplateName = vi
-      .fn()
-      .mockRejectedValue(
-        eserviceTemplateWithoutPublishedVersion(mockEserviceTemplate.id)
+  it.each([
+    {
+      templateId: mockEserviceTemplate.id,
+      seed: {},
+    },
+    {
+      templateId: mockEserviceTemplate.id,
+      seed: { invalid: 1 },
+    },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ templateId, seed }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        seed as { name: string },
+        templateId
       );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${mockEserviceTemplate.id} does not have a published version`
-    );
-    expect(res.status).toBe(409);
-  });
 
-  it("Should return 409 for eserviceTemplateDuplicate", async () => {
-    eserviceTemplateService.updateEServiceTemplateName = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateDuplicate(mockEserviceTemplate.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `An EService Template with name ${mockEserviceTemplate.id} already exists`
-    );
-    expect(res.status).toBe(409);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
+
+  it.each([
+    {
+      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      expectedStatus: 404,
+    },
+    {
+      error: eserviceTemplateWithoutPublishedVersion(mockEserviceTemplate.id),
+      expectedStatus: 409,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: eServiceTemplateDuplicate(mockEserviceTemplate.id),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.updateEServiceTemplateName = vi
+        .fn()
+        .mockRejectedValue(error);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });

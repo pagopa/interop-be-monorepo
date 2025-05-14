@@ -35,6 +35,7 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
   const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
   const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
     buildRiskAnalysisSeed(mockValidRiskAnalysis);
+  const tenantId = generateId<TenantId>();
 
   const makeRequest = async (
     token: string,
@@ -72,99 +73,81 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed a not compliant body", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      {} as eserviceTemplateApi.EServiceRiskAnalysisSeed
-    );
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    {
+      templateId: eserviceTemplateId,
+      riskAnalysisId: mockValidRiskAnalysis.id,
+      seed: {},
+    },
+    {
+      templateId: eserviceTemplateId,
+      riskAnalysisId: mockValidRiskAnalysis.id,
+      seed: { invalid: 1 },
+    },
+    {
+      templateId: eserviceTemplateId,
+      riskAnalysisId: "invalid",
+      seed: riskAnalysisSeed,
+    },
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ templateId, riskAnalysisId, seed }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        seed as eserviceTemplateApi.EServiceRiskAnalysisSeed,
+        templateId,
+        riskAnalysisId
+      );
 
-  it("Should return 404 for eserviceTemplateNotFound", async () => {
-    eserviceTemplateService.updateRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(eserviceTemplateId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${eserviceTemplateId} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 
-  it("Should return 403 for operationForbidden", async () => {
-    eserviceTemplateService.updateRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe("Insufficient privileges");
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 for eserviceTemplateNotInDraftState", async () => {
-    eserviceTemplateService.updateRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(eserviceTemplateNotInDraftState(eserviceTemplateId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${eserviceTemplateId} is not in draft state`
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for eserviceTemplateNotInReceiveMode", async () => {
-    eserviceTemplateService.updateRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(templateNotInReceiveMode(eserviceTemplateId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `EService Template ${eserviceTemplateId} is not in receive mode`
-    );
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for riskAnalysisValidationFailed", async () => {
-    eserviceTemplateService.updateRiskAnalysis = vi.fn().mockRejectedValue(
-      riskAnalysisValidationFailed([
+  it.each([
+    {
+      error: eServiceTemplateNotFound(eserviceTemplateId),
+      expectedStatus: 404,
+    },
+    {
+      error: eserviceTemplateNotInDraftState(eserviceTemplateId),
+      expectedStatus: 400,
+    },
+    {
+      error: templateNotInReceiveMode(eserviceTemplateId),
+      expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisValidationFailed([
         new RiskAnalysisValidationIssue({
           code: "noRulesVersionFoundError",
           detail: "no rule",
         }),
-      ])
-    );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `Risk analysis validation failed. Reasons: [no rule]`
-    );
-    expect(res.status).toBe(400);
-  });
+      ]),
+      expectedStatus: 400,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+    {
+      error: tenantNotFound(tenantId),
+      expectedStatus: 404,
+    },
+    {
+      error: tenantKindNotFound(tenantId),
+      expectedStatus: 404,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      eserviceTemplateService.updateRiskAnalysis = vi
+        .fn()
+        .mockRejectedValue(error);
 
-  it("Should return 404 for tenantNotFound", async () => {
-    const tenantId = generateId<TenantId>();
-    eserviceTemplateService.updateRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(tenantId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(`Tenant ${tenantId} not found`);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for tenantKindNotFound", async () => {
-    const tenantId = generateId<TenantId>();
-    eserviceTemplateService.updateRiskAnalysis = vi
-      .fn()
-      .mockRejectedValue(tenantKindNotFound(tenantId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.body.detail).toBe(
-      `Tenant kind for tenant ${tenantId} not found`
-    );
-    expect(res.status).toBe(404);
-  });
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 });
