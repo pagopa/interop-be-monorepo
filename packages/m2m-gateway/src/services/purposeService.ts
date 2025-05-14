@@ -292,19 +292,42 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers
       );
     },
-    suspendPurposeVersion: async (
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
+    async suspendPurpose(
       purposeId: PurposeId,
-      versionId: PurposeVersionId
-    ): Promise<void> => {
-      logger.info(`Suspending version ${versionId} of purpose ${purposeId}`);
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieveing current version for purpose ${purposeId} suspension`
+      );
+      const purposeResponse = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
 
-      const versionResponse = await purposeProcessClient.suspendPurposeVersion(
-        undefined,
-        { params: { purposeId, versionId }, headers }
+      const versionToSuspend = retrievePurposeCurrentVersion(
+        purposeResponse.data
+      );
+      logger.info(
+        `Suspending version ${versionToSuspend.id} of purpose ${purposeId}`
       );
 
-      await pollPurposeVersion(purposeId, versionResponse, headers);
+      const {
+        data: { purpose },
+        metadata,
+      } = await clients.purposeProcessClient.suspendPurposeVersion(undefined, {
+        params: { purposeId, versionId: versionToSuspend.id },
+        headers,
+      });
+
+      await pollPurpose(
+        {
+          data: purpose,
+          metadata,
+        },
+        headers
+      );
     },
   };
 }

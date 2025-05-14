@@ -762,12 +762,15 @@ paths:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Suspended
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PurposeVersion"
+                $ref: "#/components/schemas/UpdatedPurposeVersion"
         "400":
           description: Bad Request
           content:

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -74,13 +75,17 @@ describe("suspendPurposeVersion", () => {
       await addOnePurpose(mockPurpose);
       await addOneEService(mockEService);
 
-      const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
+      const suspendResponse = await purposeService.suspendPurposeVersion(
         {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion1.id,
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       );
+
+      const updatedVersion = suspendResponse.data.purpose.versions.find(
+        (v) => v.id === suspendResponse.data.updatedVersionId
+      )!;
 
       const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -112,10 +117,16 @@ describe("suspendPurposeVersion", () => {
 
       expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
       expect(
-        writtenPayload.purpose?.versions.find(
-          (v) => v.id === returnedPurposeVersion.id
-        )
-      ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+        writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
+      ).toEqual(toPurposeVersionV2(updatedVersion));
+      expect(suspendResponse).toMatchObject({
+        data: {
+          purpose: expectedPurpose,
+          createdVersionId: updatedVersion.id,
+          isRiskAnalysisValid: true,
+        },
+        metadata: { version: 1 },
+      });
 
       vi.useRealTimers();
     }
@@ -137,13 +148,16 @@ describe("suspendPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
 
-    const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
+    const suspendResponse = await purposeService.suspendPurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
+    const updatedVersion = suspendResponse.data.purpose.versions.find(
+      (v) => v.id === suspendResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -175,10 +189,16 @@ describe("suspendPurposeVersion", () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(
-      writtenPayload.purpose?.versions.find(
-        (v) => v.id === returnedPurposeVersion.id
-      )
-    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+      writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
+    ).toEqual(toPurposeVersionV2(updatedVersion));
+    expect(suspendResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: updatedVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
 
     vi.useRealTimers();
   });
@@ -208,13 +228,16 @@ describe("suspendPurposeVersion", () => {
 
     await addOneDelegation(delegation);
 
-    const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
+    const suspendResponse = await purposeService.suspendPurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
+    const updatedVersion = suspendResponse.data.purpose.versions.find(
+      (v) => v.id === suspendResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -246,10 +269,16 @@ describe("suspendPurposeVersion", () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(
-      writtenPayload.purpose?.versions.find(
-        (v) => v.id === returnedPurposeVersion.id
-      )
-    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+      writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
+    ).toEqual(toPurposeVersionV2(updatedVersion));
+    expect(suspendResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: updatedVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
 
     vi.useRealTimers();
   });
@@ -271,13 +300,16 @@ describe("suspendPurposeVersion", () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
 
-    const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
+    const suspendResponse = await purposeService.suspendPurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
+    const updatedVersion = suspendResponse.data.purpose.versions.find(
+      (v) => v.id === suspendResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -309,10 +341,16 @@ describe("suspendPurposeVersion", () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(
-      writtenPayload.purpose?.versions.find(
-        (v) => v.id === returnedPurposeVersion.id
-      )
-    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+      writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
+    ).toEqual(toPurposeVersionV2(updatedVersion));
+    expect(suspendResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: updatedVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
 
     vi.useRealTimers();
   });
@@ -347,13 +385,16 @@ describe("suspendPurposeVersion", () => {
     await addSomeRandomDelegations(mockPurpose, addOneDelegation);
     await addOneEService(mockEService);
 
-    const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
+    const suspendResponse = await purposeService.suspendPurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
+    const updatedVersion = suspendResponse.data.purpose.versions.find(
+      (v) => v.id === suspendResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -385,10 +426,16 @@ describe("suspendPurposeVersion", () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(
-      writtenPayload.purpose?.versions.find(
-        (v) => v.id === returnedPurposeVersion.id
-      )
-    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+      writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
+    ).toEqual(toPurposeVersionV2(updatedVersion));
+    expect(suspendResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: updatedVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
 
     vi.useRealTimers();
   });
@@ -425,13 +472,16 @@ describe("suspendPurposeVersion", () => {
     await addOneEService(mockEService);
     await addOneDelegation(delegation);
 
-    const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
+    const suspendResponse = await purposeService.suspendPurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
       },
       getMockContext({ authData })
     );
+    const updatedVersion = suspendResponse.data.purpose.versions.find(
+      (v) => v.id === suspendResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -463,10 +513,16 @@ describe("suspendPurposeVersion", () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(
-      writtenPayload.purpose?.versions.find(
-        (v) => v.id === returnedPurposeVersion.id
-      )
-    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+      writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
+    ).toEqual(toPurposeVersionV2(updatedVersion));
+    expect(suspendResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: updatedVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
 
     vi.useRealTimers();
   });
@@ -549,13 +605,16 @@ describe("suspendPurposeVersion", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const returnedPurposeVersion = await purposeService.suspendPurposeVersion(
+    const suspendResponse = await purposeService.suspendPurposeVersion(
       {
         purposeId: delegatePurpose.id,
         versionId: mockPurposeVersion1.id,
       },
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
+    const updatedVersion = suspendResponse.data.purpose.versions.find(
+      (v) => v.id === suspendResponse.data.updatedVersionId
+    )!;
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
 
@@ -587,10 +646,16 @@ describe("suspendPurposeVersion", () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(
-      writtenPayload.purpose?.versions.find(
-        (v) => v.id === returnedPurposeVersion.id
-      )
-    ).toEqual(toPurposeVersionV2(returnedPurposeVersion));
+      writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
+    ).toEqual(toPurposeVersionV2(updatedVersion));
+    expect(suspendResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: updatedVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
 
     vi.useRealTimers();
   });

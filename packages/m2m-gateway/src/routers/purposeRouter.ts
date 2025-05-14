@@ -18,6 +18,7 @@ import {
   getPurposeErrorMapper,
   activatePurposeVersionErrorMapper,
   archivePurposeVersionErrorMapper,
+  suspendPurposeErrorMapper,
 } from "../utils/errorMappers.js";
 
 const purposeRouter = (
@@ -215,32 +216,28 @@ const purposeRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/purposes/:purposeId/versions/:versionId/suspend",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-        try {
-          validateAuthorization(ctx, [M2M_ROLE]);
+    })
+    .post("/purposes/:purposeId/suspend", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          await purposeService.suspendPurposeVersion(
-            ctx,
-            unsafeBrandId(req.params.purposeId),
-            unsafeBrandId(req.params.versionId)
-          );
+        await purposeService.suspendPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
 
-          return res.status(204);
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error suspending purpose ${req.params.purposeId} version`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res.sendStatus(204);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          suspendPurposeErrorMapper,
+          ctx,
+          `Error suspending purpose ${req.params.purposeId} version`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post("/purposes/:purposeId/unsuspend", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
