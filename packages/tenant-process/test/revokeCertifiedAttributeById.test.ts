@@ -3,7 +3,7 @@
 import {
   attributeKind,
   tenantAttributeType,
-  toReadModelAttribute,
+  tenantKind,
 } from "pagopa-interop-models";
 import {
   generateId,
@@ -16,7 +16,6 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
-  writeInReadmodel,
   getMockAttribute,
   getMockTenant,
   readEventByStreamIdAndVersion,
@@ -35,8 +34,8 @@ import {
   addOneTenant,
   getMockCertifiedTenantAttribute,
   tenantService,
-  attributes,
   postgresDB,
+  addOneAttribute,
 } from "./utils.js";
 
 describe("revokeCertifiedAttributeById", async () => {
@@ -69,6 +68,7 @@ describe("revokeCertifiedAttributeById", async () => {
   it("Should revoke the certified attribute if it exist", async () => {
     const tenantWithCertifiedAttribute: Tenant = {
       ...getMockTenant(),
+      kind: tenantKind.PA,
       attributes: [
         {
           ...getMockCertifiedTenantAttribute(),
@@ -78,25 +78,26 @@ describe("revokeCertifiedAttributeById", async () => {
       ],
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(tenantWithCertifiedAttribute);
     await addOneTenant(requesterTenant);
-    await tenantService.revokeCertifiedAttributeById(
-      {
-        tenantId: tenantWithCertifiedAttribute.id,
-        attributeId: attribute.id,
-      },
-      getMockContext({ authData })
-    );
+    const revokeCertifiedAttributeByIdResponse =
+      await tenantService.revokeCertifiedAttributeById(
+        {
+          tenantId: tenantWithCertifiedAttribute.id,
+          attributeId: attribute.id,
+        },
+        getMockContext({ authData })
+      );
     const writtenEvent = await readEventByStreamIdAndVersion(
-      tenantWithCertifiedAttribute.id,
+      revokeCertifiedAttributeByIdResponse.data.id,
       1,
       "tenant",
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: tenantWithCertifiedAttribute.id,
+      stream_id: revokeCertifiedAttributeByIdResponse.data.id,
       version: "1",
       type: "TenantCertifiedAttributeRevoked",
       event_version: 2,
@@ -119,9 +120,14 @@ describe("revokeCertifiedAttributeById", async () => {
       updatedAt: new Date(),
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+
+    expect(revokeCertifiedAttributeByIdResponse).toEqual({
+      data: updatedTenant,
+      metadata: { version: 1 },
+    });
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     expect(
       tenantService.revokeCertifiedAttributeById(
         {
@@ -154,7 +160,7 @@ describe("revokeCertifiedAttributeById", async () => {
     };
     const authData = getMockAuthData(notCertifierTenant.id);
 
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(targetTenant);
     await addOneTenant(notCertifierTenant);
 
@@ -174,10 +180,7 @@ describe("revokeCertifiedAttributeById", async () => {
       ...attribute,
       origin: generateId(),
     };
-    await writeInReadmodel(
-      toReadModelAttribute(notCompliantOriginAttribute),
-      attributes
-    );
+    await addOneAttribute(notCompliantOriginAttribute);
     await addOneTenant(targetTenant);
     await addOneTenant(requesterTenant);
 
@@ -208,7 +211,7 @@ describe("revokeCertifiedAttributeById", async () => {
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(tenantAlreadyRevoked);
     await addOneTenant(requesterTenant);
     expect(

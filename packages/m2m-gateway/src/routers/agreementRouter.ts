@@ -29,7 +29,7 @@ const agreementRouter = (
 
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-        const agreements = await agreementService.getAgreements(ctx, req.query);
+        const agreements = await agreementService.getAgreements(req.query, ctx);
 
         return res.status(200).send(m2mGatewayApi.Agreements.parse(agreements));
       } catch (error) {
@@ -47,8 +47,8 @@ const agreementRouter = (
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
         const agreement = await agreementService.getAgreement(
-          ctx,
-          unsafeBrandId(req.params.agreementId)
+          unsafeBrandId(req.params.agreementId),
+          ctx
         );
 
         return res.status(200).send(m2mGatewayApi.Agreement.parse(agreement));
@@ -68,7 +68,7 @@ const agreementRouter = (
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         const agreement = await agreementService.createAgreement(req.body, ctx);
 
-        return res.status(200).send(m2mGatewayApi.Agreement.parse(agreement));
+        return res.status(201).send(m2mGatewayApi.Agreement.parse(agreement));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

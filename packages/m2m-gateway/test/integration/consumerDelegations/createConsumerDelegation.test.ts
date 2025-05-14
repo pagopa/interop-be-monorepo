@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";

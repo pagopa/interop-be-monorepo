@@ -23,6 +23,14 @@ import {
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
+  agreementReadModelServiceBuilder,
+  attributeReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
@@ -50,10 +58,34 @@ import {
   verifyTenantCertifiedAttributesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
+const db = makeDrizzleConnection(config);
+const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
+const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
+const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
+
+const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  db,
+  agreementReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  attributeReadModelServiceSQL,
+  delegationReadModelServiceSQL
+);
+
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 const pdfGenerator = await initPDFGenerator();
 
 const agreementService = agreementServiceBuilder(
@@ -444,10 +476,14 @@ const agreementRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const agreement = await agreementService.getAgreementById(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.getAgreementById(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
