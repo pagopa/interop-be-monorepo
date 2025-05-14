@@ -10,25 +10,25 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import {
-  agreementReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  clientReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  makeDrizzleConnection,
-  producerKeychainReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
+import {
+  makeDrizzleConnection,
+  clientReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+  agreementReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import healthRouter from "./routers/HealthRouter.js";
 import authorizationRouter from "./routers/AuthorizationRouter.js";
 import { config } from "./config/config.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import {
   AuthorizationService,
   authorizationServiceBuilder,
 } from "./services/authorizationService.js";
+import { readModelServiceBuilder } from "./services/readModelService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createDefaultAuthorizationService = async () => {

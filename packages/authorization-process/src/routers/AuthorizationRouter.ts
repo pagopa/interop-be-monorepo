@@ -53,8 +53,8 @@ import {
   addProducerKeychainUserErrorMapper,
   removeProducerKeychainUserErrorMapper,
   removeProducerKeychainEServiceErrorMapper,
-  addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
+  addProducerKeychainEServiceErrorMapper,
   internalRemoveClientAdminErrorMapper,
   removeClientAdminErrorMapper,
   addClientAdminErrorMapper,
@@ -951,7 +951,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addPurposeKeychainEServiceErrorMapper,
+            addProducerKeychainEServiceErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
