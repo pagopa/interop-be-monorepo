@@ -654,6 +654,13 @@ export const upsertTokenGenStatesConsumerClient = async (
       updatedAt: {
         S: tokenGenStatesConsumerClient.updatedAt,
       },
+      ...(tokenGenStatesConsumerClient.producerId
+        ? {
+            producerId: {
+              S: tokenGenStatesConsumerClient.producerId,
+            },
+          }
+        : {}),
       ...(tokenGenStatesConsumerClient.consumerId
         ? {
             consumerId: {
