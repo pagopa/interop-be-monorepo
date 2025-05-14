@@ -36,12 +36,10 @@ export function eserviceRepository(conn: DBConnection) {
         description: (r: EServiceSQL) => r.description,
         technology: (r: EServiceSQL) => r.technology,
         mode: (r: EServiceSQL) => r.mode,
-        is_signal_hub_enabled: (r: EServiceSQL) =>
-          r.isSignalHubEnabled ? "true" : "false",
-        is_consumer_delegable: (r: EServiceSQL) =>
-          r.isConsumerDelegable ? "true" : "false",
+        is_signal_hub_enabled: (r: EServiceSQL) => r.isSignalHubEnabled,
+        is_consumer_delegable: (r: EServiceSQL) => r.isConsumerDelegable,
         is_client_access_delegable: (r: EServiceSQL) =>
-          r.isClientAccessDelegable ? "true" : "false",
+          r.isClientAccessDelegable,
       };
       const cs = buildColumnSet<EServiceSQL>(pgp, mapping, stagingTable);
       try {
