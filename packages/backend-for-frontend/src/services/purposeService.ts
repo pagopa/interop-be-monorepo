@@ -559,20 +559,18 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Suspending Version ${versionId} of Purpose ${purposeId}`);
 
-      const result = await purposeProcessClient.suspendPurposeVersion(
-        undefined,
-        {
+      const { updatedVersionId } =
+        await purposeProcessClient.suspendPurposeVersion(undefined, {
           params: {
             purposeId,
             versionId,
           },
           headers,
-        }
-      );
+        });
 
       return {
         purposeId,
-        versionId: result.id,
+        versionId: updatedVersionId,
       };
     },
     async activatePurposeVersion(
