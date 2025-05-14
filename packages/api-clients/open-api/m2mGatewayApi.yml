@@ -2921,15 +2921,9 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /purposes/{purposeId}/versions/{versionId}/archive:
+  /purposes/{purposeId}/archive:
     parameters:
       - name: purposeId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: versionId
         in: path
         required: true
         schema:

@@ -538,20 +538,18 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Archiving purpose ${purposeId} with version ${versionId}`);
 
-      const result = await purposeProcessClient.archivePurposeVersion(
-        undefined,
-        {
+      const { updatedVersionId } =
+        await purposeProcessClient.archivePurposeVersion(undefined, {
           params: {
             purposeId,
             versionId,
           },
           headers,
-        }
-      );
+        });
 
       return {
         purposeId,
-        versionId: result.id,
+        versionId: updatedVersionId,
       };
     },
     async suspendPurposeVersion(

@@ -17,6 +17,7 @@ import {
   getPurposeVersionErrorMapper,
   getPurposeErrorMapper,
   activatePurposeVersionErrorMapper,
+  archivePurposeVersionErrorMapper,
 } from "../utils/errorMappers.js";
 
 const purposeRouter = (
@@ -194,31 +195,27 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post(
-      "/purposes/:purposeId/versions/:versionId/archive",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-        try {
-          validateAuthorization(ctx, [M2M_ROLE]);
+    .post("/purposes/:purposeId/archive", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          await purposeService.archivePurposeVersion(
-            ctx,
-            unsafeBrandId(req.params.purposeId),
-            unsafeBrandId(req.params.versionId)
-          );
+        await purposeService.archivePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
 
-          return res.status(204);
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error archiving purpose ${req.params.purposeId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res.sendStatus(204);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          archivePurposeVersionErrorMapper,
+          ctx,
+          `Error archiving purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post("/purposes/:purposeId/suspend", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {

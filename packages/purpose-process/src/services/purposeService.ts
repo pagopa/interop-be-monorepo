@@ -534,8 +534,18 @@ export function purposeServiceBuilder(
         purposeId: PurposeId;
         versionId: PurposeVersionId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<PurposeVersion> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        purpose: Purpose;
+        isRiskAnalysisValid: boolean;
+        updatedVersionId: string;
+      }>
+    > {
       logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -551,6 +561,11 @@ export function purposeServiceBuilder(
       if (!isArchivable(purposeVersion)) {
         throw notValidVersionState(versionId, purposeVersion.state);
       }
+
+      const tenantKind = await retrieveTenantKind(
+        authData.organizationId,
+        readModelService
+      );
 
       const purposeWithoutWaitingForApproval: Purpose = {
         ...purpose.data,
@@ -568,15 +583,28 @@ export function purposeServiceBuilder(
         archivedVersion
       );
 
-      const event = toCreateEventPurposeArchived({
+      const eventToCreate = toCreateEventPurposeArchived({
         purpose: updatedPurpose,
         purposeVersionId: archivedVersion.id,
         version: purpose.metadata.version,
         correlationId,
       });
 
-      await repository.createEvent(event);
-      return archivedVersion;
+      const event = await repository.createEvent(eventToCreate);
+      return {
+        data: {
+          purpose: updatedPurpose,
+          updatedVersionId: archivedVersion.id,
+          isRiskAnalysisValid: isRiskAnalysisFormValid(
+            updatedPurpose.riskAnalysisForm,
+            false,
+            tenantKind
+          ),
+        },
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async internalArchivePurposeVersionAfterDelegationRevocation(
       {
