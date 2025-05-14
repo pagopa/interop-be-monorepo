@@ -18,7 +18,7 @@ import {
   getPurposeErrorMapper,
   activatePurposeVersionErrorMapper,
   suspendPurposeErrorMapper,
-  archivePurposeErrorMapper
+  archivePurposeErrorMapper,
 } from "../utils/errorMappers.js";
 
 const purposeRouter = (
