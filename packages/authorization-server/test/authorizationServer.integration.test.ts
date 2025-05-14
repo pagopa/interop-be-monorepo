@@ -872,7 +872,7 @@ describe("authorization server tests", () => {
 
     const response = await tokenService.generateToken(
       request,
-      generateId(),
+      getMockContext({}),
       genericLogger
     );
 
