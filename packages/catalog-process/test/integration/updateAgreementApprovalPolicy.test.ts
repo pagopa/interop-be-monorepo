@@ -23,17 +23,19 @@ import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
-  addOneDelegation,
-  addOneEService,
-  catalogService,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+} from "../mockUtils.js";
+import {
+  addOneEService,
+  catalogService,
   readLastEserviceEvent,
-} from "./utils.js";
+  addOneDelegation,
+} from "../integrationUtils.js";
 
 describe("update descriptor agreement approval policy", () => {
   const mockEService = getMockEService();

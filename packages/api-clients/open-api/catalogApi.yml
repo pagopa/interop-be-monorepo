@@ -2102,6 +2102,7 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: documentId
           in: path
           description: the document id
