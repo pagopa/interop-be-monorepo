@@ -63,7 +63,7 @@ export function getMockedApiAgreement(): WithMetadata<agreementApi.Agreement> {
       consumerDocuments: [],
       verifiedAttributes: [],
       createdAt: new Date().toISOString(),
-          },
+    },
     metadata: {
       version: 0,
     },
