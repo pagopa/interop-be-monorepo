@@ -17,8 +17,8 @@ import {
   getPurposeVersionErrorMapper,
   getPurposeErrorMapper,
   activatePurposeVersionErrorMapper,
-  archivePurposeVersionErrorMapper,
   suspendPurposeErrorMapper,
+  archivePurposeErrorMapper
 } from "../utils/errorMappers.js";
 
 const purposeRouter = (
@@ -210,7 +210,7 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          archivePurposeVersionErrorMapper,
+          archivePurposeErrorMapper,
           ctx,
           `Error archiving purpose ${req.params.purposeId}`
         );
