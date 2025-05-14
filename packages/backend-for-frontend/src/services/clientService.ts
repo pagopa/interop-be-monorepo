@@ -155,6 +155,24 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
       );
     },
 
+    async setAdminToClient(
+      adminId: string,
+      clientId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Client> {
+      ctx.logger.info(`Add admin ${adminId} to client ${clientId}`);
+
+      const client = await authorizationClient.client.setAdminToClient(
+        { adminId },
+        {
+          params: { clientId },
+          headers: ctx.headers,
+        }
+      );
+
+      return enhanceClient(apiClients, client, ctx);
+    },
+
     async createKey(
       clientId: string,
       keySeed: bffApi.KeySeed,
