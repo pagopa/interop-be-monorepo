@@ -129,7 +129,11 @@ export function getMockedApiClient({
   };
 }
 
-export function getMockedApiEservice(): WithMetadata<catalogApi.EService> {
+export function getMockedApiEservice({
+  descriptors,
+}: {
+  descriptors?: catalogApi.EServiceDescriptor[];
+} = {}): WithMetadata<catalogApi.EService> {
   return {
     data: {
       id: generateId(),
@@ -137,13 +141,43 @@ export function getMockedApiEservice(): WithMetadata<catalogApi.EService> {
       producerId: generateId(),
       description: generateMock(z.string()),
       technology: generateMock(catalogApi.EServiceTechnology),
-      descriptors: generateMock(z.array(catalogApi.EServiceDescriptor)),
+      descriptors:
+        descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
       riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
       mode: generateMock(catalogApi.EServiceMode),
       isSignalHubEnabled: generateMock(z.boolean()),
       isConsumerDelegable: generateMock(z.boolean()),
       isClientAccessDelegable: generateMock(z.boolean()),
       templateId: generateId(),
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiEserviceDescriptor(): WithMetadata<catalogApi.EServiceDescriptor> {
+  return {
+    data: {
+      id: generateId(),
+      version: generateMock(z.string()),
+      description: generateMock(z.string()),
+      audience: generateMock(z.array(z.string())),
+      voucherLifespan: generateMock(z.number().int()),
+      dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
+      dailyCallsTotal: generateMock(z.number().int().gte(1)),
+      interface: generateMock(catalogApi.EServiceDoc),
+      docs: generateMock(z.array(catalogApi.EServiceDoc)),
+      state: generateMock(catalogApi.EServiceDescriptorState),
+      agreementApprovalPolicy: generateMock(catalogApi.AgreementApprovalPolicy),
+      serverUrls: generateMock(z.array(z.string())),
+      publishedAt: new Date().toISOString(),
+      suspendedAt: new Date().toISOString(),
+      deprecatedAt: new Date().toISOString(),
+      archivedAt: new Date().toISOString(),
+      attributes: generateMock(catalogApi.Attributes),
+      rejectionReasons: generateMock(z.array(catalogApi.RejectionReason)),
+      templateVersionRef: generateMock(catalogApi.EServiceTemplateVersionRef),
     },
     metadata: {
       version: 0,
