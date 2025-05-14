@@ -982,7 +982,7 @@ export function purposeServiceBuilder(
         readModelService,
       });
 
-      const { event, updatedPurposeVersion } = await match({
+      const { event, updatedPurposeVersion, updatedPurpose } = await match({
         state: purposeVersion.state,
         purposeOwnership,
       })
@@ -1152,11 +1152,6 @@ export function purposeServiceBuilder(
         });
 
       const createdEvent = await repository.createEvent(event);
-
-      const updatedPurpose = replacePurposeVersion(
-        purpose.data,
-        updatedPurposeVersion
-      );
 
       return {
         data: {
@@ -1790,6 +1785,7 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
+  updatedPurpose: Purpose;
   updatedPurposeVersion: PurposeVersion;
 } {
   const updatedPurposeVersion: PurposeVersion = {
@@ -1810,6 +1806,7 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
       correlationId,
     }),
     updatedPurposeVersion,
+    updatedPurpose,
   };
 }
 
@@ -1819,6 +1816,7 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
+  updatedPurpose: Purpose;
   updatedPurposeVersion: PurposeVersion;
 } {
   const newPurposeVersion: PurposeVersion = {
@@ -1846,6 +1844,7 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
       correlationId,
     }),
     updatedPurposeVersion: newPurposeVersion,
+    updatedPurpose,
   };
 }
 
@@ -1873,6 +1872,7 @@ async function activatePurposeLogic({
   logger: Logger;
 }): Promise<{
   event: CreateEvent<PurposeEvent>;
+  updatedPurpose: Purpose;
   updatedPurposeVersion: PurposeVersion;
 }> {
   const updatedPurposeVersion: PurposeVersion = {
@@ -1914,6 +1914,7 @@ async function activatePurposeLogic({
         correlationId,
       }),
       updatedPurposeVersion,
+      updatedPurpose,
     };
   } else {
     return {
@@ -1924,6 +1925,7 @@ async function activatePurposeLogic({
         correlationId,
       }),
       updatedPurposeVersion,
+      updatedPurpose,
     };
   }
 }
@@ -1935,6 +1937,7 @@ function activatePurposeVersionFromSuspendedLogic(
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
+  updatedPurpose: Purpose;
   updatedPurposeVersion: PurposeVersion;
 } {
   const newState = match({
@@ -1982,6 +1985,10 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
+      updatedPurpose: {
+        ...updatedPurpose,
+        suspendedByProducer: false,
+      },
     };
   } else {
     return {
@@ -1992,6 +1999,10 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
+      updatedPurpose: {
+        ...updatedPurpose,
+        suspendedByConsumer: false,
+      },
     };
   }
 }
