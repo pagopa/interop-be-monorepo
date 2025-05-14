@@ -105,15 +105,6 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         }
       });
     },
-    // TODO: getTenantById with joins is too slow. await Promise.all is faster.
-    // async getTenantById(
-    //   tenantId: TenantId
-    // ): Promise<WithMetadata<Tenant> | undefined> {
-    //   return await this.getTenantByFilter(
-    //     eq(tenantInReadmodelTenant.id, tenantId),
-    //     tenantId
-    //   );
-    // },
     async getTenantById(
       tenantId: TenantId
     ): Promise<WithMetadata<Tenant> | undefined> {
@@ -178,95 +169,6 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         featuresSQL,
       });
     },
-    // async getTenantByFilter(
-    //   filter: SQL | undefined
-    // ): Promise<WithMetadata<Tenant> | undefined> {
-    //   if (filter === undefined) {
-    //     throw genericInternalError("Filter cannot be undefined");
-    //   }
-
-    //   /*
-    //   tenant  ->1 tenant_mail
-    // 		      ->2 tenant_certified_attribute
-    // 		      ->3 tenant_declared_attribute
-    // 		      ->4 tenant_verified_attribute ->5 tenant_verified_attribute_verifier
-    // 																        ->6 tenant_verified_attribute_revoker
-    // 		      ->7 tenant_feature
-    //   */
-    //   const queryResult = await db
-    //     .select({
-    //       tenant: tenantInReadmodelTenant,
-    //       mail: tenantMailInReadmodelTenant,
-    //       certifiedAttribute: tenantCertifiedAttributeInReadmodelTenant,
-    //       declaredAttribute: tenantDeclaredAttributeInReadmodelTenant,
-    //       verifiedAttribute: tenantVerifiedAttributeInReadmodelTenant,
-    //       verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
-    //       revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
-    //       feature: tenantFeatureInReadmodelTenant,
-    //     })
-    //     .from(tenantInReadmodelTenant)
-    //     .where(filter)
-    //     .leftJoin(
-    //       // 1
-    //       tenantMailInReadmodelTenant,
-    //       eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
-    //     )
-    //     .leftJoin(
-    //       // 2
-    //       tenantCertifiedAttributeInReadmodelTenant,
-    //       eq(
-    //         tenantInReadmodelTenant.id,
-    //         tenantCertifiedAttributeInReadmodelTenant.tenantId
-    //       )
-    //     )
-    //     .leftJoin(
-    //       // 3
-    //       tenantDeclaredAttributeInReadmodelTenant,
-    //       eq(
-    //         tenantInReadmodelTenant.id,
-    //         tenantDeclaredAttributeInReadmodelTenant.tenantId
-    //       )
-    //     )
-    //     .leftJoin(
-    //       // 4
-    //       tenantVerifiedAttributeInReadmodelTenant,
-    //       eq(
-    //         tenantInReadmodelTenant.id,
-    //         tenantVerifiedAttributeInReadmodelTenant.tenantId
-    //       )
-    //     )
-    //     .leftJoin(
-    //       // 5
-    //       tenantVerifiedAttributeVerifierInReadmodelTenant,
-    //       eq(
-    //         tenantVerifiedAttributeInReadmodelTenant.attributeId,
-    //         tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId
-    //       )
-    //     )
-    //     .leftJoin(
-    //       // 6
-    //       tenantVerifiedAttributeRevokerInReadmodelTenant,
-    //       eq(
-    //         tenantVerifiedAttributeInReadmodelTenant.attributeId,
-    //         tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId
-    //       )
-    //     )
-    //     .leftJoin(
-    //       // 7
-    //       tenantFeatureInReadmodelTenant,
-    //       eq(
-    //         tenantInReadmodelTenant.id,
-    //         tenantFeatureInReadmodelTenant.tenantId
-    //       )
-    //     );
-
-    //   if (queryResult.length === 0) {
-    //     return undefined;
-    //   }
-
-    //   // TODO how to ensure that this is used with filters that match always one tenant at most?
-    //   return aggregateTenant(toTenantAggregator(queryResult));
-    // },
     async getTenantsByFilter(
       filter: SQL | undefined
     ): Promise<Array<WithMetadata<Tenant>>> {
