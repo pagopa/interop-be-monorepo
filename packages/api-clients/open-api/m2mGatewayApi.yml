@@ -30,7 +30,7 @@ tags:
       description: Find out more
       url: "http://swagger.io"
   - name: eservices
-    description: EServices routes
+    description: E-Services routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -50,7 +50,7 @@ tags:
       description: Find out more
       url: "http://swagger.io"
   - name: eserviceTemplates
-    description: EService Templates routes
+    description: E-Service Templates routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -1654,7 +1654,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Eservices retrieved
+          description: E-Services retrieved
           content:
             application/json:
               schema:
@@ -1718,10 +1718,10 @@ paths:
       tags:
         - eservices
       description: Get eservice
-      operationId: getEservice
+      operationId: getEService
       responses:
         "200":
-          description: Eservice retrieved
+          description: E-Service retrieved
           content:
             application/json:
               schema:
@@ -1985,7 +1985,7 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      operationId: getEserviceTemplate
+      operationId: getEServiceTemplate
       responses:
         "200":
           description: E-Service template retrieved
@@ -3728,7 +3728,7 @@ components:
         - createdAt
     AgreementApprovalPolicy:
       type: string
-      description: EService Descriptor policy for new Agreements approval
+      description: E-Service Descriptor policy for new Agreements approval
       enum:
         - AUTOMATIC
         - MANUAL
@@ -4054,7 +4054,7 @@ components:
         - pagination
     EServiceDescriptorState:
       type: string
-      description: EService Descriptor State
+      description: E-Service Descriptor State
       enum:
         - DRAFT
         - PUBLISHED
@@ -4123,15 +4123,6 @@ components:
         - versions
         - riskAnalysis
         - mode
-    EserviceAttributeSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
     EServiceTemplateVersion:
       type: object
       additionalProperties: false
@@ -4187,7 +4178,7 @@ components:
           format: uuid
     EServiceTemplateVersionState:
       type: string
-      description: EService Descriptor State
+      description: E-Service Template Version State
       enum:
         - DRAFT
         - PUBLISHED
