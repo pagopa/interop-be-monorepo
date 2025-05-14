@@ -1,6 +1,8 @@
 import {
   ClientAssertionDigest,
   ClientId,
+  DescriptorId,
+  EServiceId,
   PurposeId,
   TenantId,
   UserId,
@@ -20,6 +22,10 @@ export const ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM = "origin";
 export const ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM = "value";
 export const USER_ROLES = "user-roles";
 const PURPOSE_ID_CLAIM = "purposeId";
+const PRODUCER_ID_CLAIM = "producerId";
+const CONSUMER_ID_CLAIM = "consumerId";
+const ESERVICE_ID_CLAIM = "eserviceId";
+const DESCRIPTOR_ID_CLAIM = "descriptorId";
 export const ROLE_CLAIM = "role";
 
 export interface InteropJwtHeader {
@@ -46,6 +52,11 @@ export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
   sub: ClientId;
   [PURPOSE_ID_CLAIM]: PurposeId;
   digest?: ClientAssertionDigest;
+  // TODO: the new claims are behind a feature flag. Maybe yhey should become required after the feature flag disappears
+  [PRODUCER_ID_CLAIM]?: TenantId;
+  [CONSUMER_ID_CLAIM]?: TenantId;
+  [ESERVICE_ID_CLAIM]?: EServiceId;
+  [DESCRIPTOR_ID_CLAIM]?: DescriptorId;
 };
 
 export type InteropConsumerToken = {
