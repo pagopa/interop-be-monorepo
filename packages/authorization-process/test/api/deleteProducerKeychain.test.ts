@@ -38,7 +38,7 @@ describe("API /clients/{clientId} authorization test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 204 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockProducerKeychain.id);

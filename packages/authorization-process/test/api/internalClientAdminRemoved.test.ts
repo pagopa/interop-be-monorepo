@@ -31,7 +31,7 @@ describe("API /internal/clients/{clientId}/admin/{adminId} authorization test", 
 
   const authorizedRoles: AuthRole[] = [authRole.INTERNAL_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 204 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id, mockClient.adminId);
