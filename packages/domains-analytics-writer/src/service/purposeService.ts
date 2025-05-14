@@ -34,9 +34,13 @@ export function purposeServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         const toInsertPurpose = batch.map((item) => item.purposeSQL);
-        const toInsertForm = batch
-          .map((item) => item.riskAnalysisFormSQL)
-          .filter((f): f is NonNullable<typeof f> => !!f);
+        const toInsertVersions = batch.flatMap((item) => item.versionsSQL);
+        const toInsertVersionDocuments = batch.flatMap(
+          (item) => item.versionDocumentsSQL
+        );
+        const toInsertForm = batch.flatMap(
+          (item) => item.riskAnalysisFormSQL ?? []
+        );
         const toInsertAnswers = batch.flatMap(
           (item) => item.riskAnalysisAnswersSQL ?? []
         );
@@ -44,6 +48,16 @@ export function purposeServiceBuilder(db: DBContext) {
         await dbContext.conn.tx(async (t) => {
           if (toInsertPurpose.length) {
             await purposeRepo.insert(t, dbContext.pgp, toInsertPurpose);
+          }
+          if (toInsertVersions.length) {
+            await versionRepo.insert(t, dbContext.pgp, toInsertVersions);
+          }
+          if (toInsertVersionDocuments.length) {
+            await versionDocumentRepo.insert(
+              t,
+              dbContext.pgp,
+              toInsertVersionDocuments
+            );
           }
           if (toInsertForm.length) {
             await formRepo.insert(t, dbContext.pgp, toInsertForm);
@@ -59,6 +73,8 @@ export function purposeServiceBuilder(db: DBContext) {
 
       await dbContext.conn.tx(async (t) => {
         await purposeRepo.merge(t);
+        await versionRepo.merge(t);
+        await versionDocumentRepo.merge(t);
         await formRepo.merge(t);
         await answerRepo.merge(t);
       });
@@ -67,6 +83,8 @@ export function purposeServiceBuilder(db: DBContext) {
       );
 
       await purposeRepo.clean();
+      await versionRepo.clean();
+      await versionDocumentRepo.clean();
       await formRepo.clean();
       await answerRepo.clean();
       genericLogger.info(`Staging data cleaned for purposes and risk analyses`);

@@ -408,12 +408,22 @@ export async function getPurposeFromDb(
   ]);
 }
 
-export async function getVersionFromDb(
+export async function getPurposeVersionFromDb(
   versionId: string,
   db: DBContext
 ): Promise<any> {
   return db.conn.oneOrNone(
     `SELECT * FROM domains.purpose_version WHERE id = $1`,
+    [versionId]
+  );
+}
+
+export async function getVersionDocumentsFromDb(
+  versionId: string,
+  db: DBContext
+): Promise<any[]> {
+  return db.conn.any(
+    `SELECT * FROM domains.purpose_version_document WHERE purpose_version_id = $1`,
     [versionId]
   );
 }
