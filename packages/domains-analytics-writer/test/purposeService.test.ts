@@ -67,7 +67,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
           log_date: new Date(),
         },
       ],
-      dbContext,
+      dbContext
     );
 
     const version = getMockPurposeVersion();
@@ -123,7 +123,6 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
   it("PurposeVersionDeleted: marks version deleted", async () => {
     const mock = getMockPurpose();
     const versionId = generateId();
-    console.log("AO ", mock);
     await handlePurposeMessageV1(
       [
         {
@@ -136,7 +135,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
           log_date: new Date(),
         },
       ],
-      dbContext,
+      dbContext
     );
     const version = getMockPurposeVersion();
     version.id = versionId as any;
@@ -155,7 +154,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
           log_date: new Date(),
         },
       ],
-      dbContext,
+      dbContext
     );
 
     const deleteVer: PurposeEventEnvelopeV1 = {
@@ -247,7 +246,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext,
+      dbContext
     );
     const updated = { ...mock, title: "updated" };
     const msg: PurposeEventEnvelopeV2 = {
@@ -279,7 +278,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext,
+      dbContext
     );
 
     const msg: PurposeEventEnvelopeV2 = {
@@ -296,7 +295,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     expect(stored.deleted).toBe(true);
   });
 
-  it("PurposeVersionCreated: inserts version record in V2", async () => {
+  it("NewPurposeVersionActivated: inserts version record in V2", async () => {
     const mock = getMockPurpose();
     await handlePurposeMessageV2(
       [
@@ -310,9 +309,10 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext,
+      dbContext
     );
     const version = getMockPurposeVersion();
+    mock.versions.push(version);
     const payload: NewPurposeVersionActivatedV2 = {
       versionId: version.id,
       purpose: toPurposeV2(mock),
@@ -345,9 +345,10 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext,
+      dbContext
     );
     const version = getMockPurposeVersion();
+    mock.versions.push(version);
     await handlePurposeMessageV2(
       [
         {
@@ -360,7 +361,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
           log_date: new Date(),
         },
       ],
-      dbContext,
+      dbContext
     );
 
     const msg: PurposeEventEnvelopeV2 = {

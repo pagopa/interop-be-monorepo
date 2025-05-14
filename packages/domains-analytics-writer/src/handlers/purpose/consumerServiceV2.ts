@@ -7,11 +7,7 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { splitPurposeIntoObjectsSQL } from "pagopa-interop-readmodel";
-import {
-  PurposeItemsSQL,
-  PurposeVersionSQL,
-  PurposeVersionDocumentSQL,
-} from "pagopa-interop-readmodel-models";
+import { PurposeItemsSQL } from "pagopa-interop-readmodel-models";
 import { purposeServiceBuilder } from "../../service/purposeService.js";
 import { DBContext } from "../../db/db.js";
 
@@ -22,10 +18,6 @@ export async function handlePurposeMessageV2(
   const purposeService = purposeServiceBuilder(dbContext);
 
   const upsertPurposeBatch: PurposeItemsSQL[] = [];
-  const upsertVersionBatch: Array<{
-    versionSQL: PurposeVersionSQL;
-    versionDocumentSQL?: PurposeVersionDocumentSQL;
-  }> = [];
   const deletePurposeBatch: string[] = [];
   const deleteVersionBatch: string[] = [];
 
@@ -91,12 +83,6 @@ export async function handlePurposeMessageV2(
 
   if (upsertPurposeBatch.length) {
     await purposeService.upsertBatchPurpose(upsertPurposeBatch, dbContext);
-  }
-  if (upsertVersionBatch.length) {
-    await purposeService.upsertBatchPurposeVersion(
-      upsertVersionBatch,
-      dbContext
-    );
   }
   if (deletePurposeBatch.length) {
     await purposeService.deleteBatchPurpose(deletePurposeBatch, dbContext);
