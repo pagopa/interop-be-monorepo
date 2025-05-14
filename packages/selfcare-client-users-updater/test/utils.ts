@@ -3,7 +3,7 @@ import { EachMessagePayload } from "kafkajs";
 import { InteropInternalToken, userRole } from "pagopa-interop-commons";
 import { generateId, UserId } from "pagopa-interop-models";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { inject } from "vitest";
+import { afterEach, inject } from "vitest";
 
 export const correctEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
@@ -73,3 +73,5 @@ export const { cleanup, readModelRepository, postgresDB } =
     undefined,
     inject("readModelSQLConfig")
   );
+
+afterEach(cleanup);

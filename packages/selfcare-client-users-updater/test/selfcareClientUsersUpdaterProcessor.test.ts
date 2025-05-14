@@ -34,9 +34,7 @@ import {
   generateInternalTokenMock,
   kafkaMessagePayload,
 } from "./utils.js";
-import { cleanup, readModelRepository } from "./utils.js";
-
-afterEach(cleanup);
+import { readModelRepository } from "./utils.js";
 
 describe("selfcareClientUsersUpdaterProcessor", () => {
   const readModelService = readModelServiceBuilder(readModelRepository);
