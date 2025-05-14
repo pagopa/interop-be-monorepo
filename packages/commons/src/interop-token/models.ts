@@ -102,6 +102,10 @@ export type InteropJwtApiPayload =
   | InteropJwtApiM2MAdminPayload
   | InteropJwtApiM2MPayload;
 
+/* ========================================== 
+    Interop API Token 
+  ========================================== */
+
 export type InteropApiToken = {
   header: InteropJwtHeader;
   payload: InteropJwtApiPayload;
