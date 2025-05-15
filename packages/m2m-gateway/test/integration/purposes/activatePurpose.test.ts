@@ -29,14 +29,10 @@ describe("activatePurposeVersion", () => {
     versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
   });
 
-  const activatePurposeApiResponse: WithMetadata<purposeApi.UpdatedPurposeVersion> =
-    {
-      data: {
-        purpose: mockApiPurpose.data,
-        updatedVersionId: mockApiPurposeVersion1.id,
-      },
-      metadata: { version: 0 },
-    };
+  const activatePurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> = {
+    data: mockApiPurposeVersion1,
+    metadata: { version: 0 },
+  };
 
   const pollingTentatives = 2;
   const mockActivatePurposeVersion = vi

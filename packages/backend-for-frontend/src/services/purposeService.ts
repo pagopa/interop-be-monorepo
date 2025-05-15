@@ -582,7 +582,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Activating Version ${versionId} of Purpose ${purposeId}`);
 
-      const result = await purposeProcessClient.activatePurposeVersion(
+      const { id } = await purposeProcessClient.activatePurposeVersion(
         undefined,
         {
           params: {
@@ -595,7 +595,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId,
-        versionId: result.updatedVersionId,
+        versionId: id,
       };
     },
     async deletePurpose(
