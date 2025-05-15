@@ -347,6 +347,50 @@ export const aggregateEserviceArray = ({
   });
 };
 
+export const aggregateDescriptorArray = ({
+  descriptorsSQL,
+  interfacesSQL,
+  documentsSQL,
+  attributesSQL,
+  rejectionReasonsSQL,
+  templateVersionRefsSQL,
+}: {
+  descriptorsSQL: EServiceDescriptorSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+}): Descriptor[] => {
+  const interfacesSQLByDescriptorId =
+    createDescriptorsSQLPropertyMap(interfacesSQL);
+  const documentsSQLByDescriptorId =
+    createDescriptorsSQLPropertyMap(documentsSQL);
+  const attributesSQLByDescriptorId =
+    createDescriptorsSQLPropertyMap(attributesSQL);
+  const rejectionReasonsSQLByDescriptorId =
+    createDescriptorsSQLPropertyMap(rejectionReasonsSQL);
+  const templateVersionRefsSQLByDescriptorId = createDescriptorsSQLPropertyMap(
+    templateVersionRefsSQL
+  );
+
+  return descriptorsSQL.map((descriptorSQL) => {
+    const descriptorId = unsafeBrandId<DescriptorId>(descriptorSQL.id);
+    return aggregateDescriptor({
+      descriptorSQL,
+      interfaceSQL:
+        interfacesSQLByDescriptorId.get(descriptorId)?.at(0) ?? undefined,
+      documentsSQL: documentsSQLByDescriptorId.get(descriptorId) ?? [],
+      attributesSQL: attributesSQLByDescriptorId.get(descriptorId) ?? [],
+      rejectionReasonsSQL:
+        rejectionReasonsSQLByDescriptorId.get(descriptorId) ?? [],
+      templateVersionRefSQL:
+        templateVersionRefsSQLByDescriptorId.get(descriptorId)?.at(0) ??
+        undefined,
+    });
+  });
+};
+
 const createEServiceSQLPropertyMap = <
   T extends
     | EServiceRiskAnalysisSQL
@@ -369,6 +413,26 @@ const createEServiceSQLPropertyMap = <
 
     return acc;
   }, new Map<EServiceId, T[]>());
+
+const createDescriptorsSQLPropertyMap = <
+  T extends
+    | EServiceDescriptorInterfaceSQL
+    | EServiceDescriptorDocumentSQL
+    | EServiceDescriptorAttributeSQL
+    | EServiceDescriptorRejectionReasonSQL
+    | EServiceDescriptorTemplateVersionRefSQL
+>(
+  items: T[]
+): Map<DescriptorId, T[]> =>
+  items.reduce((acc, item) => {
+    const descriptorId = unsafeBrandId<DescriptorId>(item.descriptorId);
+    const values = acc.get(descriptorId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(descriptorId, values);
+
+    return acc;
+  }, new Map<DescriptorId, T[]>());
 
 export const aggregateRiskAnalysis = (
   riskAnalysisSQL: EServiceRiskAnalysisSQL | EServiceTemplateRiskAnalysisSQL,

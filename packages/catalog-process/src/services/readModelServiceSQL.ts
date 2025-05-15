@@ -36,6 +36,7 @@ import {
   aggregateAgreementArray,
   aggregateAttributeArray,
   aggregateDelegation,
+  aggregateDescriptorArray,
   aggregateEserviceArray,
   CatalogReadModelService,
   EServiceTemplateReadModelService,
@@ -679,6 +680,7 @@ export function readModelServiceBuilderSQL(
           rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          totalCount: queryDescriptorIds.totalCount,
         })
         .from(eserviceDescriptorInReadmodelCatalog)
         .innerJoin(
@@ -722,7 +724,11 @@ export function readModelServiceBuilderSQL(
         )
         .orderBy(asc(eserviceDescriptorInReadmodelCatalog.version));
 
-      // TODO
+      const descriptors = aggregateDescriptorArray(
+        toEServiceDescriptorAggregatorArray(queryResult)
+      );
+
+      return createListResult(descriptors, queryResult[0]?.totalCount);
     },
   };
 }
