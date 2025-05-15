@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import crypto from "crypto";
@@ -94,7 +95,12 @@ describe("authorization server tests", () => {
       client_id: clientId,
     };
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       clientAssertionRequestValidationFailed(
         clientId,
@@ -116,7 +122,12 @@ describe("authorization server tests", () => {
       client_id: clientId,
     };
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       clientAssertionValidationFailed(clientId, issuedAtNotFound().detail)
     );
@@ -142,7 +153,12 @@ describe("authorization server tests", () => {
       purposeId,
     });
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
   });
 
@@ -179,7 +195,12 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       incompleteTokenGenerationStatesConsumerClient(
         tokenGenStatesConsumerClient.PK
@@ -215,7 +236,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       incompleteTokenGenerationStatesConsumerClient(
         tokenGenStatesConsumerClient.PK
@@ -261,7 +287,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       clientAssertionSignatureValidationFailed(
         request.client_id,
@@ -307,7 +338,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       platformStateValidationFailed(
         invalidEServiceState(descriptorState).detail
@@ -353,7 +389,8 @@ describe("authorization server tests", () => {
       const response = await tokenService.generateToken(
         request,
         getMockContext({}),
-        genericLogger
+        () => {},
+        () => {}
       );
       expect(response.limitReached).toBe(false);
       expect(response.rateLimiterStatus.remainingRequests).toBe(
@@ -364,7 +401,8 @@ describe("authorization server tests", () => {
     const responseAfterLimitExceeded = await tokenService.generateToken(
       request,
       getMockContext({}),
-      genericLogger
+      () => {},
+      () => {}
     );
 
     expect(responseAfterLimitExceeded).toEqual({
@@ -423,7 +461,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       Error("JWT Signature failed. Empty signature returned")
     );
@@ -465,7 +508,12 @@ describe("authorization server tests", () => {
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       Error("JWT Signature failed. Empty signature returned")
     );
@@ -515,7 +563,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, getMockContext({}), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(fallbackAuditFailed(clientId));
   });
 
@@ -569,7 +622,8 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request,
       getMockContext({ correlationId }),
-      genericLogger
+      () => {},
+      () => {}
     );
 
     const date = new Date();
@@ -707,7 +761,8 @@ describe("authorization server tests", () => {
     const result = await tokenService.generateToken(
       request,
       getMockContext({ correlationId }),
-      genericLogger
+      () => {},
+      () => {}
     );
 
     expect(result.token).toBeDefined();
@@ -809,7 +864,8 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request,
       getMockContext({}),
-      genericLogger
+      () => {},
+      () => {}
     );
 
     const fileListAfter = await fileManager.listFiles(
@@ -873,7 +929,8 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request,
       getMockContext({}),
-      genericLogger
+      () => {},
+      () => {}
     );
 
     const fileListAfter = await fileManager.listFiles(
