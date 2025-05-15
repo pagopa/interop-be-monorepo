@@ -80,7 +80,10 @@ export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined,
   expectedAudiences: string[],
-  logger: Logger
+  logger: Logger,
+  // TODO: delete when FEATURE_FLAG_TOKEN_CLAIMS is removed
+  featureFlagTokenClaims: boolean = false
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): ValidationResult<ClientAssertion> => {
   try {
     const decodedPayload = jose.decodeJwt(clientAssertionJws);
@@ -146,6 +149,14 @@ export const verifyClientAssertion = (
             JSON.parse(payloadStrictParseResult.error.message)
           )}`
         );
+
+        if (featureFlagTokenClaims) {
+          return failedValidation([
+            clientAssertionInvalidClaims(
+              payloadStrictParseResult.error.message
+            ),
+          ]);
+        }
       }
 
       const headerParseResult = ClientAssertionHeader.safeParse(decodedHeader);
@@ -164,6 +175,12 @@ export const verifyClientAssertion = (
             JSON.parse(headerStrictParseResult.error.message)
           )}`
         );
+
+        if (featureFlagTokenClaims) {
+          return failedValidation([
+            clientAssertionInvalidClaims(headerStrictParseResult.error.message),
+          ]);
+        }
       }
 
       const result: ClientAssertion = {

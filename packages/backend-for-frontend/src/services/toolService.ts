@@ -28,7 +28,7 @@ import {
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
+import { isFeatureFlagEnabled, WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   authorizationApi,
@@ -78,7 +78,8 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
           clientAssertion,
           clientId,
           config.clientAssertionAudience,
-          ctx.logger
+          ctx.logger,
+          isFeatureFlagEnabled(config, "featureFlagTokenClaims")
         );
 
       if (parametersErrors || clientAssertionErrors) {

@@ -114,7 +114,8 @@ export function tokenServiceBuilder({
           request.client_assertion,
           request.client_id,
           config.clientAssertionAudience,
-          logger
+          logger,
+          isFeatureFlagEnabled(config, "featureFlagTokenClaims")
         );
 
       if (clientAssertionErrors) {
