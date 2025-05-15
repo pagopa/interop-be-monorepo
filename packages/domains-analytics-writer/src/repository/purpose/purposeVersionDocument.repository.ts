@@ -40,9 +40,9 @@ export function purposeVersionDocumentRepository(conn: DBContext["conn"]) {
         if (records.length) {
           await t.none(pgp.helpers.insert(records, cs));
         }
-      } catch (e) {
+      } catch (error) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${e}`
+          `Error inserting into staging table ${stagingTable}: ${error}`
         );
       }
     },
@@ -58,17 +58,19 @@ export function purposeVersionDocumentRepository(conn: DBContext["conn"]) {
             ["id"]
           )
         );
-      } catch (e) {
-        throw genericInternalError(`merge purpose_version_document: ${e}`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+        );
       }
     },
 
     async clean() {
       try {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (e) {
+      } catch (error) {
         throw genericInternalError(
-          `clean purpose_version_document stagingTable: ${e}`
+          `Error cleaning staging table ${stagingTable}: ${error}`
         );
       }
     },

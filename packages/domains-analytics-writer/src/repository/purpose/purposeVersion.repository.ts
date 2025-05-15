@@ -62,16 +62,20 @@ export function purposeVersionRepository(conn: DBContext["conn"]) {
             ["id"]
           )
         );
-      } catch (e) {
-        throw genericInternalError(`merge purpose_version: ${e}`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+        );
       }
     },
 
     async clean() {
       try {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (e) {
-        throw genericInternalError(`clean purpose_version stagingTable: ${e}`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTable}: ${error}`
+        );
       }
     },
 

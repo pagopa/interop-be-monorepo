@@ -44,9 +44,9 @@ export function purposeRiskAnalysisAnswerRepository(conn: DBContext["conn"]) {
         if (records.length) {
           await t.none(pgp.helpers.insert(records, cs));
         }
-      } catch (e) {
+      } catch (error) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${e}`
+          `Error inserting into staging table ${stagingTable}: ${error}`
         );
       }
     },
@@ -62,16 +62,20 @@ export function purposeRiskAnalysisAnswerRepository(conn: DBContext["conn"]) {
             ["id", "purpose_id"]
           )
         );
-      } catch (e) {
-        throw genericInternalError(`merge purpose_risk_analysis_answer: ${e}`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+        );
       }
     },
 
     async clean() {
       try {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (e) {
-        throw genericInternalError(`clean stagingTable: ${e}`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTable}: ${error}`
+        );
       }
     },
   };

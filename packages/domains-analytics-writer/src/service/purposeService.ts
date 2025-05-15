@@ -33,41 +33,51 @@ export function purposeServiceBuilder(db: DBContext) {
         upsertBatch,
         config.dbMessagesToInsertPerBatch
       )) {
-        const toInsertPurpose = batch.map((item) => item.purposeSQL);
-        const toInsertVersions = batch.flatMap((item) => item.versionsSQL);
-        const toInsertVersionDocuments = batch.flatMap(
-          (item) => item.versionDocumentsSQL
-        );
-        const toInsertForm = batch.flatMap(
-          (item) => item.riskAnalysisFormSQL ?? []
-        );
-        const toInsertAnswers = batch.flatMap(
-          (item) => item.riskAnalysisAnswersSQL ?? []
-        );
+        const batchItems = {
+          purposeSQL: batch.map((item) => item.purposeSQL),
+          versionsSQL: batch.flatMap((item) => item.versionsSQL),
+          versionDocumentsSQL: batch.flatMap(
+            (item) => item.versionDocumentsSQL
+          ),
+          riskAnalysisFormSQL: batch.flatMap(
+            (item) => item.riskAnalysisFormSQL ?? []
+          ),
+          riskAnalysisAnswersSQL: batch.flatMap(
+            (item) => item.riskAnalysisAnswersSQL ?? []
+          ),
+        };
 
         await dbContext.conn.tx(async (t) => {
-          if (toInsertPurpose.length) {
-            await purposeRepo.insert(t, dbContext.pgp, toInsertPurpose);
+          if (batchItems.purposeSQL.length) {
+            await purposeRepo.insert(t, dbContext.pgp, batchItems.purposeSQL);
           }
-          if (toInsertVersions.length) {
-            await versionRepo.insert(t, dbContext.pgp, toInsertVersions);
+          if (batchItems.versionsSQL.length) {
+            await versionRepo.insert(t, dbContext.pgp, batchItems.versionsSQL);
           }
-          if (toInsertVersionDocuments.length) {
+          if (batchItems.versionDocumentsSQL.length) {
             await versionDocumentRepo.insert(
               t,
               dbContext.pgp,
-              toInsertVersionDocuments
+              batchItems.versionDocumentsSQL
             );
           }
-          if (toInsertForm.length) {
-            await formRepo.insert(t, dbContext.pgp, toInsertForm);
+          if (batchItems.riskAnalysisFormSQL.length) {
+            await formRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.riskAnalysisFormSQL
+            );
           }
-          if (toInsertAnswers.length) {
-            await answerRepo.insert(t, dbContext.pgp, toInsertAnswers);
+          if (batchItems.riskAnalysisAnswersSQL.length) {
+            await answerRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.riskAnalysisAnswersSQL
+            );
           }
         });
         genericLogger.info(
-          `Staging data inserted for batch of ${toInsertPurpose.length} purposes (with ${toInsertForm.length} forms and ${toInsertAnswers.length} answers)`
+          `Staging data inserted for batch of ${batchItems.purposeSQL.length} `
         );
       }
 
@@ -101,21 +111,27 @@ export function purposeServiceBuilder(db: DBContext) {
         items,
         config.dbMessagesToInsertPerBatch
       )) {
-        const toInsertVersions = batch.map((i) => i.versionSQL);
-        const toInsertDocs = batch
-          .map((i) => i.versionDocumentSQL)
-          .filter((d): d is NonNullable<typeof d> => !!d);
+        const batchItems = {
+          versionsSQL: batch.map((item) => item.versionSQL),
+          versionDocumentsSQL: batch.flatMap(
+            (item) => item.versionDocumentSQL ?? []
+          ),
+        };
 
         await dbContext.conn.tx(async (t) => {
-          if (toInsertVersions.length) {
-            await versionRepo.insert(t, dbContext.pgp, toInsertVersions);
+          if (batchItems.versionsSQL.length) {
+            await versionRepo.insert(t, dbContext.pgp, batchItems.versionsSQL);
           }
-          if (toInsertDocs.length) {
-            await versionDocumentRepo.insert(t, dbContext.pgp, toInsertDocs);
+          if (batchItems.versionDocumentsSQL.length) {
+            await versionDocumentRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.versionDocumentsSQL
+            );
           }
         });
         genericLogger.info(
-          `Staging data inserted for batch of purpose versions: ${toInsertVersions
+          `Staging data inserted for batch of purpose versions: ${batchItems.versionsSQL
             .map((v) => v.id)
             .join(", ")}`
         );

@@ -65,18 +65,23 @@ export function purposeRepository(conn: DBContext["conn"]) {
             ["id"]
           )
         );
-      } catch (e) {
-        throw genericInternalError(`merge purpose: ${e}`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+        );
       }
     },
 
     async clean() {
       try {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (e) {
-        throw genericInternalError(`clean purpose stagingTable: ${e}`);
+      } catch (error) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTable}: ${error}`
+        );
       }
     },
+
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
