@@ -239,5 +239,41 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers
       );
     },
+    async archivePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieveing current version for purpose ${purposeId} archiving`
+      );
+      const purposeResponse = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const versionToArchive = retrievePurposeCurrentVersion(
+        purposeResponse.data
+      );
+
+      logger.info(
+        `Archiving version ${versionToArchive.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.archivePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToArchive.id },
+          headers,
+        });
+
+      await pollPurpose(
+        {
+          data: purposeResponse.data,
+          metadata,
+        },
+        headers
+      );
+    },
   };
 }
