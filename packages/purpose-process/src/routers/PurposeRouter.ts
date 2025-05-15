@@ -32,6 +32,7 @@ import {
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
+  purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
 import { readModelServiceBuilder } from "../services/readModelService.js";
@@ -519,7 +520,13 @@ const purposeRouter = (
             ctx
           );
           setMetadataVersionHeader(res, metadata);
-          return res.status(200).send(purposeApi.PurposeVersion.parse(data));
+          return res
+            .status(200)
+            .send(
+              purposeApi.PurposeVersion.parse(
+                purposeVersionToApiPurposeVersion(data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
