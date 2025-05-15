@@ -12,7 +12,10 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { getPurposeVersionErrorMapper } from "../utils/errorMappers.js";
+import {
+  getPurposeVersionErrorMapper,
+  activatePurposeErrorMapper,
+} from "../utils/errorMappers.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -157,11 +160,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/activate", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.activatePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          activatePurposeErrorMapper,
           ctx,
           `Error activating purpose ${req.params.purposeId}`
         );

@@ -14,6 +14,7 @@ import {
   isPolledVersionAtLeastResponseVersion,
 } from "../utils/polling.js";
 import { purposeVersionNotFound } from "../model/errors.js";
+import { assertPurposeVersionExists } from "../utils/validators/purposeValidator.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -32,6 +33,26 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const retrievePurposeCurrentVersion = (
+    purpose: purposeApi.Purpose
+  ): purposeApi.PurposeVersion => {
+    const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
+      m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
+      m2mGatewayApi.PurposeVersionState.Values.REJECTED,
+    ];
+    const currentVersion = purpose.versions
+      .filter((v) => !statesToExclude.includes(v.state))
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      .at(-1);
+
+    assertPurposeVersionExists(currentVersion, purpose.id);
+
+    return currentVersion;
+  };
 
   return {
     async getPurposes(
@@ -181,6 +202,42 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       }
 
       return toM2mGatewayApiPurposeVersion(createdVersion);
+    },
+    async activatePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieveing current version for purpose ${purposeId} activation`
+      );
+      const purposeResponse = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const versionToActivate = retrievePurposeCurrentVersion(
+        purposeResponse.data
+      );
+
+      logger.info(
+        `Activating version ${versionToActivate.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToActivate.id },
+          headers,
+        });
+
+      await pollPurpose(
+        {
+          data: purposeResponse.data,
+          metadata,
+        },
+        headers
+      );
     },
   };
 }

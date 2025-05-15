@@ -667,6 +667,9 @@ paths:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Activated
           content:
