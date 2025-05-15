@@ -54,39 +54,30 @@ describe("API DELETE /consumer/delegations/:delegationId test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for delegationNotFound", async () => {
-    delegationService.revokeConsumerDelegation = vi
-      .fn()
-      .mockRejectedValue(delegationNotFound(mockDelegation.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for operationRestrictedToDelegator", async () => {
-    delegationService.revokeConsumerDelegation = vi
-      .fn()
-      .mockRejectedValue(
-        operationRestrictedToDelegator(
-          generateId<TenantId>(),
-          mockDelegation.id
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for incorrectState", async () => {
-    delegationService.revokeConsumerDelegation = vi
-      .fn()
-      .mockRejectedValue(
-        incorrectState(mockDelegation.id, "Revoked", "WaitingForApproval")
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: delegationNotFound(mockDelegation.id), expectedStatus: 404 },
+    {
+      error: operationRestrictedToDelegator(
+        generateId<TenantId>(),
+        mockDelegation.id
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: incorrectState(mockDelegation.id, "Revoked", "WaitingForApproval"),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      delegationService.revokeConsumerDelegation = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

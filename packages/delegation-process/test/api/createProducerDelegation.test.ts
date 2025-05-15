@@ -78,91 +78,49 @@ describe("API POST /producer/delegations test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for eserviceNotFound", async () => {
-    delegationService.createProducerDelegation = vi
-      .fn()
-      .mockRejectedValue(eserviceNotFound(mockEService.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for tenantNotFound", async () => {
-    delegationService.createProducerDelegation = vi
-      .fn()
-      .mockRejectedValue(tenantNotFound(mockDelegator.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 for invalidDelegatorAndDelegateIds", async () => {
-    delegationService.createProducerDelegation = vi
-      .fn()
-      .mockRejectedValue(delegatorAndDelegateSameIdError());
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 403 for originNotCompliant", async () => {
-    delegationService.createProducerDelegation = vi
-      .fn()
-      .mockRejectedValue(originNotCompliant(mockDelegator, "Delegator"));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for tenantNotAllowedToDelegation", async () => {
-    delegationService.createProducerDelegation = vi
-      .fn()
-      .mockRejectedValue(
-        tenantNotAllowedToDelegation(mockDelegator.id, "DelegatedConsumer")
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 403 for differentEserviceProducer", async () => {
-    delegationService.createProducerDelegation = vi
-      .fn()
-      .mockRejectedValue(differentEServiceProducer(mockDelegator.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
-
-  it("Should return 409 for delegationAlreadyExists", async () => {
-    delegationService.createProducerDelegation = vi
-      .fn()
-      .mockRejectedValue(
-        delegationAlreadyExists(
-          mockDelegator.id,
-          mockEService.id,
-          "DelegatedConsumer"
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
-
-  it("Should return 409 for delegationAlreadyExists", async () => {
-    delegationService.createProducerDelegation = vi
-      .fn()
-      .mockRejectedValue(
-        delegationAlreadyExists(
-          generateId<TenantId>(),
-          mockEService.id,
-          "DelegatedProducer"
-        )
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(409);
-  });
+  it.each([
+    { error: eserviceNotFound(mockEService.id), expectedStatus: 400 },
+    { error: tenantNotFound(mockDelegator.id), expectedStatus: 400 },
+    { error: delegatorAndDelegateSameIdError(), expectedStatus: 400 },
+    {
+      error: originNotCompliant(mockDelegator, "Delegator"),
+      expectedStatus: 403,
+    },
+    {
+      error: tenantNotAllowedToDelegation(
+        mockDelegator.id,
+        "DelegatedConsumer"
+      ),
+      expectedStatus: 403,
+    },
+    { error: differentEServiceProducer(mockDelegator.id), expectedStatus: 403 },
+    {
+      error: delegationAlreadyExists(
+        mockDelegator.id,
+        mockEService.id,
+        "DelegatedConsumer"
+      ),
+      expectedStatus: 409,
+    },
+    {
+      error: delegationAlreadyExists(
+        generateId<TenantId>(),
+        mockEService.id,
+        "DelegatedProducer"
+      ),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      delegationService.createProducerDelegation = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

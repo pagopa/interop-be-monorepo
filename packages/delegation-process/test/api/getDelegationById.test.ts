@@ -61,14 +61,17 @@ describe("API GET /delegations/:delegationId test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for delegationNotFound", async () => {
-    delegationService.getDelegationById = vi
-      .fn()
-      .mockRejectedValue(delegationNotFound(mockDelegation.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
+  it.each([
+    { error: delegationNotFound(mockDelegation.id), expectedStatus: 404 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      delegationService.getDelegationById = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

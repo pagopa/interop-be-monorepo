@@ -76,34 +76,33 @@ describe("API GET /delegations/:delegationId/contracts/:contractId test", () => 
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for delegationNotFound", async () => {
-    delegationService.getDelegationContract = vi
-      .fn()
-      .mockRejectedValue(
-        delegationContractNotFound(mockDelegation.id, mockDelegationContract.id)
-      );
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for delegationContractNotFound", async () => {
-    delegationService.getDelegationContract = vi
-      .fn()
-      .mockRejectedValue(delegationNotFound(mockDelegation.id));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 403 for operationForbidden", async () => {
-    delegationService.getDelegationContract = vi
-      .fn()
-      .mockRejectedValue(operationForbidden);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
+  it.each([
+    {
+      error: delegationContractNotFound(
+        mockDelegation.id,
+        mockDelegationContract.id
+      ),
+      expectedStatus: 404,
+    },
+    {
+      error: delegationNotFound(mockDelegation.id),
+      expectedStatus: 404,
+    },
+    {
+      error: operationForbidden,
+      expectedStatus: 403,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      delegationService.getDelegationContract = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
