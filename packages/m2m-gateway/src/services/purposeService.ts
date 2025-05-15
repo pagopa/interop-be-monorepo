@@ -1,9 +1,10 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeId } from "pagopa-interop-models";
+import { PurposeId, PurposeVersionId } from "pagopa-interop-models";
 import {
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
+  toM2mGatewayApiPurposeVersion,
 } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -12,6 +13,7 @@ import {
   pollResource,
   isPolledVersionAtLeastResponseVersion,
 } from "../utils/polling.js";
+import { purposeVersionNotFound } from "../model/errors.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -91,6 +93,28 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       const polledResource = await pollPurpose(purposeResponse, headers);
 
       return toM2MGatewayApiPurpose(polledResource.data);
+    },
+    async getPurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeVersion> {
+      logger.info(`Retrieving version ${versionId} of purpose ${purposeId}`);
+
+      const { data } = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const version = data.versions.find((version) => version.id === versionId);
+
+      if (!version) {
+        throw purposeVersionNotFound(purposeId, versionId);
+      }
+
+      return toM2mGatewayApiPurposeVersion(version);
     },
   };
 }
