@@ -20,11 +20,11 @@ export function tokenGenerationReadModelServiceBuilder(
 ) {
   return {
     async readAllPlatformStatesAgreements(): Promise<
-      PlatformStatesAgreementEntry[]
+      Array<Partial<PlatformStatesAgreementEntry>>
     > {
       const runPaginatedQuery = async (
         exclusiveStartKey?: Record<string, AttributeValue>
-      ): Promise<PlatformStatesAgreementEntry[]> => {
+      ): Promise<Array<Partial<PlatformStatesAgreementEntry>>> => {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNamePlatform,
           ExclusiveStartKey: exclusiveStartKey,
@@ -44,7 +44,7 @@ export function tokenGenerationReadModelServiceBuilder(
           const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
           const platformStatesAgreements = z
-            .array(PlatformStatesAgreementEntry)
+            .array(PlatformStatesAgreementEntry.partial())
             .safeParse(unmarshalledItems);
 
           if (!platformStatesAgreements.success) {
@@ -99,7 +99,7 @@ export function tokenGenerationReadModelServiceBuilder(
 
           if (!tokenGenStatesEntries.success) {
             throw genericInternalError(
-              `Unable to parse token-generation-states  consumer clients: result ${JSON.stringify(
+              `Unable to parse token-generation-states consumer clients: result ${JSON.stringify(
                 tokenGenStatesEntries
               )} - data ${JSON.stringify(data)} `
             );
