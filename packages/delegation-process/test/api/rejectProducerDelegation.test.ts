@@ -24,7 +24,7 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
 
   delegationService.rejectProducerDelegation = vi
     .fn()
-    .mockResolvedValue(undefined);
+    .mockResolvedValue({ data: mockDelegation, metadata: { version: 1 } });
 
   const makeRequest = async (
     token: string,
@@ -41,11 +41,11 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
     }
   );
 

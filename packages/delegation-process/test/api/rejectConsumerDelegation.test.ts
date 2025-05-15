@@ -22,9 +22,10 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
     kind: delegationKind.delegatedConsumer,
   });
 
-  delegationService.rejectConsumerDelegation = vi
-    .fn()
-    .mockResolvedValue(undefined);
+  delegationService.rejectConsumerDelegation = vi.fn().mockResolvedValue({
+    data: mockDelegation,
+    metadata: { version: 1 },
+  });
 
   const makeRequest = async (
     token: string,
@@ -38,14 +39,17 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
         rejectionReason: "reason",
       });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
     }
   );
 

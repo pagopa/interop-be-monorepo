@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockDelegation,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Delegation,
   TenantId,
@@ -8,6 +12,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { delegationApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { api, delegationService } from "../vitest.api.setup.js";
 import {
@@ -15,15 +20,20 @@ import {
   incorrectState,
   operationRestrictedToDelegate,
 } from "../../src/model/domain/errors.js";
+import { delegationToApiDelegation } from "../../src/model/domain/apiConverter.js";
 
 describe("API POST /producer/delegations/:delegationId/approve test", () => {
   const mockDelegation: Delegation = getMockDelegation({
     kind: delegationKind.delegatedProducer,
   });
+  const serviceResponse = getMockWithMetadata(mockDelegation);
+  const apiDelegation = delegationApi.Delegation.parse(
+    delegationToApiDelegation(mockDelegation)
+  );
 
   delegationService.approveProducerDelegation = vi
     .fn()
-    .mockResolvedValue(undefined);
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -38,11 +48,15 @@ describe("API POST /producer/delegations/:delegationId/approve test", () => {
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiDelegation);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

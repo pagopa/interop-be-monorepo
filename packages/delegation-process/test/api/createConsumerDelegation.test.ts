@@ -5,6 +5,7 @@ import {
   getMockDelegation,
   getMockEService,
   getMockTenant,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
@@ -36,14 +37,14 @@ describe("API POST /consumer/delegations test", () => {
     kind: delegationKind.delegatedConsumer,
   });
 
+  const serviceResponse = getMockWithMetadata(mockDelegation);
   const apiDelegation = delegationApi.Delegation.parse(
     delegationToApiDelegation(mockDelegation)
   );
 
-  delegationService.createConsumerDelegation = vi.fn().mockResolvedValue({
-    data: mockDelegation,
-    metadata: { version: 0 },
-  });
+  delegationService.createConsumerDelegation = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -70,6 +71,9 @@ describe("API POST /consumer/delegations test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiDelegation);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

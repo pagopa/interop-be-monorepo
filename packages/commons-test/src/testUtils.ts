@@ -1093,3 +1093,8 @@ export const getMockContextM2M = ({
   logger: genericLogger,
   requestTimestamp: Date.now(),
 });
+
+export const getMockWithMetadata = <T>(data: T): WithMetadata<T> => ({
+  data,
+  metadata: { version: generateMock(z.number().int()) },
+});
