@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  AttributeId,
   DescriptorId,
   EServiceId,
   generateId,
@@ -34,9 +35,9 @@ describe("getCatalogEServiceDescriptor", () => {
   const tenantId: TenantId = generateId();
   const tenantName = "mockTenant";
 
-  const declaredAttributeId = "declaredAttributeId";
-  const certifiedAttributeId = "certifiedAttributeId";
-  const verifiedAttributeId = "verifiedAttributeId";
+  const declaredAttributeId = generateId<AttributeId>();
+  const certifiedAttributeId = generateId<AttributeId>();
+  const verifiedAttributeId = generateId<AttributeId>();
 
   const declaredAttributeName = "mockDeclaredAttributeName";
   const certifiedAttributeName = "mockCertifiedAttributeName";
@@ -271,7 +272,7 @@ describe("getCatalogEServiceDescriptor", () => {
     expect(attributeService.getAllBulkAttributes).toHaveBeenCalledWith(
       mockAttributeProcessClient,
       bffMockContext.headers,
-      ["certifiedAttributeId", "declaredAttributeId", "verifiedAttributeId"]
+      [certifiedAttributeId, declaredAttributeId, verifiedAttributeId]
     );
   });
 
