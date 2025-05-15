@@ -51,7 +51,9 @@ export async function handlePurposeMessageV1(
         },
         (m) => {
           if (!m.data.purpose) {
-            throw genericInternalError("Purpose missing in event");
+            throw genericInternalError(
+              `Purpose can't be missing in the event message`
+            );
           }
           const item = splitPurposeIntoObjectsSQL(
             fromPurposeV1(m.data.purpose),
@@ -64,7 +66,9 @@ export async function handlePurposeMessageV1(
         { type: P.union("PurposeVersionCreated", "PurposeVersionUpdated") },
         (m) => {
           if (!m.data.version) {
-            throw genericInternalError("Purpose version missing in event");
+            throw genericInternalError(
+              `Purpose version can't be missing in the event message`
+            );
           }
           const { versionSQL, versionDocumentSQL } =
             splitPurposeVersionIntoObjectsSQL(

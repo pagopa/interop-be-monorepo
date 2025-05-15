@@ -46,7 +46,9 @@ export async function handlePurposeMessageV2(
         },
         (m) => {
           if (!m.data.purpose) {
-            throw genericInternalError("Missing purpose");
+            throw genericInternalError(
+              `Purpose can't be missing in the event message`
+            );
           }
           const item = splitPurposeIntoObjectsSQL(
             fromPurposeV2(m.data.purpose),
@@ -65,7 +67,9 @@ export async function handlePurposeMessageV2(
         },
         (m) => {
           if (!m.data.purpose) {
-            throw genericInternalError("Missing purpose");
+            throw genericInternalError(
+              `Purpose can't be missing in the event message`
+            );
           }
           deletePurposeBatch.push(m.data.purpose?.id);
         }
