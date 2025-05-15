@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import { generateId, Tenant } from "pagopa-interop-models";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { generateId, Tenant, TenantId } from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import { authRole, AuthRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { api, tenantService } from "../vitest.api.setup.js";
@@ -21,12 +25,13 @@ describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
   };
   const tenant: Tenant = getMockTenant();
 
+  const serviceResponse = getMockWithMetadata(tenant);
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
   beforeEach(() => {
     tenantService.addCertifiedAttribute = vi
       .fn()
-      .mockResolvedValue({ data: tenant, metadata: { version: 1 } });
+      .mockResolvedValue(serviceResponse);
   });
 
   const authorizedRoles: AuthRole[] = [
@@ -37,7 +42,7 @@ describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
 
   const makeRequest = async (
     token: string,
-    tenantId: string = tenant.id,
+    tenantId: TenantId = tenant.id,
     body: object = tenantAttributeSeed
   ) =>
     request(api)
@@ -53,6 +58,9 @@ describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -91,7 +99,7 @@ describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
   );
 
   it.each([
-    { tenantId: "invalid" },
+    { tenantId: "invalid" as TenantId },
     { body: {} },
     { body: { id: "invalid" } },
     { body: { ...tenantAttributeSeed, extraField: 1 } },

@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import { generateId, operationForbidden, Tenant } from "pagopa-interop-models";
+import {
+  generateId,
+  operationForbidden,
+  Tenant,
+  TenantId,
+} from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -25,7 +30,7 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
 
   const makeRequest = async (
     token: string,
-    tenantId: string = tenant.id,
+    tenantId: TenantId = tenant.id,
     body: object = mailSeed
   ) =>
     request(api)
@@ -63,7 +68,7 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
   );
 
   it.each([
-    { tenantId: "invalid" },
+    { tenantId: "invalid" as TenantId },
     { body: {} },
     { body: { ...mailSeed, address: "" } },
     { body: { ...mailSeed, extraField: 1 } },

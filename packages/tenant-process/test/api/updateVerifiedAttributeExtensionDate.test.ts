@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import { generateId, Tenant } from "pagopa-interop-models";
+import {
+  AttributeId,
+  generateId,
+  Tenant,
+  TenantId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockTenant,
@@ -52,8 +57,8 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
 
   const makeRequest = async (
     token: string,
-    tenantId: string = tenant.id,
-    _attributeId: string = attributeId,
+    tenantId: TenantId = tenant.id,
+    _attributeId: AttributeId = attributeId,
     _verifierId: string = verifierId
   ) =>
     request(api)
@@ -109,8 +114,8 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
   );
 
   it.each([
-    { tenantId: "invalid" },
-    { attributeId: "invalid" },
+    { tenantId: "invalid" as TenantId },
+    { attributeId: "invalid" as AttributeId },
     { verifierId: "invalid" },
   ])(
     "Should return 400 if passed invalid data: %s",

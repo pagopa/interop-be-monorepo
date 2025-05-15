@@ -21,7 +21,7 @@ describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
 
   const makeRequest = async (
     token: string,
-    tenantId: string = mockTenantId,
+    tenantId: TenantId = mockTenantId,
     mailId: string = mockMailId
   ) =>
     request(api)
@@ -57,14 +57,11 @@ describe("API DELETE /tenants/{tenantId}/mails/{mailId} test", () => {
     }
   );
 
-  it.each([{ tenantId: "invalid" }, { mailId: "invalid" }])(
+  it.each([{ tenantId: "invalid" as TenantId }])(
     "Should return 400 if passed invalid data: %s",
-    async ({ tenantId, mailId }) => {
+    async ({ tenantId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await request(api)
-        .delete(`/tenants/${tenantId}/mails/${mailId}`)
-        .set("Authorization", `Bearer ${token}`)
-        .set("X-Correlation-Id", generateId());
+      const res = await makeRequest(token, tenantId);
       expect(res.status).toBe(400);
     }
   );

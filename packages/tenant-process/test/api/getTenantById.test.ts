@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import { generateId, Tenant } from "pagopa-interop-models";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { generateId, Tenant, TenantId } from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
 import { api, tenantService } from "../vitest.api.setup.js";
@@ -12,12 +16,11 @@ import { tenantNotFound } from "../../src/model/domain/errors.js";
 describe("API GET /tenants/{id} test", () => {
   const tenant: Tenant = getMockTenant();
 
+  const serviceResponse = getMockWithMetadata(tenant);
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
   beforeEach(() => {
-    tenantService.getTenantById = vi
-      .fn()
-      .mockResolvedValue({ data: tenant, metadata: { version: 1 } });
+    tenantService.getTenantById = vi.fn().mockResolvedValue(serviceResponse);
   });
 
   const authorizedRoles: AuthRole[] = [
@@ -30,7 +33,7 @@ describe("API GET /tenants/{id} test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
 
-  const makeRequest = async (token: string, tenantId: string = tenant.id) =>
+  const makeRequest = async (token: string, tenantId: TenantId = tenant.id) =>
     request(api)
       .get(`/tenants/${tenantId}`)
       .set("Authorization", `Bearer ${token}`)
@@ -43,6 +46,9 @@ describe("API GET /tenants/{id} test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
@@ -64,7 +70,7 @@ describe("API GET /tenants/{id} test", () => {
     }
   );
 
-  it.each([{ tenantId: "invalid" }])(
+  it.each([{ tenantId: "invalid" as TenantId }])(
     "Should return 400 if passed invalid data: %s",
     async ({ tenantId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

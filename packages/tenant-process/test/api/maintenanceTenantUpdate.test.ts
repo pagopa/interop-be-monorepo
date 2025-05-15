@@ -21,7 +21,7 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
 
   const makeRequest = async (
     token: string,
-    tenantId: string = defaultTenantId,
+    tenantId: TenantId = defaultTenantId,
     body: object = defaultBody
   ) =>
     request(api)
@@ -55,7 +55,7 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
   );
 
   it.each([
-    { tenantId: "invalid" },
+    { tenantId: "invalid" as TenantId },
     { body: {} },
     { body: { ...defaultBody, currentVersion: "invalid" } },
     {

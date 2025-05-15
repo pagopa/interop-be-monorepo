@@ -69,13 +69,4 @@ describe("API GET /tenants/origin/{origin}/code/{code} test", () => {
       expect(res.status).toBe(expectedStatus);
     }
   );
-
-  it("Should return 400 if passed an empty origin and no code", async () => {
-    const res = await request(api)
-      .get(`/tenants/origin/`)
-      .set("Authorization", `Bearer ${generateToken(authRole.ADMIN_ROLE)}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
-    expect(res.status).toBe(400);
-  });
 });

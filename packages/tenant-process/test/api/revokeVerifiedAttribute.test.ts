@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import { generateId, Tenant } from "pagopa-interop-models";
+import {
+  AttributeId,
+  generateId,
+  Tenant,
+  TenantId,
+} from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -30,8 +35,8 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
 
   const makeRequest = async (
     token: string,
-    tenantId: string = tenant.id,
-    attributeId: string = generateId(),
+    tenantId: TenantId = tenant.id,
+    attributeId: AttributeId = generateId(),
     body: object = defaultBody
   ) =>
     request(api)
@@ -84,8 +89,8 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
   );
 
   it.each([
-    { tenantId: "invalid" },
-    { attributeId: "invalid" },
+    { tenantId: "invalid" as TenantId },
+    { attributeId: "invalid" as AttributeId },
     { body: {} },
     { body: { agreementId: "invalid" } },
     { body: { ...defaultBody, extraField: 1 } },
