@@ -129,7 +129,7 @@ describe("GET /eservices/:eserviceId/descriptors router test", () => {
   );
 
   it.each([invalidPaginationLimit(0), invalidPaginationOffset(-1)])(
-    "Should return 500 in case of $code error",
+    "Should return 400 in case of $code error",
     async (error) => {
       mockEserviceService.getEServiceDescriptors = vi
         .fn()
@@ -137,7 +137,7 @@ describe("GET /eservices/:eserviceId/descriptors router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, generateId(), mockQueryParams);
 
-      expect(res.status).toBe(500);
+      expect(res.status).toBe(400);
     }
   );
 });
