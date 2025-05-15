@@ -28,7 +28,7 @@ describe("POST /agreements/:agreementId/approve router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform API clients calls for user with role %s",
+    "Should return 200 and perform services calls for user with role %s",
     async (role) => {
       mockAgreementService.approveAgreement = vi
         .fn()
