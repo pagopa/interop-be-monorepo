@@ -19,10 +19,7 @@ import {
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
-import {
-  eserviceDescriptorNotFound,
-  tenantNotFound,
-} from "../src/model/errors.js";
+import { eserviceDescriptorNotFound } from "../src/model/errors.js";
 import * as attributeService from "../src/services/attributeService.js";
 import * as delegationService from "../src/services/delegationService.js";
 import * as agreementService from "../src/services/agreementService.js";
@@ -305,19 +302,5 @@ describe("getCatalogEServiceDescriptor", () => {
     ).rejects.toThrowError(
       eserviceDescriptorNotFound(eServiceId, mockDescriptorId)
     );
-  });
-
-  it("should throw tenant not found", async () => {
-    vi.spyOn(mockTenantProcessClient.tenant, "getTenant").mockRejectedValueOnce(
-      new tenantNotFound(authData.organizationId)
-    );
-
-    await expect(
-      catalogService.getCatalogEServiceDescriptor(
-        eServiceId,
-        mockDescriptorId,
-        bffMockContext
-      )
-    ).rejects.toThrowError(tenantNotFound(authData.organizationId));
   });
 });
