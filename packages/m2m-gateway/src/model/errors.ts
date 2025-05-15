@@ -7,7 +7,6 @@ import {
   ApiError,
   makeApiProblemBuilder,
   PurposeId,
-  PurposeVersionId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -100,7 +99,7 @@ export function clientAdminIdNotFound(
 
 export function purposeVersionNotFound(
   purposeId: PurposeId,
-  versionId: PurposeVersionId
+  versionId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Version ${versionId} not found in purpose ${purposeId}`,

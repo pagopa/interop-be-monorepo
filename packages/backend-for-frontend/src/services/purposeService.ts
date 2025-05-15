@@ -477,19 +477,17 @@ export function purposeServiceBuilder(
         `Creating version for purpose ${purposeId} with dailyCalls ${seed.dailyCalls}`
       );
 
-      const purposeVersion = await purposeProcessClient.createPurposeVersion(
-        seed,
-        {
+      const { createdVersionId } =
+        await purposeProcessClient.createPurposeVersion(seed, {
           params: {
             purposeId,
           },
           headers,
-        }
-      );
+        });
 
       return {
         purposeId,
-        versionId: purposeVersion.id,
+        versionId: createdVersionId,
       };
     },
     async getRiskAnalysisDocument(

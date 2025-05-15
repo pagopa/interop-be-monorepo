@@ -352,7 +352,7 @@ export const assertRequesterCanActAsProducer = (
 
 export const assertRequesterCanActAsConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId">,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {

@@ -138,13 +138,18 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+    const purposeVersionResponse = await purposeService.createPurposeVersion(
       mockPurpose.id,
       {
         dailyCalls: 24,
       },
       getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
     );
+
+    const createdPurposeVersion =
+      purposeVersionResponse.data.purpose.versions.find(
+        (v) => v.id === purposeVersionResponse.data.createdVersionId
+      )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: "24",
@@ -178,7 +183,7 @@ describe("createPurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
+    ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -194,12 +199,12 @@ describe("createPurposeVersion", () => {
     });
 
     const expectedPurposeVersion: PurposeVersion = {
-      id: returnedPurposeVersion.id,
+      id: createdPurposeVersion.id,
       createdAt: new Date(),
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 24,
-      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+      riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
     const expectedPurpose: Purpose = {
@@ -220,8 +225,16 @@ describe("createPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: expectedPurposeVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the creation of a new purpose version (daily calls increased and <= threshold) (with producer delegation)", async () => {
@@ -245,13 +258,18 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+    const purposeVersionResponse = await purposeService.createPurposeVersion(
       mockPurpose.id,
       {
         dailyCalls: 24,
       },
       getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
     );
+
+    const createdPurposeVersion =
+      purposeVersionResponse.data.purpose.versions.find(
+        (v) => v.id === purposeVersionResponse.data.createdVersionId
+      )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: "24",
@@ -285,7 +303,7 @@ describe("createPurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
+    ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -301,12 +319,12 @@ describe("createPurposeVersion", () => {
     });
 
     const expectedPurposeVersion: PurposeVersion = {
-      id: returnedPurposeVersion.id,
+      id: createdPurposeVersion.id,
       createdAt: new Date(),
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 24,
-      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+      riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
     const expectedPurpose: Purpose = {
@@ -327,8 +345,16 @@ describe("createPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: expectedPurposeVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the creation of a new purpose version (daily calls decreased and <= threshold)", async () => {
@@ -340,13 +366,18 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+    const purposeVersionResponse = await purposeService.createPurposeVersion(
       mockPurpose.id,
       {
         dailyCalls: 4,
       },
       getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
     );
+
+    const createdPurposeVersion =
+      purposeVersionResponse.data.purpose.versions.find(
+        (v) => v.id === purposeVersionResponse.data.createdVersionId
+      )!;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: "4",
@@ -380,7 +411,7 @@ describe("createPurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
+    ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -396,12 +427,12 @@ describe("createPurposeVersion", () => {
     });
 
     const expectedPurposeVersion: PurposeVersion = {
-      id: returnedPurposeVersion.id,
+      id: createdPurposeVersion.id,
       createdAt: new Date(),
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 4,
-      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+      riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
     const expectedPurpose: Purpose = {
@@ -422,8 +453,16 @@ describe("createPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: expectedPurposeVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the creation of a new purpose version in waiting for approval state (daily calls > threshold)", async () => {
@@ -439,13 +478,18 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+    const purposeVersionResponse = await purposeService.createPurposeVersion(
       mockPurpose.id,
       {
         dailyCalls: 30,
       },
       getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
     );
+
+    const createdPurposeVersion =
+      purposeVersionResponse.data.purpose.versions.find(
+        (v) => v.id === purposeVersionResponse.data.createdVersionId
+      )!;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -461,7 +505,7 @@ describe("createPurposeVersion", () => {
     });
 
     const expectedPurposeVersion: PurposeVersion = {
-      id: returnedPurposeVersion.id,
+      id: createdPurposeVersion.id,
       createdAt: new Date(),
       state: purposeVersionState.waitingForApproval,
       dailyCalls: 30,
@@ -479,10 +523,18 @@ describe("createPurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(returnedPurposeVersion.state).toEqual(
+    expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(createdPurposeVersion.state).toEqual(
       purposeVersionState.waitingForApproval
     );
+    expect(purposeVersionResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: expectedPurposeVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
   });
 
   it("should succeed when requester is Consumer Delegate and the creation of a new purpose version is successful", async () => {
@@ -516,7 +568,7 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockProducer);
     await addOneTenant(consumerDelegate);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+    const purposeVersionResponse = await purposeService.createPurposeVersion(
       purpose.id,
       {
         dailyCalls: 24,
@@ -524,8 +576,13 @@ describe("createPurposeVersion", () => {
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
 
+    const createdPurposeVersion =
+      purposeVersionResponse.data.purpose.versions.find(
+        (v) => v.id === purposeVersionResponse.data.createdVersionId
+      )!;
+
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: returnedPurposeVersion.dailyCalls.toString(),
+      dailyCalls: createdPurposeVersion.dailyCalls.toString(),
       answers: expect.any(String),
       eServiceName: mockEService.name,
       producerName: mockProducer.name,
@@ -556,7 +613,7 @@ describe("createPurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
+    ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       purpose.id,
@@ -572,12 +629,12 @@ describe("createPurposeVersion", () => {
     });
 
     const expectedPurposeVersion: PurposeVersion = {
-      id: returnedPurposeVersion.id,
+      id: createdPurposeVersion.id,
       createdAt: new Date(),
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 24,
-      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+      riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
     const expectedPurpose: Purpose = {
@@ -598,8 +655,16 @@ describe("createPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: expectedPurposeVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
   });
 
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the creation of a new purpose version is successful", async () => {
@@ -674,7 +739,7 @@ describe("createPurposeVersion", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const returnedPurposeVersion = await purposeService.createPurposeVersion(
+    const purposeVersionResponse = await purposeService.createPurposeVersion(
       delegatePurpose.id,
       {
         dailyCalls: 24,
@@ -682,8 +747,13 @@ describe("createPurposeVersion", () => {
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
 
+    const createdPurposeVersion =
+      purposeVersionResponse.data.purpose.versions.find(
+        (v) => v.id === purposeVersionResponse.data.createdVersionId
+      )!;
+
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
-      dailyCalls: returnedPurposeVersion.dailyCalls.toString(),
+      dailyCalls: createdPurposeVersion.dailyCalls.toString(),
       answers: expect.any(String),
       eServiceName: eservice.name,
       producerName: producer.name,
@@ -714,7 +784,7 @@ describe("createPurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(returnedPurposeVersion.riskAnalysis!.path);
+    ).toContain(createdPurposeVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       delegatePurpose.id,
@@ -730,12 +800,12 @@ describe("createPurposeVersion", () => {
     });
 
     const expectedPurposeVersion: PurposeVersion = {
-      id: returnedPurposeVersion.id,
+      id: createdPurposeVersion.id,
       createdAt: new Date(),
       firstActivationAt: new Date(),
       state: purposeVersionState.active,
       dailyCalls: 24,
-      riskAnalysis: returnedPurposeVersion.riskAnalysis,
+      riskAnalysis: createdPurposeVersion.riskAnalysis,
     };
 
     const expectedPurpose: Purpose = {
@@ -756,8 +826,16 @@ describe("createPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(returnedPurposeVersion).toEqual(expectedPurposeVersion);
+    expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(purposeVersionResponse).toMatchObject({
+      data: {
+        purpose: expectedPurpose,
+        createdVersionId: expectedPurposeVersion.id,
+        isRiskAnalysisValid: true,
+      },
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw unchangedDailyCalls if the new request daily calls are the same of the previous version", async () => {
