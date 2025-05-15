@@ -156,7 +156,11 @@ export function getMockedApiEservice({
   };
 }
 
-export function getMockedApiEserviceDescriptor(): WithMetadata<catalogApi.EServiceDescriptor> {
+export function getMockedApiEserviceDescriptor({
+  state,
+}: {
+  state?: catalogApi.EServiceDescriptorState;
+} = {}): WithMetadata<catalogApi.EServiceDescriptor> {
   return {
     data: {
       id: generateId(),
@@ -168,7 +172,7 @@ export function getMockedApiEserviceDescriptor(): WithMetadata<catalogApi.EServi
       dailyCallsTotal: generateMock(z.number().int().gte(1)),
       interface: generateMock(catalogApi.EServiceDoc),
       docs: generateMock(z.array(catalogApi.EServiceDoc)),
-      state: generateMock(catalogApi.EServiceDescriptorState),
+      state: state ?? generateMock(catalogApi.EServiceDescriptorState),
       agreementApprovalPolicy: generateMock(catalogApi.AgreementApprovalPolicy),
       serverUrls: generateMock(z.array(z.string())),
       publishedAt: new Date().toISOString(),

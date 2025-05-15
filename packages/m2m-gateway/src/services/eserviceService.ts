@@ -101,17 +101,19 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      const descriptorsToReturn = descriptors
-        .filter((descriptor) => (state ? descriptor.state === state : true))
-        .slice(offset, offset + limit);
+      const filteredDescriptors = descriptors.filter((descriptor) =>
+        state ? descriptor.state === state : true
+      );
 
       return {
         pagination: {
           limit,
           offset,
-          totalCount: descriptors.length,
+          totalCount: filteredDescriptors.length,
         },
-        results: descriptorsToReturn.map(toM2MGatewayApiEServiceDescriptor),
+        results: filteredDescriptors
+          .slice(offset, offset + limit)
+          .map(toM2MGatewayApiEServiceDescriptor),
       };
     },
   };

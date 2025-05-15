@@ -9,7 +9,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockedApiEserviceDescriptor } from "../../mockUtils.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 
-describe("GET /eservices router test", () => {
+describe("GET /eservices/:eserviceId/descriptors router test", () => {
   const mockApiEserviceDescriptor1 = getMockedApiEserviceDescriptor();
   const mockApiEserviceDescriptor2 = getMockedApiEserviceDescriptor();
 
