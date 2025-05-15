@@ -469,7 +469,13 @@ const purposeRouter = (
             );
 
           setMetadataVersionHeader(res, metadata);
-          return res.status(200).send(purposeApi.PurposeVersion.parse(data));
+          return res
+            .status(200)
+            .send(
+              purposeApi.PurposeVersion.parse(
+                purposeVersionToApiPurposeVersion(data)
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
