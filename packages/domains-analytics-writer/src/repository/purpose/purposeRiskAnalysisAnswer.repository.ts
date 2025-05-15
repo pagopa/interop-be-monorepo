@@ -33,7 +33,8 @@ export function purposeRiskAnalysisAnswerRepository(conn: DBContext["conn"]) {
           r.riskAnalysisFormId,
         kind: (r: PurposeRiskAnalysisAnswerSQL) => r.kind,
         key: (r: PurposeRiskAnalysisAnswerSQL) => r.key,
-        value: (r) => r.value?.flat() || null,
+        value: (r: PurposeRiskAnalysisAnswerSQL) =>
+          r.value ? JSON.stringify(r.value) : null,
       };
       const cs = buildColumnSet<PurposeRiskAnalysisAnswerSQL>(
         pgp,

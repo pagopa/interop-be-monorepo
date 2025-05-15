@@ -8,7 +8,7 @@ export const PurposeRiskAnalysisAnswerSchema = z.object({
   risk_analysis_form_id: z.string().uuid(),
   kind: z.string(),
   key: z.string(),
-  value: z.array(z.string()).nullable(),
+  value: z.string().nullable(),
   deleted: z.boolean().default(false).optional(),
 });
 

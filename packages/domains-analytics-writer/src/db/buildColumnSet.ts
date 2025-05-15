@@ -3,14 +3,7 @@ import { AnalyticsSQLDbConfig, DB, Logger } from "pagopa-interop-commons";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { DBContext } from "./db.js";
 
-export type ColumnValue =
-  | string
-  | number
-  | Date
-  | undefined
-  | null
-  | boolean
-  | string[];
+export type ColumnValue = string | number | Date | undefined | null | boolean;
 
 /**
  * This is a helper function that generates a ColumnSet for bulk operations using pg-promise.
