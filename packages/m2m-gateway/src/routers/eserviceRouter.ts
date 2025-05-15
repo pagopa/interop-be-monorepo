@@ -12,6 +12,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { getEserviceDescriptorErrorMapper } from "../utils/errorMappers.js";
 
 const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
@@ -83,12 +84,23 @@ const eserviceRouter = (
       "/eservices/:eserviceId/descriptors/:descriptorId",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
         try {
-          return res.status(501).send();
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const descriptor = await eserviceService.getEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(descriptor));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getEserviceDescriptorErrorMapper,
             ctx,
             `Error retrieving eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );

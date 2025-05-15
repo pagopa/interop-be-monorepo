@@ -845,7 +845,7 @@ paths:
       tags:
         - agreements
       summary: Upgrade the agreement
-      description: Upgrades the agreement with a newer eservice version, if any
+      description: Upgrades the agreement with a newer e-service version, if any
       operationId: upgradeAgreement
       responses:
         "200":
@@ -1614,7 +1614,7 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservices
+      description: Get e-services
       operationId: getEServices
       parameters:
         - in: query
@@ -1709,7 +1709,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The eservice id
+        description: The e-service id
         required: true
         schema:
           type: string
@@ -1717,7 +1717,7 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservice
+      description: Get e-service
       operationId: getEService
       responses:
         "200":
@@ -1789,7 +1789,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The eservice id
+        description: The e-service id
         required: true
         schema:
           type: string
@@ -1797,7 +1797,7 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservice descriptors
+      description: Get e-service descriptors
       operationId: getEServiceDescriptors
       parameters:
         - name: state
@@ -1890,7 +1890,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The eservice id
+        description: The e-service id
         required: true
         schema:
           type: string
@@ -1905,7 +1905,7 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservice descriptor
+      description: Get e-service descriptor
       operationId: getEServiceDescriptor
       responses:
         "200":
@@ -2064,7 +2064,7 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      description: Get eservice template versions
+      description: Get e-service template versions
       operationId: getEServiceTemplateVersions
       parameters:
         - name: state
@@ -2174,7 +2174,7 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      description: Get eservice template version
+      description: Get e-service template version
       operationId: getEServiceTemplateVersion
       responses:
         "200":
@@ -4025,8 +4025,9 @@ components:
         archivedAt:
           type: string
           format: date-time
-        templateVersion:
-          $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        templateVersionId:
+          type: string
+          format: uuid
       required:
         - id
         - version
@@ -4167,15 +4168,6 @@ components:
         - state
         - creationDate
         - voucherLifespan
-    EServiceTemplateVersionRef:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          format: uuid
     EServiceTemplateVersionState:
       type: string
       description: E-Service Template Version State

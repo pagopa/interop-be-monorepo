@@ -1,12 +1,14 @@
 import { WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { EServiceId } from "pagopa-interop-models";
+import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toGetEServicesQueryParams,
   toM2MGatewayApiEService,
+  toM2MGatewayApiEServiceDescriptor,
 } from "../api/eserviceApiConverter.js";
+import { eserviceDescriptorNotFound } from "../model/errors.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -49,6 +51,31 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
         },
         results,
       };
+    },
+    async getEServiceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptor> {
+      logger.info(
+        `Retrieving eservice descriptor with id ${descriptorId} for eservice ${eserviceId}`
+      );
+
+      const { data: eservice } =
+        await clients.catalogProcessClient.getEServiceById({
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+
+      const descriptor = eservice.descriptors.find(
+        (e) => e.id === descriptorId
+      );
+
+      if (!descriptor) {
+        throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+      }
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
   };
 }
