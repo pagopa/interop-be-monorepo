@@ -143,20 +143,23 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       return toM2MGatewayApiAgreement(polledResource.data);
     },
     submitAgreement: async (
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
       agreementId: AgreementId,
-      body: m2mGatewayApi.AgreementSubmission
+      body: m2mGatewayApi.AgreementSubmission,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> => {
       logger.info(`Submitting agreement with id ${agreementId}`);
 
-      const response = await agreementProcessClient.submitAgreement(body, {
-        params: { agreementId },
-        headers,
-      });
+      const response = await clients.agreementProcessClient.submitAgreement(
+        body,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
 
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MAgreement(polledResource.data);
+      return toM2MGatewayApiAgreement(polledResource.data);
     },
   };
 }
