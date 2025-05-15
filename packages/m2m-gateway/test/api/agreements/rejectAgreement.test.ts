@@ -7,7 +7,7 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockedApiAgreement } from "../../mockUtils.js";
-import { toM2MAgreement } from "../../../src/api/agreementApiConverter.js";
+import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 import {
   missingMetadata,
   resourcePollingTimeout,
@@ -18,11 +18,13 @@ describe("POST /agreements/:agreementId/reject router test", () => {
     reason: "This is a test reason for rejection",
   };
   const mockApiAgreement = getMockedApiAgreement();
-  const mockM2MAgreementResponse: m2mGatewayApi.Agreement = toM2MAgreement(
-    mockApiAgreement.data
-  );
+  const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
+    toM2MGatewayApiAgreement(mockApiAgreement.data);
 
-  const makeRequest = async (token: string, body: Record<string, unknown>) =>
+  const makeRequest = async (
+    token: string,
+    body: m2mGatewayApi.AgreementRejection
+  ) =>
     request(api)
       .post(`${appBasePath}/agreements/${mockApiAgreement.data.id}/reject`)
       .set("Authorization", `Bearer ${token}`)
@@ -52,31 +54,22 @@ describe("POST /agreements/:agreementId/reject router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 500 in case of missingMetadata error", async () => {
-    mockAgreementService.rejectAgreement = vi
-      .fn()
-      .mockRejectedValue(missingMetadata());
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockApiRejectAgreementBody);
+  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+    "Should return 500 in case of $code error",
+    async (error) => {
+      mockAgreementService.rejectAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockApiRejectAgreementBody);
 
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of resourcePollingTimeout error", async () => {
-    mockAgreementService.rejectAgreement = vi
-      .fn()
-      .mockRejectedValue(resourcePollingTimeout(3));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockApiRejectAgreementBody);
-
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 
   it("Should return 400 if passed an invalid agreement rejection seed", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, {
       invalidParam: "invalidValue",
-    });
+    } as unknown as m2mGatewayApi.AgreementRejection);
 
     expect(res.status).toBe(400);
   });
