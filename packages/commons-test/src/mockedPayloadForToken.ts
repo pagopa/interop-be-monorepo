@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { AuthRole, userRole } from "pagopa-interop-commons";
-import { generateId } from "pagopa-interop-models";
+import { UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
 import { getMockAuthData } from "./testUtils.js";
@@ -75,19 +75,24 @@ function createInternalPayload() {
   };
 }
 
-function createM2M_AdminPayload() {
+export const mockM2MAdminClientId = generateId();
+export const mockM2MAdminUserId: UserId = generateId();
+// ^ ID of the client and the admin user associated with the client.
+// Mocked and exported because in the M2M gateway we need to
+// validate the admin ID in the token against the adminId in the client.
+function createM2MAdminPayload() {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
-    userId: generateId(),
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "m2m-admin",
     organizationId: generateId(),
-    client_id: generateId(),
-    sub: generateId(),
+    client_id: mockM2MAdminClientId,
+    sub: mockM2MAdminClientId,
+    adminId: mockM2MAdminUserId,
   };
 }
 
@@ -95,7 +100,7 @@ const createPayload = (role: AuthRole) =>
   match(role)
     .with("maintenance", () => createMaintenancePayload())
     .with("m2m", () => createM2MPayload())
-    .with("m2m-admin", () => createM2M_AdminPayload())
+    .with("m2m-admin", () => createM2MAdminPayload())
     .with("internal", () => createInternalPayload())
     .with("admin", () => createUserPayload(userRole.ADMIN_ROLE))
     .with("api", () => createUserPayload(userRole.API_ROLE))

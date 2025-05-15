@@ -14,6 +14,7 @@ export const CatalogDbTable = {
 export const DeletingDbTable = {
   attribute_deleting_table: "attribute_deleting_table",
   catalog_deleting_table: "catalog_deleting_table",
+  agreement_deleting_table: "agreement_deleting_table",
   purpose_deleting_table: "purpose_deleting_table",
 };
 
@@ -29,14 +30,25 @@ export const PurposeDbTable = {
   purpose_version_document: "purpose_version_document",
 } as const;
 
+export const AgreementDbTable = {
+  agreement: "agreement",
+  agreement_stamp: "agreement_stamp",
+  agreement_attribute: "agreement_attribute",
+  agreement_consumer_document: "agreement_consumer_document",
+  agreement_contract: "agreement_contract",
+} as const;
+
+export type AgreementDbTable =
+  (typeof AgreementDbTable)[keyof typeof AgreementDbTable];
+
 export type AttributeDbTable =
   (typeof AttributeDbTable)[keyof typeof AttributeDbTable];
 
 export type CatalogDbTable =
   (typeof CatalogDbTable)[keyof typeof CatalogDbTable];
 
-export type DeletingDbTable =
-  (typeof DeletingDbTable)[keyof typeof DeletingDbTable];
-
 export type PurposeDbTable =
   (typeof PurposeDbTable)[keyof typeof PurposeDbTable];
+
+export type DeletingDbTable =
+  (typeof DeletingDbTable)[keyof typeof DeletingDbTable];

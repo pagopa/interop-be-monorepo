@@ -12,6 +12,7 @@ import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import {
+  AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
@@ -52,6 +53,11 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      AgreementDbTable.agreement,
+      AgreementDbTable.agreement_stamp,
+      AgreementDbTable.agreement_attribute,
+      AgreementDbTable.agreement_consumer_document,
+      AgreementDbTable.agreement_contract,
       PurposeDbTable.purpose,
       PurposeDbTable.purpose_version,
       PurposeDbTable.purpose_version_document,
@@ -61,10 +67,11 @@ await retryConnection(
     await setupDbService.setupStagingDeletingByIdTables([
       DeletingDbTable.attribute_deleting_table,
       DeletingDbTable.catalog_deleting_table,
+      DeletingDbTable.agreement_deleting_table,
       DeletingDbTable.purpose_deleting_table,
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -75,7 +82,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -92,5 +99,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch
+  processBatch,
 );

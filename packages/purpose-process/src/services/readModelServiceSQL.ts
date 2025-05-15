@@ -2,6 +2,7 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
+  withTotalCount,
 } from "pagopa-interop-commons";
 import {
   EService,
@@ -50,7 +51,6 @@ import {
   ne,
   notExists,
   or,
-  sql,
   SQL,
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
@@ -178,10 +178,11 @@ export function readModelServiceBuilderSQL({
         "activeConsumerDelegations"
       );
       const subquery = readModelDB
-        .select({
-          purposeId: purposeInReadmodelPurpose.id,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            purposeId: purposeInReadmodelPurpose.id,
+          })
+        )
         .from(purposeInReadmodelPurpose)
         .leftJoin(
           purposeVersionInReadmodelPurpose,

@@ -58,6 +58,7 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorAdded",
             "EServiceDraftDescriptorUpdated",
             "EServiceDescriptorQuotasUpdated",
+            "EServiceDescriptorAgreementApprovalPolicyUpdated",
             "EServiceDescriptorActivated",
             "EServiceDescriptorArchived",
             "EServiceDescriptorPublished",
