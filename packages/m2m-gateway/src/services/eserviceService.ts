@@ -3,7 +3,10 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { EServiceId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
-import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
+import {
+  toGetEServicesQueryParams,
+  toM2MGatewayApiEService,
+} from "../api/eserviceApiConverter.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -22,6 +25,30 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       return toM2MGatewayApiEService(response.data);
+    },
+    async getEServices(
+      params: m2mGatewayApi.GetEServicesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServices> {
+      logger.info(
+        `Retrieving eservices with producersIds ${params.producersIds} templatesIds ${params.templatesIds} offset ${params.offset} limit ${params.limit}`
+      );
+
+      const response = await clients.catalogProcessClient.getEServices({
+        queries: toGetEServicesQueryParams(params),
+        headers,
+      });
+
+      const results = response.data.results.map(toM2MGatewayApiEService);
+
+      return {
+        pagination: {
+          limit: params.limit,
+          offset: params.offset,
+          totalCount: response.data.totalCount,
+        },
+        results,
+      };
     },
   };
 }
