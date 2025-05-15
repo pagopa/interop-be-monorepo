@@ -18,10 +18,8 @@ import {
   attributeKind,
   AttributeReadmodel,
   Agreement,
-  AgreementState,
   TenantReadModel,
   genericInternalError,
-  TenantFeatureType,
   AgreementId,
   DelegationId,
   Delegation,
@@ -32,11 +30,16 @@ import {
 import { tenantApi } from "pagopa-interop-api-clients";
 import { z } from "zod";
 import { Document, Filter, WithId } from "mongodb";
+import { ApiGetTenantsFilters } from "../model/domain/models.js";
 
-function listTenantsFilters(
-  name: string | undefined,
-  features?: TenantFeatureType[]
-): Filter<{ data: TenantReadModel }> {
+function listTenantsFilters({
+  name,
+  features,
+  externalIdOrigin,
+  externalIdValue,
+}: Partial<ApiGetTenantsFilters>): Filter<{
+  data: TenantReadModel;
+}> {
   const nameFilter = name
     ? {
         "data.name": {
@@ -55,6 +58,18 @@ function listTenantsFilters(
         }
       : {};
 
+  const externalIdOriginFilter = externalIdOrigin
+    ? {
+        "data.externalId.origin": externalIdOrigin,
+      }
+    : {};
+
+  const externalIdValueFilter = externalIdValue
+    ? {
+        "data.externalId.value": externalIdValue,
+      }
+    : {};
+
   const withSelfcareIdFilter = {
     "data.selfcareId": {
       $exists: true,
@@ -65,6 +80,8 @@ function listTenantsFilters(
     ...nameFilter,
     ...featuresFilter,
     ...withSelfcareIdFilter,
+    ...externalIdOriginFilter,
+    ...externalIdValueFilter,
   };
 }
 
@@ -191,15 +208,17 @@ export function readModelServiceBuilder(
     async getTenants({
       name,
       features,
+      externalIdOrigin,
+      externalIdValue,
       offset,
       limit,
-    }: {
-      name: string | undefined;
-      features: TenantFeatureType[];
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(name, features);
+    }: ApiGetTenantsFilters): Promise<ListResult<Tenant>> {
+      const query = listTenantsFilters({
+        name,
+        features,
+        externalIdOrigin,
+        externalIdValue,
+      });
       const aggregationPipeline = [
         { $match: query },
         { $project: { data: 1, lowerName: { $toLower: "$data.name" } } },
@@ -270,7 +289,7 @@ export function readModelServiceBuilder(
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(consumerName);
+      const query = listTenantsFilters({ name: consumerName });
 
       const aggregationPipeline = [
         { $match: query },
@@ -316,7 +335,7 @@ export function readModelServiceBuilder(
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const query = listTenantsFilters(producerName);
+      const query = listTenantsFilters({ name: producerName });
       const aggregationPipeline = [
         { $match: query },
         {
@@ -406,35 +425,6 @@ export function readModelServiceBuilder(
 
         return result.data;
       }
-    },
-
-    async getAgreements({
-      consumerId,
-      producerId,
-      states,
-    }: {
-      consumerId: TenantId;
-      producerId: TenantId;
-      states: AgreementState[];
-    }): Promise<Agreement[]> {
-      const data = await agreements
-        .find({
-          "data.consumerId": consumerId,
-          "data.producerId": producerId,
-          "data.state": { $in: states },
-        })
-        .toArray();
-
-      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
-
-      if (!result.success) {
-        throw genericInternalError(
-          `Unable to parse agreements item: result ${JSON.stringify(
-            result
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-      return result.data;
     },
 
     async getAgreementById(

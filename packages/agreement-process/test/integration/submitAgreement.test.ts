@@ -953,7 +953,17 @@ describe("submit agreement", () => {
     "Requester === %s, should submit agreement with state ACTIVE when producer is equal to consumer, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements",
     async (requesterIs) => {
       const producerAndConsumerId = generateId<TenantId>();
-      const producer = getMockTenant(producerAndConsumerId);
+      const producer = {
+        ...getMockTenant(producerAndConsumerId),
+        mails: [
+          {
+            id: generateId(),
+            kind: tenantMailKind.ContactEmail,
+            address: "test1@test1.com",
+            createdAt: new Date(),
+          },
+        ],
+      };
       const consumerNotesText = "This is a test";
 
       const producerAndConsumer = {
@@ -962,7 +972,7 @@ describe("submit agreement", () => {
           {
             id: generateId(),
             kind: tenantMailKind.ContactEmail,
-            address: "test@test.com",
+            address: "test2@test2.com",
             createdAt: new Date(),
           },
         ],
@@ -1380,7 +1390,17 @@ describe("submit agreement", () => {
     "Requester === %s, should submit agreement contract with new state ACTIVE when producer and consumer are different, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements",
     async (requesterIs) => {
       const consumerId = generateId<TenantId>();
-      const producer = getMockTenant(consumerId);
+      const producer = {
+        ...getMockTenant(consumerId),
+        mails: [
+          {
+            id: generateId(),
+            kind: tenantMailKind.ContactEmail,
+            address: "test1@test1.com",
+            createdAt: new Date(),
+          },
+        ],
+      };
       const consumerNotesText = "This is a test";
 
       const consumer = {
@@ -1421,8 +1441,8 @@ describe("submit agreement", () => {
         authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
 
       await addOneEService(eservice);
-      await addOneTenant(consumer);
       await addOneTenant(producer);
+      await addOneTenant(consumer);
       await addOneAgreement(agreement);
       await addSomeRandomDelegations(agreement, addOneDelegation);
       await addDelegationsAndDelegates({
@@ -1584,6 +1604,7 @@ describe("submit agreement", () => {
                 delegationId: producerDelegation?.id,
               },
             ],
+            revokedBy: [],
           };
 
           const validCertifiedTenantAttribute: TenantAttribute = {
@@ -1614,8 +1635,8 @@ describe("submit agreement", () => {
           };
 
           await addOneEService(eservice);
-          await addOneTenant(consumer);
           await addOneTenant(producer);
+          await addOneTenant(consumer);
           await addOneAttribute(verifiedAttribute);
           await addOneAttribute(declaredAttribute);
           await addOneAttribute(certifiedAttribute);
@@ -1861,6 +1882,7 @@ describe("submit agreement", () => {
             delegationId: undefined,
           },
         ],
+        revokedBy: [],
       };
 
       const validCertifiedTenantAttribute: TenantAttribute = {
@@ -1891,8 +1913,8 @@ describe("submit agreement", () => {
       };
 
       await addOneEService(eservice);
-      await addOneTenant(consumer);
       await addOneTenant(producer);
+      await addOneTenant(consumer);
       await addOneAttribute(certifiedAttribute);
       await addOneAttribute(declaredAttribute);
       await addOneAttribute(verifiedAttribute);
@@ -2024,6 +2046,7 @@ describe("submit agreement", () => {
             extensionDate: subDays(new Date(), 1),
           },
         ],
+        revokedBy: [],
       };
       const consumer = {
         ...getMockTenant(consumerId, [
@@ -2042,8 +2065,8 @@ describe("submit agreement", () => {
       };
 
       await addOneEService(eservice);
-      await addOneTenant(consumer);
       await addOneTenant(producer);
+      await addOneTenant(consumer);
       await addOneAttribute(certifiedAttribute);
       await addOneAttribute(declaredAttribute);
       await addOneAttribute(verifiedAttribute);

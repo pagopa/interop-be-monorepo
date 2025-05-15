@@ -7,13 +7,13 @@ import {
   getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
   getMockVerifiedTenantAttribute,
   getMockAuthData,
   randomArrayItem,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -52,6 +52,7 @@ import {
   addOneTenant,
   agreementService,
   readLastAgreementEvent,
+  sortAgreementAttributes,
 } from "../integrationUtils.js";
 
 describe("reject agreement", () => {
@@ -70,7 +71,11 @@ describe("reject agreement", () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
-      const producerId = generateId<TenantId>();
+      const producer: Tenant = getMockTenant();
+      const producerId = producer.id;
+      const tenantOnlyForVerifierAttribute: Tenant = getMockTenant();
+      const tenantAnotherOnlyForVerifierAttribute: Tenant = getMockTenant();
+
       const tenantCertifiedAttribute: CertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(),
         revocationTimestamp: undefined,
@@ -98,14 +103,19 @@ describe("reject agreement", () => {
             extensionDate: addDays(new Date(), 30),
           },
         ],
+        revokedBy: [],
       };
 
       const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
         {
           ...getMockVerifiedTenantAttribute(),
           verifiedBy: [
-            { id: generateId<TenantId>(), verificationDate: new Date() },
+            {
+              id: tenantOnlyForVerifierAttribute.id,
+              verificationDate: new Date(),
+            },
           ],
+          revokedBy: [],
         };
 
       const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
@@ -118,6 +128,19 @@ describe("reject agreement", () => {
               extensionDate: addDays(new Date(), 300),
             },
           ],
+          revokedBy: [],
+        };
+
+      const tenantVerfiedAttributeNoMatchDescAttribute: VerifiedTenantAttribute =
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: tenantAnotherOnlyForVerifierAttribute.id,
+              verificationDate: new Date(),
+            },
+          ],
+          revokedBy: [],
         };
 
       const consumer: Tenant = {
@@ -132,7 +155,7 @@ describe("reject agreement", () => {
           tenantVerfiedAttributeWithExpiredExtension,
           // Adding some attributes not matching with descriptor attributes
           // to test that they are not kept in the agreement
-          getMockVerifiedTenantAttribute(),
+          tenantVerfiedAttributeNoMatchDescAttribute,
           getMockCertifiedTenantAttribute(),
           getMockDeclaredTenantAttribute(),
         ],
@@ -184,6 +207,9 @@ describe("reject agreement", () => {
         consumerId: consumer.id,
         state: randomArrayItem(agreementRejectableStates),
       };
+      await addOneTenant(tenantOnlyForVerifierAttribute);
+      await addOneTenant(tenantAnotherOnlyForVerifierAttribute);
+      await addOneTenant(producer);
       await addOneTenant(consumer);
       await addOneEService(eservice);
       await addOneAgreement(agreement);
@@ -251,8 +277,9 @@ describe("reject agreement", () => {
           },
         },
       };
-      expect(actualAgreementRejected).toMatchObject(
-        toAgreementV2(expectedAgreementRejected)
+
+      expect(sortAgreementAttributes(actualAgreementRejected)).toMatchObject(
+        sortAgreementAttributes(toAgreementV2(expectedAgreementRejected))
       );
       expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));
       vi.useRealTimers();
