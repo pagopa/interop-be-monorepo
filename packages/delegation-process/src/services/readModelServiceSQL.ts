@@ -155,8 +155,8 @@ export function readModelServiceBuilderSQL({
             kind ? eq(delegationInReadmodelDelegation.kind, kind) : undefined
           )
         )
-        .orderBy(delegationInReadmodelDelegation.createdAt)
         .groupBy(delegationInReadmodelDelegation.id)
+        .orderBy(delegationInReadmodelDelegation.createdAt)
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -187,7 +187,8 @@ export function readModelServiceBuilderSQL({
             delegationInReadmodelDelegation.id,
             delegationContractDocumentInReadmodelDelegation.delegationId
           )
-        );
+        )
+        .orderBy(delegationInReadmodelDelegation.createdAt);
 
       const delegations = aggregateDelegationArray(
         toDelegationAggregatorArray(queryResult)
