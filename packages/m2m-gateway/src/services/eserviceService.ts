@@ -79,19 +79,40 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getEServiceDescriptors(
       eserviceId: EServiceId,
+      {
+        state,
+        offset,
+        limit,
+      }: {
+        state?: m2mGatewayApi.EServiceDescriptorState;
+        offset: number;
+        limit: number;
+      },
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.EServiceDescriptor[]> {
+    ): Promise<m2mGatewayApi.EServiceDescriptors> {
       logger.info(
-        `Retrieving eservice descriptors for eservice with id ${eserviceId}`
+        `Retrieving eservice descriptors for eservice with id ${eserviceId} states ${state} offset ${offset} limit ${limit}`
       );
 
-      const { data: eservice } =
-        await clients.catalogProcessClient.getEServiceById({
-          params: { eServiceId: eserviceId },
-          headers,
-        });
+      const {
+        data: { descriptors },
+      } = await clients.catalogProcessClient.getEServiceById({
+        params: { eServiceId: eserviceId },
+        headers,
+      });
 
-      return eservice.descriptors.map(toM2MGatewayApiEServiceDescriptor);
+      const descriptorsToReturn = descriptors
+        .filter((descriptor) => (state ? descriptor.state === state : true))
+        .slice(offset, offset + limit);
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: descriptors.length,
+        },
+        results: descriptorsToReturn.map(toM2MGatewayApiEServiceDescriptor),
+      };
     },
   };
 }

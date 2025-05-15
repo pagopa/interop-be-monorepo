@@ -74,6 +74,7 @@ const eserviceRouter = (
 
         const descriptors = await eserviceService.getEServiceDescriptors(
           unsafeBrandId(req.params.eserviceId),
+          req.query,
           ctx
         );
 
