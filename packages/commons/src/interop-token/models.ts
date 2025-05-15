@@ -14,7 +14,13 @@ import {
   UserRole,
 } from "../auth/roles.js";
 
-// Type utility to transform a string into an array of strings comma separated
+// Zod utility to parse a non-empty comma-separated string and transform it
+// (e.g. `"foo,bar,baz"`) into an array whose elements are validated
+// by the schema `t`.
+//
+// Example:
+//   const NumberArray = CommaSeparatedStringToArray(z.number());
+//   NumberArray.parse("1,2,3"); // → [1, 2, 3]
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
   z
@@ -70,17 +76,17 @@ export const InteropConsumerToken = z.object({
 export type InteropConsumerToken = z.infer<typeof InteropConsumerToken>;
 
 // ==========================================
-//     Interop M2M Token
+//     Interop M2M API Tokens
 // ==========================================
-export const InteropJwtApiCommonPayload = InteropJwtCommonPayload.merge(
+export const InteropJwtApiM2MCommonPayload = InteropJwtCommonPayload.merge(
   z.object({
     client_id: ClientId,
     sub: ClientId,
     organizationId: TenantId,
   })
 );
-export type InteropJwtApiCommonPayload = z.infer<
-  typeof InteropJwtApiCommonPayload
+export type InteropJwtApiM2MCommonPayload = z.infer<
+  typeof InteropJwtApiM2MCommonPayload
 >;
 
 export const InteropJwtApiM2MPayload = InteropJwtApiCommonPayload.merge(
@@ -88,9 +94,6 @@ export const InteropJwtApiM2MPayload = InteropJwtApiCommonPayload.merge(
 );
 export type InteropJwtApiM2MPayload = z.infer<typeof InteropJwtApiM2MPayload>;
 
-// ==========================================
-//   Interop M2M Admin Token
-// ==========================================
 export const InteropJwtApiM2MAdminPayload = InteropJwtApiCommonPayload.merge(
   z.object({
     role: z.literal(systemRole.M2M_ADMIN_ROLE),
@@ -102,33 +105,15 @@ export type InteropJwtApiM2MAdminPayload = z.infer<
   typeof InteropJwtApiM2MAdminPayload
 >;
 
-// ==========================================
-//   Interop API Token
-// ==========================================
-export type InteropJwtApiPayload =
+export type InteropJwtApiM2MPayload =
   | InteropJwtApiM2MAdminPayload
   | InteropJwtApiM2MPayload;
 
-/* ========================================== 
-    Interop API Token 
-  ========================================== */
-
-export type InteropApiToken = {
+export type InteropApiM2MToken = {
   header: InteropJwtHeader;
   payload: InteropJwtApiPayload;
   serialized: string;
 };
-
-// ==========================================
-//   Interop INTERNAL Token
-// ==========================================
-export const InternalJwtAuthPayload = InteropJwtCommonPayload.merge(
-  z.object({
-    role: z.literal(systemRole.INTERNAL_ROLE),
-    sub: z.string(),
-  })
-);
-export type InternalJwtAuthPayload = z.infer<typeof InternalJwtAuthPayload>;
 
 // ==========================================
 //  Interop MAINTENANCE Token
