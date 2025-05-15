@@ -47,6 +47,7 @@ import {
   RateLimiter,
   RateLimiterStatus,
   secondsToMilliseconds,
+  WithLogger,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import { config } from "../config/config.js";
@@ -91,7 +92,7 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      { logger, correlationId }: AuthServerAppContext,
+      { logger, correlationId }: WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<GenerateTokenReturnType> {
