@@ -29,14 +29,10 @@ describe("approvePurposeVersion", () => {
     versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
   });
 
-  const activatePurposeApiResponse: WithMetadata<purposeApi.UpdatedPurposeVersion> =
-    {
-      data: {
-        purpose: mockApiPurpose.data,
-        updatedVersionId: mockApiPurposeVersion1.id,
-      },
-      metadata: { version: 0 },
-    };
+  const activatePurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> = {
+    data: mockApiPurposeVersion1,
+    metadata: { version: 0 },
+  };
 
   const pollingTentatives = 2;
   const mockActivatePurposeVersion = vi
@@ -81,7 +77,7 @@ describe("approvePurposeVersion", () => {
     ).toHaveBeenCalledTimes(pollingTentatives + 1);
   });
 
-  it("Should throw missingActivePurposeVersion in case of missing active version to activate", async () => {
+  it("Should throw missingActivePurposeVersion in case of missing active version to approve", async () => {
     const invalidPurpose = getMockedApiPurpose({
       versions: [getMockedApiPurposeVersion({ state: "REJECTED" })],
     });
@@ -96,7 +92,7 @@ describe("approvePurposeVersion", () => {
   });
 
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
-    // The activate will first get the purpose, then perform the polling
+    // The approve will first get the purpose, then perform the polling
     mockGetPurpose
       .mockResolvedValueOnce(mockApiPurpose)
       .mockImplementation(

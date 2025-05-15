@@ -331,17 +331,15 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         `Approving (activating) version ${versionToApprove.id} of purpose ${purposeId}`
       );
 
-      const {
-        data: { purpose },
-        metadata,
-      } = await clients.purposeProcessClient.activatePurposeVersion(undefined, {
-        params: { purposeId, versionId: versionToApprove.id },
-        headers,
-      });
+      const { metadata } =
+        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToApprove.id },
+          headers,
+        });
 
       await pollPurpose(
         {
-          data: purpose,
+          data: purposeResponse.data,
           metadata,
         },
         headers
