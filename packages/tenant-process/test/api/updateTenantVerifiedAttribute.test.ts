@@ -14,7 +14,7 @@ import { currentDate, getMockVerifiedBy } from "../mockUtils.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   expirationDateCannotBeInThePast,
-  organizationNotFoundInVerifiers,
+  tenantNotFoundInVerifiers,
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
 } from "../../src/model/domain/errors.js";
@@ -85,11 +85,7 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId} test", 
       expectedStatus: 400,
     },
     {
-      error: organizationNotFoundInVerifiers(
-        "requesterId",
-        tenant.id,
-        attributeId
-      ),
+      error: tenantNotFoundInVerifiers("requesterId", tenant.id, attributeId),
       expectedStatus: 403,
     },
   ])(

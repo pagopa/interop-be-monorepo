@@ -47,6 +47,8 @@ describe("API GET /tenants test", () => {
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
 
   const makeRequest = async (token: string, query: object = defaultQuery) =>

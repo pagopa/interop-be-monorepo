@@ -24,10 +24,16 @@ describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
   beforeEach(() => {
-    tenantService.addCertifiedAttribute = vi.fn().mockResolvedValue(tenant);
+    tenantService.addCertifiedAttribute = vi
+      .fn()
+      .mockResolvedValue({ data: tenant, metadata: { version: 1 } });
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.M2M_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
   const makeRequest = async (
     token: string,

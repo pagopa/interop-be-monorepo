@@ -20,10 +20,14 @@ describe("API DELETE /tenants/{tenantId}/attributes/certified/{attributeId} test
   beforeEach(() => {
     tenantService.revokeCertifiedAttributeById = vi
       .fn()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue({ data: tenant, metadata: { version: 1 } });
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.M2M_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
   const makeRequest = async (token: string, tenantId: string = tenant.id) =>
     request(api)
@@ -32,11 +36,11 @@ describe("API DELETE /tenants/{tenantId}/attributes/certified/{attributeId} test
       .set("X-Correlation-Id", generateId());
 
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
     }
   );
 

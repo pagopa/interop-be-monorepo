@@ -15,7 +15,9 @@ describe("API GET /tenants/{id} test", () => {
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
   beforeEach(() => {
-    tenantService.getTenantById = vi.fn().mockResolvedValue(tenant);
+    tenantService.getTenantById = vi
+      .fn()
+      .mockResolvedValue({ data: tenant, metadata: { version: 1 } });
   });
 
   const authorizedRoles: AuthRole[] = [
@@ -25,6 +27,7 @@ describe("API GET /tenants/{id} test", () => {
     authRole.SUPPORT_ROLE,
     authRole.INTERNAL_ROLE,
     authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
 
   const makeRequest = async (token: string, tenantId: string = tenant.id) =>
