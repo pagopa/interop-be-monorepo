@@ -72,13 +72,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       } = await clients.purposeProcessClient.getPurposes({ queries, headers });
 
       return {
-        results: results.map((purpose) =>
-          toM2MGatewayApiPurpose({
-            purpose,
-            logger,
-            mapThrownErrorsToNotFound: true,
-          })
-        ),
+        results: results.map(toM2MGatewayApiPurpose),
         pagination: {
           limit,
           offset,
@@ -99,11 +93,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      return toM2MGatewayApiPurpose({
-        purpose: data,
-        logger,
-        mapThrownErrorsToNotFound: true,
-      });
+      return toM2MGatewayApiPurpose(data);
     },
     async createPurpose(
       purposeSeed: m2mGatewayApi.PurposeSeed,
@@ -123,10 +113,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledResource = await pollPurpose(purposeResponse, headers);
 
-      return toM2MGatewayApiPurpose({
-        purpose: polledResource.data,
-        logger,
-      });
+      return toM2MGatewayApiPurpose(polledResource.data);
     },
     async getPurposeVersions(
       purposeId: PurposeId,

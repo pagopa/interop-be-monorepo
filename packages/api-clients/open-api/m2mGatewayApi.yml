@@ -3397,6 +3397,19 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /tenants/{tenantId}/certifiedAttributes:
     parameters:
       - name: tenantId
@@ -3411,6 +3424,22 @@ paths:
         - tenants
       operationId: getCertifiedAttributes
       description: Retrieve certified attributes for a Tenant
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Certified attributes retrieved
@@ -3440,6 +3469,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
           content:
             application/json:
               schema:
@@ -4273,7 +4315,6 @@ components:
         - createdAt
         - isRiskAnalysisValid
         - isFreeOfCharge
-        - currentVersion
     PurposeSeed:
       type: object
       additionalProperties: false
