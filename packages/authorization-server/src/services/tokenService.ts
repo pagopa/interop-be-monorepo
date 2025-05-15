@@ -25,6 +25,7 @@ import {
   FullTokenGenerationStatesConsumerClient,
   CorrelationId,
   ClientKindTokenGenStates,
+  ClientId,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -90,8 +91,9 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      ctx: AuthServerAppContext,
-      logger: Logger
+      { logger, correlationId }: AuthServerAppContext,
+      setCtxClientId: (clientId: ClientId) => void,
+      setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<GenerateTokenReturnType> {
       logger.info(`[CLIENTID=${request.client_id}] Token requested`);
 
@@ -128,8 +130,7 @@ export function tokenServiceBuilder({
       const kid = jwt.header.kid;
       const purposeId = jwt.payload.purposeId;
 
-      // eslint-disable-next-line functional/immutable-data
-      ctx.clientId = clientId;
+      setCtxClientId(clientId);
 
       logTokenGenerationInfo({
         validatedJwt: jwt,
@@ -148,8 +149,8 @@ export function tokenServiceBuilder({
         : makeTokenGenerationStatesClientKidPK({ clientId, kid });
 
       const key = await retrieveKey(dynamoDBClient, pk);
-      // eslint-disable-next-line functional/immutable-data
-      ctx.organizationId = key.consumerId;
+
+      setCtxOrganizationId(key.consumerId);
 
       logTokenGenerationInfo({
         validatedJwt: jwt,
@@ -209,7 +210,7 @@ export function tokenServiceBuilder({
               generatedToken: token,
               key,
               clientAssertion: jwt,
-              correlationId: ctx.correlationId,
+              correlationId,
               fileManager,
               logger,
             });
