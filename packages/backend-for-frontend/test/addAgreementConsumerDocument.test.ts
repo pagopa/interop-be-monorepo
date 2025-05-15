@@ -9,7 +9,7 @@ import { config } from "../src/config/config.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("addAgreementConsumerDocument", () => {
-  const agreementId = "test-agreement-id";
+  const agreementId = generateId();
   const mockFile = new File(["test content"], "test.json", {
     type: "application/json",
   });
