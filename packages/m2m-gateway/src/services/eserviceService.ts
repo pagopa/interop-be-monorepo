@@ -9,6 +9,10 @@ import {
   toM2MGatewayApiEServiceDescriptor,
 } from "../api/eserviceApiConverter.js";
 import { eserviceDescriptorNotFound } from "../model/errors.js";
+import {
+  assertValidPaginationLimit,
+  assertValidPaginationOffset,
+} from "../utils/validators/validators.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -79,20 +83,15 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getEServiceDescriptors(
       eserviceId: EServiceId,
-      {
-        state,
-        offset,
-        limit,
-      }: {
-        state?: m2mGatewayApi.EServiceDescriptorState;
-        offset: number;
-        limit: number;
-      },
+      { state, offset, limit }: m2mGatewayApi.GetEServiceDescriptorsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptors> {
       logger.info(
         `Retrieving eservice descriptors for eservice with id ${eserviceId} states ${state} offset ${offset} limit ${limit}`
       );
+
+      assertValidPaginationOffset(offset);
+      assertValidPaginationLimit(limit);
 
       const {
         data: { descriptors },
@@ -101,9 +100,9 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      const filteredDescriptors = descriptors.filter((descriptor) =>
-        state ? descriptor.state === state : true
-      );
+      const filteredDescriptors = state
+        ? descriptors.filter((descriptor) => descriptor.state === state)
+        : descriptors;
 
       return {
         pagination: {

@@ -8,6 +8,10 @@ import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockedApiEserviceDescriptor } from "../../mockUtils.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
+import {
+  invalidPaginationLimit,
+  invalidPaginationOffset,
+} from "../../../src/model/errors.js";
 
 describe("GET /eservices/:eserviceId/descriptors router test", () => {
   const mockApiEserviceDescriptor1 = getMockedApiEserviceDescriptor();
@@ -120,6 +124,19 @@ describe("GET /eservices/:eserviceId/descriptors router test", () => {
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, generateId(), mockQueryParams);
+      expect(res.status).toBe(500);
+    }
+  );
+
+  it.each([invalidPaginationLimit(0), invalidPaginationOffset(-1)])(
+    "Should return 500 in case of $code error",
+    async (error) => {
+      mockEserviceService.getEServiceDescriptors = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, generateId(), mockQueryParams);
+
       expect(res.status).toBe(500);
     }
   );
