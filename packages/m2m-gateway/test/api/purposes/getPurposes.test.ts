@@ -1,16 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 import { getMockedApiPurpose } from "../../mockUtils.js";
-import {
-  missingActivePurposeVersion,
-  purposeNotFound,
-} from "../../../src/model/errors.js";
 
 describe("GET /purposes router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -34,14 +30,8 @@ describe("GET /purposes router test", () => {
   const mockM2MPurposesResponse: m2mGatewayApi.Purposes = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MGatewayApiPurpose({
-        purpose: mockApiPurpose1.data,
-        logger: genericLogger,
-      }),
-      toM2MGatewayApiPurpose({
-        purpose: mockApiPurpose2.data,
-        logger: genericLogger,
-      }),
+      toM2MGatewayApiPurpose(mockApiPurpose1.data),
+      toM2MGatewayApiPurpose(mockApiPurpose2.data),
     ],
   };
 
@@ -118,24 +108,4 @@ describe("GET /purposes router test", () => {
       expect(res.status).toBe(500);
     }
   );
-
-  it("Should return 404 in case of purposeNotFound error", async () => {
-    mockPurposeService.getPurposes = vi
-      .fn()
-      .mockRejectedValue(purposeNotFound(mockApiPurpose1.data.id));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockQueryParams);
-
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 500 in case of missingActivePurposeVersion error", async () => {
-    mockPurposeService.getPurposes = vi
-      .fn()
-      .mockRejectedValue(missingActivePurposeVersion(mockApiPurpose1.data.id));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockQueryParams);
-
-    expect(res.status).toBe(500);
-  });
 });

@@ -9,6 +9,7 @@ import {
   ReadModelRepository,
   authRole,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -103,6 +104,7 @@ const tenantsRouter = (
     SECURITY_ROLE,
     API_ROLE,
     M2M_ROLE,
+    M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     MAINTENANCE_ROLE,
@@ -184,13 +186,24 @@ const tenantsRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          M2M_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
-        const { name, features, offset, limit } = req.query;
+        const {
+          name,
+          features,
+          externalIdOrigin,
+          externalIdValue,
+          offset,
+          limit,
+        } = req.query;
         const tenants = await tenantService.getTenants(
           {
             name,
             features: features.map(apiTenantFeatureTypeToTenantFeatureType),
+            externalIdOrigin,
+            externalIdValue,
             offset,
             limit,
           },
@@ -217,15 +230,19 @@ const tenantsRouter = (
           ADMIN_ROLE,
           API_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
           INTERNAL_ROLE,
         ]);
 
-        const tenant = await tenantService.getTenantById(
+        const { data: tenant, metadata } = await tenantService.getTenantById(
           unsafeBrandId(req.params.id),
           ctx
         );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
@@ -691,13 +708,20 @@ const tenantsRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
 
         const { tenantId } = req.params;
-        const tenant = await tenantService.addCertifiedAttribute(
-          { tenantId: unsafeBrandId(tenantId), tenantAttributeSeed: req.body },
-          ctx
-        );
+        const { data: tenant, metadata } =
+          await tenantService.addCertifiedAttribute(
+            {
+              tenantId: unsafeBrandId(tenantId),
+              tenantAttributeSeed: req.body,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
@@ -800,17 +824,23 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
 
           const { tenantId, attributeId } = req.params;
-          await tenantService.revokeCertifiedAttributeById(
-            {
-              tenantId: unsafeBrandId(tenantId),
-              attributeId: unsafeBrandId(attributeId),
-            },
-            ctx
-          );
-          return res.status(204).send();
+          const { data: tenant, metadata } =
+            await tenantService.revokeCertifiedAttributeById(
+              {
+                tenantId: unsafeBrandId(tenantId),
+                attributeId: unsafeBrandId(attributeId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
