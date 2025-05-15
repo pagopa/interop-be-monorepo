@@ -165,9 +165,9 @@ export function getMockedApiEserviceDescriptor({
     data: {
       id: generateId(),
       version: generateMock(z.string()),
-      description: generateMock(z.string()),
+      description: generateMock(z.string().length(10)),
       audience: generateMock(z.array(z.string())),
-      voucherLifespan: generateMock(z.number().int()),
+      voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
       dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
       dailyCallsTotal: generateMock(z.number().int().gte(1)),
       interface: generateMock(catalogApi.EServiceDoc),
