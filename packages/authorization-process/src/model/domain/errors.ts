@@ -14,7 +14,7 @@ import {
 
 export const errorCodes = {
   clientNotFound: "0001",
-  organizationNotAllowedOnClient: "0002",
+  tenantNotAllowedOnClient: "0002",
   clientUserIdNotFound: "0003",
   clientKeyNotFound: "0004",
   userNotAllowedOnClient: "0005",
@@ -22,22 +22,22 @@ export const errorCodes = {
   userWithoutSecurityPrivileges: "0007",
   clientUserAlreadyAssigned: "0008",
   eserviceNotFound: "0009",
-  noPurposeVersionsFoundInRequiredState: "0010",
+  noActiveOrSuspendedPurposeVersionFound: "0010",
   descriptorNotFound: "0011",
-  noAgreementFoundInRequiredState: "0012",
+  noActiveOrSuspendedAgreementFound: "0012",
   purposeAlreadyLinkedToClient: "0013",
-  organizationNotAllowedOnPurpose: "0014",
+  tenantNotAllowedOnPurpose: "0014",
   tooManyKeysPerClient: "0015",
   userNotFound: "0016",
   keyAlreadyExists: "0017",
   producerKeychainNotFound: "0018",
-  organizationNotAllowedOnProducerKeychain: "0019",
+  tenantNotAllowedOnProducerKeychain: "0019",
   producerKeychainUserAlreadyAssigned: "0020",
   producerKeychainUserIdNotFound: "0021",
   tooManyKeysPerProducerKeychain: "0022",
   userNotAllowedOnProducerKeychain: "0023",
   producerKeyNotFound: "0024",
-  organizationNotAllowedOnEService: "0025",
+  tenantNotAllowedOnEService: "0025",
   eserviceAlreadyLinkedToProducerKeychain: "0026",
   userNotAllowedToDeleteClientKey: "0027",
   userNotAllowedToDeleteProducerKeychainKey: "0028",
@@ -66,9 +66,9 @@ export function organizationNotAllowedOnClient(
   clientId: ClientId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on client ${clientId}`,
-    code: "organizationNotAllowedOnClient",
-    title: "Organization not allowed on client",
+    detail: `Tenant ${organizationId} is not allowed on client ${clientId}`,
+    code: "tenantNotAllowedOnClient",
+    title: "Tenant not allowed on client",
   });
 }
 
@@ -165,13 +165,13 @@ export function eserviceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function noPurposeVersionsFoundInRequiredState(
+export function noActiveOrSuspendedPurposeVersionFound(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No versions in required state found in purpose ${purposeId}`,
-    code: "noPurposeVersionsFoundInRequiredState",
-    title: "No purpose versions found in required state",
+    detail: `No active or suspended purpose versions found in purpose ${purposeId}`,
+    code: "noActiveOrSuspendedPurposeVersionFound",
+    title: "No active or suspended purpose versions found",
   });
 }
 
@@ -186,14 +186,14 @@ export function descriptorNotFound(
   });
 }
 
-export function noAgreementFoundInRequiredState(
+export function noActiveOrSuspendedAgreementFound(
   eserviceId: EServiceId,
   consumerId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No agreement in required state found for eservice ${eserviceId} and consumer ${consumerId}`,
-    code: "noAgreementFoundInRequiredState",
-    title: "No Agreement found in required state",
+    detail: `No active or suspended agreement found for eservice ${eserviceId} and consumer ${consumerId}`,
+    code: "noActiveOrSuspendedAgreementFound",
+    title: "No active or suspended Agreement found",
   });
 }
 
@@ -214,13 +214,13 @@ export function organizationNotAllowedOnPurpose(
   delegationId?: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on purpose ${purposeId} ${
+    detail: `Tenant ${organizationId} is not allowed on purpose ${purposeId} ${
       delegationId
         ? `as delegate for delegation ${delegationId}`
         : `as consumer`
     }`,
-    code: "organizationNotAllowedOnPurpose",
-    title: "Organization not allowed on purpose",
+    code: "tenantNotAllowedOnPurpose",
+    title: "Tenant not allowed on purpose",
   });
 }
 
@@ -280,9 +280,9 @@ export function organizationNotAllowedOnProducerKeychain(
   producerKeychainId: ProducerKeychainId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on producer keychain ${producerKeychainId}`,
-    code: "organizationNotAllowedOnProducerKeychain",
-    title: "Organization not allowed on producer keychain",
+    detail: `Tenant ${organizationId} is not allowed on producer keychain ${producerKeychainId}`,
+    code: "tenantNotAllowedOnProducerKeychain",
+    title: "Tenant not allowed on producer keychain",
   });
 }
 
@@ -359,9 +359,9 @@ export function organizationNotAllowedOnEService(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed on e-service ${eserviceId}`,
-    code: "organizationNotAllowedOnEService",
-    title: "Organization not allowed on e-service",
+    detail: `Tenant ${organizationId} is not allowed on e-service ${eserviceId}`,
+    code: "tenantNotAllowedOnEService",
+    title: "Tenant not allowed on e-service",
   });
 }
 

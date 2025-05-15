@@ -28,8 +28,8 @@ import {
   clientKindNotAllowed,
   clientNotFound,
   eserviceNotDelegableForClientAccess,
-  noAgreementFoundInRequiredState,
-  noPurposeVersionsFoundInRequiredState,
+  noActiveOrSuspendedAgreementFound,
+  noActiveOrSuspendedPurposeVersionFound,
   organizationNotAllowedOnClient,
   organizationNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
@@ -120,11 +120,11 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
       expectedStatus: 404,
     },
     {
-      error: noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId),
+      error: noActiveOrSuspendedAgreementFound(mockEservice.id, mockConsumerId),
       expectedStatus: 400,
     },
     {
-      error: noPurposeVersionsFoundInRequiredState(mockPurpose.id),
+      error: noActiveOrSuspendedPurposeVersionFound(mockPurpose.id),
       expectedStatus: 400,
     },
     {

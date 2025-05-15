@@ -53,8 +53,8 @@ import {
   eserviceAlreadyLinkedToProducerKeychain,
   eserviceNotDelegableForClientAccess,
   eserviceNotFound,
-  noAgreementFoundInRequiredState,
-  noPurposeVersionsFoundInRequiredState,
+  noActiveOrSuspendedAgreementFound,
+  noActiveOrSuspendedPurposeVersionFound,
   producerKeychainNotFound,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
@@ -724,7 +724,10 @@ export function authorizationServiceBuilder(
       );
 
       if (agreement === undefined) {
-        throw noAgreementFoundInRequiredState(eservice.id, purpose.consumerId);
+        throw noActiveOrSuspendedAgreementFound(
+          eservice.id,
+          purpose.consumerId
+        );
       }
 
       retrieveDescriptor(agreement.descriptorId, eservice);
@@ -738,7 +741,7 @@ export function authorizationServiceBuilder(
       );
 
       if (purposeVersion === undefined) {
-        throw noPurposeVersionsFoundInRequiredState(purpose.id);
+        throw noActiveOrSuspendedPurposeVersionFound(purpose.id);
       }
 
       const updatedClient: Client = {
