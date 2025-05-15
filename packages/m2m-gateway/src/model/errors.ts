@@ -108,3 +108,13 @@ export function purposeVersionNotFound(
     title: "Purpose version not found",
   });
 }
+
+export function missingActivePurposeVersion(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `There is no active version for purpose ${purposeId}`,
+    code: "missingActivePurposeVersion",
+    title: "Missing active purpose version",
+  });
+}
