@@ -5,17 +5,13 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  bffApi,
-  selfcareV2UsersClientBuilder,
-} from "pagopa-interop-api-clients";
+import { bffApi } from "pagopa-interop-api-clients";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { makeApiProblem } from "../model/errors.js";
 import { getProducerKeychainUsersErrorMapper } from "../utilities/errorMappers.js";
 import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
-import { config } from "../config/config.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,
@@ -25,10 +21,8 @@ const producerKeychainRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const producerKeychainService = producerKeychainServiceBuilder(
-    processClients,
-    selfcareV2UsersClientBuilder(config)
-  );
+  const producerKeychainService =
+    producerKeychainServiceBuilder(processClients);
 
   producerKeychainRouter
     .get("/producerKeychains", async (req, res) => {

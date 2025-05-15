@@ -20,6 +20,12 @@ import {
   unsafeBrandId,
   emptyErrorMapper,
 } from "pagopa-interop-models";
+import {
+  catalogReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "../config/config.js";
 import {
   agreementStateToApiAgreementState,
@@ -75,11 +81,32 @@ import {
   updateDraftDescriptorTemplateInstanceErrorMapper,
   createTemplateInstanceDescriptorErrorMapper,
   updateTemplateInstanceDescriptorErrorMapper,
+  updateAgreementApprovalPolicyErrorMapper,
 } from "../utilities/errorMappers.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
+const db = makeDrizzleConnection(config);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(db);
+
+const readModelRepository = ReadModelRepository.init(config);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  db,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  eserviceTemplateReadModelServiceSQL
 );
+
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const catalogService = catalogServiceBuilder(
   initDB({
@@ -745,6 +772,36 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+          const updatedEService =
+            await catalogService.updateAgreementApprovalPolicy(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateAgreementApprovalPolicyErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       async (req, res) => {
