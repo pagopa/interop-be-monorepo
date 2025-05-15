@@ -1,6 +1,7 @@
 import {
   genericInternalError,
   PlatformStatesAgreementEntry,
+  TenantId,
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import {
@@ -20,11 +21,13 @@ export function tokenGenerationReadModelServiceBuilder(
 ) {
   return {
     async readAllPlatformStatesAgreements(): Promise<
-      Array<Partial<PlatformStatesAgreementEntry>>
+      Array<PlatformStatesAgreementEntry & { producerId?: TenantId }>
     > {
       const runPaginatedQuery = async (
         exclusiveStartKey?: Record<string, AttributeValue>
-      ): Promise<Array<Partial<PlatformStatesAgreementEntry>>> => {
+      ): Promise<
+        Array<PlatformStatesAgreementEntry & { producerId?: TenantId }>
+      > => {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNamePlatform,
           ExclusiveStartKey: exclusiveStartKey,
@@ -44,7 +47,11 @@ export function tokenGenerationReadModelServiceBuilder(
           const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
           const platformStatesAgreements = z
-            .array(PlatformStatesAgreementEntry.partial())
+            .array(
+              PlatformStatesAgreementEntry.and(
+                z.object({ producerId: TenantId.optional() })
+              )
+            )
             .safeParse(unmarshalledItems);
 
           if (!platformStatesAgreements.success) {
