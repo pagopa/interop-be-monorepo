@@ -15,6 +15,7 @@ import {
   EService,
   Agreement,
   AgreementState,
+  DescriptorState,
   descriptorState,
   agreementState,
   ListResult,
@@ -35,6 +36,7 @@ import {
   DelegationKind,
   EServiceTemplate,
   EServiceTemplateId,
+  Descriptor,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
@@ -661,6 +663,60 @@ export function readModelServiceBuilder(
       id: EServiceTemplateId
     ): Promise<EServiceTemplate | undefined> {
       return getEServiceTemplate(eserviceTemplates, { "data.id": id });
+    },
+    async getEserviceDescriptors(
+      eserviceId: EServiceId,
+      states: DescriptorState[] | undefined,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<Descriptor>> {
+      const aggregationPipeline = [
+        {
+          $match: {
+            "data.id": eserviceId,
+          } as ReadModelFilter<EService>,
+        },
+        { $unwind: "$data.descriptors" },
+        ...(states && states.length > 0
+          ? [
+              {
+                $match: {
+                  "data.descriptors.state": { $in: states },
+                },
+              },
+            ]
+          : []),
+        {
+          $replaceRoot: { newRoot: "$data.descriptors" },
+        },
+        {
+          $sort: { version: -1 },
+        },
+      ];
+
+      const data = await eservices
+        .aggregate(
+          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z.array(Descriptor).safeParse(data);
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse descriptors: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          eservices,
+          aggregationPipeline
+        ),
+      };
     },
   };
 }

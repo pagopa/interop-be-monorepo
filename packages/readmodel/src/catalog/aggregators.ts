@@ -20,6 +20,7 @@ import {
   RiskAnalysisAnswerKind,
   EServiceId,
   EServiceTemplateId,
+  DescriptorId,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorAttributeSQL,
@@ -346,6 +347,50 @@ export const aggregateEserviceArray = ({
   });
 };
 
+export const aggregateDescriptorArray = ({
+  descriptorsSQL,
+  interfacesSQL,
+  documentsSQL,
+  attributesSQL,
+  rejectionReasonsSQL,
+  templateVersionRefsSQL,
+}: {
+  descriptorsSQL: EServiceDescriptorSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+}): Descriptor[] => {
+  const interfacesSQLByDescriptorId =
+    createDescriptorsSQLPropertyMap(interfacesSQL);
+  const documentsSQLByDescriptorId =
+    createDescriptorsSQLPropertyMap(documentsSQL);
+  const attributesSQLByDescriptorId =
+    createDescriptorsSQLPropertyMap(attributesSQL);
+  const rejectionReasonsSQLByDescriptorId =
+    createDescriptorsSQLPropertyMap(rejectionReasonsSQL);
+  const templateVersionRefsSQLByDescriptorId = createDescriptorsSQLPropertyMap(
+    templateVersionRefsSQL
+  );
+
+  return descriptorsSQL.map((descriptorSQL) => {
+    const descriptorId = unsafeBrandId<DescriptorId>(descriptorSQL.id);
+    return aggregateDescriptor({
+      descriptorSQL,
+      interfaceSQL:
+        interfacesSQLByDescriptorId.get(descriptorId)?.at(0) ?? undefined,
+      documentsSQL: documentsSQLByDescriptorId.get(descriptorId) ?? [],
+      attributesSQL: attributesSQLByDescriptorId.get(descriptorId) ?? [],
+      rejectionReasonsSQL:
+        rejectionReasonsSQLByDescriptorId.get(descriptorId) ?? [],
+      templateVersionRefSQL:
+        templateVersionRefsSQLByDescriptorId.get(descriptorId)?.at(0) ??
+        undefined,
+    });
+  });
+};
+
 const createEServiceSQLPropertyMap = <
   T extends
     | EServiceRiskAnalysisSQL
@@ -368,6 +413,26 @@ const createEServiceSQLPropertyMap = <
 
     return acc;
   }, new Map<EServiceId, T[]>());
+
+const createDescriptorsSQLPropertyMap = <
+  T extends
+    | EServiceDescriptorInterfaceSQL
+    | EServiceDescriptorDocumentSQL
+    | EServiceDescriptorAttributeSQL
+    | EServiceDescriptorRejectionReasonSQL
+    | EServiceDescriptorTemplateVersionRefSQL
+>(
+  items: T[]
+): Map<DescriptorId, T[]> =>
+  items.reduce((acc, item) => {
+    const descriptorId = unsafeBrandId<DescriptorId>(item.descriptorId);
+    const values = acc.get(descriptorId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(descriptorId, values);
+
+    return acc;
+  }, new Map<DescriptorId, T[]>());
 
 export const aggregateRiskAnalysis = (
   riskAnalysisSQL: EServiceRiskAnalysisSQL | EServiceTemplateRiskAnalysisSQL,
@@ -507,29 +572,23 @@ export const toEServiceAggregatorArray = (
   const eserviceIdSet = new Set<string>();
   const eservicesSQL: EServiceSQL[] = [];
 
-  const descriptorIdSet = new Set<string>();
   const descriptorsSQL: EServiceDescriptorSQL[] = [];
 
-  const interfaceIdSet = new Set<string>();
   const interfacesSQL: EServiceDescriptorInterfaceSQL[] = [];
 
-  const documentIdSet = new Set<string>();
   const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
 
-  const attributeIdSet = new Set<string>();
   const attributesSQL: EServiceDescriptorAttributeSQL[] = [];
+
+  const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
+
+  const templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[] = [];
 
   const riskAnalysisIdSet = new Set<string>();
   const riskAnalysesSQL: EServiceRiskAnalysisSQL[] = [];
 
   const riskAnalysisAnswerIdSet = new Set<string>();
   const riskAnalysisAnswersSQL: EServiceRiskAnalysisAnswerSQL[] = [];
-
-  const rejectionReasonsSet = new Set<string>();
-  const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
-
-  const templateVersionRefIdSet = new Set<string>();
-  const templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[] = [];
 
   // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
   queryRes.forEach((row) => {
@@ -544,75 +603,35 @@ export const toEServiceAggregatorArray = (
     const descriptorSQL = row.descriptor;
 
     if (descriptorSQL) {
-      if (!descriptorIdSet.has(descriptorSQL.id)) {
-        descriptorIdSet.add(descriptorSQL.id);
-        // eslint-disable-next-line functional/immutable-data
-        descriptorsSQL.push(descriptorSQL);
-      }
+      const descriptorsAggregationResults = toEServiceDescriptorAggregatorArray(
+        [
+          {
+            descriptor: descriptorSQL,
+            interface: row.interface,
+            document: row.document,
+            attribute: row.attribute,
+            rejection: row.rejection,
+            templateVersionRef: row.templateVersionRef,
+          },
+        ]
+      );
 
-      const interfaceSQL = row.interface;
-
-      if (interfaceSQL && !interfaceIdSet.has(interfaceSQL.id)) {
-        interfaceIdSet.add(interfaceSQL.id);
-        // eslint-disable-next-line functional/immutable-data
-        interfacesSQL.push(interfaceSQL);
-      }
-
-      const documentSQL = row.document;
-
-      if (documentSQL && !documentIdSet.has(documentSQL.id)) {
-        documentIdSet.add(documentSQL.id);
-        // eslint-disable-next-line functional/immutable-data
-        documentsSQL.push(documentSQL);
-      }
-
-      const attributeSQL = row.attribute;
-      const attributePK = attributeSQL
-        ? makeUniqueKey([
-            attributeSQL.attributeId,
-            attributeSQL.descriptorId,
-            attributeSQL.groupId.toString(),
-          ])
-        : undefined;
-      if (attributeSQL && attributePK && !attributeIdSet.has(attributePK)) {
-        attributeIdSet.add(attributePK);
-        // eslint-disable-next-line functional/immutable-data
-        attributesSQL.push(attributeSQL);
-      }
-
-      const rejectionReasonSQL = row.rejection;
-      const rejectionReasonPK = rejectionReasonSQL
-        ? makeUniqueKey([
-            rejectionReasonSQL.descriptorId,
-            rejectionReasonSQL.rejectedAt,
-          ])
-        : undefined;
-      if (
-        rejectionReasonSQL &&
-        rejectionReasonPK &&
-        !rejectionReasonsSet.has(rejectionReasonPK)
-      ) {
-        rejectionReasonsSet.add(rejectionReasonPK);
-        // eslint-disable-next-line functional/immutable-data
-        rejectionReasonsSQL.push(rejectionReasonSQL);
-      }
-
-      const templateVersionRefSQL = row.templateVersionRef;
-      const templateVersionRefPK = templateVersionRefSQL
-        ? makeUniqueKey([
-            templateVersionRefSQL.eserviceTemplateVersionId,
-            templateVersionRefSQL.descriptorId,
-          ])
-        : undefined;
-      if (
-        templateVersionRefSQL &&
-        templateVersionRefPK &&
-        !templateVersionRefIdSet.has(templateVersionRefPK)
-      ) {
-        templateVersionRefIdSet.add(templateVersionRefPK);
-        // eslint-disable-next-line functional/immutable-data
-        templateVersionRefsSQL.push(templateVersionRefSQL);
-      }
+      // eslint-disable-next-line functional/immutable-data
+      descriptorsSQL.push(...descriptorsAggregationResults.descriptorsSQL);
+      // eslint-disable-next-line functional/immutable-data
+      interfacesSQL.push(...descriptorsAggregationResults.interfacesSQL);
+      // eslint-disable-next-line functional/immutable-data
+      documentsSQL.push(...descriptorsAggregationResults.documentsSQL);
+      // eslint-disable-next-line functional/immutable-data
+      attributesSQL.push(...descriptorsAggregationResults.attributesSQL);
+      // eslint-disable-next-line functional/immutable-data
+      rejectionReasonsSQL.push(
+        ...descriptorsAggregationResults.rejectionReasonsSQL
+      );
+      // eslint-disable-next-line functional/immutable-data
+      templateVersionRefsSQL.push(
+        ...descriptorsAggregationResults.templateVersionRefsSQL
+      );
     }
 
     const riskAnalysisSQL = row.riskAnalysis;
@@ -653,6 +672,125 @@ export const toEServiceAggregatorArray = (
     attributesSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
+    rejectionReasonsSQL,
+    templateVersionRefsSQL,
+  };
+};
+
+export const toEServiceDescriptorAggregatorArray = (
+  queryRes: Array<{
+    descriptor: EServiceDescriptorSQL;
+    interface: EServiceDescriptorInterfaceSQL | null;
+    document: EServiceDescriptorDocumentSQL | null;
+    attribute: EServiceDescriptorAttributeSQL | null;
+    rejection: EServiceDescriptorRejectionReasonSQL | null;
+    templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
+  }>
+): {
+  descriptorsSQL: EServiceDescriptorSQL[];
+  attributesSQL: EServiceDescriptorAttributeSQL[];
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
+  documentsSQL: EServiceDescriptorDocumentSQL[];
+  rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
+  templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+} => {
+  const descriptorIdSet = new Set<string>();
+  const descriptorsSQL: EServiceDescriptorSQL[] = [];
+
+  const interfaceIdSet = new Set<string>();
+  const interfacesSQL: EServiceDescriptorInterfaceSQL[] = [];
+
+  const documentIdSet = new Set<string>();
+  const documentsSQL: EServiceDescriptorDocumentSQL[] = [];
+
+  const attributeIdSet = new Set<string>();
+  const attributesSQL: EServiceDescriptorAttributeSQL[] = [];
+
+  const rejectionReasonsSet = new Set<string>();
+  const rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[] = [];
+
+  const templateVersionRefIdSet = new Set<string>();
+  const templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[] = [];
+
+  // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
+  queryRes.forEach((row) => {
+    const descriptorSQL = row.descriptor;
+    if (!descriptorIdSet.has(descriptorSQL.id)) {
+      descriptorIdSet.add(descriptorSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      descriptorsSQL.push(descriptorSQL);
+    }
+
+    const interfaceSQL = row.interface;
+
+    if (interfaceSQL && !interfaceIdSet.has(interfaceSQL.id)) {
+      interfaceIdSet.add(interfaceSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      interfacesSQL.push(interfaceSQL);
+    }
+
+    const documentSQL = row.document;
+
+    if (documentSQL && !documentIdSet.has(documentSQL.id)) {
+      documentIdSet.add(documentSQL.id);
+      // eslint-disable-next-line functional/immutable-data
+      documentsSQL.push(documentSQL);
+    }
+
+    const attributeSQL = row.attribute;
+    const attributePK = attributeSQL
+      ? makeUniqueKey([
+          attributeSQL.attributeId,
+          attributeSQL.descriptorId,
+          attributeSQL.groupId.toString(),
+        ])
+      : undefined;
+    if (attributeSQL && attributePK && !attributeIdSet.has(attributePK)) {
+      attributeIdSet.add(attributePK);
+      // eslint-disable-next-line functional/immutable-data
+      attributesSQL.push(attributeSQL);
+    }
+
+    const rejectionReasonSQL = row.rejection;
+    const rejectionReasonPK = rejectionReasonSQL
+      ? makeUniqueKey([
+          rejectionReasonSQL.descriptorId,
+          rejectionReasonSQL.rejectedAt,
+        ])
+      : undefined;
+    if (
+      rejectionReasonSQL &&
+      rejectionReasonPK &&
+      !rejectionReasonsSet.has(rejectionReasonPK)
+    ) {
+      rejectionReasonsSet.add(rejectionReasonPK);
+      // eslint-disable-next-line functional/immutable-data
+      rejectionReasonsSQL.push(rejectionReasonSQL);
+    }
+
+    const templateVersionRefSQL = row.templateVersionRef;
+    const templateVersionRefPK = templateVersionRefSQL
+      ? makeUniqueKey([
+          templateVersionRefSQL.eserviceTemplateVersionId,
+          templateVersionRefSQL.descriptorId,
+        ])
+      : undefined;
+    if (
+      templateVersionRefSQL &&
+      templateVersionRefPK &&
+      !templateVersionRefIdSet.has(templateVersionRefPK)
+    ) {
+      templateVersionRefIdSet.add(templateVersionRefPK);
+      // eslint-disable-next-line functional/immutable-data
+      templateVersionRefsSQL.push(templateVersionRefSQL);
+    }
+  });
+
+  return {
+    descriptorsSQL,
+    interfacesSQL,
+    documentsSQL,
+    attributesSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
   };
