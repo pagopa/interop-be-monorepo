@@ -18,6 +18,7 @@ import {
   archivePurposeErrorMapper,
   approvePurposeErrorMapper,
   activatePurposeErrorMapper,
+  unsuspendPurposeErrorMapper,
 } from "../utils/errorMappers.js";
 
 const purposeRouter = (
@@ -247,11 +248,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/unsuspend", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.unsuspendPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          unsuspendPurposeErrorMapper,
           ctx,
           `Error unsuspending purpose ${req.params.purposeId}`
         );

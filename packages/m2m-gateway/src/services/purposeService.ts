@@ -53,6 +53,23 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
     return currentVersion;
   };
+  const retrieveLastSuspendedVersion = (
+    purpose: purposeApi.Purpose
+  ): purposeApi.PurposeVersion => {
+    const lastSuspendedVersion = purpose.versions
+      .filter(
+        (v) => v.state === purposeApi.PurposeVersionState.Values.SUSPENDED
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      .at(-1);
+
+    assertPurposeVersionExists(lastSuspendedVersion, purpose.id);
+
+    return lastSuspendedVersion;
+  };
 
   return {
     async getPurposes(
@@ -329,6 +346,41 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       );
       logger.info(
         `Approving (activating) version ${versionToApprove.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToApprove.id },
+          headers,
+        });
+
+      await pollPurpose(
+        {
+          data: purposeResponse.data,
+          metadata,
+        },
+        headers
+      );
+    },
+    async unsuspendPurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieveing current version for purpose ${purposeId} unsuspension`
+      );
+      const purposeResponse = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const versionToApprove = retrieveLastSuspendedVersion(
+        purposeResponse.data
+      );
+      logger.info(
+        `Unsuspending (activating) version ${versionToApprove.id} of purpose ${purposeId}`
       );
 
       const { metadata } =
