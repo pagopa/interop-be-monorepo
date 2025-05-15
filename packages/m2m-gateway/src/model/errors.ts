@@ -1,8 +1,7 @@
 import {
   attributeRegistryApi,
-  authorizationApi,
   delegationApi,
-  purposeApi,
+  authorizationApi,
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
@@ -110,18 +109,8 @@ export function purposeVersionNotFound(
   });
 }
 
-export function purposeNotFound(
-  purposeId: purposeApi.Purpose["id"]
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} not found`,
-    code: "purposeNotFound",
-    title: "Purpose not found",
-  });
-}
-
 export function missingActivePurposeVersion(
-  purposeId: purposeApi.Purpose["id"]
+  purposeId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `There is no active version for purpose ${purposeId}`,

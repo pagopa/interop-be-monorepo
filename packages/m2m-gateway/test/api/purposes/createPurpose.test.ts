@@ -1,13 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { WithMetadata } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  missingActivePurposeVersion,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
@@ -25,10 +24,9 @@ describe("POST /purposes router test", () => {
     title: mockPurpose.data.title,
   };
 
-  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose({
-    purpose: mockPurpose.data,
-    logger: genericLogger,
-  });
+  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
+    mockPurpose.data
+  );
 
   const makeRequest = async (token: string, body: m2mGatewayApi.PurposeSeed) =>
     request(api)
@@ -74,33 +72,14 @@ describe("POST /purposes router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 500 in case of missingMetadata error", async () => {
-    mockPurposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(missingMetadata());
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockPurposeSeed);
+  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+    "Should return 500 in case of $code error",
+    async (error) => {
+      mockPurposeService.createPurpose = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockPurposeSeed);
 
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of resourcePollingTimeout error", async () => {
-    mockPurposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(resourcePollingTimeout(3));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockPurposeSeed);
-
-    expect(res.status).toBe(500);
-  });
-
-  it("Should return 500 in case of missingActivePurposeVersion error", async () => {
-    mockPurposeService.createPurpose = vi
-      .fn()
-      .mockRejectedValue(missingActivePurposeVersion(mockPurpose.data.id));
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockPurposeSeed);
-
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });
