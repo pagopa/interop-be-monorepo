@@ -539,13 +539,7 @@ export function purposeServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{
-        purpose: Purpose;
-        isRiskAnalysisValid: boolean;
-        updatedVersionId: string;
-      }>
-    > {
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -561,11 +555,6 @@ export function purposeServiceBuilder(
       if (!isArchivable(purposeVersion)) {
         throw notValidVersionState(versionId, purposeVersion.state);
       }
-
-      const tenantKind = await retrieveTenantKind(
-        authData.organizationId,
-        readModelService
-      );
 
       const purposeWithoutWaitingForApproval: Purpose = {
         ...purpose.data,
@@ -592,15 +581,7 @@ export function purposeServiceBuilder(
 
       const event = await repository.createEvent(eventToCreate);
       return {
-        data: {
-          purpose: updatedPurpose,
-          updatedVersionId: archivedVersion.id,
-          isRiskAnalysisValid: isRiskAnalysisFormValid(
-            updatedPurpose.riskAnalysisForm,
-            false,
-            tenantKind
-          ),
-        },
+        data: archivedVersion,
         metadata: {
           version: event.newVersion,
         },
@@ -1003,7 +984,7 @@ export function purposeServiceBuilder(
         readModelService,
       });
 
-      const { event, updatedPurposeVersion, updatedPurpose } = await match({
+      const { event, updatedPurposeVersion } = await match({
         state: purposeVersion.state,
         purposeOwnership,
       })
