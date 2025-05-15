@@ -1,8 +1,9 @@
 import {
   attributeRegistryApi,
+  authorizationApi,
+  catalogApi,
   delegationApi,
   tenantApi,
-  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
@@ -121,6 +122,28 @@ export function getMockedApiClient({
         kind === authorizationApi.ClientKind.Values.API
           ? generateId()
           : undefined,
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiEservice(): WithMetadata<catalogApi.EService> {
+  return {
+    data: {
+      id: generateId(),
+      name: generateMock(z.string().length(10)),
+      producerId: generateId(),
+      description: generateMock(z.string().length(10)),
+      technology: generateMock(catalogApi.EServiceTechnology),
+      descriptors: generateMock(z.array(catalogApi.EServiceDescriptor)),
+      riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
+      mode: generateMock(catalogApi.EServiceMode),
+      isSignalHubEnabled: generateMock(z.boolean()),
+      isConsumerDelegable: generateMock(z.boolean()),
+      isClientAccessDelegable: generateMock(z.boolean()),
+      templateId: generateId(),
     },
     metadata: {
       version: 0,

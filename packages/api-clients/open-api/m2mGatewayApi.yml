@@ -3950,8 +3950,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        template:
-          $ref: "#/components/schemas/EServiceTemplateRef"
+        templateId:
+          type: string
+          format: uuid
       required:
         - id
         - producerId
@@ -4071,18 +4072,6 @@ components:
       enum:
         - REST
         - SOAP
-    EServiceTemplateRef:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        instanceLabel:
-          type: string
-          format: uuid
-      required:
-        - id
     EServiceTemplate:
       type: object
       additionalProperties: false
