@@ -675,7 +675,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UpdatedPurposeVersion"
+                $ref: "#/components/schemas/PurposeVersion"
         "400":
           description: Bad Request
           content:
@@ -1382,18 +1382,6 @@ components:
         purpose:
           $ref: "#/components/schemas/Purpose"
         createdVersionId:
-          type: string
-          format: uuid
-    UpdatedPurposeVersion:
-      type: object
-      additionalProperties: false
-      required:
-        - purpose
-        - updatedVersionId
-      properties:
-        purpose:
-          $ref: "#/components/schemas/Purpose"
-        updatedVersionId:
           type: string
           format: uuid
     Problem:

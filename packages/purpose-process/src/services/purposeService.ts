@@ -909,22 +909,16 @@ export function purposeServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{
-        purpose: Purpose;
-        isRiskAnalysisValid: boolean;
-        updatedVersionId: string;
-      }>
-    > {
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
 
-      const [eservice, tenantKind] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
-      ]);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       if (purposeVersion.state === purposeVersionState.draft) {
         const riskAnalysisForm = purpose.data.riskAnalysisForm;
@@ -1125,21 +1119,8 @@ export function purposeServiceBuilder(
 
       const createdEvent = await repository.createEvent(event);
 
-      const updatedPurpose = replacePurposeVersion(
-        purpose.data,
-        updatedPurposeVersion
-      );
-
       return {
-        data: {
-          purpose: updatedPurpose,
-          isRiskAnalysisValid: isRiskAnalysisFormValid(
-            updatedPurpose.riskAnalysisForm,
-            false,
-            tenantKind
-          ),
-          updatedVersionId: updatedPurposeVersion.id,
-        },
+        data: updatedPurposeVersion,
         metadata: { version: createdEvent.newVersion },
       };
     },

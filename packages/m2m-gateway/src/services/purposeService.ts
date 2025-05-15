@@ -238,17 +238,15 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         `Activating version ${versionToActivate.id} of purpose ${purposeId}`
       );
 
-      const {
-        data: { purpose },
-        metadata,
-      } = await clients.purposeProcessClient.activatePurposeVersion(undefined, {
-        params: { purposeId, versionId: versionToActivate.id },
-        headers,
-      });
+      const { metadata } =
+        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToActivate.id },
+          headers,
+        });
 
       await pollPurpose(
         {
-          data: purpose,
+          data: purposeResponse.data,
           metadata,
         },
         headers
