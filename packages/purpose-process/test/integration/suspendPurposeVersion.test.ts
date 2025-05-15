@@ -83,9 +83,7 @@ describe("suspendPurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       );
 
-      const updatedVersion = suspendResponse.data.purpose.versions.find(
-        (v) => v.id === suspendResponse.data.updatedVersionId
-      )!;
+      const updatedVersion = suspendResponse.data;
 
       const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -155,9 +153,7 @@ describe("suspendPurposeVersion", () => {
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
-    const updatedVersion = suspendResponse.data.purpose.versions.find(
-      (v) => v.id === suspendResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = suspendResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -235,9 +231,7 @@ describe("suspendPurposeVersion", () => {
       },
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
-    const updatedVersion = suspendResponse.data.purpose.versions.find(
-      (v) => v.id === suspendResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = suspendResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -307,9 +301,7 @@ describe("suspendPurposeVersion", () => {
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
-    const updatedVersion = suspendResponse.data.purpose.versions.find(
-      (v) => v.id === suspendResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = suspendResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -392,9 +384,7 @@ describe("suspendPurposeVersion", () => {
       },
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
-    const updatedVersion = suspendResponse.data.purpose.versions.find(
-      (v) => v.id === suspendResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = suspendResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -479,9 +469,7 @@ describe("suspendPurposeVersion", () => {
       },
       getMockContext({ authData })
     );
-    const updatedVersion = suspendResponse.data.purpose.versions.find(
-      (v) => v.id === suspendResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = suspendResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -612,9 +600,7 @@ describe("suspendPurposeVersion", () => {
       },
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
-    const updatedVersion = suspendResponse.data.purpose.versions.find(
-      (v) => v.id === suspendResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = suspendResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
 

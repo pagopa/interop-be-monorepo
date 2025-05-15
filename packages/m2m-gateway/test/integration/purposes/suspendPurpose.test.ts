@@ -29,12 +29,9 @@ describe("suspendPurposeVersion", () => {
     versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
   });
 
-  const suspendPurposeApiResponse: WithMetadata<purposeApi.UpdatedPurposeVersion> =
+  const suspendPurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> =
     {
-      data: {
-        purpose: mockApiPurpose.data,
-        updatedVersionId: mockApiPurposeVersion1.id,
-      },
+      data: mockApiPurposeVersion1,
       metadata: { version: 0 },
     };
 

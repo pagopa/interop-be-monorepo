@@ -656,13 +656,7 @@ export function purposeServiceBuilder(
         correlationId,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{
-        purpose: Purpose;
-        isRiskAnalysisValid: boolean;
-        updatedVersionId: string;
-      }>
-    > {
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -672,10 +666,10 @@ export function purposeServiceBuilder(
         throw notValidVersionState(purposeVersion.id, purposeVersion.state);
       }
 
-      const [eservice, tenantKind] = await Promise.all([
-        retrieveEService(purpose.data.eserviceId, readModelService),
-        retrieveTenantKind(authData.organizationId, readModelService),
-      ]);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
 
       const suspender = await getOrganizationRole({
         purpose: purpose.data,
@@ -691,50 +685,36 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const { eventToCreate, updatedPurpose } = match(suspender)
+      const eventToCreate = match(suspender)
         .with(ownership.CONSUMER, () => {
           const updatedPurpose: Purpose = {
             ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
             suspendedByConsumer: true,
           };
-          return {
-            eventToCreate: toCreateEventPurposeSuspendedByConsumer({
-              purpose: updatedPurpose,
-              purposeVersionId: versionId,
-              version: purpose.metadata.version,
-              correlationId,
-            }),
-            updatedPurpose,
-          };
+          return toCreateEventPurposeSuspendedByConsumer({
+            purpose: updatedPurpose,
+            purposeVersionId: versionId,
+            version: purpose.metadata.version,
+            correlationId,
+          });
         })
         .with(ownership.PRODUCER, ownership.SELF_CONSUMER, () => {
           const updatedPurpose: Purpose = {
             ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
             suspendedByProducer: true,
           };
-          return {
-            eventToCreate: toCreateEventPurposeSuspendedByProducer({
-              purpose: updatedPurpose,
-              purposeVersionId: versionId,
-              version: purpose.metadata.version,
-              correlationId,
-            }),
-            updatedPurpose,
-          };
+          return toCreateEventPurposeSuspendedByProducer({
+            purpose: updatedPurpose,
+            purposeVersionId: versionId,
+            version: purpose.metadata.version,
+            correlationId,
+          });
         })
         .exhaustive();
 
       const createdEvent = await repository.createEvent(eventToCreate);
       return {
-        data: {
-          purpose: updatedPurpose,
-          isRiskAnalysisValid: isRiskAnalysisFormValid(
-            updatedPurpose.riskAnalysisForm,
-            false,
-            tenantKind
-          ),
-          updatedVersionId: suspendedPurposeVersion.id,
-        },
+        data: suspendedPurposeVersion,
         metadata: { version: createdEvent.newVersion },
       };
     },

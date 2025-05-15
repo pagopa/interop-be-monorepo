@@ -770,7 +770,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UpdatedPurposeVersion"
+                $ref: "#/components/schemas/PurposeVersion"
         "400":
           description: Bad Request
           content:
