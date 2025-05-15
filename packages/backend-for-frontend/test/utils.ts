@@ -4,6 +4,7 @@ import {
   AppContext,
   FileManager,
   genericLogger,
+  UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -92,7 +93,7 @@ export const toEserviceCatalogProcessMock = (
 });
 
 export const getBffMockContext = (
-  ctx: AppContext
+  ctx: AppContext<UIAuthData>
 ): WithLogger<BffAppContext> => ({
   ...ctx,
   headers: {

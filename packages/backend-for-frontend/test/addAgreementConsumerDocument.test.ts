@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
-import { AuthData, userRoles } from "pagopa-interop-commons";
+import { AuthData, userRole } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
@@ -17,7 +17,7 @@ describe("addAgreementConsumerDocument", () => {
   const authData: AuthData = {
     ...getMockAuthData(),
     organizationId: generateId(),
-    userRoles: [userRoles.ADMIN_ROLE],
+    userRoles: [userRole.ADMIN_ROLE],
   };
 
   it("should add agreement consumer document and store it", async () => {
