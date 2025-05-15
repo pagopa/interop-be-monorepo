@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateToken, getMockClient } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { generateId, TenantId, UserId } from "pagopa-interop-models";
+import { ClientId, generateId, TenantId, UserId } from "pagopa-interop-models";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
@@ -16,13 +16,17 @@ import {
 
 describe("API POST /clients/{clientId}/admin test", () => {
   const mockClient = getMockClient();
-  const body = { adminId: generateId<UserId>() };
-  const makeRequest = async (token: string, clientId: string = mockClient.id) =>
+  const adminSeed = generateId<UserId>();
+  const makeRequest = async (
+    token: string,
+    clientId: ClientId = mockClient.id,
+    adminId: UserId = adminSeed
+  ) =>
     request(api)
       .post(`/clients/${clientId}/admin`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(body);
+      .send({ adminId });
 
   const apiResponse = authorizationApi.Client.parse(
     clientToApiClient(mockClient, { showUsers: false })
@@ -31,7 +35,7 @@ describe("API POST /clients/{clientId}/admin test", () => {
   beforeEach(() => {
     authorizationService.setAdminToClient = vi
       .fn()
-      .mockResolvedValue({ client: mockClient, showUsers: false });
+      .mockResolvedValue({ client: mockClient, showUsers: true });
   });
 
   it("Should return 200 for user with role Admin", async () => {
@@ -43,56 +47,57 @@ describe("API POST /clients/{clientId}/admin test", () => {
 
   it.each([
     {
-      description: "invalid clientId",
       clientId: "invalid-client-id",
-      body,
+      adminId: generateId<UserId>(),
     },
-    { description: "invalid body: {}", clientId: mockClient.id, body: {} },
+    { clientId: mockClient.id, adminId: {} as UserId },
     {
-      description: "invalid body: { adminId: 123 }",
       clientId: mockClient.id,
-      body: { adminId: 123 },
-    },
-    {
-      description: "invalid body: { adminId: '' }",
-      clientId: mockClient.id,
-      body: { adminId: "" },
+      adminId: 123 as unknown as UserId,
     },
     {
-      description: "invalid body: { invalidField: 'foo' }",
       clientId: mockClient.id,
-      body: { invalidField: "foo" },
+      adminId: "" as UserId,
+    },
+    {
+      clientId: mockClient.id,
+      adminId: "foo" as UserId,
     },
   ])(
-    "Should return 400 if passed an $description",
-    async ({ clientId, body }) => {
+    "Should return 400 if passed invalid params: %s",
+    async ({ clientId, adminId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await request(api)
-        .post(`/clients/${clientId}/admin`)
-        .set("Authorization", `Bearer ${token}`)
-        .set("X-Correlation-Id", generateId())
-        .send(body);
+      const res = await makeRequest(token, clientId as ClientId, adminId);
       expect(res.status).toBe(400);
     }
   );
 
   it.each([
-    [clientNotFound(generateId()), 404],
-    [clientKindNotAllowed(mockClient.id), 403],
-    [
-      userWithoutSecurityPrivileges(
+    { error: clientNotFound(generateId()), expectedStatus: 404 },
+    { error: clientKindNotAllowed(mockClient.id), expectedStatus: 403 },
+    {
+      error: userWithoutSecurityPrivileges(
         generateId<TenantId>(),
         generateId<UserId>()
       ),
-      403,
-    ],
-    [clientAdminAlreadyAssignedToUser(mockClient.id, body.adminId), 409],
-  ])("Should return %j for status %i", async (error, expectedStatus) => {
-    authorizationService.setAdminToClient = vi.fn().mockRejectedValue(error);
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(expectedStatus);
-  });
+      expectedStatus: 403,
+    },
+    {
+      error: clientAdminAlreadyAssignedToUser(
+        mockClient.id,
+        generateId<UserId>()
+      ),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      authorizationService.setAdminToClient = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it.each(
     Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
