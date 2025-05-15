@@ -133,9 +133,9 @@ export function getMockedApiEservice(): WithMetadata<catalogApi.EService> {
   return {
     data: {
       id: generateId(),
-      name: generateMock(z.string()),
+      name: generateMock(z.string().length(10)),
       producerId: generateId(),
-      description: generateMock(z.string()),
+      description: generateMock(z.string().length(10)),
       technology: generateMock(catalogApi.EServiceTechnology),
       descriptors: generateMock(z.array(catalogApi.EServiceDescriptor)),
       riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
