@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant (
   name VARCHAR NOT NULL,
   onboarded_at TIMESTAMP WITH TIME ZONE,
   sub_unit_type VARCHAR,
+  deleted BOOLEAN,
   PRIMARY KEY (id),
   CONSTRAINT tenant_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
@@ -24,6 +25,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant_mail (
   address VARCHAR NOT NULL,
   description VARCHAR NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (id, tenant_id, created_at),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
@@ -34,6 +36,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant_certified_attribute (
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
   PRIMARY KEY (attribute_id, tenant_id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
@@ -45,6 +48,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant_declared_attribute (
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
   delegation_id VARCHAR(36),
+  deleted BOOLEAN,
   PRIMARY KEY (attribute_id, tenant_id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
@@ -54,6 +58,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute (
   tenant_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (attribute_id, tenant_id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
@@ -67,6 +72,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_verifier (
   expiration_date TIMESTAMP WITH TIME ZONE,
   extension_date TIMESTAMP WITH TIME ZONE,
   delegation_id VARCHAR(36),
+  deleted BOOLEAN,
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES domains.tenant_verified_attribute (tenant_id, attribute_id),
   FOREIGN KEY (tenant_verifier_id) REFERENCES domains.tenant (id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
@@ -82,6 +88,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_revoker (
   extension_date TIMESTAMP WITH TIME ZONE,
   revocation_date TIMESTAMP WITH TIME ZONE NOT NULL,
   delegation_id VARCHAR(36),
+  deleted BOOLEAN,
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES domains.tenant_verified_attribute (tenant_id, attribute_id),
   FOREIGN KEY (tenant_revoker_id) REFERENCES domains.tenant (id),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
@@ -93,6 +100,7 @@ CREATE TABLE IF NOT EXISTS domains.tenant_feature (
   kind VARCHAR NOT NULL,
   certifier_id VARCHAR,
   availability_timestamp TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
   PRIMARY KEY (tenant_id, kind),
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
