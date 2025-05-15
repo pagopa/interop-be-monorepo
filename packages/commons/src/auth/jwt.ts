@@ -111,7 +111,7 @@ export const verifyJwtToken = async (
       );
     });
   } catch (error) {
-    logger.error(`Error building JWKS clients: ${error}`);
+    logger.error(`Error verifying JWT token: ${error}`);
     const { userId, selfcareId } = extractUserInfoForFailedToken();
     return Promise.reject(tokenVerificationFailed(userId, selfcareId));
   }
