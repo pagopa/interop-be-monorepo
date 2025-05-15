@@ -261,17 +261,15 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         `Archiving version ${versionToArchive.id} of purpose ${purposeId}`
       );
 
-      const {
-        data: { purpose },
-        metadata,
-      } = await clients.purposeProcessClient.archivePurposeVersion(undefined, {
-        params: { purposeId, versionId: versionToArchive.id },
-        headers,
-      });
+      const { metadata } =
+        await clients.purposeProcessClient.archivePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToArchive.id },
+          headers,
+        });
 
       await pollPurpose(
         {
-          data: purpose,
+          data: purposeResponse.data,
           metadata,
         },
         headers

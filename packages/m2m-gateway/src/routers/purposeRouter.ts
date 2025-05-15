@@ -14,7 +14,6 @@ import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getPurposeVersionErrorMapper,
-  getPurposeErrorMapper,
   archivePurposeErrorMapper,
   activatePurposeErrorMapper,
 } from "../utils/errorMappers.js";

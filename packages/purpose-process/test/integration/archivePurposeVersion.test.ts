@@ -74,9 +74,7 @@ describe("archivePurposeVersion", () => {
       getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
     );
 
-    const updatedVersion = archiveResponse.data.purpose.versions.find(
-      (v) => v.id === archiveResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = archiveResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -145,9 +143,7 @@ describe("archivePurposeVersion", () => {
       getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
     );
 
-    const updatedVersion = archiveResponse.data.purpose.versions.find(
-      (v) => v.id === archiveResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = archiveResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -227,9 +223,7 @@ describe("archivePurposeVersion", () => {
       getMockContext({ authData })
     );
 
-    const updatedVersion = archiveResponse.data.purpose.versions.find(
-      (v) => v.id === archiveResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = archiveResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -359,9 +353,7 @@ describe("archivePurposeVersion", () => {
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
 
-    const updatedVersion = archiveResponse.data.purpose.versions.find(
-      (v) => v.id === archiveResponse.data.updatedVersionId
-    )!;
+    const updatedVersion = archiveResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
 
