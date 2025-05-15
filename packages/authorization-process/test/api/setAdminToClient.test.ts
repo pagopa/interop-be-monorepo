@@ -50,24 +50,28 @@ describe("API POST /clients/{clientId}/admin test", () => {
       clientId: "invalid-client-id",
       adminId: generateId<UserId>(),
     },
-    { clientId: mockClient.id, adminId: {} as UserId },
+    { clientId: mockClient.id, adminId: {} },
     {
       clientId: mockClient.id,
-      adminId: 123 as unknown as UserId,
+      adminId: 123,
     },
     {
       clientId: mockClient.id,
-      adminId: "" as UserId,
+      adminId: "",
     },
     {
       clientId: mockClient.id,
-      adminId: "foo" as UserId,
+      adminId: "foo",
     },
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ clientId, adminId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, clientId as ClientId, adminId);
+      const res = await makeRequest(
+        token,
+        clientId as ClientId,
+        adminId as UserId
+      );
       expect(res.status).toBe(400);
     }
   );
