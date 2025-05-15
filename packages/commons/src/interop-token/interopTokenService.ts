@@ -259,10 +259,10 @@ export class InteropTokenGenerator {
       exp: currentTimestamp + tokenDurationInSeconds,
       purposeId,
       ...(digest ? { digest } : {}),
-      producerId,
-      consumerId,
-      eserviceId,
-      descriptorId,
+      ...(producerId ? { producerId } : {}),
+      ...(consumerId ? { consumerId } : {}),
+      ...(eserviceId ? { eserviceId } : {}),
+      ...(descriptorId ? { descriptorId } : {}),
     };
 
     const serializedToken = await this.createAndSignToken({
