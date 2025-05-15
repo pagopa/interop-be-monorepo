@@ -296,17 +296,15 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         `Suspending version ${versionToSuspend.id} of purpose ${purposeId}`
       );
 
-      const {
-        data: { purpose },
-        metadata,
-      } = await clients.purposeProcessClient.suspendPurposeVersion(undefined, {
-        params: { purposeId, versionId: versionToSuspend.id },
-        headers,
-      });
+      const { metadata } =
+        await clients.purposeProcessClient.suspendPurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToSuspend.id },
+          headers,
+        });
 
       await pollPurpose(
         {
-          data: purpose,
+          data: purposeResponse.data,
           metadata,
         },
         headers
