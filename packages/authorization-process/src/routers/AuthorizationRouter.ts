@@ -5,8 +5,6 @@ import {
   authRole,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  ReadModelRepository,
-  initDB,
   fromAppContext,
   validateAuthorization,
 } from "pagopa-interop-commons";
@@ -17,22 +15,8 @@ import {
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  authorizationApi,
-  selfcareV2InstitutionClientBuilder,
-} from "pagopa-interop-api-clients";
-import {
-  agreementReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  clientReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  makeDrizzleConnection,
-  producerKeychainReadModelServiceBuilder,
-  purposeReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
-import { config } from "../config/config.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { authorizationServiceBuilder } from "../services/authorizationService.js";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { AuthorizationService } from "../services/authorizationService.js";
 import {
   apiClientKindToClientKind,
   clientToApiClient,
@@ -69,59 +53,16 @@ import {
   addProducerKeychainUserErrorMapper,
   removeProducerKeychainUserErrorMapper,
   removeProducerKeychainEServiceErrorMapper,
-  addPurposeKeychainEServiceErrorMapper,
   getProducerKeychainErrorMapper,
+  addProducerKeychainEServiceErrorMapper,
   internalRemoveClientAdminErrorMapper,
   removeClientAdminErrorMapper,
+  addClientAdminErrorMapper,
 } from "../utilities/errorMappers.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
-
-const readModelDB = makeDrizzleConnection(config);
-const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
-const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
-const producerKeychainReadModelServiceSQL =
-  producerKeychainReadModelServiceBuilder(readModelDB);
-const delegationReadModelServiceSQL =
-  delegationReadModelServiceBuilder(readModelDB);
-
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const readModelServiceSQL = readModelServiceBuilderSQL({
-  readModelDB,
-  clientReadModelServiceSQL,
-  catalogReadModelServiceSQL,
-  purposeReadModelServiceSQL,
-  agreementReadModelServiceSQL,
-  producerKeychainReadModelServiceSQL,
-  delegationReadModelServiceSQL,
-});
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
-const authorizationService = authorizationServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  selfcareV2InstitutionClientBuilder(config)
-);
 
 const authorizationRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  authorizationService: AuthorizationService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,
@@ -401,6 +342,32 @@ const authorizationRouter = (
           );
       } catch (error) {
         const errorRes = makeApiProblem(error, addClientUserErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/clients/:clientId/admin", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { client, showUsers } =
+          await authorizationService.setAdminToClient(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              adminId: unsafeBrandId(req.body.adminId),
+            },
+            ctx
+          );
+        return res
+          .status(200)
+          .send(
+            authorizationApi.Client.parse(
+              clientToApiClient(client, { showUsers })
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, addClientAdminErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -984,7 +951,7 @@ const authorizationRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            addPurposeKeychainEServiceErrorMapper,
+            addProducerKeychainEServiceErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
