@@ -1,18 +1,20 @@
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   InteropTokenGenerator,
-  InteropUserJwtPayload,
   Logger,
   RateLimiter,
   RateLimiterStatus,
   SUPPORT_USER_ID,
   SessionClaims,
-  SupportJwtPayload,
+  UIClaims,
+  UserClaims,
+  UserRole,
   WithLogger,
   userRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
 import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
+import { z } from "zod";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
@@ -59,8 +61,8 @@ export function authorizationServiceBuilder(
       throw invalidClaim(error);
     }
 
-    const userRoles: string[] = sessionClaims.organization.roles.map(
-      (r: { role: string }) => r.role
+    const userRoles: UserRole[] = sessionClaims.organization.roles.map(
+      (r: { role: UserRole }) => r.role
     );
 
     if (userRoles.length === 0) {
@@ -89,8 +91,8 @@ export function authorizationServiceBuilder(
     selfcareId: string,
     tenantOrigin: string,
     tenantExternalId: string
-  ): InteropUserJwtPayload => ({
-    "user-roles": roles,
+  ): UserClaims => ({
+    "user-roles": z.array(UserRole).parse(roles.split(",")),
     organizationId: tenantId,
     selfcareId,
     externalId: {
@@ -102,7 +104,7 @@ export function authorizationServiceBuilder(
   const buildSupportClaims = (
     selfcareId: string,
     tenant: tenantApi.Tenant
-  ): SupportJwtPayload => ({
+  ): UIClaims => ({
     ...buildJwtCustomClaims(
       userRole.SUPPORT_ROLE,
       tenant.id,
@@ -120,12 +122,10 @@ export function authorizationServiceBuilder(
       ],
     },
     uid: SUPPORT_USER_ID,
-    "user-roles": userRole.SUPPORT_ROLE,
+    "user-roles": [userRole.SUPPORT_ROLE],
   });
 
-  const retrieveSupportClaims = (
-    tenant: tenantApi.Tenant
-  ): SupportJwtPayload => {
+  const retrieveSupportClaims = (tenant: tenantApi.Tenant): UIClaims => {
     const selfcareId = tenant.selfcareId;
     if (!selfcareId) {
       throw missingSelfcareId(config.pagoPaTenantId);
