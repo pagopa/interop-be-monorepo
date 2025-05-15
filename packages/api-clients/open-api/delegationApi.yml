@@ -424,8 +424,15 @@ paths:
         - consumer
       operationId: approveConsumerDelegation
       responses:
-        "204":
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
           description: Delegation approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
         "400":
           description: Bad Request
           content:
@@ -480,8 +487,15 @@ paths:
         required: true
         description: Payload for delegation rejection
       responses:
-        "204":
-          description: Delegation reject
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
+          description: Delegation rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
         "400":
           description: Bad Request
           content:
@@ -502,12 +516,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Delegation not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
           content:
             application/json:
               schema:
@@ -628,8 +636,15 @@ paths:
         - producer
       operationId: approveProducerDelegation
       responses:
-        "204":
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
           description: Delegation approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
         "400":
           description: Bad Request
           content:
@@ -684,8 +699,15 @@ paths:
         required: true
         description: Payload for delegation rejection
       responses:
-        "204":
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
           description: Delegation rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
         "400":
           description: Bad Request
           content:
@@ -706,12 +728,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Delegation not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
           content:
             application/json:
               schema:

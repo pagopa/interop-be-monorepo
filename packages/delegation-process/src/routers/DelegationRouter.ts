@@ -69,6 +69,7 @@ const delegationRouter = (
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
@@ -218,12 +219,18 @@ const delegationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        await delegationService.approveProducerDelegation(
-          unsafeBrandId(delegationId),
-          ctx
-        );
+        const { data, metadata } =
+          await delegationService.approveProducerDelegation(
+            unsafeBrandId(delegationId),
+            ctx
+          );
 
-        return res.status(204).send();
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -242,13 +249,19 @@ const delegationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        await delegationService.rejectProducerDelegation(
-          unsafeBrandId(delegationId),
-          rejectionReason,
-          ctx
-        );
+        const { data, metadata } =
+          await delegationService.rejectProducerDelegation(
+            unsafeBrandId(delegationId),
+            rejectionReason,
+            ctx
+          );
 
-        return res.status(204).send();
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -323,14 +336,20 @@ const delegationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await delegationService.approveConsumerDelegation(
-          unsafeBrandId(req.params.delegationId),
-          ctx
-        );
+        const { data, metadata } =
+          await delegationService.approveConsumerDelegation(
+            unsafeBrandId(req.params.delegationId),
+            ctx
+          );
 
-        return res.status(204).send();
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .json(
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -346,15 +365,21 @@ const delegationRouter = (
       const { rejectionReason } = req.body;
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await delegationService.rejectConsumerDelegation(
-          unsafeBrandId(req.params.delegationId),
-          rejectionReason,
-          ctx
-        );
+        const { data, metadata } =
+          await delegationService.rejectConsumerDelegation(
+            unsafeBrandId(req.params.delegationId),
+            rejectionReason,
+            ctx
+          );
 
-        return res.status(204).send();
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            delegationApi.Delegation.parse(delegationToApiDelegation(data))
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

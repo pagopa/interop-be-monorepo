@@ -12,6 +12,13 @@ import {
   applicationAuditBeginMiddleware,
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import healthRouter from "./routers/HealthRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
@@ -21,14 +28,38 @@ import {
   delegationServiceBuilder,
 } from "./services/delegationService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createDefaultDelegationService = async () => {
-  const readModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
   const fileManager = initFileManager(config);
   const pdfGenerator = await initPDFGenerator();
+
+  const readModelDB = makeDrizzleConnection(config);
+  const delegationReadModelServiceSQL =
+    delegationReadModelServiceBuilder(readModelDB);
+  const catalogReadModelServiceSQL =
+    catalogReadModelServiceBuilder(readModelDB);
+  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+  const agreementReadModelServiceSQL =
+    agreementReadModelServiceBuilder(readModelDB);
+
+  const oldReadModelService = readModelServiceBuilder(
+    ReadModelRepository.init(config)
+  );
+  const readModelServiceSQL = readModelServiceBuilderSQL({
+    readModelDB,
+    delegationReadModelServiceSQL,
+    catalogReadModelServiceSQL,
+    tenantReadModelServiceSQL,
+    agreementReadModelServiceSQL,
+  });
+  const readModelService =
+    config.featureFlagSQL &&
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
+      ? readModelServiceSQL
+      : oldReadModelService;
 
   return delegationServiceBuilder(
     initDB({

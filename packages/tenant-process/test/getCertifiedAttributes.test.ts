@@ -39,6 +39,7 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
+      name: "attribute 1",
       kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute1.id,
@@ -46,6 +47,7 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
+      name: "attribute 2",
       kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute2.id,
