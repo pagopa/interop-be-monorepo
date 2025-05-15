@@ -14,6 +14,7 @@ import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getPurposeVersionErrorMapper,
+  suspendPurposeErrorMapper,
   archivePurposeErrorMapper,
   activatePurposeErrorMapper,
 } from "../utils/errorMappers.js";
@@ -217,11 +218,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/suspend", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.suspendPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          suspendPurposeErrorMapper,
           ctx,
           `Error suspending purpose ${req.params.purposeId} version`
         );
