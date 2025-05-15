@@ -24,7 +24,7 @@ export async function handleTenantMessageV1(
   const deleteTenantBatch: Array<TenantSQL["id"]> = [];
   const deleteTenantMailBatch: Array<Pick<TenantMailSQL, "id" | "tenantId">> =
     [];
-  const setTenantSelfcareIdBatch: Array<
+  const upsertTenantSelfcareIdBatch: Array<
     Pick<TenantSQL, "id" | "selfcareId" | "metadataVersion">
   > = [];
 
@@ -61,7 +61,7 @@ export async function handleTenantMessageV1(
           type: "SelfcareMappingCreated",
         },
         (msg) => {
-          setTenantSelfcareIdBatch.push({
+          upsertTenantSelfcareIdBatch.push({
             id: msg.data.tenantId,
             selfcareId: msg.data.selfcareId,
             metadataVersion: msg.version,
@@ -76,9 +76,9 @@ export async function handleTenantMessageV1(
     await tenantService.upsertBatchTenantItems(upsertTenantBatch, dbContext);
   }
 
-  if (setTenantSelfcareIdBatch.length > 0) {
-    await tenantService.setBatchTenantSelfCareIdItems(
-      setTenantSelfcareIdBatch,
+  if (upsertTenantSelfcareIdBatch.length > 0) {
+    await tenantService.upsertBatchTenantSelfCareIdItems(
+      upsertTenantSelfcareIdBatch,
       dbContext
     );
   }

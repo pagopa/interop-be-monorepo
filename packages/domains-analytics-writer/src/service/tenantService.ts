@@ -137,7 +137,7 @@ export function tenantServiceBuilder(db: DBContext) {
       genericLogger.info(`Cleaned all tenant staging data`);
     },
 
-    async setBatchTenantSelfCareIdItems(
+    async upsertBatchTenantSelfCareIdItems(
       items: Array<Pick<TenantSQL, "id" | "selfcareId" | "metadataVersion">>,
       dbContext: DBContext
     ) {
