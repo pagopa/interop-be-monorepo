@@ -20,7 +20,7 @@ import {
   tenantNotFound,
   expirationDateCannotBeInThePast,
   verifiedAttributeNotFoundInTenant,
-  organizationNotFoundInVerifiers,
+  tenantNotFoundInVerifiers,
 } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -174,7 +174,7 @@ describe("updateTenantVerifiedAttribute", async () => {
       verifiedAttributeNotFoundInTenant(updatedCertifiedTenant.id, attributeId)
     );
   });
-  it("should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+  it("should throw tenantNotFoundInVerifiers when the tenant is not verified", async () => {
     await addOneTenant(verifier);
     await addOneTenant(tenant);
     const verifierId = generateId<TenantId>();
@@ -190,7 +190,7 @@ describe("updateTenantVerifiedAttribute", async () => {
         })
       )
     ).rejects.toThrowError(
-      organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
+      tenantNotFoundInVerifiers(verifierId, tenant.id, attributeId)
     );
   });
 });

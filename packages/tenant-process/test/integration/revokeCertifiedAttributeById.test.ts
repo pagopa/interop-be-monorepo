@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { attributeKind, tenantAttributeType } from "pagopa-interop-models";
+import {
+  attributeKind,
+  tenantAttributeType,
+  tenantKind,
+} from "pagopa-interop-models";
 import {
   generateId,
   Tenant,
@@ -64,6 +68,7 @@ describe("revokeCertifiedAttributeById", async () => {
   it("Should revoke the certified attribute if it exist", async () => {
     const tenantWithCertifiedAttribute: Tenant = {
       ...getMockTenant(),
+      kind: tenantKind.PA,
       attributes: [
         {
           ...getMockCertifiedTenantAttribute(),
@@ -76,22 +81,23 @@ describe("revokeCertifiedAttributeById", async () => {
     await addOneAttribute(attribute);
     await addOneTenant(tenantWithCertifiedAttribute);
     await addOneTenant(requesterTenant);
-    await tenantService.revokeCertifiedAttributeById(
-      {
-        tenantId: tenantWithCertifiedAttribute.id,
-        attributeId: attribute.id,
-      },
-      getMockContext({ authData })
-    );
+    const revokeCertifiedAttributeByIdResponse =
+      await tenantService.revokeCertifiedAttributeById(
+        {
+          tenantId: tenantWithCertifiedAttribute.id,
+          attributeId: attribute.id,
+        },
+        getMockContext({ authData })
+      );
     const writtenEvent = await readEventByStreamIdAndVersion(
-      tenantWithCertifiedAttribute.id,
+      revokeCertifiedAttributeByIdResponse.data.id,
       1,
       "tenant",
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: tenantWithCertifiedAttribute.id,
+      stream_id: revokeCertifiedAttributeByIdResponse.data.id,
       version: "1",
       type: "TenantCertifiedAttributeRevoked",
       event_version: 2,
@@ -114,6 +120,11 @@ describe("revokeCertifiedAttributeById", async () => {
       updatedAt: new Date(),
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
+
+    expect(revokeCertifiedAttributeByIdResponse).toEqual({
+      data: updatedTenant,
+      metadata: { version: 1 },
+    });
   });
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
     await addOneAttribute(attribute);
