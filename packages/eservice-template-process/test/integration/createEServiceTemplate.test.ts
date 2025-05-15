@@ -124,7 +124,7 @@ describe("create eservice template", () => {
         eserviceTemplateToApiEServiceTemplateSeed({
           ...mockEServiceTemplate,
           versions: [
-            { ...mockVersion, dailyCallsPerConsumer: 1, dailyCallsTotal: 0 },
+            { ...mockVersion, dailyCallsPerConsumer: 2, dailyCallsTotal: 1 },
           ],
         }),
         getMockContext({
