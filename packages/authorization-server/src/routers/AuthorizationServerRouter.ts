@@ -11,7 +11,12 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { Problem, tooManyRequestsError } from "pagopa-interop-models";
+import {
+  ClientId,
+  Problem,
+  TenantId,
+  tooManyRequestsError,
+} from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { initProducer } from "kafka-iam-auth";
@@ -63,6 +68,21 @@ const authorizationServerRouter = (
   authorizationServerRouter.post(
     "/authorization-server/token.oauth2",
     async (req, res) => {
+      /* generateToken needs to mutate the context to set the clientId and organizationId,
+      so that they can be used in further middlewares (e.g., the application audit).
+      We create two dedicated mutation functions so that we can pass down a read-only context
+      and the mutation function, and avoid mutating it directly.
+      */
+      const setCtxClientId = (clientId: ClientId): void => {
+        // eslint-disable-next-line functional/immutable-data
+        req.ctx.clientId = clientId;
+      };
+
+      const setCtxOrganizationId = (organizationId: TenantId): void => {
+        // eslint-disable-next-line functional/immutable-data
+        req.ctx.organizationId = organizationId;
+      };
+
       const ctx: WithLogger<AuthServerAppContext> = {
         ...req.ctx,
         logger: logger({ ...req.ctx }),
@@ -71,8 +91,9 @@ const authorizationServerRouter = (
       try {
         const tokenResult = await tokenService.generateToken(
           req.body,
-          req.ctx,
-          ctx.logger
+          ctx,
+          setCtxClientId,
+          setCtxOrganizationId
         );
 
         const headers = rateLimiterHeadersFromStatus(
