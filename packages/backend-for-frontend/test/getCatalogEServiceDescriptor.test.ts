@@ -6,7 +6,7 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
+import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
@@ -241,8 +241,15 @@ describe("getCatalogEServiceDescriptor", () => {
     id: generateId(),
     eserviceId: eServiceId,
     descriptorId: mockDescriptorId,
+    producerId: generateId(),
     consumerId: authData.organizationId,
-  } as unknown as agreementApi.Agreement);
+    state: "ACTIVE",
+    verifiedAttributes: [],
+    certifiedAttributes: [],
+    declaredAttributes: [],
+    consumerDocuments: [],
+    createdAt: "2023-01-01T00:00:00.000Z",
+  });
 
   vi.spyOn(
     catalogApiConverter,
@@ -301,25 +308,12 @@ describe("getCatalogEServiceDescriptor", () => {
   });
 
   it("should throw tenant not found", async () => {
-    const mockTenantClientNotFound = {
-      tenant: {
-        getTenant: vi.fn(),
-      },
-    } as unknown as TenantProcessClient;
-
-    const catalogServiceWithEmptyTenant = catalogServiceBuilder(
-      mockCatalogProcessClient,
-      mockTenantClientNotFound,
-      mockAgreementProcessClient,
-      mockAttributeProcessClient,
-      mockDelegationProcessClient,
-      mockEServiceTemplateProcessClient,
-      fileManager,
-      config
+    vi.spyOn(mockTenantProcessClient.tenant, "getTenant").mockRejectedValueOnce(
+      new tenantNotFound(authData.organizationId)
     );
 
     await expect(
-      catalogServiceWithEmptyTenant.getCatalogEServiceDescriptor(
+      catalogService.getCatalogEServiceDescriptor(
         eServiceId,
         mockDescriptorId,
         bffMockContext
