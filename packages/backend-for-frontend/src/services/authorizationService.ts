@@ -92,7 +92,7 @@ export function authorizationServiceBuilder(
     tenantOrigin: string,
     tenantExternalId: string
   ): UserClaims => ({
-    "user-roles": z.array(UserRole).parse(roles.split(",")),
+    "user-roles": z.array(UserRole).parse(roles === "" ? [] : roles.split(",")),
     organizationId: tenantId,
     selfcareId,
     externalId: {
