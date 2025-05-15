@@ -1989,6 +1989,10 @@ importers:
         version: 5.4.5
 
   packages/commons-test:
+    dependencies:
+      '@aws-sdk/client-kms':
+        specifier: 3.693.0
+        version: 3.693.0
     devDependencies:
       '@anatine/zod-mock':
         specifier: 3.13.4
@@ -6349,19 +6353,12 @@ packages:
     resolution: {integrity: sha512-3zWGWCHI+FlJ5WJwx73Mw2llYR8aflVyZN5JhoqLxbdPZi6UyKSdCeXAWJw9ja22m6S6Tzz1KZ+kAaSwvydi0g==}
     engines: {node: '>=16.0.0'}
 
-  '@smithy/hash-node@3.0.3':
-    resolution: {integrity: sha512-2ctBXpPMG+B3BtWSGNnKELJ7SH9e4TNefJS0cd2eSkOOROeBnnVBnAy9LtJ8tY4vUEoe55N4CNPxzbWvR39iBw==}
-    engines: {node: '>=16.0.0'}
-
   '@smithy/hash-stream-node@3.1.9':
     resolution: {integrity: sha512-3XfHBjSP3oDWxLmlxnt+F+FqXpL3WlXs+XXaB6bV9Wo8BBu87fK1dSEsyH7Z4ZHRmwZ4g9lFMdf08m9hoX1iRA==}
     engines: {node: '>=16.0.0'}
 
   '@smithy/invalid-dependency@3.0.10':
     resolution: {integrity: sha512-Lp2L65vFi+cj0vFMu2obpPW69DU+6O5g3086lmI4XcnRCG8PxvpWC7XyaVwJCxsZFzueHjXnrOH/E0pl0zikfA==}
-
-  '@smithy/invalid-dependency@3.0.3':
-    resolution: {integrity: sha512-ID1eL/zpDULmHJbflb864k72/SNOZCADRc9i7Exq3RUNJw6raWUSlFEQ+3PX3EYs++bTxZB2dE9mEHTQLv61tw==}
 
   '@smithy/is-array-buffer@2.2.0':
     resolution: {integrity: sha512-GGP3O9QFD24uGeAXYUjwSTXARoqpZykHadOmA8G5vfJPK0/DC67qa//0qvqrJzL1xc8WQWX7/yc7fwudjPHPhA==}
@@ -9965,7 +9962,7 @@ snapshots:
   '@aws-crypto/sha256-js@4.0.0':
     dependencies:
       '@aws-crypto/util': 4.0.0
-      '@aws-sdk/types': 3.609.0
+      '@aws-sdk/types': 3.692.0
       tslib: 1.14.1
 
   '@aws-crypto/sha256-js@5.2.0':
@@ -9980,7 +9977,7 @@ snapshots:
 
   '@aws-crypto/util@4.0.0':
     dependencies:
-      '@aws-sdk/types': 3.609.0
+      '@aws-sdk/types': 3.692.0
       '@aws-sdk/util-utf8-browser': 3.259.0
       tslib: 1.14.1
 
@@ -10010,8 +10007,8 @@ snapshots:
       '@smithy/config-resolver': 3.0.12
       '@smithy/core': 2.5.4
       '@smithy/fetch-http-handler': 3.2.9
-      '@smithy/hash-node': 3.0.3
-      '@smithy/invalid-dependency': 3.0.3
+      '@smithy/hash-node': 3.0.10
+      '@smithy/invalid-dependency': 3.0.10
       '@smithy/middleware-content-length': 3.0.12
       '@smithy/middleware-endpoint': 3.2.4
       '@smithy/middleware-retry': 3.0.28
@@ -10308,8 +10305,8 @@ snapshots:
       '@smithy/config-resolver': 3.0.12
       '@smithy/core': 2.5.4
       '@smithy/fetch-http-handler': 3.2.9
-      '@smithy/hash-node': 3.0.3
-      '@smithy/invalid-dependency': 3.0.3
+      '@smithy/hash-node': 3.0.10
+      '@smithy/invalid-dependency': 3.0.10
       '@smithy/middleware-content-length': 3.0.12
       '@smithy/middleware-endpoint': 3.2.4
       '@smithy/middleware-retry': 3.0.28
@@ -10396,8 +10393,8 @@ snapshots:
       '@smithy/config-resolver': 3.0.12
       '@smithy/core': 2.5.4
       '@smithy/fetch-http-handler': 3.2.9
-      '@smithy/hash-node': 3.0.3
-      '@smithy/invalid-dependency': 3.0.3
+      '@smithy/hash-node': 3.0.10
+      '@smithy/invalid-dependency': 3.0.10
       '@smithy/middleware-content-length': 3.0.12
       '@smithy/middleware-endpoint': 3.2.4
       '@smithy/middleware-retry': 3.0.28
@@ -10484,8 +10481,8 @@ snapshots:
       '@smithy/config-resolver': 3.0.12
       '@smithy/core': 2.5.4
       '@smithy/fetch-http-handler': 3.2.9
-      '@smithy/hash-node': 3.0.3
-      '@smithy/invalid-dependency': 3.0.3
+      '@smithy/hash-node': 3.0.10
+      '@smithy/invalid-dependency': 3.0.10
       '@smithy/middleware-content-length': 3.0.12
       '@smithy/middleware-endpoint': 3.2.4
       '@smithy/middleware-retry': 3.0.28
@@ -12177,13 +12174,6 @@ snapshots:
       '@smithy/util-utf8': 3.0.0
       tslib: 2.6.3
 
-  '@smithy/hash-node@3.0.3':
-    dependencies:
-      '@smithy/types': 3.7.1
-      '@smithy/util-buffer-from': 3.0.0
-      '@smithy/util-utf8': 3.0.0
-      tslib: 2.6.3
-
   '@smithy/hash-stream-node@3.1.9':
     dependencies:
       '@smithy/types': 3.7.1
@@ -12191,11 +12181,6 @@ snapshots:
       tslib: 2.6.3
 
   '@smithy/invalid-dependency@3.0.10':
-    dependencies:
-      '@smithy/types': 3.7.1
-      tslib: 2.6.3
-
-  '@smithy/invalid-dependency@3.0.3':
     dependencies:
       '@smithy/types': 3.7.1
       tslib: 2.6.3
