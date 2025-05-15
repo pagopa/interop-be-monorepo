@@ -161,7 +161,7 @@ export function getMockedApiEserviceDescriptor(): WithMetadata<catalogApi.EServi
     data: {
       id: generateId(),
       version: generateMock(z.string()),
-      description: generateMock(z.string()),
+      description: generateMock(z.string().length(10)),
       audience: generateMock(z.array(z.string())),
       voucherLifespan: generateMock(z.number().int()),
       dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
