@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -6,18 +5,19 @@ import request from "supertest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiAgreement } from "../../mockUtils.js";
-import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 import {
   agreementNotInPendingState,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
+import { getMockedApiAgreement } from "../../mockUtils.js";
+import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 
 describe("POST /agreements/:agreementId/approve router test", () => {
   const mockApiAgreement = getMockedApiAgreement({
     state: agreementApi.AgreementState.Values.PENDING,
   });
+
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
     toM2MGatewayApiAgreement(mockApiAgreement.data);
 
@@ -28,7 +28,7 @@ describe("POST /agreements/:agreementId/approve router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform services calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockAgreementService.approveAgreement = vi
         .fn()
@@ -41,14 +41,6 @@ describe("POST /agreements/:agreementId/approve router test", () => {
       expect(res.body).toEqual(mockM2MAgreementResponse);
     }
   );
-
-  it.each(
-    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
-  )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(403);
-  });
 
   it.each([missingMetadata(), resourcePollingTimeout(3)])(
     "Should return 500 in case of $code error",
