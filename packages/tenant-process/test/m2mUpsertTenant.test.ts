@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
-import { AuthData } from "pagopa-interop-commons";
 import {
-  getMockAuthData,
-  getMockContext,
+  getMockContextM2M,
   getMockTenant,
   readEventByStreamIdAndVersion,
-  writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -15,7 +12,6 @@ import {
   Tenant,
   toTenantV2,
   Attribute,
-  toReadModelAttribute,
   TenantCertifiedAttributeAssignedV2,
   tenantAttributeType,
 } from "pagopa-interop-models";
@@ -32,8 +28,8 @@ import {
   addOneTenant,
   tenantService,
   readLastTenantEvent,
-  attributes,
   postgresDB,
+  addOneAttribute,
 } from "./utils.js";
 
 describe("m2mUpsertTenant", async () => {
@@ -90,19 +86,15 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: mockTenant.id,
-      userRoles: ["m2m"],
-    };
-
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
+    await addOneAttribute(attribute);
+    await addOneAttribute(attribute2);
 
     await addOneTenant(mockTenant);
     const returnedTenant = await tenantService.m2mUpsertTenant(
       tenantSeed,
-      getMockContext({ authData })
+      getMockContextM2M({
+        organizationId: mockTenant.id,
+      })
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
       mockTenant.id,
@@ -200,12 +192,6 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: mockTenant.id,
-      userRoles: ["m2m"],
-    };
-
     const tenantSeed2: tenantApi.M2MTenantSeed = {
       ...tenantSeed,
       certifiedAttributes: [
@@ -224,8 +210,8 @@ describe("m2mUpsertTenant", async () => {
       creationTime: new Date(),
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
-    await writeInReadmodel(toReadModelAttribute(attribute2), attributes);
+    await addOneAttribute(attribute);
+    await addOneAttribute(attribute2);
 
     const tenant: Tenant = {
       ...mockTenant,
@@ -249,7 +235,9 @@ describe("m2mUpsertTenant", async () => {
 
     const returnedTenant = await tenantService.m2mUpsertTenant(
       tenantSeed2,
-      getMockContext({ authData })
+      getMockContextM2M({
+        organizationId: mockTenant.id,
+      })
     );
 
     const writtenEvent = await readLastTenantEvent(tenant.id);
@@ -305,12 +293,6 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: mockTenant.id,
-      userRoles: ["m2m"],
-    };
-
     const tenantAlreadyAssigned: Tenant = {
       ...mockTenant,
       attributes: [
@@ -324,24 +306,29 @@ describe("m2mUpsertTenant", async () => {
     };
 
     await addOneTenant(tenantAlreadyAssigned);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
+      tenantService.m2mUpsertTenant(
+        tenantSeed,
+        getMockContextM2M({
+          organizationId: mockTenant.id,
+        })
+      )
     ).rejects.toThrowError(
       certifiedAttributeAlreadyAssigned(attribute.id, tenantAlreadyAssigned.id)
     );
   });
   it("Should throw tenantNotFound if the requester doesn't exist", async () => {
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: getMockTenant().id,
-      userRoles: ["m2m"],
-    };
-
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    const tenant = getMockTenant();
+    await addOneAttribute(attribute);
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
-    ).rejects.toThrowError(tenantNotFound(authData.organizationId));
+      tenantService.m2mUpsertTenant(
+        tenantSeed,
+        getMockContextM2M({
+          organizationId: tenant.id,
+        })
+      )
+    ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
   it("Should throw tenantNotFound if the tenant by externalId doesn't exist", async () => {
     const mockTenant: Tenant = {
@@ -359,14 +346,8 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: mockTenant.id,
-      userRoles: ["m2m"],
-    };
-
     await addOneTenant(mockTenant);
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
 
     const tenantSeed: tenantApi.M2MTenantSeed = {
       externalId: {
@@ -378,7 +359,12 @@ describe("m2mUpsertTenant", async () => {
     };
 
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
+      tenantService.m2mUpsertTenant(
+        tenantSeed,
+        getMockContextM2M({
+          organizationId: mockTenant.id,
+        })
+      )
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
         tenantSeed.externalId.origin,
@@ -402,15 +388,14 @@ describe("m2mUpsertTenant", async () => {
       ],
     };
 
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: mockTenant.id,
-      userRoles: ["m2m"],
-    };
-
     await addOneTenant(mockTenant);
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
+      tenantService.m2mUpsertTenant(
+        tenantSeed,
+        getMockContextM2M({
+          organizationId: mockTenant.id,
+        })
+      )
     ).rejects.toThrowError(
       attributeNotFound(
         `${certifierId}/${tenantSeed.certifiedAttributes[0].code}`
@@ -419,15 +404,15 @@ describe("m2mUpsertTenant", async () => {
   });
   it("Should throw tenantIsNotACertifier if the requester is not a certifier", async () => {
     const tenant: Tenant = getMockTenant();
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      organizationId: tenant.id,
-      userRoles: ["m2m"],
-    };
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(attribute);
     await addOneTenant(tenant);
     expect(
-      tenantService.m2mUpsertTenant(tenantSeed, getMockContext({ authData }))
+      tenantService.m2mUpsertTenant(
+        tenantSeed,
+        getMockContextM2M({
+          organizationId: tenant.id,
+        })
+      )
     ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
   });
 });

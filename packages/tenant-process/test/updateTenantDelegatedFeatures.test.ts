@@ -13,10 +13,10 @@ import {
   TenantDelegatedConsumerFeatureAddedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
 import {
   getMockAuthData,
+  getMockContext,
   getMockTenant,
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
@@ -47,16 +47,15 @@ describe("updateTenantDelegatedFeatures", async () => {
       };
 
       await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures({
-        organizationId: mockTenant.id,
-        tenantFeatures: {
-          isDelegatedConsumerFeatureEnabled: true,
-          isDelegatedProducerFeatureEnabled: false,
+      await tenantService.updateTenantDelegatedFeatures(
+        {
+          tenantFeatures: {
+            isDelegatedConsumerFeatureEnabled: true,
+            isDelegatedProducerFeatureEnabled: false,
+          },
         },
-        correlationId: generateId(),
-        authData: getMockAuthData(),
-        logger: genericLogger,
-      });
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      );
 
       const writtenEvent = await readLastEventByStreamId(
         mockTenant.id,
@@ -103,16 +102,15 @@ describe("updateTenantDelegatedFeatures", async () => {
       };
 
       await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures({
-        organizationId: mockTenant.id,
-        tenantFeatures: {
-          isDelegatedConsumerFeatureEnabled: false,
-          isDelegatedProducerFeatureEnabled: true,
+      await tenantService.updateTenantDelegatedFeatures(
+        {
+          tenantFeatures: {
+            isDelegatedConsumerFeatureEnabled: false,
+            isDelegatedProducerFeatureEnabled: true,
+          },
         },
-        correlationId: generateId(),
-        authData: getMockAuthData(),
-        logger: genericLogger,
-      });
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      );
 
       const writtenEvent = await readLastEventByStreamId(
         mockTenant.id,
@@ -165,16 +163,15 @@ describe("updateTenantDelegatedFeatures", async () => {
       };
 
       await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures({
-        organizationId: mockTenant.id,
-        tenantFeatures: {
-          isDelegatedConsumerFeatureEnabled: false,
-          isDelegatedProducerFeatureEnabled: false,
+      await tenantService.updateTenantDelegatedFeatures(
+        {
+          tenantFeatures: {
+            isDelegatedConsumerFeatureEnabled: false,
+            isDelegatedProducerFeatureEnabled: false,
+          },
         },
-        correlationId: generateId(),
-        authData: getMockAuthData(),
-        logger: genericLogger,
-      });
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      );
 
       const writtenEvent = await readLastEventByStreamId(
         mockTenant.id,
@@ -221,16 +218,15 @@ describe("updateTenantDelegatedFeatures", async () => {
       };
 
       await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures({
-        organizationId: mockTenant.id,
-        tenantFeatures: {
-          isDelegatedConsumerFeatureEnabled: false,
-          isDelegatedProducerFeatureEnabled: false,
+      await tenantService.updateTenantDelegatedFeatures(
+        {
+          tenantFeatures: {
+            isDelegatedConsumerFeatureEnabled: false,
+            isDelegatedProducerFeatureEnabled: false,
+          },
         },
-        correlationId: generateId(),
-        authData: getMockAuthData(),
-        logger: genericLogger,
-      });
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      );
 
       const writtenEvent = await readLastEventByStreamId(
         mockTenant.id,
@@ -271,16 +267,15 @@ describe("updateTenantDelegatedFeatures", async () => {
       };
 
       await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures({
-        organizationId: mockTenant.id,
-        tenantFeatures: {
-          isDelegatedConsumerFeatureEnabled: true,
-          isDelegatedProducerFeatureEnabled: true,
+      await tenantService.updateTenantDelegatedFeatures(
+        {
+          tenantFeatures: {
+            isDelegatedConsumerFeatureEnabled: true,
+            isDelegatedProducerFeatureEnabled: true,
+          },
         },
-        correlationId: generateId(),
-        authData: getMockAuthData(),
-        logger: genericLogger,
-      });
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      );
 
       const consumerEvent = await readEventByStreamIdAndVersion(
         mockTenant.id,
@@ -356,16 +351,15 @@ describe("updateTenantDelegatedFeatures", async () => {
       };
 
       await addOneTenant(mockTenant);
-      await tenantService.updateTenantDelegatedFeatures({
-        organizationId: mockTenant.id,
-        tenantFeatures: {
-          isDelegatedConsumerFeatureEnabled: false,
-          isDelegatedProducerFeatureEnabled: false,
+      await tenantService.updateTenantDelegatedFeatures(
+        {
+          tenantFeatures: {
+            isDelegatedConsumerFeatureEnabled: false,
+            isDelegatedProducerFeatureEnabled: false,
+          },
         },
-        correlationId: generateId(),
-        authData: getMockAuthData(),
-        logger: genericLogger,
-      });
+        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      );
 
       const consumerEvent = await readEventByStreamIdAndVersion(
         mockTenant.id,
@@ -412,16 +406,15 @@ describe("updateTenantDelegatedFeatures", async () => {
   it("Should throw tenantNotFound if the requester tenant doesn't exist", async () => {
     const organizationId = generateId<TenantId>();
     expect(
-      tenantService.updateTenantDelegatedFeatures({
-        organizationId,
-        tenantFeatures: {
-          isDelegatedConsumerFeatureEnabled: true,
-          isDelegatedProducerFeatureEnabled: true,
+      tenantService.updateTenantDelegatedFeatures(
+        {
+          tenantFeatures: {
+            isDelegatedConsumerFeatureEnabled: true,
+            isDelegatedProducerFeatureEnabled: true,
+          },
         },
-        correlationId: generateId(),
-        authData: getMockAuthData(),
-        logger: genericLogger,
-      })
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
     ).rejects.toThrowError(tenantNotFound(organizationId));
   });
   it("Should throw operationForbidden if the requester tenant has externalId origin not compliant", async () => {
@@ -430,19 +423,20 @@ describe("updateTenantDelegatedFeatures", async () => {
     await addOneTenant(tenant);
 
     expect(
-      tenantService.updateTenantDelegatedFeatures({
-        organizationId: tenant.id,
-        correlationId: generateId(),
-        tenantFeatures: {
-          isDelegatedConsumerFeatureEnabled: true,
-          isDelegatedProducerFeatureEnabled: true,
+      tenantService.updateTenantDelegatedFeatures(
+        {
+          tenantFeatures: {
+            isDelegatedConsumerFeatureEnabled: true,
+            isDelegatedProducerFeatureEnabled: true,
+          },
         },
-        authData: {
-          ...getMockAuthData(tenant.id),
-          externalId: { origin: "UNKNOWN", value: "test" },
-        },
-        logger: genericLogger,
-      })
+        getMockContext({
+          authData: {
+            ...getMockAuthData(tenant.id),
+            externalId: { origin: "UNKNOWN", value: "test" },
+          },
+        })
+      )
     ).rejects.toThrowError(operationForbidden);
   });
 });

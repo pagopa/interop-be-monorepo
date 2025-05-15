@@ -43,7 +43,10 @@ export const errorCodes = {
   userNotAllowedToDeleteProducerKeychainKey: "0028",
   purposeDelegationNotFound: "0029",
   eserviceNotDelegableForClientAccess: "0030",
-  securityUserNotMember: "0031",
+  clientKindNotAllowed: "0031",
+  securityUserNotMember: "0032",
+  clientAdminIdNotFound: "0033",
+  userAlreadyAssignedAsAdmin: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -77,6 +80,17 @@ export function clientUserIdNotFound(
     detail: `User ${userId} not found in client ${clientId}`,
     code: "clientUserIdNotFound",
     title: "User id not found in client",
+  });
+}
+
+export function clientAdminIdNotFound(
+  clientId: ClientId,
+  adminId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client admin ${adminId} not found in client ${clientId}`,
+    code: "clientAdminIdNotFound",
+    title: "Client admin id not found in client",
   });
 }
 
@@ -129,6 +143,17 @@ export function clientUserAlreadyAssigned(
     detail: `User ${userId} is already assigned to the client ${clientId}`,
     code: "clientUserAlreadyAssigned",
     title: "User already assigned to the client",
+  });
+}
+
+export function clientAdminAlreadyAssignedToUser(
+  clientId: ClientId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} is already assigned as admin to the client ${clientId}`,
+    code: "userAlreadyAssignedAsAdmin",
+    title: "User already assigned as admin to the client",
   });
 }
 
@@ -368,6 +393,14 @@ export function eserviceNotDelegableForClientAccess(
     detail: `EService ${eservice.id} is not delegable for client access`,
     code: "eserviceNotDelegableForClientAccess",
     title: "EService not delegable for client access",
+  });
+}
+
+export function clientKindNotAllowed(clientId: ClientId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Client ${clientId} kind is not allowed for requested operation`,
+    code: "clientKindNotAllowed",
+    title: "Operation not allowed on client kind",
   });
 }
 

@@ -7,6 +7,7 @@ import {
   Attribute,
   tenantAttributeType,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  PUBLIC_SERVICES_MANAGERS,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -20,10 +21,11 @@ import { ReadModelService } from "./readModelService.js";
 const AGENCY_CLASSIFICATION = "Agency";
 
 // Tipologia Gestori di Pubblici Servizi
-const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
+export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 
-// Categoria Gestori di Pubblici Servizi
-const PUBLIC_SERVICES_MANAGERS_CATEGORY = "L37";
+// Tipologia Società in Conto Economico Consolidato
+export const ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY =
+  "Societa' in Conto Economico Consolidato";
 
 export type TenantSeed = {
   origin: string;
@@ -111,9 +113,20 @@ export function getTenantUpsertData(
       .with(PUBLIC_SERVICES_MANAGERS_TYPOLOGY, () => [
         {
           origin: i.origin,
-          code: PUBLIC_SERVICES_MANAGERS_CATEGORY,
+          code: PUBLIC_SERVICES_MANAGERS,
         },
       ])
+      .with(
+        ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+        () => config.economicAccountCompaniesAllowlist.includes(i.originId),
+        // eslint-disable-next-line sonarjs/no-identical-functions
+        () => [
+          {
+            origin: i.origin,
+            code: PUBLIC_SERVICES_MANAGERS,
+          },
+        ]
+      )
       .otherwise(() => []);
 
     const shouldKindBeIncluded = kindsToInclude.has(i.kind);
@@ -207,7 +220,7 @@ export async function getAttributesToAssign(
     platformTenants.map((t) => [toTenantKey(t.externalId), t])
   );
 
-  const certifiedsAttribute = new Map(
+  const certifiedAttributes = new Map(
     platformAttributes
       .filter((a) => a.kind === attributeKind.certified && a.origin && a.code)
       .map((a) => [a.id, a])
@@ -231,7 +244,7 @@ export async function getAttributesToAssign(
               attribute.type === tenantAttributeType.CERTIFIED &&
               !attribute.revocationTimestamp
           )
-          .map((attribute) => certifiedsAttribute.get(attribute.id))
+          .map((attribute) => certifiedAttributes.get(attribute.id))
           .filter((a): a is NonNullable<typeof a> => a !== undefined)
           .map((a) => [toAttributeKey({ origin: a.origin, code: a.code }), a])
       );
@@ -289,7 +302,7 @@ export async function getAttributesToRevoke(
 ): Promise<
   Array<{
     tOrigin: string;
-    tExtenalId: string;
+    tExternalId: string;
     aOrigin: string;
     aCode: string;
   }>
@@ -318,8 +331,6 @@ export async function getAttributesToRevoke(
     },
     tenantExternalId: { origin: string; value: string }
   ): boolean => {
-    const externalId = { origin: attribute.origin, code: attribute.code };
-
     if (attribute.origin !== PUBLIC_ADMINISTRATIONS_IDENTIFIER) {
       return false;
     }
@@ -331,7 +342,9 @@ export async function getAttributesToRevoke(
       return true;
     }
 
-    return !registryAttributes.has(toAttributeKey(externalId));
+    return !registryAttributes.has(
+      toAttributeKey({ origin: attribute.origin, code: attribute.code })
+    );
   };
 
   return platformTenants.flatMap((t) =>
@@ -357,7 +370,7 @@ export async function getAttributesToRevoke(
       )
       .map((a) => ({
         tOrigin: t.externalId.origin,
-        tExtenalId: t.externalId.value,
+        tExternalId: t.externalId.value,
         aOrigin: a.origin,
         aCode: a.code,
       }))
@@ -367,7 +380,7 @@ export async function getAttributesToRevoke(
 export async function revokeAttributes(
   attributesToRevoke: Array<{
     tOrigin: string;
-    tExtenalId: string;
+    tExternalId: string;
     aOrigin: string;
     aCode: string;
   }>,
@@ -380,12 +393,12 @@ export async function revokeAttributes(
 
   for (const a of attributesToRevoke) {
     loggerInstance.info(
-      `Updating tenant ${a.tExtenalId}. Revoking attribute ${a.aCode}`
+      `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`
     );
     await tenantClient.internalRevokeCertifiedAttribute(undefined, {
       params: {
         tOrigin: a.tOrigin,
-        tExternalId: a.tExtenalId,
+        tExternalId: a.tExternalId,
         aOrigin: a.aOrigin,
         aExternalId: a.aCode,
       },
