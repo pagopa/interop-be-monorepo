@@ -11,9 +11,9 @@ export const EserviceSchema = z.object({
   description: z.string(),
   technology: z.string(),
   mode: z.string(),
-  is_signal_hub_enabled: z.string().nullable(),
-  is_consumer_delegable: z.string().nullable(),
-  is_client_access_delegable: z.string().nullable(),
+  is_signal_hub_enabled: z.boolean().nullable(),
+  is_consumer_delegable: z.boolean().nullable(),
+  is_client_access_delegable: z.boolean().nullable(),
   deleted: z.boolean().default(false).optional(),
 });
 export type EserviceSchema = z.infer<typeof EserviceSchema>;
