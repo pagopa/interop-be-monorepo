@@ -107,11 +107,7 @@ describe("archivePurposeVersion", () => {
       writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
     ).toEqual(toPurposeVersionV2(updatedVersion));
     expect(archiveResponse).toMatchObject({
-      data: {
-        purpose: expectedPurpose,
-        updatedVersionId: updatedVersion.id,
-        isRiskAnalysisValid: true,
-      },
+      data: updatedVersion,
       metadata: { version: 1 },
     });
 
@@ -176,11 +172,7 @@ describe("archivePurposeVersion", () => {
       writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
     ).toEqual(toPurposeVersionV2(updatedVersion));
     expect(archiveResponse).toMatchObject({
-      data: {
-        purpose: expectedPurpose,
-        updatedVersionId: updatedVersion.id,
-        isRiskAnalysisValid: true,
-      },
+      data: updatedVersion,
       metadata: { version: 1 },
     });
 
@@ -256,11 +248,7 @@ describe("archivePurposeVersion", () => {
       writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
     ).toEqual(toPurposeVersionV2(updatedVersion));
     expect(archiveResponse).toMatchObject({
-      data: {
-        purpose: expectedPurpose,
-        updatedVersionId: updatedVersion.id,
-        isRiskAnalysisValid: true,
-      },
+      data: updatedVersion,
       metadata: { version: 1 },
     });
 
@@ -386,11 +374,7 @@ describe("archivePurposeVersion", () => {
       writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
     ).toEqual(toPurposeVersionV2(updatedVersion));
     expect(archiveResponse).toMatchObject({
-      data: {
-        purpose: expectedPurpose,
-        updatedVersionId: updatedVersion.id,
-        isRiskAnalysisValid: true,
-      },
+      data: updatedVersion,
       metadata: { version: 1 },
     });
 
