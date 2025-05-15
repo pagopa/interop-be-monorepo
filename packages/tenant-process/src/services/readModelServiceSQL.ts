@@ -16,6 +16,7 @@ import {
   Delegation,
   delegationKind,
   delegationState,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   aggregateTenantArray,
@@ -189,27 +190,53 @@ export function readModelServiceBuilderSQL(
     async getTenantByName(
       name: string
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return await tenantReadModelService.getTenantByFilter(
-        ilike(tenantInReadmodelTenant.name, escapeRegExp(name))
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantInReadmodelTenant)
+        .where(ilike(tenantInReadmodelTenant.name, escapeRegExp(name)));
+
+      if (tenantSQL.length === 0) {
+        return undefined;
+      }
+      return await tenantReadModelService.getTenantById(
+        unsafeBrandId(tenantSQL[0].id)
       );
     },
 
     async getTenantByExternalId(
       externalId: ExternalId
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return await tenantReadModelService.getTenantByFilter(
-        and(
-          eq(tenantInReadmodelTenant.externalIdOrigin, externalId.origin),
-          eq(tenantInReadmodelTenant.externalIdValue, externalId.value)
-        )
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantInReadmodelTenant)
+        .where(
+          and(
+            eq(tenantInReadmodelTenant.externalIdOrigin, externalId.origin),
+            eq(tenantInReadmodelTenant.externalIdValue, externalId.value)
+          )
+        );
+
+      if (tenantSQL.length === 0) {
+        return undefined;
+      }
+      return await tenantReadModelService.getTenantById(
+        unsafeBrandId(tenantSQL[0].id)
       );
     },
 
     async getTenantBySelfcareId(
       selfcareId: string
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return await tenantReadModelService.getTenantByFilter(
-        eq(tenantInReadmodelTenant.selfcareId, selfcareId)
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantInReadmodelTenant)
+        .where(eq(tenantInReadmodelTenant.selfcareId, selfcareId));
+
+      if (tenantSQL.length === 0) {
+        return undefined;
+      }
+      return await tenantReadModelService.getTenantById(
+        unsafeBrandId(tenantSQL[0].id)
       );
     },
 
