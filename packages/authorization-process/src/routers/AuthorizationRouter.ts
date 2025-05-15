@@ -7,6 +7,7 @@ import {
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import {
   EServiceId,
@@ -238,12 +239,17 @@ const authorizationRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { client, showUsers } = await authorizationService.getClientById(
+        const {
+          data: { client, showUsers },
+          metadata,
+        } = await authorizationService.getClientById(
           {
             clientId: unsafeBrandId(req.params.clientId),
           },
           ctx
         );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -479,16 +485,27 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await authorizationService.addClientPurpose(
+        const {
+          data: { client, showUsers },
+          metadata,
+        } = await authorizationService.addClientPurpose(
           {
             clientId: unsafeBrandId(req.params.clientId),
             seed: req.body,
           },
           ctx
         );
-        return res.status(204).send();
+
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            authorizationApi.Client.parse(
+              clientToApiClient(client, { showUsers })
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
