@@ -760,45 +760,6 @@ export function catalogServiceBuilder(
       };
     },
 
-    async getDescriptors(
-      eserviceId: EServiceId,
-      states: DescriptorState[] | undefined,
-      offset: number,
-      limit: number,
-      {
-        authData,
-        logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<ListResult<Descriptor>> {
-      logger.info(`Retrieving descriptors for EService ${eserviceId}`);
-
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      const eserviceWithVisibleDescriptors = await applyVisibilityToEService(
-        eservice.data,
-        authData,
-        readModelService
-      );
-
-      const descriptorsListResult =
-        await readModelService.getEserviceDescriptors(
-          eserviceId,
-          states,
-          offset,
-          limit
-        );
-
-      const descriptorsToReturn = descriptorsListResult.results.filter((d) =>
-        eserviceWithVisibleDescriptors.descriptors.some(
-          (visibleD) => visibleD.id === d.id
-        )
-      );
-
-      return {
-        totalCount: descriptorsListResult.totalCount,
-        results: descriptorsToReturn,
-      };
-    },
-
     async getEServiceConsumers(
       eserviceId: EServiceId,
       offset: number,
