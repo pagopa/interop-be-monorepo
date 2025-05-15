@@ -62,9 +62,21 @@ describe("Setup DB Service tests for attribute tables", async () => {
   });
 
   it("should create staging deleting table successfully", async () => {
-    await dbService.setupStagingDeletingByIdTables([
-      DeletingDbTable.attribute_deleting_table,
-      DeletingDbTable.catalog_deleting_table,
+    await dbService.setupStagingDeletingTables([
+      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.tenant_deleting_table,
+        columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.tenant_mail_deleting_table,
+        columns: ["id", "tenant_id"],
+      },
+      {
+        name: DeletingDbTable.tenant_feature_deleting_table,
+        columns: ["tenant_id", "kind"],
+      },
     ]);
 
     const result = await getTablesByName(dbContext.conn, [
