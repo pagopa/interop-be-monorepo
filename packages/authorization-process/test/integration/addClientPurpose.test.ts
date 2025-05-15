@@ -92,13 +92,14 @@ describe("addClientPurpose", async () => {
     await addOneEService(mockEservice);
     await addOneAgreement(mockAgreement);
 
-    await authorizationService.addClientPurpose(
-      {
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-      },
-      getMockContext({ authData: getMockAuthData(mockConsumerId) })
-    );
+    const addClientPurposeResponse =
+      await authorizationService.addClientPurpose(
+        {
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -114,12 +115,22 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient: Client = {
+      ...mockClient,
+      purposes: [...mockClient.purposes, mockPurpose.id],
+    };
     expect(writtenPayload).toEqual({
       purposeId: mockPurpose.id,
-      client: toClientV2({
-        ...mockClient,
-        purposes: [...mockClient.purposes, mockPurpose.id],
-      }),
+      client: toClientV2(expectedClient),
+    });
+    expect(addClientPurposeResponse).toEqual({
+      data: {
+        client: expectedClient,
+        showUsers: true,
+      },
+      metadata: {
+        version: 1,
+      },
     });
   });
 
@@ -172,15 +183,16 @@ describe("addClientPurpose", async () => {
     await addOneEService(mockEservice);
     await addOneAgreement(mockAgreement);
 
-    await authorizationService.addClientPurpose(
-      {
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-      },
-      getMockContext({
-        authData: getMockAuthData(mockClient.consumerId),
-      })
-    );
+    const addClientPurposeResponse =
+      await authorizationService.addClientPurpose(
+        {
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+        },
+        getMockContext({
+          authData: getMockAuthData(mockClient.consumerId),
+        })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -196,12 +208,22 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient: Client = {
+      ...mockClient,
+      purposes: [...mockClient.purposes, mockPurpose.id],
+    };
     expect(writtenPayload).toEqual({
       purposeId: mockPurpose.id,
-      client: toClientV2({
-        ...mockClient,
-        purposes: [...mockClient.purposes, mockPurpose.id],
-      }),
+      client: toClientV2(expectedClient),
+    });
+    expect(addClientPurposeResponse).toEqual({
+      data: {
+        client: expectedClient,
+        showUsers: true,
+      },
+      metadata: {
+        version: 1,
+      },
     });
   });
 
@@ -253,15 +275,16 @@ describe("addClientPurpose", async () => {
     await addOneEService(mockEservice);
     await addOneAgreement(mockAgreement);
 
-    await authorizationService.addClientPurpose(
-      {
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-      },
-      getMockContext({
-        authData: getMockAuthData(mockClient.consumerId),
-      })
-    );
+    const addClientPurposeResponse =
+      await authorizationService.addClientPurpose(
+        {
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+        },
+        getMockContext({
+          authData: getMockAuthData(mockClient.consumerId),
+        })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -277,12 +300,23 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient: Client = {
+      ...mockClient,
+      purposes: [...mockClient.purposes, mockPurpose.id],
+    };
     expect(writtenPayload).toEqual({
       purposeId: mockPurpose.id,
-      client: toClientV2({
-        ...mockClient,
-        purposes: [...mockClient.purposes, mockPurpose.id],
-      }),
+      client: toClientV2(expectedClient),
+    });
+
+    expect(addClientPurposeResponse).toEqual({
+      data: {
+        client: expectedClient,
+        showUsers: true,
+      },
+      metadata: {
+        version: 1,
+      },
     });
   });
 

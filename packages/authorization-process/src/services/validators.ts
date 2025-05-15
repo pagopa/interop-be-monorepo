@@ -82,7 +82,7 @@ export const assertOrganizationIsClientConsumer = (
 };
 
 export const assertOrganizationIsPurposeConsumer = (
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   purpose: Purpose
 ): void => {
   if (authData.organizationId !== purpose.consumerId) {
@@ -91,7 +91,7 @@ export const assertOrganizationIsPurposeConsumer = (
 };
 
 export const assertRequesterIsDelegateConsumer = (
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   purpose: Purpose,
   delegation: Delegation
 ): void => {
