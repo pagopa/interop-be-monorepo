@@ -305,7 +305,7 @@ describe("JWT tests", () => {
 
       expect(() => readAuthDataFromJwtToken(token!)).toThrowError(
         invalidClaim(
-          "Validation error: Invalid discriminator value. Expected 'm2m' | 'm2m-admin' | 'internal' | 'maintenance' |  at \"role\""
+          "Validation error: Invalid discriminator value. Expected 'internal' |  | 'm2m' | 'm2m-admin' | 'maintenance' at \"role\""
         )
       );
     });
