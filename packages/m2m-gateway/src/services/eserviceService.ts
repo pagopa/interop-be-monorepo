@@ -9,6 +9,10 @@ import {
   toM2MGatewayApiEServiceDescriptor,
 } from "../api/eserviceApiConverter.js";
 import { eserviceDescriptorNotFound } from "../model/errors.js";
+import {
+  assertValidPaginationLimit,
+  assertValidPaginationOffset,
+} from "../utils/validators/validators.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -58,7 +62,7 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceDescriptor> {
       logger.info(
-        `Retrieving eservice descriptor with id ${descriptorId} for eservice ${eserviceId}`
+        `Retrieving eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
 
       const { data: eservice } =
@@ -76,6 +80,40 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
       }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+    async getEServiceDescriptors(
+      eserviceId: EServiceId,
+      { state, offset, limit }: m2mGatewayApi.GetEServiceDescriptorsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceDescriptors> {
+      logger.info(
+        `Retrieving eservice descriptors for eservice with id ${eserviceId} states ${state} offset ${offset} limit ${limit}`
+      );
+
+      assertValidPaginationOffset(offset);
+      assertValidPaginationLimit(limit);
+
+      const {
+        data: { descriptors },
+      } = await clients.catalogProcessClient.getEServiceById({
+        params: { eServiceId: eserviceId },
+        headers,
+      });
+
+      const filteredDescriptors = state
+        ? descriptors.filter((descriptor) => descriptor.state === state)
+        : descriptors;
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: filteredDescriptors.length,
+        },
+        results: filteredDescriptors
+          .slice(offset, offset + limit)
+          .map(toM2MGatewayApiEServiceDescriptor),
+      };
     },
   };
 }
