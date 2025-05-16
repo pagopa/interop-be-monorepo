@@ -29,7 +29,7 @@ describe("POST /consumerDelegations/:delegationId/accept router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform API clients calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
       mockDelegationService.acceptConsumerDelegation = vi
         .fn()
