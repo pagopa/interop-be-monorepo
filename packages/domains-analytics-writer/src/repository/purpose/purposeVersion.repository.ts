@@ -17,7 +17,7 @@ export function purposeVersionRepository(conn: DBContext["conn"]) {
   const schemaName = config.dbSchemaName;
   const tableName = PurposeDbTable.purpose_version;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = DeletingDbTable.purpose_deleting_table;
+  const stagingDeletingTable = `${DeletingDbTable.purpose_deleting_table}_${config.mergeTableSuffix}`;
 
   return {
     async insert(t: ITask<unknown>, pgp: IMain, records: PurposeVersionSQL[]) {

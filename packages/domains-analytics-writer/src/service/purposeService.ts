@@ -172,7 +172,7 @@ export function purposeServiceBuilder(db: DBContext) {
             PurposeDbTable.purpose_risk_analysis_form,
             PurposeDbTable.purpose_risk_analysis_answer,
           ],
-          DeletingDbTable.purpose_deleting_table
+          `${DeletingDbTable.purpose_deleting_table}_${config.mergeTableSuffix}`
         );
       });
       genericLogger.info(
@@ -207,7 +207,7 @@ export function purposeServiceBuilder(db: DBContext) {
           t,
           "purpose_version_id",
           [PurposeDbTable.purpose_version_document],
-          DeletingDbTable.purpose_deleting_table
+          `${DeletingDbTable.purpose_deleting_table}_${config.mergeTableSuffix}`
         );
       });
       genericLogger.info(
