@@ -599,3 +599,23 @@ export async function getVersionDocumentsFromDb(
     [versionId]
   );
 }
+
+export async function getPurposeRiskAnalysisByPurposeIdFromDb(
+  purpose_id: string,
+  db: DBContext
+): Promise<any> {
+  return db.conn.any(
+    `SELECT * FROM domains.purpose_risk_analysis_form WHERE purpose_id = $1`,
+    [purpose_id]
+  );
+}
+
+export async function getPurposeRiskAnalysisAnswerByPurposeIdFromDb(
+  purpose_id: string,
+  db: DBContext
+): Promise<any> {
+  return db.conn.any(
+    `SELECT * FROM domains.purpose_risk_analysis_answer WHERE purpose_id = $1`,
+    [purpose_id]
+  );
+}
