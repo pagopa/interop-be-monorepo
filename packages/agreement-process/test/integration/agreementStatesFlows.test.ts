@@ -114,7 +114,7 @@ describe("Agreeement states flows", () => {
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
     const consumerAuthData = getMockAuthData(consumer.id);
-    const createdAgreement = await agreementService.createAgreement(
+    const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId,
         descriptorId,
@@ -336,7 +336,7 @@ describe("Agreeement states flows", () => {
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
     const consumerAuthData = getMockAuthData(consumer.id);
-    const createdAgreement = await agreementService.createAgreement(
+    const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId,
         descriptorId,

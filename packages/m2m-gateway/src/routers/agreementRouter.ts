@@ -64,7 +64,10 @@ const agreementRouter = (
     .post("/agreements", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        const agreement = await agreementService.createAgreement(req.body, ctx);
+
+        return res.status(201).send(m2mGatewayApi.Agreement.parse(agreement));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
