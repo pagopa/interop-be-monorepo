@@ -368,7 +368,7 @@ describe("delete draft descriptor", () => {
     };
     const descriptorToDelete: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
-      docs: [mockDocument, mockDocument],
+      docs: [getMockDocument(), getMockDocument()],
       version: 2,
     };
     const eservice: EService = {

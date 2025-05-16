@@ -43,7 +43,7 @@ export type PublicEServiceDoc = z.infer<typeof PublicEServiceDoc>;
 const PublicEServiceDescriptor = z.object({
   id: z.string(),
   state: z.enum(["PUBLISHED", "SUSPENDED"]),
-  version: z.coerce.number().int(),
+  version: z.number().int(),
 });
 export type PublicEServiceDescriptor = z.infer<typeof PublicEServiceDescriptor>;
 
