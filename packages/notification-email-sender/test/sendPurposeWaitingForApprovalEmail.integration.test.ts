@@ -30,7 +30,7 @@ import {
   interopFeBaseUrl,
   sesEmailManager,
   sesEmailManagerConfig,
-  sesEmailsenderData,
+  sesEmailSenderData,
   templateService,
   addOnePurpose,
 } from "./utils.js";
@@ -77,8 +77,8 @@ describe("sendPurposeWaitingForApprovalEmail", () => {
 
     const mailOptions: Mail.Options = {
       from: {
-        name: sesEmailsenderData.label,
-        address: sesEmailsenderData.mail,
+        name: sesEmailSenderData.label,
+        address: sesEmailSenderData.mail,
       },
       subject: `Richiesta di attivazione della stima di carico sopra soglia per ${eservice.name}`,
       to: [consumerEmail.address],
@@ -98,7 +98,7 @@ describe("sendPurposeWaitingForApprovalEmail", () => {
     expect(lastEmail.body.html).toContain(mailOptions.html);
     expect(lastEmail).toMatchObject({
       subject: mailOptions.subject,
-      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      from: `"${sesEmailSenderData.label}" <${sesEmailSenderData.mail}>`,
       destination: { to: mailOptions.to },
     });
   });

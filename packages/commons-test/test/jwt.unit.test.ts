@@ -145,13 +145,14 @@ const mockSupportExpectedAuthData: UIAuthData = {
 const mockM2MAdminToken = {
   ...mockM2MToken,
   role: "m2m-admin",
-  userId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+  adminId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
 };
 
 const mockM2MAdminExpectedAuthData: M2MAdminAuthData = {
   systemRole: "m2m-admin",
   organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
   userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
+  clientId: unsafeBrandId("227cadc9-1a2c-4612-b100-a247b48d0464"),
 };
 
 const getMockSignedToken = (token: object): string =>
