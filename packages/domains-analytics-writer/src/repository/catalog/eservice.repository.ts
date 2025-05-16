@@ -40,6 +40,7 @@ export function eserviceRepository(conn: DBConnection) {
         is_consumer_delegable: (r: EServiceSQL) => r.isConsumerDelegable,
         is_client_access_delegable: (r: EServiceSQL) =>
           r.isClientAccessDelegable,
+        template_id: (r: EServiceSQL) => r.templateId,
       };
       const cs = buildColumnSet<EServiceSQL>(pgp, mapping, stagingTable);
       try {

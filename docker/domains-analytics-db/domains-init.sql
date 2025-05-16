@@ -25,6 +25,7 @@ CREATE TABLE domains.eservice (
   is_signal_hub_enabled BOOLEAN,
   is_consumer_delegable BOOLEAN,
   is_client_access_delegable BOOLEAN,
+  template_id VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
