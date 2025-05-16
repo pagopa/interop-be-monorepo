@@ -38,23 +38,20 @@ describe("API GET /agreements/:agreementId/contract", () => {
     expect(res.body).toEqual(mockBuffer);
   });
 
-  it("Should return 404 for contractNotFound", async () => {
-    services.agreementService.getAgreementContract = vi
-      .fn()
-      .mockRejectedValue(contractNotFound(mockAgreementId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 500 for contractException", async () => {
-    services.agreementService.getAgreementContract = vi
-      .fn()
-      .mockRejectedValue(contractException(mockAgreementId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(500);
-  });
+  it.each([
+    { error: contractNotFound(mockAgreementId), expectedStatus: 404 },
+    { error: contractException(mockAgreementId), expectedStatus: 500 },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      services.agreementService.getAgreementContract = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
