@@ -389,10 +389,9 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
-        .selectDistinct(
+        .select(
           withTotalCount({
             tenantId: tenantInReadmodelTenant.id,
-            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           })
         )
         .from(tenantInReadmodelTenant)
@@ -413,6 +412,7 @@ export function readModelServiceBuilderSQL(
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
+        .groupBy(tenantInReadmodelTenant.id)
         .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset)
