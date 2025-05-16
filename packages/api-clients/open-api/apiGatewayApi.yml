@@ -2542,7 +2542,7 @@ components:
           format: uuid
         version:
           description: eservice descriptor version
-          type: string
+          type: number
         description:
           description: eservice descriptor description
           type: string
@@ -2602,8 +2602,7 @@ components:
           description: eservice name
           type: string
         version:
-          type: string
-          pattern: ^[0-9]{1,4}$
+          type: number
         description:
           description: eservice description
           type: string
