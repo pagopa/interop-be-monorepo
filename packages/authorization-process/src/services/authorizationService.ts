@@ -44,6 +44,7 @@ import {
 } from "pagopa-interop-api-clients";
 
 import {
+  clientAdminAlreadyAssignedToUser,
   clientKeyNotFound,
   clientNotFound,
   clientUserAlreadyAssigned,
@@ -69,8 +70,9 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
+  toCreateEventClientAdminSet,
   toCreateEventClientAdminRemoved,
-  toCreateEventClientAdminRemovedBySelfcare,
+  toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -538,6 +540,7 @@ export function authorizationServiceBuilder(
             selfcareV2InstitutionClient,
             userIdToCheck: userId,
             correlationId,
+            userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
           })
         )
       );
@@ -570,6 +573,55 @@ export function authorizationServiceBuilder(
         client: updatedClient,
         showUsers: true,
       };
+    },
+    async setAdminToClient(
+      {
+        clientId,
+        adminId,
+      }: {
+        clientId: ClientId;
+        adminId: UserId;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<{ client: Client; showUsers: boolean }> {
+      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
+
+      logger.info(`Set user ${adminId} in client ${clientId} as admin`);
+
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        userIdToCheck: adminId,
+        selfcareV2InstitutionClient,
+        correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE],
+      });
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertClientIsAPI(client.data);
+      assertOrganizationIsClientConsumer(authData, client.data);
+
+      const oldAdminId = client.data.adminId;
+      if (oldAdminId && oldAdminId === adminId) {
+        throw clientAdminAlreadyAssignedToUser(clientId, adminId);
+      }
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminSet(
+          adminId,
+          updatedClient,
+          client.metadata.version,
+          correlationId,
+          oldAdminId
+        )
+      );
+      return { client: updatedClient, showUsers: true };
     },
     async getClientKeys(
       {
@@ -720,6 +772,7 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
       const jwk = createJWK({ pemKeyBase64: keySeed.key });
@@ -964,6 +1017,7 @@ export function authorizationServiceBuilder(
             userIdToCheck: userId,
             selfcareV2InstitutionClient,
             correlationId,
+            userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
           })
         )
       );
@@ -1078,6 +1132,7 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
       const jwk = createJWK({ pemKeyBase64: keySeed.key });
@@ -1340,7 +1395,7 @@ export function authorizationServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventClientAdminRemovedBySelfcare(
+        toCreateEventClientAdminRoleRevoked(
           updatedClient,
           adminId,
           client.metadata.version,

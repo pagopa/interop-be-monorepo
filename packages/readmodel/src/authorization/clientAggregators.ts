@@ -18,7 +18,7 @@ import {
   ClientSQL,
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateClient = ({
   clientSQL,
@@ -30,20 +30,22 @@ export const aggregateClient = ({
   const purposes: PurposeId[] = purposesSQL.map((p) =>
     unsafeBrandId(p.purposeId)
   );
-  const keys: Key[] = keysSQL.map((keySQL) => {
-    if (keySQL.userId === null) {
-      throw genericInternalError("UserId can't be null in key");
-    }
-    return {
-      userId: unsafeBrandId(keySQL.userId),
-      kid: keySQL.kid,
-      name: keySQL.name,
-      encodedPem: keySQL.encodedPem,
-      algorithm: keySQL.algorithm,
-      use: KeyUse.parse(keySQL.use),
-      createdAt: stringToDate(keySQL.createdAt),
-    };
-  });
+  const keys: Key[] = [...keysSQL]
+    .sort((key1, key2) => key1.name.localeCompare(key2.name))
+    .map((keySQL) => {
+      if (keySQL.userId === null) {
+        throw genericInternalError("UserId can't be null in key");
+      }
+      return {
+        userId: unsafeBrandId(keySQL.userId),
+        kid: keySQL.kid,
+        name: keySQL.name,
+        encodedPem: keySQL.encodedPem,
+        algorithm: keySQL.algorithm,
+        use: KeyUse.parse(keySQL.use),
+        createdAt: stringToDate(keySQL.createdAt),
+      };
+    });
 
   return {
     data: {
@@ -121,6 +123,9 @@ export const toClientAggregator = (
 ): ClientItemsSQL => {
   const { clientsSQL, usersSQL, purposesSQL, keysSQL } =
     toClientAggregatorArray(queryRes);
+
+  throwIfMultiple(clientsSQL, "client");
+
   return {
     clientSQL: clientsSQL[0],
     usersSQL,
