@@ -433,7 +433,8 @@ export function readModelServiceBuilderSQL(
       limit: number
     ): Promise<ListResult<Consumer>> {
       const res = await readmodelDB
-        .select(
+        .selectDistinctOn(
+          [tenantInReadmodelTenant.id],
           withTotalCount({
             tenant: tenantInReadmodelTenant,
             agreement: agreementInReadmodelAgreement,
@@ -469,7 +470,6 @@ export function readModelServiceBuilderSQL(
             ])
           )
         )
-        .groupBy(tenantInReadmodelTenant.id)
         .limit(limit)
         .offset(offset);
 
