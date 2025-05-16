@@ -79,7 +79,10 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
           clientId,
           config.clientAssertionAudience,
           ctx.logger,
-          isFeatureFlagEnabled(config, "featureFlagTokenClaims")
+          isFeatureFlagEnabled(
+            config,
+            "featureFlagImprovedProducerVerificationClaims"
+          )
         );
 
       if (parametersErrors || clientAssertionErrors) {
