@@ -77,7 +77,7 @@ export function purposeServiceBuilder(db: DBContext) {
           }
         });
         genericLogger.info(
-          `Staging data inserted for batch of ${batchItems.purposeSQL.length} `
+          `Staging data inserted for batch of ${batchItems.purposeSQL.length} purposes`
         );
       }
 
@@ -89,7 +89,7 @@ export function purposeServiceBuilder(db: DBContext) {
         await answerRepo.merge(t);
       });
       genericLogger.info(
-        `Staging data merged into purpose, purpose_risk_analysis_form, and purpose_risk_analysis_answer tables`
+        `Staging data merged into target tables for all batches`
       );
 
       await purposeRepo.clean();
@@ -97,7 +97,7 @@ export function purposeServiceBuilder(db: DBContext) {
       await versionDocumentRepo.clean();
       await formRepo.clean();
       await answerRepo.clean();
-      genericLogger.info(`Staging data cleaned for purposes and risk analyses`);
+      genericLogger.info(`Staging data cleaned`);
     },
 
     async upsertBatchPurposeVersion(
@@ -131,9 +131,7 @@ export function purposeServiceBuilder(db: DBContext) {
           }
         });
         genericLogger.info(
-          `Staging data inserted for batch of purpose versions: ${batchItems.versionsSQL
-            .map((v) => v.id)
-            .join(", ")}`
+          `Staging data inserted for batch of ${batchItems.versionsSQL.length} purpose versions`
         );
       }
 
@@ -142,7 +140,7 @@ export function purposeServiceBuilder(db: DBContext) {
         await versionDocumentRepo.merge(t);
       });
       genericLogger.info(
-        `Staging data merged into purpose_version and purpose_version_document tables`
+        `Staging data merged into target tables for all batches`
       );
 
       await versionRepo.clean();
