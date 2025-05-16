@@ -483,8 +483,12 @@ export function agreementServiceBuilder(
     async submitAgreement(
       agreementId: AgreementId,
       payload: agreementApi.AgreementSubmissionPayload,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Submitting agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -652,12 +656,22 @@ export function agreementServiceBuilder(
             )
           : [];
 
-      await repository.createEvents([
+      const createdEvents = await repository.createEvents([
         agreementEvent,
         ...archivedAgreementsUpdates,
       ]);
 
-      return submittedAgreement;
+      const latestVersion = createdEvents.reduce(
+        (acc, event) => Math.max(acc, event.newVersion),
+        0
+      );
+
+      return {
+        data: submittedAgreement,
+        metadata: {
+          version: latestVersion,
+        },
+      };
     },
     async upgradeAgreement(
       agreementId: AgreementId,
