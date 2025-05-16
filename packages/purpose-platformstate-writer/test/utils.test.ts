@@ -682,7 +682,7 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should update entries with purpose state, version id and agreement data if platform agreement entry exists", async () => {
+    it("should update entries with purpose state, version id and agreement data if platform-states agreement entry exists", async () => {
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [getMockPurposeVersion()],
@@ -708,7 +708,7 @@ describe("utils tests", async () => {
         consumerId: mockAgreement.consumerId,
         eserviceId: mockAgreement.eserviceId,
       });
-      const previousAgreementEntry: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: catalogAgreementEntryPK,
         state: itemState.active,
         agreementId: mockAgreement.id,
@@ -719,7 +719,10 @@ describe("utils tests", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(previousAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const purposeId = purpose.id;
@@ -788,7 +791,8 @@ describe("utils tests", async () => {
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
@@ -799,7 +803,8 @@ describe("utils tests", async () => {
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(
@@ -810,7 +815,7 @@ describe("utils tests", async () => {
       );
     });
 
-    it("should update entries with purpose state, version id, agreement and descriptor data if platform agreement and descriptor entries exist", async () => {
+    it("should update entries with purpose state, version id, agreement and descriptor data if platform-states agreement and descriptor entries exist", async () => {
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [getMockPurposeVersion()],
@@ -836,7 +841,7 @@ describe("utils tests", async () => {
         consumerId: mockAgreement.consumerId,
         eserviceId: mockAgreement.eserviceId,
       });
-      const previousAgreementEntry: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: catalogAgreementEntryPK,
         state: itemState.active,
         agreementId: mockAgreement.id,
@@ -847,13 +852,16 @@ describe("utils tests", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(previousAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
 
       const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
       });
-      const previousDescriptorEntry: PlatformStatesCatalogEntry = {
+      const platformStatesDescriptorEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK,
         state: itemState.active,
         descriptorAudience: ["pagopa.it"],
@@ -861,7 +869,10 @@ describe("utils tests", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(previousDescriptorEntry, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesDescriptorEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const purposeId = purpose.id;
@@ -879,6 +890,7 @@ describe("utils tests", async () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -903,6 +915,7 @@ describe("utils tests", async () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -939,12 +952,13 @@ describe("utils tests", async () => {
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
@@ -954,12 +968,13 @@ describe("utils tests", async () => {
           purposeVersionId: newPurposeVersionId,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
       expect(retrievedTokenGenStatesEntries).toEqual(

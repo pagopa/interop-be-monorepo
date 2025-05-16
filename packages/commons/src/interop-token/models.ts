@@ -7,14 +7,15 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import {
-  SUPPORT_USER_ID,
-  systemRole,
-  userRole,
-  UserRole,
-} from "../auth/roles.js";
+import { systemRole, UserRole } from "../auth/roles.js";
 
-// Type utility to transform a string into an array of strings comma separated
+// Zod utility to parse a non-empty comma-separated string and transform it
+// (e.g. `"foo,bar,baz"`) into an array whose elements are validated
+// by the schema `t`.
+//
+// Example:
+//   const NumberArray = CommaSeparatedStringToArray(z.number());
+//   NumberArray.parse("1,2,3"); // → [1, 2, 3]
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export const CommaSeparatedStringToArray = <T extends z.ZodType>(t: T) =>
   z
@@ -70,7 +71,7 @@ export const InteropConsumerToken = z.object({
 export type InteropConsumerToken = z.infer<typeof InteropConsumerToken>;
 
 // ==========================================
-//     Interop M2M Token
+//     Interop API Tokens
 // ==========================================
 export const InteropJwtApiCommonPayload = InteropJwtCommonPayload.merge(
   z.object({
@@ -88,9 +89,6 @@ export const InteropJwtApiM2MPayload = InteropJwtApiCommonPayload.merge(
 );
 export type InteropJwtApiM2MPayload = z.infer<typeof InteropJwtApiM2MPayload>;
 
-// ==========================================
-//   Interop M2M Admin Token
-// ==========================================
 export const InteropJwtApiM2MAdminPayload = InteropJwtApiCommonPayload.merge(
   z.object({
     role: z.literal(systemRole.M2M_ADMIN_ROLE),
@@ -102,33 +100,15 @@ export type InteropJwtApiM2MAdminPayload = z.infer<
   typeof InteropJwtApiM2MAdminPayload
 >;
 
-// ==========================================
-//   Interop API Token
-// ==========================================
 export type InteropJwtApiPayload =
   | InteropJwtApiM2MAdminPayload
   | InteropJwtApiM2MPayload;
-
-/* ========================================== 
-    Interop API Token 
-  ========================================== */
 
 export type InteropApiToken = {
   header: InteropJwtHeader;
   payload: InteropJwtApiPayload;
   serialized: string;
 };
-
-// ==========================================
-//   Interop INTERNAL Token
-// ==========================================
-export const InternalJwtAuthPayload = InteropJwtCommonPayload.merge(
-  z.object({
-    role: z.literal(systemRole.INTERNAL_ROLE),
-    sub: z.string(),
-  })
-);
-export type InternalJwtAuthPayload = z.infer<typeof InternalJwtAuthPayload>;
 
 // ==========================================
 //  Interop MAINTENANCE Token
@@ -142,41 +122,6 @@ export const InteropJwtMaintenancePayload = InteropJwtCommonPayload.merge(
 export type InteropJwtMaintenancePayload = z.infer<
   typeof InteropJwtMaintenancePayload
 >;
-
-// ==========================================
-//   Interop UI Token
-// ==========================================
-export const InteropJwtUIPayload = InteropJwtCommonPayload.merge(
-  z.object({
-    // setting role to z.undefined() to make the discriminated union work.
-    // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
-    role: z.undefined(),
-    "user-roles": CommaSeparatedStringToArray(UserRole),
-    uid: z.string().uuid(),
-    organizationId: z.string().uuid(),
-    selfcareId: z.string().uuid(),
-    organization: z.object({
-      id: z.string().uuid(),
-      name: z.string(),
-      roles: z.array(
-        z.object({
-          partyRole: z.string().nullish(),
-          role: UserRole,
-        })
-      ),
-      fiscal_code: z.string().nullish(),
-      ipaCode: z.string().nullish(),
-    }),
-    externalId: z.object({
-      origin: z.string(),
-      value: z.string(),
-    }),
-    name: z.string().nullish(),
-    family_name: z.string().nullish(),
-    email: z.string().nullish(),
-  })
-);
-export type InteropJwtUIPayload = z.infer<typeof InteropJwtUIPayload>;
 
 // ==========================================
 //    Interop INTERNAL Token
@@ -198,64 +143,57 @@ export type InteropInternalToken = {
 };
 
 // ==========================================
-//    Interop SESSION Token
+//    Interop UI Token
 // ==========================================
 export const SessionClaims = z.object({
-  uid: z.string(),
+  uid: z.string().uuid(),
   organization: z.object({
-    id: z.string(),
+    id: z.string().uuid(),
     name: z.string(),
-    roles: z.array(z.object({ role: z.string() })),
+    roles: z.array(
+      z.object({
+        partyRole: z.string().nullish(),
+        role: UserRole,
+      })
+    ),
+    fiscal_code: z.string().nullish(),
+    ipaCode: z.string().nullish(),
   }),
-  name: z.string().optional(),
-  family_name: z.string().optional(),
-  email: z.string().optional(),
+  name: z.string().nullish(),
+  family_name: z.string().nullish(),
+  email: z.string().nullish(),
 });
 export type SessionClaims = z.infer<typeof SessionClaims>;
 
-export const InteropUserJwtPayload = z.object({
-  "user-roles": z.string(),
-  organizationId: z.string(),
-  selfcareId: z.string(),
+export const UserClaims = z.object({
+  "user-roles": CommaSeparatedStringToArray(UserRole),
+  organizationId: z.string().uuid(),
+  selfcareId: z.string().uuid(),
   externalId: z.object({
     origin: z.string(),
     value: z.string(),
   }),
 });
-export type InteropUserJwtPayload = z.infer<typeof InteropUserJwtPayload>;
+export type UserClaims = z.infer<typeof UserClaims>;
 
-export type SessionJwtPayload = InteropJwtCommonPayload &
-  SessionClaims &
-  InteropUserJwtPayload;
+export const UIClaims = SessionClaims.merge(UserClaims);
 
-export type SessionToken = {
+export type UIClaims = z.infer<typeof UIClaims>;
+
+export const InteropJwtUIPayload = InteropJwtCommonPayload.merge(
+  UIClaims
+).extend({ role: z.undefined() });
+
+export type InteropJwtUIPayload = z.infer<typeof InteropJwtUIPayload>;
+
+export type InteropUIToken = {
   header: InteropJwtHeader;
-  payload: SessionJwtPayload;
+  payload: InteropJwtUIPayload;
   serialized: string;
 };
 
-/* ========================================== 
-    Interop SUPPORT Token 
-  ========================================== */
-export const SupportJwtPayload = InteropUserJwtPayload.merge(
-  z.object({
-    "user-roles": z.literal(userRole.SUPPORT_ROLE),
-    uid: z.literal(SUPPORT_USER_ID),
-    organization: z.object({
-      id: z.string(),
-      name: z.string(),
-      roles: z.array(
-        z.object({
-          role: z.literal(userRole.SUPPORT_ROLE),
-        })
-      ),
-    }),
-  })
-);
-export type SupportJwtPayload = z.infer<typeof SupportJwtPayload>;
-
 export const AuthTokenPayload = z.discriminatedUnion("role", [
-  InternalJwtAuthPayload,
+  InteropJwtInternalPayload,
   InteropJwtUIPayload,
   InteropJwtApiM2MPayload,
   InteropJwtApiM2MAdminPayload,
