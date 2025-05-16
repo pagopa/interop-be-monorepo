@@ -37,7 +37,7 @@ import {
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateTenant = ({
   tenantSQL,
@@ -387,6 +387,8 @@ export const toTenantAggregator = (
     verifiedAttributeRevokersSQL,
     featuresSQL,
   } = toTenantAggregatorArray(queryRes);
+
+  throwIfMultiple(tenantsSQL, "tenant");
 
   return {
     tenantSQL: tenantsSQL[0],
