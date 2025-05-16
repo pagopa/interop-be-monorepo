@@ -5,11 +5,13 @@ import {
   zodiosContext,
 } from "@zodios/express";
 import {
+  ClientId,
   CorrelationId,
   generateId,
   makeApiProblemBuilder,
   missingHeader,
   SpanId,
+  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { AuthData } from "../auth/authData.js";
@@ -22,6 +24,11 @@ export type AppContext<A extends AuthData = AuthData> = {
   correlationId: CorrelationId;
   spanId: SpanId;
   requestTimestamp: number;
+};
+
+export type AuthServerAppContext = AppContext & {
+  clientId?: ClientId;
+  organizationId?: TenantId;
 };
 
 export const zodiosCtx = zodiosContext();
