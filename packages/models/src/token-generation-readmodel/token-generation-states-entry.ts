@@ -150,6 +150,7 @@ export const TokenGenStatesConsumerClientGSIPurpose =
     GSIPK_purposeId: true,
     agreementId: true,
     agreementState: true,
+    producerId: true,
     GSIPK_eserviceId_descriptorId: true,
     descriptorAudience: true,
     descriptorState: true,

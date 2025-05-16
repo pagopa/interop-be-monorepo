@@ -24,10 +24,9 @@ import {
   InteropJwtConsumerPayload,
   InteropJwtHeader,
   InteropJwtInternalPayload,
-  InteropUserJwtPayload,
-  SessionClaims,
-  SessionJwtPayload,
-  SessionToken,
+  InteropJwtUIPayload,
+  InteropUIToken,
+  UIClaims,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 
@@ -93,9 +92,9 @@ export class InteropTokenGenerator {
   }
 
   public async generateSessionToken(
-    claims: SessionClaims & InteropUserJwtPayload,
+    claims: UIClaims,
     jwtDuration?: number
-  ): Promise<SessionToken> {
+  ): Promise<InteropUIToken> {
     if (
       !this.config.generatedKid ||
       !this.config.generatedIssuer ||
@@ -116,7 +115,7 @@ export class InteropTokenGenerator {
 
     const duration = jwtDuration ?? this.config.generatedSecondsDuration;
 
-    const payload: SessionJwtPayload = {
+    const payload: InteropJwtUIPayload = {
       jti: crypto.randomUUID(),
       iss: this.config.generatedIssuer,
       aud: this.config.generatedAudience,
@@ -286,7 +285,7 @@ export class InteropTokenGenerator {
     header: InteropJwtHeader;
     payload:
       | InteropJwtInternalPayload
-      | SessionJwtPayload
+      | InteropJwtUIPayload
       | InteropJwtConsumerPayload
       | InteropJwtApiPayload;
     keyId: string;
