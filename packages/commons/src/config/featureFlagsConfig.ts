@@ -65,25 +65,26 @@ export type FeatureFlagAdminClientConfig = z.infer<
   typeof FeatureFlagAdminClientConfig
 >;
 
-export const FeatureFlagTokenClaimsConfig = z
+export const FeatureFlagImprovedProducerVerificationClaimsConfig = z
   .object({
-    FEATURE_FLAG_TOKEN_CLAIMS: z
+    FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS: z
       .enum(["true", "false"])
       .default("false")
       .transform((value) => value === "true"),
   })
   .transform((c) => ({
-    featureFlagTokenClaims: c.FEATURE_FLAG_TOKEN_CLAIMS ?? false,
+    featureFlagImprovedProducerVerificationClaims:
+      c.FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS ?? false,
   }));
-export type FeatureFlagTokenClaimsConfig = z.infer<
-  typeof FeatureFlagTokenClaimsConfig
+export type FeatureFlagImprovedProducerVerificationClaimsConfig = z.infer<
+  typeof FeatureFlagImprovedProducerVerificationClaimsConfig
 >;
 
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagSQLConfig &
   FeatureFlagAdminClientConfig &
-  FeatureFlagTokenClaimsConfig;
+  FeatureFlagImprovedProducerVerificationClaimsConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 

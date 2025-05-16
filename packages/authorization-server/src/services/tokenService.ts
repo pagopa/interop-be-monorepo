@@ -201,14 +201,15 @@ export function tokenServiceBuilder({
               purposeId: key.GSIPK_purposeId,
               tokenDurationInSeconds: key.descriptorVoucherLifespan,
               digest: jwt.payload.digest || undefined,
-              ...(isFeatureFlagEnabled(config, "featureFlagTokenClaims")
-                ? {
-                    producerId: key.producerId,
-                    consumerId: key.consumerId,
-                    eserviceId,
-                    descriptorId,
-                  }
-                : {}),
+              producerId: key.producerId,
+              consumerId: key.consumerId,
+              eserviceId,
+              descriptorId,
+              featureFlagImprovedProducerVerificationClaims:
+                isFeatureFlagEnabled(
+                  config,
+                  "featureFlagImprovedProducerVerificationClaims"
+                ),
             });
 
             await publishAudit({
