@@ -10,9 +10,9 @@ import { AgreementDbTable } from "../../model/db.js";
 import { AgreementContractSchema } from "../../model/agreement/agreementContract.js";
 
 export function agreementContractRepo(conn: DBConnection) {
-  const schema = config.dbSchemaName;
-  const tbl = AgreementDbTable.agreement_contract;
-  const stage = `${tbl}_${config.mergeTableSuffix}`;
+  const schemaName = config.dbSchemaName;
+  const tableName = AgreementDbTable.agreement_contract;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -30,38 +30,54 @@ export function agreementContractRepo(conn: DBConnection) {
         path: (r: AgreementContractSQL) => r.path,
         created_at: (r: AgreementContractSQL) => r.createdAt,
       };
-      const cs = buildColumnSet<AgreementContractSQL>(pgp, mapping, stage);
+      const cs = buildColumnSet<AgreementContractSQL>(
+        pgp,
+        mapping,
+        stagingTable
+      );
       try {
         if (records.length) {
           await t.none(pgp.helpers.insert(records, cs));
           await t.none(`
-            DELETE FROM ${stage} a
-            USING ${stage} b
-            WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
+            DELETE FROM ${stagingTable} a
+            USING ${stagingTable} b
+            WHERE a.id = b.id 
+            AND a.agreement_id = b.agreement_id
+            AND a.metadata_version < b.metadata_version;
           `);
         }
-      } catch (e) {
-        throw genericInternalError(`stage contracts: ${e}`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingTable}: ${error}`
+        );
       }
     },
 
     async merge(t: ITask<unknown>) {
       try {
         await t.none(
-          generateMergeQuery(AgreementContractSchema, schema, tbl, stage, [
-            "id",
-          ])
+          generateMergeQuery(
+            AgreementContractSchema,
+            schemaName,
+            tableName,
+            stagingTable,
+            ["id", "agreement_id"]
+          )
         );
-      } catch (e) {
-        throw genericInternalError(`merge contracts: ${e}`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+        );
       }
     },
 
     async clean() {
       try {
-        await conn.none(`TRUNCATE TABLE ${stage};`);
-      } catch (e) {
-        throw genericInternalError(`clean contract stage: ${e}`);
+        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTable}: ${error}`
+        );
       }
     },
   };

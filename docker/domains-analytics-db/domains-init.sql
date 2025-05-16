@@ -222,5 +222,5 @@ CREATE TABLE domains.agreement_contract (
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
-  PRIMARY KEY (id)
+  PRIMARY KEY (agreement_id, id)
 );

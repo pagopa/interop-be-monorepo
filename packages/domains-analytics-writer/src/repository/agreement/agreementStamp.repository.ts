@@ -10,9 +10,9 @@ import { AgreementDbTable } from "../../model/db.js";
 import { AgreementStampSchema } from "../../model/agreement/agreementStamp.js";
 
 export function agreementStampRepo(conn: DBConnection) {
-  const schema = config.dbSchemaName;
-  const tbl = AgreementDbTable.agreement_stamp;
-  const stage = `${tbl}_${config.mergeTableSuffix}`;
+  const schemaName = config.dbSchemaName;
+  const tableName = AgreementDbTable.agreement_stamp;
+  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(t: ITask<unknown>, pgp: IMain, records: AgreementStampSQL[]) {
@@ -24,40 +24,50 @@ export function agreementStampRepo(conn: DBConnection) {
         when: (r: AgreementStampSQL) => r.when,
         kind: (r: AgreementStampSQL) => r.kind,
       };
-      const cs = buildColumnSet<AgreementStampSQL>(pgp, mapping, stage);
+      const cs = buildColumnSet<AgreementStampSQL>(pgp, mapping, stagingTable);
       try {
         if (records.length) {
           await t.none(pgp.helpers.insert(records, cs));
           await t.none(`
-            DELETE FROM ${stage} a
-            USING ${stage} b
+            DELETE FROM ${stagingTable} a
+            USING ${stagingTable} b
             WHERE a.agreement_id = b.agreement_id AND a.kind = b.kind
+              AND a.kind = b.kind
               AND a.metadata_version < b.metadata_version;
           `);
         }
-      } catch (e) {
-        throw genericInternalError(`stage stamps: ${e}`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingTable}: ${error}`
+        );
       }
     },
 
     async merge(t: ITask<unknown>) {
       try {
         await t.none(
-          generateMergeQuery(AgreementStampSchema, schema, tbl, stage, [
-            "agreement_id",
-            "kind",
-          ])
+          generateMergeQuery(
+            AgreementStampSchema,
+            schemaName,
+            tableName,
+            stagingTable,
+            ["agreement_id", "kind"]
+          )
         );
-      } catch (e) {
-        throw genericInternalError(`merge stamps: ${e}`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+        );
       }
     },
 
     async clean() {
       try {
-        await conn.none(`TRUNCATE TABLE ${stage};`);
-      } catch (e) {
-        throw genericInternalError(`clean stamp stage: ${e}`);
+        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTable}: ${error}`
+        );
       }
     },
   };
