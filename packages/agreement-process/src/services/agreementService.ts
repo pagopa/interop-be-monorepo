@@ -791,17 +791,12 @@ export function agreementServiceBuilder(
         logger,
       });
 
-      const createdEvents = await repository.createEvents(events);
-
-      const newVersion = Math.max(
-        0,
-        ...createdEvents.map((event) => event.newVersion)
-      );
+      await repository.createEvents(events);
 
       return {
         data: agreement,
         metadata: {
-          version: newVersion,
+          version: 0,
         },
       };
     },
