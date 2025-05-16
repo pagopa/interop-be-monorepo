@@ -20,7 +20,11 @@ import {
   Delegation,
   delegationState,
 } from "pagopa-interop-models";
-import { M2MAuthData, UIAuthData } from "pagopa-interop-commons";
+import {
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
   filterCertifiedAttributes,
@@ -133,7 +137,7 @@ export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
 
 const assertRequesterIsConsumer = (
   consumerId: TenantId,
-  authData: UIAuthData | M2MAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void => {
   if (authData.organizationId !== consumerId) {
     throw organizationIsNotTheConsumer(authData.organizationId);
@@ -142,7 +146,7 @@ const assertRequesterIsConsumer = (
 
 const assertRequesterIsProducer = (
   agreement: Agreement,
-  authData: UIAuthData | M2MAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void => {
   if (authData.organizationId !== agreement.producerId) {
     throw organizationIsNotTheProducer(authData.organizationId);
@@ -176,7 +180,7 @@ export const assertRequesterCanActAsConsumerOrProducer = (
 
 export const assertRequesterCanRetrieveAgreement = async (
   agreement: Agreement,
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<void> => {
   // This validator is for retrieval operations that can be performed by all the tenants involved:
@@ -235,7 +239,7 @@ export const assertRequesterCanActAsProducer = (
 
 const assertRequesterIsDelegateProducer = (
   agreement: Agreement,
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (
@@ -288,7 +292,7 @@ export const assertActivableState = (agreement: Agreement): void => {
 export const assertRequesterIsDelegateConsumer = (
   consumerId: TenantId,
   eserviceId: EServiceId,
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (
