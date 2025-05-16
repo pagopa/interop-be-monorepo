@@ -156,5 +156,23 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiAgreement(polledResource.data);
     },
+    suspendAgreement: async (
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Suspending agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.suspendAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
   };
 }
