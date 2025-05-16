@@ -142,10 +142,11 @@ describe("Agreeement states flows", () => {
     /* =================================
       3) Consumer suspends the agreement (make it SUSPENDED byConsumer)
     ================================= */
-    const suspendedAgreement = await agreementService.suspendAgreement(
-      submittedAgreement.id,
-      getMockContext({ authData: consumerAuthData })
-    );
+    const { data: suspendedAgreement } =
+      await agreementService.suspendAgreement(
+        submittedAgreement.id,
+        getMockContext({ authData: consumerAuthData })
+      );
 
     expect(suspendedAgreement.state).toEqual(agreementState.suspended);
     expect(suspendedAgreement.suspendedByConsumer).toEqual(true);
