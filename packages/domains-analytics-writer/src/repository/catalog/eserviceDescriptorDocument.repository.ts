@@ -1,51 +1,58 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { AttributeSQL } from "pagopa-interop-readmodel-models";
+import { EServiceDescriptorDocumentSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
-import { config } from "../../config/config.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { DBConnection } from "../../db/db.js";
-import {
-  AttributeMapping,
-  AttributeSchema,
-} from "../../model/attribute/attribute.js";
+import { buildColumnSet } from "../../db/buildColumnSet.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, AttributeDbTable } from "../../model/db.js";
+import { config } from "../../config/config.js";
+import {
+  EserviceDescriptorDocumentMapping,
+  EserviceDescriptorDocumentSchema,
+} from "../../model/catalog/eserviceDescriptorDocument.js";
+import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
-/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type */
-export function attributeRepository(conn: DBConnection) {
+export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = AttributeDbTable.attribute;
+  const tableName = CatalogDbTable.eservice_descriptor_document;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTable = `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`;
+  const stagingDeletingTable = `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: AttributeSQL[]
+      records: EServiceDescriptorDocumentSQL[]
     ): Promise<void> {
-      const mapping: AttributeMapping = {
-        id: (r: AttributeSQL) => r.id,
-        metadata_version: (r: AttributeSQL) => r.metadataVersion,
-        code: (r: AttributeSQL) => r.code,
-        kind: (r: AttributeSQL) => r.kind,
-        description: (r: AttributeSQL) => r.description,
-        origin: (r: AttributeSQL) => r.origin,
-        name: (r: AttributeSQL) => r.name,
-        creation_time: (r: AttributeSQL) => r.creationTime,
+      const mapping: EserviceDescriptorDocumentMapping = {
+        id: (r: EServiceDescriptorDocumentSQL) => r.id,
+        eservice_id: (r: EServiceDescriptorDocumentSQL) => r.eserviceId,
+        metadata_version: (r: EServiceDescriptorDocumentSQL) =>
+          r.metadataVersion,
+        descriptor_id: (r: EServiceDescriptorDocumentSQL) => r.descriptorId,
+        name: (r: EServiceDescriptorDocumentSQL) => r.name,
+        content_type: (r: EServiceDescriptorDocumentSQL) => r.contentType,
+        pretty_name: (r: EServiceDescriptorDocumentSQL) => r.prettyName,
+        path: (r: EServiceDescriptorDocumentSQL) => r.path,
+        checksum: (r: EServiceDescriptorDocumentSQL) => r.checksum,
+        upload_date: (r: EServiceDescriptorDocumentSQL) => r.uploadDate,
       };
-      const cs = buildColumnSet<AttributeSQL>(pgp, mapping, stagingTable);
+      const cs = buildColumnSet<EServiceDescriptorDocumentSQL>(
+        pgp,
+        mapping,
+        stagingTable
+      );
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
-            DELETE FROM ${stagingTable} a
-            USING ${stagingTable} b
-            WHERE a.id = b.id
-            AND a.metadata_version < b.metadata_version;
-          `);
+          DELETE FROM ${stagingTable} a
+          USING ${stagingTable} b
+          WHERE a.id = b.id
+          AND a.metadata_version < b.metadata_version;
+        `);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTable}: ${error}`
@@ -56,7 +63,7 @@ export function attributeRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          AttributeSchema,
+          EserviceDescriptorDocumentSchema,
           schemaName,
           tableName,
           stagingTable,
@@ -83,7 +90,7 @@ export function attributeRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      recordsId: Array<AttributeSQL["id"]>
+      recordsId: Array<EServiceDescriptorDocumentSQL["id"]>
     ): Promise<void> {
       try {
         const mapping = {
@@ -93,9 +100,8 @@ export function attributeRepository(conn: DBConnection) {
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
-          deletingTable
+          stagingDeletingTable
         );
-
         const records = recordsId.map((id: string) => ({ id, deleted: true }));
 
         await t.none(
@@ -103,7 +109,7 @@ export function attributeRepository(conn: DBConnection) {
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${deletingTable}: ${error}`
+          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },
@@ -113,25 +119,29 @@ export function attributeRepository(conn: DBConnection) {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
-          deletingTable,
+          stagingDeletingTable,
           ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging deletion flag from ${deletingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${deletingTable};`);
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning deleting table ${deletingTable}: ${error}`
+          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },
   };
 }
+
+export type EserviceDescriptorDocumentRepository = ReturnType<
+  typeof eserviceDescriptorDocumentRepository
+>;
