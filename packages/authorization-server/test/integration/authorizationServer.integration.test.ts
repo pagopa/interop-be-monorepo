@@ -46,7 +46,7 @@ import {
   invalidSignature,
   issuedAtNotFound,
 } from "pagopa-interop-client-assertion-validation";
-import { config } from "../src/config/config.js";
+import { config } from "../../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
@@ -55,16 +55,18 @@ import {
   incompleteTokenGenerationStatesConsumerClient,
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
-} from "../src/model/domain/errors.js";
+} from "../../src/model/domain/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
   fileManager,
+  tokenService,
+} from "../integrationUtils.js";
+import {
   getMockAccessTokenRequest,
   mockKMSClient,
   mockProducer,
-  tokenService,
-} from "./utils.js";
+} from "../mockUtils.js";
 
 describe("authorization server tests", () => {
   if (!configTokenGenerationStates) {

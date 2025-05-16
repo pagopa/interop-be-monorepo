@@ -22,20 +22,19 @@ import {
 } from "pagopa-interop-models";
 import {} from "pagopa-interop-client-assertion-validation";
 import { genericLogger } from "pagopa-interop-commons";
-import { fallbackAudit, retrieveKey } from "../src/services/tokenService.js";
+import { fallbackAudit, retrieveKey } from "../../src/services/tokenService.js";
 import {
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
   tokenGenerationStatesEntryNotFound,
-} from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
+} from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
+import { dynamoDBClient, fileManager } from "../integrationUtils.js";
 import {
-  dynamoDBClient,
-  fileManager,
   getMockAuditMessage,
   mockKMSClient,
   mockProducer,
-} from "./utils.js";
+} from "../mockUtils.js";
 
 describe("unit tests", () => {
   beforeEach(async () => {
