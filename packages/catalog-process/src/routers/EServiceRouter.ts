@@ -5,9 +5,6 @@ import {
   authRole,
   ExpressContext,
   fromAppContext,
-  initDB,
-  initFileManager,
-  ReadModelRepository,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -21,13 +18,6 @@ import {
   emptyErrorMapper,
 } from "pagopa-interop-models";
 import {
-  catalogReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
-  makeDrizzleConnection,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
-import { config } from "../config/config.js";
-import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
   apiDescriptorStateToDescriptorState,
@@ -38,8 +28,6 @@ import {
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   activateDescriptorErrorMapper,
   addEServiceTemplateInstanceInterfaceErrorMapper,
@@ -83,47 +71,11 @@ import {
   updateTemplateInstanceDescriptorErrorMapper,
   updateAgreementApprovalPolicyErrorMapper,
 } from "../utilities/errorMappers.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
-
-const db = makeDrizzleConnection(config);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
-const eserviceTemplateReadModelServiceSQL =
-  eserviceTemplateReadModelServiceBuilder(db);
-
-const readModelRepository = ReadModelRepository.init(config);
-
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL(
-  db,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-  eserviceTemplateReadModelServiceSQL
-);
-
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
-const catalogService = catalogServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  initFileManager(config)
-);
+import { CatalogService } from "../services/catalogService.js";
 
 const eservicesRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  catalogService: CatalogService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eservicesRouter = ctx.router(catalogApi.processApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
