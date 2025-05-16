@@ -6,7 +6,7 @@ import {
   AuthorizationServerTokenGenerationConfig,
   HTTPServerConfig,
   LoggerConfig,
-  FeatureFlagTokenClaimsConfig,
+  FeatureFlagImprovedProducerVerificationClaimsConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
@@ -37,7 +37,7 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
           c.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
       }))
   )
-  .and(FeatureFlagTokenClaimsConfig);
+  .and(FeatureFlagImprovedProducerVerificationClaimsConfig);
 
 export type AuthorizationServerConfig = z.infer<
   typeof AuthorizationServerConfig
