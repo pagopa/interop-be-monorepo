@@ -199,21 +199,20 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       return toM2MGatewayApiAgreement(polledResource.data);
     },
     upgradeAgreement: async (
-      { logger, headers }: WithLogger<M2MGatewayAppContext>,
-      agreementId: AgreementId
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> => {
       logger.info(`Upgrading agreement with id ${agreementId}`);
 
-      const response = await agreementProcessClient.upgradeAgreementById(
-        undefined,
-        {
+      const response =
+        await clients.agreementProcessClient.upgradeAgreementById(undefined, {
           params: { agreementId },
           headers,
-        }
-      );
+        });
+
       const polledResource = await pollAgreement(response, headers);
 
-      return toM2MAgreement(polledResource.data);
+      return toM2MGatewayApiAgreement(polledResource.data);
     },
   };
 }
