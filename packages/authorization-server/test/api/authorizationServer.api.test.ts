@@ -126,7 +126,7 @@ describe("POST /authorization-server/token.oauth2", () => {
     }
   );
 
-  it("Should return tooManyRequestsError for 429", async () => {
+  it("Should return 429 in case the rate limit is reached", async () => {
     tokenService.generateToken = vi.fn().mockResolvedValue({
       token,
       rateLimiterStatus: {},
@@ -138,5 +138,14 @@ describe("POST /authorization-server/token.oauth2", () => {
     expect(res.status).toBe(429);
   });
 
-  // there's no need invalid parameters test because there is validateRequestParameters in service
+  it.each([
+    {},
+    { ...validRequestBody, client_id: "invalidId" },
+    { ...validRequestBody, grant_type: "invalid-type" },
+  ])("Should return 400 if passed invalid params: %s", async (body) => {
+    const res = await makeRequest(
+      body as authorizationServerApi.AccessTokenRequest
+    );
+    expect(res.status).toBe(400);
+  });
 });

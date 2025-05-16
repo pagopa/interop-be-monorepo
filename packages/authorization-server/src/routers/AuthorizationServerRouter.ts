@@ -63,6 +63,8 @@ const authorizationServerRouter = (
           authorizationServerErrorMapper,
           ctx
         );
+        console.log(errorRes.status);
+
         if (errorRes.status === constants.HTTP_STATUS_BAD_REQUEST) {
           const cleanedError: Problem = {
             title: "The request contains bad syntax or cannot be fulfilled.",

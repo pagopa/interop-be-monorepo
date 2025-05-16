@@ -5,6 +5,7 @@
   "main": "dist",
   "type": "module",
   "scripts": {
+    "test:unit": "vitest --config vitest.unit.config.ts",
     "test:api": "vitest --config vitest.api.config.ts",
     "test:integration": "vitest --config vitest.integration.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
