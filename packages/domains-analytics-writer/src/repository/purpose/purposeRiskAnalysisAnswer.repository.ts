@@ -44,6 +44,13 @@ export function purposeRiskAnalysisAnswerRepository(conn: DBContext["conn"]) {
       try {
         if (records.length) {
           await t.none(pgp.helpers.insert(records, cs));
+          await t.none(`
+          DELETE FROM ${stagingTable} a
+          USING ${stagingTable} b
+          WHERE a.id = b.id
+          AND a.purpose_id = b.purpose_id
+          AND a.metadata_version < b.metadata_version;
+        `);
         }
       } catch (error) {
         throw genericInternalError(

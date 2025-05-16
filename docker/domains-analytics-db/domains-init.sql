@@ -245,24 +245,26 @@ CREATE TABLE IF NOT EXISTS domains.purpose (
 
 CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_form (
   id VARCHAR(36),
-  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  purpose_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER NOT NULL,
   version VARCHAR NOT NULL,
   risk_analysis_id VARCHAR(36),
   deleted BOOLEAN,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id, purpose_id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
   id VARCHAR(36),
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_risk_analysis_form(id),
+  risk_analysis_form_id VARCHAR(36),
   kind VARCHAR NOT NULL,
   key VARCHAR NOT NULL,
   value VARCHAR(65535),
   deleted BOOLEAN,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id, purpose_id),
+  FOREIGN KEY (risk_analysis_form_id, purpose_id)
+  REFERENCES domains.purpose_risk_analysis_form (id, purpose_id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version (
@@ -289,5 +291,5 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
   path VARCHAR NOT NULL,
   created_at TIMESTAMP NOT NULL,
   deleted BOOLEAN,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id, purpose_version_id)
 );

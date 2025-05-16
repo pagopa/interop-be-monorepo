@@ -39,6 +39,13 @@ export function purposeVersionDocumentRepository(conn: DBContext["conn"]) {
       try {
         if (records.length) {
           await t.none(pgp.helpers.insert(records, cs));
+          await t.none(`
+          DELETE FROM ${stagingTable} a
+          USING ${stagingTable} b
+          WHERE a.id = b.id
+          AND a.purpose_version_id = b.purpose_version_id
+          AND a.metadata_version < b.metadata_version;
+        `);
         }
       } catch (error) {
         throw genericInternalError(
@@ -55,7 +62,7 @@ export function purposeVersionDocumentRepository(conn: DBContext["conn"]) {
             schemaName,
             tableName,
             stagingTable,
-            ["id"]
+            ["id", "purpose_version_id"]
           )
         );
       } catch (error) {
