@@ -286,13 +286,17 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.rejectAgreement(
-          unsafeBrandId(req.params.agreementId),
-          req.body.reason,
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.rejectAgreement(
+            unsafeBrandId(req.params.agreementId),
+            req.body.reason,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
