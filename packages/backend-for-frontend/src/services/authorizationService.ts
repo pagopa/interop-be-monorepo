@@ -13,12 +13,7 @@ import {
   userRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import {
-  ExternalId,
-  TenantId,
-  invalidClaim,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
 import { z } from "zod";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
@@ -94,7 +89,7 @@ export function authorizationServiceBuilder(
     roles: string,
     tenantId: string,
     selfcareId: string,
-    externalId: ExternalId
+    externalId: tenantApi.ExternalId
   ): UserClaims => ({
     "user-roles": z.array(UserRole).parse(roles === "" ? [] : roles.split(",")),
     organizationId: tenantId,
