@@ -42,14 +42,6 @@ await retryConnection(
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables([
-      TenantDbTable.tenant,
-      TenantDbTable.tenant_mail,
-      TenantDbTable.tenant_certified_attribute,
-      TenantDbTable.tenant_declared_attribute,
-      TenantDbTable.tenant_verified_attribute,
-      TenantDbTable.tenant_verified_attribute_verifier,
-      TenantDbTable.tenant_verified_attribute_revoker,
-      TenantDbTable.tenant_feature,
       AttributeDbTable.attribute,
       CatalogDbTable.eservice,
       CatalogDbTable.eservice_descriptor,
@@ -60,6 +52,14 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      TenantDbTable.tenant,
+      TenantDbTable.tenant_mail,
+      TenantDbTable.tenant_certified_attribute,
+      TenantDbTable.tenant_declared_attribute,
+      TenantDbTable.tenant_verified_attribute,
+      TenantDbTable.tenant_verified_attribute_verifier,
+      TenantDbTable.tenant_verified_attribute_revoker,
+      TenantDbTable.tenant_feature,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },

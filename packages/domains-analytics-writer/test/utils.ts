@@ -19,10 +19,14 @@ import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import {
   AttributeDbTable,
   CatalogDbTable,
+  DbTableNames,
+  DbTableSchemas,
   DeletingDbTable,
+  TenantDbTable,
 } from "../src/model/db.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
+import { z } from "zod";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
@@ -46,7 +50,8 @@ await retryConnection(
   dbContext,
   config,
   async (db) => {
-    await setupDbServiceBuilder(db.conn, config).setupStagingTables([
+    const setupDbService = setupDbServiceBuilder(db.conn, config);
+    await setupDbService.setupStagingTables([
       AttributeDbTable.attribute,
       CatalogDbTable.eservice,
       CatalogDbTable.eservice_descriptor,
@@ -57,13 +62,31 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      TenantDbTable.tenant,
+      TenantDbTable.tenant_mail,
+      TenantDbTable.tenant_certified_attribute,
+      TenantDbTable.tenant_declared_attribute,
+      TenantDbTable.tenant_verified_attribute,
+      TenantDbTable.tenant_verified_attribute_verifier,
+      TenantDbTable.tenant_verified_attribute_revoker,
+      TenantDbTable.tenant_feature,
     ]);
-    await setupDbServiceBuilder(db.conn, config).setupStagingDeletingByIdTables(
-      [
-        DeletingDbTable.catalog_deleting_table,
-        DeletingDbTable.attribute_deleting_table,
-      ]
-    );
+    await setupDbService.setupStagingDeletingTables([
+      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.tenant_deleting_table,
+        columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.tenant_mail_deleting_table,
+        columns: ["id", "tenant_id"],
+      },
+      {
+        name: DeletingDbTable.tenant_feature_deleting_table,
+        columns: ["tenant_id", "kind"],
+      },
+    ]);
   },
   genericLogger
 );
@@ -100,6 +123,7 @@ export const mockAttributeBatch: Batch = {
   offsetLag: () => "0",
   offsetLagLow: () => "0",
 };
+
 export const mockCatalogBatch: Batch = {
   topic: config.catalogTopic,
   partition: 0,
@@ -118,6 +142,36 @@ export const mockCatalogBatch: Batch = {
   offsetLag: () => "0",
   offsetLagLow: () => "0",
 };
+
+export async function getOneFromDb<T extends DbTableNames>(
+  db: DBContext,
+  table: T,
+  where: Partial<z.infer<DbTableSchemas[T]>>
+): Promise<z.infer<DbTableSchemas[T]>> {
+  const entries = Object.entries(where) as [string, unknown][];
+  const clause = entries.map(([k], i) => `"${k}" = $${i + 1}`).join(" AND ");
+  const values = entries.map(([, v]) => v);
+
+  return db.conn.one(
+    `SELECT * FROM ${config.dbSchemaName}.${table} WHERE ${clause}`,
+    values
+  );
+}
+
+export async function getManyFromDb<T extends DbTableNames>(
+  db: DBContext,
+  table: T,
+  where: Partial<z.infer<DbTableSchemas[T]>>
+): Promise<z.infer<DbTableSchemas[T]>[]> {
+  const entries = Object.entries(where) as [string, unknown][];
+  const clause = entries.map(([k], i) => `"${k}" = $${i + 1}`).join(" AND ");
+  const values = entries.map(([, v]) => v);
+
+  return db.conn.any(
+    `SELECT * FROM ${config.dbSchemaName}.${table} WHERE ${clause}`,
+    values
+  );
+}
 
 export async function getEserviceFromDb(
   serviceId: string,
@@ -354,7 +408,7 @@ export const eserviceItem = {
   templateVersionRefsSQL: [sampleTemplateVersionRef],
 } as any;
 
-export async function resetCatalogTables(dbContext: any): Promise<void> {
+export async function resetCatalogTables(dbContext: DBContext): Promise<void> {
   const tables = [
     CatalogDbTable.eservice,
     CatalogDbTable.eservice_descriptor,
