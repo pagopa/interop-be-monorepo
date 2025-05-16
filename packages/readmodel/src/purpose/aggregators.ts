@@ -28,7 +28,7 @@ import {
   PurposeItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregatePurposeArray = ({
   purposesSQL,
@@ -273,6 +273,9 @@ export const toPurposeAggregator = (
     versionsSQL,
     versionDocumentsSQL,
   } = toPurposeAggregatorArray(queryRes);
+
+  throwIfMultiple(purposesSQL, "purpose");
+
   return {
     purposeSQL: purposesSQL[0],
     riskAnalysisFormSQL: riskAnalysisFormsSQL[0],
