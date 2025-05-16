@@ -2,7 +2,7 @@ import {
   CommonHTTPServiceConfig,
   ReadModelDbConfig,
   EventStoreConfig,
-  SelfCareConfig,
+  SelfCareClientConfig,
   ApplicationAuditProducerConfig,
   FeatureFlagAdminClientConfig,
   FeatureFlagSQLConfig,
@@ -12,7 +12,7 @@ import { z } from "zod";
 
 const AuthorizationConfig = CommonHTTPServiceConfig.and(ReadModelDbConfig)
   .and(EventStoreConfig)
-  .and(SelfCareConfig)
+  .and(SelfCareClientConfig)
   .and(
     z
       .object({
