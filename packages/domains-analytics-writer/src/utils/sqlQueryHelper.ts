@@ -66,29 +66,29 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
  */
 export function generateMergeDeleteQuery(
   schemaName: string,
-  tableName: string,
+  targetTableName: string,
   stagingTableName: string,
-  deletingKey: string[]
+  deleteKeysOn: string[],
+  useIdAsSourceDeleteKey: boolean = true
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
 
-  const onCondition = deletingKey
+  const onCondition = deleteKeysOn
     .map(
-      (k) => `${schemaName}.${tableName}.${quoteColumn(String(k))} = source.id`
+      (k) =>
+        `${schemaName}.${targetTableName}.${quoteColumn(String(k))} = source.${
+          useIdAsSourceDeleteKey ? "id" : quoteColumn(String(k))
+        }`
     )
     .join(" AND ");
 
-  const updateSet = `${deletingKey} = source.id,
-   deleted = source.deleted`;
-
   return `
-  MERGE INTO ${schemaName}.${tableName}
-  USING ${stagingTableName} AS source
-  ON ${onCondition}
-  WHEN MATCHED THEN
-    UPDATE SET
-      ${updateSet};
-`;
+      MERGE INTO ${schemaName}.${targetTableName}
+      USING ${stagingTableName} AS source
+        ON ${onCondition}
+      WHEN MATCHED THEN
+        UPDATE SET deleted = source.deleted;
+    `.trim();
 }
 
 export async function mergeDeletingCascadeById(

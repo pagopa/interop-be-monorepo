@@ -2,8 +2,11 @@
 /* eslint-disable functional/immutable-data */
 import {
   EServiceEventEnvelopeV2,
+  EServiceId,
+  RiskAnalysisId,
   fromEServiceV2,
   genericInternalError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
@@ -21,7 +24,10 @@ export async function handleCatalogMessageV2(
   const deleteEServiceBatch: string[] = [];
   const deleteDescriptorBatch: string[] = [];
   const deleteEServiceDocumentBatch: string[] = [];
-  const deleteEserviceRiskAnalysisBatch: string[] = [];
+  const deleteEserviceRiskAnalysisBatch: Array<{
+    eserviceId: EServiceId;
+    id: RiskAnalysisId;
+  }> = [];
   const deleteEserviceInterfaceBatch: string[] = [];
 
   for (const message of messages) {
@@ -35,8 +41,17 @@ export async function handleCatalogMessageV2(
       .with({ type: P.union("EServiceDescriptorDocumentDeleted") }, (msg) => {
         deleteEServiceDocumentBatch.push(msg.data.descriptorId);
       })
-      .with({ type: P.union("EServiceRiskAnalysisDeleted") }, (msg) => {
-        deleteEserviceRiskAnalysisBatch.push(msg.data.riskAnalysisId);
+      .with({ type: "EServiceRiskAnalysisDeleted" }, (msg) => {
+        if (!msg.data.eservice?.id) {
+          throw genericInternalError(
+            "eservice can't be missing in event message"
+          );
+        }
+
+        deleteEserviceRiskAnalysisBatch.push({
+          eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice?.id),
+          id: unsafeBrandId<RiskAnalysisId>(msg.data.riskAnalysisId),
+        });
       })
       .with(
         {

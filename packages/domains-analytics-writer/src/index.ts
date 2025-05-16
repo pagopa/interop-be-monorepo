@@ -58,13 +58,17 @@ await retryConnection(
       AgreementDbTable.agreement_consumer_document,
       AgreementDbTable.agreement_contract,
     ]);
-    await setupDbService.setupStagingDeletingByIdTables([
-      DeletingDbTable.attribute_deleting_table,
-      DeletingDbTable.catalog_deleting_table,
-      DeletingDbTable.agreement_deleting_table,
+    await setupDbService.setupStagingDeletingTables([
+      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.catalog_risk_deleting_table,
+        columns: ["id", "eservice_id"],
+      },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -75,7 +79,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -92,5 +96,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch
+  processBatch,
 );

@@ -39,7 +39,7 @@ export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("analyticsSQLDbConfig")
+  inject("analyticsSQLDbConfig"),
 );
 const connection = await analyticsPostgresDB.connect();
 
@@ -70,15 +70,17 @@ await retryConnection(
       AgreementDbTable.agreement_consumer_document,
       AgreementDbTable.agreement_contract,
     ]);
-    await setupDbServiceBuilder(db.conn, config).setupStagingDeletingByIdTables(
-      [
-        DeletingDbTable.catalog_deleting_table,
-        DeletingDbTable.attribute_deleting_table,
-        DeletingDbTable.agreement_deleting_table,
-      ]
-    );
+    await setupDbServiceBuilder(db.conn, config).setupStagingDeletingTables([
+      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.catalog_risk_deleting_table,
+        columns: ["id", "eservice_id"],
+      },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+    ]);
   },
-  genericLogger
+  genericLogger,
 );
 
 export const attributeService = attributeServiceBuilder(dbContext);
@@ -87,7 +89,7 @@ export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[]
+  tables: string[],
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename
@@ -134,7 +136,7 @@ export const mockCatalogBatch: Batch = {
 
 export async function getEserviceFromDb(
   serviceId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.one(`SELECT * FROM domains.eservice WHERE id = $1`, [
     serviceId,
@@ -143,24 +145,24 @@ export async function getEserviceFromDb(
 
 export async function getDescriptorFromDb(
   descriptorId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor WHERE id = $1`,
-    [descriptorId]
+    [descriptorId],
   );
 }
 
 export async function getAttributeFromDb(
   id: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<AttributeSchema[] | null> {
   return db.conn.any(`SELECT * FROM domains.attribute WHERE id = $1`, [id]);
 }
 
 export async function getDescriptorAttributeFromDb(
   id: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(`SELECT * FROM domains.eservice_descriptor_attribute `, [
     id,
@@ -169,70 +171,70 @@ export async function getDescriptorAttributeFromDb(
 
 export async function getDocumentFromDb(
   documentId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_document WHERE id = $1`,
-    [documentId]
+    [documentId],
   );
 }
 
 export async function getInterfaceFromDb(
   interfaceId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_interface WHERE id = $1`,
-    [interfaceId]
+    [interfaceId],
   );
 }
 
 export async function getRiskAnalysisAnswerFromDb(
   riskAnalysisId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_risk_analysis_answer WHERE id = $1`,
-    [riskAnalysisId]
+    [riskAnalysisId],
   );
 }
 
 export async function getRiskAnalysisFromDb(
   riskAnalysisId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_risk_analysis WHERE id = $1`,
-    [riskAnalysisId]
+    [riskAnalysisId],
   );
 }
 
 export async function getDescriptorRejectionReasonFromDb(
   descriptorId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_rejection_reason WHERE descriptor_id = $1`,
-    [descriptorId]
+    [descriptorId],
   );
 }
 export async function getDescriptorTemplateVersionFromDb(
   eserviceTemplateVersionId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_template_version_ref WHERE eservice_template_version_id = $1`,
-    [eserviceTemplateVersionId]
+    [eserviceTemplateVersionId],
   );
 }
 
 export async function getEserviceDescriptorDocumentFromDb(
   descriptorId: string,
-  db: DBContext
+  db: DBContext,
 ): Promise<any> {
   return db.conn.any(
     `SELECT * FROM domains.eservice_descriptor_document WHERE descriptor_id = $1`,
-    [descriptorId]
+    [descriptorId],
   );
 }
 
@@ -400,30 +402,30 @@ export async function getAgreementFromDb(id: string, db: DBContext) {
 export async function getAgreementStampFromDb(agrId: string, db: DBContext) {
   return db.conn.any(
     `SELECT * FROM domains.agreement_stamp WHERE agreement_id = $1`,
-    [agrId]
+    [agrId],
   );
 }
 export async function getAgreementAttributeFromDb(
   attrId: string,
-  db: DBContext
+  db: DBContext,
 ) {
   return db.conn.any(
     `SELECT * FROM domains.agreement_attribute WHERE attribute_id = $1`,
-    [attrId]
+    [attrId],
   );
 }
 export async function getAgreementConsumerDocumentFromDb(
   docId: string,
-  db: DBContext
+  db: DBContext,
 ) {
   return db.conn.any(
     `SELECT * FROM domains.agreement_consumer_document WHERE id = $1`,
-    [docId]
+    [docId],
   );
 }
 export async function getAgreementContractFromDb(
   contractId: string,
-  db: DBContext
+  db: DBContext,
 ) {
   return db.conn.any(`SELECT * FROM domains.agreement_contract WHERE id = $1`, [
     contractId,
@@ -510,7 +512,7 @@ export const agreementItem: AgreementItemsSQL = {
 };
 
 export function getMockAgreement(
-  overrides: Partial<Agreement> = {}
+  overrides: Partial<Agreement> = {},
 ): Agreement & { metadataVersion: number } {
   const agreementId = unsafeBrandId<AgreementId>(generateId());
   const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
@@ -546,7 +548,7 @@ export function getMockAgreement(
 }
 
 export function agreementItemFromDomain(
-  agr: Agreement & { metadataVersion: number }
+  agr: Agreement & { metadataVersion: number },
 ): AgreementItemsSQL {
   return splitAgreementIntoObjectsSQL(agr, agr.metadataVersion);
 }
