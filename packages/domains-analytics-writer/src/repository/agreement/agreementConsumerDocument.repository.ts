@@ -16,7 +16,7 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AgreementDbTable.agreement_consumer_document;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = DeletingDbTable.agreement_deleting_table;
+  const stagingDeletingTable = `${DeletingDbTable.agreement_deleting_table}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -46,11 +46,14 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
           await t.none(`
             DELETE FROM ${stagingTable} a
             USING ${stagingTable} b
-            WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
+            WHERE a.id = b.id 
+            AND a.metadata_version < b.metadata_version;
           `);
         }
-      } catch (e) {
-        throw genericInternalError(`stage docs: ${e}`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingTable}: ${error}`
+        );
       }
     },
 
@@ -65,16 +68,20 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
             ["id"]
           )
         );
-      } catch (e) {
-        throw genericInternalError(`merge docs: ${e}`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+        );
       }
     },
 
     async clean() {
       try {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (e) {
-        throw genericInternalError(`clean doc stage: ${e}`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTable}: ${error}`
+        );
       }
     },
 

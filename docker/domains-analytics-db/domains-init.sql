@@ -136,7 +136,8 @@ CREATE TABLE domains.eservice_risk_analysis (
   risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
   deleted BOOLEAN,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id, eservice_id),
+  UNIQUE (risk_analysis_form_id, eservice_id),
   FOREIGN KEY (eservice_id)
     REFERENCES domains.eservice (id)
 );
@@ -151,9 +152,11 @@ CREATE TABLE domains.eservice_risk_analysis_answer (
   key VARCHAR NOT NULL,
   value VARCHAR(65535) NOT NULL,
   deleted BOOLEAN,
-  PRIMARY KEY (id),
+  PRIMARY KEY (id, eservice_id),
   FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+    REFERENCES domains.eservice (id),
+  FOREIGN KEY (risk_analysis_form_id, eservice_id)
+    REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)
 );
 
 CREATE TABLE domains.agreement (
@@ -219,7 +222,7 @@ CREATE TABLE domains.agreement_contract (
   path VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
-  PRIMARY KEY (id)
+  PRIMARY KEY (agreement_id, id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose (

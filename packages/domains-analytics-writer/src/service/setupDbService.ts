@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
-import { DeletingDbTable } from "../model/db.js";
+import { DeletingTableConfigMap } from "../model/db.js";
 import { setupStagingTablesError } from "../model/errors.js";
 
 export interface SetupDbConfig {
@@ -29,19 +29,26 @@ export function setupDbServiceBuilder(
         throw setupStagingTablesError(error);
       }
     },
-
-    async setupStagingDeletingByIdTables(
-      deletingTableName: DeletingDbTable[]
+    async setupStagingDeletingTables(
+      configs: DeletingTableConfigMap[]
     ): Promise<void> {
       try {
         await Promise.all(
-          deletingTableName.map((deletingTableName) => {
+          configs.map(({ name, columns }) => {
+            const columnDefs = columns
+              .map((key) => `${String(key)} VARCHAR(255)`)
+              .concat("deleted BOOLEAN NOT NULL")
+              .join(",\n  ");
+
+            const primaryKey = `PRIMARY KEY (${columns.join(", ")})`;
+
             const query = `
-            CREATE TEMPORARY TABLE IF NOT EXISTS ${deletingTableName} (
-              id VARCHAR(36) PRIMARY KEY,
-              deleted BOOLEAN NOT NULL
-            );
-          `;
+              CREATE TEMPORARY TABLE IF NOT EXISTS ${name}_${config.mergeTableSuffix} (
+                ${columnDefs},
+                ${primaryKey}
+              );
+            `;
+
             return conn.query(query);
           })
         );

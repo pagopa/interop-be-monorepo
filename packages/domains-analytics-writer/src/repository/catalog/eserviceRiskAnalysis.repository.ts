@@ -10,6 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
+  EserviceRiskAnalysisDeletingMapping,
   EserviceRiskAnalysisMapping,
   EserviceRiskAnalysisSchema,
 } from "../../model/catalog/eserviceRiskAnalysis.js";
@@ -19,7 +20,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_risk_analysis;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
+  const stagingDeletingTable = `${DeletingDbTable.catalog_risk_deleting_table}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -49,6 +50,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
           DELETE FROM ${stagingTable} a
           USING ${stagingTable} b
           WHERE a.id = b.id
+          AND a.eservice_id = b.eservice_id
           AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
@@ -65,7 +67,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
           schemaName,
           tableName,
           stagingTable,
-          ["id"]
+          ["id", "eservice_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -125,6 +127,49 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async insertDeletingByEserviceIdandRiskAnalysisId(
+      t: ITask<unknown>,
+      pgp: IMain,
+      records: Array<Pick<EServiceRiskAnalysisSQL, "id" | "eserviceId">>
+    ): Promise<void> {
+      const mapping: EserviceRiskAnalysisDeletingMapping = {
+        id: (r) => r.id,
+        eservice_id: (r) => r.eserviceId,
+        deleted: () => true,
+      };
+      try {
+        const cs = buildColumnSet<EServiceRiskAnalysisSQL>(
+          pgp,
+          mapping,
+          stagingDeletingTable
+        );
+        await t.none(
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
+        );
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into deleting table ${stagingDeletingTable}: ${error}`
+        );
+      }
+    },
+
+    async mergeDeletingByEserviceIdandRiskAnalysisId(): Promise<void> {
+      try {
+        const mergeQuery = generateMergeDeleteQuery(
+          schemaName,
+          tableName,
+          stagingDeletingTable,
+          ["id", "eservice_id"],
+          false
+        );
+        await conn.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging deleting table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },

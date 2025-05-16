@@ -16,7 +16,7 @@ export function agreementRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AgreementDbTable.agreement;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = DeletingDbTable.agreement_deleting_table;
+  const stagingDeletingTable = `${DeletingDbTable.agreement_deleting_table}_${config.mergeTableSuffix}`;
 
   return {
     async insert(t: ITask<unknown>, pgp: IMain, records: AgreementSQL[]) {
@@ -47,8 +47,10 @@ export function agreementRepo(conn: DBConnection) {
           USING ${stagingTable} b
           WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
         `);
-      } catch (e) {
-        throw genericInternalError(`stage agreements: ${e}`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingTable}: ${error}`
+        );
       }
     },
 
@@ -63,17 +65,19 @@ export function agreementRepo(conn: DBConnection) {
             ["id"]
           )
         );
-      } catch (e) {
-        throw genericInternalError(`merge agreements: ${e}`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+        );
       }
     },
 
     async clean() {
       try {
         await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (error) {
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

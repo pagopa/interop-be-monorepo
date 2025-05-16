@@ -162,7 +162,7 @@ export function agreementServiceBuilder(db: DBContext) {
             AgreementDbTable.agreement_consumer_document,
             AgreementDbTable.agreement_contract,
           ],
-          DeletingDbTable.agreement_deleting_table
+          `${DeletingDbTable.agreement_deleting_table}_${config.mergeTableSuffix}`
         );
       });
 

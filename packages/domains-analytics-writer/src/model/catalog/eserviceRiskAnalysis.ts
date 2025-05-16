@@ -22,8 +22,15 @@ export type EserviceRiskAnalysisMapping = {
 
 export const EserviceRiskAnalysisDeletingSchema = z.object({
   id: z.string(),
+  eservice_id: z.string(),
   deleted: z.boolean(),
 });
+
 export type EserviceRiskAnalysisDeletingSchema = z.infer<
   typeof EserviceRiskAnalysisDeletingSchema
 >;
+export type EserviceRiskAnalysisDeletingMapping = {
+  [K in keyof EserviceRiskAnalysisDeletingSchema]: (
+    record: Pick<EServiceRiskAnalysisSQL, "id" | "eserviceId">
+  ) => EserviceRiskAnalysisDeletingSchema[K];
+};
