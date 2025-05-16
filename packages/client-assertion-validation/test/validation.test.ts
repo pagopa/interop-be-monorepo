@@ -127,8 +127,7 @@ describe("validation test", async () => {
       expect(errors).toBeUndefined();
     });
 
-    // Note: this test is skipped to temporarily accept all claims in client assertion header
-    it.skip("clientAssertionInvalidClaims - header", async () => {
+    it("clientAssertionInvalidClaims - header", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: {
           invalidHeaderProp: "wrong",
@@ -138,7 +137,8 @@ describe("validation test", async () => {
         jws,
         undefined,
         expectedAudiences,
-        genericLogger
+        genericLogger,
+        true
       );
 
       expect(errors).toBeDefined();
@@ -146,6 +146,7 @@ describe("validation test", async () => {
       expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
     });
 
+    // TODO: remove this test when we will only accept valid client assertion claims
     it("ignore unexpected claims in client assertion header", async () => {
       const { jws } = await getMockClientAssertion({
         customHeader: {
@@ -162,8 +163,7 @@ describe("validation test", async () => {
       expect(errors).toBeUndefined();
     });
 
-    // Note: this test is skipped to temporarily accept all claims in client assertion payload
-    it.skip("clientAssertionInvalidClaims - payload", async () => {
+    it("clientAssertionInvalidClaims - payload", async () => {
       const { jws } = await getMockClientAssertion({
         customClaims: {
           wrongPayloadProp: "wrong",
@@ -173,7 +173,8 @@ describe("validation test", async () => {
         jws,
         undefined,
         expectedAudiences,
-        genericLogger
+        genericLogger,
+        true
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
