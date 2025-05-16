@@ -5,6 +5,8 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
+  validateAuthorization,
+  authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
@@ -15,6 +17,7 @@ const agreementRouter = (
   ctx: ZodiosContext,
   agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
   const agreementRouter = ctx.router(m2mGatewayApi.agreementsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
@@ -26,7 +29,10 @@ const agreementRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const agreements = await agreementService.getAgreements(req.query, ctx);
+
+        return res.status(200).send(m2mGatewayApi.Agreements.parse(agreements));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

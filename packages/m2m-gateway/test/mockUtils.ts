@@ -1,6 +1,7 @@
 import {
   attributeRegistryApi,
   delegationApi,
+  agreementApi,
   tenantApi,
   authorizationApi,
 } from "pagopa-interop-api-clients";
@@ -41,6 +42,27 @@ export function getMockedApiDelegation({
           when: new Date().toISOString(),
         },
       },
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiAgreement(): WithMetadata<agreementApi.Agreement> {
+  return {
+    data: {
+      id: generateId(),
+      eserviceId: generateId(),
+      descriptorId: generateId(),
+      producerId: generateId(),
+      consumerId: generateId(),
+      state: agreementApi.AgreementState.Values.ACTIVE,
+      certifiedAttributes: [],
+      declaredAttributes: [],
+      consumerDocuments: [],
+      verifiedAttributes: [],
+      createdAt: new Date().toISOString(),
     },
     metadata: {
       version: 0,
@@ -129,6 +151,7 @@ export function getMockedApiClient({
 }
 
 export const m2mTestToken = generateMock(z.string().base64());
+
 export const getMockM2MAdminAppContext = ({
   organizationId,
   serviceName,

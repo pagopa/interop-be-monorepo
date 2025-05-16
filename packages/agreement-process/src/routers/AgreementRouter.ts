@@ -107,6 +107,7 @@ const {
   SECURITY_ROLE,
   API_ROLE,
   M2M_ROLE,
+  M2M_ADMIN_ROLE,
   INTERNAL_ROLE,
   SUPPORT_ROLE,
 } = authRole;
@@ -360,6 +361,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
