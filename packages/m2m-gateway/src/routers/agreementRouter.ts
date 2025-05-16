@@ -187,7 +187,13 @@ const agreementRouter = (
     .post("/agreements/:agreementId/upgrade", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        const agreement = await agreementService.upgradeAgreement(
+          unsafeBrandId(req.params.agreementId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Agreement.parse(agreement));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

@@ -185,7 +185,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       5) Consumer upgrades the Agreement
     ================================= */
-    const upgradedAgreement = await agreementService.upgradeAgreement(
+    const { data: upgradedAgreement } = await agreementService.upgradeAgreement(
       suspendedAgreement.id,
       getMockContext({ authData: consumerAuthData })
     );
@@ -396,7 +396,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       5) Consumer upgrades the Agreement
     ================================= */
-    const upgradedAgreement = await agreementService.upgradeAgreement(
+    const { data: upgradedAgreement } = await agreementService.upgradeAgreement(
       submittedAgreement.id,
       getMockContext({ authData: consumerAuthData })
     );

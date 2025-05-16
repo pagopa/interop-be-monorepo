@@ -675,8 +675,12 @@ export function agreementServiceBuilder(
     },
     async upgradeAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Upgrading agreement ${agreementId}`);
 
       const agreementToBeUpgraded = await retrieveAgreement(
@@ -789,7 +793,12 @@ export function agreementServiceBuilder(
 
       await repository.createEvents(events);
 
-      return agreement;
+      return {
+        data: agreement,
+        metadata: {
+          version: 0,
+        },
+      };
     },
     async cloneAgreement(
       agreementId: AgreementId,
