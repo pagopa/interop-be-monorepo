@@ -1,19 +1,26 @@
-import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { api, mockAgreementService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  agreementService,
+  expectApiClientGetToHaveBeenCalledWith,
+  expectApiClientPostToHaveBeenCalledWith,
+  mockInteropBeClients,
+  mockPollingResponse,
+} from "../../integrationUtils.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiAgreement } from "../../mockUtils.js";
-import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
+import {
+  getMockM2MAdminAppContext,
+  getMockedApiAgreement,
+} from "../../mockUtils.js";
 
-describe("POST /agreements/:agreementId/reject router test", () => {
-  const mockApiAgreement = getMockedApiAgreement({
+describe("rejectAgreement", () => {
+  const mockAgreementProcessResponse = getMockedApiAgreement({
     state: agreementApi.AgreementState.Values.PENDING,
   });
 
@@ -21,75 +28,111 @@ describe("POST /agreements/:agreementId/reject router test", () => {
     reason: "This is a test reason for rejection",
   };
 
-  const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement.data);
+  const mockRejectAgreement = vi
+    .fn()
+    .mockResolvedValue(mockAgreementProcessResponse);
 
-  const makeRequest = async (
-    token: string,
-    body: m2mGatewayApi.AgreementRejection
-  ) =>
-    request(api)
-      .post(`${appBasePath}/agreements/${mockApiAgreement.data.id}/reject`)
-      .set("Authorization", `Bearer ${token}`)
-      .send(body);
-
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
-  it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
-    async (role) => {
-      mockAgreementService.rejectAgreement = vi
-        .fn()
-        .mockResolvedValue(mockM2MAgreementResponse);
-
-      const token = generateToken(role);
-      const res = await makeRequest(token, mockRejectAgreementBody);
-
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MAgreementResponse);
-    }
+  const mockGetAgreement = vi.fn(
+    mockPollingResponse(
+      mockAgreementProcessResponse,
+      config.defaultPollingMaxAttempts
+    )
   );
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockAgreementService.rejectAgreement = vi.fn().mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockRejectAgreementBody);
+  mockInteropBeClients.agreementProcessClient = {
+    rejectAgreement: mockRejectAgreement,
+    getAgreementById: mockGetAgreement,
+  } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
-      expect(res.status).toBe(500);
-    }
-  );
+  beforeEach(() => {
+    // Clear mock counters and call information before each test
+    mockRejectAgreement.mockClear();
+    mockGetAgreement.mockClear();
+  });
 
-  it.each([
-    { ...mockRejectAgreementBody, invalidParam: "invalidValue" },
-    { ...mockRejectAgreementBody, reason: undefined },
-  ])(
-    "Should return 400 if passed an invalid agreement seed: %s",
-    async (body) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        body as unknown as m2mGatewayApi.AgreementRejection
-      );
+  it("Should succeed and perform API clients calls", async () => {
+    const m2mAgreementResponse: m2mGatewayApi.Agreement = {
+      id: mockAgreementProcessResponse.data.id,
+      eserviceId: mockAgreementProcessResponse.data.eserviceId,
+      descriptorId: mockAgreementProcessResponse.data.descriptorId,
+      producerId: mockAgreementProcessResponse.data.producerId,
+      consumerId: mockAgreementProcessResponse.data.consumerId,
+      state: mockAgreementProcessResponse.data.state,
+      createdAt: mockAgreementProcessResponse.data.createdAt,
+    };
 
-      expect(res.status).toBe(400);
-    }
-  );
+    const result = await agreementService.rejectAgreement(
+      unsafeBrandId(mockAgreementProcessResponse.data.id),
+      mockRejectAgreementBody,
+      getMockM2MAdminAppContext()
+    );
 
-  it.each([
-    { ...mockM2MAgreementResponse, state: "INVALID_STATE" },
-    { ...mockM2MAgreementResponse, invalidParam: "invalidValue" },
-    { ...mockM2MAgreementResponse, createdAt: undefined },
-  ])(
-    "Should return 500 when API model parsing fails for response",
-    async (resp) => {
-      mockAgreementService.createAgreement = vi
-        .fn()
-        .mockResolvedValueOnce(resp);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockRejectAgreementBody);
+    expect(result).toEqual(m2mAgreementResponse);
+    expect(mockGetAgreement).toHaveBeenCalledTimes(
+      config.defaultPollingMaxAttempts
+    );
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost: mockInteropBeClients.agreementProcessClient.rejectAgreement,
+      params: {
+        agreementId: mockAgreementProcessResponse.data.id,
+      },
+      body: mockRejectAgreementBody,
+    });
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
+      params: { agreementId: mockAgreementProcessResponse.data.id },
+    });
+  });
 
-      expect(res.status).toBe(500);
-    }
-  );
+  it("Should throw missingMetadata in case the agreement returned by the reject agreement POST call has no metadata", async () => {
+    mockRejectAgreement.mockResolvedValueOnce({
+      ...mockAgreementProcessResponse,
+      metadata: undefined,
+    });
+
+    await expect(
+      agreementService.rejectAgreement(
+        unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockRejectAgreementBody,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the agreement returned by the polling GET call has no metadata", async () => {
+    mockGetAgreement.mockResolvedValueOnce({
+      ...mockAgreementProcessResponse,
+      metadata: undefined,
+    });
+
+    await expect(
+      agreementService.rejectAgreement(
+        unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockRejectAgreementBody,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+    mockGetAgreement.mockImplementation(
+      mockPollingResponse(
+        mockAgreementProcessResponse,
+        config.defaultPollingMaxAttempts + 1
+      )
+    );
+
+    await expect(
+      agreementService.rejectAgreement(
+        unsafeBrandId(mockAgreementProcessResponse.data.id),
+        mockRejectAgreementBody,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+    );
+    expect(mockGetAgreement).toHaveBeenCalledTimes(
+      config.defaultPollingMaxAttempts
+    );
+  });
 });

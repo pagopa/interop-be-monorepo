@@ -18,29 +18,24 @@ export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const pollAgreement = (
-    response: WithMaybeMetadata<agreementApi.Agreement>,
-    headers: M2MGatewayAppContext["headers"]
-  ) =>
-    pollResource(() =>
-      clients.agreementProcessClient.getAgreementById({
-        params: { agreementId: response.data.id },
-        headers,
-      })
-    )({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
-    });
-
   const retrieveAgreementById = async (
     headers: M2MGatewayAppContext["headers"],
-    agreementId: AgreementId
+    agreementId: string
   ): Promise<WithMaybeMetadata<agreementApi.Agreement>> =>
     await clients.agreementProcessClient.getAgreementById({
       params: {
         agreementId,
       },
       headers,
+    });
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const pollAgreement = (
+    response: WithMaybeMetadata<agreementApi.Agreement>,
+    headers: M2MGatewayAppContext["headers"]
+  ) =>
+    pollResource(() => retrieveAgreementById(headers, response.data.id))({
+      checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {
