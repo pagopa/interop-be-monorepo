@@ -40,7 +40,7 @@ import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
   purposeNotFound,
-  organizationIsNotTheConsumer,
+  tenantIsNotTheConsumer,
   purposeNotInDraftState,
   eserviceNotFound,
   eServiceModeNotAllowed,
@@ -49,8 +49,8 @@ import {
   tenantKindNotFound,
   riskAnalysisValidationFailed,
   duplicatedPurposeTitle,
-  organizationIsNotTheDelegatedConsumer,
-  puroposeDelegationNotFound,
+  tenantIsNotTheDelegatedConsumer,
+  purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -580,7 +580,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     ).rejects.toThrowError(purposeNotFound(purposeId));
   });
-  it("Should throw organizationIsNotTheConsumer if the organization is not the consumer", async () => {
+  it("Should throw tenantIsNotTheConsumer if the organization is not the consumer", async () => {
     const mockPurpose: Purpose = {
       ...purposeForDeliver,
       consumerId: generateId(),
@@ -598,7 +598,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         purposeUpdateContent,
         getMockContext({ authData: getMockAuthData(organizationId) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(organizationId));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(organizationId));
   });
   it.each(
     Object.values(purposeVersionState).filter(
@@ -804,7 +804,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is updating a purpose created by the delegate in updatePurpose", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is updating a purpose created by the delegate in updatePurpose", async () => {
     const authData = getMockAuthData();
 
     const delegatePurpose: Purpose = {
@@ -833,13 +833,10 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegatedConsumer(authData.organizationId, delegation.id)
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is updating a purpose created by the delegate in updateReversePurpose", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is updating a purpose created by the delegate in updateReversePurpose", async () => {
     const authData = getMockAuthData();
 
     const delegatePurpose: Purpose = {
@@ -869,13 +866,10 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegatedConsumer(authData.organizationId, delegation.id)
     );
   });
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updatePurpose, but the delegation cannot be found", async () => {
+  it("should throw purposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updatePurpose, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
 
     const delegatePurpose: Purpose = {
@@ -895,13 +889,13 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      puroposeDelegationNotFound(
+      purposeDelegationNotFound(
         delegatePurpose.id,
         delegatePurpose.delegationId!
       )
     );
   });
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updateReversePurpose, but the delegation cannot be found", async () => {
+  it("should throw purposeDelegationNotFound when the requester is the Consumer, is updating a purpose created by a delegate in updateReversePurpose, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
 
     const delegatePurpose: Purpose = {
@@ -921,13 +915,13 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      puroposeDelegationNotFound(
+      purposeDelegationNotFound(
         delegatePurpose.id,
         delegatePurpose.delegationId!
       )
     );
   });
-  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose in updatePurpose", async () => {
+  it("should throw tenantIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose in updatePurpose", async () => {
     const delegatePurpose: Purpose = {
       ...purposeForReceive,
       consumerId: tenant.id,
@@ -953,9 +947,9 @@ describe("updatePurpose and updateReversePurpose", () => {
         reversePurposeUpdateContent,
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
-  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose in updateReversePurpose", async () => {
+  it("should throw tenantIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose in updateReversePurpose", async () => {
     const delegatePurpose: Purpose = {
       ...purposeForReceive,
       consumerId: tenant.id,
@@ -981,9 +975,9 @@ describe("updatePurpose and updateReversePurpose", () => {
         reversePurposeUpdateContent,
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updatePurpose", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updatePurpose", async () => {
     const purpose: Purpose = {
       ...purposeForReceive,
       consumerId: tenant.id,
@@ -1021,13 +1015,13 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      tenantIsNotTheDelegatedConsumer(
         delegation.delegateId,
         purpose.delegationId
       )
     );
   });
-  it("should throw organizationIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updateReversePurpose", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in updateReversePurpose", async () => {
     const purpose: Purpose = {
       ...purposeForReceive,
       consumerId: tenant.id,
@@ -1065,7 +1059,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      tenantIsNotTheDelegatedConsumer(
         delegation.delegateId,
         purpose.delegationId
       )

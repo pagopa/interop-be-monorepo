@@ -36,7 +36,7 @@ import {
 import {
   purposeNotFound,
   purposeVersionNotFound,
-  organizationNotAllowed,
+  tenantNotAllowed,
   notValidVersionState,
 } from "../../src/model/domain/errors.js";
 import {
@@ -635,7 +635,7 @@ describe("suspendPurposeVersion", () => {
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
     );
   });
-  it("should throw organizationNotAllowed if the requester is not the producer nor the consumer", async () => {
+  it("should throw tenantNotAllowed if the requester is not the producer nor the consumer", async () => {
     const mockEService = getMockEService();
     const randomAuthData = getMockAuthData();
     const mockPurposeVersion: PurposeVersion = {
@@ -659,11 +659,9 @@ describe("suspendPurposeVersion", () => {
         },
         getMockContext({ authData: randomAuthData })
       )
-    ).rejects.toThrowError(
-      organizationNotAllowed(randomAuthData.organizationId)
-    );
+    ).rejects.toThrowError(tenantNotAllowed(randomAuthData.organizationId));
   });
-  it("should throw organizationNotAllowed if the requester is not the e-service active delegation delegate", async () => {
+  it("should throw tenantNotAllowed if the requester is not the e-service active delegation delegate", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -698,12 +696,12 @@ describe("suspendPurposeVersion", () => {
         },
         getMockContext({ authData: randomCaller })
       )
-    ).rejects.toThrowError(organizationNotAllowed(randomCaller.organizationId));
+    ).rejects.toThrowError(tenantNotAllowed(randomCaller.organizationId));
   });
   it.each(
     Object.values(delegationState).filter((s) => s !== delegationState.active)
   )(
-    "should throw organizationNotAllowed if the requester is the e-service delegate but the delegation is in %s state",
+    "should throw tenantNotAllowed if the requester is the e-service delegate but the delegation is in %s state",
     async (delegationState) => {
       const mockEService = getMockEService();
       const mockPurposeVersion: PurposeVersion = {
@@ -737,12 +735,10 @@ describe("suspendPurposeVersion", () => {
           },
           getMockContext({ authData: delegateAuthData })
         )
-      ).rejects.toThrowError(
-        organizationNotAllowed(delegateAuthData.organizationId)
-      );
+      ).rejects.toThrowError(tenantNotAllowed(delegateAuthData.organizationId));
     }
   );
-  it("should throw organizationNotAllowed if the requester is the producer but the purpose e-service has an active delegation", async () => {
+  it("should throw tenantNotAllowed if the requester is the producer but the purpose e-service has an active delegation", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -775,7 +771,7 @@ describe("suspendPurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
-    ).rejects.toThrowError(organizationNotAllowed(mockEService.producerId));
+    ).rejects.toThrowError(tenantNotAllowed(mockEService.producerId));
   });
   it.each(
     Object.values(purposeVersionState).filter(
@@ -813,7 +809,7 @@ describe("suspendPurposeVersion", () => {
       );
     }
   );
-  it("should throw organizationNotAllowed when the requester is the Consumer and is suspending a purpose version created by the delegate", async () => {
+  it("should throw tenantNotAllowed when the requester is the Consumer and is suspending a purpose version created by the delegate", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -848,10 +844,10 @@ describe("suspendPurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(organizationNotAllowed(mockPurpose.consumerId));
+    ).rejects.toThrowError(tenantNotAllowed(mockPurpose.consumerId));
   });
 
-  it("should throw organizationNotAllowed when the requester is the Consumer, is suspending a purpose version created by a delegate in suspendPurposeVersion, but the delegation cannot be found", async () => {
+  it("should throw tenantNotAllowed when the requester is the Consumer, is suspending a purpose version created by a delegate in suspendPurposeVersion, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
 
@@ -877,10 +873,10 @@ describe("suspendPurposeVersion", () => {
         },
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
   });
 
-  it("should throw organizationNotAllowed when the requester is the Delegate and is suspending a purpose version created by the Consumer", async () => {
+  it("should throw tenantNotAllowed when the requester is the Delegate and is suspending a purpose version created by the Consumer", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
@@ -915,9 +911,9 @@ describe("suspendPurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
-    ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+    ).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
   });
-  it("should throw organizationNotAllowed when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in suspendPurposeVersion", async () => {
+  it("should throw tenantNotAllowed when the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate) in suspendPurposeVersion", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -951,6 +947,6 @@ describe("suspendPurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
-    ).rejects.toThrowError(organizationNotAllowed(delegation.delegateId));
+    ).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
   });
 });

@@ -56,7 +56,7 @@ const delegationRouter = (
           await delegationService.createConsumerDelegation(req.body, ctx);
 
         return res
-          .status(200)
+          .status(201)
           .send(m2mGatewayApi.ConsumerDelegation.parse(createdDelegation));
       } catch (error) {
         const errorRes = makeApiProblem(

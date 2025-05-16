@@ -20,6 +20,7 @@ import {
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
@@ -27,11 +28,11 @@ import {
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
   missingFreeOfChargeReason,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
-  organizationIsNotTheDelegatedProducer,
-  organizationIsNotTheProducer,
-  organizationNotAllowed,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegatedConsumer,
+  tenantIsNotTheDelegatedProducer,
+  tenantIsNotTheProducer,
+  tenantNotAllowed,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
@@ -101,7 +102,7 @@ const assertRequesterIsConsumer = (
   authData: Pick<UIAuthData, "organizationId">
 ): void => {
   if (authData.organizationId !== purpose.consumerId) {
-    throw organizationIsNotTheConsumer(authData.organizationId);
+    throw tenantIsNotTheConsumer(authData.organizationId);
   }
 };
 
@@ -296,7 +297,7 @@ export const assertRequesterCanRetrievePurpose = async (
             await retrievePurposeDelegation(purpose, readModelService)
           );
         } catch {
-          throw organizationNotAllowed(authData.organizationId);
+          throw tenantNotAllowed(authData.organizationId);
         }
       }
     }
@@ -308,7 +309,7 @@ const assertRequesterIsProducer = (
   authData: Pick<UIAuthData, "organizationId">
 ): void => {
   if (authData.organizationId !== eservice.producerId) {
-    throw organizationIsNotTheProducer(authData.organizationId);
+    throw tenantIsNotTheProducer(authData.organizationId);
   }
 };
 
@@ -324,7 +325,7 @@ const assertRequesterIsDelegateProducer = (
     activeProducerDelegation?.state !== delegationState.active ||
     activeProducerDelegation?.eserviceId !== eservice.id
   ) {
-    throw organizationIsNotTheDelegatedProducer(
+    throw tenantIsNotTheDelegatedProducer(
       authData.organizationId,
       activeProducerDelegation?.id
     );
@@ -380,7 +381,7 @@ const assertRequesterIsDelegateConsumer = (
     activeConsumerDelegation?.state !== delegationState.active ||
     purpose.delegationId !== activeConsumerDelegation?.id
   ) {
-    throw organizationIsNotTheDelegatedConsumer(
+    throw tenantIsNotTheDelegatedConsumer(
       authData.organizationId,
       activeConsumerDelegation?.id
     );
@@ -390,7 +391,7 @@ const assertRequesterIsDelegateConsumer = (
 export const verifyRequesterIsConsumerOrDelegateConsumer = async (
   consumerId: TenantId,
   eserviceId: EServiceId,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<DelegationId | undefined> => {
   try {
@@ -411,7 +412,7 @@ export const verifyRequesterIsConsumerOrDelegateConsumer = async (
       );
 
     if (!consumerDelegation) {
-      throw organizationIsNotTheConsumer(authData.organizationId);
+      throw tenantIsNotTheConsumer(authData.organizationId);
     }
 
     assertRequesterIsDelegateConsumer(
