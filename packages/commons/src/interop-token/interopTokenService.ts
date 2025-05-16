@@ -217,7 +217,7 @@ export class InteropTokenGenerator {
     consumerId,
     eserviceId,
     descriptorId,
-    featureFlagTokenClaims = false,
+    featureFlagImprovedProducerVerificationClaims = false,
   }: {
     sub: ClientId;
     audience: string[];
@@ -228,7 +228,7 @@ export class InteropTokenGenerator {
     consumerId: TenantId;
     eserviceId: EServiceId;
     descriptorId: DescriptorId;
-    featureFlagTokenClaims: boolean;
+    featureFlagImprovedProducerVerificationClaims: boolean;
   }): Promise<InteropConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -260,8 +260,8 @@ export class InteropTokenGenerator {
       exp: currentTimestamp + tokenDurationInSeconds,
       purposeId,
       ...(digest ? { digest } : {}),
-      // TODO: remove featureFlagTokenClaims after the feature flag disappears
-      ...(featureFlagTokenClaims
+      // TODO: remove featureFlagImprovedProducerVerificationClaims after the feature flag disappears
+      ...(featureFlagImprovedProducerVerificationClaims
         ? {
             producerId,
             consumerId,

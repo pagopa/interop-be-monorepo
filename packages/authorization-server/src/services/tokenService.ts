@@ -205,10 +205,11 @@ export function tokenServiceBuilder({
               consumerId: key.consumerId,
               eserviceId,
               descriptorId,
-              featureFlagTokenClaims: isFeatureFlagEnabled(
-                config,
-                "featureFlagTokenClaims"
-              ),
+              featureFlagImprovedProducerVerificationClaims:
+                isFeatureFlagEnabled(
+                  config,
+                  "featureFlagImprovedProducerVerificationClaims"
+                ),
             });
 
             await publishAudit({
