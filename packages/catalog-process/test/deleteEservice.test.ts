@@ -251,14 +251,14 @@ describe("delete eservice", () => {
   it("should throw eserviceNotInDraftState if the eservice has both draft and non-draft descriptors", async () => {
     const descriptor1: Descriptor = {
       ...getMockDescriptor(),
-      version: "1",
+      version: 1,
       interface: getMockDocument(),
       state: descriptorState.published,
       publishedAt: new Date(),
     };
     const descriptor2: Descriptor = {
       ...getMockDescriptor(),
-      version: "2",
+      version: 2,
       interface: getMockDocument(),
       state: descriptorState.draft,
     };
