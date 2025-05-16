@@ -38,7 +38,7 @@ import {
   EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const documentSQLtoDocument = (
   documentSQL:
@@ -467,6 +467,8 @@ export const toEServiceAggregator = (
     rejectionReasonsSQL,
     templateVersionRefsSQL,
   } = toEServiceAggregatorArray(queryRes);
+
+  throwIfMultiple(eservicesSQL, "e-service");
 
   return {
     eserviceSQL: eservicesSQL[0],
