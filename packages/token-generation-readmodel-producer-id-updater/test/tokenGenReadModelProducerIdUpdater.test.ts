@@ -29,7 +29,7 @@ import {
 import { addProducerIdToTokenGenReadModel } from "../src/utils/utils.js";
 import { addOneAgreement, dynamoDBClient, readModelService } from "./utils.js";
 
-describe("Token Generation Read Model script test", () => {
+describe("Token Generation Read Model producer id updater test", () => {
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
