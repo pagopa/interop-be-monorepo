@@ -6,6 +6,7 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
+  PurposeDbTable,
 } from "../src/model/db.js";
 import { setupStagingTablesError } from "../src/model/errors.js";
 import { dbContext, getTablesByName } from "./utils.js";
@@ -35,10 +36,19 @@ describe("Setup DB Service tests for attribute tables", async () => {
     CatalogDbTable.eservice_risk_analysis_answer,
   ];
 
+  const purposeTables = [
+    PurposeDbTable.purpose,
+    PurposeDbTable.purpose_version,
+    PurposeDbTable.purpose_version_document,
+    PurposeDbTable.purpose_risk_analysis_form,
+    PurposeDbTable.purpose_risk_analysis_answer,
+  ];
+
   const stagingTables = [
     ...attributeTables,
     ...catalogTables,
     ...agreementTables,
+    ...purposeTables,
   ];
 
   const dbService = setupDbServiceBuilder(dbContext.conn, config);
@@ -97,13 +107,15 @@ describe("Setup DB Service tests for attribute tables", async () => {
         columns: ["id", "eservice_id"],
       },
       { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
     ]);
     const result = await getTablesByName(dbContext.conn, [
       `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`,
       `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`,
       `${DeletingDbTable.agreement_deleting_table}_${config.mergeTableSuffix}`,
+      `${DeletingDbTable.purpose_deleting_table}_${config.mergeTableSuffix}`,
     ]);
-    expect(result.length).toBe(3);
+    expect(result.length).toBe(4);
 
     const tableNames = result.map((t) => t.tablename);
     expect(tableNames).toStrictEqual(
@@ -111,6 +123,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
         `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`,
         `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`,
         `${DeletingDbTable.agreement_deleting_table}_${config.mergeTableSuffix}`,
+        `${DeletingDbTable.purpose_deleting_table}_${config.mergeTableSuffix}`,
       ].sort()
     );
   });

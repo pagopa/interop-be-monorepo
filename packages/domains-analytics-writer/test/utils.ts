@@ -5,17 +5,6 @@ import { genericLogger } from "pagopa-interop-commons";
 import { inject } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { Batch } from "kafkajs";
-import {
-  generateId,
-  unsafeBrandId,
-  EServiceId,
-  DescriptorId,
-  AgreementDocumentId,
-  AgreementId,
-  Agreement,
-} from "pagopa-interop-models";
-import { AgreementItemsSQL } from "pagopa-interop-readmodel-models";
-import { splitAgreementIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { AttributeSchema } from "../src/model/attribute/attribute.js";
 import { DBContext, DBConnection } from "../src/db/db.js";
 import { config } from "../src/config/config.js";
@@ -26,10 +15,12 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
+  PurposeDbTable,
 } from "../src/model/db.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { agreementServiceBuilder } from "../src/service/agreementService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
+import { purposeServiceBuilder } from "../src/service/purposeService.js";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
@@ -69,6 +60,11 @@ await retryConnection(
       AgreementDbTable.agreement_attribute,
       AgreementDbTable.agreement_consumer_document,
       AgreementDbTable.agreement_contract,
+      PurposeDbTable.purpose,
+      PurposeDbTable.purpose_version,
+      PurposeDbTable.purpose_version_document,
+      PurposeDbTable.purpose_risk_analysis_form,
+      PurposeDbTable.purpose_risk_analysis_answer,
     ]);
     await setupDbServiceBuilder(db.conn, config).setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
@@ -78,6 +74,7 @@ await retryConnection(
         columns: ["id", "eservice_id"],
       },
       { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
     ]);
   },
   genericLogger
@@ -85,6 +82,7 @@ await retryConnection(
 
 export const attributeService = attributeServiceBuilder(dbContext);
 export const catalogService = catalogServiceBuilder(dbContext);
+export const purposeService = purposeServiceBuilder(dbContext);
 export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
@@ -238,137 +236,6 @@ export async function getEserviceDescriptorDocumentFromDb(
   );
 }
 
-export const eserviceId = generateId();
-export const descriptorId = generateId();
-export const interfaceId = generateId();
-export const documentId = generateId();
-export const riskAnalysisId = generateId();
-
-export const eserviceSQL = {
-  id: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  producerId: generateId(),
-  name: "Test E-Service Full",
-  description: "Test eService with complete sub-objects",
-  technology: "REST",
-  createdAt: new Date().toISOString(),
-  mode: "active",
-  isSignalHubEnabled: true,
-  isConsumerDelegable: false,
-  isClientAccessDelegable: false,
-};
-
-export const descriptorSQL = {
-  id: unsafeBrandId<DescriptorId>(descriptorId),
-  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  version: "v1",
-  description: "Full Descriptor",
-  state: "Published",
-  audience: ["IT"],
-  docs: [],
-  attributes: { declared: [], verified: [], certified: [] },
-  voucherLifespan: 3600,
-  dailyCallsPerConsumer: 50,
-  dailyCallsTotal: 500,
-  agreementApprovalPolicy: "Automatic",
-  createdAt: new Date().toISOString(),
-  serverUrls: ["https://api.example.com"],
-  publishedAt: new Date().toISOString(),
-  suspendedAt: null,
-  deprecatedAt: null,
-  archivedAt: null,
-  voucher_lifespan: "123321",
-};
-
-export const interfaceSQL = {
-  id: interfaceId,
-  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  descriptorId,
-  name: "Test Interface",
-  contentType: "application/json",
-  prettyName: "interface.json",
-  path: "/interfaces/interface.json",
-  checksum: "chk-interface",
-  uploadDate: new Date().toISOString(),
-};
-
-export const documentSQL = {
-  id: documentId,
-  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  descriptorId,
-  name: "Test Document",
-  contentType: "application/pdf",
-  prettyName: "document.pdf",
-  path: "/docs/document.pdf",
-  checksum: "chk-document",
-  uploadDate: new Date().toISOString(),
-};
-
-const riskAnalysisFormId = generateId();
-const riskAnalysisSQL = {
-  id: riskAnalysisId,
-  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  name: "Test Risk Analysis",
-  createdAt: new Date().toISOString(),
-  riskAnalysisFormId,
-  riskAnalysisFormVersion: "1.0",
-};
-
-export const sampleRiskAnswer = {
-  id: generateId(),
-  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  riskAnalysisFormId,
-  kind: "someKind",
-  key: "someKey",
-  value: "someValue",
-};
-
-export const sampleAttribute = {
-  attributeId: generateId(),
-  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  descriptorId,
-  explicitAttributeVerification: true,
-  kind: "sampleAttribute",
-  groupId: 1,
-};
-
-export const sampleRejectionReason = {
-  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  descriptorId,
-  rejectionReason: "Test rejection",
-  rejectedAt: new Date().toISOString(),
-};
-
-export const sampleTemplateVersionRef = {
-  eserviceTemplateVersionId: generateId(),
-  eserviceId: unsafeBrandId<EServiceId>(eserviceId),
-  metadataVersion: 1,
-  descriptorId,
-  contact_name: "John Doe",
-  contact_email: "john@example.com",
-  contact_url: "https://example.com",
-  terms_and_conditions_url: "https://example.com/terms",
-};
-
-export const eserviceItem = {
-  eserviceSQL,
-  riskAnalysesSQL: [riskAnalysisSQL],
-  riskAnalysisAnswersSQL: [sampleRiskAnswer],
-  descriptorsSQL: [descriptorSQL],
-  attributesSQL: [sampleAttribute],
-  interfacesSQL: [interfaceSQL],
-  documentsSQL: [documentSQL],
-  rejectionReasonsSQL: [sampleRejectionReason],
-  templateVersionRefsSQL: [sampleTemplateVersionRef],
-} as any;
-
 export async function resetCatalogTables(dbContext: any): Promise<void> {
   const tables = [
     CatalogDbTable.eservice,
@@ -378,20 +245,6 @@ export async function resetCatalogTables(dbContext: any): Promise<void> {
     CatalogDbTable.eservice_risk_analysis,
   ];
   await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
-}
-
-export function createBaseEserviceItem(overrides?: any): any {
-  return {
-    eserviceSQL: overrides ? { ...overrides } : eserviceSQL,
-    riskAnalysesSQL: [],
-    riskAnalysisAnswersSQL: [],
-    descriptorsSQL: [],
-    attributesSQL: [],
-    interfacesSQL: [],
-    documentsSQL: [],
-    rejectionReasonsSQL: [],
-    templateVersionRefsSQL: [],
-  };
 }
 
 export const agreementService = agreementServiceBuilder(dbContext);
@@ -443,112 +296,62 @@ export async function resetAgreementTables(db: DBContext): Promise<void> {
   await db.conn.none(`TRUNCATE TABLE ${tbls.join(",")} CASCADE;`);
 }
 
-export const agreementId = generateId();
-export const docId = generateId();
-export const contractId = generateId();
-
-export const agreementSQL = {
-  id: unsafeBrandId<AgreementId>(agreementId),
-  metadataVersion: 1,
-  eserviceId: generateId(),
-  descriptorId: generateId(),
-  producerId: generateId(),
-  consumerId: generateId(),
-  state: "ACTIVE",
-  suspendedByConsumer: null,
-  suspendedByProducer: null,
-  suspendedByPlatform: null,
-  createdAt: new Date().toISOString(),
-  updatedAt: null,
-  consumerNotes: null,
-  rejectionReason: null,
-  suspendedAt: null,
-};
-
-export const stampSQL = {
-  agreementId: agreementSQL.id,
-  metadataVersion: 1,
-  who: generateId(),
-  delegationId: null,
-  when: new Date().toISOString(),
-  kind: "Producer",
-};
-
-export const attributeSQL = {
-  agreementId: agreementSQL.id,
-  metadataVersion: 1,
-  attributeId: generateId(),
-  kind: "verified",
-};
-
-export const consumerDocSQL = {
-  id: unsafeBrandId<AgreementDocumentId>(docId),
-  agreementId: agreementSQL.id,
-  metadataVersion: 1,
-  name: "sampledoc.pdf",
-  prettyName: "sampledoc.pdf",
-  contentType: "application/pdf",
-  path: "/docs/sample.pdf",
-  createdAt: new Date().toISOString(),
-};
-
-export const contractDocSQL = {
-  id: unsafeBrandId<AgreementDocumentId>(contractId),
-  agreementId: agreementSQL.id,
-  metadataVersion: 1,
-  name: "contract.pdf",
-  prettyName: "contract.pdf",
-  contentType: "application/pdf",
-  path: "/docs/contract.pdf",
-  createdAt: new Date().toISOString(),
-};
-
-export const agreementItem: AgreementItemsSQL = {
-  agreementSQL,
-  stampsSQL: [stampSQL],
-  attributesSQL: [attributeSQL],
-  consumerDocumentsSQL: [consumerDocSQL],
-  contractSQL: contractDocSQL,
-};
-
-export function getMockAgreement(
-  overrides: Partial<Agreement> = {}
-): Agreement & { metadataVersion: number } {
-  const agreementId = unsafeBrandId<AgreementId>(generateId());
-  const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
-  return {
-    id: agreementId,
-    metadataVersion: 1,
-    eserviceId: generateId(),
-    descriptorId: generateId(),
-    producerId: generateId(),
-    consumerId: generateId(),
-    state: "Active",
-    suspendedByConsumer: false,
-    suspendedByProducer: false,
-    suspendedByPlatform: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    consumerNotes: "consumer notes",
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    consumerDocuments: [],
-    contract: {
-      id: unsafeBrandId<AgreementDocumentId>(contractId),
-      name: "contract.pdf",
-      prettyName: "contract.pdf",
-      contentType: "application/pdf",
-      path: "/docs/contract.pdf",
-      createdAt: new Date(),
-    },
-    stamps: {},
-    ...overrides,
-  };
+export async function resetPurposeTables(dbContext: any): Promise<void> {
+  const tables = [
+    PurposeDbTable.purpose,
+    PurposeDbTable.purpose_version,
+    PurposeDbTable.purpose_version_document,
+    PurposeDbTable.purpose_risk_analysis_form,
+    PurposeDbTable.purpose_risk_analysis_answer,
+  ];
+  await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
 }
 
-export function agreementItemFromDomain(
-  agr: Agreement & { metadataVersion: number }
-): AgreementItemsSQL {
-  return splitAgreementIntoObjectsSQL(agr, agr.metadataVersion);
+export async function getPurposeFromDb(
+  purposeId: string,
+  db: DBContext
+): Promise<any> {
+  return db.conn.oneOrNone(`SELECT * FROM domains.purpose WHERE id = $1`, [
+    purposeId,
+  ]);
+}
+
+export async function getPurposeVersionFromDb(
+  versionId: string,
+  db: DBContext
+): Promise<any> {
+  return db.conn.oneOrNone(
+    `SELECT * FROM domains.purpose_version WHERE id = $1`,
+    [versionId]
+  );
+}
+
+export async function getVersionDocumentsFromDb(
+  versionId: string,
+  db: DBContext
+): Promise<any[]> {
+  return db.conn.any(
+    `SELECT * FROM domains.purpose_version_document WHERE purpose_version_id = $1`,
+    [versionId]
+  );
+}
+
+export async function getPurposeRiskAnalysisByPurposeIdFromDb(
+  purpose_id: string,
+  db: DBContext
+): Promise<any> {
+  return db.conn.any(
+    `SELECT * FROM domains.purpose_risk_analysis_form WHERE purpose_id = $1`,
+    [purpose_id]
+  );
+}
+
+export async function getPurposeRiskAnalysisAnswerByPurposeIdFromDb(
+  purpose_id: string,
+  db: DBContext
+): Promise<any> {
+  return db.conn.any(
+    `SELECT * FROM domains.purpose_risk_analysis_answer WHERE purpose_id = $1`,
+    [purpose_id]
+  );
 }
