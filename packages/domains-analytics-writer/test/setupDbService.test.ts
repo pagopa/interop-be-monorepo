@@ -62,22 +62,25 @@ describe("Setup DB Service tests for attribute tables", async () => {
   });
 
   it("should create staging deleting table successfully", async () => {
-    await dbService.setupStagingDeletingByIdTables([
-      DeletingDbTable.attribute_deleting_table,
-      DeletingDbTable.catalog_deleting_table,
+    await dbService.setupStagingDeletingTables([
+      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.catalog_risk_deleting_table,
+        columns: ["id", "eservice_id"],
+      },
     ]);
-
     const result = await getTablesByName(dbContext.conn, [
-      DeletingDbTable.attribute_deleting_table,
-      DeletingDbTable.catalog_deleting_table,
+      `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`,
+      `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`,
     ]);
     expect(result.length).toBe(2);
 
     const tableNames = result.map((t) => t.tablename);
     expect(tableNames).toStrictEqual(
       [
-        DeletingDbTable.attribute_deleting_table,
-        DeletingDbTable.catalog_deleting_table,
+        `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`,
+        `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`,
       ].sort()
     );
   });

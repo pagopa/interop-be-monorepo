@@ -45,6 +45,8 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           DELETE FROM ${stagingTable} a
           USING ${stagingTable} b
           WHERE a.attribute_id = b.attribute_id
+          AND a.group_id = b.group_id
+          AND a.descriptor_id = b.descriptor_id
           AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
@@ -61,7 +63,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,
-          ["attribute_id"]
+          ["attribute_id", "descriptor_id", "group_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
