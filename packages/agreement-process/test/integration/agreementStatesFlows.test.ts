@@ -254,10 +254,11 @@ describe("Agreeement states flows", () => {
 
     const producerAuthData = getMockAuthData(producer.id);
 
-    const activatedAgreement = await agreementService.activateAgreement(
-      submittedUpgradedAgreement.id,
-      getMockContext({ authData: producerAuthData })
-    );
+    const { data: activatedAgreement } =
+      await agreementService.activateAgreement(
+        submittedUpgradedAgreement.id,
+        getMockContext({ authData: producerAuthData })
+      );
 
     await updateAgreementInReadModel(activatedAgreement);
 
@@ -457,10 +458,11 @@ describe("Agreeement states flows", () => {
 
     const producerAuthData = getMockAuthData(producer.id);
 
-    const activatedAgreement = await agreementService.activateAgreement(
-      submittedUpgradedAgreement.id,
-      getMockContext({ authData: producerAuthData })
-    );
+    const { data: activatedAgreement } =
+      await agreementService.activateAgreement(
+        submittedUpgradedAgreement.id,
+        getMockContext({ authData: producerAuthData })
+      );
 
     await updateAgreementInReadModel(activatedAgreement);
 

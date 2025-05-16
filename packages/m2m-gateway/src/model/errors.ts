@@ -9,10 +9,11 @@ export const errorCodes = {
   resourcePollingTimeout: "0001",
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
-  unexpectedAttributeKind: "0004",
-  unexpectedUndefinedAttributeOriginOrCode: "0005",
-  attributeNotFound: "0006",
-  clientAdminIdNotFound: "0007",
+  agreementNotInPendingState: "0004",
+  unexpectedAttributeKind: "0005",
+  unexpectedUndefinedAttributeOriginOrCode: "0006",
+  attributeNotFound: "0007",
+  clientAdminIdNotFound: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -87,5 +88,15 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
+  });
+}
+
+export function agreementNotInPendingState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in pending state`,
+    code: "agreementNotInPendingState",
+    title: "Agreement Not In Pending State",
   });
 }
