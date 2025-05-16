@@ -1,9 +1,11 @@
 import {
+  M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
   hasAtLeastOneUserRole,
   isUiAuthData,
   userRole,
+  UserRole,
 } from "pagopa-interop-commons";
 import {
   Client,
@@ -32,6 +34,7 @@ import {
   keyAlreadyExists,
   securityUserNotMember,
   clientKindNotAllowed,
+  clientAdminIdNotFound,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -43,6 +46,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareV2InstitutionClient,
   userIdToCheck,
   correlationId,
+  userRolesToCheck,
 }: {
   selfcareId: string;
   requesterUserId: UserId;
@@ -50,13 +54,14 @@ export const assertUserSelfcareSecurityPrivileges = async ({
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
   userIdToCheck: UserId;
   correlationId: CorrelationId;
+  userRolesToCheck: UserRole[];
 }): Promise<void> => {
   const users =
     await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
       params: { institutionId: selfcareId },
       queries: {
         userId: userIdToCheck,
-        productRoles: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE].join(","),
+        productRoles: userRolesToCheck.join(","),
       },
       headers: {
         "X-Correlation-Id": correlationId,
@@ -68,7 +73,7 @@ export const assertUserSelfcareSecurityPrivileges = async ({
 };
 
 export const assertOrganizationIsClientConsumer = (
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   client: Client
 ): void => {
   if (client.consumerId !== authData.organizationId) {
@@ -177,5 +182,17 @@ export const assertSecurityRoleIsClientMember = (
 export const assertClientIsConsumer = (client: Client): void => {
   if (client.kind !== clientKind.consumer) {
     throw clientKindNotAllowed(client.id);
+  }
+};
+
+export const assertClientIsAPI = (client: Client): void => {
+  if (client.kind !== clientKind.api) {
+    throw clientKindNotAllowed(client.id);
+  }
+};
+
+export const assertAdminInClient = (client: Client, adminId: UserId): void => {
+  if (client.adminId !== adminId) {
+    throw clientAdminIdNotFound(client.id, adminId);
   }
 };
