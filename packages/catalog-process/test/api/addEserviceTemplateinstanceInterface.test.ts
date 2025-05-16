@@ -15,6 +15,7 @@ import {
   invalidInterfaceContentTypeDetected,
   invalidInterfaceFileDetected,
   operationForbidden,
+  Technology,
   TenantId,
 } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
@@ -42,8 +43,6 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
 
-  type Technology = "rest" | "soap";
-
   const getMockEServiceByTechnology = (
     technology: Technology,
     descriptor: Descriptor
@@ -53,7 +52,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
     createdAt: new Date(),
     producerId: generateId<TenantId>(),
     description: `Test description for ${technology.toUpperCase()}`,
-    technology: technology === "rest" ? "Rest" : "Soap",
+    technology: technology === "Rest" ? "Rest" : "Soap",
     descriptors: [descriptor],
     templateId: generateId<EServiceTemplateId>(),
     riskAnalysis: [],
@@ -115,7 +114,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(
-        technology === "rest"
+        technology === "Rest"
           ? {
               contactName: "John Doe",
               contactUrl: "https://contact.url",
@@ -131,7 +130,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
             }
       );
 
-  (["rest", "soap"] as Technology[]).forEach((technology) => {
+  (["Rest", "Soap"] as Technology[]).forEach((technology) => {
     describe(`POST /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/${technology}`, () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
