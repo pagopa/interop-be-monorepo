@@ -5,11 +5,15 @@ import {
   jwtDecodingError,
   tokenVerificationFailed,
 } from "pagopa-interop-models";
-import { buildJwksClients, JWTConfig, Logger } from "../index.js";
+import {
+  AuthTokenPayload,
+  buildJwksClients,
+  JWTConfig,
+  Logger,
+} from "../index.js";
 import {
   AuthData,
   AuthDataUserInfo,
-  AuthToken,
   getAuthDataFromToken,
   getUserInfoFromAuthData,
 } from "./authData.js";
@@ -29,7 +33,7 @@ export const decodeJwtToken = (
 export const readAuthDataFromJwtToken = (
   token: JwtPayload | string
 ): AuthData => {
-  const authToken = AuthToken.safeParse(token);
+  const authToken = AuthTokenPayload.safeParse(token);
   if (authToken.success === false) {
     throw invalidClaim(authToken.error);
   } else {
