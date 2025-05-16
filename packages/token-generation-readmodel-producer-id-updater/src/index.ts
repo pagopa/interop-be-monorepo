@@ -7,8 +7,7 @@ import { readModelServiceBuilder } from "./services/readModelService.js";
 
 const dynamoDBClient = new DynamoDBClient();
 const loggerInstance = logger({
-  // TODO: rename to something better
-  serviceName: "token-generation-readmodel-script",
+  serviceName: "token-generation-readmodel-producer-id-updater",
   correlationId: generateId<CorrelationId>(),
 });
 

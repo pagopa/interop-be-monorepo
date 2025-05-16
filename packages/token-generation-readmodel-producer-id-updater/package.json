@@ -1,8 +1,8 @@
 {
-  "name": "pagopa-interop-token-generation-readmodel-script",
+  "name": "pagopa-interop-token-generation-readmodel-producer-id-updater",
   "private": true,
   "version": "1.0.0",
-  "description": "PagoPA Interoperability token-generation-readmodel-script job",
+  "description": "PagoPA Interoperability token-generation-readmodel-producer-id-updater job",
   "main": "dist",
   "type": "module",
   "scripts": {
