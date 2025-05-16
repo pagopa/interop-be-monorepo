@@ -32,7 +32,7 @@ export const DeletingDbTableConfig = {
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
 
 export const DeletingDbTable = Object.fromEntries(
-  Object.keys(DeletingDbTableConfig).map((k) => [k, k]),
+  Object.keys(DeletingDbTableConfig).map((k) => [k, k])
 ) as { [K in keyof typeof DeletingDbTableConfig]: K };
 export type DeletingDbTable = keyof typeof DeletingDbTable;
 

@@ -47,7 +47,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(attributeTables);
 
     const expectedTables = attributeTables.map(
-      (t) => `${t}_${config.mergeTableSuffix}`,
+      (t) => `${t}_${config.mergeTableSuffix}`
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -62,7 +62,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(agreementTables);
 
     const expectedTables = agreementTables.map(
-      (t) => `${t}_${config.mergeTableSuffix}`,
+      (t) => `${t}_${config.mergeTableSuffix}`
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -77,7 +77,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     await dbService.setupStagingTables(catalogTables);
 
     const expectedTables = catalogTables.map(
-      (t) => `${t}_${config.mergeTableSuffix}`,
+      (t) => `${t}_${config.mergeTableSuffix}`
     );
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
@@ -111,7 +111,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
         `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`,
         `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`,
         `${DeletingDbTable.agreement_deleting_table}_${config.mergeTableSuffix}`,
-      ].sort(),
+      ].sort()
     );
   });
 
@@ -120,7 +120,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     vi.spyOn(dbContext.conn, "query").mockRejectedValueOnce(mockQueryError);
 
     await expect(
-      dbService.setupStagingTables(stagingTables),
+      dbService.setupStagingTables(stagingTables)
     ).rejects.toThrowError(setupStagingTablesError(mockQueryError));
   });
 });

@@ -68,7 +68,7 @@ await retryConnection(
       { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
     ]);
   },
-  logger({ serviceName: config.serviceName }),
+  logger({ serviceName: config.serviceName })
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -79,7 +79,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
   );
 }
 
@@ -96,5 +96,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch,
+  processBatch
 );
