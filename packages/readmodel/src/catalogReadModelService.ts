@@ -124,6 +124,7 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }
+
       /*
         eservice ->1 descriptor ->2 interface
                       descriptor ->3 document
