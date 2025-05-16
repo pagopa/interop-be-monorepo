@@ -169,8 +169,8 @@ const agreementRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
         const agreement = await agreementService.unsuspendAgreement(
-          ctx,
-          unsafeBrandId(req.params.agreementId)
+          unsafeBrandId(req.params.agreementId),
+          ctx
         );
 
         return res.status(200).send(m2mGatewayApi.Agreement.parse(agreement));
