@@ -52,7 +52,7 @@ export const InteropJwtConsumerPayload = InteropJwtCommonPayload.merge(
     sub: ClientId,
     purposeId: PurposeId,
     digest: ClientAssertionDigest.optional(),
-    // TODO: the new claims are behind a feature flag. Maybe they should become required after the feature flag disappears
+    // TODO: the new claims are behind a feature flag. They should become required after the feature flag disappears.
     producerId: TenantId.optional(),
     consumerId: TenantId.optional(),
     eserviceId: EServiceId.optional(),
