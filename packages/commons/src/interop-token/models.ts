@@ -56,12 +56,11 @@ export type InteropJwtConsumerPayload = z.infer<
   typeof InteropJwtConsumerPayload
 >;
 
-export const InteropConsumerToken = z.object({
-  header: InteropJwtHeader,
-  payload: InteropJwtConsumerPayload,
-  serialized: z.string(),
-});
-export type InteropConsumerToken = z.infer<typeof InteropConsumerToken>;
+export type InteropConsumerToken = {
+  header: InteropJwtHeader;
+  payload: InteropJwtConsumerPayload;
+  serialized: string;
+};
 
 // ==========================================
 //     Interop API Tokens
@@ -175,7 +174,11 @@ export type UIClaims = z.infer<typeof UIClaims>;
 
 export const InteropJwtUIPayload = InteropJwtCommonPayload.merge(
   UIClaims
-).extend({ role: z.undefined() });
+).extend({ 
+    // setting role to z.undefined() to make the discriminated union work.
+    // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
+    role: z.undefined() 
+});
 
 export type InteropJwtUIPayload = z.infer<typeof InteropJwtUIPayload>;
 
