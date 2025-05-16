@@ -174,7 +174,11 @@ export const deleteEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eServiceTemplateNotFound",
+      "eServiceTemplateVersionNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -273,6 +273,7 @@ export async function handleMessageV2(
       { type: "EServiceDescriptorAdded" },
       { type: "EServiceDraftDescriptorDeleted" },
       { type: "EServiceDraftDescriptorUpdated" },
+      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       { type: "EServiceDescriptorInterfaceAdded" },
       { type: "EServiceDescriptorDocumentAdded" },
       { type: "EServiceDescriptorInterfaceUpdated" },

@@ -85,8 +85,6 @@ tags:
       url: "http://swagger.io"
 paths:
   "/consumers/agreements":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - agreements
@@ -202,8 +200,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producers/agreements":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - agreements
@@ -429,8 +425,6 @@ paths:
         required: true
       description: creates the agreement between the involved parties.
   "/agreements/filter/producers":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - agreements
@@ -517,8 +511,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/filter/consumers":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - agreements
@@ -606,7 +598,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: agreementId
         in: path
         description: The identifier of the agreement
@@ -795,8 +786,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/activate":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - agreements
@@ -927,8 +916,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/clone":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - agreements
@@ -1060,7 +1047,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/consumer-documents":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: agreementId
         in: path
         schema:
@@ -1194,7 +1180,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/consumer-documents/{documentId}":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: agreementId
         in: path
         schema:
@@ -1376,7 +1361,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/contract":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: agreementId
         in: path
         description: The identifier of the agreement
@@ -1469,8 +1453,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/submit":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - agreements
@@ -1608,8 +1590,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/suspend":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - agreements
@@ -1721,8 +1701,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/reject":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - agreements
@@ -1840,8 +1818,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/archive":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - agreements
@@ -1949,8 +1925,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/update":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - agreements
@@ -2068,8 +2042,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/agreements/{agreementId}/upgrade":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - agreements
@@ -2181,8 +2153,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descriptorId}/certifiedAttributes/validate":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - agreements
@@ -2308,8 +2278,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/catalog":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - eservices
@@ -2445,7 +2413,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/consumers/delegations/delegators":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
         name: q
         schema:
@@ -2517,7 +2484,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/consumers/delegations/delegatorsWithAgreements":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
         name: q
         schema:
@@ -2580,7 +2546,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/consumers":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
         name: q
         schema:
@@ -2664,8 +2629,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /eservices:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -2720,8 +2683,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/consumers:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       security:
         - bearerAuth: []
@@ -2798,8 +2759,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 
   /eservices/{eServiceId}/descriptors/{descriptorId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     delete:
       security:
         - bearerAuth: []
@@ -2964,8 +2923,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -3074,8 +3031,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -3150,8 +3105,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/activate:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -3248,8 +3201,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -3356,9 +3307,236 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Update the selected template instance descriptor.
+      operationId: updateTemplateInstanceDescriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceDescriptorQuotas"
+      responses:
+        "200":
+          description: EService instance descriptor updated.
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedResource"
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy/update:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Update agreement approval policy of published descriptor
+      operationId: updateAgreementApprovalPolicy
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceDescriptorAgreementApprovalPolicySeed"
+      responses:
+        "204":
+          description: EService descriptor agreement approval policy updated.
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Invalid input
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/publish:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -3456,8 +3634,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 
   /eservices/{eServiceId}/descriptors/{descriptorId}/suspend:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -3536,8 +3712,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
 
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/rest:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -3608,8 +3782,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
 
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/soap:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -3680,8 +3852,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
 
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -3788,8 +3958,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
 
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     delete:
       security:
         - bearerAuth: []
@@ -3959,8 +4127,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/clone:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -4042,8 +4208,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -4139,8 +4303,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     delete:
       security:
         - bearerAuth: []
@@ -4410,8 +4572,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/riskAnalysis:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -4488,8 +4648,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       security:
         - bearerAuth: []
@@ -4729,8 +4887,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/description/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -4831,8 +4987,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/delegationFlags/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -4952,8 +5106,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /eservices/{eServiceId}/name/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -5050,8 +5202,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -5178,8 +5328,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -5280,8 +5428,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/reject:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -5390,7 +5536,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /export/eservices/{eserviceId}/descriptors/{descriptorId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: path
         name: eserviceId
         required: true
@@ -5487,7 +5632,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /import/eservices/presignedUrl:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
         name: fileName
         required: true
@@ -5538,8 +5682,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /import/eservices:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - eservices
@@ -5618,7 +5760,6 @@ paths:
       summary: Upgrade an instance of a template
       operationId: upgradeEServiceInstance
       parameters:
-        - $ref: "#/components/parameters/CorrelationIdHeader"
         - name: eServiceId
           in: path
           description: the eservice id
@@ -5685,8 +5826,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /templates/{templateId}/eservices:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - eservices
@@ -5877,7 +6016,6 @@ paths:
 
   "/producers":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
         name: q
         schema:
@@ -5939,8 +6077,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producers/eservices":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - eservices
@@ -6023,8 +6159,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producers/agreements/eservices":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - agreements
@@ -6130,8 +6264,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/consumers/agreements/eservices":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - agreements
@@ -6237,8 +6369,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producers/eservices/{eserviceId}":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - eservices
@@ -6331,8 +6461,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producers/eservices/{eserviceId}/descriptors/{descriptorId}":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - eservices
@@ -6432,8 +6560,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /reverse/purposes:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - purposes
@@ -6525,7 +6651,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /reverse/purposes/{purposeId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         description: the purpose id
@@ -6534,8 +6659,6 @@ paths:
           type: string
           format: uuid
     post:
-      parameters:
-        - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purposes
       operationId: updateReversePurpose
@@ -6643,8 +6766,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/catalog/eservices/{eserviceId}/descriptor/{descriptorId}":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - eservices
@@ -6725,8 +6846,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/session/tokens":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security: [{}]
       tags:
@@ -6817,8 +6936,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/tenants/{tenantId}/users":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - selfcare
@@ -6893,8 +7010,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/tools/validateTokenGeneration":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - tools
@@ -7071,7 +7186,6 @@ paths:
       description: Retrieve the certified attributes
       operationId: getRequesterCertifiedAttributes
       parameters:
-        - $ref: "#/components/parameters/CorrelationIdHeader"
         - in: query
           name: offset
           required: true
@@ -7311,8 +7425,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/purposes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - purposes
@@ -7383,8 +7495,6 @@ paths:
               $ref: "#/components/schemas/PurposeSeed"
         required: true
   "/producers/purposes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - purposes
@@ -7479,8 +7589,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/consumers/purposes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - purposes
@@ -7576,7 +7684,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/{purposeId}/clone:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -7693,7 +7800,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/{purposeId}/versions:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         description: the purpose id
@@ -7809,8 +7915,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/{purposeId}/versions/{versionId}/documents/{documentId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       security:
         - bearerAuth: []
@@ -7920,7 +8024,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/{purposeId}/versions/{versionId}/reject:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -8039,7 +8142,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/{purposeId}/versions/{versionId}/archive:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -8156,7 +8258,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/{purposeId}/versions/{versionId}/suspend:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -8254,7 +8355,6 @@ paths:
       description: suspends the purpose version by id
   /purposes/{purposeId}/versions/{versionId}/activate:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -8507,7 +8607,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/{purposeId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         description: the purpose id
@@ -8560,8 +8659,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
-      parameters:
-        - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purposes
       operationId: deletePurpose
@@ -8640,8 +8737,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
     post:
-      parameters:
-        - $ref: "#/components/parameters/CorrelationIdHeader"
       tags:
         - purposes
       operationId: updatePurpose
@@ -8750,7 +8845,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions/{versionId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: purposeId
         in: path
         required: true
@@ -8843,8 +8937,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/tenants/{tenantId}/attributes/declared":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - tenants
@@ -8919,7 +9011,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/tenants/{tenantId}/attributes/verified":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantId
         in: path
         description: The internal identifier of the tenant
@@ -9439,8 +9530,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/certifiedAttributes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       summary: Creates attribute
       tags:
@@ -9532,8 +9621,6 @@ paths:
               $ref: "#/components/schemas/CertifiedAttributeSeed"
         description: Contains the attribute data to save.
   "/verifiedAttributes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       summary: Creates verified attribute
       tags:
@@ -9625,8 +9712,6 @@ paths:
               $ref: "#/components/schemas/AttributeSeed"
         description: Contains the attribute data to save.
   "/declaredAttributes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       summary: Creates declared attribute
       tags:
@@ -9718,8 +9803,6 @@ paths:
               $ref: "#/components/schemas/AttributeSeed"
         description: Contains the attribute data to save.
   "/attributes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       summary: Get attributes
       operationId: getAttributes
@@ -9779,7 +9862,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/attributes/{attributeId}":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - schema:
           type: string
           format: uuid
@@ -9917,7 +9999,6 @@ paths:
       operationId: getAttributeByOriginAndCode
       description: "returns the attribute in the registry corresponding to origin and code, if any."
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - schema:
           type: string
         name: origin
@@ -9932,7 +10013,6 @@ paths:
         description: "code of the attribute to lookup (e.g.: unique identifier of IPA)."
   "/tenants/{tenantId}":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantId
         in: path
         description: the tenant id
@@ -10006,7 +10086,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /tenants/{tenantId}/mails:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantId
         in: path
         description: the tenant id
@@ -10100,7 +10179,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /tenants/{tenantId}/mails/{mailId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantId
         in: path
         description: the tenant id
@@ -10175,7 +10253,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   "/tenants":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
         name: name
         schema:
@@ -10308,8 +10385,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /clients:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - clients
@@ -10449,8 +10524,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /clients/{clientId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       description: Retrieves a Client
       tags:
@@ -10629,9 +10702,266 @@ paths:
               schema:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/clients/{clientId}/admin":
+    post:
+      tags:
+        - clients
+      summary: Sets an Admin to a Client
+      description: Sets an Admin to a Client
+      operationId: setAdminToClient
+      parameters:
+        - name: clientId
+          in: path
+          description: ID of Client the users belong to
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        description: AdminId to be added to the Client
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - adminId
+              properties:
+                adminId:
+                  description: UserId to be added as admin
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: Client with user added as Admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Missing Required Information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: UserId is already an admin for the client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /clients/{clientId}/admin/{adminId}:
+    delete:
+      description: Removes an admin from a client
+      tags:
+        - clients
+      summary: Removes an admin from a client
+      operationId: removeClientAdmin
+      parameters:
+      - name: clientId
+        in: path
+        description: ID of Client
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adminId
+        in: path
+        description: ID of Admin
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: Request succeed
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /clients/{clientId}/purposes/{purposeId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     delete:
       tags:
         - clients
@@ -10727,8 +11057,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /clients/{clientId}/keys/{keyId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - clients
@@ -10921,7 +11249,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /clients/{clientId}/users/{userId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: clientId
         in: path
         description: The Client id
@@ -11035,8 +11362,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/clients/{clientId}/purposes":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - clients
@@ -11305,7 +11630,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/clients/{clientId}/users":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: clientId
         in: path
         description: ID of Client the users belong to
@@ -11319,6 +11643,13 @@ paths:
       summary: List client users
       description: List client users
       operationId: getClientUsers
+      parameters:
+      - name: name
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Filter users by name
       responses:
         "200":
           description: Request succeed
@@ -11535,8 +11866,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/clients/{clientId}/keys":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - clients
@@ -11692,6 +12021,21 @@ paths:
               type: string
               format: uuid
             default: []
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: returns the corresponding array of keys
@@ -11770,8 +12114,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/clients/{clientId}/encoded/keys/{keyId}":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - clients
@@ -11889,8 +12231,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /clientsConsumer:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - clients
@@ -11962,8 +12302,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /clientsApi:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - clients
@@ -12036,7 +12374,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/riskAnalysis/latest:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: tenantKind
         in: query
         required: false
@@ -12088,7 +12425,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/riskAnalysis/version/{riskAnalysisVersion}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: riskAnalysisVersion
         in: path
         required: true
@@ -12165,7 +12501,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /user/consent/{consentType}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: consentType
         in: path
         required: true
@@ -12282,7 +12617,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /privacyNotices/{consentType}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: consentType
         in: path
         required: true
@@ -12401,8 +12735,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /session/saml2/tokens:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - support
@@ -12474,8 +12806,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /producerKeychains:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - producerKeychain
@@ -12693,8 +13023,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /producerKeychains/{producerKeychainId}:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       description: Retrieves a Producer Keychain
       tags:
@@ -12873,7 +13201,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producerKeychains/{producerKeychainId}/users":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: producerKeychainId
         in: path
         description: ID of Producer Keychain the users belong to
@@ -13100,7 +13427,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producerKeychains/{producerKeychainId}/users/{userId}":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: producerKeychainId
         in: path
         description: The Producer Keychain id
@@ -13214,8 +13540,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producerKeychains/{producerKeychainId}/keys":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - producerKeychain
@@ -13450,8 +13774,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producerKeychains/{producerKeychainId}/keys/{keyId}":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - producerKeychain
@@ -13643,8 +13965,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producerKeychains/{producerKeychainId}/eservices":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - producerKeychain
@@ -13740,8 +14060,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producerKeychains/{producerKeychainId}/eservices/{eserviceId}":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     delete:
       tags:
         - producerKeychain
@@ -13837,8 +14155,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/producerKeychains/{producerKeychainId}/encoded/keys/{keyId}":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - producerKeychain
@@ -13956,8 +14272,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /delegations:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - delegations
@@ -14120,8 +14434,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /producers/delegations:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - producerDelegations
@@ -14194,8 +14506,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /producers/delegations/{delegationId}/approve:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - producerDelegations
@@ -14303,8 +14613,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /producers/delegations/{delegationId}/reject:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - producerDelegations
@@ -14418,7 +14726,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /consumers/delegations/eservices:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - in: query
         name: delegatorId
         required: true
@@ -14486,8 +14793,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /consumers/delegations:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - consumerDelegations
@@ -14560,8 +14865,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /consumers/delegations/{delegationId}/approve:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - consumerDelegations
@@ -14669,8 +14972,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /consumers/delegations/{delegationId}/reject:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       tags:
         - consumerDelegations
@@ -14784,7 +15085,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /delegations/{delegationId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
         in: path
         description: The delegation id
@@ -14876,7 +15176,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /producers/delegations/{delegationId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
         in: path
         description: The delegation id
@@ -14964,7 +15263,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /consumers/delegations/{delegationId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
         in: path
         description: The delegation id
@@ -15052,7 +15350,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/delegations/{delegationId}/contracts/{contractId}":
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: delegationId
         in: path
         schema:
@@ -15151,8 +15448,6 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
 
   /eservices/templates:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -15227,7 +15522,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: eServiceTemplateId
         in: path
         description: The E-Service id to retrieve
@@ -15346,8 +15640,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/suspend:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -15425,8 +15717,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/publish:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -15523,8 +15813,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/activate:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -15602,8 +15890,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/name/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -15700,8 +15986,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/intendedTarget/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -15798,8 +16082,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/description/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -15897,7 +16179,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: eServiceTemplateId
         in: path
         description: The internal identifier of the eservice template
@@ -16144,8 +16425,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/quotas/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -16249,8 +16528,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/riskAnalysis:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -16348,7 +16625,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/riskAnalysis/{riskAnalysisId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: eServiceTemplateId
         in: path
         description: the eservice template id
@@ -16531,8 +16807,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/attributes/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -16659,8 +16933,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/catalog/eservices/templates":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - eserviceTemplates
@@ -16757,8 +17029,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/creators/eservices/templates":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - eserviceTemplates
@@ -16826,8 +17096,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   "/eservices/templates/filter/creators":
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
         - eserviceTemplates
@@ -16914,8 +17182,6 @@ paths:
                 type: integer
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /eservices/templates/{eServiceTemplateId}/versions:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -16990,8 +17256,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -17098,7 +17362,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}:
     parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: eServiceTemplateId
         in: path
         description: the eService template id
@@ -17248,8 +17511,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/templates/{eServiceTemplateId}/versions/{eServiceTemplateVersionId}/documents/{documentId}/update:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
       security:
         - bearerAuth: []
@@ -17341,8 +17602,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/names/availability:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       security:
         - bearerAuth: []
@@ -17412,13 +17671,6 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
-  parameters:
-    CorrelationIdHeader:
-      in: header
-      name: X-Correlation-Id
-      required: true
-      schema:
-        type: string
   schemas:
     RejectPurposeVersionPayload:
       type: object
@@ -17670,10 +17922,6 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -17719,6 +17967,31 @@ components:
           type: integer
           format: int32
           minimum: 0
+    UpdateEServiceTemplateInstanceDescriptorQuotas:
+      required:
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+      type: object
+      additionalProperties: false
+      properties:
+        dailyCallsPerConsumer:
+          description: "maximum number of daily calls that this descriptor can afford."
+          type: integer
+          format: int32
+          minimum: 0
+        dailyCallsTotal:
+          description: "total daily calls available for this e-service."
+          type: integer
+          format: int32
+          minimum: 0
+    UpdateEServiceDescriptorAgreementApprovalPolicySeed:
+      type: object
+      additionalProperties: false
+      properties:
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+      required:
+        - agreementApprovalPolicy
     UpdateEServiceDescriptorSeed:
       required:
         - audience
@@ -17900,6 +18173,8 @@ components:
           format: date-time
         consumer:
           $ref: "#/components/schemas/CompactOrganization"
+        admin:
+          $ref: "#/components/schemas/CompactUser"
         name:
           type: string
         purposes:
@@ -18147,6 +18422,8 @@ components:
             format: uri
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
+        delegation:
+          $ref: "#/components/schemas/DelegationWithCompactTenants"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -18216,8 +18493,6 @@ components:
           type: string
           format: uuid
         templateName:
-          type: string
-        instanceLabel:
           type: string
         templateInterface:
           $ref: "#/components/schemas/EServiceDoc"
@@ -19082,6 +19357,8 @@ components:
           type: string
         hasKeys:
           type: boolean
+        admin:
+          $ref: "#/components/schemas/CompactUser"
       required:
         - id
         - name
@@ -20226,6 +20503,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/PublicKey"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
       required:
         - keys
     CertifiedTenantAttributeSeed:
@@ -20627,10 +20906,6 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:
@@ -20690,8 +20965,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CompactDescriptor"
-        instanceLabel:
-          type: string
     EServiceTemplateInstances:
       type: object
       additionalProperties: false

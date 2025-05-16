@@ -6,12 +6,17 @@ import {
   rateLimiterMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
+import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import healthRouter from "./routers/healthRouter.js";
 import apiGatewayRouter from "./routers/apiGatewayRouter.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
 
-const serviceName = "api-gateway";
+const serviceName = modelsServiceName.API_GATEWAY;
 
 const clients = getInteropBeClients();
 
@@ -37,6 +42,8 @@ app.use(
   `/api-gateway/${config.apiGatewayInterfaceVersion}`,
   healthRouter,
   contextMiddleware(serviceName, false),
+  await applicationAuditBeginMiddleware(serviceName, config),
+  await applicationAuditEndMiddleware(serviceName, config),
   authenticationMiddleware(config),
   // Authenticated routes - rate limiter relies on auth data to work
   rateLimiterMiddleware(redisRateLimiter),
