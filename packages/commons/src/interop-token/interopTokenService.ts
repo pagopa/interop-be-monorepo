@@ -1,26 +1,28 @@
 import crypto from "crypto";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import {
+  ClientAssertionDigest,
   ClientId,
   generateId,
   PurposeId,
   TenantId,
-  ClientAssertionDigest,
+  UserId,
 } from "pagopa-interop-models";
+import { systemRole } from "../auth/authData.js";
+import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
-import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
 import { dateToSeconds } from "../utils/date.js";
 import {
   CustomClaims,
-  GENERATED_INTEROP_TOKEN_M2M_ROLE,
   InteropApiToken,
   InteropConsumerToken,
+  InteropInternalToken,
+  InteropJwtApiCommonPayload,
   InteropJwtApiPayload,
   InteropJwtConsumerPayload,
   InteropJwtHeader,
-  InteropJwtPayload,
-  InteropToken,
+  InteropJwtInternalPayload,
   ORGANIZATION_ID_CLAIM,
   ROLE_CLAIM,
   SessionClaims,
@@ -46,7 +48,7 @@ export class InteropTokenGenerator {
     this.kmsClient = kmsClient || new KMSClient();
   }
 
-  public async generateInternalToken(): Promise<InteropToken> {
+  public async generateInternalToken(): Promise<InteropInternalToken> {
     const currentTimestamp = dateToSeconds(new Date());
 
     if (
@@ -66,7 +68,7 @@ export class InteropTokenGenerator {
       kid: this.config.kid,
     };
 
-    const payload: InteropJwtPayload = {
+    const payload: InteropJwtInternalPayload = {
       jti: crypto.randomUUID(),
       iss: this.config.issuer,
       aud: this.config.audience,
@@ -140,9 +142,11 @@ export class InteropTokenGenerator {
   public async generateInteropApiToken({
     sub,
     consumerId,
+    clientAdminId,
   }: {
     sub: ClientId;
     consumerId: TenantId;
+    clientAdminId: UserId | undefined;
   }): Promise<InteropApiToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -164,7 +168,7 @@ export class InteropTokenGenerator {
       kid: this.config.generatedInteropTokenKid,
     };
 
-    const payload: InteropJwtApiPayload = {
+    const userDataPayload: InteropJwtApiCommonPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
       aud: this.toJwtAudience(this.config.generatedInteropTokenM2MAudience),
@@ -175,7 +179,20 @@ export class InteropTokenGenerator {
       exp:
         currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
       [ORGANIZATION_ID_CLAIM]: consumerId,
-      [ROLE_CLAIM]: GENERATED_INTEROP_TOKEN_M2M_ROLE,
+    };
+
+    const systemRolePayload = clientAdminId
+      ? {
+          [ROLE_CLAIM]: systemRole.M2M_ADMIN_ROLE,
+          adminId: clientAdminId,
+        }
+      : {
+          [ROLE_CLAIM]: systemRole.M2M_ROLE,
+        };
+
+    const payload: InteropJwtApiPayload = {
+      ...userDataPayload,
+      ...systemRolePayload,
     };
 
     const serializedToken = await this.createAndSignToken({
@@ -256,7 +273,7 @@ export class InteropTokenGenerator {
   }: {
     header: InteropJwtHeader;
     payload:
-      | InteropJwtPayload
+      | InteropJwtInternalPayload
       | SessionJwtPayload
       | InteropJwtConsumerPayload
       | InteropJwtApiPayload;

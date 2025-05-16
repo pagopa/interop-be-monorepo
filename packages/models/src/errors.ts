@@ -98,12 +98,31 @@ const makeProblemLogString = (
   return `- title: ${problem.title} - detail: ${problem.detail} - errors: ${errorsString} - original error: ${originalError}`;
 };
 
+type ProblemBuilderOptions = {
+  /**
+   * If true, allows Problem objects received from downstream services
+   * to be passed through directly. If false, they are treated as generic errors.
+   *
+   * @default true
+   */
+  problemErrorsPassthrough?: boolean;
+  /**
+   * If true, return a generic problem whenever an error is mapped to HTTP 500, hiding the underlying error info.
+   * This also applies to 500 errors passing through from downstream services.
+   *
+   * @default false
+   */
+  forceGenericProblemOn500?: boolean;
+};
+
 export function makeApiProblemBuilder<T extends string>(
   errors: {
     [K in T]: string;
   },
-  problemErrorsPassthrough: boolean = true
+  options: ProblemBuilderOptions = {}
 ): MakeApiProblemFn<T> {
+  const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
+    options;
   const allErrors = { ...errorCodes, ...errors };
 
   function retrieveServiceErrorCode(serviceName: string): string {
@@ -144,6 +163,7 @@ export function makeApiProblemBuilder<T extends string>(
     if (operationalLogMessage) {
       logger.warn(operationalLogMessage);
     }
+
     return match<unknown, Problem>(error)
       .with(P.instanceOf(ApiError<T | CommonErrorCodes>), (error) => {
         const mappedCode = httpMapper(error);
@@ -152,8 +172,20 @@ export function makeApiProblemBuilder<T extends string>(
             ? defaultCommonErrorMapper(error.code as CommonErrorCodes)
             : mappedCode;
 
+        const isInternalServerError =
+          code === HTTP_STATUS_INTERNAL_SERVER_ERROR;
+
         const problem = makeProblem(code, error);
-        logger.warn(makeProblemLogString(problem, error));
+        const problemLogString = makeProblemLogString(problem, error);
+
+        if (forceGenericProblemOn500 && isInternalServerError) {
+          logger.warn(
+            `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
+          );
+          return genericProblem;
+        }
+
+        logger.warn(problemLogString);
         return problem;
       })
       .with(
@@ -179,7 +211,22 @@ export function makeApiProblemBuilder<T extends string>(
         (e) => {
           const receivedProblem: Problem = e.response.data;
           if (problemErrorsPassthrough) {
-            logger.warn(makeProblemLogString(receivedProblem, error));
+            const problemLogString = makeProblemLogString(
+              receivedProblem,
+              error
+            );
+
+            if (
+              forceGenericProblemOn500 &&
+              receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR
+            ) {
+              logger.warn(
+                `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
+              );
+              return genericProblem;
+            }
+
+            logger.warn(problemLogString);
             return receivedProblem;
           } else {
             logger.warn(
@@ -245,6 +292,7 @@ const errorCodes = {
   interfaceExtractingSoapFieldValueError: "10017",
   soapFileCreatingError: "10018",
   notAllowedMultipleKeysException: "10019",
+  featureFlagNotEnabled: "10020",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -355,7 +403,11 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
     .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
-    .with("unauthorizedError", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "unauthorizedError",
+      "featureFlagNotEnabled",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -607,5 +659,14 @@ export function invalidInterfaceContentTypeDetected(
     detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
     code: "invalidInterfaceContentTypeDetected",
     title: "Invalid content type detected",
+  });
+}
+export function featureFlagNotEnabled(
+  featureFlag: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Feature flag ${featureFlag} is not enabled`,
+    code: "featureFlagNotEnabled",
+    title: "Feature flag not enabled",
   });
 }
