@@ -69,7 +69,7 @@ describe("rejectAgreement", () => {
 
     expect(result).toEqual(m2mAgreementResponse);
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts + 1
+      config.defaultPollingMaxAttempts
     );
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.rejectAgreement,
@@ -85,7 +85,6 @@ describe("rejectAgreement", () => {
   });
 
   it("Should throw missingMetadata in case the agreement returned by the reject agreement POST call has no metadata", async () => {
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
     mockRejectAgreement.mockResolvedValueOnce({
       ...mockAgreementProcessResponse,
       metadata: undefined,
@@ -133,7 +132,7 @@ describe("rejectAgreement", () => {
       resourcePollingTimeout(config.defaultPollingMaxAttempts)
     );
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts + 1
+      config.defaultPollingMaxAttempts
     );
   });
 });
