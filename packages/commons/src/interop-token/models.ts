@@ -174,10 +174,10 @@ export type UIClaims = z.infer<typeof UIClaims>;
 
 export const InteropJwtUIPayload = InteropJwtCommonPayload.merge(
   UIClaims
-).extend({ 
-    // setting role to z.undefined() to make the discriminated union work.
-    // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
-    role: z.undefined() 
+).extend({
+  // setting role to z.undefined() to make the discriminated union work.
+  // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
+  role: z.undefined(),
 });
 
 export type InteropJwtUIPayload = z.infer<typeof InteropJwtUIPayload>;
