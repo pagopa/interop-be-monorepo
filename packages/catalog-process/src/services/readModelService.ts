@@ -8,6 +8,7 @@ import {
   hasAtLeastOneUserRole,
   userRole,
   EServiceTemplateCollection,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -137,7 +138,7 @@ export function readModelServiceBuilder(
 
   return {
     async getEServices(
-      authData: UIAuthData | M2MAuthData,
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number

@@ -148,11 +148,11 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       await pollTenant(response, headers);
     },
-    revokeCertifiedAttribute: async (
+    async revokeCertifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> => {
+    ): Promise<void> {
       logger.info(
         `Revoking certified attribute ${attributeId} from tenant ${tenantId}`
       );

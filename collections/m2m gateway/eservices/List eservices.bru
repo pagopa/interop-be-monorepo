@@ -1,0 +1,26 @@
+meta {
+  name: List eservices
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-m2m-gw}}/eservices?offset=0&limit=10
+  body: none
+  auth: none
+}
+
+params:query {
+  offset: 0
+  limit: 10
+  ~producersIds: 
+  ~templatesIds: 
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}
+
+vars:post-response {
+  delegationId: res.body.results.at(-1).id
+}

@@ -12,7 +12,7 @@ import { attributeNotFound } from "../../../src/model/errors.js";
 import { getMockedApiAttribute } from "../../mockUtils.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
-describe("GET /certifiedAttribute router test", () => {
+describe("GET /certifiedAttributes/:attributeId router test", () => {
   const mockApiCertifiedAttribute = getMockedApiAttribute({
     kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
   });
@@ -71,4 +71,21 @@ describe("GET /certifiedAttribute router test", () => {
 
     expect(res.status).toBe(404);
   });
+
+  it.each([
+    { ...mockM2MCertifiedAttributeResponse, kind: "invalidKind" },
+    { ...mockM2MCertifiedAttributeResponse, invalidParam: "invalidValue" },
+    { ...mockM2MCertifiedAttributeResponse, createdAt: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockAttributeService.getCertifiedAttribute = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });

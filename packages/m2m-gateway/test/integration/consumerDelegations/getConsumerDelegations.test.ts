@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
 import {
   delegationService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -16,9 +17,9 @@ import { unexpectedDelegationKind } from "../../../src/model/errors.js";
 describe("getConsumerDelegations", () => {
   const mockParams: m2mGatewayApi.GetConsumerDelegationsQueryParams = {
     states: ["WAITING_FOR_APPROVAL"],
-    eserviceIds: [],
-    delegateIds: [],
-    delegatorIds: [],
+    eserviceIds: [generateId()],
+    delegateIds: [generateId()],
+    delegatorIds: [generateId()],
     offset: 0,
     limit: 10,
   };

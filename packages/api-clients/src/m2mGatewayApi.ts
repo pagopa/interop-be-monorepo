@@ -20,7 +20,7 @@ export type GetEServicesQueryParams = QueryParametersByAlias<
 
 export type GetEServiceDescriptorsQueryParams = QueryParametersByAlias<
   EServiceApi,
-  "getEServiceDescriptor"
+  "getEServiceDescriptors"
 >;
 
 export type GetPurposesQueryParams = QueryParametersByAlias<

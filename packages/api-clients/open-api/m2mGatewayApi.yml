@@ -30,7 +30,7 @@ tags:
       description: Find out more
       url: "http://swagger.io"
   - name: eservices
-    description: EServices routes
+    description: E-Services routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -50,7 +50,7 @@ tags:
       description: Find out more
       url: "http://swagger.io"
   - name: eserviceTemplates
-    description: EService Templates routes
+    description: E-Service Templates routes
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
@@ -845,7 +845,7 @@ paths:
       tags:
         - agreements
       summary: Upgrade the agreement
-      description: Upgrades the agreement with a newer eservice version, if any
+      description: Upgrades the agreement with a newer e-service version, if any
       operationId: upgradeAgreement
       responses:
         "200":
@@ -1614,7 +1614,7 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservices
+      description: Get e-services
       operationId: getEServices
       parameters:
         - in: query
@@ -1637,21 +1637,24 @@ paths:
               format: uuid
             default: []
           explode: false
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
-          description: Eservices retrieved
+          description: E-Services retrieved
           content:
             application/json:
               schema:
@@ -1706,7 +1709,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The eservice id
+        description: The e-service id
         required: true
         schema:
           type: string
@@ -1714,11 +1717,11 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservice
-      operationId: getEservice
+      description: Get e-service
+      operationId: getEService
       responses:
         "200":
-          description: Eservice retrieved
+          description: E-Service retrieved
           content:
             application/json:
               schema:
@@ -1786,7 +1789,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The eservice id
+        description: The e-service id
         required: true
         schema:
           type: string
@@ -1794,7 +1797,7 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservice descriptors
+      description: Get e-service descriptors
       operationId: getEServiceDescriptors
       parameters:
         - name: state
@@ -1802,18 +1805,21 @@ paths:
           description: The descriptor state
           schema:
             $ref: "#/components/schemas/EServiceDescriptorState"
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: E-Service descriptors retrieved
@@ -1884,7 +1890,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The eservice id
+        description: The e-service id
         required: true
         schema:
           type: string
@@ -1899,7 +1905,7 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservice descriptor
+      description: Get e-service descriptor
       operationId: getEServiceDescriptor
       responses:
         "200":
@@ -1979,7 +1985,7 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      operationId: getEserviceTemplate
+      operationId: getEServiceTemplate
       responses:
         "200":
           description: E-Service template retrieved
@@ -2058,7 +2064,7 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      description: Get eservice template versions
+      description: Get e-service template versions
       operationId: getEServiceTemplateVersions
       parameters:
         - name: state
@@ -2066,18 +2072,21 @@ paths:
           description: The version state
           schema:
             $ref: "#/components/schemas/EServiceTemplateVersionState"
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: E-Service template versions retrieved
@@ -2165,7 +2174,7 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      description: Get eservice template version
+      description: Get e-service template version
       operationId: getEServiceTemplateVersion
       responses:
         "200":
@@ -2326,18 +2335,21 @@ paths:
               format: uuid
             default: []
           explode: false
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Purposes retrieved
@@ -2505,18 +2517,21 @@ paths:
           description: The version state
           schema:
             $ref: "#/components/schemas/PurposeVersionState"
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Purpose versions retrieved
@@ -3713,7 +3728,7 @@ components:
         - createdAt
     AgreementApprovalPolicy:
       type: string
-      description: EService Descriptor policy for new Agreements approval
+      description: E-Service Descriptor policy for new Agreements approval
       enum:
         - AUTOMATIC
         - MANUAL
@@ -3950,8 +3965,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        template:
-          $ref: "#/components/schemas/EServiceTemplateRef"
+        templateId:
+          type: string
+          format: uuid
       required:
         - id
         - producerId
@@ -4009,8 +4025,9 @@ components:
         archivedAt:
           type: string
           format: date-time
-        templateVersion:
-          $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        templateVersionId:
+          type: string
+          format: uuid
       required:
         - id
         - version
@@ -4038,7 +4055,7 @@ components:
         - pagination
     EServiceDescriptorState:
       type: string
-      description: EService Descriptor State
+      description: E-Service Descriptor State
       enum:
         - DRAFT
         - PUBLISHED
@@ -4071,18 +4088,6 @@ components:
       enum:
         - REST
         - SOAP
-    EServiceTemplateRef:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        instanceLabel:
-          type: string
-          format: uuid
-      required:
-        - id
     EServiceTemplate:
       type: object
       additionalProperties: false
@@ -4119,15 +4124,6 @@ components:
         - versions
         - riskAnalysis
         - mode
-    EserviceAttributeSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
     EServiceTemplateVersion:
       type: object
       additionalProperties: false
@@ -4172,18 +4168,9 @@ components:
         - state
         - creationDate
         - voucherLifespan
-    EServiceTemplateVersionRef:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          format: uuid
     EServiceTemplateVersionState:
       type: string
-      description: EService Descriptor State
+      description: E-Service Template Version State
       enum:
         - DRAFT
         - PUBLISHED
@@ -4196,12 +4183,16 @@ components:
         offset:
           type: integer
           format: int32
+          minimum: 0
         limit:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 50
         totalCount:
           type: integer
           format: int32
+          minimum: 0
       required:
         - offset
         - limit

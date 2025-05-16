@@ -13,6 +13,9 @@ export const errorCodes = {
   unexpectedUndefinedAttributeOriginOrCode: "0005",
   attributeNotFound: "0006",
   clientAdminIdNotFound: "0007",
+  eserviceDescriptorNotFound: "0008",
+  invalidPaginationOffset: "0009",
+  invalidPaginationLimit: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -87,5 +90,32 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
+  });
+}
+
+export function eserviceDescriptorNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "Eservice descriptor not found",
+  });
+}
+
+export function invalidPaginationOffset(offset: number): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid pagination offset ${offset} - must be greater than or equal to 0`,
+    code: "invalidPaginationOffset",
+    title: "Invalid pagination offset",
+  });
+}
+
+export function invalidPaginationLimit(limit: number): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid pagination limit ${limit} - must be greater than or equal to 1`,
+    code: "invalidPaginationLimit",
+    title: "Invalid pagination limit",
   });
 }
