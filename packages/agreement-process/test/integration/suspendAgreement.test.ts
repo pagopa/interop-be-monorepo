@@ -19,7 +19,6 @@ import {
   randomArrayItem,
   randomBoolean,
   sortAgreementV2,
-  sortAgreement,
   getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
