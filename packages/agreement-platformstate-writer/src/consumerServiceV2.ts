@@ -45,7 +45,7 @@ export async function handleMessageV2(
         agreement.stamps.activation?.when.toISOString();
       if (!agreementTimestamp) {
         throw genericInternalError(
-          "An activated agreement should have activation stamp"
+          "An activated agreement should have an activation stamp"
         );
       }
 
@@ -68,6 +68,7 @@ export async function handleMessageV2(
             agreementId: agreement.id,
             agreementTimestamp,
             agreementDescriptorId: agreement.descriptorId,
+            producerId: agreement.producerId,
           };
 
           await upsertPlatformStatesAgreementEntry(
@@ -204,6 +205,7 @@ export async function handleMessageV2(
             agreementId: agreement.id,
             agreementTimestamp,
             agreementDescriptorId: agreement.descriptorId,
+            producerId: agreement.producerId,
           };
 
           await upsertPlatformStatesAgreementEntry(

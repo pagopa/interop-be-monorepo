@@ -461,6 +461,7 @@ export async function compareReadModelAgreementsWithPlatformStates({
           agreementId: agreement.id,
           agreementTimestamp: extractAgreementTimestamp(agreement),
           agreementDescriptorId: agreement.descriptorId,
+          producerId: agreement.producerId,
         };
 
       const objectsDiff = diff(

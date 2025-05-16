@@ -70,6 +70,9 @@ export const upsertPlatformStatesAgreementEntry = async (
       agreementDescriptorId: {
         S: agreementEntry.agreementDescriptorId,
       },
+      producerId: {
+        S: agreementEntry.producerId,
+      },
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
@@ -201,6 +204,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
     entriesToUpdate,
     agreementId,
     agreementState,
+    producerId,
     dynamoDBClient,
     GSIPK_eserviceId_descriptorId,
     catalogEntry,
@@ -209,6 +213,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
     entriesToUpdate: TokenGenStatesConsumerClientGSIAgreement[];
     agreementId: AgreementId;
     agreementState: AgreementState;
+    producerId: TenantId;
     dynamoDBClient: DynamoDBClient;
     GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
     catalogEntry: PlatformStatesCatalogEntry | undefined;
@@ -262,13 +267,16 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStatesEntries =
           ":newState": {
             S: agreementStateToItemState(agreementState),
           },
+          ":producerId": {
+            S: producerId,
+          },
           ":newUpdatedAt": {
             S: new Date().toISOString(),
           },
           ...additionalAttributesToSet,
         },
         UpdateExpression:
-          "SET agreementId = :agreementId, agreementState = :newState, GSIPK_eserviceId_descriptorId = :gsiEServiceIdDescriptorId, updatedAt = :newUpdatedAt".concat(
+          "SET agreementId = :agreementId, agreementState = :newState, GSIPK_eserviceId_descriptorId = :gsiEServiceIdDescriptorId, producerId = :producerId, updatedAt = :newUpdatedAt".concat(
             additionalDescriptorInfo
               ? ", descriptorState = :descriptorState, descriptorAudience = :descriptorAudience, descriptorVoucherLifespan = :descriptorVoucherLifespan"
               : ""
@@ -288,6 +296,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId,
   agreementId,
   agreementState,
+  producerId,
   dynamoDBClient,
   GSIPK_eserviceId_descriptorId,
   catalogEntry,
@@ -296,6 +305,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
   GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId;
   agreementId: AgreementId;
   agreementState: AgreementState;
+  producerId: TenantId;
   dynamoDBClient: DynamoDBClient;
   GSIPK_eserviceId_descriptorId: GSIPKEServiceIdDescriptorId;
   catalogEntry: PlatformStatesCatalogEntry | undefined;
@@ -343,6 +353,7 @@ export const updateAgreementStateAndDescriptorInfoOnTokenGenStates = async ({
         entriesToUpdate: tokenGenStatesEntries.data,
         agreementId,
         agreementState,
+        producerId,
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,
         catalogEntry,
@@ -536,6 +547,7 @@ export const updateLatestAgreementOnTokenGenStates = async (
       }),
       agreementId: agreement.id,
       agreementState: agreement.state,
+      producerId: agreement.producerId,
       dynamoDBClient,
       GSIPK_eserviceId_descriptorId,
       catalogEntry: platformStatesCatalogEntry,

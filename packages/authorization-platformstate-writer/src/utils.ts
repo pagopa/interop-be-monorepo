@@ -654,6 +654,13 @@ export const upsertTokenGenStatesConsumerClient = async (
       updatedAt: {
         S: tokenGenStatesConsumerClient.updatedAt,
       },
+      ...(tokenGenStatesConsumerClient.producerId
+        ? {
+            producerId: {
+              S: tokenGenStatesConsumerClient.producerId,
+            },
+          }
+        : {}),
       ...(tokenGenStatesConsumerClient.consumerId
         ? {
             consumerId: {
@@ -1113,6 +1120,7 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
             })
           ),
           ...setIfChanged("agreementState", agreementEntry.state),
+          ...setIfChanged("producerId", agreementEntry.producerId),
         }
       : {}),
     ...(catalogEntry
@@ -1270,6 +1278,7 @@ export const createTokenGenStatesConsumerClient = ({
           eserviceId: purposeEntry.purposeEserviceId,
           descriptorId: agreementEntry.agreementDescriptorId,
         }),
+        producerId: agreementEntry.producerId,
       }),
     ...(catalogEntry && {
       descriptorState: catalogEntry.state,

@@ -181,6 +181,7 @@ const handleActivationOrSuspension = async (
         agreementId: agreement.id,
         agreementTimestamp,
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
       };
 
       await upsertPlatformStatesAgreementEntry(
@@ -292,6 +293,7 @@ const handleUpgrade = async (
         agreementId: agreement.id,
         agreementTimestamp,
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
       };
 
       await upsertPlatformStatesAgreementEntry(

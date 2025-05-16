@@ -69,6 +69,7 @@ export const buildDynamoDBTables = async (
           NonKeyAttributes: [
             "agreementId",
             "agreementState",
+            "producerId",
             "GSIPK_eserviceId_descriptorId",
             "descriptorAudience",
             "descriptorState",
