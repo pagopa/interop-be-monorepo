@@ -26,7 +26,7 @@ export function attributeRepository(conn: DBConnection) {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: AttributeSchema[]
+      records: AttributeSQL[]
     ): Promise<void> {
       const mapping: AttributeMapping = {
         id: (r) => r.id,
