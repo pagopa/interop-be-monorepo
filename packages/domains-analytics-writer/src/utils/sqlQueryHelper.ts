@@ -30,13 +30,13 @@ export function getColumnName<T extends DbTable>(
 }
 
 /**
- * Generates a MERGE SQL query to synchronize data from a staging table into a target table.
+ * Generates a MERGE SQL query
  *
- * @param tableSchema - A Zod schema representing the full shape of the table.
- * @param schemaName - The name of the target database schema.
- * @param tableName - The table name where the merge happens.
- * @param keysOn - The list of keys used for the `ON` condition of the MERGE.
- * @returns The generated SQL MERGE query as a string.
+ * @param tableSchema - A Zod object schema refering to the table model from which to extract the list of keys.
+ * @param schemaName - The target db schema name.
+ * @param tableName - The  target table name.
+ * @param keysOn - The column keys from the schema used in the ON condition of the MERGE.
+ * @returns The generated MERGE SQL query as a string.
  */
 export function generateMergeQuery<T extends z.ZodRawShape>(
   tableSchema: z.ZodObject<T>,
