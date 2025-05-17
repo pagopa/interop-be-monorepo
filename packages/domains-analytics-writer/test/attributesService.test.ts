@@ -14,16 +14,13 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { handleAttributeMessageV1 } from "../src/handlers/attribute/consumerServiceV1.js";
-import { AttributeDbTable, DeletingDbTable } from "../src/model/db.js";
+import { AttributeDbTable } from "../src/model/db.js";
 import { dbContext, getAttributeFromDb } from "./utils.js";
 
 describe("SQL Attribute Service - Events V1", () => {
   beforeEach(async () => {
     await dbContext.conn.none(
       `TRUNCATE ${AttributeDbTable.attribute} CASCADE;`
-    );
-    await dbContext.conn.none(
-      `TRUNCATE ${DeletingDbTable.attribute_deleting_table}`
     );
   });
 

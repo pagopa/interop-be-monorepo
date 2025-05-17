@@ -17,7 +17,7 @@ export const errorCodes = {
   selfcareIdConflict: "0007",
   verifiedAttributeNotFoundInTenant: "0008",
   expirationDateCannotBeInThePast: "009",
-  organizationNotFoundInVerifiers: "0010",
+  tenantNotFoundInVerifiers: "0010",
   expirationDateNotFoundInVerifier: "0011",
   tenantIsNotACertifier: "0012",
   attributeDoesNotBelongToCertifier: "0013",
@@ -46,7 +46,7 @@ export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
 export function verifiedAttributeSelfVerificationNotAllowed(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organizations are not allowed to verify own attributes`,
+    detail: `Tenants are not allowed to verify own attributes`,
     code: "verifiedAttributeSelfVerificationNotAllowed",
     title: "Verified attribute self verification not allowed",
   });
@@ -54,7 +54,7 @@ export function verifiedAttributeSelfVerificationNotAllowed(): ApiError<ErrorCod
 
 export function verifiedAttributeSelfRevocationNotAllowed(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organizations are not allowed to revoke own attributes`,
+    detail: `Tenants are not allowed to revoke own attributes`,
     code: "verifiedAttributeSelfRevocationNotAllowed",
     title: "Verified attribute self revocation not allowed",
   });
@@ -137,7 +137,7 @@ export function attributeVerificationNotAllowed(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization is not allowed to verify attribute ${attributeId}
+    detail: `Tenant is not allowed to verify attribute ${attributeId}
     for tenant ${consumerId}`,
     code: "attributeVerificationNotAllowed",
     title: "Attribute verification is not allowed",
@@ -149,22 +149,22 @@ export function attributeRevocationNotAllowed(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization is not allowed to revoke attribute ${attributeId}
+    detail: `Tenant is not allowed to revoke attribute ${attributeId}
     for tenant ${consumerId}`,
     code: "attributeRevocationNotAllowed",
     title: "Attribute revocation is not allowed",
   });
 }
 
-export function organizationNotFoundInVerifiers(
+export function tenantNotFoundInVerifiers(
   requesterId: string,
   tenantId: TenantId,
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${requesterId} not found in verifier for Tenant ${tenantId} and attribute ${attributeId}`,
-    code: "organizationNotFoundInVerifiers",
-    title: "Organization not found in verifiers",
+    detail: `Tenant ${requesterId} not found in verifier for Tenant ${tenantId} and attribute ${attributeId}`,
+    code: "tenantNotFoundInVerifiers",
+    title: "Tenant not found in verifiers",
   });
 }
 
@@ -206,10 +206,10 @@ export function selfcareIdConflict({
 }
 
 export function tenantIsNotACertifier(
-  organizationId: TenantId
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} not allowed to assign attributes`,
+    detail: `Tenant ${tenantId} not allowed to assign attributes`,
     code: "tenantIsNotACertifier",
     title: "Tenant is not a certifier",
   });
@@ -217,11 +217,11 @@ export function tenantIsNotACertifier(
 
 export function attributeDoesNotBelongToCertifier(
   attributeId: AttributeId,
-  organizationId: TenantId,
+  certifierId: TenantId,
   tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} not allowed to assign certified attribute ${attributeId} to tenant ${tenantId}`,
+    detail: `Tenant ${certifierId} not allowed to assign certified attribute ${attributeId} to tenant ${tenantId}`,
     code: "attributeDoesNotBelongToCertifier",
     title: "Attribute does not belong to certifier",
   });
@@ -229,10 +229,10 @@ export function attributeDoesNotBelongToCertifier(
 
 export function certifiedAttributeAlreadyAssigned(
   attributeId: AttributeId,
-  organizationId: TenantId
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Certified Attribute ${attributeId} already assigned to tenant ${organizationId}`,
+    detail: `Certified Attribute ${attributeId} already assigned to tenant ${tenantId}`,
     code: "certifiedAttributeAlreadyAssigned",
     title: "Certified attribute already assigned",
   });
@@ -240,11 +240,11 @@ export function certifiedAttributeAlreadyAssigned(
 
 export function attributeAlreadyRevoked(
   tenantId: TenantId,
-  organizationId: TenantId,
+  revokerId: TenantId,
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${organizationId}`,
+    detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${revokerId}`,
     code: "attributeAlreadyRevoked",
     title: "Attribute is already revoked",
   });
@@ -270,7 +270,7 @@ export function tenantIsAlreadyACertifier(
   certifierId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${tenantId} is already a certifier with certifierId ${certifierId}`,
+    detail: `Tenant ${tenantId} is already a certifier with certifierId ${certifierId}`,
     code: "tenantIsAlreadyACertifier",
     title: "Tenant is already a certifier",
   });
@@ -281,7 +281,7 @@ export function certifierWithExistingAttributes(
   certifierId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${tenantId} with certifierId ${certifierId} has already created attributes`,
+    detail: `Tenant ${tenantId} with certifierId ${certifierId} has already created attributes`,
     code: "certifierWithExistingAttributes",
     title: "Certifier with existing attributes",
   });

@@ -28,7 +28,6 @@ export function setupDbServiceBuilder(
         throw setupStagingTablesError(error);
       }
     },
-
     async setupStagingDeletingTables(
       configs: DeletingTableConfigMap[]
     ): Promise<void> {

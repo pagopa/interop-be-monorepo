@@ -41,14 +41,17 @@ describe("getClientKeys", async () => {
 
     const keyWithUser1: Key = {
       ...getMockKey(),
+      name: "key 1",
       userId: keyUserId1,
     };
     const keyWithUser2: Key = {
       ...getMockKey(),
+      name: "key 2",
       userId: keyUserId2,
     };
     const keyWithUser3: Key = {
       ...getMockKey(),
+      name: "key 3",
       userId: keyUserId3,
     };
     const clientWithKeyUser: Client = {
@@ -186,26 +189,32 @@ describe("getClientKeys", async () => {
 
     const keyWithUser1: Key = {
       ...getMockKey(),
+      name: "key 1",
       userId: keyUserId1,
     };
     const keyWithUser2: Key = {
       ...getMockKey(),
+      name: "key 2",
       userId: keyUserId2,
     };
     const keyWithUser3: Key = {
       ...getMockKey(),
+      name: "key 3",
       userId: keyUserId3,
     };
     const keyWithUser4: Key = {
       ...getMockKey(),
+      name: "key 4",
       userId: keyUserId4,
     };
     const keyWithUser5: Key = {
       ...getMockKey(),
+      name: "key 5",
       userId: keyUserId5,
     };
     const keyWithUser6: Key = {
       ...getMockKey(),
+      name: "key 6",
       userId: keyUserId6,
     };
 

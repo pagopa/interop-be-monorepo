@@ -4,6 +4,7 @@ import {
   EService,
   EServiceId,
   Tenant,
+  TenantId,
   agreementState,
   genericInternalError,
 } from "pagopa-interop-models";
@@ -15,7 +16,7 @@ export function readModelServiceBuilder(
 ) {
   const { eservices, tenants, agreements } = readModelRepository;
   return {
-    async getEServiceById(id: string): Promise<EService | undefined> {
+    async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
         { projection: { data: true } }
@@ -38,7 +39,7 @@ export function readModelServiceBuilder(
       return undefined;
     },
 
-    async getTenantById(tenantId: string): Promise<Tenant | undefined> {
+    async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
         { projection: { data: true } }

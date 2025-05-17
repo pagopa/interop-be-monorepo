@@ -45,6 +45,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
           DELETE FROM ${stagingTable} a
           USING ${stagingTable} b
           WHERE a.id = b.id
+          AND a.eservice_id = b.eservice_id
           AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
@@ -61,7 +62,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,
-          ["id"]
+          ["id", "eservice_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

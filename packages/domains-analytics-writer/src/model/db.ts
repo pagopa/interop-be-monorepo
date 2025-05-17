@@ -24,7 +24,10 @@ import { EserviceDescriptorDocumentSchema } from "./catalog/eserviceDescriptorDo
 import { EserviceDescriptorInterfaceSchema } from "./catalog/eserviceDescriptorInterface.js";
 import { EserviceDescriptorRejectionReasonSchema } from "./catalog/eserviceDescriptorRejection.js";
 import { EserviceDescriptorTemplateVersionRefSchema } from "./catalog/eserviceDescriptorTemplateVersionRef.js";
-import { EserviceRiskAnalysisSchema } from "./catalog/eserviceRiskAnalysis.js";
+import {
+  EserviceRiskAnalysisDeletingSchema,
+  EserviceRiskAnalysisSchema,
+} from "./catalog/eserviceRiskAnalysis.js";
 import { EserviceRiskAnalysisAnswerSchema } from "./catalog/eserviceRiskAnalysisAnswer.js";
 
 export const CatalogDbTableConfig = {
@@ -76,6 +79,7 @@ export type TenantDbTable = keyof typeof TenantDbTable;
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
   catalog_deleting_table: EserviceDeletingSchema,
+  catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
   tenant_deleting_table: TenantDeletingSchema,
   tenant_mail_deleting_table: TenantMailDeletingSchema,
   tenant_feature_deleting_table: TenantFeatureDeletingSchema,

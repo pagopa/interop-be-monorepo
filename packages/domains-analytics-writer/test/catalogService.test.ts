@@ -259,7 +259,10 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
       version: 2,
       type: "EServiceRiskAnalysisDeleted",
       event_version: 1,
-      data: { riskAnalysisId: risk.id } as EServiceRiskAnalysisDeletedV1,
+      data: {
+        riskAnalysisId: risk.id,
+        eservice: toEServiceV1(mock),
+      } as EServiceRiskAnalysisDeletedV1,
       log_date: new Date(),
     };
     await handleCatalogMessageV1([msg], dbContext);
@@ -569,7 +572,10 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
       version: 2,
       type: "EServiceRiskAnalysisDeleted",
       event_version: 2,
-      data: { riskAnalysisId: risk.id } as EServiceRiskAnalysisDeletedV2,
+      data: {
+        riskAnalysisId: risk.id,
+        eservice: toEServiceV2(mock),
+      } as EServiceRiskAnalysisDeletedV2,
       log_date: new Date(),
     };
     await handleCatalogMessageV2([msg], dbContext);

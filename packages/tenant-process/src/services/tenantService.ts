@@ -11,6 +11,7 @@ import {
   MaintenanceAuthData,
   M2MAuthData,
   isUiAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -36,7 +37,6 @@ import {
   TenantFeatureCertifier,
   CorrelationId,
   tenantKind,
-  TenantFeatureType,
   AgreementId,
   Agreement,
   AgreementState,
@@ -90,6 +90,7 @@ import {
   operationRestrictedToDelegate,
   verifiedAttributeSelfVerificationNotAllowed,
 } from "../model/domain/errors.js";
+import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -464,8 +465,8 @@ export function tenantServiceBuilder(
         authData,
         logger,
         correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<Tenant> {
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Add certified attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
       );
@@ -528,15 +529,28 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeAssignedEvent,
           tenantKindUpdatedEvent,
         ]);
-      } else {
-        await repository.createEvent(tenantCertifiedAttributeAssignedEvent);
-      }
 
-      return updatedTenant;
+        const newVersion = Math.max(
+          0,
+          ...createdEvents.map((event) => event.newVersion)
+        );
+
+        return {
+          data: updatedTenant,
+          metadata: { version: newVersion },
+        };
+      }
+      const { newVersion } = await repository.createEvent(
+        tenantCertifiedAttributeAssignedEvent
+      );
+      return {
+        data: updatedTenant,
+        metadata: { version: newVersion },
+      };
     },
 
     async addDeclaredAttribute(
@@ -638,8 +652,8 @@ export function tenantServiceBuilder(
         authData,
         correlationId,
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<void> {
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(
         `Revoke certified attribute ${attributeId} to tenantId ${tenantId}`
       );
@@ -715,13 +729,29 @@ export function tenantServiceBuilder(
           correlationId
         );
 
-        await repository.createEvents([
+        const createdEvents = await repository.createEvents([
           tenantCertifiedAttributeRevokedEvent,
           tenantKindUpdatedEvent,
         ]);
-      } else {
-        await repository.createEvent(tenantCertifiedAttributeRevokedEvent);
+
+        const newVersion = Math.max(
+          0,
+          ...createdEvents.map((event) => event.newVersion)
+        );
+
+        return {
+          data: updatedTenant,
+          metadata: { version: newVersion },
+        };
       }
+
+      const { newVersion } = await repository.createEvent(
+        tenantCertifiedAttributeRevokedEvent
+      );
+      return {
+        data: tenantWithRevokedAttribute,
+        metadata: { version: newVersion },
+      };
     },
 
     async verifyVerifiedAttribute(
@@ -1300,34 +1330,28 @@ export function tenantServiceBuilder(
       });
     },
     async getTenants(
+      query: ApiGetTenantsFilters,
       {
-        name,
-        features,
-        offset,
-        limit,
-      }: {
-        name: string | undefined;
-        features: TenantFeatureType[];
-        offset: number;
-        limit: number;
-      },
-      { logger }: WithLogger<AppContext<UIAuthData>>
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Tenant>> {
       logger.info(
-        `Retrieving Tenants with name = ${name}, features = ${features}, limit = ${limit}, offset = ${offset}`
+        `Retrieving Tenants with name = ${query.name}, features = ${query.features}, externalIdOrigin = ${query.externalIdOrigin}, externalIdValue = ${query.externalIdValue}, limit = ${query.limit}, offset = ${query.offset}`
       );
-      return readModelService.getTenants({ name, features, offset, limit });
+      return readModelService.getTenants(query);
     },
     async getTenantById(
       id: TenantId,
       {
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAuthData | InternalAuthData>>
-    ): Promise<Tenant> {
+      }: WithLogger<
+        AppContext<
+          UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
+        >
+      >
+    ): Promise<WithMetadata<Tenant>> {
       logger.info(`Retrieving tenant ${id}`);
-      const tenant = await retrieveTenant(id, readModelService);
-
-      return tenant.data;
+      return await retrieveTenant(id, readModelService);
     },
     async getTenantByExternalId(
       externalId: ExternalId,

@@ -8,6 +8,7 @@ import {
   fromDescriptorV1,
   genericInternalError,
   fromEServiceV1,
+  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
@@ -40,7 +41,10 @@ export async function handleCatalogMessageV1(
   const deleteDescriptorBatch: string[] = [];
   const upsertEServiceDocumentBatch: EServiceDescriptorDocumentSQL[] = [];
   const deleteEServiceDocumentBatch: string[] = [];
-  const deleteRiskAnalysisBatch: string[] = [];
+  const deleteRiskAnalysisBatch: Array<{
+    eserviceId: EServiceId;
+    id: RiskAnalysisId;
+  }> = [];
   const upsertDescriptorBatch: Array<{
     descriptorData: {
       descriptorSQL: EServiceDescriptorSQL;
@@ -118,7 +122,16 @@ export async function handleCatalogMessageV1(
         deleteEServiceDocumentBatch.push(msg.data.documentId);
       })
       .with({ type: "EServiceRiskAnalysisDeleted" }, (msg) => {
-        deleteRiskAnalysisBatch.push(msg.data.riskAnalysisId);
+        if (!msg.data.eservice?.id) {
+          throw genericInternalError(
+            "eservice can't be missing in event message"
+          );
+        }
+
+        deleteRiskAnalysisBatch.push({
+          eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice?.id),
+          id: unsafeBrandId<RiskAnalysisId>(msg.data.riskAnalysisId),
+        });
       })
       .with(
         {

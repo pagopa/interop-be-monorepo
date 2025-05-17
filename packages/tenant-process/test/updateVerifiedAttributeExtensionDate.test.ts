@@ -17,7 +17,7 @@ import {
   tenantNotFound,
   expirationDateNotFoundInVerifier,
   verifiedAttributeNotFoundInTenant,
-  organizationNotFoundInVerifiers,
+  tenantNotFoundInVerifiers,
 } from "../src/model/domain/errors.js";
 import {
   currentDate,
@@ -169,7 +169,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
       verifiedAttributeNotFoundInTenant(mockTenant.id, attributeId)
     );
   });
-  it("should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+  it("should throw tenantNotFoundInVerifiers when the tenant is not verified", async () => {
     await addOneTenant(mockVerifier);
     await addOneTenant(tenant);
     const verifierId = generateId();
@@ -181,7 +181,7 @@ describe("updateVerifiedAttributeExtensionDate", async () => {
         getMockContextInternal({})
       )
     ).rejects.toThrowError(
-      organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
+      tenantNotFoundInVerifiers(verifierId, tenant.id, attributeId)
     );
   });
 });

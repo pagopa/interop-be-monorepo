@@ -77,8 +77,11 @@ describe("Setup DB Service tests for attribute tables", async () => {
         name: DeletingDbTable.tenant_feature_deleting_table,
         columns: ["tenant_id", "kind"],
       },
+      {
+        name: DeletingDbTable.catalog_risk_deleting_table,
+        columns: ["id", "eservice_id"],
+      },
     ]);
-
     const result = await getTablesByName(dbContext.conn, [
       DeletingDbTable.attribute_deleting_table,
       DeletingDbTable.catalog_deleting_table,

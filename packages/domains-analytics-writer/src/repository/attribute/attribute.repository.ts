@@ -93,7 +93,7 @@ export function attributeRepository(conn: DBConnection) {
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
-          DeletingDbTable.attribute_deleting_table
+          deletingTable
         );
 
         const records = recordsId.map((id: string) => ({ id, deleted: true }));
@@ -103,7 +103,7 @@ export function attributeRepository(conn: DBConnection) {
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${DeletingDbTable.attribute_deleting_table}: ${error}`
+          `Error inserting into deleting table ${deletingTable}: ${error}`
         );
       }
     },

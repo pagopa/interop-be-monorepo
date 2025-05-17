@@ -10,6 +10,7 @@ import {
   EServiceDescriptorSQL,
   EServiceDescriptorTemplateVersionRefSQL,
   EServiceItemsSQL,
+  EServiceRiskAnalysisSQL,
 } from "pagopa-interop-readmodel-models";
 import { DBContext } from "../db/db.js";
 import { eserviceRiskAnalysisAnswerRepository } from "../repository/catalog/eserviceRiskAnalysisAnswer.repository.js";
@@ -426,7 +427,9 @@ export function catalogServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchEserviceRiskAnalysis(
-      riskAnalysisIds: string[],
+      riskAnalysisIds: Array<
+        Pick<EServiceRiskAnalysisSQL, "id" | "eserviceId">
+      >,
       dbContext: DBContext
     ): Promise<void> {
       await dbContext.conn.tx(async (t) => {
@@ -434,14 +437,18 @@ export function catalogServiceBuilder(db: DBContext) {
           riskAnalysisIds,
           config.dbMessagesToInsertPerBatch
         )) {
-          await riskAnalysisRepo.insertDeleting(t, dbContext.pgp, batch);
+          await riskAnalysisRepo.insertDeletingByEserviceIdandRiskAnalysisId(
+            t,
+            dbContext.pgp,
+            batch
+          );
           genericLogger.info(
             `Staging deletion inserted for riskAnalysisIds: ${batch.join(", ")}`
           );
         }
       });
-      await dbContext.conn.tx(async (t) => {
-        await riskAnalysisRepo.mergeDeleting(t);
+      await dbContext.conn.tx(async () => {
+        await riskAnalysisRepo.mergeDeletingByEserviceIdandRiskAnalysisId();
       });
 
       genericLogger.info(

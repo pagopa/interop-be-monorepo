@@ -1,5 +1,11 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { EService, Tenant, genericInternalError } from "pagopa-interop-models";
+import {
+  EService,
+  EServiceId,
+  Tenant,
+  TenantId,
+  genericInternalError,
+} from "pagopa-interop-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -7,7 +13,7 @@ export function readModelServiceBuilder(
 ) {
   const { eservices, tenants } = readModelRepository;
   return {
-    async getEServiceById(id: string): Promise<EService | undefined> {
+    async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       const data = await eservices.findOne(
         { "data.id": id },
         { projection: { data: true } }
@@ -30,7 +36,7 @@ export function readModelServiceBuilder(
       return undefined;
     },
 
-    async getTenantById(tenantId: string): Promise<Tenant | undefined> {
+    async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
       const data = await tenants.findOne(
         { "data.id": tenantId },
         { projection: { data: true } }

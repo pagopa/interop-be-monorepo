@@ -56,6 +56,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
           DELETE FROM ${stagingTable} a
           USING ${stagingTable} b
           WHERE a.descriptor_id = b.descriptor_id
+          AND a.eservice_template_version_id = b.eservice_template_version_id
           AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
@@ -72,7 +73,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
           schemaName,
           tableName,
           `${tableName}_${config.mergeTableSuffix}`,
-          ["eservice_template_version_id"]
+          ["eservice_template_version_id", "descriptor_id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

@@ -40,7 +40,7 @@ export const updateTenantVerifiedAttributeErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("verifiedAttributeNotFoundInTenant", () => HTTP_STATUS_NOT_FOUND)
     .with("expirationDateCannotBeInThePast", () => HTTP_STATUS_BAD_REQUEST)
-    .with("organizationNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateVerifiedAttributeExtensionDateErrorMapper = (
@@ -52,7 +52,7 @@ export const updateVerifiedAttributeExtensionDateErrorMapper = (
       "verifiedAttributeNotFoundInTenant",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("organizationNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
     .with("expirationDateNotFoundInVerifier", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

@@ -1,5 +1,5 @@
-import { and, eq, ilike, inArray, sql } from "drizzle-orm";
-import { escapeRegExp, withTotalCount } from "pagopa-interop-commons";
+import { and, eq, ilike, inArray } from "drizzle-orm";
+import { ascLower, escapeRegExp, withTotalCount } from "pagopa-interop-commons";
 import {
   Client,
   WithMetadata,
@@ -136,9 +136,9 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(clientInReadmodelClient.id)
+        .orderBy(ascLower(clientInReadmodelClient.name))
         .limit(limit)
         .offset(offset)
-        .orderBy(sql`LOWER(${clientInReadmodelClient.name})`)
         .as("subquery");
 
       const queryResult = await readModelDB
@@ -166,7 +166,7 @@ export function readModelServiceBuilderSQL({
           clientKeyInReadmodelClient,
           eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
         )
-        .orderBy(sql`LOWER(${clientInReadmodelClient.name})`);
+        .orderBy(ascLower(clientInReadmodelClient.name));
 
       return {
         results: aggregateClientArray(toClientAggregatorArray(queryResult)).map(
@@ -327,11 +327,9 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(producerKeychainInReadmodelProducerKeychain.id)
+        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
         .limit(limit)
         .offset(offset)
-        .orderBy(
-          sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
-        )
         .as("subquery");
 
       const queryResult = await readModelDB
@@ -372,9 +370,7 @@ export function readModelServiceBuilderSQL({
             producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
           )
         )
-        .orderBy(
-          sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
-        );
+        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name));
 
       return {
         results: aggregateProducerKeychainArray(

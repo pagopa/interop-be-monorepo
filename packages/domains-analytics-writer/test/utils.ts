@@ -11,6 +11,7 @@ import {
   EServiceId,
   DescriptorId,
 } from "pagopa-interop-models";
+import { z } from "zod";
 import { AttributeSchema } from "../src/model/attribute/attribute.js";
 import { DBContext, DBConnection } from "../src/db/db.js";
 import { config } from "../src/config/config.js";
@@ -26,7 +27,6 @@ import {
 } from "../src/model/db.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
-import { z } from "zod";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
@@ -74,6 +74,10 @@ await retryConnection(
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.catalog_risk_deleting_table,
+        columns: ["id", "eservice_id"],
+      },
       {
         name: DeletingDbTable.tenant_deleting_table,
         columns: ["id"],
@@ -148,7 +152,7 @@ export async function getOneFromDb<T extends DbTableNames>(
   table: T,
   where: Partial<z.infer<DbTableSchemas[T]>>
 ): Promise<z.infer<DbTableSchemas[T]>> {
-  const entries = Object.entries(where) as [string, unknown][];
+  const entries = Object.entries(where) as Array<[string, unknown]>;
   const clause = entries.map(([k], i) => `"${k}" = $${i + 1}`).join(" AND ");
   const values = entries.map(([, v]) => v);
 
@@ -162,8 +166,8 @@ export async function getManyFromDb<T extends DbTableNames>(
   db: DBContext,
   table: T,
   where: Partial<z.infer<DbTableSchemas[T]>>
-): Promise<z.infer<DbTableSchemas[T]>[]> {
-  const entries = Object.entries(where) as [string, unknown][];
+): Promise<Array<z.infer<DbTableSchemas[T]>>> {
+  const entries = Object.entries(where) as Array<[string, unknown]>;
   const clause = entries.map(([k], i) => `"${k}" = $${i + 1}`).join(" AND ");
   const values = entries.map(([, v]) => v);
 
