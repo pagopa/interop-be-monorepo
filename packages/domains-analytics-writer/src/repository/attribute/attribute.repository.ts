@@ -38,7 +38,7 @@ export function attributeRepository(conn: DBConnection) {
         name: (r) => r.name,
         creationTime: (r) => r.creationTime,
       };
-      const cs = buildColumnSet(pgp, mapping, tableName);
+      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
@@ -90,7 +90,7 @@ export function attributeRepository(conn: DBConnection) {
           id: (r) => r.id,
           deleted: () => true,
         };
-        const cs = buildColumnSet(pgp, mapping, stagingDeletingTable);
+        const cs = buildColumnSet(pgp, stagingDeletingTable, mapping);
 
         const records = recordsId.map((id) => ({ id }));
 

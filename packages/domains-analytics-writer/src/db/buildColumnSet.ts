@@ -45,8 +45,8 @@ export const buildColumnSet = <
   TOutput extends Partial<OutputRow<T>> = OutputRow<T>
 >(
   pgp: IMain,
-  mapping: Partial<Mapping<T>>,
-  tableName: T
+  tableName: T,
+  mapping: Partial<Mapping<T>>
 ): ColumnSet<TOutput> => {
   const snakeCase = getColumnName(tableName);
 

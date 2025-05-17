@@ -37,7 +37,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
         riskAnalysisFormId: (r) => r.riskAnalysisFormId,
         riskAnalysisFormVersion: (r) => r.riskAnalysisFormVersion,
       };
-      const cs = buildColumnSet(pgp, mapping, tableName);
+      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
@@ -91,7 +91,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
         deleted: () => true,
       };
       try {
-        const cs = buildColumnSet(pgp, mapping, stagingDeletingTable);
+        const cs = buildColumnSet(pgp, stagingDeletingTable, mapping);
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );

@@ -30,7 +30,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
         rejectionReason: (r) => r.rejectionReason,
         rejectedAt: (r) => r.rejectedAt,
       };
-      const cs = buildColumnSet(pgp, mapping, tableName);
+      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`

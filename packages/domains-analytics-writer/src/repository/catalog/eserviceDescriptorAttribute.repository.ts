@@ -32,7 +32,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
         kind: (r) => r.kind,
         groupId: (r) => r.groupId,
       };
-      const cs = buildColumnSet(pgp, mapping, tableName);
+      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`

@@ -48,7 +48,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         archivedAt: (r) => r.archivedAt,
       };
 
-      const cs = buildColumnSet(pgp, mapping, tableName);
+      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
@@ -100,7 +100,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
           id: (r) => r.id,
           deleted: () => true,
         };
-        const cs = buildColumnSet(pgp, mapping, stagingDeletingTable);
+        const cs = buildColumnSet(pgp, stagingDeletingTable, mapping);
 
         const records = recordsId.map((id) => ({ id }));
 

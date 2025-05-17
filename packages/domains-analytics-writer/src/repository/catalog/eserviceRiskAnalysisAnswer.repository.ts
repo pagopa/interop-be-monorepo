@@ -32,7 +32,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
         key: (r) => r.key,
         value: (r) => JSON.stringify(r.value),
       };
-      const cs = buildColumnSet(pgp, mapping, tableName);
+      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
