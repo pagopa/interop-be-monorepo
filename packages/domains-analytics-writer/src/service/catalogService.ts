@@ -374,7 +374,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_risk_analysis,
             CatalogDbTable.eservice_risk_analysis_answer,
           ],
-          `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`
+          DeletingDbTable.catalog_deleting_table
         );
       });
 
@@ -415,7 +415,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
           ],
-          `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`
+          DeletingDbTable.catalog_deleting_table
         );
       });
       genericLogger.info(

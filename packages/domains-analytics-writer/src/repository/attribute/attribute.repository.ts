@@ -19,7 +19,7 @@ export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AttributeDbTable.attribute;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTable = `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`;
+  const deletingTable = DeletingDbTable.attribute_deleting_table;
 
   return {
     async insert(
@@ -93,7 +93,7 @@ export function attributeRepository(conn: DBConnection) {
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
-          deletingTable
+          `${deletingTable}_${config.mergeTableSuffix}`
         );
 
         const records = recordsId.map((id: string) => ({ id, deleted: true }));
@@ -126,7 +126,9 @@ export function attributeRepository(conn: DBConnection) {
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${deletingTable};`);
+        await conn.none(
+          `TRUNCATE TABLE ${deletingTable}_${config.mergeTableSuffix};`
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning deleting table ${deletingTable}: ${error}`
