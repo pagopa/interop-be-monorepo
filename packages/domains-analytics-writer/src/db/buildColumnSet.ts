@@ -8,17 +8,7 @@ import { DbTable, DbTableReadModels, DbTableSchemas } from "../model/db.js";
 import { config } from "../config/config.js";
 import { DBContext } from "./db.js";
 
-export type ColumnValue =
-  | string
-  | number
-  | boolean
-  | Date
-  | null
-  | undefined
-  | string[]
-  | number[]
-  | boolean[]
-  | Date[];
+export type ColumnValue = string | number | boolean | Date | null | undefined;
 
 /**
  * Represents the shape of a record returned by Drizzle ReadModel for a given table.
