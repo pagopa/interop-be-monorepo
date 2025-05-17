@@ -10,6 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
+  EserviceDescriptorDeletingMapping,
   EserviceDescriptorMapping,
   EserviceDescriptorSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
@@ -19,7 +20,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`;
+  const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
 
   return {
     async insert(
@@ -28,31 +29,26 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       records: EServiceDescriptorSQL[]
     ): Promise<void> {
       const mapping: EserviceDescriptorMapping = {
-        id: (r: EServiceDescriptorSQL) => r.id,
-        eservice_id: (r: EServiceDescriptorSQL) => r.eserviceId,
-        metadata_version: (r: EServiceDescriptorSQL) => r.metadataVersion,
-        version: (r: EServiceDescriptorSQL) => r.version,
-        description: (r: EServiceDescriptorSQL) => r.description,
-        created_at: (r: EServiceDescriptorSQL) => r.createdAt,
-        state: (r: EServiceDescriptorSQL) => r.state,
-        audience: (r: EServiceDescriptorSQL) => JSON.stringify(r.audience),
-        voucher_lifespan: (r: EServiceDescriptorSQL) => r.voucherLifespan,
-        daily_calls_per_consumer: (r: EServiceDescriptorSQL) =>
-          r.dailyCallsPerConsumer,
-        daily_calls_total: (r: EServiceDescriptorSQL) => r.dailyCallsTotal,
-        server_urls: (r: EServiceDescriptorSQL) => JSON.stringify(r.serverUrls),
-        agreement_approval_policy: (r: EServiceDescriptorSQL) =>
-          r.agreementApprovalPolicy,
-        published_at: (r: EServiceDescriptorSQL) => r.publishedAt,
-        suspended_at: (r: EServiceDescriptorSQL) => r.suspendedAt,
-        deprecated_at: (r: EServiceDescriptorSQL) => r.deprecatedAt,
-        archived_at: (r: EServiceDescriptorSQL) => r.archivedAt,
+        id: (r) => r.id,
+        eserviceId: (r) => r.eserviceId,
+        metadataVersion: (r) => r.metadataVersion,
+        version: (r) => r.version,
+        description: (r) => r.description,
+        createdAt: (r) => r.createdAt,
+        state: (r) => r.state,
+        audience: (r) => JSON.stringify(r.audience),
+        voucherLifespan: (r) => r.voucherLifespan,
+        dailyCallsPerConsumer: (r) => r.dailyCallsPerConsumer,
+        dailyCallsTotal: (r) => r.dailyCallsTotal,
+        serverUrls: (r) => JSON.stringify(r.serverUrls),
+        agreementApprovalPolicy: (r) => r.agreementApprovalPolicy,
+        publishedAt: (r) => r.publishedAt,
+        suspendedAt: (r) => r.suspendedAt,
+        deprecatedAt: (r) => r.deprecatedAt,
+        archivedAt: (r) => r.archivedAt,
       };
-      const cs = buildColumnSet<EServiceDescriptorSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+
+      const cs = buildColumnSet(pgp, mapping, tableName);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
@@ -74,7 +70,6 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
           EserviceDescriptorSchema,
           schemaName,
           tableName,
-          stagingTable,
           ["id"]
         );
         await t.none(mergeQuery);
@@ -101,17 +96,13 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       recordsId: Array<EServiceDescriptorSQL["id"]>
     ): Promise<void> {
       try {
-        const mapping = {
-          id: (r: { id: string }) => r.id,
+        const mapping: EserviceDescriptorDeletingMapping = {
+          id: (r) => r.id,
           deleted: () => true,
         };
-        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
-          pgp,
-          mapping,
-          stagingDeletingTable
-        );
+        const cs = buildColumnSet(pgp, mapping, stagingDeletingTable);
 
-        const records = recordsId.map((id: string) => ({ id, deleted: true }));
+        const records = recordsId.map((id) => ({ id }));
 
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
@@ -141,10 +132,12 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
+        );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

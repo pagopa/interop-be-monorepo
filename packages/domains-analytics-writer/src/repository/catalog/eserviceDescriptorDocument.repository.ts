@@ -10,6 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
+  EserviceDescriptorDocumentDeletingMapping,
   EserviceDescriptorDocumentMapping,
   EserviceDescriptorDocumentSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
@@ -19,7 +20,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_document;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`;
+  const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
 
   return {
     async insert(
@@ -28,23 +29,18 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       records: EServiceDescriptorDocumentSQL[]
     ): Promise<void> {
       const mapping: EserviceDescriptorDocumentMapping = {
-        id: (r: EServiceDescriptorDocumentSQL) => r.id,
-        eservice_id: (r: EServiceDescriptorDocumentSQL) => r.eserviceId,
-        metadata_version: (r: EServiceDescriptorDocumentSQL) =>
-          r.metadataVersion,
-        descriptor_id: (r: EServiceDescriptorDocumentSQL) => r.descriptorId,
-        name: (r: EServiceDescriptorDocumentSQL) => r.name,
-        content_type: (r: EServiceDescriptorDocumentSQL) => r.contentType,
-        pretty_name: (r: EServiceDescriptorDocumentSQL) => r.prettyName,
-        path: (r: EServiceDescriptorDocumentSQL) => r.path,
-        checksum: (r: EServiceDescriptorDocumentSQL) => r.checksum,
-        upload_date: (r: EServiceDescriptorDocumentSQL) => r.uploadDate,
+        id: (r) => r.id,
+        eserviceId: (r) => r.eserviceId,
+        metadataVersion: (r) => r.metadataVersion,
+        descriptorId: (r) => r.descriptorId,
+        name: (r) => r.name,
+        contentType: (r) => r.contentType,
+        prettyName: (r) => r.prettyName,
+        path: (r) => r.path,
+        checksum: (r) => r.checksum,
+        uploadDate: (r) => r.uploadDate,
       };
-      const cs = buildColumnSet<EServiceDescriptorDocumentSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      const cs = buildColumnSet(pgp, mapping, tableName);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
@@ -66,7 +62,6 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
           EserviceDescriptorDocumentSchema,
           schemaName,
           tableName,
-          stagingTable,
           ["id"]
         );
         await t.none(mergeQuery);
@@ -93,16 +88,12 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       recordsId: Array<EServiceDescriptorDocumentSQL["id"]>
     ): Promise<void> {
       try {
-        const mapping = {
-          id: (r: { id: string }) => r.id,
+        const mapping: EserviceDescriptorDocumentDeletingMapping = {
+          id: (r) => r.id,
           deleted: () => true,
         };
-        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
-          pgp,
-          mapping,
-          stagingDeletingTable
-        );
-        const records = recordsId.map((id: string) => ({ id, deleted: true }));
+        const cs = buildColumnSet(pgp, mapping, stagingDeletingTable);
+        const records = recordsId.map((id) => ({ id }));
 
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
@@ -132,10 +123,12 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
+        );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

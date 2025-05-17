@@ -363,7 +363,7 @@ export function catalogServiceBuilder(db: DBContext) {
         await eserviceRepo.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
-          "eservice_id",
+          "eserviceId",
           [
             CatalogDbTable.eservice_descriptor,
             CatalogDbTable.eservice_descriptor_attribute,
@@ -374,7 +374,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_risk_analysis,
             CatalogDbTable.eservice_risk_analysis_answer,
           ],
-          `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`
+          DeletingDbTable.catalog_deleting_table
         );
       });
 
@@ -407,7 +407,7 @@ export function catalogServiceBuilder(db: DBContext) {
         await descriptorRepo.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
-          "descriptor_id",
+          "descriptorId",
           [
             CatalogDbTable.eservice_descriptor_attribute,
             CatalogDbTable.eservice_descriptor_document,
@@ -415,7 +415,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
           ],
-          `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`
+          DeletingDbTable.catalog_deleting_table
         );
       });
       genericLogger.info(
@@ -437,18 +437,14 @@ export function catalogServiceBuilder(db: DBContext) {
           riskAnalysisIds,
           config.dbMessagesToInsertPerBatch
         )) {
-          await riskAnalysisRepo.insertDeletingByEserviceIdandRiskAnalysisId(
-            t,
-            dbContext.pgp,
-            batch
-          );
+          await riskAnalysisRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for riskAnalysisIds: ${batch.join(", ")}`
           );
         }
       });
       await dbContext.conn.tx(async () => {
-        await riskAnalysisRepo.mergeDeletingByEserviceIdandRiskAnalysisId();
+        await riskAnalysisRepo.mergeDeleting();
       });
 
       genericLogger.info(

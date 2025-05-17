@@ -1,12 +1,14 @@
-import { EServiceDescriptorRejectionReasonSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import {
+  eserviceDescriptorRejectionReasonInReadmodelCatalog,
+  EServiceDescriptorRejectionReasonSQL,
+} from "pagopa-interop-readmodel-models";
 
-export const EserviceDescriptorRejectionReasonSchema = z.object({
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  descriptor_id: z.string(),
-  rejection_reason: z.string(),
-  rejected_at: z.string(),
+export const EserviceDescriptorRejectionReasonSchema = createSelectSchema(
+  eserviceDescriptorRejectionReasonInReadmodelCatalog
+).extend({
+  deleted: z.boolean().default(false).optional(),
 });
 export type EserviceDescriptorRejectionReasonSchema = z.infer<
   typeof EserviceDescriptorRejectionReasonSchema

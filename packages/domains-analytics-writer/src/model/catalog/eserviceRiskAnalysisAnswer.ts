@@ -1,13 +1,14 @@
-import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import {
+  eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  EServiceRiskAnalysisAnswerSQL,
+} from "pagopa-interop-readmodel-models";
 
-export const EserviceRiskAnalysisAnswerSchema = z.object({
-  id: z.string(),
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  risk_analysis_form_id: z.string(),
-  kind: z.string(),
-  key: z.string(),
+export const EserviceRiskAnalysisAnswerSchema = createSelectSchema(
+  eserviceRiskAnalysisAnswerInReadmodelCatalog
+).extend({
+  deleted: z.boolean().default(false).optional(),
   value: z.string(),
 });
 export type EserviceRiskAnalysisAnswerSchema = z.infer<

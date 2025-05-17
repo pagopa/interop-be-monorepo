@@ -20,7 +20,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_risk_analysis;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${DeletingDbTable.catalog_risk_deleting_table}_${config.mergeTableSuffix}`;
+  const stagingDeletingTable = DeletingDbTable.catalog_risk_deleting_table;
 
   return {
     async insert(
@@ -29,29 +29,23 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       records: EServiceRiskAnalysisSQL[]
     ): Promise<void> {
       const mapping: EserviceRiskAnalysisMapping = {
-        id: (r: EServiceRiskAnalysisSQL) => r.id,
-        metadata_version: (r: EServiceRiskAnalysisSQL) => r.metadataVersion,
-        eservice_id: (r: EServiceRiskAnalysisSQL) => r.eserviceId,
-        name: (r: EServiceRiskAnalysisSQL) => r.name,
-        created_at: (r: EServiceRiskAnalysisSQL) => r.createdAt,
-        risk_analysis_form_id: (r: EServiceRiskAnalysisSQL) =>
-          r.riskAnalysisFormId,
-        risk_analysis_form_version: (r: EServiceRiskAnalysisSQL) =>
-          r.riskAnalysisFormVersion,
+        id: (r) => r.id,
+        metadataVersion: (r) => r.metadataVersion,
+        eserviceId: (r) => r.eserviceId,
+        name: (r) => r.name,
+        createdAt: (r) => r.createdAt,
+        riskAnalysisFormId: (r) => r.riskAnalysisFormId,
+        riskAnalysisFormVersion: (r) => r.riskAnalysisFormVersion,
       };
-      const cs = buildColumnSet<EServiceRiskAnalysisSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      const cs = buildColumnSet(pgp, mapping, tableName);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a
           USING ${stagingTable} b
           WHERE a.id = b.id
-          AND a.eservice_id = b.eservice_id
-          AND a.metadata_version < b.metadata_version;
+            AND a.eservice_id = b.eservice_id
+            AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
         throw genericInternalError(
@@ -66,8 +60,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
           EserviceRiskAnalysisSchema,
           schemaName,
           tableName,
-          stagingTable,
-          ["id", "eservice_id"]
+          ["id", "eserviceId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -90,63 +83,15 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      recordsId: Array<EServiceRiskAnalysisSQL["id"]>
-    ): Promise<void> {
-      try {
-        const mapping = {
-          id: (r: { id: string }) => r.id,
-          deleted: () => true,
-        };
-        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
-          pgp,
-          mapping,
-          stagingDeletingTable
-        );
-
-        const records = recordsId.map((id: string) => ({ id, deleted: true }));
-
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
-        );
-      }
-    },
-
-    async mergeDeleting(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeQuery = generateMergeDeleteQuery(
-          schemaName,
-          tableName,
-          stagingDeletingTable,
-          ["id"]
-        );
-        await t.none(mergeQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
-        );
-      }
-    },
-
-    async insertDeletingByEserviceIdandRiskAnalysisId(
-      t: ITask<unknown>,
-      pgp: IMain,
       records: Array<Pick<EServiceRiskAnalysisSQL, "id" | "eserviceId">>
     ): Promise<void> {
       const mapping: EserviceRiskAnalysisDeletingMapping = {
         id: (r) => r.id,
-        eservice_id: (r) => r.eserviceId,
+        eserviceId: (r) => r.eserviceId,
         deleted: () => true,
       };
       try {
-        const cs = buildColumnSet<EServiceRiskAnalysisSQL>(
-          pgp,
-          mapping,
-          stagingDeletingTable
-        );
+        const cs = buildColumnSet(pgp, mapping, stagingDeletingTable);
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
@@ -157,13 +102,13 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       }
     },
 
-    async mergeDeletingByEserviceIdandRiskAnalysisId(): Promise<void> {
+    async mergeDeleting(): Promise<void> {
       try {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           stagingDeletingTable,
-          ["id", "eservice_id"],
+          ["id", "eserviceId"],
           false
         );
         await conn.none(mergeQuery);
@@ -176,10 +121,12 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
+        );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
-import { DeletingTableConfigMap } from "../model/db.js";
+import { DeletingDbTableConfigMap, DomainDbTable } from "../model/db.js";
 import { setupStagingTablesError } from "../model/errors.js";
-
+import { getColumnName } from "../utils/sqlQueryHelper.js";
 export interface SetupDbConfig {
   mergeTableSuffix: string;
   dbSchemaName: string;
@@ -13,7 +13,7 @@ export function setupDbServiceBuilder(
   config: SetupDbConfig
 ) {
   return {
-    async setupStagingTables(tableNames: string[]): Promise<void> {
+    async setupStagingTables(tableNames: DomainDbTable[]): Promise<void> {
       try {
         await Promise.all(
           tableNames.map((tableName) => {
@@ -29,18 +29,22 @@ export function setupDbServiceBuilder(
         throw setupStagingTablesError(error);
       }
     },
+
     async setupStagingDeletingTables(
-      configs: DeletingTableConfigMap[]
+      tables: DeletingDbTableConfigMap[]
     ): Promise<void> {
       try {
         await Promise.all(
-          configs.map(({ name, columns }) => {
+          tables.map(({ name, columns }) => {
+            const snakeCase = getColumnName(name);
             const columnDefs = columns
-              .map((key) => `${String(key)} VARCHAR(255)`)
+              .map((key) => `${snakeCase(key)} VARCHAR(255)`)
               .concat("deleted BOOLEAN NOT NULL")
               .join(",\n  ");
 
-            const primaryKey = `PRIMARY KEY (${columns.join(", ")})`;
+            const primaryKey = `PRIMARY KEY (${columns
+              .map(snakeCase)
+              .join(", ")})`;
 
             const query = `
               CREATE TEMPORARY TABLE IF NOT EXISTS ${name}_${config.mergeTableSuffix} (

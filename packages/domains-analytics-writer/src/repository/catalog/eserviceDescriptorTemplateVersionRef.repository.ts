@@ -26,38 +26,24 @@ export function eserviceDescriptorTemplateVersionRefRepository(
       records: EServiceDescriptorTemplateVersionRefSQL[]
     ): Promise<void> {
       const mapping: EserviceDescriptorTemplateVersionRefMapping = {
-        eservice_template_version_id: (
-          r: EServiceDescriptorTemplateVersionRefSQL
-        ) => r.eserviceTemplateVersionId,
-        eservice_id: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.eserviceId,
-        metadata_version: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.metadataVersion,
-        descriptor_id: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.descriptorId,
-        contact_name: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.contactName,
-        contact_email: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.contactEmail,
-        contact_url: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.contactUrl,
-        terms_and_conditions_url: (
-          r: EServiceDescriptorTemplateVersionRefSQL
-        ) => r.termsAndConditionsUrl,
+        eserviceTemplateVersionId: (r) => r.eserviceTemplateVersionId,
+        eserviceId: (r) => r.eserviceId,
+        metadataVersion: (r) => r.metadataVersion,
+        descriptorId: (r) => r.descriptorId,
+        contactName: (r) => r.contactName,
+        contactEmail: (r) => r.contactEmail,
+        contactUrl: (r) => r.contactUrl,
+        termsAndConditionsUrl: (r) => r.termsAndConditionsUrl,
       };
-      const cs = buildColumnSet<EServiceDescriptorTemplateVersionRefSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      const cs = buildColumnSet(pgp, mapping, tableName);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a
           USING ${stagingTable} b
           WHERE a.descriptor_id = b.descriptor_id
-          AND a.eservice_template_version_id = b.eservice_template_version_id
-          AND a.metadata_version < b.metadata_version;
+            AND a.eservice_template_version_id = b.eservice_template_version_id
+            AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
         throw genericInternalError(
@@ -72,8 +58,7 @@ export function eserviceDescriptorTemplateVersionRefRepository(
           EserviceDescriptorTemplateVersionRefSchema,
           schemaName,
           tableName,
-          `${tableName}_${config.mergeTableSuffix}`,
-          ["eservice_template_version_id", "descriptor_id"]
+          ["eserviceTemplateVersionId", "descriptorId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

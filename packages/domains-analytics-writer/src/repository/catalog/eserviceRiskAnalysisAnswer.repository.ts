@@ -24,29 +24,23 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
       records: EServiceRiskAnalysisAnswerSQL[]
     ): Promise<void> {
       const mapping: EserviceRiskAnalysisAnswerMapping = {
-        id: (r: EServiceRiskAnalysisAnswerSQL) => r.id,
-        eservice_id: (r: EServiceRiskAnalysisAnswerSQL) => r.eserviceId,
-        metadata_version: (r: EServiceRiskAnalysisAnswerSQL) =>
-          r.metadataVersion,
-        risk_analysis_form_id: (r: EServiceRiskAnalysisAnswerSQL) =>
-          r.riskAnalysisFormId,
-        kind: (r: EServiceRiskAnalysisAnswerSQL) => r.kind,
-        key: (r: EServiceRiskAnalysisAnswerSQL) => r.key,
-        value: (r: EServiceRiskAnalysisAnswerSQL) => JSON.stringify(r.value),
+        id: (r) => r.id,
+        eserviceId: (r) => r.eserviceId,
+        metadataVersion: (r) => r.metadataVersion,
+        riskAnalysisFormId: (r) => r.riskAnalysisFormId,
+        kind: (r) => r.kind,
+        key: (r) => r.key,
+        value: (r) => JSON.stringify(r.value),
       };
-      const cs = buildColumnSet<EServiceRiskAnalysisAnswerSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      const cs = buildColumnSet(pgp, mapping, tableName);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a
           USING ${stagingTable} b
           WHERE a.id = b.id
-          AND a.eservice_id = b.eservice_id
-          AND a.metadata_version < b.metadata_version;
+            AND a.eservice_id = b.eservice_id
+            AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
         throw genericInternalError(
@@ -61,8 +55,7 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
           EserviceRiskAnalysisAnswerSchema,
           schemaName,
           tableName,
-          `${tableName}_${config.mergeTableSuffix}`,
-          ["id", "eservice_id"]
+          ["id", "eserviceId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

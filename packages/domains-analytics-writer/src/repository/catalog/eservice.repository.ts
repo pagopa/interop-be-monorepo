@@ -10,6 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
+  EserviceDeletingMapping,
   EserviceMapping,
   EserviceSchema,
 } from "../../model/catalog/eservice.js";
@@ -19,7 +20,7 @@ export function eserviceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`;
+  const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
 
   return {
     async insert(
@@ -28,21 +29,20 @@ export function eserviceRepository(conn: DBConnection) {
       records: EServiceSQL[]
     ): Promise<void> {
       const mapping: EserviceMapping = {
-        id: (r: EServiceSQL) => r.id,
-        metadata_version: (r: EServiceSQL) => r.metadataVersion,
-        name: (r: EServiceSQL) => r.name,
-        producer_id: (r: EServiceSQL) => r.producerId,
-        created_at: (r: EServiceSQL) => r.createdAt,
-        description: (r: EServiceSQL) => r.description,
-        technology: (r: EServiceSQL) => r.technology,
-        mode: (r: EServiceSQL) => r.mode,
-        is_signal_hub_enabled: (r: EServiceSQL) => r.isSignalHubEnabled,
-        is_consumer_delegable: (r: EServiceSQL) => r.isConsumerDelegable,
-        is_client_access_delegable: (r: EServiceSQL) =>
-          r.isClientAccessDelegable,
-        template_id: (r: EServiceSQL) => r.templateId,
+        id: (r) => r.id,
+        metadataVersion: (r) => r.metadataVersion,
+        name: (r) => r.name,
+        producerId: (r) => r.producerId,
+        createdAt: (r) => r.createdAt,
+        description: (r) => r.description,
+        technology: (r) => r.technology,
+        mode: (r) => r.mode,
+        isSignalHubEnabled: (r) => r.isSignalHubEnabled,
+        isConsumerDelegable: (r) => r.isConsumerDelegable,
+        isClientAccessDelegable: (r) => r.isClientAccessDelegable,
+        templateId: (r) => r.templateId,
       };
-      const cs = buildColumnSet<EServiceSQL>(pgp, mapping, stagingTable);
+      const cs = buildColumnSet(pgp, mapping, tableName);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
@@ -64,7 +64,6 @@ export function eserviceRepository(conn: DBConnection) {
           EserviceSchema,
           schemaName,
           tableName,
-          stagingTable,
           ["id"]
         );
         await t.none(mergeQuery);
@@ -91,18 +90,14 @@ export function eserviceRepository(conn: DBConnection) {
       recordsId: Array<EServiceSQL["id"]>
     ): Promise<void> {
       try {
-        const mapping = {
-          id: (r: { id: string }) => r.id,
+        const mapping: EserviceDeletingMapping = {
+          id: (r) => r.id,
           deleted: () => true,
         };
 
-        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
-          pgp,
-          mapping,
-          stagingDeletingTable
-        );
+        const cs = buildColumnSet(pgp, mapping, stagingDeletingTable);
 
-        const records = recordsId.map((id: string) => ({ id, deleted: true }));
+        const records = recordsId.map((id) => ({ id }));
 
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
@@ -132,10 +127,12 @@ export function eserviceRepository(conn: DBConnection) {
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
+        );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

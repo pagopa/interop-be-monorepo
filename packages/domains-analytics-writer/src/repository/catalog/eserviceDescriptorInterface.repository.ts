@@ -10,6 +10,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
+  EserviceDescriptorInterfaceDeletingMapping,
   EserviceDescriptorInterfaceMapping,
   EserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
@@ -19,7 +20,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_interface;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`;
+  const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
 
   return {
     async insert(
@@ -28,23 +29,18 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       records: EServiceDescriptorInterfaceSQL[]
     ): Promise<void> {
       const mapping: EserviceDescriptorInterfaceMapping = {
-        id: (r: EServiceDescriptorInterfaceSQL) => r.id,
-        eservice_id: (r: EServiceDescriptorInterfaceSQL) => r.eserviceId,
-        metadata_version: (r: EServiceDescriptorInterfaceSQL) =>
-          r.metadataVersion,
-        descriptor_id: (r: EServiceDescriptorInterfaceSQL) => r.descriptorId,
-        name: (r: EServiceDescriptorInterfaceSQL) => r.name,
-        content_type: (r: EServiceDescriptorInterfaceSQL) => r.contentType,
-        pretty_name: (r: EServiceDescriptorInterfaceSQL) => r.prettyName,
-        path: (r: EServiceDescriptorInterfaceSQL) => r.path,
-        checksum: (r: EServiceDescriptorInterfaceSQL) => r.checksum,
-        upload_date: (r: EServiceDescriptorInterfaceSQL) => r.uploadDate,
+        id: (r) => r.id,
+        eserviceId: (r) => r.eserviceId,
+        metadataVersion: (r) => r.metadataVersion,
+        descriptorId: (r) => r.descriptorId,
+        name: (r) => r.name,
+        contentType: (r) => r.contentType,
+        prettyName: (r) => r.prettyName,
+        path: (r) => r.path,
+        checksum: (r) => r.checksum,
+        uploadDate: (r) => r.uploadDate,
       };
-      const cs = buildColumnSet<EServiceDescriptorInterfaceSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      const cs = buildColumnSet(pgp, mapping, tableName);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
@@ -66,7 +62,6 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           EserviceDescriptorInterfaceSchema,
           schemaName,
           tableName,
-          `${tableName}_${config.mergeTableSuffix}`,
           ["id"]
         );
         await t.none(mergeQuery);
@@ -93,18 +88,14 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       recordsId: Array<EServiceDescriptorInterfaceSQL["id"]>
     ): Promise<void> {
       try {
-        const mapping = {
-          id: (r: { id: string }) => r.id,
+        const mapping: EserviceDescriptorInterfaceDeletingMapping = {
+          id: (r) => r.id,
           deleted: () => true,
         };
 
-        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
-          pgp,
-          mapping,
-          stagingDeletingTable
-        );
+        const cs = buildColumnSet(pgp, mapping, stagingDeletingTable);
 
-        const records = recordsId.map((id: string) => ({ id, deleted: true }));
+        const records = recordsId.map((id) => ({ id }));
 
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
@@ -134,10 +125,12 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
+        );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTable}: ${error}`
         );
       }
     },

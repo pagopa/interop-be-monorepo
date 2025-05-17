@@ -24,20 +24,13 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
       records: EServiceDescriptorRejectionReasonSQL[]
     ): Promise<void> {
       const mapping: EserviceDescriptorRejectionReasonMapping = {
-        eservice_id: (r: EServiceDescriptorRejectionReasonSQL) => r.eserviceId,
-        metadata_version: (r: EServiceDescriptorRejectionReasonSQL) =>
-          r.metadataVersion,
-        descriptor_id: (r: EServiceDescriptorRejectionReasonSQL) =>
-          r.descriptorId,
-        rejection_reason: (r: EServiceDescriptorRejectionReasonSQL) =>
-          r.rejectionReason,
-        rejected_at: (r: EServiceDescriptorRejectionReasonSQL) => r.rejectedAt,
+        eserviceId: (r) => r.eserviceId,
+        metadataVersion: (r) => r.metadataVersion,
+        descriptorId: (r) => r.descriptorId,
+        rejectionReason: (r) => r.rejectionReason,
+        rejectedAt: (r) => r.rejectedAt,
       };
-      const cs = buildColumnSet<EServiceDescriptorRejectionReasonSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      const cs = buildColumnSet(pgp, mapping, tableName);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
@@ -59,8 +52,7 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
           EserviceDescriptorRejectionReasonSchema,
           schemaName,
           tableName,
-          `${tableName}_${config.mergeTableSuffix}`,
-          ["descriptor_id"]
+          ["descriptorId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

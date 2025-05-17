@@ -57,7 +57,7 @@ await retryConnection(
       { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.catalog_risk_deleting_table,
-        columns: ["id", "eservice_id"],
+        columns: ["id", "eserviceId"],
       },
     ]);
   },

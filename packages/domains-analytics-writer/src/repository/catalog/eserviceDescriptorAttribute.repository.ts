@@ -24,30 +24,24 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
       records: EServiceDescriptorAttributeSQL[]
     ): Promise<void> {
       const mapping: EserviceDescriptorAttributeMapping = {
-        eservice_id: (r: EServiceDescriptorAttributeSQL) => r.eserviceId,
-        metadata_version: (r: EServiceDescriptorAttributeSQL) =>
-          r.metadataVersion,
-        attribute_id: (r: EServiceDescriptorAttributeSQL) => r.attributeId,
-        descriptor_id: (r: EServiceDescriptorAttributeSQL) => r.descriptorId,
-        explicit_attribute_verification: (r: EServiceDescriptorAttributeSQL) =>
-          r.explicitAttributeVerification,
-        kind: (r: EServiceDescriptorAttributeSQL) => r.kind,
-        group_id: (r: EServiceDescriptorAttributeSQL) => r.groupId,
+        eserviceId: (r) => r.eserviceId,
+        metadataVersion: (r) => r.metadataVersion,
+        attributeId: (r) => r.attributeId,
+        descriptorId: (r) => r.descriptorId,
+        explicitAttributeVerification: (r) => r.explicitAttributeVerification,
+        kind: (r) => r.kind,
+        groupId: (r) => r.groupId,
       };
-      const cs = buildColumnSet<EServiceDescriptorAttributeSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      const cs = buildColumnSet(pgp, mapping, tableName);
       try {
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a
           USING ${stagingTable} b
           WHERE a.attribute_id = b.attribute_id
-          AND a.group_id = b.group_id
-          AND a.descriptor_id = b.descriptor_id
-          AND a.metadata_version < b.metadata_version;
+            AND a.group_id = b.group_id
+            AND a.descriptor_id = b.descriptor_id
+            AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
         throw genericInternalError(
@@ -62,8 +56,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           EserviceDescriptorAttributeSchema,
           schemaName,
           tableName,
-          `${tableName}_${config.mergeTableSuffix}`,
-          ["attribute_id", "descriptor_id", "group_id"]
+          ["attributeId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

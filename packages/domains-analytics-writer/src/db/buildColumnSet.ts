@@ -1,10 +1,45 @@
 import pRetry from "p-retry";
 import { AnalyticsSQLDbConfig, DB, Logger } from "pagopa-interop-commons";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
+import { z } from "zod";
+import { InferSelectModel } from "drizzle-orm";
+import { getColumnName } from "../utils/sqlQueryHelper.js";
+import { DbTable, DbTableReadModels, DbTableSchemas } from "../model/db.js";
+import { config } from "../config/config.js";
 import { DBContext } from "./db.js";
 
-export type ColumnValue = string | number | Date | undefined | null | boolean;
+export type ColumnValue =
+  | string
+  | number
+  | boolean
+  | Date
+  | null
+  | undefined
+  | string[]
+  | number[]
+  | boolean[]
+  | Date[];
 
+/**
+ * Represents the shape of a record returned by Drizzle ReadModel for a given table.
+ */
+type InputRow<T extends DbTable> = InferSelectModel<
+  (typeof DbTableReadModels)[T]
+>;
+
+/**
+ * Represents the shape of a record defined by the Zod schema for a given table.
+ */
+type OutputRow<T extends DbTable> = z.infer<DbTableSchemas[T]>;
+
+/**
+ * Describes the mapping between the input row (from Drizzle) and
+ * the output row (conforming to the Zod schema) for a given table.
+ * Each key maps to a function that extracts/transforms the corresponding value.
+ */
+type Mapping<T extends DbTable> = {
+  [K in keyof OutputRow<T>]: (record: InputRow<T>) => OutputRow<T>[K];
+};
 /**
  * This is a helper function that generates a ColumnSet for bulk operations using pg-promise.
  * It creates a mapping between object properties and corresponding database columns.
@@ -12,20 +47,26 @@ export type ColumnValue = string | number | Date | undefined | null | boolean;
  * @param pgp - The pg-promise main instance used to create the ColumnSet.
  * @param mapping - An object that maps column names to functions which extract the corresponding value from a record.
  * @param tableName - The name of the target table for which the ColumnSet is generated.
- * @param schemaName - The name of the target schema for which the ColumnSet is generated.
  * @returns A ColumnSet configured with the specified columns and table details.
  */
-export const buildColumnSet = <T>(
+
+export const buildColumnSet = <
+  T extends DbTable,
+  TOutput extends Partial<OutputRow<T>> = OutputRow<T>
+>(
   pgp: IMain,
-  mapping: Record<string, (record: T) => ColumnValue>,
-  tableName: string
-): ColumnSet<T> => {
-  const columns = Object.entries(mapping).map(([name, initFn]) => ({
-    name,
-    init: ({ source }: IColumnDescriptor<T>) => initFn(source),
+  mapping: Partial<Mapping<T>>,
+  tableName: T
+): ColumnSet<TOutput> => {
+  const snakeCase = getColumnName(tableName);
+
+  const columns = Object.entries(mapping).map(([prop, initFn]) => ({
+    name: snakeCase(prop),
+    init: ({ source }: IColumnDescriptor<InputRow<T>>) => initFn(source),
   }));
+
   return new pgp.helpers.ColumnSet(columns, {
-    table: { table: tableName },
+    table: { table: `${tableName}_${config.mergeTableSuffix}` },
   });
 };
 

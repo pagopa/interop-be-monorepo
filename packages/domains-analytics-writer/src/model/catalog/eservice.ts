@@ -1,30 +1,29 @@
-// eservice.ts
-import { EServiceSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import {
+  eserviceInReadmodelCatalog,
+  EServiceSQL,
+} from "pagopa-interop-readmodel-models";
 
-export const EserviceSchema = z.object({
-  id: z.string(),
-  metadata_version: z.number(),
-  name: z.string(),
-  created_at: z.string(),
-  producer_id: z.string(),
-  description: z.string(),
-  technology: z.string(),
-  mode: z.string(),
-  is_signal_hub_enabled: z.boolean().nullable(),
-  is_consumer_delegable: z.boolean().nullable(),
-  is_client_access_delegable: z.boolean().nullable(),
-  template_id: z.string().nullable(),
+export const EserviceSchema = createSelectSchema(
+  eserviceInReadmodelCatalog
+).extend({
   deleted: z.boolean().default(false).optional(),
 });
 export type EserviceSchema = z.infer<typeof EserviceSchema>;
 
-export const EserviceDeletingSchema = z.object({
-  id: z.string(),
-  deleted: z.boolean().default(false).optional(),
+export type EserviceMapping = {
+  [K in keyof EserviceSchema]: (record: EServiceSQL) => EserviceSchema[K];
+};
+
+export const EserviceDeletingSchema = EserviceSchema.pick({
+  id: true,
+  deleted: true,
 });
 export type EserviceDeletingSchema = z.infer<typeof EserviceDeletingSchema>;
 
-export type EserviceMapping = {
-  [K in keyof EserviceSchema]: (record: EServiceSQL) => EserviceSchema[K];
+export type EserviceDeletingMapping = {
+  [K in keyof EserviceDeletingSchema]: (
+    record: Pick<EserviceDeletingSchema, "id">
+  ) => EserviceDeletingSchema[K];
 };

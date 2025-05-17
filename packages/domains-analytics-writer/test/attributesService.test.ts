@@ -15,13 +15,17 @@ import {
 } from "pagopa-interop-models";
 import { handleAttributeMessageV1 } from "../src/handlers/attribute/consumerServiceV1.js";
 import { AttributeDbTable } from "../src/model/db.js";
-import { dbContext, getAttributeFromDb } from "./utils.js";
+import {
+  attributeTables,
+  dbContext,
+  getManyFromDb,
+  getOneFromDb,
+  resetTargetTables,
+} from "./utils.js";
 
 describe("SQL Attribute Service - Events V1", () => {
   beforeEach(async () => {
-    await dbContext.conn.none(
-      `TRUNCATE ${AttributeDbTable.attribute} CASCADE;`
-    );
+    await resetTargetTables(attributeTables);
   });
 
   it("AttributeAdded - certified", async () => {
@@ -43,12 +47,16 @@ describe("SQL Attribute Service - Events V1", () => {
       data: payload,
       log_date: new Date(),
     };
+
     await handleAttributeMessageV1([message], dbContext);
-    const stored = await getAttributeFromDb(certifiedAttribute.id, dbContext);
-    expect(stored?.length).toBe(1);
-    expect(stored?.[0].id).toBe(payload.attribute?.id);
-    expect(stored?.[0].kind).toBe(attributeKind.certified);
-    expect(stored?.[0].metadata_version).toBe(5);
+
+    const stored = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
+      id: certifiedAttribute.id,
+    });
+    expect(stored.length).toBe(1);
+    expect(stored[0]?.id).toBe(payload.attribute?.id);
+    expect(stored[0]?.kind).toBe(attributeKind.certified);
+    expect(stored[0]?.metadataVersion).toBe(5);
   });
 
   it("AttributeAdded - declared", async () => {
@@ -68,12 +76,16 @@ describe("SQL Attribute Service - Events V1", () => {
       data: payload,
       log_date: new Date(),
     };
+
     await handleAttributeMessageV1([message], dbContext);
-    const stored = await getAttributeFromDb(declaredAttribute.id, dbContext);
-    expect(stored?.length).toBe(1);
-    expect(stored?.[0].id).toBe(payload.attribute?.id);
-    expect(stored?.[0].kind).toBe(attributeKind.declared);
-    expect(stored?.[0].metadata_version).toBe(2);
+
+    const stored = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
+      id: declaredAttribute.id,
+    });
+    expect(stored.length).toBe(1);
+    expect(stored[0]?.id).toBe(payload.attribute?.id);
+    expect(stored[0]?.kind).toBe(attributeKind.declared);
+    expect(stored[0]?.metadataVersion).toBe(2);
   });
 
   it("AttributeAdded - verified", async () => {
@@ -93,14 +105,18 @@ describe("SQL Attribute Service - Events V1", () => {
       data: payload,
       log_date: new Date(),
     };
+
     await handleAttributeMessageV1([message], dbContext);
-    const stored = await getAttributeFromDb(verifiedAttribute.id, dbContext);
-    expect(stored?.length).toBe(1);
-    expect(stored?.[0].kind).toBe(attributeKind.verified);
-    expect(stored?.[0].metadata_version).toBe(3);
+
+    const stored = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
+      id: verifiedAttribute.id,
+    });
+    expect(stored.length).toBe(1);
+    expect(stored[0]?.kind).toBe(attributeKind.verified);
+    expect(stored[0]?.metadataVersion).toBe(3);
   });
 
-  it("AttributeAdded - deduplicates batch by attribute ID, keeps only record with highest metadata_version", async () => {
+  it("AttributeAdded - deduplicates batch by attribute ID, keeps only record with highest metadataVersion", async () => {
     const attr: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.verified,
@@ -123,10 +139,14 @@ describe("SQL Attribute Service - Events V1", () => {
       data: { attribute: toAttributeV1(attr) },
       log_date: new Date(),
     };
+
     await handleAttributeMessageV1([older, newer], dbContext);
-    const stored = await getAttributeFromDb(attr.id, dbContext);
-    expect(stored?.length).toBe(1);
-    expect(stored?.[0].metadata_version).toBe(10);
+
+    const stored = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
+      id: attr.id,
+    });
+    expect(stored.length).toBe(1);
+    expect(stored[0]?.metadataVersion).toBe(10);
   });
 
   it("AttributeAdded - batch with different attribute IDs inserts all records", async () => {
@@ -174,15 +194,23 @@ describe("SQL Attribute Service - Events V1", () => {
         log_date: new Date(),
       },
     ];
+
     await handleAttributeMessageV1(messages, dbContext);
-    const stored1 = await getAttributeFromDb(attr1.id, dbContext);
-    const stored2 = await getAttributeFromDb(attr2.id, dbContext);
-    const stored3 = await getAttributeFromDb(attr3.id, dbContext);
+
+    const stored1 = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
+      id: attr1.id,
+    });
+    const stored2 = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
+      id: attr2.id,
+    });
+    const stored3 = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
+      id: attr3.id,
+    });
     const allStored = [stored1, stored2, stored3].flat();
     expect(allStored.length).toBe(3);
-    expect(stored1?.[0].id).toBe(attr1.id);
-    expect(stored2?.[0].id).toBe(attr2.id);
-    expect(stored3?.[0].id).toBe(attr3.id);
+    expect(stored1[0]?.id).toBe(attr1.id);
+    expect(stored2[0]?.id).toBe(attr2.id);
+    expect(stored3[0]?.id).toBe(attr3.id);
   });
 
   it("MaintenanceAttributeDeleted - flags attribute as deleted", async () => {
@@ -201,6 +229,7 @@ describe("SQL Attribute Service - Events V1", () => {
       log_date: new Date(),
     };
     await handleAttributeMessageV1([addMsg], dbContext);
+
     const delPayload: MaintenanceAttributeDeletedV1 = { id: base.id };
     const delMsg: AttributeEventEnvelope = {
       sequence_num: 2,
@@ -212,12 +241,15 @@ describe("SQL Attribute Service - Events V1", () => {
       log_date: new Date(),
     };
     await handleAttributeMessageV1([delMsg], dbContext);
-    const stored = await getAttributeFromDb(base.id, dbContext);
-    expect(stored?.[0].deleted).toBe(true);
+
+    const stored = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
+      id: base.id,
+    });
+    expect(stored[0]?.deleted).toBe(true);
   });
 
-  describe("Merge and check on metadata_version", () => {
-    it("should skip insert/update when incoming metadata_version is lower or equal", async () => {
+  describe("Merge and check on metadataVersion", () => {
+    it("should skip insert/update when incoming metadataVersion is lower or equal", async () => {
       const attr: Attribute = {
         ...getMockAttribute(),
         kind: attributeKind.declared,
@@ -233,8 +265,12 @@ describe("SQL Attribute Service - Events V1", () => {
         log_date: new Date(),
       };
       await handleAttributeMessageV1([first], dbContext);
-      let stored = await getAttributeFromDb(attr.id, dbContext);
-      expect(stored?.[0].metadata_version).toBe(5);
+
+      let stored = await getOneFromDb(dbContext, AttributeDbTable.attribute, {
+        id: attr.id,
+      });
+      expect(stored?.metadataVersion).toBe(5);
+
       const equal: AttributeEventEnvelope = {
         sequence_num: 2,
         stream_id: attr.id,
@@ -245,8 +281,12 @@ describe("SQL Attribute Service - Events V1", () => {
         log_date: new Date(),
       };
       await handleAttributeMessageV1([equal], dbContext);
-      stored = await getAttributeFromDb(attr.id, dbContext);
-      expect(stored?.[0].metadata_version).toBe(5);
+
+      stored = await getOneFromDb(dbContext, AttributeDbTable.attribute, {
+        id: attr.id,
+      });
+      expect(stored?.metadataVersion).toBe(5);
+
       const lower: AttributeEventEnvelope = {
         sequence_num: 3,
         stream_id: attr.id,
@@ -257,11 +297,14 @@ describe("SQL Attribute Service - Events V1", () => {
         log_date: new Date(),
       };
       await handleAttributeMessageV1([lower], dbContext);
-      stored = await getAttributeFromDb(attr.id, dbContext);
-      expect(stored?.[0].metadata_version).toBe(5);
+
+      stored = await getOneFromDb(dbContext, AttributeDbTable.attribute, {
+        id: attr.id,
+      });
+      expect(stored?.metadataVersion).toBe(5);
     });
 
-    it("should overwrite when incoming metadata_version is greater", async () => {
+    it("should overwrite when incoming metadataVersion is greater", async () => {
       const attr: Attribute = {
         ...getMockAttribute(),
         kind: attributeKind.verified,
@@ -277,6 +320,7 @@ describe("SQL Attribute Service - Events V1", () => {
         log_date: new Date(),
       };
       await handleAttributeMessageV1([initial], dbContext);
+
       const higherAttr: Attribute = { ...attr, code: "updated code" };
       const higher: AttributeEventEnvelope = {
         sequence_num: 2,
@@ -288,9 +332,12 @@ describe("SQL Attribute Service - Events V1", () => {
         log_date: new Date(),
       };
       await handleAttributeMessageV1([higher], dbContext);
-      const stored = await getAttributeFromDb(attr.id, dbContext);
-      expect(stored?.[0].metadata_version).toBe(10);
-      expect(stored?.[0].code).toBe("updated code");
+
+      const stored = await getOneFromDb(dbContext, AttributeDbTable.attribute, {
+        id: attr.id,
+      });
+      expect(stored?.metadataVersion).toBe(10);
+      expect(stored?.code).toBe("updated code");
     });
   });
 });
