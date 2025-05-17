@@ -20,7 +20,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_risk_analysis;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${DeletingDbTable.catalog_risk_deleting_table}_${config.mergeTableSuffix}`;
+  const stagingDeletingTable = DeletingDbTable.catalog_risk_deleting_table;
 
   return {
     async insert(
@@ -100,7 +100,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
-          stagingDeletingTable
+          `${stagingDeletingTable}_${config.mergeTableSuffix}`
         );
 
         const records = recordsId.map((id: string) => ({ id, deleted: true }));
@@ -145,7 +145,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
         const cs = buildColumnSet<EServiceRiskAnalysisSQL>(
           pgp,
           mapping,
-          stagingDeletingTable
+          `${stagingDeletingTable}_${config.mergeTableSuffix}`
         );
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
@@ -176,7 +176,9 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning staging table ${stagingDeletingTable}: ${error}`

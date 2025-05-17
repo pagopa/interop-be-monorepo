@@ -16,7 +16,7 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AgreementDbTable.agreement_consumer_document;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${DeletingDbTable.agreement_deleting_table}_${config.mergeTableSuffix}`;
+  const stagingDeletingTable = DeletingDbTable.agreement_deleting_table;
 
   return {
     async insert(
@@ -98,7 +98,7 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
-          stagingDeletingTable
+          `${stagingDeletingTable}_${config.mergeTableSuffix}`
         );
 
         const records = recordsId.map((id: string) => ({ id, deleted: true }));
@@ -131,7 +131,9 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
 
     async cleanDeleting() {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
+        );
       } catch (error) {
         throw genericInternalError(
           `Error cleaning staging table ${stagingDeletingTable}: ${error}`
