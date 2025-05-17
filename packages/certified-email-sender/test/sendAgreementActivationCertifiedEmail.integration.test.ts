@@ -108,7 +108,7 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
   //   expect(pecEmailManager.send).toHaveBeenCalledWith(mailOptions);
   // });
 
-  it.only("should send an email to Producer and Consumer digital addresses", async () => {
+  it("should send an email to Producer and Consumer digital addresses", async () => {
     vi.spyOn(pecEmailManager, "send");
     vi.spyOn(templateService, "compileHtml").mockReturnValue(
       "<html>mock</html>"
