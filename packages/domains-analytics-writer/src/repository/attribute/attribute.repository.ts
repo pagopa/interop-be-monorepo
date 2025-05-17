@@ -20,7 +20,8 @@ export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AttributeDbTable.attribute;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = DeletingDbTable.attribute_deleting_table;
+  const deletingTable = DeletingDbTable.attribute_deleting_table;
+  const stagingDeletingTable = `${deletingTable}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -90,7 +91,7 @@ export function attributeRepository(conn: DBConnection) {
           id: (r) => r.id,
           deleted: () => true,
         };
-        const cs = buildColumnSet(pgp, stagingDeletingTable, mapping);
+        const cs = buildColumnSet(pgp, deletingTable, mapping);
 
         const records = recordsId.map((id) => ({ id }));
 
@@ -109,7 +110,7 @@ export function attributeRepository(conn: DBConnection) {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
-          stagingDeletingTable,
+          deletingTable,
           ["id"]
         );
         await t.none(mergeQuery);
@@ -122,9 +123,7 @@ export function attributeRepository(conn: DBConnection) {
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(
-          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
-        );
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning deleting staging table ${stagingDeletingTable}: ${error}`

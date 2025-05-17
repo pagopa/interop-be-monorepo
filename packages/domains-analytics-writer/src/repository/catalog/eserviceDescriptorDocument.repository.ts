@@ -20,7 +20,8 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_document;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = DeletingDbTable.catalog_deleting_table;
+  const deletingTable = DeletingDbTable.catalog_deleting_table;
+  const stagingDeletingTable = `${deletingTable}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -92,7 +93,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
           id: (r) => r.id,
           deleted: () => true,
         };
-        const cs = buildColumnSet(pgp, stagingDeletingTable, mapping);
+        const cs = buildColumnSet(pgp, deletingTable, mapping);
         const records = recordsId.map((id) => ({ id }));
 
         await t.none(
@@ -110,7 +111,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
-          stagingDeletingTable,
+          deletingTable,
           ["id"]
         );
         await t.none(mergeQuery);
@@ -123,9 +124,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(
-          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
-        );
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning deleting staging table ${stagingDeletingTable}: ${error}`
