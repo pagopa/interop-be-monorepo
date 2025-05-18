@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS domains;
 
-CREATE TABLE domains.attribute (
+CREATE TABLE IF NOT EXISTS domains.attribute (
   id VARCHAR(36),
   metadata_version INTEGER NOT NULL,
   code VARCHAR,
@@ -150,7 +150,7 @@ CREATE TABLE domains.eservice_risk_analysis_answer (
   FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)
 );
 
-CREATE TABLE domains.tenant (
+CREATE TABLE IF NOT EXISTS domains.tenant (
   id VARCHAR(36),
   metadata_version INTEGER NOT NULL,
   kind VARCHAR,
@@ -167,7 +167,7 @@ CREATE TABLE domains.tenant (
   CONSTRAINT tenant_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
-CREATE TABLE domains.tenant_mail (
+CREATE TABLE IF NOT EXISTS domains.tenant_mail (
   id VARCHAR,
   tenant_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER NOT NULL,
@@ -180,7 +180,7 @@ CREATE TABLE domains.tenant_mail (
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
-CREATE TABLE domains.tenant_certified_attribute (
+CREATE TABLE IF NOT EXISTS domains.tenant_certified_attribute (
   attribute_id VARCHAR(36) NOT NULL,
   tenant_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER NOT NULL,
@@ -191,7 +191,7 @@ CREATE TABLE domains.tenant_certified_attribute (
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
-CREATE TABLE domains.tenant_declared_attribute (
+CREATE TABLE IF NOT EXISTS domains.tenant_declared_attribute (
   attribute_id VARCHAR(36),
   tenant_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER NOT NULL,
@@ -203,7 +203,7 @@ CREATE TABLE domains.tenant_declared_attribute (
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
-CREATE TABLE domains.tenant_verified_attribute (
+CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute (
   attribute_id VARCHAR(36),
   tenant_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER NOT NULL,
@@ -213,7 +213,7 @@ CREATE TABLE domains.tenant_verified_attribute (
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
-CREATE TABLE domains.tenant_verified_attribute_verifier (
+CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_verifier (
   tenant_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER NOT NULL,
   tenant_verifier_id VARCHAR(36) NOT NULL,
@@ -228,7 +228,7 @@ CREATE TABLE domains.tenant_verified_attribute_verifier (
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
-CREATE TABLE domains.tenant_verified_attribute_revoker (
+CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_revoker (
   tenant_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER NOT NULL,
   tenant_revoker_id VARCHAR(36) NOT NULL,
@@ -244,7 +244,7 @@ CREATE TABLE domains.tenant_verified_attribute_revoker (
   FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
-CREATE TABLE domains.tenant_feature (
+CREATE TABLE IF NOT EXISTS domains.tenant_feature (
   tenant_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER NOT NULL,
   kind VARCHAR NOT NULL,
