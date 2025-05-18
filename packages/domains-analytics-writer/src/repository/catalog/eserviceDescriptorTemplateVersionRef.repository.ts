@@ -1,67 +1,43 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { EServiceDescriptorTemplateVersionRefSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceDescriptorTemplateVersionRefMapping,
-  EserviceDescriptorTemplateVersionRefSchema,
-} from "../../model/catalog/eserviceDescriptorTemplateVersionRef.js";
-import { CatalogDbTable } from "../../model/db.js";
+import { EserviceDescriptorTemplateVersionRefSchema } from "../../model/catalog/eserviceDescriptorTemplateVersionRef.js";
+import { CatalogDbTable } from "../../model/db/index.js";
 
 export function eserviceDescriptorTemplateVersionRefRepository(
   conn: DBConnection
 ) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_template_version_ref;
-  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EServiceDescriptorTemplateVersionRefSQL[]
+      records: EserviceDescriptorTemplateVersionRefSchema[]
     ): Promise<void> {
-      const mapping: EserviceDescriptorTemplateVersionRefMapping = {
-        eservice_template_version_id: (
-          r: EServiceDescriptorTemplateVersionRefSQL
-        ) => r.eserviceTemplateVersionId,
-        eservice_id: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.eserviceId,
-        metadata_version: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.metadataVersion,
-        descriptor_id: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.descriptorId,
-        contact_name: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.contactName,
-        contact_email: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.contactEmail,
-        contact_url: (r: EServiceDescriptorTemplateVersionRefSQL) =>
-          r.contactUrl,
-        terms_and_conditions_url: (
-          r: EServiceDescriptorTemplateVersionRefSQL
-        ) => r.termsAndConditionsUrl,
-      };
-      const cs = buildColumnSet<EServiceDescriptorTemplateVersionRefSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
       try {
+        const cs = buildColumnSet(
+          pgp,
+          tableName,
+          EserviceDescriptorTemplateVersionRefSchema
+        );
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
-          DELETE FROM ${stagingTable} a
-          USING ${stagingTable} b
+          DELETE FROM ${stagingTableName} a
+          USING ${stagingTableName} b
           WHERE a.descriptor_id = b.descriptor_id
-          AND a.eservice_template_version_id = b.eservice_template_version_id
-          AND a.metadata_version < b.metadata_version;
+            AND a.eservice_template_version_id = b.eservice_template_version_id
+            AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -72,23 +48,22 @@ export function eserviceDescriptorTemplateVersionRefRepository(
           EserviceDescriptorTemplateVersionRefSchema,
           schemaName,
           tableName,
-          `${tableName}_${config.mergeTableSuffix}`,
-          ["eservice_template_version_id", "descriptor_id"]
+          ["eserviceTemplateVersionId", "descriptorId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
     async clean(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },

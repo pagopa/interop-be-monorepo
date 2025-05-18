@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS domains.attribute (
 
 CREATE TABLE domains.eservice (
   id VARCHAR(36),
-  metadata_version INTEGER ,
-  producer_id VARCHAR(36) ,
+  metadata_version INTEGER,
+  producer_id VARCHAR(36),
   name VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
   technology VARCHAR NOT NULL,
@@ -25,6 +25,7 @@ CREATE TABLE domains.eservice (
   is_signal_hub_enabled BOOLEAN,
   is_consumer_delegable BOOLEAN,
   is_client_access_delegable BOOLEAN,
+  template_id VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -49,8 +50,7 @@ CREATE TABLE domains.eservice_descriptor (
   archived_at TIMESTAMP,
   deleted BOOLEAN,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_template_version_ref (
@@ -64,8 +64,7 @@ CREATE TABLE domains.eservice_descriptor_template_version_ref (
   terms_and_conditions_url VARCHAR,
   deleted BOOLEAN,
   PRIMARY KEY (eservice_template_version_id, descriptor_id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_rejection_reason (
@@ -75,8 +74,7 @@ CREATE TABLE domains.eservice_descriptor_rejection_reason (
   rejection_reason VARCHAR NOT NULL,
   rejected_at TIMESTAMP NOT NULL,
   deleted BOOLEAN,
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_interface (
@@ -92,8 +90,7 @@ CREATE TABLE domains.eservice_descriptor_interface (
   upload_date TIMESTAMP NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_document (
@@ -109,8 +106,7 @@ CREATE TABLE domains.eservice_descriptor_document (
   upload_date TIMESTAMP NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_descriptor_attribute (
@@ -123,8 +119,7 @@ CREATE TABLE domains.eservice_descriptor_attribute (
   group_id INTEGER NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_risk_analysis (
@@ -138,25 +133,21 @@ CREATE TABLE domains.eservice_risk_analysis (
   deleted BOOLEAN,
   PRIMARY KEY (id, eservice_id),
   UNIQUE (risk_analysis_form_id, eservice_id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
 CREATE TABLE domains.eservice_risk_analysis_answer (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
   metadata_version INTEGER,
-  risk_analysis_form_id VARCHAR(36) NOT NULL
-    REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id),
+  risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id),
   kind VARCHAR NOT NULL,
   key VARCHAR NOT NULL,
   value VARCHAR(65535) NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id, eservice_id),
-  FOREIGN KEY (eservice_id)
-    REFERENCES domains.eservice (id),
-  FOREIGN KEY (risk_analysis_form_id, eservice_id)
-    REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)
+  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id),
+  FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)
 );
 
 CREATE TABLE domains.agreement (

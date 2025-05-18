@@ -2,30 +2,52 @@
 import { z } from "zod";
 import { ITask } from "pg-promise";
 import {
-  DbTableNames,
-  DbTableSchemas,
-  DeletingDbTableConfig,
-} from "../model/db.js";
+  DbTable,
+  DbTableReadModels,
+  DeletingDbTable,
+  DomainDbTable,
+  DomainDbTableSchemas,
+} from "../model/db/index.js";
 import { config } from "../config/config.js";
+
+/**
+ * Given a table key from `DbTableReadModels`, returns a function that
+ * maps a key column from `camelCase` to the actual SQL column names
+ * `snake_case` defined in the corresponding Drizzle readModel tables.
+ *
+ * @param tableName  A key in `DbTableReadModels` (e.g. `"eserviceId"`, etc.)
+ * @returns A mapper `(columnKey: string) => string` that returns the actual
+ * SQL column name (e.g. "eservice_id") or falls back to the original key.
+ */
+export function getColumnName<T extends DbTable>(
+  tableName: T,
+): (columnKey: string) => string {
+  const table = DbTableReadModels[tableName] as unknown as Record<
+    string,
+    { name: string }
+  >;
+  return (columnKey: string) => table[columnKey]?.name ?? columnKey;
+}
 
 /**
  * Generates a MERGE SQL query
  *
  * @param tableSchema - A Zod object schema refering to the table model from which to extract the list of keys.
- * @param targetTableName - The  target table name.
- * @param stagingTableName - The staging table.
+ * @param schemaName - The target db schema name.
+ * @param tableName - The  target table name.
  * @param keysOn - The column keys from the schema used in the ON condition of the MERGE.
  * @returns The generated MERGE SQL query as a string.
  */
 export function generateMergeQuery<T extends z.ZodRawShape>(
   tableSchema: z.ZodObject<T>,
   schemaName: string,
-  targetTableName: DbTableNames,
-  stagingTableName: string,
-  keysOn: Array<keyof T>
+  tableName: DomainDbTable,
+  keysOn: Array<keyof T>,
 ): string {
-  const keys = Object.keys(tableSchema.shape);
   const quoteColumn = (c: string) => `"${c}"`;
+  const snakeCase = getColumnName(tableName);
+  const keys = Object.keys(tableSchema.shape).map(snakeCase);
+
   const updateSet = keys
     .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
     .join(",\n      ");
@@ -34,20 +56,19 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   const valList = keys.map((c) => `source.${quoteColumn(c)}`).join(", ");
 
   const onCondition = keysOn
-    .map(
-      (k) =>
-        `${schemaName}.${targetTableName}.${quoteColumn(
-          String(k)
-        )} = source.${quoteColumn(String(k))}`
-    )
+    .map((k) => {
+      const key = quoteColumn(snakeCase(String(k)));
+      return `${schemaName}.${tableName}.${key} = source.${key}`;
+    })
     .join(" AND ");
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   return `
-      MERGE INTO ${schemaName}.${targetTableName}
+      MERGE INTO ${schemaName}.${tableName}
       USING ${stagingTableName} AS source
       ON ${onCondition}
       WHEN MATCHED
-        AND source.metadata_version > ${schemaName}.${targetTableName}.metadata_version
+        AND source.metadata_version > ${schemaName}.${tableName}.metadata_version
       THEN
         UPDATE SET
           ${updateSet}
@@ -57,25 +78,39 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
     `;
 }
 
+/**
+ * Generates a simplified MERGE query to update the `deleted` flag
+ * for matching rows between a target table and a staging table.
+ *
+ * @param schemaName - The database schema name.
+ * @param targetTableName - The target table to update.
+ * @param stagingTableName - The temporary staging table used as a source.
+ * @param deleteKeysOn - Keys used to match records between the tables.
+ * @param useIdAsSourceDeleteKey - Whether to always use "id" as the source key (default: true).
+ * @returns A MERGE SQL query string to perform a logical delete.
+ */
 export function generateMergeDeleteQuery<
-  TT extends DbTableNames,
-  SN extends keyof typeof DeletingDbTableConfig,
-  DeleteKey extends keyof z.infer<DbTableSchemas[TT]>
+  TargetTable extends DomainDbTable,
+  StagingTable extends DeletingDbTable,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable]>,
 >(
   schemaName: string,
-  targetTableName: TT,
-  stagingTableName: SN,
+  targetTableName: TargetTable,
+  stagingTableName: StagingTable,
   deleteKeysOn: DeleteKey[],
-  useIdAsSourceDeleteKey: boolean = true
+  useIdAsSourceDeleteKey: boolean = true,
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
+  const snakeCase = getColumnName(targetTableName);
 
   const onCondition = deleteKeysOn
     .map(
       (k) =>
-        `${schemaName}.${targetTableName}.${quoteColumn(String(k))} = source.${
-          useIdAsSourceDeleteKey ? "id" : quoteColumn(String(k))
-        }`
+        `${schemaName}.${targetTableName}.${quoteColumn(
+          snakeCase(String(k)),
+        )} = source.${
+          useIdAsSourceDeleteKey ? "id" : quoteColumn(snakeCase(String(k)))
+        }`,
     )
     .join(" AND ");
 
@@ -88,22 +123,31 @@ export function generateMergeDeleteQuery<
     `.trim();
 }
 
+/**
+ * Performs a cascading logical delete (`deleted = true`) across multiple target tables
+ * by generating and executing MERGE queries based on a shared `id` key.
+ *
+ * @param t - The pg-promise transaction object.
+ * @param id - The key to match rows on during the delete cascade (typically "id").
+ * @param deletingTargetTableNames - A list of target table names to apply the delete.
+ * @param deletingStagingTableName - The name of the staging table containing `id` and `deleted` columns.
+ */
 export async function mergeDeletingCascadeById<
-  TN extends ReadonlyArray<DbTableNames>,
-  SN extends keyof typeof DeletingDbTableConfig,
-  DeleteKey extends keyof z.infer<DbTableSchemas[TN[number]]>
+  TargetTable extends ReadonlyArray<DomainDbTable>,
+  StagingTable extends DeletingDbTable,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>,
 >(
   t: ITask<unknown>,
   id: DeleteKey,
-  deletingTargetTableNames: [...TN],
-  deletingStagingTableName: SN
+  deletingTargetTableNames: [...TargetTable],
+  deletingStagingTableName: StagingTable,
 ): Promise<void> {
   for (const deletingTargetTableName of deletingTargetTableNames) {
     const mergeQuery = generateMergeDeleteQuery(
       config.dbSchemaName,
       deletingTargetTableName,
       deletingStagingTableName,
-      [id]
+      [id],
     );
     await t.none(mergeQuery);
   }
