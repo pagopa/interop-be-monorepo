@@ -12,7 +12,7 @@ import {
   EserviceRiskAnalysisDeletingSchema,
   EserviceRiskAnalysisSchema,
 } from "../../model/catalog/eserviceRiskAnalysis.js";
-import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
+import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
 
 export function eserviceRiskAnalysisRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

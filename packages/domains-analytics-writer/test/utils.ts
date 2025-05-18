@@ -16,7 +16,7 @@ import {
   DeletingDbTableConfigMap,
   DomainDbTable,
   DomainDbTableSchemas,
-} from "../src/model/db.js";
+} from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
 import { getColumnName } from "../src/utils/sqlQueryHelper.js";

@@ -15,7 +15,7 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
-} from "./model/db.js";
+} from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
 const dbInstance = initDB({

@@ -12,7 +12,7 @@ import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, AttributeDbTable } from "../../model/db.js";
+import { DeletingDbTable, AttributeDbTable } from "../../model/db/index.js";
 
 export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { DBConnection } from "../db/db.js";
-import { DeletingDbTableConfigMap, DomainDbTable } from "../model/db.js";
+import { DeletingDbTableConfigMap, DomainDbTable } from "../model/db/index.js";
 import { setupStagingTablesError } from "../model/errors.js";
 import { getColumnName } from "../utils/sqlQueryHelper.js";
 export interface SetupDbConfig {

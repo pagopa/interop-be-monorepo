@@ -3,7 +3,7 @@ import { AnalyticsSQLDbConfig, DB, Logger } from "pagopa-interop-commons";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { z } from "zod";
 import { getColumnName } from "../utils/sqlQueryHelper.js";
-import { DbTable } from "../model/db.js";
+import { DbTable } from "../model/db/index.js";
 import { config } from "../config/config.js";
 import { DBContext } from "./db.js";
 

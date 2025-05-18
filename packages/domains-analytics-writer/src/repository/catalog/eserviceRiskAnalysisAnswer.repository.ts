@@ -6,7 +6,7 @@ import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { EserviceRiskAnalysisAnswerSchema } from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
-import { CatalogDbTable } from "../../model/db.js";
+import { CatalogDbTable } from "../../model/db/index.js";
 
 export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

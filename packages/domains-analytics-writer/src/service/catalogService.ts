@@ -12,7 +12,7 @@ import { eserviceDescriptorRejectionRepository } from "../repository/catalog/ese
 import { eserviceDescriptorTemplateVersionRefRepository } from "../repository/catalog/eserviceDescriptorTemplateVersionRef.repository.js";
 import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDescriptor.repository.js";
 import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
-import { CatalogDbTable, DeletingDbTable } from "../model/db.js";
+import { CatalogDbTable, DeletingDbTable } from "../model/db/index.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";

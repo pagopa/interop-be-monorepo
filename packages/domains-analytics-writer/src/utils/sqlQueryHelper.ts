@@ -7,7 +7,7 @@ import {
   DeletingDbTable,
   DomainDbTable,
   DomainDbTableSchemas,
-} from "../model/db.js";
+} from "../model/db/index.js";
 import { config } from "../config/config.js";
 
 /**

@@ -12,7 +12,7 @@ import {
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
-import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
+import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
 
 export function eserviceDescriptorRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

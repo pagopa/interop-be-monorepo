@@ -14,7 +14,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { handleAttributeMessageV1 } from "../src/handlers/attribute/consumerServiceV1.js";
-import { AttributeDbTable } from "../src/model/db.js";
+import { AttributeDbTable } from "../src/model/db/index.js";
 import {
   attributeTables,
   dbContext,

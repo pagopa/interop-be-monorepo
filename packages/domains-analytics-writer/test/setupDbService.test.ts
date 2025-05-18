@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, afterAll } from "vitest";
 import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import { config } from "../src/config/config.js";
-import { DbTable } from "../src/model/db.js";
+import { DbTable } from "../src/model/db/index.js";
 import { setupStagingTablesError } from "../src/model/errors.js";
 import {
   dbContext,

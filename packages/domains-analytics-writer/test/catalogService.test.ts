@@ -31,7 +31,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { handleCatalogMessageV1 } from "../src/handlers/catalog/consumerServiceV1.js";
 import { handleCatalogMessageV2 } from "../src/handlers/catalog/consumerServiceV2.js";
-import { CatalogDbTable } from "../src/model/db.js";
+import { CatalogDbTable } from "../src/model/db/index.js";
 import {
   dbContext,
   getOneFromDb,
