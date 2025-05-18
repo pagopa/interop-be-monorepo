@@ -15,6 +15,7 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
+  TenantDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
@@ -51,6 +52,14 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      TenantDbTable.tenant,
+      TenantDbTable.tenant_mail,
+      TenantDbTable.tenant_certified_attribute,
+      TenantDbTable.tenant_declared_attribute,
+      TenantDbTable.tenant_verified_attribute,
+      TenantDbTable.tenant_verified_attribute_verifier,
+      TenantDbTable.tenant_verified_attribute_revoker,
+      TenantDbTable.tenant_feature,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
@@ -58,6 +67,18 @@ await retryConnection(
       {
         name: DeletingDbTable.catalog_risk_deleting_table,
         columns: ["id", "eserviceId"],
+      },
+      {
+        name: DeletingDbTable.tenant_deleting_table,
+        columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.tenant_mail_deleting_table,
+        columns: ["id", "tenantId"],
+      },
+      {
+        name: DeletingDbTable.tenant_feature_deleting_table,
+        columns: ["tenantId", "kind"],
       },
     ]);
   },
