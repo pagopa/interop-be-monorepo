@@ -21,11 +21,11 @@ export type ColumnValue = string | number | Date | undefined | null | boolean;
  * @param schema - The Zod schema representing the shape of the data to persist.
  * @returns A pg-promise ColumnSet object with mapped columns for bulk operations.
  */
-export function buildColumnSet<T extends z.ZodRawShape>(
+export const buildColumnSet = <T extends z.ZodRawShape>(
   pgp: IMain,
   tableName: DbTable,
   schema: z.ZodObject<T>
-): ColumnSet<z.infer<typeof schema>> {
+): ColumnSet<z.infer<typeof schema>> => {
   const snakeCase = getColumnName(tableName);
   const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
 
@@ -38,7 +38,7 @@ export function buildColumnSet<T extends z.ZodRawShape>(
   return new pgp.helpers.ColumnSet(columns, {
     table: { table: `${tableName}_${config.mergeTableSuffix}` },
   });
-}
+};
 
 /**
  * Attaches an error handler to the current database connection's client.
