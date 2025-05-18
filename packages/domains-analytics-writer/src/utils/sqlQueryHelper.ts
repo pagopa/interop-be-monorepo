@@ -90,13 +90,13 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
  * @returns A MERGE SQL query string to perform a logical delete.
  */
 export function generateMergeDeleteQuery<
-  TT extends DomainDbTable,
-  SN extends DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TT]>
+  TargetTable extends DomainDbTable,
+  StagingTable extends DeletingDbTable,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable]>
 >(
   schemaName: string,
-  targetTableName: TT,
-  stagingTableName: SN,
+  targetTableName: TargetTable,
+  stagingTableName: StagingTable,
   deleteKeysOn: DeleteKey[],
   useIdAsSourceDeleteKey: boolean = true
 ): string {
@@ -133,14 +133,14 @@ export function generateMergeDeleteQuery<
  * @param deletingStagingTableName - The name of the staging table containing `id` and `deleted` columns.
  */
 export async function mergeDeletingCascadeById<
-  TN extends ReadonlyArray<DomainDbTable>,
-  SN extends DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TN[number]]>
+  TargetTable extends ReadonlyArray<DomainDbTable>,
+  StagingTable extends DeletingDbTable,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>
 >(
   t: ITask<unknown>,
   id: DeleteKey,
-  deletingTargetTableNames: [...TN],
-  deletingStagingTableName: SN
+  deletingTargetTableNames: [...TargetTable],
+  deletingStagingTableName: StagingTable
 ): Promise<void> {
   for (const deletingTargetTableName of deletingTargetTableNames) {
     const mergeQuery = generateMergeDeleteQuery(

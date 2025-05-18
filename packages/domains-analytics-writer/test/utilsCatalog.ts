@@ -1,5 +1,4 @@
 import { Batch, KafkaMessage } from "kafkajs";
-import { generateId } from "pagopa-interop-models";
 import { config } from "../src/config/config.js";
 
 export const mockCatalogBatch: Batch = {
@@ -20,9 +19,3 @@ export const mockCatalogBatch: Batch = {
   offsetLag: () => "0",
   offsetLagLow: () => "0",
 };
-
-export const eserviceId = generateId();
-export const descriptorId = generateId();
-export const interfaceId = generateId();
-export const documentId = generateId();
-export const riskAnalysisId = generateId();
