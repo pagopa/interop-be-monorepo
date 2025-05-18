@@ -17,19 +17,19 @@ export function attributeServiceBuilder(db: DBContext) {
       upsertBatch: AttributeSchema[],
       dbContext: DBContext
     ): Promise<void> {
-      for (const batch of batchMessages(
-        upsertBatch,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          upsertBatch,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await repo.insert(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging data inserted for batch of attributes: ${batch
               .map((r) => r.id)
               .join(", ")}`
           );
-        });
-      }
+        }
+      });
 
       await dbContext.conn.tx(async (t) => {
         await repo.merge(t);
