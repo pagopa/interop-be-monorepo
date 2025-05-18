@@ -273,20 +273,20 @@ export function catalogServiceBuilder(db: DBContext) {
       dbContext: DBContext,
       items: EserviceDescriptorDocumentSchema[]
     ): Promise<void> {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await documentRepo.insert(t, dbContext.pgp, batch);
-        });
 
-        genericLogger.info(
-          `Staging data inserted for EserviceDescriptorDocument batch: ${batch
-            .map((doc) => doc.id)
-            .join(", ")}`
-        );
-      }
+          genericLogger.info(
+            `Staging data inserted for EserviceDescriptorDocument batch: ${batch
+              .map((doc) => doc.id)
+              .join(", ")}`
+          );
+        }
+      });
 
       await dbContext.conn.tx(async (t) => {
         await documentRepo.merge(t);
