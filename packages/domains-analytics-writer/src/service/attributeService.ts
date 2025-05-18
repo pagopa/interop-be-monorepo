@@ -1,17 +1,20 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericLogger } from "pagopa-interop-commons";
-import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import { DBContext } from "../db/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import { attributeRepository } from "../repository/attribute/attribute.repository.js";
 import { config } from "../config/config.js";
+import {
+  AttributeSchema,
+  AttributeDeletingSchema,
+} from "../model/attribute/attribute.js";
 
 export function attributeServiceBuilder(db: DBContext) {
   const repo = attributeRepository(db.conn);
 
   return {
     async upsertBatchAttribute(
-      upsertBatch: AttributeSQL[],
+      upsertBatch: AttributeSchema[],
       dbContext: DBContext
     ): Promise<void> {
       for (const batch of batchMessages(
@@ -39,17 +42,19 @@ export function attributeServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchAttribute(
-      attributeIds: string[],
+      records: AttributeDeletingSchema[],
       dbContext: DBContext
     ): Promise<void> {
       await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(
-          attributeIds,
+          records,
           config.dbMessagesToInsertPerBatch
         )) {
           await repo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for attributeIds: ${batch.join(", ")}`
+            `Staging deletion inserted for attributeIds: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
       });

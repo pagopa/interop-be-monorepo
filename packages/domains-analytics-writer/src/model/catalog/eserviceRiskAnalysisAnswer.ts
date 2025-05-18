@@ -4,10 +4,15 @@ import { eserviceRiskAnalysisAnswerInReadmodelCatalog } from "pagopa-interop-rea
 
 export const EserviceRiskAnalysisAnswerSchema = createSelectSchema(
   eserviceRiskAnalysisAnswerInReadmodelCatalog
-).extend({
-  deleted: z.boolean().default(false).optional(),
-  value: z.string(),
-});
+)
+  .omit({ value: true })
+  .extend({
+    deleted: z.boolean().default(false).optional(),
+    value: z
+      .array(z.string())
+      .transform((val) => JSON.stringify(val))
+      .pipe(z.string()),
+  });
 export type EserviceRiskAnalysisAnswerSchema = z.infer<
   typeof EserviceRiskAnalysisAnswerSchema
 >;

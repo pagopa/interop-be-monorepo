@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { EServiceDescriptorRejectionReasonSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
@@ -12,26 +11,30 @@ import { CatalogDbTable } from "../../model/db.js";
 export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_rejection_reason;
-  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EServiceDescriptorRejectionReasonSQL[]
+      records: EserviceDescriptorRejectionReasonSchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(pgp, tableName);
+        const cs = buildColumnSet(
+          pgp,
+          tableName,
+          EserviceDescriptorRejectionReasonSchema
+        );
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
-          DELETE FROM ${stagingTable} a
-          USING ${stagingTable} b
+          DELETE FROM ${stagingTableName} a
+          USING ${stagingTableName} b
           WHERE a.descriptor_id = b.descriptor_id
           AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -47,17 +50,17 @@ export function eserviceDescriptorRejectionRepository(conn: DBConnection) {
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
     async clean(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },

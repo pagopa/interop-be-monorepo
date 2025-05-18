@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS domains.attribute (
   origin VARCHAR,
   name VARCHAR NOT NULL,
   creation_time TIMESTAMP WITH TIME ZONE NOT NULL,
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );
 
@@ -26,7 +26,7 @@ CREATE TABLE domains.eservice (
   is_consumer_delegable BOOLEAN,
   is_client_access_delegable BOOLEAN,
   template_id VARCHAR(36),
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );
 
@@ -48,7 +48,7 @@ CREATE TABLE domains.eservice_descriptor (
   suspended_at TIMESTAMP,
   deprecated_at TIMESTAMP,
   archived_at TIMESTAMP,
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
@@ -62,7 +62,7 @@ CREATE TABLE domains.eservice_descriptor_template_version_ref (
   contact_email VARCHAR,
   contact_url VARCHAR,
   terms_and_conditions_url VARCHAR,
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   PRIMARY KEY (eservice_template_version_id, descriptor_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
@@ -73,7 +73,7 @@ CREATE TABLE domains.eservice_descriptor_rejection_reason (
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   rejection_reason VARCHAR NOT NULL,
   rejected_at TIMESTAMP NOT NULL,
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
 
@@ -88,7 +88,7 @@ CREATE TABLE domains.eservice_descriptor_interface (
   path VARCHAR NOT NULL,
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP NOT NULL,
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
@@ -104,7 +104,7 @@ CREATE TABLE domains.eservice_descriptor_document (
   path VARCHAR NOT NULL,
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP NOT NULL,
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
@@ -117,7 +117,7 @@ CREATE TABLE domains.eservice_descriptor_attribute (
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
 );
@@ -130,7 +130,7 @@ CREATE TABLE domains.eservice_risk_analysis (
   created_at TIMESTAMP NOT NULL,
   risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   PRIMARY KEY (id, eservice_id),
   UNIQUE (risk_analysis_form_id, eservice_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
@@ -144,7 +144,7 @@ CREATE TABLE domains.eservice_risk_analysis_answer (
   kind VARCHAR NOT NULL,
   key VARCHAR NOT NULL,
   value VARCHAR(65535) NOT NULL,
-  deleted BOOLEAN DEFAULT FALSE,
+  deleted BOOLEAN,
   PRIMARY KEY (id, eservice_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id),
   FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)

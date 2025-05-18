@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable sonarjs/cognitive-complexity */
 import {
   EServiceEventEnvelopeV1,
   EServiceId,
@@ -12,53 +13,40 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
-  EServiceDescriptorAttributeSQL,
-  EServiceDescriptorDocumentSQL,
-  EServiceDescriptorInterfaceSQL,
-  EServiceDescriptorRejectionReasonSQL,
-  EServiceDescriptorSQL,
-  EServiceDescriptorTemplateVersionRefSQL,
-  EServiceItemsSQL,
-} from "pagopa-interop-readmodel-models";
-import {
   splitDescriptorIntoObjectsSQL,
   splitEserviceIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
+import { z } from "zod";
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { DBContext } from "../../db/db.js";
+import {
+  EserviceDeletingSchema,
+  EserviceItemsSchema,
+} from "../../model/catalog/eservice.js";
+import {
+  EserviceDescriptorDeletingSchema,
+  EserviceDescriptorItemsSchema,
+} from "../../model/catalog/eserviceDescriptor.js";
+import {
+  EserviceDescriptorDocumentSchema,
+  EserviceDescriptorDocumentDeletingSchema,
+} from "../../model/catalog/eserviceDescriptorDocument.js";
+import { EserviceRiskAnalysisDeletingSchema } from "../../model/catalog/eserviceRiskAnalysis.js";
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
 export async function handleCatalogMessageV1(
   messages: EServiceEventEnvelopeV1[],
   dbContext: DBContext
 ): Promise<void> {
   const catalogService = catalogServiceBuilder(dbContext);
 
-  const upsertEServiceBatch: Array<
-    ReturnType<typeof splitEserviceIntoObjectsSQL>
-  > = [];
-  const deleteEServiceBatch: string[] = [];
-  const deleteDescriptorBatch: string[] = [];
-  const upsertEServiceDocumentBatch: EServiceDescriptorDocumentSQL[] = [];
-  const deleteEServiceDocumentBatch: string[] = [];
-  const deleteRiskAnalysisBatch: Array<{
-    eserviceId: EServiceId;
-    id: RiskAnalysisId;
-  }> = [];
-  const upsertDescriptorBatch: Array<{
-    descriptorData: {
-      descriptorSQL: EServiceDescriptorSQL;
-      attributesSQL: EServiceDescriptorAttributeSQL[];
-      interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
-      documentsSQL: EServiceDescriptorDocumentSQL[];
-      rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
-      templateVersionRefSQL:
-        | EServiceDescriptorTemplateVersionRefSQL
-        | undefined;
-    };
-    eserviceId: EServiceId;
-    metadataVersion: number;
-  }> = [];
+  const upsertEServiceBatch: EserviceItemsSchema[] = [];
+  const deleteEServiceBatch: EserviceDeletingSchema[] = [];
+  const deleteDescriptorBatch: EserviceDescriptorDeletingSchema[] = [];
+  const upsertEServiceDocumentBatch: EserviceDescriptorDocumentSchema[] = [];
+  const deleteEServiceDocumentBatch: EserviceDescriptorDocumentDeletingSchema[] =
+    [];
+  const deleteRiskAnalysisBatch: EserviceRiskAnalysisDeletingSchema[] = [];
+  const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
 
   for (const msg of messages) {
     match(msg)
@@ -79,47 +67,82 @@ export async function handleCatalogMessageV1(
               `EService can't be missing in the event message`
             );
           }
-          const splitResult: EServiceItemsSQL = splitEserviceIntoObjectsSQL(
+
+          const splitResult = splitEserviceIntoObjectsSQL(
             fromEServiceV1(msg.data.eservice),
             msg.version
           );
-          upsertEServiceBatch.push(splitResult);
+
+          upsertEServiceBatch.push(
+            EserviceItemsSchema.parse({
+              eserviceSQL: splitResult.eserviceSQL,
+              riskAnalysesSQL: splitResult.riskAnalysesSQL,
+              riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
+              descriptorsSQL: splitResult.descriptorsSQL,
+              attributesSQL: splitResult.attributesSQL,
+              interfacesSQL: splitResult.interfacesSQL,
+              documentsSQL: splitResult.documentsSQL,
+              rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
+              templateVersionRefsSQL: splitResult.templateVersionRefsSQL,
+            } satisfies z.input<typeof EserviceItemsSchema>)
+          );
         }
       )
       .with({ type: "EServiceDeleted" }, (msg) => {
-        deleteEServiceBatch.push(msg.data.eserviceId);
+        deleteEServiceBatch.push(
+          EserviceDeletingSchema.parse({
+            id: msg.data.eserviceId,
+            deleted: true,
+          } satisfies z.input<typeof EserviceDeletingSchema>)
+        );
       })
       .with({ type: "EServiceWithDescriptorsDeleted" }, (msg) => {
-        deleteDescriptorBatch.push(msg.data.descriptorId);
+        deleteDescriptorBatch.push(
+          EserviceDescriptorDeletingSchema.parse({
+            id: msg.data.descriptorId,
+            deleted: true,
+          } satisfies z.input<typeof EserviceDescriptorDeletingSchema>)
+        );
       })
-      .with({ type: P.union("EServiceDocumentUpdated") }, (msg) => {
+      .with({ type: "EServiceDocumentUpdated" }, (msg) => {
         if (!msg.data.updatedDocument) {
           throw genericInternalError(
             `EService updatedDocument can't be missing in the event message`
           );
         }
-        upsertEServiceDocumentBatch.push({
-          ...msg.data.updatedDocument,
-          eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
-          metadataVersion: msg.version,
-        });
+
+        upsertEServiceDocumentBatch.push(
+          EserviceDescriptorDocumentSchema.parse({
+            ...msg.data.updatedDocument,
+            eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+            descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+            metadataVersion: msg.version,
+          } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
+        );
       })
-      .with({ type: P.union("EServiceDocumentAdded") }, (msg) => {
+      .with({ type: "EServiceDocumentAdded" }, (msg) => {
         if (!msg.data.document) {
           throw genericInternalError(
             `EService document can't be missing in the event message`
           );
         }
-        upsertEServiceDocumentBatch.push({
-          ...msg.data.document,
-          eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
-          metadataVersion: msg.version,
-        });
+
+        upsertEServiceDocumentBatch.push(
+          EserviceDescriptorDocumentSchema.parse({
+            ...msg.data.document,
+            eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
+            descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+            metadataVersion: msg.version,
+          } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
+        );
       })
       .with({ type: "EServiceDocumentDeleted" }, (msg) => {
-        deleteEServiceDocumentBatch.push(msg.data.documentId);
+        deleteEServiceDocumentBatch.push(
+          EserviceDescriptorDocumentDeletingSchema.parse({
+            id: msg.data.documentId,
+            deleted: true,
+          } satisfies z.input<typeof EserviceDescriptorDocumentDeletingSchema>)
+        );
       })
       .with({ type: "EServiceRiskAnalysisDeleted" }, (msg) => {
         if (!msg.data.eservice?.id) {
@@ -128,10 +151,13 @@ export async function handleCatalogMessageV1(
           );
         }
 
-        deleteRiskAnalysisBatch.push({
-          eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice?.id),
-          id: unsafeBrandId<RiskAnalysisId>(msg.data.riskAnalysisId),
-        });
+        deleteRiskAnalysisBatch.push(
+          EserviceRiskAnalysisDeletingSchema.parse({
+            id: unsafeBrandId<RiskAnalysisId>(msg.data.riskAnalysisId),
+            eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice.id),
+            deleted: true,
+          } satisfies z.input<typeof EserviceRiskAnalysisDeletingSchema>)
+        );
       })
       .with(
         {
@@ -149,50 +175,55 @@ export async function handleCatalogMessageV1(
             msg.version
           );
 
-          upsertDescriptorBatch.push({
-            descriptorData: splitResult,
-            eserviceId: unsafeBrandId(splitResult.descriptorSQL.eserviceId),
-            metadataVersion: splitResult.descriptorSQL.metadataVersion,
-          });
+          upsertDescriptorBatch.push(
+            EserviceDescriptorItemsSchema.parse({
+              descriptorSQL: splitResult.descriptorSQL,
+              attributesSQL: splitResult.attributesSQL,
+              interfaceSQL: splitResult.interfaceSQL,
+              documentsSQL: splitResult.documentsSQL,
+              rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
+              templateVersionRefSQL: splitResult.templateVersionRefSQL,
+            } satisfies z.input<typeof EserviceDescriptorItemsSchema>)
+          );
         }
       )
       .exhaustive();
   }
 
   if (upsertEServiceBatch.length > 0) {
-    await catalogService.upsertBatchEservice(upsertEServiceBatch, dbContext);
+    await catalogService.upsertBatchEService(dbContext, upsertEServiceBatch);
   }
   if (deleteEServiceBatch.length > 0) {
-    await catalogService.deleteBatchEService(deleteEServiceBatch, dbContext);
+    await catalogService.deleteBatchEService(dbContext, deleteEServiceBatch);
   }
   if (deleteDescriptorBatch.length > 0) {
     await catalogService.deleteBatchDescriptor(
-      deleteDescriptorBatch,
-      dbContext
+      dbContext,
+      deleteDescriptorBatch
     );
   }
   if (upsertEServiceDocumentBatch.length > 0) {
     await catalogService.upsertBatchEServiceDocument(
-      upsertEServiceDocumentBatch,
-      dbContext
+      dbContext,
+      upsertEServiceDocumentBatch
     );
   }
   if (deleteEServiceDocumentBatch.length > 0) {
     await catalogService.deleteBatchEServiceDocument(
-      deleteEServiceDocumentBatch,
-      dbContext
+      dbContext,
+      deleteEServiceDocumentBatch
     );
   }
   if (deleteRiskAnalysisBatch.length > 0) {
     await catalogService.deleteBatchEserviceRiskAnalysis(
-      deleteRiskAnalysisBatch,
-      dbContext
+      dbContext,
+      deleteRiskAnalysisBatch
     );
   }
   if (upsertDescriptorBatch.length > 0) {
     await catalogService.upsertBatchEServiceDescriptor(
-      upsertDescriptorBatch,
-      dbContext
+      dbContext,
+      upsertDescriptorBatch
     );
   }
 }

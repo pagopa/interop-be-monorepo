@@ -2,57 +2,43 @@ import pRetry from "p-retry";
 import { AnalyticsSQLDbConfig, DB, Logger } from "pagopa-interop-commons";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { z } from "zod";
-import { InferSelectModel } from "drizzle-orm";
 import { getColumnName } from "../utils/sqlQueryHelper.js";
-import { DbTable, DbTableReadModels, DbTableSchemas } from "../model/db.js";
+import { DbTable } from "../model/db.js";
 import { config } from "../config/config.js";
 import { DBContext } from "./db.js";
 
 export type ColumnValue = string | number | Date | undefined | null | boolean;
 
-type InputSchema<T extends DbTable> = InferSelectModel<
-  (typeof DbTableReadModels)[T]
->;
-type OutputSchema<T extends DbTable> = z.infer<DbTableSchemas[T]>;
-
 /**
- * Describes the mapping between the input row (from Drizzle) and
- * the output row (conforming to the Zod schema) for a given table.
- * Each key maps to a function that extracts/transforms the corresponding value.
- */
-export type Mapping<T extends DbTable> = {
-  [K in keyof OutputSchema<T>]: (record: InputSchema<T>) => OutputSchema<T>[K];
-};
-
-/**
- * This is a helper function that generates a ColumnSet for bulk operations using pg-promise.
- * It creates a mapping between object properties and corresponding database columns.
+ * Builds a pg-promise ColumnSet for performing bulk insert/update operations on a given table.
  *
+ * This function maps the fields of a Zod schema to database columns using a snake_case naming strategy,
+ * which allows pg-promise to efficiently generate SQL for bulk operations.
+ *
+ * @template T - The Zod object schema shape describing the table structure.
  * @param pgp - The pg-promise main instance used to create the ColumnSet.
- * @param mapping - An object that maps column names to functions which extract the corresponding value from a record.
- * @param tableName - The name of the target table for which the ColumnSet is generated.
- * @returns A ColumnSet configured with the specified columns and table details.
+ * @param tableName - The logical name of the database table (without suffixes).
+ * @param schema - The Zod schema representing the shape of the data to persist.
+ * @returns A pg-promise ColumnSet object with mapped columns for bulk operations.
  */
-export const buildColumnSet = <T extends DbTable>(
+export function buildColumnSet<T extends z.ZodRawShape>(
   pgp: IMain,
-  tableName: T,
-  mapping?: Partial<Mapping<T>>
-): ColumnSet<OutputSchema<T>> => {
+  tableName: DbTable,
+  schema: z.ZodObject<T>
+): ColumnSet<z.infer<typeof schema>> {
   const snakeCase = getColumnName(tableName);
-  const schema = DbTable[tableName];
-  // eslint-disable-next-line no-underscore-dangle
-  const keys = Object.keys(schema._def.shape()) as Array<keyof OutputSchema<T>>;
+  const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
 
   const columns = keys.map((prop) => ({
-    name: snakeCase(prop as string),
-    init: ({ source }: IColumnDescriptor<InputSchema<T>>) =>
-      mapping?.[prop]?.(source) ?? source[prop as keyof InputSchema<T>],
+    name: snakeCase(String(prop)),
+    init: ({ source }: IColumnDescriptor<z.infer<typeof schema>>) =>
+      source[prop],
   }));
 
   return new pgp.helpers.ColumnSet(columns, {
     table: { table: `${tableName}_${config.mergeTableSuffix}` },
   });
-};
+}
 
 /**
  * Attaches an error handler to the current database connection's client.
