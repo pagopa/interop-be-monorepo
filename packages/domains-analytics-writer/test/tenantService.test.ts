@@ -31,7 +31,7 @@ import {
 import { toTenantV1 } from "./utilsTenantConverterV1.js";
 import { getMockVerifiedBy, getMockRevokedBy } from "./utilsTenant.js";
 
-describe("Catalog messages consumers - handleCatalogMessageV1", () => {
+describe("Tenant messages consumers - handleTenantMessageV1", () => {
   const mockTenantMail = getMockTenantMail();
   const mockTenantFeatureCertifier: TenantFeatureCertifier = {
     type: tenantFeatureType.persistentCertifier,
