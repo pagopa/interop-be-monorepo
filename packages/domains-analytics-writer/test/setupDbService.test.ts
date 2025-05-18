@@ -50,7 +50,7 @@ describe("Setup DB Service tests for domain tables", async () => {
     vi.spyOn(dbContext.conn, "query").mockRejectedValueOnce(mockQueryError);
 
     await expect(
-      dbService.setupStagingTables(domainTables),
+      dbService.setupStagingTables(domainTables)
     ).rejects.toThrowError(setupStagingTablesError(mockQueryError));
   });
 });

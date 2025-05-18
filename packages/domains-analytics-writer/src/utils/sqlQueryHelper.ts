@@ -20,7 +20,7 @@ import { config } from "../config/config.js";
  * SQL column name (e.g. "eservice_id") or falls back to the original key.
  */
 export function getColumnName<T extends DbTable>(
-  tableName: T,
+  tableName: T
 ): (columnKey: string) => string {
   const table = DbTableReadModels[tableName] as unknown as Record<
     string,
@@ -42,7 +42,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   tableSchema: z.ZodObject<T>,
   schemaName: string,
   tableName: DomainDbTable,
-  keysOn: Array<keyof T>,
+  keysOn: Array<keyof T>
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCase = getColumnName(tableName);
@@ -92,13 +92,13 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
 export function generateMergeDeleteQuery<
   TargetTable extends DomainDbTable,
   StagingTable extends DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable]>,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable]>
 >(
   schemaName: string,
   targetTableName: TargetTable,
   stagingTableName: StagingTable,
   deleteKeysOn: DeleteKey[],
-  useIdAsSourceDeleteKey: boolean = true,
+  useIdAsSourceDeleteKey: boolean = true
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCase = getColumnName(targetTableName);
@@ -107,10 +107,10 @@ export function generateMergeDeleteQuery<
     .map(
       (k) =>
         `${schemaName}.${targetTableName}.${quoteColumn(
-          snakeCase(String(k)),
+          snakeCase(String(k))
         )} = source.${
           useIdAsSourceDeleteKey ? "id" : quoteColumn(snakeCase(String(k)))
-        }`,
+        }`
     )
     .join(" AND ");
 
@@ -135,19 +135,19 @@ export function generateMergeDeleteQuery<
 export async function mergeDeletingCascadeById<
   TargetTable extends ReadonlyArray<DomainDbTable>,
   StagingTable extends DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>
 >(
   t: ITask<unknown>,
   id: DeleteKey,
   deletingTargetTableNames: [...TargetTable],
-  deletingStagingTableName: StagingTable,
+  deletingStagingTableName: StagingTable
 ): Promise<void> {
   for (const deletingTargetTableName of deletingTargetTableNames) {
     const mergeQuery = generateMergeDeleteQuery(
       config.dbSchemaName,
       deletingTargetTableName,
       deletingStagingTableName,
-      [id],
+      [id]
     );
     await t.none(mergeQuery);
   }

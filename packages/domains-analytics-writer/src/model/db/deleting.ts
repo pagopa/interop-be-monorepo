@@ -23,6 +23,10 @@ const DeletingTableMeta = {
     schema: EserviceRiskAnalysisDeletingSchema,
     readModel: eserviceRiskAnalysisInReadmodelCatalog,
   },
+  agreement_deleting_table: {
+    schema: EserviceRiskAnalysisDeletingSchema,
+    readModel: eserviceRiskAnalysisInReadmodelCatalog,
+  },
 } as const;
 export const DeletingDbTableConfig = extractProp(DeletingTableMeta, "schema");
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;

@@ -25,7 +25,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EserviceRiskAnalysisSchema[],
+      records: EserviceRiskAnalysisSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(pgp, tableName, EserviceRiskAnalysisSchema);
@@ -39,7 +39,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
         `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTableName}: ${error}`,
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -50,12 +50,12 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
           EserviceRiskAnalysisSchema,
           schemaName,
           tableName,
-          ["id", "eserviceId"],
+          ["id", "eserviceId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`,
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -65,7 +65,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTableName}: ${error}`,
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -73,20 +73,20 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EserviceRiskAnalysisDeletingSchema[],
+      records: EserviceRiskAnalysisDeletingSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           deletingTableName,
-          EserviceRiskAnalysisDeletingSchema,
+          EserviceRiskAnalysisDeletingSchema
         );
         await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING",
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`,
+          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
@@ -98,12 +98,12 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
           tableName,
           deletingTableName,
           ["id", "eserviceId"],
-          false,
+          false
         );
         await conn.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging deleting table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`,
+          `Error merging deleting table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -113,7 +113,7 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`,
+          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
         );
       }
     },

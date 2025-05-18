@@ -1,85 +1,122 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
-import { AgreementContractSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeQuery,
+  generateMergeDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import { AgreementDbTable } from "../../model/db.js";
-import { AgreementContractSchema } from "../../model/agreement/agreementContract.js";
+import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
+import {
+  AgreementContractSchema,
+  AgreementContractDeletingSchema,
+} from "../../model/agreement/agreementContract.js";
 
 export function agreementContractRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AgreementDbTable.agreement_contract;
-  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+  const deletingTableName = DeletingDbTable.agreement_deleting_table;
+  const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: AgreementContractSQL[]
-    ) {
-      const mapping = {
-        id: (r: AgreementContractSQL) => r.id,
-        agreement_id: (r: AgreementContractSQL) => r.agreementId,
-        metadata_version: (r: AgreementContractSQL) => r.metadataVersion,
-        name: (r: AgreementContractSQL) => r.name,
-        pretty_name: (r: AgreementContractSQL) => r.prettyName,
-        content_type: (r: AgreementContractSQL) => r.contentType,
-        path: (r: AgreementContractSQL) => r.path,
-        created_at: (r: AgreementContractSQL) => r.createdAt,
-      };
-      const cs = buildColumnSet<AgreementContractSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      records: AgreementContractSchema[]
+    ): Promise<void> {
       try {
-        if (records.length) {
-          await t.none(pgp.helpers.insert(records, cs));
-          await t.none(`
-            DELETE FROM ${stagingTable} a
-            USING ${stagingTable} b
-            WHERE a.id = b.id 
+        const cs = buildColumnSet(pgp, tableName, AgreementContractSchema);
+        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(`
+          DELETE FROM ${stagingTableName} a
+          USING ${stagingTableName} b
+          WHERE a.id = b.id 
             AND a.agreement_id = b.agreement_id
             AND a.metadata_version < b.metadata_version;
-          `);
-        }
+        `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
 
-    async merge(t: ITask<unknown>) {
+    async merge(t: ITask<unknown>): Promise<void> {
       try {
+        const mergeQuery = generateMergeQuery(
+          AgreementContractSchema,
+          schemaName,
+          tableName,
+          ["id", "agreementId"]
+        );
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async clean(): Promise<void> {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTableName}: ${error}`
+        );
+      }
+    },
+
+    async insertDeleting(
+      t: ITask<unknown>,
+      pgp: IMain,
+      records: AgreementContractDeletingSchema[]
+    ): Promise<void> {
+      try {
+        const cs = buildColumnSet(
+          pgp,
+          deletingTableName,
+          AgreementContractDeletingSchema
+        );
         await t.none(
-          generateMergeQuery(
-            AgreementContractSchema,
-            schemaName,
-            tableName,
-            stagingTable,
-            ["id", "agreement_id"]
-          )
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
 
-    async clean() {
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+        const mergeQuery = generateMergeDeleteQuery(
+          schemaName,
+          tableName,
+          deletingTableName,
+          ["id", "agreementId"]
+        );
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async cleanDeleting(): Promise<void> {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
   };
 }
+
 export type AgreementContractRepo = ReturnType<typeof agreementContractRepo>;

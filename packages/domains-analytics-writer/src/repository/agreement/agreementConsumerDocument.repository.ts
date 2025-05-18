@@ -1,86 +1,73 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
-import { AgreementConsumerDocumentSQL } from "pagopa-interop-readmodel-models";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import {
-  generateMergeDeleteQuery,
   generateMergeQuery,
+  generateMergeDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import { AgreementDbTable, DeletingDbTable } from "../../model/db.js";
-import { AgreementConsumerDocumentSchema } from "../../model/agreement/agreementConsumerDocument.js";
+import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
+import {
+  AgreementConsumerDocumentSchema,
+  AgreementConsumerDocumentDeletingSchema,
+} from "../../model/agreement/agreementConsumerDocument.js";
 
 export function agreementConsumerDocumentRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = AgreementDbTable.agreement_consumer_document;
-  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = DeletingDbTable.agreement_deleting_table;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+  const deletingTableName = DeletingDbTable.agreement_deleting_table;
+  const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: AgreementConsumerDocumentSQL[]
-    ) {
-      const mapping = {
-        id: (r: AgreementConsumerDocumentSQL) => r.id,
-        agreement_id: (r: AgreementConsumerDocumentSQL) => r.agreementId,
-        metadata_version: (r: AgreementConsumerDocumentSQL) =>
-          r.metadataVersion,
-        name: (r: AgreementConsumerDocumentSQL) => r.name,
-        pretty_name: (r: AgreementConsumerDocumentSQL) => r.prettyName,
-        content_type: (r: AgreementConsumerDocumentSQL) => r.contentType,
-        path: (r: AgreementConsumerDocumentSQL) => r.path,
-        created_at: (r: AgreementConsumerDocumentSQL) => r.createdAt,
-      };
-      const cs = buildColumnSet<AgreementConsumerDocumentSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      records: AgreementConsumerDocumentSchema[]
+    ): Promise<void> {
       try {
-        if (records.length) {
-          await t.none(pgp.helpers.insert(records, cs));
-          await t.none(`
-            DELETE FROM ${stagingTable} a
-            USING ${stagingTable} b
-            WHERE a.id = b.id 
-            AND a.metadata_version < b.metadata_version;
-          `);
-        }
+        const cs = buildColumnSet(
+          pgp,
+          tableName,
+          AgreementConsumerDocumentSchema
+        );
+        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(`
+          DELETE FROM ${stagingTableName} a
+          USING ${stagingTableName} b
+          WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
+        `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
 
-    async merge(t: ITask<unknown>) {
+    async merge(t: ITask<unknown>): Promise<void> {
       try {
-        await t.none(
-          generateMergeQuery(
-            AgreementConsumerDocumentSchema,
-            schemaName,
-            tableName,
-            stagingTable,
-            ["id"]
-          )
+        const mergeQuery = generateMergeQuery(
+          AgreementConsumerDocumentSchema,
+          schemaName,
+          tableName,
+          ["id"]
         );
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
-    async clean() {
+    async clean(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -88,60 +75,52 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      recordsId: Array<AgreementConsumerDocumentSQL["id"]>
+      records: AgreementConsumerDocumentDeletingSchema[]
     ): Promise<void> {
-      const mapping = {
-        id: (r: { id: string }) => r.id,
-        deleted: () => true,
-      };
       try {
-        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+        const cs = buildColumnSet(
           pgp,
-          mapping,
-          `${stagingDeletingTable}_${config.mergeTableSuffix}`
+          deletingTableName,
+          AgreementConsumerDocumentDeletingSchema
         );
-
-        const records = recordsId.map((id: string) => ({ id, deleted: true }));
-
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
+          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
 
-    async mergeDeleting() {
+    async mergeDeleting(): Promise<void> {
       try {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
-          stagingDeletingTable,
+          deletingTableName,
           ["id"]
         );
         await conn.none(mergeQuery);
       } catch (error) {
         throw genericInternalError(
-          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
-    async cleanDeleting() {
+    async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(
-          `TRUNCATE TABLE ${stagingDeletingTable}_${config.mergeTableSuffix};`
-        );
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
       } catch (error) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
+          `Error cleaning staging table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
   };
 }
+
 export type AgreementConsumerDocumentRepo = ReturnType<
   typeof agreementConsumerDocumentRepo
 >;

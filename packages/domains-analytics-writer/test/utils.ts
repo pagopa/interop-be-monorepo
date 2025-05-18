@@ -19,9 +19,9 @@ import {
   DomainDbTableSchemas,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
-import { agreementServiceBuilder } from "../src/service/agreementService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
 import { getColumnName } from "../src/utils/sqlQueryHelper.js";
+import { agreementServiceBuilder } from "../src/service/agreementService.js";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
@@ -31,7 +31,7 @@ export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("analyticsSQLDbConfig"),
+  inject("analyticsSQLDbConfig")
 );
 const connection = await analyticsPostgresDB.connect();
 
@@ -39,6 +39,10 @@ export const dbContext: DBContext = {
   conn: connection,
   pgp: analyticsPostgresDB.$config.pgp,
 };
+export const attributeService = attributeServiceBuilder(dbContext);
+export const catalogService = catalogServiceBuilder(dbContext);
+export const agreementService = agreementServiceBuilder(dbContext);
+export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export const attributeTables: AttributeDbTable[] = [AttributeDbTable.attribute];
 
@@ -79,25 +83,48 @@ await retryConnection(
   dbContext,
   config,
   async (db) => {
+    await setupDbServiceBuilder(db.conn, config).setupStagingTables([
+      AttributeDbTable.attribute,
+      CatalogDbTable.eservice,
+      CatalogDbTable.eservice_descriptor,
+      CatalogDbTable.eservice_descriptor_template_version_ref,
+      CatalogDbTable.eservice_descriptor_rejection_reason,
+      CatalogDbTable.eservice_descriptor_interface,
+      CatalogDbTable.eservice_descriptor_document,
+      CatalogDbTable.eservice_descriptor_attribute,
+      CatalogDbTable.eservice_risk_analysis,
+      CatalogDbTable.eservice_risk_analysis_answer,
+      AgreementDbTable.agreement,
+      AgreementDbTable.agreement_stamp,
+      AgreementDbTable.agreement_attribute,
+      AgreementDbTable.agreement_consumer_document,
+      AgreementDbTable.agreement_contract,
+    ]);
+    await setupDbServiceBuilder(db.conn, config).setupStagingDeletingTables([
+      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.catalog_risk_deleting_table,
+        columns: ["id", "eserviceId"],
+      },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+    ]);
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables(domainTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
   },
-  genericLogger,
+  genericLogger
 );
 
 export async function resetTargetTables(
-  tables: DomainDbTable[],
+  tables: DomainDbTable[]
 ): Promise<void> {
   await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
 }
-export const attributeService = attributeServiceBuilder(dbContext);
-export const catalogService = catalogServiceBuilder(dbContext);
-export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[],
+  tables: string[]
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename
@@ -111,7 +138,7 @@ export async function getTablesByName(
 export async function getOneFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>
 ): Promise<z.infer<DomainDbTableSchemas[T]>> {
   const snakeCase = getColumnName(tableName);
 
@@ -123,7 +150,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
 
   const row = await db.conn.one(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values,
+    values
   );
 
   return camelcaseKeys(row);
@@ -132,7 +159,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
 export async function getManyFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>
 ): Promise<Array<z.infer<DomainDbTableSchemas[T]>>> {
   const snakeCase = getColumnName(tableName);
 
@@ -144,167 +171,8 @@ export async function getManyFromDb<T extends DomainDbTable>(
 
   const rows = await db.conn.any(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values,
+    values
   );
 
   return rows.map((row) => camelcaseKeys(row));
-}
-
-export const agreementService = agreementServiceBuilder(dbContext);
-
-export async function getAgreementFromDb(id: string, db: DBContext) {
-  return db.conn.one(`SELECT * FROM domains.agreement WHERE id = $1`, [id]);
-}
-export async function getAgreementStampFromDb(agrId: string, db: DBContext) {
-  return db.conn.any(
-    `SELECT * FROM domains.agreement_stamp WHERE agreement_id = $1`,
-    [agrId],
-  );
-}
-export async function getAgreementAttributeFromDb(
-  attrId: string,
-  db: DBContext,
-) {
-  return db.conn.any(
-    `SELECT * FROM domains.agreement_attribute WHERE attribute_id = $1`,
-    [attrId],
-  );
-}
-export async function getAgreementConsumerDocumentFromDb(
-  docId: string,
-  db: DBContext,
-) {
-  return db.conn.any(
-    `SELECT * FROM domains.agreement_consumer_document WHERE id = $1`,
-    [docId],
-  );
-}
-export async function getAgreementContractFromDb(
-  contractId: string,
-  db: DBContext,
-) {
-  return db.conn.any(`SELECT * FROM domains.agreement_contract WHERE id = $1`, [
-    contractId,
-  ]);
-}
-
-export async function resetAgreementTables(db: DBContext): Promise<void> {
-  const tbls = [
-    AgreementDbTable.agreement,
-    AgreementDbTable.agreement_stamp,
-    AgreementDbTable.agreement_attribute,
-    AgreementDbTable.agreement_consumer_document,
-    AgreementDbTable.agreement_contract,
-  ];
-  await db.conn.none(`TRUNCATE TABLE ${tbls.join(",")} CASCADE;`);
-}
-
-export const agreementId = generateId();
-export const docId = generateId();
-export const contractId = generateId();
-
-export const agreementSQL = {
-  id: unsafeBrandId<AgreementId>(agreementId),
-  metadataVersion: 1,
-  eserviceId: generateId(),
-  descriptorId: generateId(),
-  producerId: generateId(),
-  consumerId: generateId(),
-  state: "ACTIVE",
-  suspendedByConsumer: null,
-  suspendedByProducer: null,
-  suspendedByPlatform: null,
-  createdAt: new Date().toISOString(),
-  updatedAt: null,
-  consumerNotes: null,
-  rejectionReason: null,
-  suspendedAt: null,
-};
-
-export const stampSQL = {
-  agreementId: agreementSQL.id,
-  metadataVersion: 1,
-  who: generateId(),
-  delegationId: null,
-  when: new Date().toISOString(),
-  kind: "Producer",
-};
-
-export const attributeSQL = {
-  agreementId: agreementSQL.id,
-  metadataVersion: 1,
-  attributeId: generateId(),
-  kind: "verified",
-};
-
-export const consumerDocSQL = {
-  id: unsafeBrandId<AgreementDocumentId>(docId),
-  agreementId: agreementSQL.id,
-  metadataVersion: 1,
-  name: "sampledoc.pdf",
-  prettyName: "sampledoc.pdf",
-  contentType: "application/pdf",
-  path: "/docs/sample.pdf",
-  createdAt: new Date().toISOString(),
-};
-
-export const contractDocSQL = {
-  id: unsafeBrandId<AgreementDocumentId>(contractId),
-  agreementId: agreementSQL.id,
-  metadataVersion: 1,
-  name: "contract.pdf",
-  prettyName: "contract.pdf",
-  contentType: "application/pdf",
-  path: "/docs/contract.pdf",
-  createdAt: new Date().toISOString(),
-};
-
-export const agreementItem: AgreementItemsSQL = {
-  agreementSQL,
-  stampsSQL: [stampSQL],
-  attributesSQL: [attributeSQL],
-  consumerDocumentsSQL: [consumerDocSQL],
-  contractSQL: contractDocSQL,
-};
-
-export function getMockAgreement(
-  overrides: Partial<Agreement> = {},
-): Agreement & { metadataVersion: number } {
-  const agreementId = unsafeBrandId<AgreementId>(generateId());
-  const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
-  return {
-    id: agreementId,
-    metadataVersion: 1,
-    eserviceId: generateId(),
-    descriptorId: generateId(),
-    producerId: generateId(),
-    consumerId: generateId(),
-    state: "Active",
-    suspendedByConsumer: false,
-    suspendedByProducer: false,
-    suspendedByPlatform: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    consumerNotes: "consumer notes",
-    verifiedAttributes: [],
-    certifiedAttributes: [],
-    declaredAttributes: [],
-    consumerDocuments: [],
-    contract: {
-      id: unsafeBrandId<AgreementDocumentId>(contractId),
-      name: "contract.pdf",
-      prettyName: "contract.pdf",
-      contentType: "application/pdf",
-      path: "/docs/contract.pdf",
-      createdAt: new Date(),
-    },
-    stamps: {},
-    ...overrides,
-  };
-}
-
-export function agreementItemFromDomain(
-  agr: Agreement & { metadataVersion: number },
-): AgreementItemsSQL {
-  return splitAgreementIntoObjectsSQL(agr, agr.metadataVersion);
 }

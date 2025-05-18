@@ -31,12 +31,12 @@ export function agreementServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         const batchItems = {
-          agreements: batch.map((i) => i.agreementSQL),
-          stamps: batch.flatMap((i) => i.stampsSQL),
-          attrs: batch.flatMap((i) => i.attributesSQL),
-          docs: batch.flatMap((i) => i.consumerDocumentsSQL),
-          contracts: batch.flatMap((i) =>
-            i.contractSQL ? [i.contractSQL] : []
+          agreements: batch.map((item) => item.agreementSQL),
+          stamps: batch.flatMap((item) => item.stampsSQL),
+          attrs: batch.flatMap((item) => item.attributesSQL),
+          docs: batch.flatMap((item) => item.consumerDocumentsSQL),
+          contracts: batch.flatMap((item) =>
+            item.contractSQL ? [item.contractSQL] : []
           ),
         };
         await ctx.conn.tx(async (t) => {
