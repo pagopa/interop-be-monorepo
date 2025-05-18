@@ -1,4 +1,6 @@
 /* eslint-disable functional/immutable-data */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { match, P } from "ts-pattern";
 import {
   AgreementEventEnvelopeV1,
@@ -8,17 +10,23 @@ import {
   fromAgreementV1,
   fromAgreementDocumentV1,
 } from "pagopa-interop-models";
+
 import {
-  AgreementItemsSQL,
-  AgreementConsumerDocumentSQL,
-  AgreementContractSQL,
-} from "pagopa-interop-readmodel-models";
-import {
-  agreementDocumentToAgreementDocumentSQL,
   splitAgreementIntoObjectsSQL,
+  agreementDocumentToAgreementDocumentSQL,
 } from "pagopa-interop-readmodel";
-import { agreementServiceBuilder } from "../../service/agreementService.js";
+import { z } from "zod";
 import { DBContext } from "../../db/db.js";
+import { agreementServiceBuilder } from "../../service/agreementService.js";
+import {
+  AgreementConsumerDocumentDeletingSchema,
+  AgreementConsumerDocumentSchema,
+} from "../../model/agreement/agreementConsumerDocument.js";
+import {
+  AgreementDeletingSchema,
+  AgreementItemsSchema,
+} from "../../model/agreement/agreement.js";
+import { AgreementContractSchema } from "../../model/agreement/agreementContract.js";
 
 export async function handleAgreementMessageV1(
   messages: AgreementEventEnvelopeV1[],
@@ -26,14 +34,14 @@ export async function handleAgreementMessageV1(
 ): Promise<void> {
   const agreementService = agreementServiceBuilder(dbContext);
 
-  const upsertAgreements: AgreementItemsSQL[] = [];
-  const upsertDocs: AgreementConsumerDocumentSQL[] = [];
-  const deleteDocs: string[] = [];
-  const upsertContracts: AgreementContractSQL[] = [];
-  const deleteAgreements: AgreementId[] = [];
+  const upsertAgreementBatch: AgreementItemsSchema[] = [];
+  const upsertDocumentBatch: AgreementConsumerDocumentSchema[] = [];
+  const upsertContractBatch: AgreementContractSchema[] = [];
+  const deleteDocumentBatch: AgreementConsumerDocumentDeletingSchema[] = [];
+  const deleteAgreementBatch: AgreementDeletingSchema[] = [];
 
-  for (const msg of messages) {
-    match(msg)
+  for (const message of messages) {
+    match(message)
       .with(
         {
           type: P.union(
@@ -45,75 +53,120 @@ export async function handleAgreementMessageV1(
             "VerifiedAttributeUpdated"
           ),
         },
-        ({ data, version }) => {
-          if (!data.agreement) {
+        (msg) => {
+          if (!msg.data.agreement) {
             throw genericInternalError(
               `Agreement can't be missing in the event message`
             );
           }
-          upsertAgreements.push(
-            splitAgreementIntoObjectsSQL(
-              fromAgreementV1(data.agreement),
-              version
-            )
+
+          const result = splitAgreementIntoObjectsSQL(
+            fromAgreementV1(msg.data.agreement),
+            msg.version
+          );
+
+          upsertAgreementBatch.push(
+            AgreementItemsSchema.parse({
+              agreementSQL: result.agreementSQL,
+              attributesSQL: result.attributesSQL,
+              consumerDocumentsSQL: result.consumerDocumentsSQL,
+              contractSQL: result.contractSQL,
+              stampsSQL: result.stampsSQL,
+            } satisfies z.input<typeof AgreementItemsSchema>)
           );
         }
       )
-
-      .with({ type: "AgreementConsumerDocumentAdded" }, ({ data, version }) => {
-        if (!data.document) {
+      .with({ type: "AgreementConsumerDocumentAdded" }, (msg) => {
+        if (!msg.data.document) {
           throw genericInternalError(
             `Agreement document can't be missing in the event message`
           );
         }
-        const agreementDocument = agreementDocumentToAgreementDocumentSQL(
-          fromAgreementDocumentV1(data.document),
-          unsafeBrandId<AgreementId>(data.agreementId),
-          version
-        );
-        upsertDocs.push(agreementDocument);
-      })
 
-      .with({ type: "AgreementConsumerDocumentRemoved" }, ({ data }) => {
-        deleteDocs.push(data.documentId);
+        const doc = agreementDocumentToAgreementDocumentSQL(
+          fromAgreementDocumentV1(msg.data.document),
+          unsafeBrandId<AgreementId>(msg.data.agreementId),
+          msg.version
+        );
+
+        upsertDocumentBatch.push(
+          AgreementConsumerDocumentSchema.parse({
+            ...doc,
+            deleted: false,
+          } satisfies z.input<typeof AgreementConsumerDocumentSchema>)
+        );
       })
-      .with({ type: "AgreementContractAdded" }, ({ data, version }) => {
-        if (!data.contract) {
+      .with({ type: "AgreementConsumerDocumentRemoved" }, (msg) => {
+        deleteDocumentBatch.push(
+          AgreementConsumerDocumentSchema.parse({
+            id: msg.data.documentId,
+            deleted: true,
+          } satisfies z.input<typeof AgreementConsumerDocumentDeletingSchema>)
+        );
+      })
+      .with({ type: "AgreementContractAdded" }, (msg) => {
+        if (!msg.data.contract) {
           throw genericInternalError(
             `Agreement contract can't be missing in the event message`
           );
         }
-        const agreementContract = agreementDocumentToAgreementDocumentSQL(
-          fromAgreementDocumentV1(data.contract),
-          unsafeBrandId<AgreementId>(data.agreementId),
-          version
+
+        const contract = agreementDocumentToAgreementDocumentSQL(
+          fromAgreementDocumentV1(msg.data.contract),
+          unsafeBrandId<AgreementId>(msg.data.agreementId),
+          msg.version
         );
-        upsertContracts.push(agreementContract);
-      })
 
-      .with({ type: "AgreementDeleted" }, ({ data }) => {
-        deleteAgreements.push(unsafeBrandId<AgreementId>(data.agreementId));
+        upsertContractBatch.push(
+          AgreementContractSchema.parse({
+            ...contract,
+            deleted: false,
+          } satisfies z.input<typeof AgreementContractSchema>)
+        );
       })
-
+      .with({ type: "AgreementDeleted" }, (msg) => {
+        deleteAgreementBatch.push(
+          AgreementDeletingSchema.parse({
+            id: msg.data.agreementId,
+            deleted: true,
+          } satisfies z.input<typeof AgreementDeletingSchema>)
+        );
+      })
       .exhaustive();
   }
 
-  if (upsertAgreements.length) {
-    await agreementService.upsertBatchAgreement(upsertAgreements, dbContext);
-  }
-  if (upsertDocs.length) {
-    await agreementService.upsertBatchAgreementDocument(upsertDocs, dbContext);
-  }
-  if (upsertContracts.length) {
-    await agreementService.upsertBatchAgreementContract(
-      upsertContracts,
-      dbContext
+  if (upsertAgreementBatch.length > 0) {
+    await agreementService.upsertBatchAgreement(
+      dbContext,
+      upsertAgreementBatch
     );
   }
-  if (deleteDocs.length) {
-    await agreementService.deleteBatchAgreementDocument(deleteDocs, dbContext);
+
+  if (upsertDocumentBatch.length > 0) {
+    await agreementService.upsertBatchAgreementDocument(
+      dbContext,
+      upsertDocumentBatch
+    );
   }
-  if (deleteAgreements.length) {
-    await agreementService.deleteBatchAgreement(deleteAgreements, dbContext);
+
+  if (upsertContractBatch.length > 0) {
+    await agreementService.upsertBatchAgreementContract(
+      dbContext,
+      upsertContractBatch
+    );
+  }
+
+  if (deleteDocumentBatch.length > 0) {
+    await agreementService.deleteBatchAgreementDocument(
+      dbContext,
+      deleteDocumentBatch
+    );
+  }
+
+  if (deleteAgreementBatch.length > 0) {
+    await agreementService.deleteBatchAgreement(
+      dbContext,
+      deleteAgreementBatch
+    );
   }
 }

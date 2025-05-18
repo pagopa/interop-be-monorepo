@@ -37,7 +37,8 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
         await t.none(`
           DELETE FROM ${stagingTableName} a
           USING ${stagingTableName} b
-          WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
+          WHERE a.id = b.id 
+            AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
         throw genericInternalError(
@@ -93,7 +94,7 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
       }
     },
 
-    async mergeDeleting(): Promise<void> {
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
@@ -101,7 +102,7 @@ export function agreementConsumerDocumentRepo(conn: DBConnection) {
           deletingTableName,
           ["id"]
         );
-        await conn.none(mergeQuery);
+        await t.none(mergeQuery);
       } catch (error) {
         throw genericInternalError(
           `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`

@@ -58,6 +58,14 @@ export const catalogTables: CatalogDbTable[] = [
   CatalogDbTable.eservice_risk_analysis_answer,
 ];
 
+export const agreementTables: AgreementDbTable[] = [
+  AgreementDbTable.agreement,
+  AgreementDbTable.agreement_stamp,
+  AgreementDbTable.agreement_attribute,
+  AgreementDbTable.agreement_consumer_document,
+  AgreementDbTable.agreement_contract,
+];
+
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,

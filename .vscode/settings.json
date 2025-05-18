@@ -8,5 +8,4 @@
   "files.watcherExclude": {
     "**/target": true
   },
-  "prettier.trailingComma": "es5"
 }

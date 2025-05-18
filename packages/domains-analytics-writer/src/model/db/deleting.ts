@@ -1,14 +1,15 @@
 import { z } from "zod";
 import {
+  agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
-
 import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
 import { extractProp } from "../../db/dbModelMetadataExtractor.js";
+import { AgreementDeletingSchema } from "../agreement/agreement.js";
 
 const DeletingTableMeta = {
   attribute_deleting_table: {
@@ -24,8 +25,8 @@ const DeletingTableMeta = {
     readModel: eserviceRiskAnalysisInReadmodelCatalog,
   },
   agreement_deleting_table: {
-    schema: EserviceRiskAnalysisDeletingSchema,
-    readModel: eserviceRiskAnalysisInReadmodelCatalog,
+    schema: AgreementDeletingSchema,
+    readModel: agreementInReadmodelAgreement,
   },
 } as const;
 export const DeletingDbTableConfig = extractProp(DeletingTableMeta, "schema");

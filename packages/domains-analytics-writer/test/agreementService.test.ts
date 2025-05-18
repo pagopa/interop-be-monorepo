@@ -25,6 +25,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { handleAgreementMessageV1 } from "../src/handlers/agreement/consumerServiceV1.js";
 import { handleAgreementMessageV2 } from "../src/handlers/agreement/consumerServiceV2.js";
+import { AgreementDbTable } from "../src/model/db/index.js";
 import {
   dbContext,
   resetTargetTables,
@@ -32,7 +33,6 @@ import {
   getOneFromDb,
   agreementTables,
 } from "./utils.js";
-import { AgreementDbTable } from "../src/model/db/index.js";
 
 describe("Agreement messages consumers - handleAgreementMessageV1", () => {
   beforeEach(async () => {
