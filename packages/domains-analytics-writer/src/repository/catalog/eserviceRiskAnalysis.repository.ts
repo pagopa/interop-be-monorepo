@@ -3,17 +3,13 @@ import { genericInternalError } from "pagopa-interop-models";
 import { EServiceRiskAnalysisSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
+import { buildColumnSet, Mapping } from "../../db/buildColumnSet.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceRiskAnalysisDeletingMapping,
-  EserviceRiskAnalysisMapping,
-  EserviceRiskAnalysisSchema,
-} from "../../model/catalog/eserviceRiskAnalysis.js";
+import { EserviceRiskAnalysisSchema } from "../../model/catalog/eserviceRiskAnalysis.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
 export function eserviceRiskAnalysisRepository(conn: DBConnection) {
@@ -29,17 +25,8 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceRiskAnalysisSQL[]
     ): Promise<void> {
-      const mapping: EserviceRiskAnalysisMapping = {
-        id: (r) => r.id,
-        metadataVersion: (r) => r.metadataVersion,
-        eserviceId: (r) => r.eserviceId,
-        name: (r) => r.name,
-        createdAt: (r) => r.createdAt,
-        riskAnalysisFormId: (r) => r.riskAnalysisFormId,
-        riskAnalysisFormVersion: (r) => r.riskAnalysisFormVersion,
-      };
-      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
+        const cs = buildColumnSet(pgp, tableName);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a
@@ -86,13 +73,12 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       pgp: IMain,
       records: Array<Pick<EServiceRiskAnalysisSQL, "id" | "eserviceId">>
     ): Promise<void> {
-      const mapping: EserviceRiskAnalysisDeletingMapping = {
-        id: (r) => r.id,
-        eserviceId: (r) => r.eserviceId,
-        deleted: () => true,
-      };
       try {
+        const mapping: Partial<Mapping<typeof deletingTable>> = {
+          deleted: () => true,
+        };
         const cs = buildColumnSet(pgp, deletingTable, mapping);
+
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );

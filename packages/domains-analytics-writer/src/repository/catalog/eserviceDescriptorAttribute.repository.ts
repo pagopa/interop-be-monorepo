@@ -6,10 +6,7 @@ import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceDescriptorAttributeMapping,
-  EserviceDescriptorAttributeSchema,
-} from "../../model/catalog/eserviceDescriptorAttribute.js";
+import { EserviceDescriptorAttributeSchema } from "../../model/catalog/eserviceDescriptorAttribute.js";
 import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
@@ -23,17 +20,8 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorAttributeSQL[]
     ): Promise<void> {
-      const mapping: EserviceDescriptorAttributeMapping = {
-        eserviceId: (r) => r.eserviceId,
-        metadataVersion: (r) => r.metadataVersion,
-        attributeId: (r) => r.attributeId,
-        descriptorId: (r) => r.descriptorId,
-        explicitAttributeVerification: (r) => r.explicitAttributeVerification,
-        kind: (r) => r.kind,
-        groupId: (r) => r.groupId,
-      };
-      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
+        const cs = buildColumnSet(pgp, tableName);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a

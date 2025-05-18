@@ -3,17 +3,13 @@ import { genericInternalError } from "pagopa-interop-models";
 import { EServiceDescriptorDocumentSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
+import { buildColumnSet, Mapping } from "../../db/buildColumnSet.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceDescriptorDocumentDeletingMapping,
-  EserviceDescriptorDocumentMapping,
-  EserviceDescriptorDocumentSchema,
-} from "../../model/catalog/eserviceDescriptorDocument.js";
+import { EserviceDescriptorDocumentSchema } from "../../model/catalog/eserviceDescriptorDocument.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
@@ -29,20 +25,8 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorDocumentSQL[]
     ): Promise<void> {
-      const mapping: EserviceDescriptorDocumentMapping = {
-        id: (r) => r.id,
-        eserviceId: (r) => r.eserviceId,
-        metadataVersion: (r) => r.metadataVersion,
-        descriptorId: (r) => r.descriptorId,
-        name: (r) => r.name,
-        contentType: (r) => r.contentType,
-        prettyName: (r) => r.prettyName,
-        path: (r) => r.path,
-        checksum: (r) => r.checksum,
-        uploadDate: (r) => r.uploadDate,
-      };
-      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
+        const cs = buildColumnSet(pgp, tableName);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a
@@ -89,8 +73,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
       recordsId: Array<EServiceDescriptorDocumentSQL["id"]>
     ): Promise<void> {
       try {
-        const mapping: EserviceDescriptorDocumentDeletingMapping = {
-          id: (r) => r.id,
+        const mapping: Partial<Mapping<typeof deletingTable>> = {
           deleted: () => true,
         };
         const cs = buildColumnSet(pgp, deletingTable, mapping);

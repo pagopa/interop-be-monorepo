@@ -1,9 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import {
-  eserviceDescriptorRejectionReasonInReadmodelCatalog,
-  EServiceDescriptorRejectionReasonSQL,
-} from "pagopa-interop-readmodel-models";
+import { eserviceDescriptorRejectionReasonInReadmodelCatalog } from "pagopa-interop-readmodel-models";
 
 export const EserviceDescriptorRejectionReasonSchema = createSelectSchema(
   eserviceDescriptorRejectionReasonInReadmodelCatalog
@@ -13,9 +10,3 @@ export const EserviceDescriptorRejectionReasonSchema = createSelectSchema(
 export type EserviceDescriptorRejectionReasonSchema = z.infer<
   typeof EserviceDescriptorRejectionReasonSchema
 >;
-
-export type EserviceDescriptorRejectionReasonMapping = {
-  [K in keyof EserviceDescriptorRejectionReasonSchema]: (
-    record: EServiceDescriptorRejectionReasonSQL
-  ) => EserviceDescriptorRejectionReasonSchema[K];
-};

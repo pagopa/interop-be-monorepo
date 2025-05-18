@@ -10,26 +10,20 @@ import { DBContext } from "./db.js";
 
 export type ColumnValue = string | number | Date | undefined | null | boolean;
 
-/**
- * Represents the shape of a record returned by Drizzle ReadModel for a given table.
- */
-type InputRow<T extends DbTable> = InferSelectModel<
+type InputSchema<T extends DbTable> = InferSelectModel<
   (typeof DbTableReadModels)[T]
 >;
-
-/**
- * Represents the shape of a record defined by the Zod schema for a given table.
- */
-type OutputRow<T extends DbTable> = z.infer<DbTableSchemas[T]>;
+type OutputSchema<T extends DbTable> = z.infer<DbTableSchemas[T]>;
 
 /**
  * Describes the mapping between the input row (from Drizzle) and
  * the output row (conforming to the Zod schema) for a given table.
  * Each key maps to a function that extracts/transforms the corresponding value.
  */
-type Mapping<T extends DbTable> = {
-  [K in keyof OutputRow<T>]: (record: InputRow<T>) => OutputRow<T>[K];
+export type Mapping<T extends DbTable> = {
+  [K in keyof OutputSchema<T>]: (record: InputSchema<T>) => OutputSchema<T>[K];
 };
+
 /**
  * This is a helper function that generates a ColumnSet for bulk operations using pg-promise.
  * It creates a mapping between object properties and corresponding database columns.
@@ -39,20 +33,20 @@ type Mapping<T extends DbTable> = {
  * @param tableName - The name of the target table for which the ColumnSet is generated.
  * @returns A ColumnSet configured with the specified columns and table details.
  */
-
-export const buildColumnSet = <
-  T extends DbTable,
-  TOutput extends Partial<OutputRow<T>> = OutputRow<T>
->(
+export const buildColumnSet = <T extends DbTable>(
   pgp: IMain,
   tableName: T,
-  mapping: Partial<Mapping<T>>
-): ColumnSet<TOutput> => {
+  mapping?: Partial<Mapping<T>>
+): ColumnSet<OutputSchema<T>> => {
   const snakeCase = getColumnName(tableName);
+  const schema = DbTable[tableName];
+  // eslint-disable-next-line no-underscore-dangle
+  const keys = Object.keys(schema._def.shape()) as Array<keyof OutputSchema<T>>;
 
-  const columns = Object.entries(mapping).map(([prop, initFn]) => ({
-    name: snakeCase(prop),
-    init: ({ source }: IColumnDescriptor<InputRow<T>>) => initFn(source),
+  const columns = keys.map((prop) => ({
+    name: snakeCase(prop as string),
+    init: ({ source }: IColumnDescriptor<InputSchema<T>>) =>
+      mapping?.[prop]?.(source) ?? source[prop as keyof InputSchema<T>],
   }));
 
   return new pgp.helpers.ColumnSet(columns, {

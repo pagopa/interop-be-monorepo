@@ -3,17 +3,13 @@ import { genericInternalError } from "pagopa-interop-models";
 import { EServiceDescriptorSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
+import { buildColumnSet, Mapping } from "../../db/buildColumnSet.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceDescriptorDeletingMapping,
-  EserviceDescriptorMapping,
-  EserviceDescriptorSchema,
-} from "../../model/catalog/eserviceDescriptor.js";
+import { EserviceDescriptorSchema } from "../../model/catalog/eserviceDescriptor.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorRepository(conn: DBConnection) {
@@ -29,28 +25,13 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorSQL[]
     ): Promise<void> {
-      const mapping: EserviceDescriptorMapping = {
-        id: (r) => r.id,
-        eserviceId: (r) => r.eserviceId,
-        metadataVersion: (r) => r.metadataVersion,
-        version: (r) => r.version,
-        description: (r) => r.description,
-        createdAt: (r) => r.createdAt,
-        state: (r) => r.state,
-        audience: (r) => JSON.stringify(r.audience),
-        voucherLifespan: (r) => r.voucherLifespan,
-        dailyCallsPerConsumer: (r) => r.dailyCallsPerConsumer,
-        dailyCallsTotal: (r) => r.dailyCallsTotal,
-        serverUrls: (r) => JSON.stringify(r.serverUrls),
-        agreementApprovalPolicy: (r) => r.agreementApprovalPolicy,
-        publishedAt: (r) => r.publishedAt,
-        suspendedAt: (r) => r.suspendedAt,
-        deprecatedAt: (r) => r.deprecatedAt,
-        archivedAt: (r) => r.archivedAt,
-      };
-
-      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
+        const mapping: Partial<Mapping<typeof tableName>> = {
+          audience: (r) => JSON.stringify(r.audience),
+          serverUrls: (r) => JSON.stringify(r.serverUrls),
+        };
+        const cs = buildColumnSet(pgp, tableName, mapping);
+
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
         DELETE FROM ${stagingTable} a
@@ -97,12 +78,10 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       recordsId: Array<EServiceDescriptorSQL["id"]>
     ): Promise<void> {
       try {
-        const mapping: EserviceDescriptorDeletingMapping = {
-          id: (r) => r.id,
+        const mapping: Partial<Mapping<typeof deletingTable>> = {
           deleted: () => true,
         };
         const cs = buildColumnSet(pgp, deletingTable, mapping);
-
         const records = recordsId.map((id) => ({ id }));
 
         await t.none(

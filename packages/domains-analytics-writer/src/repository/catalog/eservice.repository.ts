@@ -3,17 +3,13 @@ import { genericInternalError } from "pagopa-interop-models";
 import { EServiceSQL } from "pagopa-interop-readmodel-models";
 import { IMain, ITask } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
+import { buildColumnSet, Mapping } from "../../db/buildColumnSet.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceDeletingMapping,
-  EserviceMapping,
-  EserviceSchema,
-} from "../../model/catalog/eservice.js";
+import { EserviceSchema } from "../../model/catalog/eservice.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
 export function eserviceRepository(conn: DBConnection) {
@@ -29,22 +25,8 @@ export function eserviceRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceSQL[]
     ): Promise<void> {
-      const mapping: EserviceMapping = {
-        id: (r) => r.id,
-        metadataVersion: (r) => r.metadataVersion,
-        name: (r) => r.name,
-        producerId: (r) => r.producerId,
-        createdAt: (r) => r.createdAt,
-        description: (r) => r.description,
-        technology: (r) => r.technology,
-        mode: (r) => r.mode,
-        isSignalHubEnabled: (r) => r.isSignalHubEnabled,
-        isConsumerDelegable: (r) => r.isConsumerDelegable,
-        isClientAccessDelegable: (r) => r.isClientAccessDelegable,
-        templateId: (r) => r.templateId,
-      };
-      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
+        const cs = buildColumnSet(pgp, tableName);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
         DELETE FROM ${stagingTable} a
@@ -91,13 +73,10 @@ export function eserviceRepository(conn: DBConnection) {
       recordsId: Array<EServiceSQL["id"]>
     ): Promise<void> {
       try {
-        const mapping: EserviceDeletingMapping = {
-          id: (r) => r.id,
+        const mapping: Partial<Mapping<typeof deletingTable>> = {
           deleted: () => true,
         };
-
         const cs = buildColumnSet(pgp, deletingTable, mapping);
-
         const records = recordsId.map((id) => ({ id }));
 
         await t.none(

@@ -3,13 +3,10 @@ import { genericInternalError } from "pagopa-interop-models";
 import { EServiceRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
+import { buildColumnSet, Mapping } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceRiskAnalysisAnswerMapping,
-  EserviceRiskAnalysisAnswerSchema,
-} from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
+import { EserviceRiskAnalysisAnswerSchema } from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
 import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
@@ -23,17 +20,11 @@ export function eserviceRiskAnalysisAnswerRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceRiskAnalysisAnswerSQL[]
     ): Promise<void> {
-      const mapping: EserviceRiskAnalysisAnswerMapping = {
-        id: (r) => r.id,
-        eserviceId: (r) => r.eserviceId,
-        metadataVersion: (r) => r.metadataVersion,
-        riskAnalysisFormId: (r) => r.riskAnalysisFormId,
-        kind: (r) => r.kind,
-        key: (r) => r.key,
-        value: (r) => JSON.stringify(r.value),
-      };
-      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
+        const mapping: Partial<Mapping<typeof tableName>> = {
+          value: (r) => JSON.stringify(r.value),
+        };
+        const cs = buildColumnSet(pgp, tableName, mapping);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a

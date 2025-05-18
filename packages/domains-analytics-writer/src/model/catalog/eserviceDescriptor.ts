@@ -1,9 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import {
-  eserviceDescriptorInReadmodelCatalog,
-  EServiceDescriptorSQL,
-} from "pagopa-interop-readmodel-models";
+import { eserviceDescriptorInReadmodelCatalog } from "pagopa-interop-readmodel-models";
 
 export const EserviceDescriptorSchema = createSelectSchema(
   eserviceDescriptorInReadmodelCatalog
@@ -14,12 +11,6 @@ export const EserviceDescriptorSchema = createSelectSchema(
 });
 export type EserviceDescriptorSchema = z.infer<typeof EserviceDescriptorSchema>;
 
-export type EserviceDescriptorMapping = {
-  [K in keyof EserviceDescriptorSchema]: (
-    record: EServiceDescriptorSQL
-  ) => EserviceDescriptorSchema[K];
-};
-
 export const EserviceDescriptorDeletingSchema = EserviceDescriptorSchema.pick({
   id: true,
   deleted: true,
@@ -27,9 +18,3 @@ export const EserviceDescriptorDeletingSchema = EserviceDescriptorSchema.pick({
 export type EserviceDescriptorDeletingSchema = z.infer<
   typeof EserviceDescriptorDeletingSchema
 >;
-
-export type EserviceDescriptorDeletingMapping = {
-  [K in keyof EserviceDescriptorDeletingSchema]: (
-    record: Pick<EServiceDescriptorSQL, "id">
-  ) => EserviceDescriptorDeletingSchema[K];
-};

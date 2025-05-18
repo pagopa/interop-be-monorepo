@@ -6,10 +6,7 @@ import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceDescriptorTemplateVersionRefMapping,
-  EserviceDescriptorTemplateVersionRefSchema,
-} from "../../model/catalog/eserviceDescriptorTemplateVersionRef.js";
+import { EserviceDescriptorTemplateVersionRefSchema } from "../../model/catalog/eserviceDescriptorTemplateVersionRef.js";
 import { CatalogDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorTemplateVersionRefRepository(
@@ -25,18 +22,8 @@ export function eserviceDescriptorTemplateVersionRefRepository(
       pgp: IMain,
       records: EServiceDescriptorTemplateVersionRefSQL[]
     ): Promise<void> {
-      const mapping: EserviceDescriptorTemplateVersionRefMapping = {
-        eserviceTemplateVersionId: (r) => r.eserviceTemplateVersionId,
-        eserviceId: (r) => r.eserviceId,
-        metadataVersion: (r) => r.metadataVersion,
-        descriptorId: (r) => r.descriptorId,
-        contactName: (r) => r.contactName,
-        contactEmail: (r) => r.contactEmail,
-        contactUrl: (r) => r.contactUrl,
-        termsAndConditionsUrl: (r) => r.termsAndConditionsUrl,
-      };
-      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
+        const cs = buildColumnSet(pgp, tableName);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a

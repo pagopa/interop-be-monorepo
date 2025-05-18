@@ -1,9 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import {
-  eserviceRiskAnalysisAnswerInReadmodelCatalog,
-  EServiceRiskAnalysisAnswerSQL,
-} from "pagopa-interop-readmodel-models";
+import { eserviceRiskAnalysisAnswerInReadmodelCatalog } from "pagopa-interop-readmodel-models";
 
 export const EserviceRiskAnalysisAnswerSchema = createSelectSchema(
   eserviceRiskAnalysisAnswerInReadmodelCatalog
@@ -14,9 +11,3 @@ export const EserviceRiskAnalysisAnswerSchema = createSelectSchema(
 export type EserviceRiskAnalysisAnswerSchema = z.infer<
   typeof EserviceRiskAnalysisAnswerSchema
 >;
-
-export type EserviceRiskAnalysisAnswerMapping = {
-  [K in keyof EserviceRiskAnalysisAnswerSchema]: (
-    record: EServiceRiskAnalysisAnswerSQL
-  ) => EserviceRiskAnalysisAnswerSchema[K];
-};

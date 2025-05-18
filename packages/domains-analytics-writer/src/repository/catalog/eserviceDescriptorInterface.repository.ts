@@ -3,17 +3,13 @@ import { genericInternalError } from "pagopa-interop-models";
 import { EServiceDescriptorInterfaceSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
+import { buildColumnSet, Mapping } from "../../db/buildColumnSet.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import {
-  EserviceDescriptorInterfaceDeletingMapping,
-  EserviceDescriptorInterfaceMapping,
-  EserviceDescriptorInterfaceSchema,
-} from "../../model/catalog/eserviceDescriptorInterface.js";
+import { EserviceDescriptorInterfaceSchema } from "../../model/catalog/eserviceDescriptorInterface.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db.js";
 
 export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
@@ -29,20 +25,8 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       pgp: IMain,
       records: EServiceDescriptorInterfaceSQL[]
     ): Promise<void> {
-      const mapping: EserviceDescriptorInterfaceMapping = {
-        id: (r) => r.id,
-        eserviceId: (r) => r.eserviceId,
-        metadataVersion: (r) => r.metadataVersion,
-        descriptorId: (r) => r.descriptorId,
-        name: (r) => r.name,
-        contentType: (r) => r.contentType,
-        prettyName: (r) => r.prettyName,
-        path: (r) => r.path,
-        checksum: (r) => r.checksum,
-        uploadDate: (r) => r.uploadDate,
-      };
-      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
+        const cs = buildColumnSet(pgp, tableName);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTable} a
@@ -89,15 +73,11 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       recordsId: Array<EServiceDescriptorInterfaceSQL["id"]>
     ): Promise<void> {
       try {
-        const mapping: EserviceDescriptorInterfaceDeletingMapping = {
-          id: (r) => r.id,
+        const mapping: Partial<Mapping<typeof deletingTable>> = {
           deleted: () => true,
         };
-
         const cs = buildColumnSet(pgp, deletingTable, mapping);
-
         const records = recordsId.map((id) => ({ id }));
-
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );

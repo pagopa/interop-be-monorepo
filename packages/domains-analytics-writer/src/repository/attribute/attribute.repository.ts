@@ -3,13 +3,9 @@ import { genericInternalError } from "pagopa-interop-models";
 import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { config } from "../../config/config.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
+import { buildColumnSet, Mapping } from "../../db/buildColumnSet.js";
 import { DBConnection } from "../../db/db.js";
-import {
-  AttributeDeletingMapping,
-  AttributeMapping,
-  AttributeSchema,
-} from "../../model/attribute/attribute.js";
+import { AttributeSchema } from "../../model/attribute/attribute.js";
 import {
   generateMergeDeleteQuery,
   generateMergeQuery,
@@ -29,18 +25,8 @@ export function attributeRepository(conn: DBConnection) {
       pgp: IMain,
       records: AttributeSQL[]
     ): Promise<void> {
-      const mapping: AttributeMapping = {
-        id: (r) => r.id,
-        metadataVersion: (r) => r.metadataVersion,
-        code: (r) => r.code,
-        kind: (r) => r.kind,
-        description: (r) => r.description,
-        origin: (r) => r.origin,
-        name: (r) => r.name,
-        creationTime: (r) => r.creationTime,
-      };
-      const cs = buildColumnSet(pgp, tableName, mapping);
       try {
+        const cs = buildColumnSet(pgp, tableName);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
             DELETE FROM ${stagingTable} a
@@ -87,12 +73,10 @@ export function attributeRepository(conn: DBConnection) {
       recordsId: Array<AttributeSQL["id"]>
     ): Promise<void> {
       try {
-        const mapping: AttributeDeletingMapping = {
-          id: (r) => r.id,
+        const mapping: Partial<Mapping<typeof deletingTable>> = {
           deleted: () => true,
         };
         const cs = buildColumnSet(pgp, deletingTable, mapping);
-
         const records = recordsId.map((id) => ({ id }));
 
         await t.none(
