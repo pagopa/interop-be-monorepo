@@ -23,12 +23,12 @@ export function attributeServiceBuilder(db: DBContext) {
       )) {
         await dbContext.conn.tx(async (t) => {
           await repo.insert(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staging data inserted for batch of attributes: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
+          );
         });
-        genericLogger.info(
-          `Staging data inserted for batch of attributes: ${batch
-            .map((r) => r.id)
-            .join(", ")}`
-        );
       }
 
       await dbContext.conn.tx(async (t) => {
