@@ -44,8 +44,8 @@ export async function handleCatalogMessageV2(
   const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
   const deleteInterfaceBatch: EserviceDescriptorInterfaceDeletingSchema[] = [];
 
-  for (const msg of messages) {
-    match(msg)
+  for (const message of messages) {
+    match(message)
       .with({ type: "EServiceDeleted" }, (msg) => {
         deleteEServiceBatch.push(
           EserviceDeletingSchema.parse({

@@ -48,8 +48,8 @@ export async function handleCatalogMessageV1(
   const deleteRiskAnalysisBatch: EserviceRiskAnalysisDeletingSchema[] = [];
   const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
 
-  for (const msg of messages) {
-    match(msg)
+  for (const message of messages) {
+    match(message)
       .with(
         {
           type: P.union(
