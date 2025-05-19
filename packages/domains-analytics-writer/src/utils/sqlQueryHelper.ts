@@ -19,7 +19,7 @@ import { config } from "../config/config.js";
  * @returns A mapper `(columnKey: string) => string` that returns the actual
  * SQL column name (e.g. "eservice_id") or falls back to the original key.
  */
-export function getColumnName<T extends DbTable>(
+export function getColumnNameMapper<T extends DbTable>(
   tableName: T
 ): (columnKey: string) => string {
   const table = DbTableReadModels[tableName] as unknown as Record<
@@ -45,8 +45,8 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   keysOn: Array<keyof T>
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
-  const snakeCase = getColumnName(tableName);
-  const keys = Object.keys(tableSchema.shape).map(snakeCase);
+  const snakeCaseMapper = getColumnNameMapper(tableName);
+  const keys = Object.keys(tableSchema.shape).map(snakeCaseMapper);
 
   const updateSet = keys
     .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
@@ -57,7 +57,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
 
   const onCondition = keysOn
     .map((k) => {
-      const key = quoteColumn(snakeCase(String(k)));
+      const key = quoteColumn(snakeCaseMapper(String(k)));
       return `${schemaName}.${tableName}.${key} = source.${key}`;
     })
     .join(" AND ");
@@ -101,15 +101,17 @@ export function generateMergeDeleteQuery<
   useIdAsSourceDeleteKey: boolean = true
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
-  const snakeCase = getColumnName(targetTableName);
+  const snakeCaseMapper = getColumnNameMapper(targetTableName);
 
   const onCondition = deleteKeysOn
     .map(
       (k) =>
         `${schemaName}.${targetTableName}.${quoteColumn(
-          snakeCase(String(k))
+          snakeCaseMapper(String(k))
         )} = source.${
-          useIdAsSourceDeleteKey ? "id" : quoteColumn(snakeCase(String(k)))
+          useIdAsSourceDeleteKey
+            ? "id"
+            : quoteColumn(snakeCaseMapper(String(k)))
         }`
     )
     .join(" AND ");

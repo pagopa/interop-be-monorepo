@@ -2,7 +2,7 @@ import pRetry from "p-retry";
 import { AnalyticsSQLDbConfig, DB, Logger } from "pagopa-interop-commons";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { z } from "zod";
-import { getColumnName } from "../utils/sqlQueryHelper.js";
+import { getColumnNameMapper } from "../utils/sqlQueryHelper.js";
 import { DbTable } from "../model/db/index.js";
 import { config } from "../config/config.js";
 import { DBContext } from "./db.js";
@@ -26,11 +26,11 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
   tableName: DbTable,
   schema: z.ZodObject<T>
 ): ColumnSet<z.infer<typeof schema>> => {
-  const snakeCase = getColumnName(tableName);
+  const snakeCaseMapper = getColumnNameMapper(tableName);
   const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
 
   const columns = keys.map((prop) => ({
-    name: snakeCase(String(prop)),
+    name: snakeCaseMapper(String(prop)),
     init: ({ source }: IColumnDescriptor<z.infer<typeof schema>>) =>
       source[prop],
   }));
