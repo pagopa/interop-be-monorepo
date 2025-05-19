@@ -274,6 +274,9 @@ paths:
       summary: Suspend Agreement
       operationId: suspendAgreement
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Active agreement suspended.
           content:
