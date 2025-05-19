@@ -137,11 +137,11 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiAgreement(polledResource.data);
     },
-    submitAgreement: async (
+    async submitAgreement(
       agreementId: AgreementId,
       body: m2mGatewayApi.AgreementSubmission,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreement> => {
+    ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Submitting agreement with id ${agreementId}`);
 
       const response = await clients.agreementProcessClient.submitAgreement(
