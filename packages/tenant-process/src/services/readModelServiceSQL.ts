@@ -16,7 +16,7 @@ import {
   Delegation,
   delegationKind,
   delegationState,
-  TenantFeatureType,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   aggregateTenantArray,
@@ -51,6 +51,7 @@ import {
   lowerCase,
   withTotalCount,
 } from "pagopa-interop-commons";
+import { ApiGetTenantsFilters } from "../model/domain/models.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
@@ -65,14 +66,11 @@ export function readModelServiceBuilderSQL(
     async getTenants({
       name,
       features,
+      externalIdOrigin,
+      externalIdValue,
       offset,
       limit,
-    }: {
-      name: string | undefined;
-      features: TenantFeatureType[];
-      offset: number;
-      limit: number;
-    }): Promise<ListResult<Tenant>> {
+    }: ApiGetTenantsFilters): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
         .selectDistinct(
           withTotalCount({
@@ -97,6 +95,12 @@ export function readModelServiceBuilderSQL(
               : undefined,
             name
               ? ilike(tenantInReadmodelTenant.name, `%${escapeRegExp(name)}%`)
+              : undefined,
+            externalIdOrigin
+              ? eq(tenantInReadmodelTenant.externalIdOrigin, externalIdOrigin)
+              : undefined,
+            externalIdValue
+              ? eq(tenantInReadmodelTenant.externalIdValue, externalIdValue)
               : undefined,
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
@@ -186,27 +190,53 @@ export function readModelServiceBuilderSQL(
     async getTenantByName(
       name: string
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return await tenantReadModelService.getTenantByFilter(
-        ilike(tenantInReadmodelTenant.name, escapeRegExp(name))
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantInReadmodelTenant)
+        .where(ilike(tenantInReadmodelTenant.name, escapeRegExp(name)));
+
+      if (tenantSQL.length === 0) {
+        return undefined;
+      }
+      return await tenantReadModelService.getTenantById(
+        unsafeBrandId(tenantSQL[0].id)
       );
     },
 
     async getTenantByExternalId(
       externalId: ExternalId
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return await tenantReadModelService.getTenantByFilter(
-        and(
-          eq(tenantInReadmodelTenant.externalIdOrigin, externalId.origin),
-          eq(tenantInReadmodelTenant.externalIdValue, externalId.value)
-        )
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantInReadmodelTenant)
+        .where(
+          and(
+            eq(tenantInReadmodelTenant.externalIdOrigin, externalId.origin),
+            eq(tenantInReadmodelTenant.externalIdValue, externalId.value)
+          )
+        );
+
+      if (tenantSQL.length === 0) {
+        return undefined;
+      }
+      return await tenantReadModelService.getTenantById(
+        unsafeBrandId(tenantSQL[0].id)
       );
     },
 
     async getTenantBySelfcareId(
       selfcareId: string
     ): Promise<WithMetadata<Tenant> | undefined> {
-      return await tenantReadModelService.getTenantByFilter(
-        eq(tenantInReadmodelTenant.selfcareId, selfcareId)
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantInReadmodelTenant)
+        .where(eq(tenantInReadmodelTenant.selfcareId, selfcareId));
+
+      if (tenantSQL.length === 0) {
+        return undefined;
+      }
+      return await tenantReadModelService.getTenantById(
+        unsafeBrandId(tenantSQL[0].id)
       );
     },
 
@@ -244,10 +274,9 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
-        .selectDistinct(
+        .select(
           withTotalCount({
             tenantId: tenantInReadmodelTenant.id,
-            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           })
         )
         .from(tenantInReadmodelTenant)
@@ -273,6 +302,7 @@ export function readModelServiceBuilderSQL(
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
+        .groupBy(tenantInReadmodelTenant.id)
         .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset)
@@ -359,10 +389,9 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<Tenant>> {
       const subquery = readModelDB
-        .selectDistinct(
+        .select(
           withTotalCount({
             tenantId: tenantInReadmodelTenant.id,
-            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
           })
         )
         .from(tenantInReadmodelTenant)
@@ -383,6 +412,7 @@ export function readModelServiceBuilderSQL(
             isNotNull(tenantInReadmodelTenant.selfcareId)
           )
         )
+        .groupBy(tenantInReadmodelTenant.id)
         .orderBy(ascLower(tenantInReadmodelTenant.name))
         .limit(limit)
         .offset(offset)
