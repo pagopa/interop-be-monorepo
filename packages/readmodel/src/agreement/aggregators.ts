@@ -23,7 +23,7 @@ import {
   AgreementId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateAgreementArray = ({
   agreementsSQL,
@@ -287,6 +287,8 @@ export const toAgreementAggregator = (
     consumerDocumentsSQL,
     contractsSQL,
   } = toAgreementAggregatorArray(queryRes);
+
+  throwIfMultiple(agreementsSQL, "agreement");
 
   return {
     agreementSQL: agreementsSQL[0],

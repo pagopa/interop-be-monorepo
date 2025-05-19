@@ -11,6 +11,7 @@ import {
   initPDFGenerator,
   authRole,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import {
   EServiceId,
@@ -116,6 +117,7 @@ const purposeRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
+    M2M_ADMIN_ROLE,
   } = authRole;
   purposeRouter
     .get("/purposes", async (req, res) => {
@@ -128,6 +130,7 @@ const purposeRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
         const {
@@ -169,10 +172,15 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.createPurpose(req.body, ctx);
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.createPurpose(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -247,13 +255,19 @@ const purposeRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.getPurposeById(
-            unsafeBrandId(req.params.id),
-            ctx
-          );
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.getPurposeById(
+          unsafeBrandId(req.params.id),
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(

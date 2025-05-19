@@ -19,7 +19,7 @@ import {
   DelegationItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateDelegationArray = ({
   delegationsSQL,
@@ -207,6 +207,8 @@ export const toDelegationAggregator = (
 ): DelegationItemsSQL => {
   const { delegationsSQL, stampsSQL, contractDocumentsSQL } =
     toDelegationAggregatorArray(queryRes);
+
+  throwIfMultiple(delegationsSQL, "delegation");
 
   return {
     delegationSQL: delegationsSQL[0],
