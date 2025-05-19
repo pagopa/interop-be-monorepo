@@ -21,12 +21,20 @@ export function tokenGenerationReadModelServiceBuilder(
 ) {
   return {
     async readAllPlatformStatesAgreements(): Promise<
-      Array<PlatformStatesAgreementEntry & { producerId?: TenantId }>
+      Array<
+        Omit<PlatformStatesAgreementEntry, "producerId"> & {
+          producerId?: TenantId;
+        }
+      >
     > {
       const runPaginatedQuery = async (
         exclusiveStartKey?: Record<string, AttributeValue>
       ): Promise<
-        Array<PlatformStatesAgreementEntry & { producerId?: TenantId }>
+        Array<
+          Omit<PlatformStatesAgreementEntry, "producerId"> & {
+            producerId?: TenantId;
+          }
+        >
       > => {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNamePlatform,
@@ -48,9 +56,9 @@ export function tokenGenerationReadModelServiceBuilder(
 
           const platformStatesAgreements = z
             .array(
-              PlatformStatesAgreementEntry.and(
-                z.object({ producerId: TenantId.optional() })
-              )
+              PlatformStatesAgreementEntry.extend({
+                producerId: TenantId.optional(),
+              })
             )
             .safeParse(unmarshalledItems);
 
