@@ -18,25 +18,28 @@ export function toGetPurposesApiQueryParams(
 export function toM2MGatewayApiPurpose(
   purpose: purposeApi.Purpose
 ): m2mGatewayApi.Purpose {
+  const sortedVersions = [...purpose.versions].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
   const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
     m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
     m2mGatewayApi.PurposeVersionState.Values.REJECTED,
   ];
-  const currentVersion = purpose.versions
-    .filter((v) => !statesToExclude.includes(v.state))
-    .sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    )
-    .at(-1);
+  const currentVersion = sortedVersions.findLast(
+    (v) => !statesToExclude.includes(v.state)
+  );
 
-  const waitingForApprovalVersion = purpose.versions.find(
+  const waitingForApprovalVersion = sortedVersions.findLast(
     (v) =>
       v.state === m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
   );
-  const rejectedVersion = purpose.versions.find(
-    (v) => v.state === m2mGatewayApi.PurposeVersionState.Values.REJECTED
-  );
+
+  const latestVersion = sortedVersions.at(-1);
+  const rejectedVersion =
+    latestVersion?.state === purposeApi.PurposeVersionState.Values.REJECTED
+      ? latestVersion
+      : undefined;
 
   return {
     id: purpose.id,
