@@ -318,6 +318,9 @@ paths:
               $ref: "#/components/schemas/AgreementRejectionPayload"
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement rejected.
           content:
