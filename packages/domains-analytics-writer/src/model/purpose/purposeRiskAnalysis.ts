@@ -10,12 +10,3 @@ export const PurposeRiskAnalysisFormSchema = createSelectSchema(
 export type PurposeRiskAnalysisFormSchema = z.infer<
   typeof PurposeRiskAnalysisFormSchema
 >;
-
-export const PurposeRiskAnalysisFormDeletingSchema =
-  PurposeRiskAnalysisFormSchema.pick({
-    id: true,
-    deleted: true,
-  });
-export type PurposeRiskAnalysisFormDeletingSchema = z.infer<
-  typeof PurposeRiskAnalysisFormDeletingSchema
->;

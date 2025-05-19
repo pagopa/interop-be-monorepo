@@ -20,7 +20,7 @@ export type PurposeVersionDeletingSchema = z.infer<
 
 export const PurposeVersionItemsSchema = z.object({
   versionSQL: PurposeVersionSchema,
-  versionDocumentSQL: PurposeVersionDocumentSchema,
+  versionDocumentSQL: PurposeVersionDocumentSchema.optional(),
 });
 export type PurposeVersionItemsSchema = z.infer<
   typeof PurposeVersionItemsSchema

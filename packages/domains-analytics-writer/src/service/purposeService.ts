@@ -110,30 +110,30 @@ export function purposeServiceBuilder(db: DBContext) {
         config.dbMessagesToInsertPerBatch
       )) {
         const batchItems = {
-          purposeVersions: batch.flatMap((item) => item.versionSQL),
-          versionDocuments: batch.flatMap(
-            (item) => item.versionDocumentSQL ?? []
+          purposeVersion: batch.map((item) => item.versionSQL),
+          versionDocument: batch.flatMap((item) =>
+            item.versionDocumentSQL ? [item.versionDocumentSQL] : []
           ),
         };
 
         await ctx.conn.tx(async (t) => {
-          if (batchItems.purposeVersions.length) {
+          if (batchItems.purposeVersion.length) {
             await versionRepository.insert(
               t,
               ctx.pgp,
-              batchItems.purposeVersions
+              batchItems.purposeVersion
             );
           }
-          if (batchItems.versionDocuments.length) {
+          if (batchItems.versionDocument.length) {
             await versionDocumentRepository.insert(
               t,
               ctx.pgp,
-              batchItems.versionDocuments
+              batchItems.versionDocument
             );
           }
         });
         genericLogger.info(
-          `Staging data inserted for batch of ${batchItems.purposeVersions.length} purpose versions`
+          `Staging data inserted for batch of ${batchItems.purposeVersion.length} purpose versions`
         );
       }
 

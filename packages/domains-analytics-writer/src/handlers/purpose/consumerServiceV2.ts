@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { splitPurposeIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { z } from "zod";
 import { purposeServiceBuilder } from "../../service/purposeService.js";
 import { DBContext } from "../../db/db.js";
 import {
@@ -66,7 +67,7 @@ export async function handlePurposeMessageV2(
               riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
               versionsSQL: splitResult.versionsSQL,
               versionDocumentsSQL: splitResult.versionDocumentsSQL,
-            })
+            } satisfies z.input<typeof PurposeItemsSchema>)
           );
         }
       )
@@ -88,7 +89,7 @@ export async function handlePurposeMessageV2(
             PurposeDeletingSchema.parse({
               id: msg.data.purpose.id,
               deleted: true,
-            })
+            } satisfies z.input<typeof PurposeDeletingSchema>)
           );
         }
       )
@@ -97,7 +98,7 @@ export async function handlePurposeMessageV2(
           PurposeVersionDeletingSchema.parse({
             id: msg.data.versionId,
             deleted: true,
-          })
+          } satisfies z.input<typeof PurposeDeletingSchema>)
         );
       })
       .exhaustive();

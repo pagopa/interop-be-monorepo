@@ -13,16 +13,17 @@ import {
   splitPurposeIntoObjectsSQL,
   splitPurposeVersionIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
-import { purposeServiceBuilder } from "../../service/purposeService.js";
+import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import {
-  PurposeDeletingSchema,
   PurposeItemsSchema,
+  PurposeDeletingSchema,
 } from "../../model/purpose/purpose.js";
 import {
-  PurposeVersionDeletingSchema,
   PurposeVersionItemsSchema,
+  PurposeVersionDeletingSchema,
 } from "../../model/purpose/purposeVersion.js";
+import { purposeServiceBuilder } from "../../service/purposeService.js";
 
 export async function handlePurposeMessageV1(
   messages: PurposeEventEnvelopeV1[],
@@ -67,7 +68,7 @@ export async function handlePurposeMessageV1(
               riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
               versionsSQL: splitResult.versionsSQL,
               versionDocumentsSQL: splitResult.versionDocumentsSQL,
-            })
+            } satisfies z.input<typeof PurposeItemsSchema>)
           );
         }
       )
@@ -88,7 +89,7 @@ export async function handlePurposeMessageV1(
             PurposeVersionItemsSchema.parse({
               versionSQL: splitResult.versionSQL,
               versionDocumentSQL: splitResult.versionDocumentSQL,
-            })
+            } satisfies z.input<typeof PurposeVersionItemsSchema>)
           );
         }
       )
@@ -97,7 +98,7 @@ export async function handlePurposeMessageV1(
           PurposeDeletingSchema.parse({
             id: msg.data.purposeId,
             deleted: true,
-          })
+          } satisfies z.input<typeof PurposeDeletingSchema>)
         );
       })
       .with({ type: "PurposeVersionDeleted" }, (msg) => {
@@ -105,7 +106,7 @@ export async function handlePurposeMessageV1(
           PurposeVersionDeletingSchema.parse({
             id: msg.data.versionId,
             deleted: true,
-          })
+          } satisfies z.input<typeof PurposeDeletingSchema>)
         );
       })
       .exhaustive();
