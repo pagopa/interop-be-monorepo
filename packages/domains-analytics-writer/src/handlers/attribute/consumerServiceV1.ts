@@ -2,13 +2,12 @@
 /* eslint-disable functional/immutable-data */
 import {
   AttributeEventEnvelope,
-  AttributeId,
   fromAttributeV1,
   genericInternalError,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
 import {
@@ -37,15 +36,19 @@ export async function handleAttributeMessageV1(
           fromAttributeV1(msg.data.attribute),
           msg.version
         );
-        const attribute = AttributeSchema.parse(attributeSql);
-        upsertBatch.push(attribute);
+        upsertBatch.push(
+          AttributeSchema.parse(
+            attributeSql satisfies z.input<typeof AttributeSchema>
+          )
+        );
       })
       .with({ type: "MaintenanceAttributeDeleted" }, (msg) => {
-        const attributeId = unsafeBrandId<AttributeId>(msg.data.id);
-        deleteBatch.push({
-          id: attributeId,
-          deleted: true,
-        });
+        deleteBatch.push(
+          AttributeDeletingSchema.parse({
+            id: msg.data.id,
+            deleted: true,
+          } satisfies z.input<typeof AttributeDeletingSchema>)
+        );
       })
       .exhaustive();
   }
