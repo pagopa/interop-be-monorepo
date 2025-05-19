@@ -3234,13 +3234,15 @@ paths:
       description: Retrieve Tenants
       parameters:
         - in: query
-          name: externalIdOrigin
+          name: IPACode
           schema:
             type: string
+          description: IPA code of the tenant. Mutually exclusive with taxCode.
         - in: query
-          name: externalIdValue
+          name: taxCode
           schema:
             type: string
+          description: Tax code of the tenant. Mutually exclusive with IPACode.
         - in: query
           name: offset
           required: true

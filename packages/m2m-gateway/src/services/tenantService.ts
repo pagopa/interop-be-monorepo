@@ -36,10 +36,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       queryParams: m2mGatewayApi.GetTenantsQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Tenants> {
-      const { externalIdOrigin, externalIdValue, limit, offset } = queryParams;
+      const { IPACode, taxCode, limit, offset } = queryParams;
 
       logger.info(
-        `Retrieving tenants for externalIdOrigin ${externalIdOrigin} externalIdValue ${externalIdValue} limit ${limit} offset ${offset}`
+        `Retrieving tenants for IPACode ${IPACode} taxCode ${taxCode} limit ${limit} offset ${offset}`
       );
 
       const {
