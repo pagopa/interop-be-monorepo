@@ -2542,7 +2542,8 @@ components:
           format: uuid
         version:
           description: eservice descriptor version
-          type: number
+          type: integer
+          format: int32
         description:
           description: eservice descriptor description
           type: string

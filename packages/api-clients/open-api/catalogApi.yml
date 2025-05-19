@@ -2925,7 +2925,8 @@ components:
           type: string
           format: uuid
         version:
-          type: number
+          type: integer
+          format: int32
         description:
           type: string
         audience:
