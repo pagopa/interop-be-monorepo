@@ -26,19 +26,18 @@ import {
 } from "pagopa-interop-commons-test";
 import { handlePurposeMessageV1 } from "../src/handlers/purpose/consumerServiceV1.js";
 import { handlePurposeMessageV2 } from "../src/handlers/purpose/consumerServiceV2.js";
+import { PurposeDbTable } from "../src/model/db/purpose.js";
 import {
   dbContext,
-  resetPurposeTables,
-  getPurposeFromDb,
-  getPurposeVersionFromDb,
-  getVersionDocumentsFromDb,
-  getPurposeRiskAnalysisAnswerByPurposeIdFromDb,
-  getPurposeRiskAnalysisByPurposeIdFromDb,
+  getManyFromDb,
+  getOneFromDb,
+  purposeTables,
+  resetTargetTables,
 } from "./utils.js";
 
 describe("Purpose messages consumers - handlePurposeMessageV1", () => {
   beforeEach(async () => {
-    await resetPurposeTables(dbContext);
+    await resetTargetTables(purposeTables);
   });
 
   it("PurposeCreated: inserts purpose with mutiple versions and its sub-objects", async () => {
@@ -70,34 +69,39 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
 
     await handlePurposeMessageV1([msg], dbContext);
 
-    const stored = await getPurposeFromDb(mockPurpose.id, dbContext);
+    const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
+      id: mockPurpose.id,
+    });
     expect(stored).toBeDefined();
 
     for (const version of mockPurpose.versions) {
-      const versionStored = await getPurposeVersionFromDb(
-        version.id,
-        dbContext
+      const versionStored = await getOneFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version,
+        { id: version.id }
       );
       expect(versionStored).toBeDefined();
 
-      const versionDocumentStored = await getVersionDocumentsFromDb(
-        version.id,
-        dbContext
+      const versionDocumentStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_document,
+        { purpose_version_id: version.id }
       );
       expect(versionDocumentStored.length).toBeGreaterThan(0);
 
-      const riskAnalysisStored = await getPurposeRiskAnalysisByPurposeIdFromDb(
-        mockPurpose.id,
-        dbContext
+      const riskAnalysisStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_form,
+        { purpose_id: mockPurpose.id }
       );
 
       expect(riskAnalysisStored.length).toBeGreaterThan(0);
 
-      const riskAnalysisAnswerStored =
-        await getPurposeRiskAnalysisAnswerByPurposeIdFromDb(
-          mockPurpose.id,
-          dbContext
-        );
+      const riskAnalysisAnswerStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_answer,
+        { purpose_id: mockPurpose.id }
+      );
       expect(riskAnalysisAnswerStored.length).toBeGreaterThan(0);
     }
   });
@@ -136,7 +140,11 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
 
     await handlePurposeMessageV1([msg], dbContext);
 
-    const storedVer = await getPurposeVersionFromDb(version.id, dbContext);
+    const storedVer = await getOneFromDb(
+      dbContext,
+      PurposeDbTable.purpose_version,
+      { id: version.id }
+    );
     expect(storedVer).toBeDefined();
     expect(storedVer.metadata_version).toBe(2);
   });
@@ -179,51 +187,47 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     };
     await handlePurposeMessageV1([deleteMsg], dbContext);
 
-    const stored = await getPurposeFromDb(mockPurpose.id, dbContext);
+    const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
+      id: mockPurpose.id,
+    });
     expect(stored.deleted).toBe(true);
     expect(mockPurpose.versions.length).toBeGreaterThan(0);
     for (const version of mockPurpose.versions) {
-      const versionStored = await getPurposeVersionFromDb(
-        version.id,
-        dbContext
+      const versionStored = await getOneFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version,
+        { id: version.id }
       );
       expect(versionStored.deleted).toBe(true);
 
-      const versionDocumentStored = await getVersionDocumentsFromDb(
-        version.id,
-        dbContext
+      const versionDocumentStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_document,
+        { purpose_version_id: version.id }
       );
-
       expect(versionDocumentStored.length).toBeGreaterThan(0);
 
       expect(
-        versionDocumentStored.forEach((r: { deleted: boolean }) =>
-          expect(r.deleted).toBe(true)
-        )
+        versionDocumentStored.forEach((r) => expect(r.deleted).toBe(true))
       );
     }
 
-    const riskAnalysisStored = await getPurposeRiskAnalysisByPurposeIdFromDb(
-      mockPurpose.id,
-      dbContext
+    const riskAnalysisStored = await getManyFromDb(
+      dbContext,
+      PurposeDbTable.purpose_risk_analysis_form,
+      { purpose_id: mockPurpose.id }
+    );
+
+    expect(riskAnalysisStored.forEach((r) => expect(r.deleted).toBe(true)));
+
+    const riskAnalysisAnswerStored = await getManyFromDb(
+      dbContext,
+      PurposeDbTable.purpose_risk_analysis_answer,
+      { purpose_id: mockPurpose.id }
     );
 
     expect(
-      riskAnalysisStored.forEach((r: { deleted: boolean }) =>
-        expect(r.deleted).toBe(true)
-      )
-    );
-
-    const riskAnalysisAnswerStored =
-      await getPurposeRiskAnalysisAnswerByPurposeIdFromDb(
-        mockPurpose.id,
-        dbContext
-      );
-
-    expect(
-      riskAnalysisAnswerStored.forEach((r: { deleted: boolean }) =>
-        expect(r.deleted).toBe(true)
-      )
+      riskAnalysisAnswerStored.forEach((r) => expect(r.deleted).toBe(true))
     );
   });
 
@@ -274,28 +278,33 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       log_date: new Date(),
     };
     await handlePurposeMessageV1([deleteVer], dbContext);
-    const purposeStored = await getPurposeFromDb(mock.id, dbContext);
+    const purposeStored = await getOneFromDb(
+      dbContext,
+      PurposeDbTable.purpose,
+      {
+        id: mock.id,
+      }
+    );
 
     expect(purposeStored.deleted).toBeFalsy();
 
     for (const version of mock.versions) {
-      const versionStored = await getPurposeVersionFromDb(
-        version.id,
-        dbContext
+      const versionStored = await getOneFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version,
+        { id: version.id }
       );
       expect(versionStored.deleted).toBe(true);
 
-      const versionDocumentStored = await getVersionDocumentsFromDb(
-        version.id,
-        dbContext
+      const versionDocumentStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_document,
+        { purpose_version_id: version.id }
       );
-
       expect(versionDocumentStored.length).toBeGreaterThan(0);
 
       expect(
-        versionDocumentStored.forEach((r: { deleted: boolean }) =>
-          expect(r.deleted).toBe(true)
-        )
+        versionDocumentStored.forEach((r) => expect(r.deleted).toBe(true))
       );
     }
   });
@@ -303,10 +312,10 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
 
 describe("Purpose messages consumers - handlePurposeMessageV2", () => {
   beforeEach(async () => {
-    await resetPurposeTables(dbContext);
+    await resetTargetTables(purposeTables);
   });
 
-  it("PurposeCreated: inserts purpose with mutiple versions and its sub-objects", async () => {
+  it("PurposeCreated: inserts purpose with multiple versions and its sub-objects", async () => {
     const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
       ...getMockValidRiskAnalysisForm(tenantKind.PA),
       riskAnalysisId: generateId<RiskAnalysisId>(),
@@ -322,6 +331,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [getMockPurposeVersion()],
     };
+
     const payload: PurposeAddedV2 = { purpose: toPurposeV2(mockPurpose) };
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 1,
@@ -335,40 +345,45 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
 
     await handlePurposeMessageV2([msg], dbContext);
 
-    const stored = await getPurposeFromDb(mockPurpose.id, dbContext);
+    const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
+      id: mockPurpose.id,
+    });
     expect(stored).toBeDefined();
 
     for (const version of mockPurpose.versions) {
-      const versionStored = await getPurposeVersionFromDb(
-        version.id,
-        dbContext
+      const versionStored = await getOneFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version,
+        { id: version.id }
       );
       expect(versionStored).toBeDefined();
 
-      const versionDocumentStored = await getVersionDocumentsFromDb(
-        version.id,
-        dbContext
+      const versionDocumentStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_document,
+        { purpose_version_id: version.id }
       );
       expect(versionDocumentStored.length).toBeGreaterThan(0);
 
-      const riskAnalysisStored = await getPurposeRiskAnalysisByPurposeIdFromDb(
-        mockPurpose.id,
-        dbContext
+      const riskAnalysisStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_form,
+        { purpose_id: mockPurpose.id }
       );
-
       expect(riskAnalysisStored.length).toBeGreaterThan(0);
 
-      const riskAnalysisAnswerStored =
-        await getPurposeRiskAnalysisAnswerByPurposeIdFromDb(
-          mockPurpose.id,
-          dbContext
-        );
+      const riskAnalysisAnswerStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_answer,
+        { purpose_id: mockPurpose.id }
+      );
       expect(riskAnalysisAnswerStored.length).toBeGreaterThan(0);
     }
   });
 
   it("DraftPurposeUpdated: upserts purpose metadata_version incremented", async () => {
     const mock = getMockPurpose();
+
     await handlePurposeMessageV2(
       [
         {
@@ -383,7 +398,9 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       ],
       dbContext
     );
+
     const updated = { ...mock, title: "updated" };
+
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 2,
       stream_id: mock.id,
@@ -393,8 +410,12 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       data: { purpose: toPurposeV2(updated) },
       log_date: new Date(),
     };
+
     await handlePurposeMessageV2([msg], dbContext);
-    const stored = await getPurposeFromDb(mock.id, dbContext);
+
+    const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
+      id: mock.id,
+    });
     expect(stored.title).toBe("updated");
     expect(stored.metadata_version).toBe(2);
   });
@@ -415,6 +436,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [getMockPurposeVersion(), getMockPurposeVersion()],
     };
+
     await handlePurposeMessageV2(
       [
         {
@@ -440,53 +462,42 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       log_date: new Date(),
     };
     await handlePurposeMessageV2([msg], dbContext);
-    const stored = await getPurposeFromDb(mockPurpose.id, dbContext);
+
+    const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
+      id: mockPurpose.id,
+    });
     expect(stored.deleted).toBe(true);
-    expect(mockPurpose.versions.length).toBeGreaterThan(0);
 
     for (const version of mockPurpose.versions) {
-      const versionStored = await getPurposeVersionFromDb(
-        version.id,
-        dbContext
+      const versionStored = await getOneFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version,
+        { id: version.id }
       );
       expect(versionStored.deleted).toBe(true);
 
-      const versionDocumentStored = await getVersionDocumentsFromDb(
-        version.id,
-        dbContext
+      const versionDocumentStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_document,
+        { purpose_version_id: version.id }
       );
-
       expect(versionDocumentStored.length).toBeGreaterThan(0);
-
-      expect(
-        versionDocumentStored.forEach((r: { deleted: boolean }) =>
-          expect(r.deleted).toBe(true)
-        )
-      );
+      versionDocumentStored.forEach((r) => expect(r.deleted).toBe(true));
     }
 
-    const riskAnalysisStored = await getPurposeRiskAnalysisByPurposeIdFromDb(
-      mockPurpose.id,
-      dbContext
+    const riskAnalysisStored = await getManyFromDb(
+      dbContext,
+      PurposeDbTable.purpose_risk_analysis_form,
+      { purpose_id: mockPurpose.id }
     );
+    riskAnalysisStored.forEach((r) => expect(r.deleted).toBe(true));
 
-    expect(
-      riskAnalysisStored.forEach((r: { deleted: boolean }) =>
-        expect(r.deleted).toBe(true)
-      )
+    const riskAnalysisAnswerStored = await getManyFromDb(
+      dbContext,
+      PurposeDbTable.purpose_risk_analysis_answer,
+      { purpose_id: mockPurpose.id }
     );
-
-    const riskAnalysisAnswerStored =
-      await getPurposeRiskAnalysisAnswerByPurposeIdFromDb(
-        mockPurpose.id,
-        dbContext
-      );
-
-    expect(
-      riskAnalysisAnswerStored.forEach((r: { deleted: boolean }) =>
-        expect(r.deleted).toBe(true)
-      )
-    );
+    riskAnalysisAnswerStored.forEach((r) => expect(r.deleted).toBe(true));
   });
 
   it("NewPurposeVersionActivated: adds a version on a existing purpose", async () => {
@@ -505,6 +516,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       ],
       dbContext
     );
+
     const version = getMockPurposeVersion();
     mock.versions.push(version);
 
@@ -523,7 +535,12 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       log_date: new Date(),
     };
     await handlePurposeMessageV2([msg], dbContext);
-    const storedVer = await getPurposeVersionFromDb(version.id, dbContext);
+
+    const storedVer = await getOneFromDb(
+      dbContext,
+      PurposeDbTable.purpose_version,
+      { id: version.id }
+    );
     expect(storedVer).toBeDefined();
   });
 
@@ -543,6 +560,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       ],
       dbContext
     );
+
     const version = getMockPurposeVersion();
     mock.versions.push(version);
     await handlePurposeMessageV2(
@@ -571,36 +589,35 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     };
     await handlePurposeMessageV2([msg], dbContext);
 
-    const purposeStored = await getPurposeFromDb(mock.id, dbContext);
-
+    const purposeStored = await getOneFromDb(
+      dbContext,
+      PurposeDbTable.purpose,
+      { id: mock.id }
+    );
     expect(purposeStored.deleted).toBeFalsy();
 
     for (const version of mock.versions) {
-      const versionStored = await getPurposeVersionFromDb(
-        version.id,
-        dbContext
+      const versionStored = await getOneFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version,
+        { id: version.id }
       );
       expect(versionStored.deleted).toBe(true);
 
-      const versionDocumentStored = await getVersionDocumentsFromDb(
-        version.id,
-        dbContext
+      const versionDocumentStored = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_document,
+        { purpose_version_id: version.id }
       );
-
       expect(versionDocumentStored.length).toBeGreaterThan(0);
-
-      expect(
-        versionDocumentStored.forEach((r: { deleted: boolean }) =>
-          expect(r.deleted).toBe(true)
-        )
-      );
+      versionDocumentStored.forEach((r) => expect(r.deleted).toBe(true));
     }
   });
 });
 
 describe("Check on metadata_version merge - Purpose", () => {
   beforeEach(async () => {
-    await resetPurposeTables(dbContext);
+    await resetTargetTables(purposeTables);
   });
 
   it("should skip update when incoming metadata_version is lower or equal", async () => {
@@ -617,7 +634,9 @@ describe("Check on metadata_version merge - Purpose", () => {
     };
 
     await handlePurposeMessageV1([msgV1], dbContext);
-    const stored1 = await getPurposeFromDb(mock.id, dbContext);
+    const stored1 = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
+      id: mock.id,
+    });
     expect(stored1.title).toBe("Title v1");
     expect(stored1.metadata_version).toBe(1);
 
@@ -628,7 +647,9 @@ describe("Check on metadata_version merge - Purpose", () => {
       data: { purpose: toPurposeV1({ ...mock, title: "Title v3" }) },
     };
     await handlePurposeMessageV1([msgV3], dbContext);
-    const stored2 = await getPurposeFromDb(mock.id, dbContext);
+    const stored2 = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
+      id: mock.id,
+    });
     expect(stored2.title).toBe("Title v3");
     expect(stored2.metadata_version).toBe(3);
 
@@ -639,7 +660,9 @@ describe("Check on metadata_version merge - Purpose", () => {
       data: { purpose: toPurposeV1({ ...mock, title: "Title v2" }) },
     };
     await handlePurposeMessageV1([msgV2], dbContext);
-    const stored3 = await getPurposeFromDb(mock.id, dbContext);
+    const stored3 = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
+      id: mock.id,
+    });
     expect(stored3.title).toBe("Title v3");
     expect(stored3.metadata_version).toBe(3);
   });
@@ -658,7 +681,9 @@ describe("Check on metadata_version merge - Purpose", () => {
     };
     await handlePurposeMessageV1([msgV2], dbContext);
 
-    const stored = await getPurposeFromDb(mock.id, dbContext);
+    const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
+      id: mock.id,
+    });
     expect(stored.title).toBe("Title v2");
     expect(stored.metadata_version).toBe(2);
   });

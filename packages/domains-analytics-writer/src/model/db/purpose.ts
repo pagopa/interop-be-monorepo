@@ -39,10 +39,10 @@ export const PurposeDbTableConfig = extractProp(PurposeTableMeta, "schema");
 export type PurposeDbTableConfig = typeof PurposeDbTableConfig;
 export const PurposeDbTableReadModel = extractProp(
   PurposeTableMeta,
-  "readModel",
+  "readModel"
 );
 export type PurposeDbTableReadModel = typeof PurposeDbTableReadModel;
 export type PurposeDbTable = keyof typeof PurposeDbTableConfig;
 export const PurposeDbTable = Object.fromEntries(
-  Object.keys(PurposeDbTableConfig).map((k) => [k, k]),
+  Object.keys(PurposeDbTableConfig).map((k) => [k, k])
 ) as { [K in PurposeDbTable]: K };
