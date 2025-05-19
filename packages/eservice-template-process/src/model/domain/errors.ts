@@ -34,8 +34,7 @@ export const errorCodes = {
   documentPrettyNameDuplicate: "0022",
   checksumDuplicate: "0023",
   draftEServiceTemplateVersionAlreadyExists: "0024",
-  eServiceDocumentNotFound: "0025",
-  eserviceTemplateDocumentNotFound: "0026",
+  eserviceTemplateDocumentNotFound: "0025",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -86,7 +85,7 @@ export function eServiceTemplateDuplicate(
   eserviceTemplateName: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `An EService Template with name ${eserviceTemplateName} already exists`,
+    detail: `An eService Template with name ${eserviceTemplateName} already exists`,
     code: "eServiceTemplateDuplicate",
     title: "Duplicated service name",
   });
@@ -115,7 +114,7 @@ export function inconsistentAttributesSeedGroupsCount(
   eserviceTemplateVersionId: EServiceTemplateVersionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Attributes seed contains a different number of groups than the descriptor for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
+    detail: `Attributes seed contains a different number of groups than the descriptor for eService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
     code: "inconsistentAttributesSeedGroupsCount",
     title: "Inconsistent attributes seed groups count",
   });
@@ -126,7 +125,7 @@ export function versionAttributeGroupSupersetMissingInAttributesSeed(
   eserviceTemplateVersionId: EServiceTemplateVersionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Missing required attribute group superset in attributes seed for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
+    detail: `Missing required attribute group superset in attributes seed for eService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
     code: "versionAttributeGroupSupersetMissingInAttributesSeed",
     title: "Descriptor attribute group superset missing in attributes seed",
   });
@@ -137,7 +136,7 @@ export function unchangedAttributes(
   eserviceTemplateVersionId: EServiceTemplateVersionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No new attributes detected in attribute seed for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
+    detail: `No new attributes detected in attribute seed for eService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`,
     code: "unchangedAttributes",
     title: "Unchanged attributes",
   });
@@ -153,7 +152,7 @@ export function attributeNotFound(
   });
 }
 
-export function eserviceTemaplateRiskAnalysisNameDuplicate(
+export function eserviceTemplateRiskAnalysisNameDuplicate(
   riskAnalysisName: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -215,7 +214,7 @@ export function draftEServiceTemplateVersionAlreadyExists(
   eserviceTemplateId: EServiceTemplateId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Draft version for EService Template ${eserviceTemplateId} already exists`,
+    detail: `Draft version for eService Template ${eserviceTemplateId} already exists`,
     code: "draftEServiceTemplateVersionAlreadyExists",
     title: "Draft version already exists",
   });

@@ -302,7 +302,6 @@ export const deleteDocumentErrorMapper = (
     .with(
       "eServiceTemplateNotFound",
       "eServiceTemplateVersionNotFound",
-      "eServiceDocumentNotFound",
       "eserviceTemplateDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )

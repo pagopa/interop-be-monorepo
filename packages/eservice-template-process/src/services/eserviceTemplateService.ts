@@ -60,7 +60,7 @@ import {
   riskAnalysisValidationFailed,
   tenantNotFound,
   originNotCompliant,
-  eserviceTemaplateRiskAnalysisNameDuplicate,
+  eserviceTemplateRiskAnalysisNameDuplicate,
   missingTemplateVersionInterface,
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
@@ -916,7 +916,7 @@ export function eserviceTemplateServiceBuilder(
         (ra) => ra.name === createRiskAnalysis.name
       );
       if (raSameName) {
-        throw eserviceTemaplateRiskAnalysisNameDuplicate(
+        throw eserviceTemplateRiskAnalysisNameDuplicate(
           createRiskAnalysis.name
         );
       }
