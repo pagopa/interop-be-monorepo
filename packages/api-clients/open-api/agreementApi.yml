@@ -66,6 +66,9 @@ paths:
         description: payload for agreement submission
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Draft agreement submitted.
           content:
@@ -271,6 +274,9 @@ paths:
       summary: Suspend Agreement
       operationId: suspendAgreement
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Active agreement suspended.
           content:
@@ -318,6 +324,9 @@ paths:
               $ref: "#/components/schemas/AgreementRejectionPayload"
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement rejected.
           content:
