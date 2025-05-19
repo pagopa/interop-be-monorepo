@@ -25,7 +25,7 @@ import {
   purposeNotFound,
   purposeVersionNotFound,
   notValidVersionState,
-  puroposeDelegationNotFound,
+  purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -270,7 +270,7 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
       );
     }
   );
-  it("should throw puroposeDelegationNotFound when the delegationId of the purpose is not the same of the one passed", async () => {
+  it("should throw purposeDelegationNotFound when the delegationId of the purpose is not the same of the one passed", async () => {
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       state: purposeVersionState.active,
@@ -300,7 +300,7 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
         getMockContextInternal({})
       )
     ).rejects.toThrowError(
-      puroposeDelegationNotFound(mockPurpose.id, mockDelegation.id)
+      purposeDelegationNotFound(mockPurpose.id, mockDelegation.id)
     );
   });
 });
