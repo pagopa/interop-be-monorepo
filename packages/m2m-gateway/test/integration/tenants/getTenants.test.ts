@@ -142,7 +142,7 @@ describe("getTenants", () => {
     });
   });
 
-  it("Should throw tenantQueryConflictError if both IPACode and taxCode are provided", async () => {
+  it("Should throw taxCodeAndIPACodeConflict if both IPACode and taxCode are provided", async () => {
     const params: m2mGatewayApi.GetTenantsQueryParams = {
       IPACode: "IPA123",
       taxCode: "TAX123",
@@ -153,7 +153,7 @@ describe("getTenants", () => {
     await expect(
       tenantService.getTenants(params, getMockM2MAdminAppContext())
     ).rejects.toMatchObject({
-      code: "tenantQueryConflict",
+      code: "taxCodeAndIPACodeConflict",
       title: "Tenant query conflict",
     });
   });

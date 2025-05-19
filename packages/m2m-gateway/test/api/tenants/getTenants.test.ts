@@ -7,7 +7,7 @@ import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
 import { getMockedApiTenant } from "../../mockUtils.js";
-import { tenantQueryConflictError } from "../../../src/model/errors.js";
+import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
 describe("GET /tenants route test", () => {
   const mockApiTenant1 = getMockedApiTenant();
@@ -107,10 +107,10 @@ describe("GET /tenants route test", () => {
     }
   );
 
-  it("Should return 400 in case of tenantQueryConflictError error", async () => {
+  it("Should return 400 in case of taxCodeAndIPACodeConflict error", async () => {
     mockTenantService.getTenants = vi
       .fn()
-      .mockRejectedValue(tenantQueryConflictError());
+      .mockRejectedValue(taxCodeAndIPACodeConflict());
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockQueryParams);
 
