@@ -8,6 +8,7 @@ import {
 import { buildJwksClients, JWTConfig, Logger } from "../index.js";
 import {
   AuthData,
+  AuthDataUserInfo,
   AuthToken,
   getAuthDataFromToken,
   getUserInfoFromAuthData,
@@ -40,9 +41,30 @@ export const verifyJwtToken = async (
   jwtToken: string,
   config: JWTConfig,
   logger: Logger
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Promise<{ decoded: JwtPayload | string }> => {
+  const extractUserInfoForFailedToken = (): AuthDataUserInfo => {
+    try {
+      const decoded = decodeJwtToken(jwtToken, logger);
+      if (!decoded) {
+        logger.warn("Failed to decode JWT token");
+        return getUserInfoFromAuthData(undefined);
+      }
+
+      try {
+        const authData = readAuthDataFromJwtToken(decoded);
+        return getUserInfoFromAuthData(authData);
+      } catch (authDataError) {
+        logger.warn(`Invalid auth data from JWT token: ${authDataError}`);
+        return getUserInfoFromAuthData(undefined);
+      }
+    } catch (decodeError) {
+      logger.warn(`Error decoding JWT token: ${decodeError}`);
+      return getUserInfoFromAuthData(undefined);
+    }
+  };
+
   try {
-    const { acceptedAudiences } = config;
     const jwksClients = buildJwksClients(config);
     /**
      * This function is a callback used by the `jwt.verify` function to retrieve the public key
@@ -70,31 +92,27 @@ export const verifyJwtToken = async (
         }
         logger.error(`Error getting public key`);
         return callback(jwksSigningKeyError());
-      })().catch((error) => callback(error));
+      })().catch(callback);
     };
 
     return new Promise((resolve, reject) => {
       jwt.verify(
         jwtToken,
         getSecret,
-        { audience: acceptedAudiences },
+        { audience: config.acceptedAudiences },
         (err, decoded) => {
           if (err || !decoded) {
             logger.warn(`Token verification failed: ${err}`);
-
-            const unverifiedDecoded = decodeJwtToken(jwtToken, logger);
-            const authData =
-              unverifiedDecoded && readAuthDataFromJwtToken(unverifiedDecoded);
-            const { userId, selfcareId } = getUserInfoFromAuthData(authData);
-            reject(tokenVerificationFailed(userId, selfcareId));
-          } else {
-            resolve({ decoded });
+            const { userId, selfcareId } = extractUserInfoForFailedToken();
+            return reject(tokenVerificationFailed(userId, selfcareId));
           }
+          return resolve({ decoded });
         }
       );
     });
   } catch (error) {
     logger.error(`Error verifying JWT token: ${error}`);
-    return Promise.reject(error);
+    const { userId, selfcareId } = extractUserInfoForFailedToken();
+    return Promise.reject(tokenVerificationFailed(userId, selfcareId));
   }
 };

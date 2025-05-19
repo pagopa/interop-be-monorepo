@@ -9,12 +9,12 @@ import {
   getMockCertifiedTenantAttribute,
   getMockContext,
   getMockDelegation,
-  getMockDescriptorPublished,
   getMockEService,
   getMockEServiceAttribute,
   getMockTenant,
   getMockAuthData,
   randomArrayItem,
+  getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
   AgreementAddedV2,

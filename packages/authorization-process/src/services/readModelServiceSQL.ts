@@ -1,5 +1,5 @@
-import { and, eq, ilike, inArray, sql } from "drizzle-orm";
-import { ReadModelRepository } from "pagopa-interop-commons";
+import { and, eq, ilike, inArray } from "drizzle-orm";
+import { ascLower, escapeRegExp, withTotalCount } from "pagopa-interop-commons";
 import {
   Client,
   WithMetadata,
@@ -98,10 +98,11 @@ export function readModelServiceBuilderSQL({
       const { name, userIds, consumerId, purposeId, kind } = filters;
 
       const subquery = readModelDB
-        .select({
-          clientId: clientInReadmodelClient.id,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            clientId: clientInReadmodelClient.id,
+          })
+        )
         .from(clientInReadmodelClient)
         .leftJoin(
           clientUserInReadmodelClient,
@@ -118,10 +119,7 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(
-                  clientInReadmodelClient.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
-                )
+              ? ilike(clientInReadmodelClient.name, `%${escapeRegExp(name)}%`)
               : undefined,
             // USERS FILTER
             userIds.length > 0
@@ -138,9 +136,9 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(clientInReadmodelClient.id)
+        .orderBy(ascLower(clientInReadmodelClient.name))
         .limit(limit)
         .offset(offset)
-        .orderBy(sql`LOWER(${clientInReadmodelClient.name})`)
         .as("subquery");
 
       const queryResult = await readModelDB
@@ -168,7 +166,7 @@ export function readModelServiceBuilderSQL({
           clientKeyInReadmodelClient,
           eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
         )
-        .orderBy(sql`LOWER(${clientInReadmodelClient.name})`);
+        .orderBy(ascLower(clientInReadmodelClient.name));
 
       return {
         results: aggregateClientArray(toClientAggregatorArray(queryResult)).map(
@@ -278,10 +276,11 @@ export function readModelServiceBuilderSQL({
       const { name, userIds, producerId, eserviceId } = filters;
 
       const subquery = readModelDB
-        .select({
-          producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            producerKeychainId: producerKeychainInReadmodelProducerKeychain.id,
+          })
+        )
         .from(producerKeychainInReadmodelProducerKeychain)
         .leftJoin(
           producerKeychainUserInReadmodelProducerKeychain,
@@ -303,7 +302,7 @@ export function readModelServiceBuilderSQL({
             name
               ? ilike(
                   producerKeychainInReadmodelProducerKeychain.name,
-                  `%${ReadModelRepository.escapeRegExp(name)}%`
+                  `%${escapeRegExp(name)}%`
                 )
               : undefined,
             // USERS FILTER
@@ -328,11 +327,9 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(producerKeychainInReadmodelProducerKeychain.id)
+        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name))
         .limit(limit)
         .offset(offset)
-        .orderBy(
-          sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
-        )
         .as("subquery");
 
       const queryResult = await readModelDB
@@ -373,9 +370,7 @@ export function readModelServiceBuilderSQL({
             producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
           )
         )
-        .orderBy(
-          sql`LOWER(${producerKeychainInReadmodelProducerKeychain.name})`
-        );
+        .orderBy(ascLower(producerKeychainInReadmodelProducerKeychain.name));
 
       return {
         results: aggregateProducerKeychainArray(

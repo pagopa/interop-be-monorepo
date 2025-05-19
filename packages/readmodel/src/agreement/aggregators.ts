@@ -20,9 +20,10 @@ import {
   AgreementStampKind,
   AgreementAttribute,
   AttributeKind,
+  AgreementId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateAgreementArray = ({
   agreementsSQL,
@@ -36,24 +37,45 @@ export const aggregateAgreementArray = ({
   consumerDocumentsSQL: AgreementConsumerDocumentSQL[];
   contractsSQL: AgreementContractSQL[];
   attributesSQL: AgreementAttributeSQL[];
-}): Array<WithMetadata<Agreement>> =>
-  agreementsSQL.map((agreementSQL) =>
-    aggregateAgreement({
+}): Array<WithMetadata<Agreement>> => {
+  const stampsSQLByAgreementId = createAgreementSQLPropertyMap(stampsSQL);
+  const consumerDocumentsSQLByAgreementId =
+    createAgreementSQLPropertyMap(consumerDocumentsSQL);
+  const contractsSQLByAgreementId = createAgreementSQLPropertyMap(contractsSQL);
+  const attributesSQLByAgreementId =
+    createAgreementSQLPropertyMap(attributesSQL);
+
+  return agreementsSQL.map((agreementSQL) => {
+    const agreementId = unsafeBrandId<AgreementId>(agreementSQL.id);
+    return aggregateAgreement({
       agreementSQL,
-      stampsSQL: stampsSQL.filter(
-        (stampSQL) => stampSQL.agreementId === agreementSQL.id
-      ),
-      consumerDocumentsSQL: consumerDocumentsSQL.filter(
-        (documentSQL) => documentSQL.agreementId === agreementSQL.id
-      ),
-      contractSQL: contractsSQL.find(
-        (contractSQL) => contractSQL.agreementId === agreementSQL.id
-      ),
-      attributesSQL: attributesSQL.filter(
-        (attributeSQL) => attributeSQL.agreementId === agreementSQL.id
-      ),
-    })
-  );
+      stampsSQL: stampsSQLByAgreementId.get(agreementId) || [],
+      consumerDocumentsSQL:
+        consumerDocumentsSQLByAgreementId.get(agreementId) || [],
+      contractSQL: contractsSQLByAgreementId.get(agreementId)?.[0],
+      attributesSQL: attributesSQLByAgreementId.get(agreementId) || [],
+    });
+  });
+};
+
+const createAgreementSQLPropertyMap = <
+  T extends
+    | AgreementStampSQL
+    | AgreementConsumerDocumentSQL
+    | AgreementContractSQL
+    | AgreementAttributeSQL
+>(
+  items: T[]
+): Map<AgreementId, T[]> =>
+  items.reduce((acc, item) => {
+    const agreementId = unsafeBrandId<AgreementId>(item.agreementId);
+    const values = acc.get(agreementId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(agreementId, values);
+
+    return acc;
+  }, new Map<AgreementId, T[]>());
 
 export const aggregateAgreement = ({
   agreementSQL,
@@ -265,6 +287,8 @@ export const toAgreementAggregator = (
     consumerDocumentsSQL,
     contractsSQL,
   } = toAgreementAggregatorArray(queryRes);
+
+  throwIfMultiple(agreementsSQL, "agreement");
 
   return {
     agreementSQL: agreementsSQL[0],

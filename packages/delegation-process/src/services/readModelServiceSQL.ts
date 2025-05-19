@@ -1,4 +1,8 @@
-import { createListResult, ReadModelRepository } from "pagopa-interop-commons";
+import {
+  createListResult,
+  escapeRegExp,
+  withTotalCount,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -35,7 +39,7 @@ import {
   TenantReadModelService,
   toDelegationAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { and, eq, ilike, inArray, sql } from "drizzle-orm";
+import { and, eq, ilike, inArray } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -125,10 +129,11 @@ export function readModelServiceBuilderSQL({
       limit: number;
     }): Promise<ListResult<Delegation>> {
       const subquery = readModelDB
-        .select({
-          delegationId: delegationInReadmodelDelegation.id,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            delegationId: delegationInReadmodelDelegation.id,
+          })
+        )
         .from(delegationInReadmodelDelegation)
         .where(
           and(
@@ -150,8 +155,8 @@ export function readModelServiceBuilderSQL({
             kind ? eq(delegationInReadmodelDelegation.kind, kind) : undefined
           )
         )
-        .orderBy(delegationInReadmodelDelegation.createdAt)
         .groupBy(delegationInReadmodelDelegation.id)
+        .orderBy(delegationInReadmodelDelegation.createdAt)
         .limit(limit)
         .offset(offset)
         .as("subquery");
@@ -182,7 +187,8 @@ export function readModelServiceBuilderSQL({
             delegationInReadmodelDelegation.id,
             delegationContractDocumentInReadmodelDelegation.delegationId
           )
-        );
+        )
+        .orderBy(delegationInReadmodelDelegation.createdAt);
 
       const delegations = aggregateDelegationArray(
         toDelegationAggregatorArray(queryResult)
@@ -200,11 +206,12 @@ export function readModelServiceBuilderSQL({
       offset: number;
     }): Promise<delegationApi.CompactTenants> {
       const queryResult = await readModelDB
-        .select({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+        )
         .from(tenantInReadmodelTenant)
         .innerJoin(
           delegationInReadmodelDelegation,
@@ -232,7 +239,7 @@ export function readModelServiceBuilderSQL({
             filters.delegatorName
               ? ilike(
                   tenantInReadmodelTenant.name,
-                  `%${ReadModelRepository.escapeRegExp(filters.delegatorName)}%`
+                  `%${escapeRegExp(filters.delegatorName)}%`
                 )
               : undefined
           )
@@ -266,11 +273,12 @@ export function readModelServiceBuilderSQL({
       offset: number;
     }): Promise<delegationApi.CompactTenants> {
       const queryResult = await readModelDB
-        .select({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+        )
         .from(tenantInReadmodelTenant)
         .innerJoin(
           delegationInReadmodelDelegation,
@@ -316,7 +324,7 @@ export function readModelServiceBuilderSQL({
             filters.delegatorName
               ? ilike(
                   tenantInReadmodelTenant.name,
-                  `%${ReadModelRepository.escapeRegExp(filters.delegatorName)}%`
+                  `%${escapeRegExp(filters.delegatorName)}%`
                 )
               : undefined
           )
@@ -351,12 +359,13 @@ export function readModelServiceBuilderSQL({
       eserviceName?: string;
     }): Promise<delegationApi.CompactEServices> {
       const queryResult = await readModelDB
-        .select({
-          id: eserviceInReadmodelCatalog.id,
-          name: eserviceInReadmodelCatalog.name,
-          producerId: eserviceInReadmodelCatalog.producerId,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            id: eserviceInReadmodelCatalog.id,
+            name: eserviceInReadmodelCatalog.name,
+            producerId: eserviceInReadmodelCatalog.producerId,
+          })
+        )
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
           delegationInReadmodelDelegation,
@@ -389,7 +398,7 @@ export function readModelServiceBuilderSQL({
             filters.eserviceName
               ? ilike(
                   eserviceInReadmodelCatalog.name,
-                  `%${ReadModelRepository.escapeRegExp(filters.eserviceName)}%`
+                  `%${escapeRegExp(filters.eserviceName)}%`
                 )
               : undefined,
             // AGREEMENT FILTERS
