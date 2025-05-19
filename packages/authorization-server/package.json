@@ -41,6 +41,7 @@
     "express": "4.20.0",
     "kafka-iam-auth": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-client-assertion-validation": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",

@@ -24,10 +24,11 @@ describe("POST /agreements/:agreementId/submit router test", () => {
 
   const makeRequest = async (
     token: string,
-    body: m2mGatewayApi.AgreementSubmission
+    body: m2mGatewayApi.AgreementSubmission,
+    agreementId: string = mockApiAgreement.data.id
   ) =>
     request(api)
-      .post(`${appBasePath}/agreements/${mockApiAgreement.data.id}/submit`)
+      .post(`${appBasePath}/agreements/${agreementId}/submit`)
       .set("Authorization", `Bearer ${token}`)
       .send(body);
 
@@ -65,6 +66,16 @@ describe("POST /agreements/:agreementId/submit router test", () => {
       invalidParam: "invalidValue",
     } as unknown as m2mGatewayApi.AgreementSubmission);
 
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for incorrect value for purpose id", async () => {
+    mockAgreementService.submitAgreement = vi
+      .fn()
+      .mockResolvedValue(mockM2MAgreementResponse);
+
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token, mockSubmitAgreementBody, "INVALID ID");
     expect(res.status).toBe(400);
   });
 

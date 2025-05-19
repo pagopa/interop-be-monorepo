@@ -26,10 +26,11 @@ describe("POST /agreements/:agreementId/reject router test", () => {
 
   const makeRequest = async (
     token: string,
-    body: m2mGatewayApi.AgreementRejection
+    body: m2mGatewayApi.AgreementRejection,
+    agreementId: string = mockApiAgreement.data.id
   ) =>
     request(api)
-      .post(`${appBasePath}/agreements/${mockApiAgreement.data.id}/reject`)
+      .post(`${appBasePath}/agreements/${agreementId}/reject`)
       .set("Authorization", `Bearer ${token}`)
       .send(body);
 
@@ -59,6 +60,16 @@ describe("POST /agreements/:agreementId/reject router test", () => {
       expect(res.status).toBe(500);
     }
   );
+
+  it("Should return 400 for incorrect value for purpose id", async () => {
+    mockAgreementService.rejectAgreement = vi
+      .fn()
+      .mockResolvedValue(mockM2MAgreementResponse);
+
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token, mockRejectAgreementBody, "INVALID ID");
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     { ...mockRejectAgreementBody, invalidParam: "invalidValue" },
