@@ -104,3 +104,15 @@ export const checkMetadataVersionByFilter = async (
   }
   return existingMetadataVersion <= metadataVersion;
 };
+
+export const throwIfMultiple = <T extends { id: string }>(
+  items: T[],
+  entityName: string
+): void => {
+  if (items.length > 1) {
+    const ids = items.map((item) => item.id).join(", ");
+    throw genericInternalError(
+      `Found more than one ${entityName} for a unique filter: ${ids}`
+    );
+  }
+};
