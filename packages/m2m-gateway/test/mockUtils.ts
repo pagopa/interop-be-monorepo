@@ -197,7 +197,11 @@ export const getMockM2MAdminAppContext = ({
   };
 };
 
-export function getMockedApiEServiceTemplate(): WithMetadata<eserviceTemplateApi.EServiceTemplate> {
+export function getMockedApiEServiceTemplate({
+  versions,
+}: {
+  versions?: eserviceTemplateApi.EServiceTemplateVersion[];
+} = {}): WithMetadata<eserviceTemplateApi.EServiceTemplate> {
   return {
     data: {
       id: generateId(),
@@ -207,7 +211,7 @@ export function getMockedApiEServiceTemplate(): WithMetadata<eserviceTemplateApi
       mode: generateMock(m2mGatewayApi.EServiceMode),
       name: generateMock(z.string().length(10)),
       technology: generateMock(m2mGatewayApi.EServiceTechnology),
-      versions: [getMockedApiEserviceTemplateVersion()],
+      versions: versions ?? [getMockedApiEserviceTemplateVersion()],
       isSignalHubEnabled: generateMock(z.boolean().optional()),
       riskAnalysis: [],
     },
@@ -217,10 +221,14 @@ export function getMockedApiEServiceTemplate(): WithMetadata<eserviceTemplateApi
   };
 }
 
-export function getMockedApiEserviceTemplateVersion(): eserviceTemplateApi.EServiceTemplateVersion {
+export function getMockedApiEserviceTemplateVersion({
+  state,
+}: {
+  state?: eserviceTemplateApi.EServiceTemplateVersionState;
+} = {}): eserviceTemplateApi.EServiceTemplateVersion {
   return {
     id: generateId(),
-    state: generateMock(m2mGatewayApi.EServiceTemplateVersionState),
+    state: state ?? generateMock(m2mGatewayApi.EServiceTemplateVersionState),
     voucherLifespan: generateMock(z.number().positive()),
     version: 0,
     attributes: {
