@@ -10,9 +10,9 @@ export const errorCodes = {
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
   unexpectedAttributeKind: "0004",
-  unexpectedUndefinedAttributeOriginOrCode: "0005",
-  attributeNotFound: "0006",
-  clientAdminIdNotFound: "0007",
+  clientAdminIdNotFound: "0005",
+  unexpectedUndefinedAttributeOriginOrCode: "0006",
+  attributeNotFound: "0007",
   eserviceDescriptorNotFound: "0008",
 };
 

@@ -3,6 +3,7 @@ import {
   authorizationApi,
   catalogApi,
   delegationApi,
+  purposeApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
@@ -15,6 +16,43 @@ import {
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
+
+export function getMockedApiPurposeVersion({
+  state,
+}: {
+  state?: purposeApi.PurposeVersionState;
+} = {}): purposeApi.PurposeVersion {
+  return {
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    dailyCalls: generateMock(z.number().positive()),
+    state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
+  };
+}
+
+export function getMockedApiPurpose({
+  versions,
+}: {
+  versions?: purposeApi.PurposeVersion[];
+} = {}): WithMetadata<purposeApi.Purpose> {
+  return {
+    data: {
+      id: generateId(),
+      eserviceId: generateId(),
+      consumerId: generateId(),
+      versions: versions ?? [getMockedApiPurposeVersion()],
+      title: generateMock(z.string().length(10)),
+      description: generateMock(z.string().length(10)),
+      createdAt: new Date().toISOString(),
+      isRiskAnalysisValid: true,
+      isFreeOfCharge: true,
+      freeOfChargeReason: generateMock(z.string()),
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
 
 export function getMockedApiDelegation({
   kind,
