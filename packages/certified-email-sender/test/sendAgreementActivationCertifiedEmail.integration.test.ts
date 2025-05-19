@@ -175,10 +175,7 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
   });
 
   it("should send a properly rendered HTML email to Producer and Consumer digital addresses", async () => {
-    // Mock del metodo send
     vi.spyOn(pecEmailManager, "send");
-
-    // Mock dati stabili e deterministici
     const consumerEmail = getMockTenantMail(tenantMailKind.DigitalAddress);
 
     const producerEmail = getMockTenantMail(tenantMailKind.DigitalAddress);
@@ -223,16 +220,13 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
     };
     await addOneAgreement(agreement);
 
-    // Chiamata del servizio
     await certifiedEmailSenderService.sendAgreementActivatedCertifiedEmail(
       toAgreementV2(agreement),
       genericLogger
     );
 
-    // Estrazione della chiamata fatta
     const sentMail = (pecEmailManager.send as Mock).mock.calls[0][0];
 
-    // Verifica destinatari, oggetto e mittente
     expect(sentMail.to).toEqual([consumerEmail.address, producerEmail.address]);
     expect(sentMail.subject).toContain(agreement.id);
     expect(sentMail.from).toEqual({
@@ -240,15 +234,14 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
       address: pecEmailSenderData.mail,
     });
 
-    // Verifica contenuto HTML parziale (stabile)
+    // Verifica contenuto HTML
     expect(sentMail.html).toContain("Mock E-Service");
     expect(sentMail.html).toContain("Consumer SRL");
     expect(sentMail.html).toContain("Producer SpA");
     expect(sentMail.html).toContain("1.0");
-    expect(sentMail.html).toContain("01/01/2025"); // Usa un format stablizzato da getFormattedAgreementStampDate
+    expect(sentMail.html).toContain("01/01/2025");
     expect(sentMail.html).toContain(agreement.id);
 
-    // Verifica che sia stata inviata una sola mail
     expect(pecEmailManager.send).toHaveBeenCalledTimes(1);
   });
 
