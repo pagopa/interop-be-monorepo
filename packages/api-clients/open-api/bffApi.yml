@@ -19706,7 +19706,8 @@ components:
         name:
           type: string
         version:
-          type: number
+          type: integer
+          format: int32
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
       required:
@@ -20447,7 +20448,8 @@ components:
           type: string
           format: uuid
         version:
-          type: number
+          type: integer
+          format: int32
         name:
           type: string
       required:
