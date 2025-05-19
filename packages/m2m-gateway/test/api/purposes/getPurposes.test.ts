@@ -61,11 +61,12 @@ describe("GET /purposes router test", () => {
     { ...mockQueryParams, limit: 100 },
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
+    { ...mockQueryParams, eserviceIds: ["invalidUUID"] },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetPurposesQueryParams
+      query as m2mGatewayApi.GetPurposesQueryParams
     );
 
     expect(res.status).toBe(400);
