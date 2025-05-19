@@ -96,10 +96,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiAgreement(polledResource.data);
     },
-    approveAgreement: async (
+    async approveAgreement(
       agreementId: AgreementId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreement> => {
+    ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Approving pending agreement with id ${agreementId}`);
 
       const agreement = await retrieveAgreementById(headers, agreementId);
