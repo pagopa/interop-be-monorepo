@@ -18,7 +18,7 @@ const bufferB64UrlEncode = (b: Buffer): string =>
     .replace(/\//g, "_");
 
 /**
- * Decode a url encoded base64 string (RFC 7515 Appendix C) to a Uint8Array
+ * Decode a url encoded base64 JSON string (RFC 7515 Appendix C) to a JavaScript object
  */
 export const b64ByteUrlDecode = (str: string): JSON =>
   JSON.parse(Buffer.from(str, "base64").toString());

@@ -1111,7 +1111,7 @@ export const getMockSessionClaims = (
 });
 
 export const getMockCustomClaims = (
-  role: string = userRole.ADMIN_ROLE
+  role: UserRole = userRole.ADMIN_ROLE
 ): CustomClaims => ({
   "user-roles": role,
   organizationId: generateId(),

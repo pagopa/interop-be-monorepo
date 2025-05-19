@@ -4,8 +4,10 @@ import {
   InteropTokenGenerator,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
+  UserRole,
   b64ByteUrlDecode,
   dateToSeconds,
+  userRole,
 } from "pagopa-interop-commons";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -81,58 +83,62 @@ describe("Token Generator", () => {
   } as unknown as KMSClient;
 
   describe("Session JWT Token", () => {
-    it("should token have a Session claims", async () => {
-      const claims = {
-        ...getMockSessionClaims(),
-        ...getMockCustomClaims(),
-      };
+    it.each([Object.values(userRole)])(
+      "should token have a Session claims",
+      async (role: UserRole) => {
+        const claims = {
+          ...getMockSessionClaims(),
+          ...getMockCustomClaims(role),
+        };
 
-      const interopTokenGenerator = new InteropTokenGenerator(
-        sessionTokenGenerationConfig,
-        kmsClient
-      );
+        const interopTokenGenerator = new InteropTokenGenerator(
+          sessionTokenGenerationConfig,
+          kmsClient
+        );
 
-      const actualToken = await interopTokenGenerator.generateSessionToken(
-        claims,
-        1000
-      );
-      expect(actualToken.header).toEqual({
-        alg: "RS256",
-        use: "sig",
-        typ: "at+jwt",
-        kid: sessionTokenGenerationConfig.generatedKid,
-      });
+        const actualToken = await interopTokenGenerator.generateSessionToken(
+          claims,
+          1000
+        );
+        expect(actualToken.header).toEqual({
+          alg: "RS256",
+          use: "sig",
+          typ: "at+jwt",
+          kid: sessionTokenGenerationConfig.generatedKid,
+        });
 
-      const decodedActualToken = deserializeJWT(actualToken.serialized);
+        const decodedActualToken = deserializeJWT(actualToken.serialized);
 
-      expect(decodedActualToken).toMatchObject({
-        jti: expect.any(String),
-        iss: sessionTokenGenerationConfig.generatedIssuer,
-        aud: sessionTokenGenerationConfig.generatedAudience,
-        iat: mockTimeStamp,
-        nbf: mockTimeStamp,
-        exp:
-          mockTimeStamp + sessionTokenGenerationConfig.generatedSecondsDuration,
-      });
+        expect(decodedActualToken).toMatchObject({
+          jti: expect.any(String),
+          iss: sessionTokenGenerationConfig.generatedIssuer,
+          aud: sessionTokenGenerationConfig.generatedAudience,
+          iat: mockTimeStamp,
+          nbf: mockTimeStamp,
+          exp:
+            mockTimeStamp +
+            sessionTokenGenerationConfig.generatedSecondsDuration,
+        });
 
-      verifyCustomClaims(decodedActualToken, claims);
+        verifyCustomClaims(decodedActualToken, claims);
 
-      expect(decodedActualToken).toMatchObject({
-        uid: claims.uid,
-        name: claims.name,
-        family_name: claims.family_name,
-        email: claims.email,
-        organization: {
-          id: claims.organization.id,
-          name: claims.organization.name,
-          roles: claims.organization.roles,
-        },
-      });
-    });
+        expect(decodedActualToken).toMatchObject({
+          uid: claims.uid,
+          name: claims.name,
+          family_name: claims.family_name,
+          email: claims.email,
+          organization: {
+            id: claims.organization.id,
+            name: claims.organization.name,
+            roles: claims.organization.roles,
+          },
+        });
+      }
+    );
   });
 
   describe("Api JWT Token", () => {
-    it("should have Api token claims - without admin client", async () => {
+    it("should have M2M token claims", async () => {
       const subClientId: ClientId = generateId();
       const consumerId: TenantId = generateId();
 
@@ -171,7 +177,7 @@ describe("Token Generator", () => {
       });
     });
 
-    it("should have Api token claims - with admin client", async () => {
+    it("should have M2M-Admin token claims", async () => {
       const subClientId: ClientId = generateId();
       const consumerId: TenantId = generateId();
       const adminClientId: UserId = generateId();
