@@ -2,13 +2,13 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { config } from "../../config/config.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { DBConnection } from "../../db/db.js";
 import {
   AttributeSchema,
   AttributeDeletingSchema,
 } from "../../model/attribute/attribute.js";
 import {
+  buildColumnSet,
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";

@@ -7,51 +7,36 @@ import {
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
-
 import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
-import { extractProp } from "../../db/dbModelMetadataExtractor.js";
 import { TenantDeletingSchema } from "../tenant/tenant.js";
-import { TenantFeatureDeletingSchema } from "../tenant/tenantFeature.js";
 import { TenantMailDeletingByIdAndTenantSchema } from "../tenant/tenantMail.js";
+import { TenantFeatureDeletingSchema } from "../tenant/tenantFeature.js";
 
-const DeletingTableMeta = {
-  attribute_deleting_table: {
-    schema: AttributeDeletingSchema,
-    readModel: attributeInReadmodelAttribute,
-  },
-  catalog_deleting_table: {
-    schema: EserviceDeletingSchema,
-    readModel: eserviceInReadmodelCatalog,
-  },
-  catalog_risk_deleting_table: {
-    schema: EserviceRiskAnalysisDeletingSchema,
-    readModel: eserviceRiskAnalysisInReadmodelCatalog,
-  },
-  tenant_deleting_table: {
-    schema: TenantDeletingSchema,
-    readModel: tenantInReadmodelTenant,
-  },
-  tenant_mail_deleting_table: {
-    schema: TenantMailDeletingByIdAndTenantSchema,
-    readModel: tenantMailInReadmodelTenant,
-  },
-  tenant_feature_deleting_table: {
-    schema: TenantFeatureDeletingSchema,
-    readModel: tenantFeatureInReadmodelTenant,
-  },
+export const DeletingDbTableConfig = {
+  attribute_deleting_table: AttributeDeletingSchema,
+  catalog_deleting_table: EserviceDeletingSchema,
+  catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
+  tenant_deleting_table: TenantDeletingSchema,
+  tenant_mail_deleting_table: TenantMailDeletingByIdAndTenantSchema,
+  tenant_feature_deleting_table: TenantFeatureDeletingSchema,
 } as const;
-export const DeletingDbTableConfig = extractProp(DeletingTableMeta, "schema");
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
 
-export const DeletingDbTableReadModel = extractProp(
-  DeletingTableMeta,
-  "readModel"
-);
+export const DeletingDbTableReadModel = {
+  attribute_deleting_table: attributeInReadmodelAttribute,
+  catalog_deleting_table: eserviceInReadmodelCatalog,
+  catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
+  tenant_deleting_table: tenantInReadmodelTenant,
+  tenant_mail_deleting_table: tenantMailInReadmodelTenant,
+  tenant_feature_deleting_table: tenantFeatureInReadmodelTenant,
+} as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
 
 export type DeletingDbTable = keyof DeletingDbTableConfig;
+
 export const DeletingDbTable = Object.fromEntries(
   Object.keys(DeletingDbTableConfig).map((k) => [k, k])
 ) as { [K in DeletingDbTable]: K };
