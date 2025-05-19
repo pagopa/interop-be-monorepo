@@ -40,10 +40,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    getAgreement: async (
+    async getAgreement(
       agreementId: AgreementId,
       ctx: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreement> => {
+    ): Promise<m2mGatewayApi.Agreement> {
       ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
 
       const { data: agreement } =
