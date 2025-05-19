@@ -28,7 +28,7 @@ import {
   attributesSQLtoAttributes,
   documentSQLtoDocument,
 } from "../catalog/aggregators.js";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateEServiceTemplateVersion = ({
   versionSQL,
@@ -278,6 +278,8 @@ export const toEServiceTemplateAggregator = (
     documentsSQL,
     attributesSQL,
   } = toEServiceTemplateAggregatorArray(queryRes);
+
+  throwIfMultiple(eserviceTemplatesSQL, "e-service template");
 
   return {
     eserviceTemplateSQL: eserviceTemplatesSQL[0],

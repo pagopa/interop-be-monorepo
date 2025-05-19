@@ -60,7 +60,7 @@ const attributeRouter = (
           ctx
         );
         return res
-          .status(200)
+          .status(201)
           .send(m2mGatewayApi.CertifiedAttribute.parse(attribute));
       } catch (error) {
         const errorRes = makeApiProblem(
