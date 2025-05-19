@@ -2,11 +2,8 @@
 /* eslint-disable functional/immutable-data */
 import {
   EServiceEventEnvelopeV2,
-  EServiceId,
-  RiskAnalysisId,
   fromEServiceV2,
   genericInternalError,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
@@ -99,8 +96,8 @@ export async function handleCatalogMessageV2(
 
         deleteRiskAnalysisBatch.push(
           EserviceRiskAnalysisDeletingSchema.parse({
-            id: unsafeBrandId<RiskAnalysisId>(msg.data.riskAnalysisId),
-            eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice.id),
+            id: msg.data.riskAnalysisId,
+            eserviceId: msg.data.eservice.id,
             deleted: true,
           } satisfies z.input<typeof EserviceRiskAnalysisDeletingSchema>)
         );
