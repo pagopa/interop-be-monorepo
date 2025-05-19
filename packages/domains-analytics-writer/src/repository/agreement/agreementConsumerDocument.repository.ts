@@ -2,10 +2,10 @@
 import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
 import {
   generateMergeQuery,
   generateMergeDeleteQuery,
+  buildColumnSet,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
