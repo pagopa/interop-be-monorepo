@@ -78,7 +78,7 @@ describe("GET /eservices router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetEServicesQueryParams
+      query as m2mGatewayApi.GetEServicesQueryParams
     );
 
     expect(res.status).toBe(400);

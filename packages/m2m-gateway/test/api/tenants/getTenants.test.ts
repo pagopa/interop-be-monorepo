@@ -78,7 +78,7 @@ describe("GET /tenants route test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetTenantsQueryParams
+      query as m2mGatewayApi.GetTenantsQueryParams
     );
 
     expect(res.status).toBe(400);

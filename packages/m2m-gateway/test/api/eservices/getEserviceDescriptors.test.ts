@@ -79,7 +79,7 @@ describe("GET /eservices/:eserviceId/descriptors router test", () => {
     const res = await makeRequest(
       token,
       generateId(),
-      query as unknown as m2mGatewayApi.GetEServicesQueryParams
+      query as m2mGatewayApi.GetEServicesQueryParams
     );
 
     expect(res.status).toBe(400);

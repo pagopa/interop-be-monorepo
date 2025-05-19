@@ -85,7 +85,7 @@ describe("GET /consumerDelegations router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetConsumerDelegationsQueryParams
+      query as m2mGatewayApi.GetConsumerDelegationsQueryParams
     );
 
     expect(res.status).toBe(400);
