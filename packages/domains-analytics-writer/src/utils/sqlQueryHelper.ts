@@ -1,4 +1,8 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { z } from "zod";
+import { genericInternalError } from "pagopa-interop-models";
+import { ITask } from "pg-promise";
+import { config } from "../config/config.js";
 /**
  * Generates a MERGE SQL query
  *
@@ -6,7 +10,7 @@ import { z } from "zod";
  * @param schemaName - The target db schema name.
  * @param tableName - The  target table name.
  * @param stagingTableName - The staging table.
- * @param column - The single column key from the schema used in the ON condition of the MERGE.
+ * @param keysOn - The column keys from the schema used in the ON condition of the MERGE.
  * @returns The generated MERGE SQL query as a string.
  */
 export function generateMergeQuery<T extends z.ZodRawShape>(
@@ -14,29 +18,38 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   schemaName: string,
   tableName: string,
   stagingTableName: string,
-  column: keyof T
+  keysOn: Array<keyof T>
 ): string {
   const keys = Object.keys(tableSchema.shape);
-
+  const quoteColumn = (c: string) => `"${c}"`;
   const updateSet = keys
-    .map((k) => {
-      const col = String(k);
-      return `${col} = source.${col}`;
-    })
+    .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
     .join(",\n      ");
 
-  const columns = keys.join(", ");
-  const values = keys.map((k) => `source.${k}`).join(", ");
+  const colList = keys.map(quoteColumn).join(", ");
+  const valList = keys.map((c) => `source.${quoteColumn(c)}`).join(", ");
+
+  const onCondition = keysOn
+    .map(
+      (k) =>
+        `${schemaName}.${tableName}.${quoteColumn(
+          String(k)
+        )} = source.${quoteColumn(String(k))}`
+    )
+    .join(" AND ");
+
   return `
   MERGE INTO ${schemaName}.${tableName}
   USING ${stagingTableName} AS source
-  ON ${schemaName}.${tableName}.${String(column)} = source.${String(column)}
-  WHEN MATCHED THEN
+  ON ${onCondition}
+  WHEN MATCHED
+    AND source.metadata_version > ${schemaName}.${tableName}.metadata_version
+  THEN
     UPDATE SET
       ${updateSet}
   WHEN NOT MATCHED THEN
-    INSERT (${columns})
-    VALUES (${values});
+    INSERT (${colList})
+    VALUES (${valList});
 `;
 }
 
@@ -53,19 +66,50 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
  */
 export function generateMergeDeleteQuery(
   schemaName: string,
-  tableName: string,
+  targetTableName: string,
   stagingTableName: string,
-  deletingKey: string
+  deleteKeysOn: string[],
+  useIdAsSourceDeleteKey: boolean = true
 ): string {
-  const updateSet = `${deletingKey} = source.id,
-   deleted = source.deleted`;
+  const quoteColumn = (c: string) => `"${c}"`;
+
+  const onCondition = deleteKeysOn
+    .map(
+      (k) =>
+        `${schemaName}.${targetTableName}.${quoteColumn(String(k))} = source.${
+          useIdAsSourceDeleteKey ? "id" : quoteColumn(String(k))
+        }`
+    )
+    .join(" AND ");
 
   return `
-  MERGE INTO ${schemaName}.${tableName}
-  USING ${stagingTableName} AS source
-  ON ${schemaName}.${tableName}.${deletingKey} = source.id
-  WHEN MATCHED THEN
-    UPDATE SET
-      ${updateSet};
-`;
+      MERGE INTO ${schemaName}.${targetTableName}
+      USING ${stagingTableName} AS source
+        ON ${onCondition}
+      WHEN MATCHED THEN
+        UPDATE SET deleted = source.deleted;
+    `.trim();
+}
+
+export async function mergeDeletingCascadeById(
+  t: ITask<unknown>,
+  id: string,
+  deletingTableNames: string[],
+  targetTableDeleting: string
+): Promise<void> {
+  try {
+    for (const deletingTableName of deletingTableNames) {
+      const mergeQuery = generateMergeDeleteQuery(
+        config.dbSchemaName,
+        deletingTableName,
+        targetTableDeleting,
+        [id]
+      );
+      await t.none(mergeQuery);
+    }
+  } catch (error: unknown) {
+    throw genericInternalError(
+      `Error merging staging table ${targetTableDeleting}: ${error}`
+    );
+  }
 }
