@@ -741,7 +741,7 @@ export function catalogServiceBuilder(
             headers,
             queries: {
               name: eserviceName,
-              producersIds: [requesterId],
+              producersIds: requesterId,
               delegated,
               offset,
               limit,
@@ -767,7 +767,7 @@ export function catalogServiceBuilder(
             queries: {
               name: eserviceName,
               eservicesIds: eserviceIds,
-              producersIds: [requesterId],
+              producersIds: requesterId,
               delegated,
               offset,
               limit,
