@@ -32,12 +32,12 @@ import {
   interopFeBaseUrl,
   sesEmailManager,
   sesEmailManagerConfig,
-  sesEmailsenderData,
+  sesEmailSenderData,
   templateService,
 } from "./utils.js";
 
 describe("sendEserviceDescriptorPublishedEmail", () => {
-  it("should send an email on EserviceDescriptorPublished when there're active agrrements", async () => {
+  it("should send an email on EserviceDescriptorPublished when there're active agreements", async () => {
     vi.spyOn(sesEmailManager, "send");
     const consumerEmail1 = getMockTenantMail(tenantMailKind.ContactEmail);
     const consumerEmail2 = getMockTenantMail(tenantMailKind.ContactEmail);
@@ -126,8 +126,8 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
 
     const mailOptions1: Mail.Options = {
       from: {
-        name: sesEmailsenderData.label,
-        address: sesEmailsenderData.mail,
+        name: sesEmailSenderData.label,
+        address: sesEmailSenderData.mail,
       },
       subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
       to: [consumerEmail1.address],
@@ -143,22 +143,32 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
 
     expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions1);
 
-    const response1: AxiosResponse = await axios.get(
+    const response: AxiosResponse = await axios.get(
       `${sesEmailManagerConfig?.awsSesEndpoint}/store`
     );
-    expect(response1.status).toBe(200);
-    const lastEmail1 = response1.data.emails[0];
+    expect(response.status).toBe(200);
+
+    const emails = response.data.emails;
+
+    const lastEmail1 = emails.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (email: any) =>
+        email.destination.to.includes(consumerEmail1.address) &&
+        email.subject === mailOptions1.subject
+    );
+
+    expect(lastEmail1).toBeDefined();
     expect(lastEmail1.body.html).toContain(mailOptions1.html);
     expect(lastEmail1).toMatchObject({
       subject: mailOptions1.subject,
-      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      from: `"${sesEmailSenderData.label}" <${sesEmailSenderData.mail}>`,
       destination: { to: mailOptions1.to },
     });
 
     const mailOptions2: Mail.Options = {
       from: {
-        name: sesEmailsenderData.label,
-        address: sesEmailsenderData.mail,
+        name: sesEmailSenderData.label,
+        address: sesEmailSenderData.mail,
       },
       subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
       to: [consumerEmail2.address],
@@ -174,20 +184,23 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
 
     expect(sesEmailManager.send).toHaveBeenCalledWith(mailOptions2);
 
-    const response2: AxiosResponse = await axios.get(
-      `${sesEmailManagerConfig?.awsSesEndpoint}/store`
+    const lastEmail2 = emails.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (email: any) =>
+        email.destination.to.includes(consumerEmail2.address) &&
+        email.subject === mailOptions2.subject
     );
-    expect(response2.status).toBe(200);
-    const lastEmail2 = response2.data.emails[1];
+
+    expect(lastEmail2).toBeDefined();
     expect(lastEmail2.body.html).toContain(mailOptions2.html);
     expect(lastEmail2).toMatchObject({
       subject: mailOptions2.subject,
-      from: `"${sesEmailsenderData.label}" <${sesEmailsenderData.mail}>`,
+      from: `"${sesEmailSenderData.label}" <${sesEmailSenderData.mail}>`,
       destination: { to: mailOptions2.to },
     });
   });
 
-  it("Sholdn't send an email if there are no active agreements", async () => {
+  it("Shouldn't send an email if there are no active agreements", async () => {
     vi.spyOn(sesEmailManager, "send");
 
     const consumer1: Tenant = {

@@ -1,4 +1,4 @@
-import { getTableColumns, sql, asc, SQL, Table, Column } from "drizzle-orm";
+import { sql, asc, SQL, Column, Table } from "drizzle-orm";
 import { ListResult } from "pagopa-interop-models";
 
 export const createListResult = <T>(
@@ -6,16 +6,19 @@ export const createListResult = <T>(
   totalCount?: number
 ): ListResult<T> => ({
   results: items,
-  totalCount: totalCount ?? items.length,
+  totalCount: totalCount ?? 0,
 });
 
-// see: https://orm.drizzle.team/docs/guides/limit-offset-pagination
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const ascLower = <T = string>(column: Column | SQL | SQL.Aliased) =>
-  asc(sql<T>`LOWER(${column})`);
+export const lowerCase = (column: Column): SQL => sql<string>`LOWER(${column})`;
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const withTotalCount = <T extends Table>(tbl: T) => ({
-  ...getTableColumns(tbl),
+// see: https://orm.drizzle.team/docs/guides/limit-offset-pagination
+export const ascLower = (column: Column): SQL => asc(lowerCase(column));
+
+export const withTotalCount = <
+  P extends Record<string, Table | Column | SQL | SQL.Aliased>
+>(
+  projection: P
+): P & { totalCount: SQL.Aliased<number> } => ({
+  ...projection,
   totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
 });

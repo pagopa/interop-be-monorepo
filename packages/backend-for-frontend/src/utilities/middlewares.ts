@@ -6,10 +6,8 @@ import {
   fromAppContext,
   isUiAuthData,
 } from "pagopa-interop-commons";
-import {
-  makeApiProblemBuilder,
-  unauthorizedError,
-} from "pagopa-interop-models";
+import { unauthorizedError } from "pagopa-interop-models";
+import { makeApiProblem } from "../model/errors.js";
 
 // If form-data is used, the files are stored in memory and inserted in the body to make zodios work
 // Please notice this replaces all data in req.body
@@ -32,7 +30,6 @@ export const fromFilesToBodyMiddleware: ZodiosRouterContextRequestHandler<
   next();
 };
 
-const makeApiProblem = makeApiProblemBuilder({});
 export function uiAuthDataValidationMiddleware(): ZodiosRouterContextRequestHandler<ExpressContext> {
   return async (req, res, next) => {
     // We assume that:

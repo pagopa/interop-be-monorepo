@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { vi } from "vitest";
+import { beforeEach, vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
@@ -53,6 +53,7 @@ import {
   decodeJwtToken,
   AppContext,
 } from "pagopa-interop-commons";
+import { mockM2MAdminUserId } from "pagopa-interop-commons-test";
 import { createApp } from "../src/app.js";
 import { AgreementService } from "../src/services/agreementService.js";
 import { AttributeService } from "../src/services/attributeService.js";
@@ -63,18 +64,34 @@ import { EserviceTemplateService } from "../src/services/eserviceTemplateService
 import { PurposeService } from "../src/services/purposeService.js";
 import { TenantService } from "../src/services/tenantService.js";
 
+export const mockGetClientAdminId = vi
+  .fn()
+  .mockResolvedValue(mockM2MAdminUserId);
+
+beforeEach(() => {
+  mockGetClientAdminId.mockClear();
+});
+
+export const mockClientService = {
+  getClientAdminId: mockGetClientAdminId,
+} as ClientService;
+// ^ Mocking getClientAdminId here to make the m2m auth data validation middleware
+// pass in all the api tests
+
 export const mockDelegationService = {} as DelegationService;
+export const mockTenantService = {} as TenantService;
+export const mockAttributeService = {} as AttributeService;
 
 export const api = await createApp(
   {
     agreementService: {} as AgreementService,
-    attributeService: {} as AttributeService,
-    clientService: {} as ClientService,
+    attributeService: mockAttributeService,
+    clientService: mockClientService,
     delegationService: mockDelegationService,
     eserviceService: {} as EserviceService,
     eserviceTemplateService: {} as EserviceTemplateService,
     purposeService: {} as PurposeService,
-    tenantService: {} as TenantService,
+    tenantService: mockTenantService,
   },
   (_req, _res, next): void => next()
 );
