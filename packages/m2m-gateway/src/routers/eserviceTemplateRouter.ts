@@ -33,8 +33,8 @@ const eserviceTemplateRouter = (
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
         const template = await eserviceTemplateService.getEServiceTemplateById(
-          ctx,
-          req.params.templateId
+          req.params.templateId,
+          ctx
         );
 
         return res
