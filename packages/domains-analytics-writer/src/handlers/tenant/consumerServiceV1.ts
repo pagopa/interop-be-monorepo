@@ -35,7 +35,9 @@ export async function handleTenantMessageV1(
         },
         (msg) => {
           if (!msg.data.tenant) {
-            throw genericInternalError("Tenant not found in message");
+            throw genericInternalError(
+              "Tenant can't be missing in the event message"
+            );
           }
 
           const splitResult = splitTenantIntoObjectsSQL(
