@@ -85,53 +85,41 @@ export function authorizationServiceBuilder(
     }
   };
 
-  const buildJwtCustomClaims = (
+  const buildUserClaims = (
     roles: string,
     tenantId: string,
     selfcareId: string,
-    tenantOrigin: string,
-    tenantExternalId: string
+    externalId: tenantApi.ExternalId
   ): UserClaims => ({
     "user-roles": z.array(UserRole).parse(roles === "" ? [] : roles.split(",")),
     organizationId: tenantId,
     selfcareId,
-    externalId: {
-      origin: tenantOrigin,
-      value: tenantExternalId,
-    },
+    externalId,
   });
 
-  const buildSupportClaims = (
-    selfcareId: string,
-    tenant: tenantApi.Tenant
-  ): UIClaims => ({
-    ...buildJwtCustomClaims(
-      userRole.SUPPORT_ROLE,
-      tenant.id,
-      selfcareId,
-      tenant.externalId.origin,
-      tenant.externalId.value
-    ),
-    organization: {
-      id: selfcareId,
-      name: tenant.name,
-      roles: [
-        {
-          role: userRole.SUPPORT_ROLE,
-        },
-      ],
-    },
-    uid: SUPPORT_USER_ID,
-    "user-roles": [userRole.SUPPORT_ROLE],
-  });
-
-  const retrieveSupportClaims = (tenant: tenantApi.Tenant): UIClaims => {
-    const selfcareId = tenant.selfcareId;
+  const retrieveSupportClaims = ({
+    selfcareId,
+    id,
+    name,
+    externalId,
+  }: tenantApi.Tenant): UIClaims => {
     if (!selfcareId) {
       throw missingSelfcareId(config.pagoPaTenantId);
     }
 
-    return buildSupportClaims(selfcareId, tenant);
+    return {
+      ...buildUserClaims(userRole.SUPPORT_ROLE, id, selfcareId, externalId),
+      organization: {
+        id: selfcareId,
+        name,
+        roles: [
+          {
+            role: userRole.SUPPORT_ROLE,
+          },
+        ],
+      },
+      uid: SUPPORT_USER_ID,
+    };
   };
 
   return {
@@ -175,12 +163,11 @@ export function authorizationServiceBuilder(
         };
       }
 
-      const customClaims = buildJwtCustomClaims(
+      const customClaims = buildUserClaims(
         roles,
         tenantId,
         selfcareId,
-        tenantBySelfcareId.externalId.origin,
-        tenantBySelfcareId.externalId.value
+        tenantBySelfcareId.externalId
       );
 
       const { serialized: sessionToken } =
