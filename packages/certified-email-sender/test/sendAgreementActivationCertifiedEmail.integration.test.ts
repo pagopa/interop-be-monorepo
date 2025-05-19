@@ -16,7 +16,16 @@ import {
   tenantMailKind,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  Mock,
+  vi,
+  vitest,
+} from "vitest";
 // import Mail from "nodemailer/lib/mailer/index.js";
 import { tenantDigitalAddressNotFound } from "../src/models/errors.js";
 // import {
@@ -110,9 +119,9 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
 
   it("should send an email to Producer and Consumer digital addresses", async () => {
     vi.spyOn(pecEmailManager, "send");
-    vi.spyOn(templateService, "compileHtml").mockReturnValue(
-      "<html>mock</html>"
-    );
+    const spy = vi
+      .spyOn(templateService, "compileHtml")
+      .mockReturnValue("<html>mock</html>");
     const consumerEmail = getMockTenantMail(tenantMailKind.DigitalAddress);
     const consumer: Tenant = {
       ...getMockTenant(),
@@ -162,6 +171,85 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
         subject: expect.stringContaining(agreement.id),
       })
     );
+    spy.mockRestore();
+  });
+
+  it("should send a properly rendered HTML email to Producer and Consumer digital addresses", async () => {
+    // Mock del metodo send
+    vi.spyOn(pecEmailManager, "send");
+
+    // Mock dati stabili e deterministici
+    const consumerEmail = getMockTenantMail(tenantMailKind.DigitalAddress);
+
+    const producerEmail = getMockTenantMail(tenantMailKind.DigitalAddress);
+
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      name: "Consumer SRL",
+      mails: [consumerEmail],
+    };
+
+    const producer: Tenant = {
+      ...getMockTenant(),
+      name: "Producer SpA",
+      mails: [producerEmail],
+    };
+
+    await addOneTenant(consumer);
+    await addOneTenant(producer);
+
+    const descriptor = {
+      ...getMockDescriptor(),
+      version: "1.0",
+    };
+    const eservice = {
+      ...getMockEService(),
+      name: "Mock E-Service",
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const activationDate = new Date("2025-01-01T00:00:00Z");
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: {
+        activation: { when: activationDate, who: generateId<UserId>() },
+      },
+      producerId: producer.id,
+      descriptorId: descriptor.id,
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
+    };
+    await addOneAgreement(agreement);
+
+    // Chiamata del servizio
+    await certifiedEmailSenderService.sendAgreementActivatedCertifiedEmail(
+      toAgreementV2(agreement),
+      genericLogger
+    );
+
+    // Estrazione della chiamata fatta
+    const sentMail = (pecEmailManager.send as Mock).mock.calls[0][0];
+
+    // Verifica destinatari, oggetto e mittente
+    expect(sentMail.to).toEqual([consumerEmail.address, producerEmail.address]);
+    expect(sentMail.subject).toContain(agreement.id);
+    expect(sentMail.from).toEqual({
+      name: pecEmailSenderData.label,
+      address: pecEmailSenderData.mail,
+    });
+
+    // Verifica contenuto HTML parziale (stabile)
+    expect(sentMail.html).toContain("Mock E-Service");
+    expect(sentMail.html).toContain("Consumer SRL");
+    expect(sentMail.html).toContain("Producer SpA");
+    expect(sentMail.html).toContain("1.0");
+    expect(sentMail.html).toContain("01/01/2025"); // Usa un format stablizzato da getFormattedAgreementStampDate
+    expect(sentMail.html).toContain(agreement.id);
+
+    // Verifica che sia stata inviata una sola mail
+    expect(pecEmailManager.send).toHaveBeenCalledTimes(1);
   });
 
   it("should throw tenantDigitalAddressNotFound for Producer digital address not found", async () => {
