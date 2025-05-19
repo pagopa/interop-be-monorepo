@@ -20,8 +20,8 @@ import {
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
-import { getColumnName } from "../src/utils/sqlQueryHelper.js";
 import { agreementServiceBuilder } from "../src/service/agreementService.js";
+import { getColumnNameMapper } from "../src/utils/sqlQueryHelper.js";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
@@ -31,7 +31,7 @@ export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("analyticsSQLDbConfig")
+  inject("analyticsSQLDbConfig"),
 );
 const connection = await analyticsPostgresDB.connect();
 
@@ -121,18 +121,18 @@ await retryConnection(
     await setupDbService.setupStagingTables(domainTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
   },
-  genericLogger
+  genericLogger,
 );
 
 export async function resetTargetTables(
-  tables: DomainDbTable[]
+  tables: DomainDbTable[],
 ): Promise<void> {
   await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
 }
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[]
+  tables: string[],
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename
@@ -146,19 +146,19 @@ export async function getTablesByName(
 export async function getOneFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
 ): Promise<z.infer<DomainDbTableSchemas[T]>> {
-  const snakeCase = getColumnName(tableName);
+  const snakeCaseMapper = getColumnNameMapper(tableName);
 
   const entries = Object.entries(where) as Array<[string, unknown]>;
   const clause = entries
-    .map(([k], i) => `"${snakeCase(k)}" = $${i + 1}`)
+    .map(([k], i) => `"${snakeCaseMapper(k)}" = $${i + 1}`)
     .join(" AND ");
   const values = entries.map(([, v]) => v);
 
   const row = await db.conn.one(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values
+    values,
   );
 
   return camelcaseKeys(row);
@@ -167,19 +167,19 @@ export async function getOneFromDb<T extends DomainDbTable>(
 export async function getManyFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
 ): Promise<Array<z.infer<DomainDbTableSchemas[T]>>> {
-  const snakeCase = getColumnName(tableName);
+  const snakeCaseMapper = getColumnNameMapper(tableName);
 
   const entries = Object.entries(where) as Array<[string, unknown]>;
   const clause = entries
-    .map(([k], i) => `"${snakeCase(k)}" = $${i + 1}`)
+    .map(([k], i) => `"${snakeCaseMapper(k)}" = $${i + 1}`)
     .join(" AND ");
   const values = entries.map(([, v]) => v);
 
   const rows = await db.conn.any(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values
+    values,
   );
 
   return rows.map((row) => camelcaseKeys(row));
