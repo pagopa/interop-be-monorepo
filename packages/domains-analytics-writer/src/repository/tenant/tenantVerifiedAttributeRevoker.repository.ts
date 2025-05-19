@@ -2,8 +2,10 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
+import {
+  buildColumnSet,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 
 import { TenantVerifiedAttributeRevokerSchema } from "../../model/tenant/tenantVerifiedAttributeRevoker.js";

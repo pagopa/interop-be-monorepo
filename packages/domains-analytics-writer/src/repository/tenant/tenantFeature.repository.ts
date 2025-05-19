@@ -2,8 +2,8 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
 import {
+  buildColumnSet,
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
