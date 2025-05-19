@@ -1,7 +1,9 @@
 import {
   attributeRegistryApi,
-  authorizationApi,
   delegationApi,
+  purposeApi,
+  tenantApi,
+  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
@@ -13,6 +15,43 @@ import {
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
+
+export function getMockedApiPurposeVersion({
+  state,
+}: {
+  state?: purposeApi.PurposeVersionState;
+} = {}): purposeApi.PurposeVersion {
+  return {
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    dailyCalls: generateMock(z.number().positive()),
+    state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
+  };
+}
+
+export function getMockedApiPurpose({
+  versions,
+}: {
+  versions?: purposeApi.PurposeVersion[];
+} = {}): WithMetadata<purposeApi.Purpose> {
+  return {
+    data: {
+      id: generateId(),
+      eserviceId: generateId(),
+      consumerId: generateId(),
+      versions: versions ?? [getMockedApiPurposeVersion()],
+      title: generateMock(z.string().length(10)),
+      description: generateMock(z.string().length(10)),
+      createdAt: new Date().toISOString(),
+      isRiskAnalysisValid: true,
+      isFreeOfCharge: true,
+      freeOfChargeReason: generateMock(z.string()),
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
 
 export function getMockedApiDelegation({
   kind,
@@ -40,6 +79,32 @@ export function getMockedApiDelegation({
           when: new Date().toISOString(),
         },
       },
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiTenant({
+  attributes,
+}: {
+  attributes?: tenantApi.TenantAttribute[];
+} = {}): WithMetadata<tenantApi.Tenant> {
+  return {
+    data: {
+      id: generateId(),
+      attributes:
+        attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
+      externalId: {
+        origin: generateMock(z.string()),
+        value: generateMock(z.string()),
+      },
+      name: generateMock(z.string()),
+      createdAt: new Date().toISOString(),
+      kind: tenantApi.TenantKind.Values.GSP,
+      mails: generateMock(z.array(tenantApi.Mail)),
+      features: generateMock(z.array(tenantApi.TenantFeature)),
     },
     metadata: {
       version: 0,

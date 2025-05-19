@@ -5,6 +5,7 @@ import {
   ApplicationAuditBeginRequest,
   ApplicationAuditEndRequest,
   ApplicationAuditEndRequestSessionTokenExchange,
+  ApplicationAuditEndRequestAuthServer,
   ApplicationAuditPhase,
   fallbackApplicationAuditFailed,
   genericInternalError,
@@ -14,6 +15,7 @@ import {
   AppContext,
   ApplicationAuditProducerConfig,
   AuthData,
+  AuthServerAppContext,
   decodeJwtToken,
   fromAppContext,
   getUserInfoFromAuthData,
@@ -341,13 +343,89 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
   };
 }
 
+export async function applicationAuditAuthorizationServerEndMiddleware(
+  serviceName: string,
+  config: ApplicationAuditProducerConfig
+): Promise<RequestHandler> {
+  const producer = await initProducer(config, config.applicationAuditTopic);
+  const queueManager = initQueueManager({
+    messageGroupId: "message_group_all_notification",
+    logLevel: config.logLevel,
+  });
+
+  return async (req, res, next): Promise<void> => {
+    res.on("finish", async () => {
+      const context = (req as Request & { ctx?: AuthServerAppContext }).ctx;
+      if (!context) {
+        throw genericInternalError("Failed to retrieve context");
+      }
+
+      const loggerInstance = logger({
+        serviceName: context?.serviceName,
+        correlationId: context?.correlationId,
+        spanId: context?.spanId,
+      });
+
+      const correlationId = context.correlationId;
+      const amznTraceId = parseAmznTraceIdHeader(req);
+      const forwardedFor = parseForwardedForHeader(req);
+
+      const endTimestamp = Date.now();
+
+      const finalAudit: ApplicationAuditEndRequestAuthServer = {
+        correlationId,
+        spanId: context.spanId,
+        service: serviceName,
+        serviceVersion: config.serviceVersion,
+        endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
+        httpMethod: req.method,
+        phase: ApplicationAuditPhase.END_REQUEST,
+        requesterIpAddress: forwardedFor,
+        nodeIp: config.nodeIp,
+        podName: config.podName,
+        uptimeSeconds: Math.round(process.uptime()),
+        timestamp: endTimestamp,
+        amazonTraceId: amznTraceId,
+        organizationId: context.organizationId,
+        clientId: context.clientId,
+        httpResponseStatus: res.statusCode,
+        executionTimeMs: endTimestamp - context.requestTimestamp,
+      };
+
+      try {
+        const res = await producer.send({
+          messages: [
+            {
+              key: correlationId,
+              value: JSON.stringify(finalAudit),
+            },
+          ],
+        });
+        if (res.length === 0 || res[0].errorCode !== 0) {
+          throw kafkaApplicationAuditingFailed();
+        }
+      } catch (e) {
+        await fallbackApplicationAudit(
+          queueManager,
+          config.producerQueueUrl,
+          finalAudit,
+          loggerInstance
+        );
+      }
+    });
+
+    return next();
+  };
+}
+
 export const fallbackApplicationAudit = async (
   queueManager: QueueManager,
   queueUrl: string,
   messageBody:
     | ApplicationAuditBeginRequest
     | ApplicationAuditEndRequest
-    | ApplicationAuditEndRequestSessionTokenExchange,
+    | ApplicationAuditEndRequestSessionTokenExchange
+    | ApplicationAuditEndRequestAuthServer,
   logger: Logger
 ): Promise<void> => {
   try {

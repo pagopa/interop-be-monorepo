@@ -94,6 +94,7 @@ const getLogger = () =>
     transports: [
       new winston.transports.Console({
         stderrLevels: ["error"],
+        forceConsole: true,
       }),
     ],
     format: winston.format.combine(
