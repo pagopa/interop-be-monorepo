@@ -39,15 +39,15 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     });
 
   return {
-    getAgreements: async (
+    async getAgreements(
       queryParams: m2mGatewayApi.GetAgreementsQueryParams,
       ctx: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreements> => {
+    ): Promise<m2mGatewayApi.Agreements> {
       const { producerIds, consumerIds, eserviceIds, states, limit, offset } =
         queryParams;
 
       ctx.logger.info(
-        `Retrieving agreements for producerId ${producerIds} consumerId ${consumerIds} eServiceId ${eserviceIds} states ${states} limit ${limit} offset ${offset}`
+        `Retrieving agreements for producerIds ${producerIds} consumerIds ${consumerIds} eServiceIds ${eserviceIds} states ${states} limit ${limit} offset ${offset}`
       );
 
       const {
@@ -66,10 +66,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    getAgreement: async (
+    async getAgreement(
       agreementId: AgreementId,
       ctx: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreement> => {
+    ): Promise<m2mGatewayApi.Agreement> {
       ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
 
       const { data: agreement } = await retrieveAgreementById(
@@ -79,10 +79,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiAgreement(agreement);
     },
-    createAgreement: async (
+    async createAgreement(
       seed: agreementApi.AgreementPayload,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreement> => {
+    ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Creating agreement`);
 
       const response = await clients.agreementProcessClient.createAgreement(
@@ -96,10 +96,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiAgreement(polledResource.data);
     },
-    approveAgreement: async (
+    async approveAgreement(
       agreementId: AgreementId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreement> => {
+    ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Approving pending agreement with id ${agreementId}`);
 
       const agreement = await retrieveAgreementById(headers, agreementId);
@@ -118,11 +118,11 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiAgreement(polledResource.data);
     },
-    rejectAgreement: async (
+    async rejectAgreement(
       agreementId: AgreementId,
       body: m2mGatewayApi.AgreementRejection,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreement> => {
+    ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Rejecting pending agreement with id ${agreementId}`);
 
       const response = await clients.agreementProcessClient.rejectAgreement(
