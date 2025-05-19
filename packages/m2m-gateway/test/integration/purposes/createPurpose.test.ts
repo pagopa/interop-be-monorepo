@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
+  expectApiClientGetToHaveBeenNthCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
   mockPollingResponse,
@@ -68,6 +69,11 @@ describe("createPurpose", () => {
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
+      params: { id: mockM2MPurpose.id },
+    });
+    expectApiClientGetToHaveBeenNthCalledWith({
+      nthCall: 2,
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
       params: { id: mockM2MPurpose.id },
     });

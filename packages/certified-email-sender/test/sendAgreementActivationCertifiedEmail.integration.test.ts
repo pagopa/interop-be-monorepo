@@ -30,7 +30,7 @@ import {
   certifiedEmailSenderService,
   interopFeBaseUrl,
   pecEmailManager,
-  pecEmailsenderData,
+  pecEmailSenderData,
   templateService,
 } from "./utils.js";
 
@@ -44,7 +44,8 @@ afterEach(() => {
 
 describe("sendAgreementActivatedCertifiedEmail", () => {
   it("should send an email to Producer and Consumer digital addresses", async () => {
-    vi.spyOn(pecEmailManager, "send");
+    vi.spyOn(pecEmailManager, "send").mockResolvedValue(undefined);
+
     const consumerEmail = getMockTenantMail(tenantMailKind.DigitalAddress);
     const consumer: Tenant = {
       ...getMockTenant(),
@@ -89,8 +90,8 @@ describe("sendAgreementActivatedCertifiedEmail", () => {
 
     const mailOptions: Mail.Options = {
       from: {
-        name: pecEmailsenderData.label,
-        address: pecEmailsenderData.mail,
+        name: pecEmailSenderData.label,
+        address: pecEmailSenderData.mail,
       },
       subject: `Richiesta di fruizione ${agreement.id} attiva`,
       to: [consumerEmail.address, producerEmail.address],

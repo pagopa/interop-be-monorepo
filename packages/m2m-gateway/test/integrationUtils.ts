@@ -52,6 +52,28 @@ export function expectApiClientGetToHaveBeenCalledWith({
   });
 }
 
+export function expectApiClientGetToHaveBeenNthCalledWith({
+  nthCall,
+  mockGet,
+  params,
+  queries,
+}: {
+  nthCall: number;
+  mockGet: Function;
+  params?: Record<string, unknown>;
+  queries?: Record<string, unknown>;
+}): void {
+  expect(mockGet).toHaveBeenNthCalledWith(nthCall, {
+    params,
+    queries,
+    headers: {
+      Authorization: `Bearer ${m2mTestToken}`,
+      "X-Correlation-Id": expect.any(String),
+      "X-Forwarded-For": undefined,
+    },
+  });
+}
+
 export function expectApiClientPostToHaveBeenCalledWith({
   mockPost,
   body,
