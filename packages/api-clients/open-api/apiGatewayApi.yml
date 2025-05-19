@@ -2603,7 +2603,8 @@ components:
           description: eservice name
           type: string
         version:
-          type: number
+           type: integer
+           format: int32
         description:
           description: eservice description
           type: string
