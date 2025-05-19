@@ -36,7 +36,7 @@ describe("POST /purposes router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockPurposeService.createPurpose = vi
         .fn()
@@ -64,10 +64,7 @@ describe("POST /purposes router test", () => {
     { ...mockPurposeSeed, description: "short" },
   ])("Should return 400 if passed invalid delegation seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      body as unknown as m2mGatewayApi.PurposeSeed
-    );
+    const res = await makeRequest(token, body as m2mGatewayApi.PurposeSeed);
 
     expect(res.status).toBe(400);
   });
