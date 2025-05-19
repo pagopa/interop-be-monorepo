@@ -12,15 +12,15 @@ export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
-    getAgreements: async (
+    async getAgreements(
       queryParams: m2mGatewayApi.GetAgreementsQueryParams,
       ctx: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreements> => {
+    ): Promise<m2mGatewayApi.Agreements> {
       const { producerIds, consumerIds, eserviceIds, states, limit, offset } =
         queryParams;
 
       ctx.logger.info(
-        `Retrieving agreements for producerId ${producerIds} consumerId ${consumerIds} eServiceId ${eserviceIds} states ${states} limit ${limit} offset ${offset}`
+        `Retrieving agreements for producerIds ${producerIds} consumerIds ${consumerIds} eServiceIds ${eserviceIds} states ${states} limit ${limit} offset ${offset}`
       );
 
       const {
