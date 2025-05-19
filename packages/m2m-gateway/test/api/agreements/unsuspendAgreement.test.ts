@@ -21,9 +21,12 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
     toM2MGatewayApiAgreement(mockApiAgreement.data);
 
-  const makeRequest = async (token: string) =>
+  const makeRequest = async (
+    token: string,
+    agreementId: string = mockApiAgreement.data.id
+  ) =>
     request(api)
-      .post(`${appBasePath}/agreements/${mockApiAgreement.data.id}/unsuspend`)
+      .post(`${appBasePath}/agreements/${agreementId}/unsuspend`)
       .set("Authorization", `Bearer ${token}`);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
@@ -41,6 +44,16 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
       expect(res.body).toEqual(mockM2MAgreementResponse);
     }
   );
+
+  it("Should return 400 for incorrect value for purpose id", async () => {
+    mockAgreementService.unsuspendAgreement = vi
+      .fn()
+      .mockResolvedValue(mockM2MAgreementResponse);
+
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token, "INVALID ID");
+    expect(res.status).toBe(400);
+  });
 
   it.each([missingMetadata(), resourcePollingTimeout(3)])(
     "Should return 500 in case of $code error",
