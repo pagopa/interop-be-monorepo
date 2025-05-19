@@ -8,6 +8,7 @@ import {
   assertAttributeKindIs,
   assertAttributeOriginAndCodeAreDefined,
 } from "../utils/validators/attributeValidators.js";
+import { tenantQueryConflictError } from "../model/errors.js";
 
 export function toM2MGatewayApiTenant(
   tenant: tenantApi.Tenant
@@ -30,7 +31,7 @@ export function toGetTenantsApiQueryParams(
   const { IPACode, taxCode } = params;
 
   if (IPACode && taxCode) {
-    throw new Error("Both IPACode and taxCode cannot be provided");
+    throw tenantQueryConflictError();
   }
 
   return {

@@ -13,6 +13,7 @@ export const errorCodes = {
   unexpectedUndefinedAttributeOriginOrCode: "0005",
   attributeNotFound: "0006",
   clientAdminIdNotFound: "0007",
+  tenantQueryConflict: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -87,5 +88,13 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
+  });
+}
+
+export function tenantQueryConflictError(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "IPACode and taxCode query parameters cannot be provided together",
+    code: "tenantQueryConflict",
+    title: "Tenant query conflict",
   });
 }
