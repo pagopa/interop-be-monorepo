@@ -9,11 +9,13 @@ export const errorCodes = {
   resourcePollingTimeout: "0001",
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
-  unexpectedAttributeKind: "0004",
-  unexpectedUndefinedAttributeOriginOrCode: "0005",
-  attributeNotFound: "0006",
-  clientAdminIdNotFound: "0007",
-  taxCodeAndIPACodeConflict: "0008",
+  clientAdminIdNotFound: "0004",
+  unexpectedAttributeKind: "0005",
+  unexpectedUndefinedAttributeOriginOrCode: "0006",
+  attributeNotFound: "0007",
+  purposeNotFound: "0008",
+  missingActivePurposeVersion: "0009",
+  taxCodeAndIPACodeConflict: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
