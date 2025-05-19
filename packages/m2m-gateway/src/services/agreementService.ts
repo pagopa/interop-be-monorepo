@@ -75,10 +75,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiAgreement(agreement);
     },
-    createAgreement: async (
+    async createAgreement(
       seed: agreementApi.AgreementPayload,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Agreement> => {
+    ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Creating agreement`);
 
       const response = await clients.agreementProcessClient.createAgreement(
