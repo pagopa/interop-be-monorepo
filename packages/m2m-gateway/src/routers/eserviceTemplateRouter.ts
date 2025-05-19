@@ -22,8 +22,6 @@ const eserviceTemplateRouter = (
     }
   );
 
-  void eserviceTemplateService;
-
   eserviceTemplateRouter
     .get("/eserviceTemplates/:templateId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
