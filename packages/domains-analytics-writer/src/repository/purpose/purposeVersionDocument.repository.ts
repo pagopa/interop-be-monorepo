@@ -1,85 +1,70 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { genericInternalError } from "pagopa-interop-models";
-import { PurposeVersionDocumentSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { config } from "../../config/config.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { DBContext } from "../../db/db.js";
+import { DBConnection } from "../../db/db.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { PurposeVersionDocumentSchema } from "../../model/purpose/purposeVersionDocument.js";
-import { PurposeDbTable } from "../../model/db.js";
+import { PurposeDbTable } from "../../model/db/purpose.js";
 
-export function purposeVersionDocumentRepository(conn: DBContext["conn"]) {
+export function purposeVersionDocumentRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = PurposeDbTable.purpose_version_document;
-  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: PurposeVersionDocumentSQL[]
-    ) {
-      const mapping = {
-        purpose_id: (r: PurposeVersionDocumentSQL) => r.purposeId,
-        metadata_version: (r: PurposeVersionDocumentSQL) => r.metadataVersion,
-        purpose_version_id: (r: PurposeVersionDocumentSQL) =>
-          r.purposeVersionId,
-        id: (r: PurposeVersionDocumentSQL) => r.id,
-        content_type: (r: PurposeVersionDocumentSQL) => r.contentType,
-        path: (r: PurposeVersionDocumentSQL) => r.path,
-        created_at: (r: PurposeVersionDocumentSQL) => r.createdAt,
-      };
-      const cs = buildColumnSet<PurposeVersionDocumentSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      records: PurposeVersionDocumentSchema[]
+    ): Promise<void> {
       try {
-        if (records.length) {
-          await t.none(pgp.helpers.insert(records, cs));
-          await t.none(`
-          DELETE FROM ${stagingTable} a
-          USING ${stagingTable} b
+        const cs = buildColumnSet(pgp, tableName, PurposeVersionDocumentSchema);
+        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(`
+          DELETE FROM ${stagingTableName} a
+          USING ${stagingTableName} b
           WHERE a.id = b.id
           AND a.purpose_version_id = b.purpose_version_id
           AND a.metadata_version < b.metadata_version;
         `);
-        }
-      } catch (error) {
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
 
-    async merge(t: ITask<unknown>) {
+    async merge(t: ITask<unknown>): Promise<void> {
       try {
-        await t.none(
-          generateMergeQuery(
-            PurposeVersionDocumentSchema,
-            schemaName,
-            tableName,
-            stagingTable,
-            ["id", "purpose_version_id"]
-          )
+        const mergeQuery = generateMergeQuery(
+          PurposeVersionDocumentSchema,
+          schemaName,
+          tableName,
+          ["id", "purposeVersionId"]
         );
-      } catch (error) {
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
-    async clean() {
+    async clean(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (error) {
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },
   };
 }
+
+export type PurposeVersionDocumentRepo = ReturnType<
+  typeof purposeVersionDocumentRepo
+>;

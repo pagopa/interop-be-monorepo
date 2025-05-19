@@ -1,22 +1,21 @@
-import { PurposeVersionDocumentSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
+import { createSelectSchema } from "drizzle-zod";
+import { purposeVersionDocumentInReadmodelPurpose } from "pagopa-interop-readmodel-models";
 
-export const PurposeVersionDocumentSchema = z.object({
-  purpose_id: z.string().uuid(),
-  metadata_version: z.number().int(),
-  purpose_version_id: z.string().uuid(),
-  id: z.string().uuid(),
-  content_type: z.string(),
-  path: z.string(),
-  created_at: z.string(),
+export const PurposeVersionDocumentSchema = createSelectSchema(
+  purposeVersionDocumentInReadmodelPurpose
+).extend({
   deleted: z.boolean().default(false).optional(),
 });
-export type PurposeVersionDocument = z.infer<
+export type PurposeVersionDocumentSchema = z.infer<
   typeof PurposeVersionDocumentSchema
 >;
 
-export type PurposeMapping = {
-  [K in keyof PurposeVersionDocument]: (
-    record: PurposeVersionDocumentSQL
-  ) => PurposeVersionDocument[K];
-};
+export const PurposeVersionDocumentDeletingSchema =
+  PurposeVersionDocumentSchema.pick({
+    id: true,
+    deleted: true,
+  });
+export type PurposeVersionDocumentDeletingSchema = z.infer<
+  typeof PurposeVersionDocumentDeletingSchema
+>;

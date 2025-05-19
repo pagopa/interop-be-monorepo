@@ -1,83 +1,71 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-
-import { genericInternalError } from "pagopa-interop-models";
-import { PurposeSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
-import { config } from "../../config/config.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { DBContext } from "../../db/db.js";
-import {
-  generateMergeDeleteQuery,
-  generateMergeQuery,
-} from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, PurposeDbTable } from "../../model/db.js";
-import { PurposeMapping, PurposeSchema } from "../../model/purpose/purpose.js";
+import { genericInternalError } from "pagopa-interop-models";
 
-export function purposeRepository(conn: DBContext["conn"]) {
+import { DBConnection } from "../../db/db.js";
+import { buildColumnSet } from "../../db/buildColumnSet.js";
+import {
+  generateMergeQuery,
+  generateMergeDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
+import { config } from "../../config/config.js";
+import {
+  PurposeSchema,
+  PurposeDeletingSchema,
+} from "../../model/purpose/purpose.js";
+import { DeletingDbTable } from "../../model/db/deleting.js";
+import { PurposeDbTable } from "../../model/db/index.js";
+
+export function purposeRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = PurposeDbTable.purpose;
-  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const stagingDeletingTable = `${DeletingDbTable.purpose_deleting_table}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+  const deletingTableName = DeletingDbTable.purpose_deleting_table;
+  const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
-    async insert(t: ITask<unknown>, pgp: IMain, records: PurposeSQL[]) {
-      const mapping: PurposeMapping = {
-        id: (r: PurposeSQL) => r.id,
-        metadata_version: (r: PurposeSQL) => r.metadataVersion,
-        eservice_id: (r: PurposeSQL) => r.eserviceId,
-        consumer_id: (r: PurposeSQL) => r.consumerId,
-        delegation_id: (r: PurposeSQL) => r.delegationId,
-        suspended_by_consumer: (r: PurposeSQL) => r.suspendedByConsumer,
-        suspended_by_producer: (r: PurposeSQL) => r.suspendedByProducer,
-        title: (r: PurposeSQL) => r.title,
-        description: (r: PurposeSQL) => r.description,
-        created_at: (r: PurposeSQL) => r.createdAt,
-        updated_at: (r: PurposeSQL) => r.updatedAt,
-        is_free_of_charge: (r: PurposeSQL) => r.isFreeOfCharge,
-        free_of_charge_reason: (r: PurposeSQL) => r.freeOfChargeReason,
-      };
-      const cs = buildColumnSet<PurposeSQL>(pgp, mapping, stagingTable);
+    async insert(
+      t: ITask<unknown>,
+      pgp: IMain,
+      records: PurposeSchema[]
+    ): Promise<void> {
       try {
-        if (records.length) {
-          await t.none(pgp.helpers.insert(records, cs));
-          await t.none(`
-              DELETE FROM ${stagingTable} a
-              USING ${stagingTable} b
-              WHERE a.id = b.id
-              AND a.metadata_version < b.metadata_version;
-            `);
-        }
-      } catch (error) {
+        const cs = buildColumnSet(pgp, tableName, PurposeSchema);
+        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(`
+          DELETE FROM ${stagingTableName} a
+          USING ${stagingTableName} b
+          WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
+        `);
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
 
-    async merge(t: ITask<unknown>) {
+    async merge(t: ITask<unknown>): Promise<void> {
       try {
-        await t.none(
-          generateMergeQuery(
-            PurposeSchema,
-            schemaName,
-            tableName,
-            `${tableName}_${config.mergeTableSuffix}`,
-            ["id"]
-          )
+        const mergeQuery = generateMergeQuery(
+          PurposeSchema,
+          schemaName,
+          tableName,
+          ["id"]
         );
-      } catch (error) {
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
-    async clean() {
+    async clean(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (error) {
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -85,28 +73,20 @@ export function purposeRepository(conn: DBContext["conn"]) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      recordsId: Array<PurposeSQL["id"]>
+      records: PurposeDeletingSchema[]
     ): Promise<void> {
       try {
-        const mapping = {
-          id: (r: { id: string }) => r.id,
-          deleted: () => true,
-        };
-
-        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+        const cs = buildColumnSet(
           pgp,
-          mapping,
-          stagingDeletingTable
+          deletingTableName,
+          PurposeDeletingSchema
         );
-
-        const records = recordsId.map((id: string) => ({ id, deleted: true }));
-
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingDeletingTable}: ${error}`
+          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
@@ -116,25 +96,27 @@ export function purposeRepository(conn: DBContext["conn"]) {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
-          stagingDeletingTable,
+          deletingTableName,
           ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingDeletingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTable};`);
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingDeletingTable}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
   };
 }
+
+export type PurposeRepo = ReturnType<typeof purposeRepo>;

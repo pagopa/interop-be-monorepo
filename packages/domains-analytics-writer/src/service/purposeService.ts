@@ -1,36 +1,37 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import { genericLogger } from "pagopa-interop-commons";
-import {
-  PurposeItemsSQL,
-  PurposeVersionSQL,
-  PurposeVersionDocumentSQL,
-} from "pagopa-interop-readmodel-models";
 import { DBContext } from "../db/db.js";
-import { purposeRepository } from "../repository/purpose/purpose.repository.js";
-import { purposeVersionRepository } from "../repository/purpose/purposeVersion.repository.js";
-import { purposeVersionDocumentRepository } from "../repository/purpose/purposeVersionDocument.repository.js";
-import { purposeRiskAnalysisFormRepository } from "../repository/purpose/purposeRiskAnalysisForm.repository.js";
-import { purposeRiskAnalysisAnswerRepository } from "../repository/purpose/purposeRiskAnalysisAnswer.repository.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
-import { PurposeDbTable, DeletingDbTable } from "../model/db.js";
 import { config } from "../config/config.js";
+import { DeletingDbTable } from "../model/db/deleting.js";
+import { PurposeDbTable } from "../model/db/purpose.js";
+import {
+  PurposeDeletingSchema,
+  PurposeItemsSchema,
+} from "../model/purpose/purpose.js";
+import {
+  PurposeVersionDeletingSchema,
+  PurposeVersionItemsSchema,
+} from "../model/purpose/purposeVersion.js";
+import { purposeRiskAnalysisAnswerRepo } from "../repository/purpose/purposeRiskAnalysisAnswer.repository.js";
+import { purposeRiskAnalysisFormRepo } from "../repository/purpose/purposeRiskAnalysisForm.repository.js";
+import { purposeVersionRepo } from "../repository/purpose/purposeVersion.repository.js";
+import { purposeVersionDocumentRepo } from "../repository/purpose/purposeVersionDocument.repository.js";
+import { purposeRepo } from "../repository/purpose/purpose.repository.js";
 
 export function purposeServiceBuilder(db: DBContext) {
-  const purposeRepo = purposeRepository(db.conn);
-  const versionRepo = purposeVersionRepository(db.conn);
-  const versionDocumentRepo = purposeVersionDocumentRepository(db.conn);
-  const formRepo = purposeRiskAnalysisFormRepository(db.conn);
-  const answerRepo = purposeRiskAnalysisAnswerRepository(db.conn);
+  const purposeRepository = purposeRepo(db.conn);
+  const versionRepository = purposeVersionRepo(db.conn);
+  const versionDocumentRepository = purposeVersionDocumentRepo(db.conn);
+  const formRepository = purposeRiskAnalysisFormRepo(db.conn);
+  const answerRepository = purposeRiskAnalysisAnswerRepo(db.conn);
 
   return {
-    async upsertBatchPurpose(
-      upsertBatch: PurposeItemsSQL[],
-      dbContext: DBContext
-    ) {
+    async upsertBatchPurpose(ctx: DBContext, items: PurposeItemsSchema[]) {
       for (const batch of batchMessages(
-        upsertBatch,
+        items,
         config.dbMessagesToInsertPerBatch
       )) {
         const batchItems = {
@@ -47,31 +48,31 @@ export function purposeServiceBuilder(db: DBContext) {
           ),
         };
 
-        await dbContext.conn.tx(async (t) => {
+        await ctx.conn.tx(async (t) => {
           if (batchItems.purposeSQL.length) {
-            await purposeRepo.insert(t, dbContext.pgp, batchItems.purposeSQL);
+            await purposeRepository.insert(t, ctx.pgp, batchItems.purposeSQL);
           }
           if (batchItems.versionsSQL.length) {
-            await versionRepo.insert(t, dbContext.pgp, batchItems.versionsSQL);
+            await versionRepository.insert(t, ctx.pgp, batchItems.versionsSQL);
           }
           if (batchItems.versionDocumentsSQL.length) {
-            await versionDocumentRepo.insert(
+            await versionDocumentRepository.insert(
               t,
-              dbContext.pgp,
+              ctx.pgp,
               batchItems.versionDocumentsSQL
             );
           }
           if (batchItems.riskAnalysisFormSQL.length) {
-            await formRepo.insert(
+            await formRepository.insert(
               t,
-              dbContext.pgp,
+              ctx.pgp,
               batchItems.riskAnalysisFormSQL
             );
           }
           if (batchItems.riskAnalysisAnswersSQL.length) {
-            await answerRepo.insert(
+            await answerRepository.insert(
               t,
-              dbContext.pgp,
+              ctx.pgp,
               batchItems.riskAnalysisAnswersSQL
             );
           }
@@ -81,118 +82,119 @@ export function purposeServiceBuilder(db: DBContext) {
         );
       }
 
-      await dbContext.conn.tx(async (t) => {
-        await purposeRepo.merge(t);
-        await versionRepo.merge(t);
-        await versionDocumentRepo.merge(t);
-        await formRepo.merge(t);
-        await answerRepo.merge(t);
+      await ctx.conn.tx(async (t) => {
+        await purposeRepository.merge(t);
+        await versionRepository.merge(t);
+        await versionDocumentRepository.merge(t);
+        await formRepository.merge(t);
+        await answerRepository.merge(t);
       });
       genericLogger.info(
         `Staging data merged into target tables for all batches`
       );
 
-      await purposeRepo.clean();
-      await versionRepo.clean();
-      await versionDocumentRepo.clean();
-      await formRepo.clean();
-      await answerRepo.clean();
+      await purposeRepository.clean();
+      await versionRepository.clean();
+      await versionDocumentRepository.clean();
+      await formRepository.clean();
+      await answerRepository.clean();
       genericLogger.info(`Staging data cleaned`);
     },
 
     async upsertBatchPurposeVersion(
-      items: Array<{
-        versionSQL: PurposeVersionSQL;
-        versionDocumentSQL?: PurposeVersionDocumentSQL;
-      }>,
-      dbContext: DBContext
+      ctx: DBContext,
+      items: PurposeVersionItemsSchema[]
     ) {
       for (const batch of batchMessages(
         items,
         config.dbMessagesToInsertPerBatch
       )) {
         const batchItems = {
-          versionsSQL: batch.map((item) => item.versionSQL),
-          versionDocumentsSQL: batch.flatMap(
+          purposeVersions: batch.flatMap((item) => item.versionSQL),
+          versionDocuments: batch.flatMap(
             (item) => item.versionDocumentSQL ?? []
           ),
         };
 
-        await dbContext.conn.tx(async (t) => {
-          if (batchItems.versionsSQL.length) {
-            await versionRepo.insert(t, dbContext.pgp, batchItems.versionsSQL);
-          }
-          if (batchItems.versionDocumentsSQL.length) {
-            await versionDocumentRepo.insert(
+        await ctx.conn.tx(async (t) => {
+          if (batchItems.purposeVersions.length) {
+            await versionRepository.insert(
               t,
-              dbContext.pgp,
-              batchItems.versionDocumentsSQL
+              ctx.pgp,
+              batchItems.purposeVersions
+            );
+          }
+          if (batchItems.versionDocuments.length) {
+            await versionDocumentRepository.insert(
+              t,
+              ctx.pgp,
+              batchItems.versionDocuments
             );
           }
         });
         genericLogger.info(
-          `Staging data inserted for batch of ${batchItems.versionsSQL.length} purpose versions`
+          `Staging data inserted for batch of ${batchItems.purposeVersions.length} purpose versions`
         );
       }
 
-      await dbContext.conn.tx(async (t) => {
-        await versionRepo.merge(t);
-        await versionDocumentRepo.merge(t);
+      await ctx.conn.tx(async (t) => {
+        await versionRepository.merge(t);
+        await versionDocumentRepository.merge(t);
       });
       genericLogger.info(
         `Staging data merged into target tables for all batches`
       );
 
-      await versionRepo.clean();
-      await versionDocumentRepo.clean();
+      await versionRepository.clean();
+      await versionDocumentRepository.clean();
       genericLogger.info(`Staging data cleaned for purpose versions`);
     },
 
-    async deleteBatchPurpose(purposeIds: string[], dbContext: DBContext) {
-      await dbContext.conn.tx(async (t) => {
+    async deleteBatchPurpose(ctx: DBContext, records: PurposeDeletingSchema[]) {
+      await ctx.conn.tx(async (t) => {
         for (const batch of batchMessages(
-          purposeIds,
+          records,
           config.dbMessagesToInsertPerBatch
         )) {
-          await purposeRepo.insertDeleting(t, dbContext.pgp, batch);
+          await purposeRepository.insertDeleting(t, ctx.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for purposeIds: ${batch.join(", ")}`
           );
         }
       });
 
-      await dbContext.conn.tx(async (t) => {
-        await purposeRepo.mergeDeleting(t);
+      await ctx.conn.tx(async (t) => {
+        await purposeRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
-          "purpose_id",
+          "purposeId",
           [
             PurposeDbTable.purpose_version,
             PurposeDbTable.purpose_version_document,
             PurposeDbTable.purpose_risk_analysis_form,
             PurposeDbTable.purpose_risk_analysis_answer,
           ],
-          `${DeletingDbTable.purpose_deleting_table}_${config.mergeTableSuffix}`
+          DeletingDbTable.purpose_deleting_table
         );
       });
       genericLogger.info(
         `Staging deletion merged into target tables for all purposes`
       );
 
-      await purposeRepo.cleanDeleting();
+      await purposeRepository.cleanDeleting();
       genericLogger.info(`Staging deleting tables cleaned for purposes`);
     },
 
     async deleteBatchPurposeVersion(
-      versionIds: string[],
-      dbContext: DBContext
+      ctx: DBContext,
+      records: PurposeVersionDeletingSchema[]
     ) {
-      await dbContext.conn.tx(async (t) => {
+      await ctx.conn.tx(async (t) => {
         for (const batch of batchMessages(
-          versionIds,
+          records,
           config.dbMessagesToInsertPerBatch
         )) {
-          await versionRepo.insertDeleting(t, dbContext.pgp, batch);
+          await versionRepository.insertDeleting(t, ctx.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for purposeVersionIds: ${batch.join(
               ", "
@@ -201,20 +203,20 @@ export function purposeServiceBuilder(db: DBContext) {
         }
       });
 
-      await dbContext.conn.tx(async (t) => {
-        await versionRepo.mergeDeleting(t);
+      await ctx.conn.tx(async (t) => {
+        await versionRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
-          "purpose_version_id",
+          "purposeVersionId",
           [PurposeDbTable.purpose_version_document],
-          `${DeletingDbTable.purpose_deleting_table}_${config.mergeTableSuffix}`
+          DeletingDbTable.purpose_deleting_table
         );
       });
       genericLogger.info(
         `Staging deletion merged into target tables for all purpose versions`
       );
 
-      await versionRepo.cleanDeleting();
+      await versionRepository.cleanDeleting();
       genericLogger.info(
         `Staging deleting tables cleaned for purpose versions`
       );

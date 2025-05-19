@@ -85,14 +85,14 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       const versionDocumentStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_version_document,
-        { purpose_version_id: version.id }
+        { purposeVersionId: version.id }
       );
       expect(versionDocumentStored.length).toBeGreaterThan(0);
 
       const riskAnalysisStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_form,
-        { purpose_id: mockPurpose.id }
+        { purposeId: mockPurpose.id }
       );
 
       expect(riskAnalysisStored.length).toBeGreaterThan(0);
@@ -100,7 +100,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       const riskAnalysisAnswerStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_answer,
-        { purpose_id: mockPurpose.id }
+        { purposeId: mockPurpose.id }
       );
       expect(riskAnalysisAnswerStored.length).toBeGreaterThan(0);
     }
@@ -146,7 +146,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       { id: version.id }
     );
     expect(storedVer).toBeDefined();
-    expect(storedVer.metadata_version).toBe(2);
+    expect(storedVer.metadataVersion).toBe(2);
   });
 
   it("PurposeDeleted: marks purpose and its subobject as deleted", async () => {
@@ -203,7 +203,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       const versionDocumentStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_version_document,
-        { purpose_version_id: version.id }
+        { purposeVersionId: version.id }
       );
       expect(versionDocumentStored.length).toBeGreaterThan(0);
 
@@ -215,7 +215,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     const riskAnalysisStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_form,
-      { purpose_id: mockPurpose.id }
+      { purposeId: mockPurpose.id }
     );
 
     expect(riskAnalysisStored.forEach((r) => expect(r.deleted).toBe(true)));
@@ -223,7 +223,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     const riskAnalysisAnswerStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_answer,
-      { purpose_id: mockPurpose.id }
+      { purposeId: mockPurpose.id }
     );
 
     expect(
@@ -299,7 +299,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       const versionDocumentStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_version_document,
-        { purpose_version_id: version.id }
+        { purposeVersionId: version.id }
       );
       expect(versionDocumentStored.length).toBeGreaterThan(0);
 
@@ -361,21 +361,21 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       const versionDocumentStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_version_document,
-        { purpose_version_id: version.id }
+        { purposeVersionId: version.id }
       );
       expect(versionDocumentStored.length).toBeGreaterThan(0);
 
       const riskAnalysisStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_form,
-        { purpose_id: mockPurpose.id }
+        { purposeId: mockPurpose.id }
       );
       expect(riskAnalysisStored.length).toBeGreaterThan(0);
 
       const riskAnalysisAnswerStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_answer,
-        { purpose_id: mockPurpose.id }
+        { purposeId: mockPurpose.id }
       );
       expect(riskAnalysisAnswerStored.length).toBeGreaterThan(0);
     }
@@ -417,7 +417,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       id: mock.id,
     });
     expect(stored.title).toBe("updated");
-    expect(stored.metadata_version).toBe(2);
+    expect(stored.metadataVersion).toBe(2);
   });
 
   it("DraftPurposeDeleted: marks purpose and all its subobjects deleted", async () => {
@@ -479,7 +479,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       const versionDocumentStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_version_document,
-        { purpose_version_id: version.id }
+        { purposeVersionId: version.id }
       );
       expect(versionDocumentStored.length).toBeGreaterThan(0);
       versionDocumentStored.forEach((r) => expect(r.deleted).toBe(true));
@@ -488,14 +488,14 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     const riskAnalysisStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_form,
-      { purpose_id: mockPurpose.id }
+      { purposeId: mockPurpose.id }
     );
     riskAnalysisStored.forEach((r) => expect(r.deleted).toBe(true));
 
     const riskAnalysisAnswerStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_answer,
-      { purpose_id: mockPurpose.id }
+      { purposeId: mockPurpose.id }
     );
     riskAnalysisAnswerStored.forEach((r) => expect(r.deleted).toBe(true));
   });
@@ -607,7 +607,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       const versionDocumentStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_version_document,
-        { purpose_version_id: version.id }
+        { purposeVersionId: version.id }
       );
       expect(versionDocumentStored.length).toBeGreaterThan(0);
       versionDocumentStored.forEach((r) => expect(r.deleted).toBe(true));
@@ -638,7 +638,7 @@ describe("Check on metadata_version merge - Purpose", () => {
       id: mock.id,
     });
     expect(stored1.title).toBe("Title v1");
-    expect(stored1.metadata_version).toBe(1);
+    expect(stored1.metadataVersion).toBe(1);
 
     const msgV3 = {
       ...msgV1,
@@ -651,7 +651,7 @@ describe("Check on metadata_version merge - Purpose", () => {
       id: mock.id,
     });
     expect(stored2.title).toBe("Title v3");
-    expect(stored2.metadata_version).toBe(3);
+    expect(stored2.metadataVersion).toBe(3);
 
     const msgV2 = {
       ...msgV1,
@@ -664,7 +664,7 @@ describe("Check on metadata_version merge - Purpose", () => {
       id: mock.id,
     });
     expect(stored3.title).toBe("Title v3");
-    expect(stored3.metadata_version).toBe(3);
+    expect(stored3.metadataVersion).toBe(3);
   });
 
   it("should apply update when incoming metadata_version is greater", async () => {
@@ -685,6 +685,6 @@ describe("Check on metadata_version merge - Purpose", () => {
       id: mock.id,
     });
     expect(stored.title).toBe("Title v2");
-    expect(stored.metadata_version).toBe(2);
+    expect(stored.metadataVersion).toBe(2);
   });
 });

@@ -1,82 +1,74 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { genericInternalError } from "pagopa-interop-models";
-import { PurposeRiskAnalysisFormSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
+import { config } from "../../config/config.js";
 import { buildColumnSet } from "../../db/buildColumnSet.js";
-import { DBContext } from "../../db/db.js";
+import { DBConnection } from "../../db/db.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { PurposeRiskAnalysisFormSchema } from "../../model/purpose/purposeRiskAnalysis.js";
-import { config } from "../../config/config.js";
-import { PurposeDbTable } from "../../model/db.js";
+import { PurposeDbTable } from "../../model/db/index.js";
 
-export function purposeRiskAnalysisFormRepository(conn: DBContext["conn"]) {
+export function purposeRiskAnalysisFormRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = PurposeDbTable.purpose_risk_analysis_form;
-  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: PurposeRiskAnalysisFormSQL[]
-    ) {
-      const mapping = {
-        id: (r: PurposeRiskAnalysisFormSQL) => r.id,
-        purpose_id: (r: PurposeRiskAnalysisFormSQL) => r.purposeId,
-        metadata_version: (r: PurposeRiskAnalysisFormSQL) => r.metadataVersion,
-        version: (r: PurposeRiskAnalysisFormSQL) => r.version,
-        risk_analysis_id: (r: PurposeRiskAnalysisFormSQL) => r.riskAnalysisId,
-      };
-      const cs = buildColumnSet<PurposeRiskAnalysisFormSQL>(
-        pgp,
-        mapping,
-        stagingTable
-      );
+      records: PurposeRiskAnalysisFormSchema[]
+    ): Promise<void> {
       try {
-        if (records.length) {
-          await t.none(pgp.helpers.insert(records, cs));
-          await t.none(`
-          DELETE FROM ${stagingTable} a
-          USING ${stagingTable} b
+        const cs = buildColumnSet(
+          pgp,
+          tableName,
+          PurposeRiskAnalysisFormSchema
+        );
+        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(`
+          DELETE FROM ${stagingTableName} a
+          USING ${stagingTableName} b
           WHERE a.id = b.id
           AND a.purpose_id = b.purpose_id
           AND a.metadata_version < b.metadata_version;
         `);
-        }
-      } catch (error) {
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
 
-    async merge(t: ITask<unknown>) {
+    async merge(t: ITask<unknown>): Promise<void> {
       try {
-        await t.none(
-          generateMergeQuery(
-            PurposeRiskAnalysisFormSchema,
-            schemaName,
-            tableName,
-            stagingTable,
-            ["id", "purpose_id"]
-          )
+        const mergeQuery = generateMergeQuery(
+          PurposeRiskAnalysisFormSchema,
+          schemaName,
+          tableName,
+          ["id", "purposeId"]
         );
-      } catch (error) {
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
-    async clean() {
+    async clean(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
-      } catch (error) {
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
+      } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },
   };
 }
+
+export type PurposeRiskAnalysisFormRepo = ReturnType<
+  typeof purposeRiskAnalysisFormRepo
+>;

@@ -13,13 +13,16 @@ import {
   splitPurposeIntoObjectsSQL,
   splitPurposeVersionIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
-import {
-  PurposeItemsSQL,
-  PurposeVersionSQL,
-  PurposeVersionDocumentSQL,
-} from "pagopa-interop-readmodel-models";
 import { purposeServiceBuilder } from "../../service/purposeService.js";
 import { DBContext } from "../../db/db.js";
+import {
+  PurposeDeletingSchema,
+  PurposeItemsSchema,
+} from "../../model/purpose/purpose.js";
+import {
+  PurposeVersionDeletingSchema,
+  PurposeVersionItemsSchema,
+} from "../../model/purpose/purposeVersion.js";
 
 export async function handlePurposeMessageV1(
   messages: PurposeEventEnvelopeV1[],
@@ -27,13 +30,10 @@ export async function handlePurposeMessageV1(
 ): Promise<void> {
   const purposeService = purposeServiceBuilder(dbContext);
 
-  const upsertPurposeBatch: PurposeItemsSQL[] = [];
-  const upsertVersionBatch: Array<{
-    versionSQL: PurposeVersionSQL;
-    versionDocumentSQL?: PurposeVersionDocumentSQL;
-  }> = [];
-  const deletePurposeBatch: string[] = [];
-  const deleteVersionBatch: string[] = [];
+  const upsertPurposeBatch: PurposeItemsSchema[] = [];
+  const upsertVersionBatch: PurposeVersionItemsSchema[] = [];
+  const deletePurposeBatch: PurposeDeletingSchema[] = [];
+  const deleteVersionBatch: PurposeVersionDeletingSchema[] = [];
 
   for (const msg of messages) {
     match(msg)
@@ -49,61 +49,84 @@ export async function handlePurposeMessageV1(
             "PurposeVersionRejected"
           ),
         },
-        (m) => {
-          if (!m.data.purpose) {
+        (msg) => {
+          if (!msg.data.purpose) {
             throw genericInternalError(
               `Purpose can't be missing in the event message`
             );
           }
-          const item = splitPurposeIntoObjectsSQL(
-            fromPurposeV1(m.data.purpose),
-            m.version
+          const splitResult = splitPurposeIntoObjectsSQL(
+            fromPurposeV1(msg.data.purpose),
+            msg.version
           );
-          upsertPurposeBatch.push(item);
+
+          upsertPurposeBatch.push(
+            PurposeItemsSchema.parse({
+              purposeSQL: splitResult.purposeSQL,
+              riskAnalysisFormSQL: splitResult.riskAnalysisFormSQL,
+              riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
+              versionsSQL: splitResult.versionsSQL,
+              versionDocumentsSQL: splitResult.versionDocumentsSQL,
+            })
+          );
         }
       )
       .with(
         { type: P.union("PurposeVersionCreated", "PurposeVersionUpdated") },
-        (m) => {
-          if (!m.data.version) {
+        (msg) => {
+          if (!msg.data.version) {
             throw genericInternalError(
               `Purpose version can't be missing in the event message`
             );
           }
-          const { versionSQL, versionDocumentSQL } =
-            splitPurposeVersionIntoObjectsSQL(
-              unsafeBrandId<PurposeId>(m.data.purposeId),
-              fromPurposeVersionV1(m.data.version),
-              m.version
-            );
-          upsertVersionBatch.push({ versionSQL, versionDocumentSQL });
+          const splitResult = splitPurposeVersionIntoObjectsSQL(
+            unsafeBrandId<PurposeId>(msg.data.purposeId),
+            fromPurposeVersionV1(msg.data.version),
+            msg.version
+          );
+          upsertVersionBatch.push(
+            PurposeVersionItemsSchema.parse({
+              versionSQL: splitResult.versionSQL,
+              versionDocumentSQL: splitResult.versionDocumentSQL,
+            })
+          );
         }
       )
-      .with({ type: "PurposeDeleted" }, (m) => {
-        deletePurposeBatch.push(m.data.purposeId);
+      .with({ type: "PurposeDeleted" }, (msg) => {
+        deletePurposeBatch.push(
+          PurposeDeletingSchema.parse({
+            id: msg.data.purposeId,
+            deleted: true,
+          })
+        );
       })
-      .with({ type: "PurposeVersionDeleted" }, (m) => {
-        deleteVersionBatch.push(m.data.versionId);
+      .with({ type: "PurposeVersionDeleted" }, (msg) => {
+        deleteVersionBatch.push(
+          PurposeVersionDeletingSchema.parse({
+            id: msg.data.versionId,
+            deleted: true,
+          })
+        );
       })
       .exhaustive();
   }
 
   if (upsertPurposeBatch.length) {
-    await purposeService.upsertBatchPurpose(upsertPurposeBatch, dbContext);
+    await purposeService.upsertBatchPurpose(dbContext, upsertPurposeBatch);
   }
   if (upsertVersionBatch.length) {
     await purposeService.upsertBatchPurposeVersion(
-      upsertVersionBatch,
-      dbContext
+      dbContext,
+      upsertVersionBatch
     );
   }
   if (deletePurposeBatch.length) {
-    await purposeService.deleteBatchPurpose(deletePurposeBatch, dbContext);
+    await purposeService.deleteBatchPurpose(dbContext, deletePurposeBatch);
   }
   if (deleteVersionBatch.length) {
     await purposeService.deleteBatchPurposeVersion(
-      deleteVersionBatch,
-      dbContext
+      dbContext,
+      deleteVersionBatch
     );
   }
 }

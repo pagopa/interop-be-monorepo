@@ -1,21 +1,21 @@
-import { PurposeRiskAnalysisFormSQL } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
+import { createSelectSchema } from "drizzle-zod";
+import { purposeRiskAnalysisFormInReadmodelPurpose } from "pagopa-interop-readmodel-models";
 
-export const PurposeRiskAnalysisFormSchema = z.object({
-  id: z.string().uuid(),
-  purpose_id: z.string().uuid(),
-  metadata_version: z.number().int(),
-  version: z.string(),
-  risk_analysis_id: z.string().uuid().nullable(),
+export const PurposeRiskAnalysisFormSchema = createSelectSchema(
+  purposeRiskAnalysisFormInReadmodelPurpose
+).extend({
   deleted: z.boolean().default(false).optional(),
 });
-export type PurposeRiskAnalysisForm = z.infer<
+export type PurposeRiskAnalysisFormSchema = z.infer<
   typeof PurposeRiskAnalysisFormSchema
 >;
-export type PurposeSchema = z.infer<typeof PurposeRiskAnalysisFormSchema>;
 
-export type PurposeMapping = {
-  [K in keyof PurposeSchema]: (
-    record: PurposeRiskAnalysisFormSQL
-  ) => PurposeSchema[K];
-};
+export const PurposeRiskAnalysisFormDeletingSchema =
+  PurposeRiskAnalysisFormSchema.pick({
+    id: true,
+    deleted: true,
+  });
+export type PurposeRiskAnalysisFormDeletingSchema = z.infer<
+  typeof PurposeRiskAnalysisFormDeletingSchema
+>;
