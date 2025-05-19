@@ -164,7 +164,6 @@ CREATE TABLE IF NOT EXISTS domains.tenant (
   sub_unit_type VARCHAR,
   deleted BOOLEAN,
   PRIMARY KEY (id),
-  CONSTRAINT tenant_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS domains.tenant_mail (
@@ -188,7 +187,6 @@ CREATE TABLE IF NOT EXISTS domains.tenant_certified_attribute (
   revocation_timestamp TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, tenant_id),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS domains.tenant_declared_attribute (
@@ -200,7 +198,6 @@ CREATE TABLE IF NOT EXISTS domains.tenant_declared_attribute (
   delegation_id VARCHAR(36),
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, tenant_id),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute (
@@ -210,7 +207,6 @@ CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute (
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, tenant_id),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_verifier (
@@ -225,7 +221,6 @@ CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_verifier (
   deleted BOOLEAN,
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES domains.tenant_verified_attribute (tenant_id, attribute_id),
   FOREIGN KEY (tenant_verifier_id) REFERENCES domains.tenant (id),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_revoker (
@@ -241,7 +236,6 @@ CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_revoker (
   deleted BOOLEAN,
   FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES domains.tenant_verified_attribute (tenant_id, attribute_id),
   FOREIGN KEY (tenant_revoker_id) REFERENCES domains.tenant (id),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
 
 CREATE TABLE IF NOT EXISTS domains.tenant_feature (
@@ -252,5 +246,4 @@ CREATE TABLE IF NOT EXISTS domains.tenant_feature (
   availability_timestamp TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (tenant_id, kind),
-  FOREIGN KEY (tenant_id, metadata_version) REFERENCES domains.tenant (id, metadata_version)
 );
