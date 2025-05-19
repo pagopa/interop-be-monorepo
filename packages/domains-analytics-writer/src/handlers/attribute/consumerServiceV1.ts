@@ -43,10 +43,12 @@ export async function handleAttributeMessageV1(
         );
       })
       .with({ type: "MaintenanceAttributeDeleted" }, (msg) => {
-        AttributeDeletingSchema.parse({
-          id: msg.data.id,
-          deleted: true,
-        } satisfies z.input<typeof AttributeDeletingSchema>);
+        deleteBatch.push(
+          AttributeDeletingSchema.parse({
+            id: msg.data.id,
+            deleted: true,
+          } satisfies z.input<typeof AttributeDeletingSchema>)
+        );
       })
       .exhaustive();
   }
