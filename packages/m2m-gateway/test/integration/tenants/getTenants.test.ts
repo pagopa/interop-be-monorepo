@@ -12,6 +12,7 @@ import {
   getMockedApiTenant,
 } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
 describe("getTenants", () => {
   const mockParams: m2mGatewayApi.GetTenantsQueryParams = {
@@ -152,9 +153,6 @@ describe("getTenants", () => {
 
     await expect(
       tenantService.getTenants(params, getMockM2MAdminAppContext())
-    ).rejects.toMatchObject({
-      code: "taxCodeAndIPACodeConflict",
-      title: "Tenant query conflict",
-    });
+    ).rejects.toThrowError(taxCodeAndIPACodeConflict());
   });
 });
