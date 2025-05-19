@@ -5,11 +5,9 @@ import {
   EServiceEventEnvelopeV1,
   EServiceId,
   unsafeBrandId,
-  DescriptorId,
   fromDescriptorV1,
   genericInternalError,
   fromEServiceV1,
-  RiskAnalysisId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
@@ -114,8 +112,8 @@ export async function handleCatalogMessageV1(
         upsertEServiceDocumentBatch.push(
           EserviceDescriptorDocumentSchema.parse({
             ...msg.data.updatedDocument,
-            eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-            descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+            eserviceId: msg.data.eserviceId,
+            descriptorId: msg.data.descriptorId,
             metadataVersion: msg.version,
           } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
         );
@@ -130,8 +128,8 @@ export async function handleCatalogMessageV1(
         upsertEServiceDocumentBatch.push(
           EserviceDescriptorDocumentSchema.parse({
             ...msg.data.document,
-            eserviceId: unsafeBrandId<EServiceId>(msg.data.eserviceId),
-            descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+            eserviceId: msg.data.eserviceId,
+            descriptorId: msg.data.descriptorId,
             metadataVersion: msg.version,
           } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
         );
@@ -153,8 +151,8 @@ export async function handleCatalogMessageV1(
 
         deleteRiskAnalysisBatch.push(
           EserviceRiskAnalysisDeletingSchema.parse({
-            id: unsafeBrandId<RiskAnalysisId>(msg.data.riskAnalysisId),
-            eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice.id),
+            id: msg.data.riskAnalysisId,
+            eserviceId: msg.data.eservice.id,
             deleted: true,
           } satisfies z.input<typeof EserviceRiskAnalysisDeletingSchema>)
         );
