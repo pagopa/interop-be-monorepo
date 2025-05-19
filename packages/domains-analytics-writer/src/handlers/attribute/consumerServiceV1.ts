@@ -7,13 +7,13 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
 import {
   AttributeSchema,
   AttributeDeletingSchema,
 } from "../../model/attribute/attribute.js";
-import { z } from "zod";
 
 export async function handleAttributeMessageV1(
   messages: AttributeEventEnvelope[],
