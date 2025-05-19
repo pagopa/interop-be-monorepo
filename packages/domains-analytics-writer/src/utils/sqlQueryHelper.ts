@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { z } from "zod";
-import { ITask } from "pg-promise";
+import { ColumnSet, IColumnDescriptor, IMain, ITask } from "pg-promise";
 import {
   DbTable,
   DbTableReadModels,
@@ -154,3 +154,36 @@ export async function mergeDeletingCascadeById<
     await t.none(mergeQuery);
   }
 }
+
+export type ColumnValue = string | number | Date | undefined | null | boolean;
+
+/**
+ * Builds a pg-promise ColumnSet for performing bulk insert/update operations on a given table.
+ *
+ * This function maps the fields of a Zod schema to database columns using a snake_case naming strategy,
+ * which allows pg-promise to efficiently generate SQL for bulk operations.
+ *
+ * @template T - The Zod object schema shape describing the table structure.
+ * @param pgp - The pg-promise main instance used to create the ColumnSet.
+ * @param tableName - The logical name of the database table (without suffixes).
+ * @param schema - The Zod schema representing the shape of the data to persist.
+ * @returns A pg-promise ColumnSet object with mapped columns for bulk operations.
+ */
+export const buildColumnSet = <T extends z.ZodRawShape>(
+  pgp: IMain,
+  tableName: DbTable,
+  schema: z.ZodObject<T>
+): ColumnSet<z.infer<typeof schema>> => {
+  const snakeCaseMapper = getColumnNameMapper(tableName);
+  const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
+
+  const columns = keys.map((prop) => ({
+    name: snakeCaseMapper(String(prop)),
+    init: ({ source }: IColumnDescriptor<z.infer<typeof schema>>) =>
+      source[prop],
+  }));
+
+  return new pgp.helpers.ColumnSet(columns, {
+    table: { table: `${tableName}_${config.mergeTableSuffix}` },
+  });
+};
