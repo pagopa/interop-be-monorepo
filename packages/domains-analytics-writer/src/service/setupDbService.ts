@@ -2,7 +2,7 @@
 import { DBConnection } from "../db/db.js";
 import { DeletingDbTableConfigMap, DomainDbTable } from "../model/db/index.js";
 import { setupStagingTablesError } from "../model/errors.js";
-import { getColumnName } from "../utils/sqlQueryHelper.js";
+import { getColumnNameMapper } from "../utils/sqlQueryHelper.js";
 export interface SetupDbConfig {
   mergeTableSuffix: string;
   dbSchemaName: string;
@@ -36,14 +36,14 @@ export function setupDbServiceBuilder(
       try {
         await Promise.all(
           tables.map(({ name, columns }) => {
-            const snakeCase = getColumnName(name);
+            const snakeCaseMapper = getColumnNameMapper(name);
             const columnDefs = columns
-              .map((key) => `${snakeCase(key)} VARCHAR(255)`)
+              .map((key) => `${snakeCaseMapper(key)} VARCHAR(255)`)
               .concat("deleted BOOLEAN NOT NULL")
               .join(",\n  ");
 
             const primaryKey = `PRIMARY KEY (${columns
-              .map(snakeCase)
+              .map(snakeCaseMapper)
               .join(", ")})`;
 
             const query = `

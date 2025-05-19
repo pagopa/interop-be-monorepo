@@ -3,7 +3,7 @@
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { config } from "../../config/config.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
+import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
 import { DBConnection } from "../../db/db.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { PurposeRiskAnalysisFormSchema } from "../../model/purpose/purposeRiskAnalysis.js";

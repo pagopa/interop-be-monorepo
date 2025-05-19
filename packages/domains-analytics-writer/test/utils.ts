@@ -21,8 +21,8 @@ import {
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
-import { getColumnName } from "../src/utils/sqlQueryHelper.js";
 import { agreementServiceBuilder } from "../src/service/agreementService.js";
+import { getColumnNameMapper } from "../src/utils/sqlQueryHelper.js";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
@@ -162,11 +162,11 @@ export async function getOneFromDb<T extends DomainDbTable>(
   tableName: T,
   where: Partial<z.infer<DomainDbTableSchemas[T]>>
 ): Promise<z.infer<DomainDbTableSchemas[T]>> {
-  const snakeCase = getColumnName(tableName);
+  const snakeCaseMapper = getColumnNameMapper(tableName);
 
   const entries = Object.entries(where) as Array<[string, unknown]>;
   const clause = entries
-    .map(([k], i) => `"${snakeCase(k)}" = $${i + 1}`)
+    .map(([k], i) => `"${snakeCaseMapper(k)}" = $${i + 1}`)
     .join(" AND ");
   const values = entries.map(([, v]) => v);
 
@@ -183,11 +183,11 @@ export async function getManyFromDb<T extends DomainDbTable>(
   tableName: T,
   where: Partial<z.infer<DomainDbTableSchemas[T]>>
 ): Promise<Array<z.infer<DomainDbTableSchemas[T]>>> {
-  const snakeCase = getColumnName(tableName);
+  const snakeCaseMapper = getColumnNameMapper(tableName);
 
   const entries = Object.entries(where) as Array<[string, unknown]>;
   const clause = entries
-    .map(([k], i) => `"${snakeCase(k)}" = $${i + 1}`)
+    .map(([k], i) => `"${snakeCaseMapper(k)}" = $${i + 1}`)
     .join(" AND ");
   const values = entries.map(([, v]) => v);
 

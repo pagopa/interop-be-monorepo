@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { z } from "zod";
-import { ITask } from "pg-promise";
+import { ColumnSet, IColumnDescriptor, IMain, ITask } from "pg-promise";
 import {
   DbTable,
   DbTableReadModels,
@@ -19,7 +19,7 @@ import { config } from "../config/config.js";
  * @returns A mapper `(columnKey: string) => string` that returns the actual
  * SQL column name (e.g. "eservice_id") or falls back to the original key.
  */
-export function getColumnName<T extends DbTable>(
+export function getColumnNameMapper<T extends DbTable>(
   tableName: T
 ): (columnKey: string) => string {
   const table = DbTableReadModels[tableName] as unknown as Record<
@@ -45,8 +45,8 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   keysOn: Array<keyof T>
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
-  const snakeCase = getColumnName(tableName);
-  const keys = Object.keys(tableSchema.shape).map(snakeCase);
+  const snakeCaseMapper = getColumnNameMapper(tableName);
+  const keys = Object.keys(tableSchema.shape).map(snakeCaseMapper);
 
   const updateSet = keys
     .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
@@ -57,7 +57,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
 
   const onCondition = keysOn
     .map((k) => {
-      const key = quoteColumn(snakeCase(String(k)));
+      const key = quoteColumn(snakeCaseMapper(String(k)));
       return `${schemaName}.${tableName}.${key} = source.${key}`;
     })
     .join(" AND ");
@@ -101,15 +101,17 @@ export function generateMergeDeleteQuery<
   useIdAsSourceDeleteKey: boolean = true
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
-  const snakeCase = getColumnName(targetTableName);
+  const snakeCaseMapper = getColumnNameMapper(targetTableName);
 
   const onCondition = deleteKeysOn
     .map(
       (k) =>
         `${schemaName}.${targetTableName}.${quoteColumn(
-          snakeCase(String(k))
+          snakeCaseMapper(String(k))
         )} = source.${
-          useIdAsSourceDeleteKey ? "id" : quoteColumn(snakeCase(String(k)))
+          useIdAsSourceDeleteKey
+            ? "id"
+            : quoteColumn(snakeCaseMapper(String(k)))
         }`
     )
     .join(" AND ");
@@ -152,3 +154,36 @@ export async function mergeDeletingCascadeById<
     await t.none(mergeQuery);
   }
 }
+
+export type ColumnValue = string | number | Date | undefined | null | boolean;
+
+/**
+ * Builds a pg-promise ColumnSet for performing bulk insert/update operations on a given table.
+ *
+ * This function maps the fields of a Zod schema to database columns using a snake_case naming strategy,
+ * which allows pg-promise to efficiently generate SQL for bulk operations.
+ *
+ * @template T - The Zod object schema shape describing the table structure.
+ * @param pgp - The pg-promise main instance used to create the ColumnSet.
+ * @param tableName - The logical name of the database table (without suffixes).
+ * @param schema - The Zod schema representing the shape of the data to persist.
+ * @returns A pg-promise ColumnSet object with mapped columns for bulk operations.
+ */
+export const buildColumnSet = <T extends z.ZodRawShape>(
+  pgp: IMain,
+  tableName: DbTable,
+  schema: z.ZodObject<T>
+): ColumnSet<z.infer<typeof schema>> => {
+  const snakeCaseMapper = getColumnNameMapper(tableName);
+  const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
+
+  const columns = keys.map((prop) => ({
+    name: snakeCaseMapper(String(prop)),
+    init: ({ source }: IColumnDescriptor<z.infer<typeof schema>>) =>
+      source[prop],
+  }));
+
+  return new pgp.helpers.ColumnSet(columns, {
+    table: { table: `${tableName}_${config.mergeTableSuffix}` },
+  });
+};

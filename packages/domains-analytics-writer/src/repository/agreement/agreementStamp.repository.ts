@@ -3,7 +3,7 @@ import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
 import { AgreementDbTable } from "../../model/db/index.js";
 import { DBConnection } from "../../db/db.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
+import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { AgreementStampSchema } from "../../model/agreement/agreementStamp.js";
