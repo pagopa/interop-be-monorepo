@@ -8,10 +8,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { DBContext } from "../../db/db.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
+import {
+  AttributeSchema,
+  AttributeDeletingSchema,
+} from "../../model/attribute/attribute.js";
 
 export async function handleAttributeMessageV1(
   messages: AttributeEventEnvelope[],
@@ -19,8 +22,8 @@ export async function handleAttributeMessageV1(
 ): Promise<void> {
   const attributeService = attributeServiceBuilder(dbContext);
 
-  const upsertBatch: AttributeSQL[] = [];
-  const deleteBatch: AttributeId[] = [];
+  const upsertBatch: AttributeSchema[] = [];
+  const deleteBatch: AttributeDeletingSchema[] = [];
 
   for (const message of messages) {
     match(message)
@@ -34,11 +37,15 @@ export async function handleAttributeMessageV1(
           fromAttributeV1(msg.data.attribute),
           msg.version
         );
-        upsertBatch.push(attributeSql);
+        const attribute = AttributeSchema.parse(attributeSql);
+        upsertBatch.push(attribute);
       })
       .with({ type: "MaintenanceAttributeDeleted" }, (msg) => {
         const attributeId = unsafeBrandId<AttributeId>(msg.data.id);
-        deleteBatch.push(attributeId);
+        deleteBatch.push({
+          id: attributeId,
+          deleted: true,
+        });
       })
       .exhaustive();
   }

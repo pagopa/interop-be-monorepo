@@ -1,22 +1,19 @@
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
-import { AgreementContractSQL } from "pagopa-interop-readmodel-models";
+import { agreementContractInReadmodelAgreement } from "pagopa-interop-readmodel-models";
 
-export const AgreementContractSchema = z.object({
-  id: z.string(),
-  agreement_id: z.string(),
-  metadata_version: z.number(),
-  name: z.string(),
-  pretty_name: z.string(),
-  content_type: z.string(),
-  path: z.string(),
-  created_at: z.string(),
+export const AgreementContractSchema = createSelectSchema(
+  agreementContractInReadmodelAgreement
+).extend({
   deleted: z.boolean().default(false).optional(),
 });
-
 export type AgreementContractSchema = z.infer<typeof AgreementContractSchema>;
 
-export type AgreementContractMapping = {
-  [K in keyof AgreementContractSchema]: (
-    r: AgreementContractSQL
-  ) => AgreementContractSchema[K];
-};
+export const AgreementContractDeletingSchema = AgreementContractSchema.pick({
+  id: true,
+  agreementId: true,
+  deleted: true,
+});
+export type AgreementContractDeletingSchema = z.infer<
+  typeof AgreementContractDeletingSchema
+>;

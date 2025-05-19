@@ -1,31 +1,42 @@
 import pRetry from "p-retry";
 import { AnalyticsSQLDbConfig, DB, Logger } from "pagopa-interop-commons";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
+import { z } from "zod";
+import { getColumnName } from "../utils/sqlQueryHelper.js";
+import { DbTable } from "../model/db/index.js";
+import { config } from "../config/config.js";
 import { DBContext } from "./db.js";
 
 export type ColumnValue = string | number | Date | undefined | null | boolean;
 
 /**
- * This is a helper function that generates a ColumnSet for bulk operations using pg-promise.
- * It creates a mapping between object properties and corresponding database columns.
+ * Builds a pg-promise ColumnSet for performing bulk insert/update operations on a given table.
  *
+ * This function maps the fields of a Zod schema to database columns using a snake_case naming strategy,
+ * which allows pg-promise to efficiently generate SQL for bulk operations.
+ *
+ * @template T - The Zod object schema shape describing the table structure.
  * @param pgp - The pg-promise main instance used to create the ColumnSet.
- * @param mapping - An object that maps column names to functions which extract the corresponding value from a record.
- * @param tableName - The name of the target table for which the ColumnSet is generated.
- * @param schemaName - The name of the target schema for which the ColumnSet is generated.
- * @returns A ColumnSet configured with the specified columns and table details.
+ * @param tableName - The logical name of the database table (without suffixes).
+ * @param schema - The Zod schema representing the shape of the data to persist.
+ * @returns A pg-promise ColumnSet object with mapped columns for bulk operations.
  */
-export const buildColumnSet = <T>(
+export const buildColumnSet = <T extends z.ZodRawShape>(
   pgp: IMain,
-  mapping: Record<string, (record: T) => ColumnValue>,
-  tableName: string
-): ColumnSet<T> => {
-  const columns = Object.entries(mapping).map(([name, initFn]) => ({
-    name,
-    init: ({ source }: IColumnDescriptor<T>) => initFn(source),
+  tableName: DbTable,
+  schema: z.ZodObject<T>
+): ColumnSet<z.infer<typeof schema>> => {
+  const snakeCase = getColumnName(tableName);
+  const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
+
+  const columns = keys.map((prop) => ({
+    name: snakeCase(String(prop)),
+    init: ({ source }: IColumnDescriptor<z.infer<typeof schema>>) =>
+      source[prop],
   }));
+
   return new pgp.helpers.ColumnSet(columns, {
-    table: { table: tableName },
+    table: { table: `${tableName}_${config.mergeTableSuffix}` },
   });
 };
 

@@ -1,33 +1,30 @@
 import { z } from "zod";
-import { AgreementSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
+import { agreementInReadmodelAgreement } from "pagopa-interop-readmodel-models";
+import { AgreementAttributeSchema } from "./agreementAttribute.js";
+import { AgreementConsumerDocumentSchema } from "./agreementConsumerDocument.js";
+import { AgreementContractSchema } from "./agreementContract.js";
+import { AgreementStampSchema } from "./agreementStamp.js";
 
-export const AgreementSchema = z.object({
-  id: z.string(),
-  metadata_version: z.number(),
-  eservice_id: z.string(),
-  descriptor_id: z.string(),
-  producer_id: z.string(),
-  consumer_id: z.string(),
-  state: z.string(),
-  suspended_by_consumer: z.string().nullable(),
-  suspended_by_producer: z.string().nullable(),
-  suspended_by_platform: z.string().nullable(),
-  created_at: z.string(),
-  updated_at: z.string().nullable(),
-  consumer_notes: z.string().nullable(),
-  rejection_reason: z.string().nullable(),
-  suspended_at: z.string().nullable(),
+export const AgreementSchema = createSelectSchema(
+  agreementInReadmodelAgreement
+).extend({
   deleted: z.boolean().default(false).optional(),
 });
 export type AgreementSchema = z.infer<typeof AgreementSchema>;
 
-export const AgreementDeletingSchema = z.object({
-  id: z.string(),
-  deleted: z.boolean().default(false).optional(),
+export const AgreementDeletingSchema = AgreementSchema.pick({
+  id: true,
+  deleted: true,
+});
+export type AgreementDeletingSchema = z.infer<typeof AgreementDeletingSchema>;
+
+export const AgreementItemsSchema = z.object({
+  agreementSQL: AgreementSchema,
+  stampsSQL: z.array(AgreementStampSchema),
+  attributesSQL: z.array(AgreementAttributeSchema),
+  consumerDocumentsSQL: z.array(AgreementConsumerDocumentSchema),
+  contractSQL: AgreementContractSchema.optional(),
 });
 
-export type AgreementDeletingSchema = z.infer<typeof AgreementSchema>;
-
-export type AgreementMapping = {
-  [K in keyof AgreementSchema]: (r: AgreementSQL) => AgreementSchema[K];
-};
+export type AgreementItemsSchema = z.infer<typeof AgreementItemsSchema>;

@@ -1,16 +1,21 @@
 /* eslint-disable functional/immutable-data */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { match, P } from "ts-pattern";
 import {
   AgreementEventEnvelopeV2,
-  AgreementId,
   fromAgreementV2,
   genericInternalError,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { splitAgreementIntoObjectsSQL } from "pagopa-interop-readmodel";
-import { AgreementItemsSQL } from "pagopa-interop-readmodel-models";
-import { agreementServiceBuilder } from "../../service/agreementService.js";
+import { z } from "zod";
 import { DBContext } from "../../db/db.js";
+import { agreementServiceBuilder } from "../../service/agreementService.js";
+import {
+  AgreementItemsSchema,
+  AgreementDeletingSchema,
+} from "../../model/agreement/agreement.js";
+import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreementConsumerDocument.js";
 
 export async function handleAgreementMessageV2(
   messages: AgreementEventEnvelopeV2[],
@@ -18,12 +23,12 @@ export async function handleAgreementMessageV2(
 ): Promise<void> {
   const agreementService = agreementServiceBuilder(dbContext);
 
-  const upsertAgreements: AgreementItemsSQL[] = [];
-  const deleteAgreements: AgreementId[] = [];
-  const deleteConsumerDocument: AgreementId[] = [];
+  const upsertAgreementBatch: AgreementItemsSchema[] = [];
+  const deleteAgreementBatch: AgreementDeletingSchema[] = [];
+  const deleteDocumentBatch: AgreementConsumerDocumentDeletingSchema[] = [];
 
-  for (const msg of messages) {
-    match(msg)
+  for (const message of messages) {
+    match(message)
       .with(
         {
           type: P.union(
@@ -31,31 +36,29 @@ export async function handleAgreementMessageV2(
             "AgreementDeletedByRevokedDelegation"
           ),
         },
-        ({ data }) => {
-          if (!data.agreement) {
+        (msg) => {
+          if (!msg.data.agreement) {
             throw genericInternalError(
               `Agreement can't be missing in the event message`
             );
           }
-          deleteAgreements.push(unsafeBrandId<AgreementId>(data.agreement.id));
-        }
-      )
-      .with(
-        {
-          type: P.union("AgreementConsumerDocumentRemoved"),
-        },
-        ({ data }) => {
-          if (!data.agreement) {
-            throw genericInternalError(
-              `Agreement can't be missing in the event message`
-            );
-          }
-          deleteConsumerDocument.push(
-            unsafeBrandId<AgreementId>(data.documentId)
+
+          deleteAgreementBatch.push(
+            AgreementDeletingSchema.parse({
+              id: msg.data.agreement.id,
+              deleted: true,
+            } satisfies z.input<typeof AgreementDeletingSchema>)
           );
         }
       )
-
+      .with({ type: "AgreementConsumerDocumentRemoved" }, (msg) => {
+        deleteDocumentBatch.push(
+          AgreementConsumerDocumentDeletingSchema.parse({
+            id: msg.data.documentId,
+            deleted: true,
+          } satisfies z.input<typeof AgreementConsumerDocumentDeletingSchema>)
+        );
+      })
       .with(
         {
           type: P.union(
@@ -79,33 +82,50 @@ export async function handleAgreementMessageV2(
             "AgreementArchivedByRevokedDelegation"
           ),
         },
-        ({ data, version }) => {
-          if (!data.agreement) {
+        (msg) => {
+          if (!msg.data.agreement) {
             throw genericInternalError(
               `Agreement can't be missing in the event message`
             );
           }
-          upsertAgreements.push(
-            splitAgreementIntoObjectsSQL(
-              fromAgreementV2(data.agreement),
-              version
-            )
+
+          const result = splitAgreementIntoObjectsSQL(
+            fromAgreementV2(msg.data.agreement),
+            msg.version
+          );
+
+          upsertAgreementBatch.push(
+            AgreementItemsSchema.parse({
+              agreementSQL: result.agreementSQL,
+              attributesSQL: result.attributesSQL,
+              consumerDocumentsSQL: result.consumerDocumentsSQL,
+              contractSQL: result.contractSQL,
+              stampsSQL: result.stampsSQL,
+            } satisfies z.input<typeof AgreementItemsSchema>)
           );
         }
       )
       .exhaustive();
   }
 
-  if (upsertAgreements.length) {
-    await agreementService.upsertBatchAgreement(upsertAgreements, dbContext);
+  if (upsertAgreementBatch.length > 0) {
+    await agreementService.upsertBatchAgreement(
+      dbContext,
+      upsertAgreementBatch
+    );
   }
-  if (deleteAgreements.length) {
-    await agreementService.deleteBatchAgreement(deleteAgreements, dbContext);
+
+  if (deleteAgreementBatch.length > 0) {
+    await agreementService.deleteBatchAgreement(
+      dbContext,
+      deleteAgreementBatch
+    );
   }
-  if (deleteConsumerDocument.length) {
+
+  if (deleteDocumentBatch.length > 0) {
     await agreementService.deleteBatchAgreementDocument(
-      deleteConsumerDocument,
-      dbContext
+      dbContext,
+      deleteDocumentBatch
     );
   }
 }

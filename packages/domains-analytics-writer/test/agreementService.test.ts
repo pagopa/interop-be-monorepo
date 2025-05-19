@@ -25,19 +25,18 @@ import {
 } from "pagopa-interop-commons-test";
 import { handleAgreementMessageV1 } from "../src/handlers/agreement/consumerServiceV1.js";
 import { handleAgreementMessageV2 } from "../src/handlers/agreement/consumerServiceV2.js";
+import { AgreementDbTable } from "../src/model/db/index.js";
 import {
   dbContext,
-  resetAgreementTables,
-  getAgreementFromDb,
-  getAgreementAttributeFromDb,
-  getAgreementConsumerDocumentFromDb,
-  getAgreementContractFromDb,
-  getAgreementStampFromDb,
+  resetTargetTables,
+  getManyFromDb,
+  getOneFromDb,
+  agreementTables,
 } from "./utils.js";
 
 describe("Agreement messages consumers - handleAgreementMessageV1", () => {
   beforeEach(async () => {
-    await resetAgreementTables(dbContext);
+    await resetTargetTables(agreementTables);
   });
 
   it("AgreementAdded: inserts agreement with stamps, attributes, consumer docs and contract", async () => {
@@ -60,30 +59,44 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
 
     await handleAgreementMessageV1([msg], dbContext);
 
-    const storedAgreement = await getAgreementFromDb(mock.id, dbContext);
+    const storedAgreement = await getOneFromDb(
+      dbContext,
+      AgreementDbTable.agreement,
+      { id: mock.id }
+    );
     expect(storedAgreement).toBeDefined();
-    expect(storedAgreement.metadata_version).toBe(1);
+    expect(storedAgreement.metadataVersion).toBe(1);
 
-    const storedStamps = await getAgreementStampFromDb(mock.id, dbContext);
+    const storedStamps = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_stamp,
+      { agreementId: mock.id }
+    );
     expect(storedStamps.length).toBeGreaterThan(0);
 
     const attrId = mock.certifiedAttributes[0].id;
-    const attrs = await getAgreementAttributeFromDb(attrId, dbContext);
+    const attrs = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_attribute,
+      { attributeId: attrId }
+    );
     expect(attrs.length).toBeGreaterThan(0);
 
-    const storedDocs = await getAgreementConsumerDocumentFromDb(
-      doc.id,
-      dbContext
+    const storedDocs = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_consumer_document,
+      { id: doc.id }
     );
     expect(storedDocs.length).toBeGreaterThan(0);
-    expect(storedDocs[0].metadata_version).toBe(1);
+    expect(storedDocs[0].metadataVersion).toBe(1);
 
-    const storedContract = await getAgreementContractFromDb(
-      contractId,
-      dbContext
+    const storedContract = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_contract,
+      { id: contractId }
     );
     expect(storedContract.length).toBeGreaterThan(0);
-    expect(storedContract[0].metadata_version).toBe(1);
+    expect(storedContract[0].metadataVersion).toBe(1);
   });
 
   it("AgreementConsumerDocumentAdded: inserts new document", async () => {
@@ -114,9 +127,13 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
 
     await handleAgreementMessageV1([addMsg, docMsg], dbContext);
 
-    const stored = await getAgreementConsumerDocumentFromDb(doc.id, dbContext);
+    const stored = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_consumer_document,
+      { id: doc.id }
+    );
     expect(stored.length).toBeGreaterThan(0);
-    expect(stored[0].metadata_version).toBe(2);
+    expect(stored[0].metadataVersion).toBe(2);
   });
 
   it("AgreementUpdated: applies update", async () => {
@@ -145,8 +162,10 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
 
     await handleAgreementMessageV1([addMsg, updatedMsg], dbContext);
 
-    const stored = await getAgreementFromDb(mock.id, dbContext);
-    expect(stored.metadata_version).toBe(2);
+    const stored = await getOneFromDb(dbContext, AgreementDbTable.agreement, {
+      id: mock.id,
+    });
+    expect(stored.metadataVersion).toBe(2);
     expect(stored.state).toBe("Suspended");
   });
 
@@ -154,9 +173,11 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     const doc = getMockAgreementDocument();
     const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
     const contractDoc = { ...getMockAgreementDocument(), id: contractId };
-    const mock = { ...getMockAgreement() };
-    mock.consumerDocuments = [doc];
-    mock.contract = contractDoc;
+    const mock = {
+      ...getMockAgreement(),
+      consumerDocuments: [doc],
+      contract: contractDoc,
+    };
 
     const addMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
@@ -179,19 +200,40 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
 
     await handleAgreementMessageV1([addMsg, delMsg], dbContext);
 
-    const storedAgreement = await getAgreementFromDb(mock.id, dbContext);
+    const storedAgreement = await getOneFromDb(
+      dbContext,
+      AgreementDbTable.agreement,
+      { id: mock.id }
+    );
     expect(storedAgreement.deleted).toBe(true);
 
-    const storedStamps = await getAgreementStampFromDb(mock.id, dbContext);
+    const storedStamps = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_stamp,
+      { agreementId: mock.id }
+    );
     storedStamps.forEach((s) => expect(s.deleted).toBe(true));
 
     const attrId = mock.certifiedAttributes[0].id;
-    const attrs = await getAgreementAttributeFromDb(attrId, dbContext);
+    const attrs = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_attribute,
+      { attributeId: attrId }
+    );
     attrs.forEach((a) => expect(a.deleted).toBe(true));
 
-    const docs = await getAgreementConsumerDocumentFromDb(doc.id, dbContext);
+    const docs = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_consumer_document,
+      { id: doc.id }
+    );
     docs.forEach((d) => expect(d.deleted).toBe(true));
-    const ct = await getAgreementContractFromDb(contractId, dbContext);
+
+    const ct = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_contract,
+      { id: contractId }
+    );
     ct.forEach((c) => expect(c.deleted).toBe(true));
   });
 
@@ -231,16 +273,20 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
 
     await handleAgreementMessageV1([addMsg, updateMsg], dbContext);
 
-    const stored = await getAgreementContractFromDb(contractId, dbContext);
+    const stored = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_contract,
+      { id: contractId }
+    );
     expect(stored.length).toBe(1);
-    expect(stored[0].pretty_name).toBe("updated.pdf");
-    expect(stored[0].metadata_version).toBe(2);
+    expect(stored[0].prettyName).toBe("updated.pdf");
+    expect(stored[0].metadataVersion).toBe(2);
   });
 });
 
 describe("Agreement messages consumers - handleAgreementMessageV2", () => {
   beforeEach(async () => {
-    await resetAgreementTables(dbContext);
+    await resetTargetTables(agreementTables);
   });
 
   it("AgreementAdded: inserts agreement with stamps, attributes, consumer docs and contract (V2)", async () => {
@@ -263,30 +309,44 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
 
     await handleAgreementMessageV2([msg], dbContext);
 
-    const storedAgreement = await getAgreementFromDb(mock.id, dbContext);
+    const storedAgreement = await getOneFromDb(
+      dbContext,
+      AgreementDbTable.agreement,
+      { id: mock.id }
+    );
     expect(storedAgreement).toBeDefined();
-    expect(storedAgreement.metadata_version).toBe(1);
+    expect(storedAgreement.metadataVersion).toBe(1);
 
-    const storedStamps = await getAgreementStampFromDb(mock.id, dbContext);
+    const storedStamps = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_stamp,
+      { agreementId: mock.id }
+    );
     expect(storedStamps.length).toBeGreaterThan(0);
 
     const attrId = mock.certifiedAttributes[0].id;
-    const attrs = await getAgreementAttributeFromDb(attrId, dbContext);
+    const attrs = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_attribute,
+      { attributeId: attrId }
+    );
     expect(attrs.length).toBeGreaterThan(0);
 
-    const storedDocs = await getAgreementConsumerDocumentFromDb(
-      doc.id,
-      dbContext
+    const storedDocs = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_consumer_document,
+      { id: doc.id }
     );
     expect(storedDocs.length).toBeGreaterThan(0);
-    expect(storedDocs[0].metadata_version).toBe(1);
+    expect(storedDocs[0].metadataVersion).toBe(1);
 
-    const storedContract = await getAgreementContractFromDb(
-      contractId,
-      dbContext
+    const storedContract = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_contract,
+      { id: contractId }
     );
     expect(storedContract.length).toBeGreaterThan(0);
-    expect(storedContract[0].metadata_version).toBe(1);
+    expect(storedContract[0].metadataVersion).toBe(1);
   });
 
   it("AgreementConsumerDocumentRemoved: marks consumer document as deleted ", async () => {
@@ -317,7 +377,11 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
 
     await handleAgreementMessageV2([addMsg, remMsg], dbContext);
 
-    const stored = await getAgreementConsumerDocumentFromDb(doc.id, dbContext);
+    const stored = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_consumer_document,
+      { id: doc.id }
+    );
     expect(stored.length).toBe(1);
     expect(stored[0].deleted).toBe(true);
   });
@@ -348,8 +412,10 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
 
     await handleAgreementMessageV2([addMsg, upgradeMsg], dbContext);
 
-    const stored = await getAgreementFromDb(mock.id, dbContext);
-    expect(stored.metadata_version).toBe(2);
+    const stored = await getOneFromDb(dbContext, AgreementDbTable.agreement, {
+      id: mock.id,
+    });
+    expect(stored.metadataVersion).toBe(2);
     expect(stored.state).toBe("Suspended");
   });
 
@@ -357,9 +423,11 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     const doc = getMockAgreementDocument();
     const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
     const contractDoc = { ...getMockAgreementDocument(), id: contractId };
-    const mock = { ...getMockAgreement() };
-    mock.consumerDocuments = [doc];
-    mock.contract = contractDoc;
+    const mock = {
+      ...getMockAgreement(),
+      consumerDocuments: [doc],
+      contract: contractDoc,
+    };
 
     const addMsg: AgreementEventEnvelopeV2 = {
       sequence_num: 1,
@@ -382,20 +450,40 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
 
     await handleAgreementMessageV2([addMsg, delMsg], dbContext);
 
-    const storedAgreement = await getAgreementFromDb(mock.id, dbContext);
+    const storedAgreement = await getOneFromDb(
+      dbContext,
+      AgreementDbTable.agreement,
+      { id: mock.id }
+    );
     expect(storedAgreement.deleted).toBe(true);
 
-    const storedStamps = await getAgreementStampFromDb(mock.id, dbContext);
+    const storedStamps = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_stamp,
+      { agreementId: mock.id }
+    );
     storedStamps.forEach((s) => expect(s.deleted).toBe(true));
 
     const attrId = mock.certifiedAttributes[0].id;
-    const attrs = await getAgreementAttributeFromDb(attrId, dbContext);
+    const attrs = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_attribute,
+      { attributeId: attrId }
+    );
     attrs.forEach((a) => expect(a.deleted).toBe(true));
 
-    const docs = await getAgreementConsumerDocumentFromDb(doc.id, dbContext);
+    const docs = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_consumer_document,
+      { id: doc.id }
+    );
     docs.forEach((d) => expect(d.deleted).toBe(true));
 
-    const ct = await getAgreementContractFromDb(contractId, dbContext);
+    const ct = await getManyFromDb(
+      dbContext,
+      AgreementDbTable.agreement_contract,
+      { id: contractId }
+    );
     ct.forEach((c) => expect(c.deleted).toBe(true));
   });
 });
