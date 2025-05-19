@@ -736,6 +736,9 @@ paths:
             type: string
             format: uuid
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement updated.
           content:
