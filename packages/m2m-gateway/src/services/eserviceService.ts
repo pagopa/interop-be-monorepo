@@ -9,10 +9,6 @@ import {
   toM2MGatewayApiEServiceDescriptor,
 } from "../api/eserviceApiConverter.js";
 import { eserviceDescriptorNotFound } from "../model/errors.js";
-import {
-  assertValidPaginationLimit,
-  assertValidPaginationOffset,
-} from "../utils/validators/validators.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -89,9 +85,6 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
       logger.info(
         `Retrieving eservice descriptors for eservice with id ${eserviceId} states ${state} offset ${offset} limit ${limit}`
       );
-
-      assertValidPaginationOffset(offset);
-      assertValidPaginationLimit(limit);
 
       const {
         data: { descriptors },

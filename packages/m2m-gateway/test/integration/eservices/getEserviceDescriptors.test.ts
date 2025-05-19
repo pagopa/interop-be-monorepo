@@ -12,10 +12,6 @@ import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
 } from "../../mockUtils.js";
-import {
-  invalidPaginationLimit,
-  invalidPaginationOffset,
-} from "../../../src/model/errors.js";
 
 describe("getEserviceDescriptors", () => {
   const mockCatalogProcessDescriptor1 = getMockedApiEserviceDescriptor({
@@ -229,31 +225,5 @@ describe("getEserviceDescriptors", () => {
       getMockM2MAdminAppContext()
     );
     expect(result3).toEqual(m2mEserviceDescriptorsResponse3);
-  });
-
-  it("Should throw invalidPaginationOffset if offset is negative", async () => {
-    await expect(
-      eserviceService.getEServiceDescriptors(
-        unsafeBrandId(mockCatalogProcessResponse.data.id),
-        {
-          offset: -1,
-          limit: 10,
-        },
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(invalidPaginationOffset(-1));
-  });
-
-  it("Should throw invalidPaginationLimit if limit is less than 1", async () => {
-    await expect(
-      eserviceService.getEServiceDescriptors(
-        unsafeBrandId(mockCatalogProcessResponse.data.id),
-        {
-          offset: 0,
-          limit: 0,
-        },
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(invalidPaginationLimit(0));
   });
 });

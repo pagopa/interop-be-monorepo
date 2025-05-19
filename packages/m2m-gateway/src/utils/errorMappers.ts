@@ -5,11 +5,7 @@ import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
 type ErrorCodes = M2MGatewayErrorCodes | CommonErrorCodes;
 
-const {
-  HTTP_STATUS_BAD_REQUEST,
-  HTTP_STATUS_NOT_FOUND,
-  HTTP_STATUS_INTERNAL_SERVER_ERROR,
-} = constants;
+const { HTTP_STATUS_NOT_FOUND, HTTP_STATUS_INTERNAL_SERVER_ERROR } = constants;
 
 export const getCertifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -23,15 +19,4 @@ export const getEserviceDescriptorErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const getEserviceDescriptorsErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with(
-      "invalidPaginationOffset",
-      "invalidPaginationLimit",
-      () => HTTP_STATUS_BAD_REQUEST
-    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
