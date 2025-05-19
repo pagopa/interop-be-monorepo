@@ -14,6 +14,7 @@ import {
 import {
   AppContext,
   ApplicationAuditProducerConfig,
+  assertFeatureFlagEnabled,
   AuthData,
   AuthServerAppContext,
   decodeJwtToken,
@@ -124,7 +125,7 @@ export async function applicationAuditBeginMiddleware(
       );
       await fallbackApplicationAudit(
         queueManager,
-        config.producerQueueUrl,
+        config,
         initialAudit,
         loggerInstance
       );
@@ -215,7 +216,7 @@ export async function applicationAuditEndMiddleware(
           );
           await fallbackApplicationAudit(
             queueManager,
-            config.producerQueueUrl,
+            config,
             finalAudit,
             loggerInstance
           );
@@ -331,7 +332,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           );
           await fallbackApplicationAudit(
             queueManager,
-            config.producerQueueUrl,
+            config,
             finalAudit,
             loggerInstance
           );
@@ -421,7 +422,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
         );
         await fallbackApplicationAudit(
           queueManager,
-          config.producerQueueUrl,
+          config,
           finalAudit,
           loggerInstance
         );
@@ -434,7 +435,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
 
 export const fallbackApplicationAudit = async (
   queueManager: QueueManager,
-  queueUrl: string,
+  config: ApplicationAuditProducerConfig,
   messageBody:
     | ApplicationAuditBeginRequest
     | ApplicationAuditEndRequest
@@ -443,8 +444,9 @@ export const fallbackApplicationAudit = async (
   logger: Logger
 ): Promise<void> => {
   try {
+    assertFeatureFlagEnabled(config, "featureFlagApplicationAudit");
     await queueManager.send(
-      queueUrl,
+      config.producerQueueUrl,
       {
         spanId: messageBody.spanId,
         correlationId: messageBody.correlationId,
