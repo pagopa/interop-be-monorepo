@@ -131,6 +131,7 @@ export function clientKeyRepository(conn: DBConnection) {
           USING ${stagingTableName} b
           WHERE a.client_id = b.client_id
             AND a.kid = b.kid
+            AND a.user_id = b.user_id
             AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
@@ -146,7 +147,7 @@ export function clientKeyRepository(conn: DBConnection) {
           ClientKeyUserMigrationSchema,
           schemaName,
           tableName,
-          ["clientId", "kid"]
+          ["clientId", "kid", "userId"]
         );
         await conn.none(mergeQuery);
       } catch (error: unknown) {
