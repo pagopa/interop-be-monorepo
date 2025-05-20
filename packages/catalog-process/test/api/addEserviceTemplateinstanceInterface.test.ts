@@ -59,76 +59,35 @@ describe("addEServiceTemplateInstanceInterface", () => {
     mode: "Deliver",
   });
 
-  const getErrorCases = (eservice: EService, descriptor: Descriptor) => [
-    { error: eServiceNotAnInstance(eservice.id), expectedStatus: 409 },
-    {
-      error: eServiceTemplateWithoutPublishedVersion(eservice.templateId!),
-      expectedStatus: 409,
-    },
-    { error: invalidInterfaceFileDetected(eservice.id), expectedStatus: 409 },
-    { error: interfaceAlreadyExists(descriptor.id), expectedStatus: 409 },
-    { error: eServiceNotFound(eservice.id), expectedStatus: 404 },
-    {
-      error: eServiceDescriptorNotFound(eservice.id, descriptor.id),
-      expectedStatus: 404,
-    },
-    {
-      error: eServiceTemplateNotFound(eservice.templateId!),
-      expectedStatus: 404,
-    },
-    {
-      error: eserviceTemplateInterfaceNotFound(eservice.templateId!, "1"),
-      expectedStatus: 403,
-    },
-    { error: interfaceExtractingInfoError(), expectedStatus: 403 },
-    { error: operationForbidden, expectedStatus: 403 },
-    { error: eserviceInterfaceDataNotValid(), expectedStatus: 400 },
-    {
-      error: invalidInterfaceContentTypeDetected(
-        eservice.id,
-        "invalid",
-        eservice.technology
-      ),
-      expectedStatus: 400,
-    },
-    {
-      error: documentPrettyNameDuplicate("test", descriptor.id),
-      expectedStatus: 400,
-    },
-    {
-      error: notValidDescriptorState(descriptor.id, descriptor.state),
-      expectedStatus: 400,
-    },
-  ];
+  const restBody = {
+    contactName: "John Doe",
+    contactUrl: "https://contact.url",
+    contactEmail: "john.doe@example.com",
+    termsAndConditionsUrl: "https://terms.url",
+    serverUrls: ["https://server1.com", "https://server2.com"],
+  };
+
+  const soapBody = {
+    serverUrls: ["https://soap.server1.com", "https://soap.server2.com"],
+  };
 
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
     descriptorId: DescriptorId,
-    technology: Technology
-  ) =>
-    request(api)
+    technology: Technology,
+    body?: typeof restBody | typeof soapBody
+  ) => {
+    const payload = body ?? (technology === "Rest" ? restBody : soapBody);
+
+    return request(api)
       .post(
         `/templates/eservices/${eServiceId}/descriptors/${descriptorId}/interface/${technology}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(
-        technology === "Rest"
-          ? {
-              contactName: "John Doe",
-              contactUrl: "https://contact.url",
-              contactEmail: "john.doe@example.com",
-              termsAndConditionsUrl: "https://terms.url",
-              serverUrls: ["https://server1.com", "https://server2.com"],
-            }
-          : {
-              serverUrls: [
-                "https://soap.server1.com",
-                "https://soap.server2.com",
-              ],
-            }
-      );
+      .send(payload);
+  };
 
   (["Rest", "Soap"] as Technology[]).forEach((technology) => {
     describe(`POST /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/${technology}`, () => {
@@ -180,7 +139,50 @@ describe("addEServiceTemplateInstanceInterface", () => {
         expect(res.status).toBe(403);
       });
 
-      it.each(getErrorCases(eservice, descriptor))(
+      it.each([
+        { error: eServiceNotAnInstance(eservice.id), expectedStatus: 409 },
+        {
+          error: eServiceTemplateWithoutPublishedVersion(eservice.templateId!),
+          expectedStatus: 409,
+        },
+        {
+          error: invalidInterfaceFileDetected(eservice.id),
+          expectedStatus: 409,
+        },
+        { error: interfaceAlreadyExists(descriptor.id), expectedStatus: 409 },
+        { error: eServiceNotFound(eservice.id), expectedStatus: 404 },
+        {
+          error: eServiceDescriptorNotFound(eservice.id, descriptor.id),
+          expectedStatus: 404,
+        },
+        {
+          error: eServiceTemplateNotFound(eservice.templateId!),
+          expectedStatus: 404,
+        },
+        {
+          error: eserviceTemplateInterfaceNotFound(eservice.templateId!, "1"),
+          expectedStatus: 403,
+        },
+        { error: interfaceExtractingInfoError(), expectedStatus: 403 },
+        { error: operationForbidden, expectedStatus: 403 },
+        { error: eserviceInterfaceDataNotValid(), expectedStatus: 400 },
+        {
+          error: invalidInterfaceContentTypeDetected(
+            eservice.id,
+            "invalid",
+            eservice.technology
+          ),
+          expectedStatus: 400,
+        },
+        {
+          error: documentPrettyNameDuplicate("test", descriptor.id),
+          expectedStatus: 400,
+        },
+        {
+          error: notValidDescriptorState(descriptor.id, descriptor.state),
+          expectedStatus: 400,
+        },
+      ])(
         "Should return $expectedStatus for $error.code",
         async ({ error, expectedStatus }) => {
           catalogService.addEServiceTemplateInstanceInterface = vi
@@ -198,19 +200,70 @@ describe("addEServiceTemplateInstanceInterface", () => {
         }
       );
 
-      it.each([
-        {},
-        { eServiceId: "invalidId", descriptorId: descriptor.id },
-        { eServiceId: eservice.id, descriptorId: "invalidId" },
-      ])(
-        "Should return 400 if passed invalid params: %s",
-        async ({ eServiceId, descriptorId }) => {
+      const defaultBodies = {
+        Rest: restBody,
+        Soap: soapBody,
+      };
+
+      type InvalidCase = [
+        body: unknown,
+        eServiceId: EServiceId | string,
+        descriptorId: DescriptorId | string
+      ];
+
+      const invalidCases: InvalidCase[] = [
+        [{}, eservice.id, descriptor.id],
+        [defaultBodies[technology], "invalidId", descriptor.id],
+        [defaultBodies[technology], eservice.id, "invalidId"],
+      ];
+
+      if (technology === "Rest") {
+        invalidCases.push([
+          { ...restBody, contactName: 123 },
+          eservice.id,
+          descriptor.id,
+        ]);
+        invalidCases.push([
+          { ...restBody, contactUrl: 123 },
+          eservice.id,
+          descriptor.id,
+        ]);
+        invalidCases.push([
+          { ...restBody, contactEmail: 123 },
+          eservice.id,
+          descriptor.id,
+        ]);
+        invalidCases.push([
+          { ...restBody, termsAndConditionsUrl: 123 },
+          eservice.id,
+          descriptor.id,
+        ]);
+        invalidCases.push([
+          { ...restBody, serverUrls: "not-an-array" },
+          eservice.id,
+          descriptor.id,
+        ]);
+      }
+
+      if (technology === "Soap") {
+        invalidCases.push([
+          { serverUrls: "not-an-array" },
+          eservice.id,
+          descriptor.id,
+        ]);
+      }
+
+      it.each(invalidCases)(
+        "Should return 400 if passed invalid params: %s (eserviceId: %s, descriptorId: %s)",
+        async (body, eServiceId, descriptorId) => {
           const token = generateToken(authRole.ADMIN_ROLE);
+
           const res = await makeRequest(
             token,
             eServiceId as EServiceId,
             descriptorId as DescriptorId,
-            technology
+            technology,
+            body as typeof restBody | typeof soapBody
           );
 
           expect(res.status).toBe(400);
