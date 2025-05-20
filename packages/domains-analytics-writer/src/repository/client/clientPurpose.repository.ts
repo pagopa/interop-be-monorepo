@@ -18,7 +18,7 @@ export function clientPurposeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = ClientDbTable.client_purpose;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName = DeletingDbTable.client_deleting_table;
+  const deletingTableName = DeletingDbTable.client_purpose_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
@@ -97,7 +97,8 @@ export function clientPurposeRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["clientId", "purposeId"]
+          ["clientId", "purposeId"],
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
