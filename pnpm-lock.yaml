@@ -1881,6 +1881,9 @@ importers:
       '@aws-sdk/client-sesv2':
         specifier: 3.693.0
         version: 3.693.0
+      '@aws-sdk/client-sqs':
+        specifier: 3.693.0
+        version: 3.693.0
       '@aws-sdk/s3-request-presigner':
         specifier: 3.693.0
         version: 3.693.0
