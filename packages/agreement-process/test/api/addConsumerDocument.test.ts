@@ -35,7 +35,7 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
   const makeRequest = async (
     token: string,
     agreementId: AgreementId = mockAgreement.id,
-    body: object = defaultBody
+    body: agreementApi.DocumentSeed = defaultBody
   ) =>
     request(api)
       .post(`/agreements/${agreementId}/consumer-documents`)
@@ -93,7 +93,11 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ agreementId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, agreementId, body);
+      const res = await makeRequest(
+        token,
+        agreementId,
+        body as agreementApi.DocumentSeed
+      );
       expect(res.status).toBe(400);
     }
   );

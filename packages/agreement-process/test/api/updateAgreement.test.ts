@@ -16,7 +16,9 @@ import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js"
 
 describe("API POST /agreements/{agreementId}/update test", () => {
   const mockAgreement = getMockAgreement();
-  const defaultBody = { consumerNotes: "Mock consumer notes" };
+  const defaultBody: agreementApi.AgreementUpdatePayload = {
+    consumerNotes: "Mock consumer notes",
+  };
 
   const apiResponse = agreementApi.Agreement.parse(
     agreementToApiAgreement(mockAgreement)
@@ -29,7 +31,7 @@ describe("API POST /agreements/{agreementId}/update test", () => {
   const makeRequest = async (
     token: string,
     agreementId: AgreementId = mockAgreement.id,
-    body: object = defaultBody
+    body: agreementApi.AgreementUpdatePayload = defaultBody
   ) =>
     request(api)
       .post(`/agreements/${agreementId}/update`)
@@ -86,7 +88,11 @@ describe("API POST /agreements/{agreementId}/update test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ agreementId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, agreementId, body);
+      const res = await makeRequest(
+        token,
+        agreementId,
+        body as agreementApi.AgreementUpdatePayload
+      );
       expect(res.status).toBe(400);
     }
   );

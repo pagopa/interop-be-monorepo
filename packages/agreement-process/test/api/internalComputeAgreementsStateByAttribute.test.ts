@@ -3,11 +3,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { badRequestError, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
+import { agreementApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API POST /internal/compute/agreementsState test", () => {
-  const defaultBody = {
+  const defaultBody: agreementApi.ComputeAgreementStatePayload = {
     attributeId: generateId(),
     consumer: { id: generateId(), attributes: [] },
   };
@@ -18,7 +19,10 @@ describe("API POST /internal/compute/agreementsState test", () => {
       .mockResolvedValue(undefined);
   });
 
-  const makeRequest = async (token: string, body: object = defaultBody) =>
+  const makeRequest = async (
+    token: string,
+    body: agreementApi.ComputeAgreementStatePayload = defaultBody
+  ) =>
     request(api)
       .post("/internal/compute/agreementsState")
       .set("Authorization", `Bearer ${token}`)
@@ -60,7 +64,10 @@ describe("API POST /internal/compute/agreementsState test", () => {
     { body: { ...defaultBody, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body);
+    const res = await makeRequest(
+      token,
+      body as agreementApi.ComputeAgreementStatePayload
+    );
     expect(res.status).toBe(400);
   });
 });

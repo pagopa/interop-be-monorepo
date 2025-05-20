@@ -24,7 +24,7 @@ import {
 
 describe("API POST /agreements test", () => {
   const mockAgreement = getMockAgreement();
-  const defaultBody = {
+  const defaultBody: agreementApi.AgreementPayload = {
     eserviceId: mockAgreement.eserviceId,
     descriptorId: mockAgreement.descriptorId,
   };
@@ -37,7 +37,10 @@ describe("API POST /agreements test", () => {
     agreementService.createAgreement = vi.fn().mockResolvedValue(mockAgreement);
   });
 
-  const makeRequest = async (token: string, body: object = defaultBody) =>
+  const makeRequest = async (
+    token: string,
+    body: agreementApi.AgreementPayload = defaultBody
+  ) =>
     request(api)
       .post("/agreements")
       .set("Authorization", `Bearer ${token}`)
@@ -115,7 +118,7 @@ describe("API POST /agreements test", () => {
     { body: { ...defaultBody, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body);
+    const res = await makeRequest(token, body as agreementApi.AgreementPayload);
     expect(res.status).toBe(400);
   });
 });

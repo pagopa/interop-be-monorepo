@@ -21,7 +21,9 @@ import {
 
 describe("API POST /agreements/{agreementId}/reject test", () => {
   const mockAgreement = getMockAgreement();
-  const defaultBody = { reason: "Mock reason for rejection" };
+  const defaultBody: agreementApi.AgreementRejectionPayload = {
+    reason: "Mock reason for rejection",
+  };
 
   const apiResponse = agreementApi.Agreement.parse(
     agreementToApiAgreement(mockAgreement)
@@ -34,7 +36,7 @@ describe("API POST /agreements/{agreementId}/reject test", () => {
   const makeRequest = async (
     token: string,
     agreementId: AgreementId = mockAgreement.id,
-    body: object = defaultBody
+    body: agreementApi.AgreementRejectionPayload = defaultBody
   ) =>
     request(api)
       .post(`/agreements/${agreementId}/reject`)
@@ -94,7 +96,11 @@ describe("API POST /agreements/{agreementId}/reject test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ agreementId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, agreementId, body);
+      const res = await makeRequest(
+        token,
+        agreementId,
+        body as agreementApi.AgreementRejectionPayload
+      );
       expect(res.status).toBe(400);
     }
   );
