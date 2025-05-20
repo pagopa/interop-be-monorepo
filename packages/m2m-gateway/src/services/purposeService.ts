@@ -342,9 +342,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      const versionToApprove = retrievePurposeCurrentVersion(
-        purposeResponse.data
+      const versionToApprove = retrieveLatestPurposeVersionByState(
+        purposeResponse.data,
+        purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
       );
+
       logger.info(
         `Approving (activating) version ${versionToApprove.id} of purpose ${purposeId}`
       );

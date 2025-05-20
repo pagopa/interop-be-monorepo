@@ -21,7 +21,9 @@ import {
 } from "../../mockUtils.js";
 
 describe("approvePurposeVersion", () => {
-  const mockApiPurposeVersion1 = getMockedApiPurposeVersion({ state: "DRAFT" });
+  const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
+    state: "WAITING_FOR_APPROVAL",
+  });
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
     state: "REJECTED",
   });
