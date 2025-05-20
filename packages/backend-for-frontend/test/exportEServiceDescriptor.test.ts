@@ -131,10 +131,7 @@ describe("exportEServiceDescriptor", () => {
     it("should throw templateInstanceNotAllowed if eservice is instantiated from template", async () => {
       const templatedEService: catalogApi.EService = {
         ...baseEService,
-        templateRef: {
-          id: eServiceTemplateId,
-          instanceLabel: "instance-label",
-        },
+        templateId: eServiceTemplateId,
       };
 
       const { service } = createTestCatalogService(templatedEService);
