@@ -12,6 +12,7 @@ import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import {
+  AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
   ClientDbTable,
@@ -52,6 +53,11 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      AgreementDbTable.agreement,
+      AgreementDbTable.agreement_stamp,
+      AgreementDbTable.agreement_attribute,
+      AgreementDbTable.agreement_consumer_document,
+      AgreementDbTable.agreement_contract,
       ClientDbTable.client,
       ClientDbTable.client_purpose,
       ClientDbTable.client_user,
@@ -64,6 +70,7 @@ await retryConnection(
         name: DeletingDbTable.catalog_risk_deleting_table,
         columns: ["id", "eserviceId"],
       },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.client_user_deleting_table,

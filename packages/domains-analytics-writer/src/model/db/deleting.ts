@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
   clientInReadmodelClient,
   clientUserInReadmodelClient,
@@ -12,6 +13,7 @@ import {
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
 import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
+import { AgreementDeletingSchema } from "../agreement/agreement.js";
 import { ClientDeletingSchema } from "../authorization/client.js";
 import { ClientUserDeletingSchema } from "../authorization/clientUser.js";
 import { ClientPurposeDeletingSchema } from "../authorization/clientPurpose.js";
@@ -21,6 +23,7 @@ export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
   catalog_deleting_table: EserviceDeletingSchema,
   catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
+  agreement_deleting_table: AgreementDeletingSchema,
   client_deleting_table: ClientDeletingSchema,
   client_user_deleting_table: ClientUserDeletingSchema,
   client_purpose_deleting_table: ClientPurposeDeletingSchema,
@@ -32,6 +35,7 @@ export const DeletingDbTableReadModel = {
   attribute_deleting_table: attributeInReadmodelAttribute,
   catalog_deleting_table: eserviceInReadmodelCatalog,
   catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
+  agreement_deleting_table: agreementInReadmodelAgreement,
   client_deleting_table: clientInReadmodelClient,
   client_user_deleting_table: clientUserInReadmodelClient,
   client_purpose_deleting_table: clientPurposeInReadmodelClient,
