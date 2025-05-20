@@ -18,6 +18,10 @@ import { eserviceTemplateVersionInterfaceRepository } from "../repository/eservi
 import { eserviceTemplateRiskAnalysisRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysis.repository.js";
 import { eserviceTemplateRiskAnalysisAnswerRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.repository.js";
 import { eserviceTemplateVersionAttributeRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionAttribute.repository.js";
+import { EserviceTemplateRiskAnalysisDeletingSchema } from "../model/eserviceTemplate/eserviceTemplateRiskAnalysis.js";
+import { EserviceTemplateDocumentDeletingSchema } from "../model/eserviceTemplate/eserviceTemplateVersionDocument.js";
+import { EserviceTemplateVersionDeletingSchema } from "../model/eserviceTemplate/eserviceTemplateVersion.js";
+import { EserviceTemplateInterfaceDeletingSchema } from "../model/eserviceTemplate/eserviceTemplateVersionInterface.js";
 
 export function eserviceTemplateServiceBuilder(db: DBContext) {
   const templateRepo = eserviceTemplateRepository(db.conn);
@@ -147,7 +151,7 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
 
     async deleteBatchEserviceTemplateVersion(
       ctx: DBContext,
-      items: EserviceTemplateDeletingSchema[]
+      items: EserviceTemplateVersionDeletingSchema[]
     ): Promise<void> {
       for (const batch of batchMessages(
         items,
@@ -183,7 +187,7 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
 
     async deleteBatchEserviceTemplateInterface(
       ctx: DBContext,
-      items: EserviceTemplateDeletingSchema[]
+      items: EserviceTemplateInterfaceDeletingSchema[]
     ): Promise<void> {
       for (const batch of batchMessages(
         items,
@@ -209,7 +213,7 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
 
     async deleteBatchEserviceTemplateDocument(
       ctx: DBContext,
-      items: EserviceTemplateDeletingSchema[]
+      items: EserviceTemplateDocumentDeletingSchema[]
     ): Promise<void> {
       for (const batch of batchMessages(
         items,
@@ -235,7 +239,7 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
 
     async deleteBatchEserviceTemplateRiskAnalysis(
       ctx: DBContext,
-      items: EserviceTemplateDeletingSchema[]
+      items: EserviceTemplateRiskAnalysisDeletingSchema[]
     ): Promise<void> {
       for (const batch of batchMessages(
         items,

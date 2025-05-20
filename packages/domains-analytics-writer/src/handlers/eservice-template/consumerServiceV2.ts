@@ -15,6 +15,10 @@ import {
   EserviceTemplateDeletingSchema,
 } from "../../model/eserviceTemplate/eserviceTemplate.js";
 import { eserviceTemplateServiceBuilder } from "../../service/eserviceTemplateService.js";
+import { EserviceTemplateRiskAnalysisDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateRiskAnalysis.js";
+import { EserviceTemplateVersionDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateVersion.js";
+import { EserviceTemplateDocumentDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionDocument.js";
+import { EserviceTemplateInterfaceDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionInterface.js";
 
 export async function handleEserviceTemplateMessageV2(
   messages: EServiceTemplateEventEnvelope[],
@@ -24,17 +28,17 @@ export async function handleEserviceTemplateMessageV2(
 
   const upsertEserviceTemplateBatch: EserviceTemplateItemsSchema[] = [];
   const deleteEserviceTemplateBatch: EserviceTemplateDeletingSchema[] = [];
-  const deleteEserviceTemplateVersionBatch: EserviceTemplateDeletingSchema[] =
+  const deleteEserviceTemplateVersionBatch: EserviceTemplateVersionDeletingSchema[] =
     [];
-  const deleteEserviceTemplateInterfaceBatch: EserviceTemplateDeletingSchema[] =
+  const deleteEserviceTemplateInterfaceBatch: EserviceTemplateInterfaceDeletingSchema[] =
     [];
-  const deleteEserviceTemplateDocumentBatch: EserviceTemplateDeletingSchema[] =
+  const deleteEserviceTemplateDocumentBatch: EserviceTemplateDocumentDeletingSchema[] =
     [];
-  const deleteEserviceTemplateRiskAnalysisBatch: EserviceTemplateDeletingSchema[] =
+  const deleteEserviceTemplateRiskAnalysisBatch: EserviceTemplateRiskAnalysisDeletingSchema[] =
     [];
 
-  for (const msg of messages) {
-    match(msg)
+  for (const message of messages) {
+    match(message)
       .with(
         {
           type: P.union(
@@ -93,10 +97,10 @@ export async function handleEserviceTemplateMessageV2(
       })
       .with({ type: "EServiceTemplateDraftVersionDeleted" }, (msg) => {
         deleteEserviceTemplateVersionBatch.push(
-          EserviceTemplateDeletingSchema.parse({
+          EserviceTemplateVersionDeletingSchema.parse({
             id: msg.data.eserviceTemplateVersionId,
             deleted: true,
-          } satisfies z.input<typeof EserviceTemplateDeletingSchema>)
+          } satisfies z.input<typeof EserviceTemplateVersionDeletingSchema>)
         );
       })
       .with({ type: "EServiceTemplateVersionInterfaceDeleted" }, (msg) => {
@@ -121,65 +125,63 @@ export async function handleEserviceTemplateMessageV2(
           );
         }
 
-        const { id: versionInterfaceId } = version.interface;
-
         deleteEserviceTemplateInterfaceBatch.push(
-          EserviceTemplateDeletingSchema.parse({
-            id: versionInterfaceId,
+          EserviceTemplateInterfaceDeletingSchema.parse({
+            id: version.interface.id,
             deleted: true,
-          } satisfies z.input<typeof EserviceTemplateDeletingSchema>)
+          } satisfies z.input<typeof EserviceTemplateInterfaceDeletingSchema>)
         );
       })
       .with({ type: "EServiceTemplateVersionDocumentDeleted" }, (msg) => {
         deleteEserviceTemplateDocumentBatch.push(
-          EserviceTemplateDeletingSchema.parse({
+          EserviceTemplateDocumentDeletingSchema.parse({
             id: msg.data.documentId,
             deleted: true,
-          } satisfies z.input<typeof EserviceTemplateDeletingSchema>)
+          } satisfies z.input<typeof EserviceTemplateDocumentDeletingSchema>)
         );
       })
       .with({ type: "EServiceTemplateRiskAnalysisDeleted" }, (msg) => {
         deleteEserviceTemplateRiskAnalysisBatch.push(
-          EserviceTemplateDeletingSchema.parse({
+          EserviceTemplateRiskAnalysisDeletingSchema.parse({
             id: msg.data.riskAnalysisId,
             deleted: true,
-          } satisfies z.input<typeof EserviceTemplateDeletingSchema>)
+          } satisfies z.input<typeof EserviceTemplateRiskAnalysisDeletingSchema>)
         );
       })
       .exhaustive();
   }
 
-  if (upsertEserviceTemplateBatch.length) {
+  if (upsertEserviceTemplateBatch.length > 0) {
     await templateService.upsertBatchEserviceTemplate(
       dbContext,
       upsertEserviceTemplateBatch
     );
   }
-  if (deleteEserviceTemplateBatch.length) {
+  if (deleteEserviceTemplateBatch.length > 0) {
     await templateService.deleteBatchEserviceTemplate(
       dbContext,
       deleteEserviceTemplateBatch
     );
   }
-  if (deleteEserviceTemplateVersionBatch.length) {
+  if (deleteEserviceTemplateVersionBatch.length > 0) {
     await templateService.deleteBatchEserviceTemplateVersion(
       dbContext,
       deleteEserviceTemplateVersionBatch
     );
   }
-  if (deleteEserviceTemplateInterfaceBatch.length) {
+  if (deleteEserviceTemplateInterfaceBatch.length > 0) {
     await templateService.deleteBatchEserviceTemplateInterface(
       dbContext,
       deleteEserviceTemplateInterfaceBatch
     );
   }
-  if (deleteEserviceTemplateDocumentBatch.length) {
+  if (deleteEserviceTemplateDocumentBatch.length > 0) {
     await templateService.deleteBatchEserviceTemplateDocument(
       dbContext,
       deleteEserviceTemplateDocumentBatch
     );
   }
-  if (deleteEserviceTemplateRiskAnalysisBatch.length) {
+  if (deleteEserviceTemplateRiskAnalysisBatch.length > 0) {
     await templateService.deleteBatchEserviceTemplateRiskAnalysis(
       dbContext,
       deleteEserviceTemplateRiskAnalysisBatch

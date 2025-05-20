@@ -1,20 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
-import { z } from "zod";
 import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
   generateMergeQuery,
-  generateMergeDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 
-import {
-  EserviceTemplateDbTable,
-  DeletingDbTable,
-} from "../../model/db/index.js";
-import { EserviceTemplateDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplate.js";
+import { EserviceTemplateDbTable } from "../../model/db/index.js";
 import { EserviceTemplateRiskAnalysisAnswerSchema } from "../../model/eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.js";
 
 export function eserviceTemplateRiskAnalysisAnswerRepository(
@@ -24,14 +18,12 @@ export function eserviceTemplateRiskAnalysisAnswerRepository(
   const tableName =
     EserviceTemplateDbTable.eservice_template_risk_analysis_answer;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName = DeletingDbTable.eservice_template_deleting_table;
-  const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: Array<z.infer<typeof EserviceTemplateRiskAnalysisAnswerSchema>>
+      records: EserviceTemplateRiskAnalysisAnswerSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
@@ -74,54 +66,7 @@ export function eserviceTemplateRiskAnalysisAnswerRepository(
         await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error truncating staging table ${stagingTableName}: ${error}`
-        );
-      }
-    },
-
-    async insertDeleting(
-      t: ITask<unknown>,
-      pgp: IMain,
-      records: Array<z.infer<typeof EserviceTemplateDeletingSchema>>
-    ): Promise<void> {
-      try {
-        const cs = buildColumnSet(
-          pgp,
-          deletingTableName,
-          EserviceTemplateDeletingSchema
-        );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error inserting into deleting staging table ${stagingDeletingTableName}: ${error}`
-        );
-      }
-    },
-
-    async mergeDeleting(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeDelQuery = generateMergeDeleteQuery(
-          schemaName,
-          tableName,
-          deletingTableName,
-          ["id"]
-        );
-        await t.none(mergeDelQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging deleting staging into ${schemaName}.${tableName}: ${error}`
-        );
-      }
-    },
-
-    async cleanDeleting(): Promise<void> {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error truncating deleting staging table ${stagingDeletingTableName}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },

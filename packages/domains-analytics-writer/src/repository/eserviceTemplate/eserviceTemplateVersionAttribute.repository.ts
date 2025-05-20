@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
-import { z } from "zod";
 import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
@@ -20,7 +19,7 @@ export function eserviceTemplateVersionAttributeRepository(conn: DBConnection) {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: Array<z.infer<typeof EserviceTemplateVersionAttributeSchema>>
+      records: EserviceTemplateVersionAttributeSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
@@ -65,7 +64,7 @@ export function eserviceTemplateVersionAttributeRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error truncating staging table ${stagingTableName}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },

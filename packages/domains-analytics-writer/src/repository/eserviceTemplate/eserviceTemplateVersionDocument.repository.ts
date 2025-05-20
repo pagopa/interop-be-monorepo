@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
-import { z } from "zod";
 import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
@@ -13,8 +12,10 @@ import {
   EserviceTemplateDbTable,
   DeletingDbTable,
 } from "../../model/db/index.js";
-import { EserviceTemplateVersionDocumentSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionDocument.js";
-import { EserviceTemplateDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplate.js";
+import {
+  EserviceTemplateDocumentDeletingSchema,
+  EserviceTemplateVersionDocumentSchema,
+} from "../../model/eserviceTemplate/eserviceTemplateVersionDocument.js";
 
 export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
@@ -27,7 +28,7 @@ export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: Array<z.infer<typeof EserviceTemplateVersionDocumentSchema>>
+      records: EserviceTemplateVersionDocumentSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
@@ -70,7 +71,7 @@ export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error truncating staging table ${stagingTableName}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -78,13 +79,13 @@ export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: Array<z.infer<typeof EserviceTemplateDeletingSchema>>
+      records: EserviceTemplateDocumentDeletingSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           deletingTableName,
-          EserviceTemplateDeletingSchema
+          EserviceTemplateDocumentDeletingSchema
         );
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
@@ -117,7 +118,7 @@ export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
         await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error truncating deleting staging table ${stagingDeletingTableName}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
