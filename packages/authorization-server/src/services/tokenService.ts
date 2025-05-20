@@ -369,7 +369,7 @@ export const publishAudit = async ({
       throw kafkaAuditingFailed();
     }
   } catch (e) {
-    logger.info("main auditing flow failed, going through fallback");
+    logger.error("main auditing flow failed, going through fallback");
     await fallbackAudit(messageBody, fileManager, logger);
   }
 };
@@ -397,7 +397,8 @@ export const fallbackAudit = async (
       logger
     );
     logger.info("auditing succeeded through fallback");
-  } catch {
+  } catch (err) {
+    logger.error(`Auditing fallback failed: ${err}`);
     throw fallbackAuditFailed(messageBody.clientId);
   }
 };
