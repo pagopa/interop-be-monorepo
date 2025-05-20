@@ -54,10 +54,10 @@ export async function handleAttributeMessageV1(
   }
 
   if (upsertBatch.length > 0) {
-    await attributeService.upsertBatchAttribute(upsertBatch, dbContext);
+    await attributeService.upsertBatchAttribute(dbContext, upsertBatch);
   }
 
   if (deleteBatch.length > 0) {
-    await attributeService.deleteBatchAttribute(deleteBatch, dbContext);
+    await attributeService.deleteBatchAttribute(dbContext, deleteBatch);
   }
 }
