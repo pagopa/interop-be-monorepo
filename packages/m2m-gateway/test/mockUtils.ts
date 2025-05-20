@@ -1,6 +1,7 @@
 import {
   attributeRegistryApi,
   delegationApi,
+  agreementApi,
   purposeApi,
   tenantApi,
   authorizationApi,
@@ -79,6 +80,29 @@ export function getMockedApiDelegation({
           when: new Date().toISOString(),
         },
       },
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiAgreement(): WithMetadata<agreementApi.Agreement> {
+  return {
+    data: {
+      id: generateId(),
+      eserviceId: generateId(),
+      descriptorId: generateId(),
+      producerId: generateId(),
+      consumerId: generateId(),
+      state: agreementApi.AgreementState.Values.ACTIVE,
+      certifiedAttributes: generateMock(
+        z.array(agreementApi.CertifiedAttribute)
+      ),
+      declaredAttributes: generateMock(z.array(agreementApi.DeclaredAttribute)),
+      consumerDocuments: generateMock(z.array(agreementApi.Document)),
+      verifiedAttributes: generateMock(z.array(agreementApi.VerifiedAttribute)),
+      createdAt: new Date().toISOString(),
     },
     metadata: {
       version: 0,
@@ -167,6 +191,7 @@ export function getMockedApiClient({
 }
 
 export const m2mTestToken = generateMock(z.string().base64());
+
 export const getMockM2MAdminAppContext = ({
   organizationId,
   serviceName,

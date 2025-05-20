@@ -8,6 +8,7 @@ import { purposeServiceBuilder } from "../src/services/purposeService.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
 import { attributeServiceBuilder } from "../src/services/attributeService.js";
 import { clientServiceBuilder } from "../src/services/clientService.js";
+import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -104,3 +105,4 @@ export const tenantService = tenantServiceBuilder(mockInteropBeClients);
 export const attributeService = attributeServiceBuilder(mockInteropBeClients);
 
 export const clientService = clientServiceBuilder(mockInteropBeClients);
+export const agreementService = agreementServiceBuilder(mockInteropBeClients);
