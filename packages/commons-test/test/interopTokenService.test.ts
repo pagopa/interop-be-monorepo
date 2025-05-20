@@ -83,12 +83,57 @@ describe("Token Generator", () => {
   } as unknown as KMSClient;
 
   describe("Session JWT Token", () => {
-    it.each([Object.values(userRole)])(
-      "should token have a Session claims",
+    it("should token have a Session claims for multiple user roles: api,security", async () => {
+      const claims = {
+        ...getMockSessionClaims(),
+        ...getMockCustomClaims([userRole.API_ROLE, userRole.SECURITY_ROLE]),
+      };
+
+      const interopTokenGenerator = new InteropTokenGenerator(
+        sessionTokenGenerationConfig,
+        kmsClient
+      );
+
+      const actualToken = await interopTokenGenerator.generateSessionToken(
+        claims,
+        1000
+      );
+      expect(actualToken.header).toEqual({
+        alg: "RS256",
+        use: "sig",
+        typ: "at+jwt",
+        kid: sessionTokenGenerationConfig.generatedKid,
+      });
+
+      const decodedActualToken = deserializeJWT(actualToken.serialized);
+
+      expect(decodedActualToken).toMatchObject({
+        jti: expect.any(String),
+        iss: sessionTokenGenerationConfig.generatedIssuer,
+        aud: sessionTokenGenerationConfig.generatedAudience,
+        iat: mockTimeStamp,
+        nbf: mockTimeStamp,
+        exp:
+          mockTimeStamp + sessionTokenGenerationConfig.generatedSecondsDuration,
+      });
+
+      verifyCustomClaims(decodedActualToken, claims);
+
+      expect(decodedActualToken).toMatchObject({
+        uid: claims.uid,
+        name: claims.name,
+        family_name: claims.family_name,
+        email: claims.email,
+        organizationId: claims.organizationId,
+      });
+    });
+
+    it.each(Object.values(userRole))(
+      "should token have a Session claims for role %s",
       async (role: UserRole) => {
         const claims = {
           ...getMockSessionClaims(),
-          ...getMockCustomClaims(role),
+          ...getMockCustomClaims([role]),
         };
 
         const interopTokenGenerator = new InteropTokenGenerator(

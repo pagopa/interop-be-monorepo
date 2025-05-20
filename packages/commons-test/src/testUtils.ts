@@ -1114,9 +1114,9 @@ export const getMockSessionClaims = (
 });
 
 export const getMockCustomClaims = (
-  role: UserRole = userRole.ADMIN_ROLE
+  role: UserRole[] = [userRole.ADMIN_ROLE]
 ): CustomClaims => ({
-  "user-roles": role,
+  "user-roles": role.join(","),
   organizationId: generateId(),
   selfcareId: generateId(),
   externalId: {
