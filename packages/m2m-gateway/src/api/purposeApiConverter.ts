@@ -75,3 +75,4 @@ export function toM2mGatewayApiPurposeVersion(
     updatedAt: version.updatedAt,
   };
 }
+
