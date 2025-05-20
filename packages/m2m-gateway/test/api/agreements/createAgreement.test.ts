@@ -18,6 +18,7 @@ describe("POST /agreements router test", () => {
   const mockAgreementSeed: m2mGatewayApi.AgreementSeed = {
     eserviceId: generateId(),
     descriptorId: generateId(),
+    delegationId: generateId()
   };
 
   const mockApiAgreement = getMockedApiAgreement();
@@ -35,7 +36,7 @@ describe("POST /agreements router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockAgreementService.createAgreement = vi
         .fn()
