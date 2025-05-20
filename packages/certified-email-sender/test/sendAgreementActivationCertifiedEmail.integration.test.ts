@@ -45,7 +45,6 @@ afterEach(() => {
 describe("sendAgreementActivatedCertifiedEmail", () => {
   it("should send an email to Producer and Consumer digital addresses", async () => {
     vi.spyOn(pecEmailManager, "send").mockResolvedValue(undefined);
-
     const consumerEmail = getMockTenantMail(tenantMailKind.DigitalAddress);
     const consumer: Tenant = {
       ...getMockTenant(),
