@@ -1,7 +1,7 @@
 import {
   attributeRegistryApi,
-  authorizationApi,
   delegationApi,
+  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
 
@@ -13,6 +13,8 @@ export const errorCodes = {
   unexpectedAttributeKind: "0005",
   unexpectedUndefinedAttributeOriginOrCode: "0006",
   attributeNotFound: "0007",
+  purposeNotFound: "0008",
+  missingActivePurposeVersion: "0009",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

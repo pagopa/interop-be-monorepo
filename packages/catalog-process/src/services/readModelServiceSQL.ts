@@ -320,9 +320,9 @@ export function readModelServiceBuilderSQL(
           )
         )
         .groupBy(eserviceInReadmodelCatalog.id)
+        .orderBy(ascLower(eserviceInReadmodelCatalog.name))
         .limit(limit)
         .offset(offset)
-        .orderBy(ascLower(eserviceInReadmodelCatalog.name))
         .as("subquery");
 
       const queryResult = await readmodelDB
