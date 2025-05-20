@@ -1,14 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { AuthRole, userRole } from "pagopa-interop-commons";
-import { UserId, generateId } from "pagopa-interop-models";
+import {
+  AuthRole,
+  userRole,
+  InteropJwtMaintenancePayload,
+  InteropJwtApiM2MAdminPayload,
+  InteropJwtApiM2MPayload,
+  InteropJwtInternalPayload,
+  InteropJwtUIPayload,
+  UserRole,
+} from "pagopa-interop-commons";
+import { ClientId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
 import { getMockAuthData } from "./testUtils.js";
 
-function createUserPayload(role: AuthRole) {
+function createUserPayload(role: UserRole): InteropJwtUIPayload {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: "dev.interop.pagopa.it/ui",
+    aud: ["dev.interop.pagopa.it/ui"],
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -30,14 +39,14 @@ function createUserPayload(role: AuthRole) {
       fiscal_code: "15376371009",
       ipaCode: "5N2TR557",
     },
-    "user-roles": role,
+    "user-roles": [role],
   };
 }
 
-function createMaintenancePayload() {
+function createMaintenancePayload(): InteropJwtMaintenancePayload {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: "dev.interop.pagopa.it/ui",
+    aud: ["dev.interop.pagopa.it/ui"],
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -47,10 +56,10 @@ function createMaintenancePayload() {
   };
 }
 
-function createM2MPayload() {
+function createM2MPayload(): InteropJwtApiM2MPayload {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: "dev.interop.pagopa.it/ui",
+    aud: ["dev.interop.pagopa.it/ui"],
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -62,10 +71,10 @@ function createM2MPayload() {
   };
 }
 
-function createInternalPayload() {
+function createInternalPayload(): InteropJwtInternalPayload {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: "dev.interop.pagopa.it/ui",
+    aud: ["dev.interop.pagopa.it/ui"],
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -75,15 +84,15 @@ function createInternalPayload() {
   };
 }
 
-export const mockM2MAdminClientId = generateId();
+export const mockM2MAdminClientId = generateId<ClientId>();
 export const mockM2MAdminUserId: UserId = generateId();
 // ^ ID of the client and the admin user associated with the client.
 // Mocked and exported because in the M2M gateway we need to
 // validate the admin ID in the token against the adminId in the client.
-function createM2MAdminPayload() {
+function createM2MAdminPayload(): InteropJwtApiM2MAdminPayload {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: "dev.interop.pagopa.it/ui",
+    aud: ["dev.interop.pagopa.it/ui"],
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
