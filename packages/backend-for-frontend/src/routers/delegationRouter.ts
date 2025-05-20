@@ -7,11 +7,11 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { delegationServiceBuilder } from "../services/delegationService.js";
-import { emptyErrorMapper, makeApiProblem } from "../model/errors.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   getDelegationByIdErrorMapper,
   getDelegationsErrorMapper,
@@ -71,8 +71,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getDelegationsErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving delegations`
         );
 
@@ -93,8 +92,7 @@ const delegationRouter = (
         const errorRes = makeApiProblem(
           error,
           getDelegationByIdErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving delegation by id ${req.params.delegationId}`
         );
 
@@ -119,8 +117,7 @@ const delegationRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving contract ${req.params.contractId} of delegation ${req.params.delegationId}`
           );
 

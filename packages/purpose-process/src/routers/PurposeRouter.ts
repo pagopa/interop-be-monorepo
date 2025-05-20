@@ -2,18 +2,32 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
-  userRoles,
   ZodiosContext,
-  authorizationMiddleware,
   zodiosValidationErrorToApiProblem,
   ReadModelRepository,
   initDB,
   initFileManager,
   fromAppContext,
   initPDFGenerator,
+  authRole,
+  validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  EServiceId,
+  TenantId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  delegationReadModelServiceBuilder,
+  makeDrizzleConnection,
+  purposeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import {
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
@@ -43,10 +57,35 @@ import {
   getPurposesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
-const readModelService = readModelServiceBuilder(
+const readModelDB = makeDrizzleConnection(config);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const delegationReadModelServiceSQL =
+  delegationReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  purposeReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+  agreementReadModelServiceSQL,
+  delegationReadModelServiceSQL,
+});
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 const fileManager = initFileManager(config);
 const pdfGenerator = await initPDFGenerator();
 
@@ -78,311 +117,284 @@ const purposeRouter = (
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
-  } = userRoles;
+    M2M_ADMIN_ROLE,
+  } = authRole;
   purposeRouter
-    .get(
-      "/purposes",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const {
-            name,
-            eservicesIds,
-            consumersIds,
-            producersIds,
-            states,
+    .get("/purposes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
+        ]);
+
+        const {
+          name,
+          eservicesIds,
+          consumersIds,
+          producersIds,
+          states,
+          excludeDraft,
+          offset,
+          limit,
+        } = req.query;
+        const purposes = await purposeService.getPurposes(
+          {
+            title: name,
+            eservicesIds: eservicesIds?.map(unsafeBrandId<EServiceId>),
+            consumersIds: consumersIds?.map(unsafeBrandId<TenantId>),
+            producersIds: producersIds?.map(unsafeBrandId<TenantId>),
+            states: states?.map(apiPurposeVersionStateToPurposeVersionState),
             excludeDraft,
-            offset,
-            limit,
-          } = req.query;
-          const purposes = await purposeService.getPurposes(
-            {
-              title: name,
-              eservicesIds: eservicesIds?.map(unsafeBrandId<EServiceId>),
-              consumersIds: consumersIds?.map(unsafeBrandId<TenantId>),
-              producersIds: producersIds?.map(unsafeBrandId<TenantId>),
-              states: states?.map(apiPurposeVersionStateToPurposeVersionState),
-              excludeDraft,
-            },
-            { offset, limit },
-            ctx
-          );
-          return res.status(200).send(
-            purposeApi.Purposes.parse({
-              results: purposes.results.map((purpose) =>
-                purposeToApiPurpose(purpose, false)
-              ),
-              totalCount: purposes.totalCount,
-            })
-          );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getPurposesErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+          },
+          { offset, limit },
+          ctx
+        );
+        return res.status(200).send(
+          purposeApi.Purposes.parse({
+            results: purposes.results.map((purpose) =>
+              purposeToApiPurpose(purpose, false)
+            ),
+            totalCount: purposes.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getPurposesErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/purposes",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const { purpose, isRiskAnalysisValid } =
-            await purposeService.createPurpose(req.body, ctx);
-          return res
-            .status(200)
-            .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(purpose, isRiskAnalysisValid)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createPurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+    })
+    .post("/purposes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.createPurpose(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(error, createPurposeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/reverse/purposes",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const { purpose, isRiskAnalysisValid } =
-            await purposeService.createReversePurpose(req.body, ctx);
-          return res
-            .status(200)
-            .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(purpose, isRiskAnalysisValid)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createReversePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+    })
+    .post("/reverse/purposes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { purpose, isRiskAnalysisValid } =
+          await purposeService.createReversePurpose(req.body, ctx);
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createReversePurposeErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
-    .post(
-      "/reverse/purposes/:id",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const { purpose, isRiskAnalysisValid } =
-            await purposeService.updateReversePurpose(
-              unsafeBrandId(req.params.id),
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(purpose, isRiskAnalysisValid)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updateReversePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .get(
-      "/purposes/:id",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-        M2M_ROLE,
-        SUPPORT_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const { purpose, isRiskAnalysisValid } =
-            await purposeService.getPurposeById(
-              unsafeBrandId(req.params.id),
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(purpose, isRiskAnalysisValid)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            getPurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/purposes/:id",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const { purpose, isRiskAnalysisValid } =
-            await purposeService.updatePurpose(
-              unsafeBrandId(req.params.id),
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(purpose, isRiskAnalysisValid)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            updatePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .delete(
-      "/purposes/:id",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          await purposeService.deletePurpose(unsafeBrandId(req.params.id), ctx);
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            deletePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .delete(
-      "/internal/delegations/:delegationId/purposes/:id",
-      authorizationMiddleware([INTERNAL_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          await purposeService.internalDeletePurposeAfterDelegationRevocation(
+    })
+    .post("/reverse/purposes/:id", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { purpose, isRiskAnalysisValid } =
+          await purposeService.updateReversePurpose(
             unsafeBrandId(req.params.id),
-            unsafeBrandId(req.params.delegationId),
-            ctx.correlationId,
-            ctx.logger
-          );
-          return res.status(204).send();
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            deletePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/purposes/:purposeId/versions",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const purposeVersion = await purposeService.createPurposeVersion(
-            unsafeBrandId(req.params.purposeId),
             req.body,
             ctx
           );
-          return res
-            .status(200)
-            .send(
-              purposeApi.PurposeVersion.parse(
-                purposeVersionToApiPurposeVersion(purposeVersion)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createPurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateReversePurposeErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
+    .get("/purposes/:id", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
+        ]);
+
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.getPurposeById(
+          unsafeBrandId(req.params.id),
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getPurposeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposes/:id", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { purpose, isRiskAnalysisValid } =
+          await purposeService.updatePurpose(
+            unsafeBrandId(req.params.id),
+            req.body,
+            ctx
+          );
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, updatePurposeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/purposes/:id", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        await purposeService.deletePurpose(unsafeBrandId(req.params.id), ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, deletePurposeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete(
-      "/purposes/:purposeId/versions/:versionId",
-      authorizationMiddleware([ADMIN_ROLE]),
+      "/internal/delegations/:delegationId/purposes/:id",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
-          await purposeService.deletePurposeVersion(
-            {
-              purposeId: unsafeBrandId(req.params.purposeId),
-              versionId: unsafeBrandId(req.params.versionId),
-            },
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await purposeService.internalDeletePurposeAfterDelegationRevocation(
+            unsafeBrandId(req.params.id),
+            unsafeBrandId(req.params.delegationId),
             ctx
           );
           return res.status(204).send();
         } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            deletePurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
-          );
+          const errorRes = makeApiProblem(error, deletePurposeErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
+    .post("/purposes/:purposeId/versions", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const purposeVersion = await purposeService.createPurposeVersion(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+        return res
+          .status(200)
+          .send(
+            purposeApi.PurposeVersion.parse(
+              purposeVersionToApiPurposeVersion(purposeVersion)
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createPurposeVersionErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/purposes/:purposeId/versions/:versionId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        await purposeService.deletePurposeVersion(
+          {
+            purposeId: unsafeBrandId(req.params.purposeId),
+            versionId: unsafeBrandId(req.params.versionId),
+          },
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          deletePurposeVersionErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get(
       "/purposes/:purposeId/versions/:versionId/documents/:documentId",
-      authorizationMiddleware([ADMIN_ROLE, SUPPORT_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+
           const document = await purposeService.getRiskAnalysisDocument({
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
@@ -400,8 +412,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             getRiskAnalysisDocumentErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -409,10 +420,12 @@ const purposeRouter = (
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/reject",
-      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+
           await purposeService.rejectPurposeVersion(
             {
               purposeId: unsafeBrandId(req.params.purposeId),
@@ -426,8 +439,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             rejectPurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -435,10 +447,12 @@ const purposeRouter = (
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",
-      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+
           const { purposeId, versionId } = req.params;
           const purposeVersion = await purposeService.activatePurposeVersion(
             {
@@ -458,49 +472,44 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             activatePurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
-    .post(
-      "/purposes/:purposeId/clone",
-      authorizationMiddleware([ADMIN_ROLE]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const { purpose, isRiskAnalysisValid } =
-            await purposeService.clonePurpose({
-              purposeId: unsafeBrandId(req.params.purposeId),
-              seed: req.body,
-              ctx,
-            });
-          return res
-            .status(200)
-            .send(
-              purposeApi.Purpose.parse(
-                purposeToApiPurpose(purpose, isRiskAnalysisValid)
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            clonePurposeErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+    .post("/purposes/:purposeId/clone", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { purpose, isRiskAnalysisValid } =
+          await purposeService.clonePurpose({
+            purposeId: unsafeBrandId(req.params.purposeId),
+            seed: req.body,
+            ctx,
+          });
+        return res
+          .status(200)
+          .send(
+            purposeApi.Purpose.parse(
+              purposeToApiPurpose(purpose, isRiskAnalysisValid)
+            )
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(error, clonePurposeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post(
       "/purposes/:purposeId/versions/:versionId/suspend",
-      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+
           const suspendedVersion = await purposeService.suspendPurposeVersion(
             {
               purposeId: unsafeBrandId(req.params.purposeId),
@@ -519,8 +528,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             suspendPurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -528,10 +536,12 @@ const purposeRouter = (
     )
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
-      authorizationMiddleware([ADMIN_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
+          validateAuthorization(ctx, [ADMIN_ROLE]);
+
           const archivedVersion = await purposeService.archivePurposeVersion(
             {
               purposeId: unsafeBrandId(req.params.purposeId),
@@ -550,8 +560,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             archivePurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -559,78 +568,74 @@ const purposeRouter = (
     )
     .post(
       "/internal/delegations/:delegationId/purposes/:purposeId/versions/:versionId/archive",
-      authorizationMiddleware([INTERNAL_ROLE]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
           await purposeService.internalArchivePurposeVersionAfterDelegationRevocation(
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
               delegationId: unsafeBrandId(req.params.delegationId),
             },
-            ctx.correlationId,
-            ctx.logger
+            ctx
           );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             archivePurposeVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
       }
     )
-    .get(
-      "/purposes/riskAnalysis/latest",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        SUPPORT_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-      ]),
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
-        try {
-          const riskAnalysisConfiguration =
-            await purposeService.retrieveLatestRiskAnalysisConfiguration({
-              tenantKind: req.query.tenantKind,
-              ctx,
-            });
-          return res
-            .status(200)
-            .send(
-              purposeApi.RiskAnalysisFormConfigResponse.parse(
-                riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
-                  riskAnalysisConfiguration
-                )
+    .get("/purposes/riskAnalysis/latest", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          SUPPORT_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+        ]);
+
+        const riskAnalysisConfiguration =
+          await purposeService.retrieveLatestRiskAnalysisConfiguration({
+            tenantKind: req.query.tenantKind,
+            ctx,
+          });
+        return res
+          .status(200)
+          .send(
+            purposeApi.RiskAnalysisFormConfigResponse.parse(
+              riskAnalysisFormConfigToApiRiskAnalysisFormConfig(
+                riskAnalysisConfiguration
               )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            () => 500,
-            ctx.logger,
-            ctx.correlationId
+            )
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .get(
       "/purposes/riskAnalysis/version/:riskAnalysisVersion",
-      authorizationMiddleware([
-        ADMIN_ROLE,
-        SUPPORT_ROLE,
-        API_ROLE,
-        SECURITY_ROLE,
-      ]),
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
+
         try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            SUPPORT_ROLE,
+            API_ROLE,
+            SECURITY_ROLE,
+          ]);
+
           const riskAnalysisConfiguration =
             await purposeService.retrieveRiskAnalysisConfigurationByVersion({
               eserviceId: unsafeBrandId(req.query.eserviceId),
@@ -650,8 +655,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             retrieveRiskAnalysisConfigurationByVersionErrorMapper,
-            ctx.logger,
-            ctx.correlationId
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }

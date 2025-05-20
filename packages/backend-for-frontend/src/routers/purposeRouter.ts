@@ -6,14 +6,12 @@ import {
   zodiosValidationErrorToApiProblem,
   initFileManager,
 } from "pagopa-interop-commons";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { purposeServiceBuilder } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/errors.js";
 import {
-  emptyErrorMapper,
-  clonePurposeErrorMapper,
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
@@ -30,12 +28,7 @@ const purposeRouter = (
   });
 
   const purposeService = purposeServiceBuilder(
-    clients.purposeProcessClient,
-    clients.catalogProcessClient,
-    clients.tenantProcessClient,
-    clients.agreementProcessClient,
-    clients.delegationProcessClient,
-    clients.authorizationClient,
+    clients,
     initFileManager(config)
   );
 
@@ -54,8 +47,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating Purpose with eService ${req.body.eserviceId} and consumer ${req.body.consumerId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -78,8 +70,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           reversePurposeUpdateErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error updating reverse Purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -96,8 +87,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating Purpose with eService ${req.body.eserviceId} and consumer ${req.body.consumerId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -124,8 +114,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposesErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Consumers ${req.query.consumersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -152,8 +141,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposesErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving Purposes for name ${req.query.q}, EServices ${req.query.eservicesIds}, Producers ${req.query.producersIds} offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -175,9 +163,8 @@ const purposeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          clonePurposeErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          emptyErrorMapper,
+          ctx,
           `Error cloning purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -200,8 +187,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating version for purpose ${req.params.purposeId} with dailyCalls ${req.body.dailyCalls}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -225,8 +211,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error downloading risk analysis document ${req.params.documentId} from purpose ${req.params.purposeId} with version ${req.params.versionId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -251,8 +236,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error rejecting version ${req.params.versionId} of purpose ${req.params.purposeId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -278,8 +262,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error archiving purpose ${req.params.purposeId} with version ${req.params.versionId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -305,8 +288,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error suspending Version ${req.params.versionId} of Purpose ${req.params.purposeId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -332,8 +314,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error activating Version ${req.params.versionId} of Purpose ${req.params.purposeId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -354,8 +335,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -378,8 +358,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error updating Purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -400,8 +379,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -421,8 +399,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           getPurposeErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -445,8 +422,7 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           "Error retrieving latest risk analysis configuration"
         );
         return res.status(errorRes.status).send(errorRes);
@@ -472,8 +448,7 @@ const purposeRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving risk analysis configuration for version ${req.params.riskAnalysisVersion}`
           );
           return res.status(errorRes.status).send(errorRes);

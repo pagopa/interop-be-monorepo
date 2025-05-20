@@ -7,6 +7,7 @@ import {
 import {
   AgreementReadModelService,
   agreementDocumentToAgreementDocumentSQL,
+  checkMetadataVersion,
 } from "pagopa-interop-readmodel";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -84,42 +85,36 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion:
-                agreementConsumerDocumentInReadmodelAgreement.metadataVersion,
-            })
-            .from(agreementConsumerDocumentInReadmodelAgreement)
-            .where(eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          agreementInReadmodelAgreement,
+          metadataVersion,
+          agreementId
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
-          await tx
-            .delete(agreementConsumerDocumentInReadmodelAgreement)
-            .where(
-              and(eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id))
-            );
-
-          const consumerDocumentSQL = agreementDocumentToAgreementDocumentSQL(
-            doc,
-            agreementId,
-            metadataVersion
-          );
-
-          await tx
-            .insert(agreementConsumerDocumentInReadmodelAgreement)
-            .values(consumerDocumentSQL);
-
-          await updateMetadataVersionInAgreementRelatedTables(
-            tx,
-            agreementId,
-            metadataVersion
-          );
+        if (!shouldUpsert) {
+          return;
         }
+
+        await tx
+          .delete(agreementConsumerDocumentInReadmodelAgreement)
+          .where(eq(agreementConsumerDocumentInReadmodelAgreement.id, doc.id));
+
+        const consumerDocumentSQL = agreementDocumentToAgreementDocumentSQL(
+          doc,
+          agreementId,
+          metadataVersion
+        );
+
+        await tx
+          .insert(agreementConsumerDocumentInReadmodelAgreement)
+          .values(consumerDocumentSQL);
+
+        await updateMetadataVersionInAgreementRelatedTables(
+          tx,
+          agreementId,
+          metadataVersion
+        );
       });
     },
 
@@ -158,42 +153,41 @@ export function readModelServiceBuilder(
       metadataVersion: number
     ): Promise<void> {
       await db.transaction(async (tx) => {
-        const existingMetadataVersion: number | undefined = (
-          await tx
-            .select({
-              metadataVersion:
-                agreementContractInReadmodelAgreement.metadataVersion,
-            })
-            .from(agreementContractInReadmodelAgreement)
-            .where(eq(agreementContractInReadmodelAgreement.id, contract.id))
-        )[0]?.metadataVersion;
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          agreementInReadmodelAgreement,
+          metadataVersion,
+          agreementId
+        );
 
-        if (
-          !existingMetadataVersion ||
-          existingMetadataVersion <= metadataVersion
-        ) {
-          await tx
-            .delete(agreementContractInReadmodelAgreement)
-            .where(
-              and(eq(agreementContractInReadmodelAgreement.id, contract.id))
-            );
-
-          const contractDocumentSQL = agreementDocumentToAgreementDocumentSQL(
-            contract,
-            agreementId,
-            metadataVersion
-          );
-
-          await tx
-            .insert(agreementContractInReadmodelAgreement)
-            .values(contractDocumentSQL);
-
-          await updateMetadataVersionInAgreementRelatedTables(
-            tx,
-            agreementId,
-            metadataVersion
-          );
+        if (!shouldUpsert) {
+          return;
         }
+
+        await tx
+          .delete(agreementContractInReadmodelAgreement)
+          .where(
+            and(
+              eq(agreementContractInReadmodelAgreement.id, contract.id),
+              eq(agreementContractInReadmodelAgreement.agreementId, agreementId)
+            )
+          );
+
+        const contractDocumentSQL = agreementDocumentToAgreementDocumentSQL(
+          contract,
+          agreementId,
+          metadataVersion
+        );
+
+        await tx
+          .insert(agreementContractInReadmodelAgreement)
+          .values(contractDocumentSQL);
+
+        await updateMetadataVersionInAgreementRelatedTables(
+          tx,
+          agreementId,
+          metadataVersion
+        );
       });
     },
   };

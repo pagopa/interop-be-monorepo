@@ -137,6 +137,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServices"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -910,6 +916,69 @@ paths:
                 $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update agreement approval policy of published descriptor
+      operationId: updateAgreementApprovalPolicy
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceDescriptorAgreementApprovalPolicySeed"
+      responses:
+        "200":
+          description: EService descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -2199,10 +2268,6 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
     DescriptorSeedForEServiceCreation:
       required:
         - audience
@@ -2414,6 +2479,14 @@ components:
       required:
         - dailyCallsPerConsumer
         - dailyCallsTotal
+    UpdateEServiceDescriptorAgreementApprovalPolicySeed:
+      type: object
+      additionalProperties: false
+      properties:
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+      required:
+        - agreementApprovalPolicy
     CreateEServiceDescriptorDocumentSeed:
       required:
         - documentId
@@ -2573,9 +2646,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        templateRef:
-          $ref: "#/components/schemas/EServiceTemplateRef"
-          required: false
+        templateId:
+          type: string
+          format: uuid
     EServiceTemplateRef:
       type: object
       additionalProperties: false
@@ -2585,8 +2658,6 @@ components:
         id:
           type: string
           format: uuid
-        instanceLabel:
-          type: string
     EServiceTemplateVersionRef:
       type: object
       additionalProperties: false
@@ -3034,10 +3105,6 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:
