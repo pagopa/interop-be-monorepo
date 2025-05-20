@@ -1,32 +1,21 @@
-import { EServiceDescriptorDocumentSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { eserviceDescriptorDocumentInReadmodelCatalog } from "pagopa-interop-readmodel-models";
 
-export const EserviceDescriptorDocumentSchema = z.object({
-  id: z.string(),
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  descriptor_id: z.string(),
-  name: z.string(),
-  content_type: z.string(),
-  pretty_name: z.string(),
-  path: z.string(),
-  checksum: z.string(),
-  upload_date: z.string(),
+export const EserviceDescriptorDocumentSchema = createSelectSchema(
+  eserviceDescriptorDocumentInReadmodelCatalog
+).extend({
+  deleted: z.boolean().default(false).optional(),
 });
 export type EserviceDescriptorDocumentSchema = z.infer<
   typeof EserviceDescriptorDocumentSchema
 >;
 
-export type EserviceDescriptorDocumentMapping = {
-  [K in keyof EserviceDescriptorDocumentSchema]: (
-    record: EServiceDescriptorDocumentSQL
-  ) => EserviceDescriptorDocumentSchema[K];
-};
-
-export const EserviceDescriptorDocumentDeletingSchema = z.object({
-  id: z.string(),
-  deleted: z.boolean(),
-});
+export const EserviceDescriptorDocumentDeletingSchema =
+  EserviceDescriptorDocumentSchema.pick({
+    id: true,
+    deleted: true,
+  });
 export type EserviceDescriptorDocumentDeletingSchema = z.infer<
   typeof EserviceDescriptorDocumentDeletingSchema
 >;
