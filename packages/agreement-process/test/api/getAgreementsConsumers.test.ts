@@ -14,6 +14,7 @@ describe("API GET /consumers test", () => {
   const defaultQuery = {
     offset: 0,
     limit: 10,
+    consumerName: "Consumer",
   };
 
   const consumers: ListResult<agreementApi.CompactOrganization> = {
@@ -32,7 +33,10 @@ describe("API GET /consumers test", () => {
       .mockResolvedValue(consumers);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get("/consumers")
       .set("Authorization", `Bearer ${token}`)
@@ -75,7 +79,7 @@ describe("API GET /consumers test", () => {
     { query: { offset: 0, limit: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query);
+    const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });

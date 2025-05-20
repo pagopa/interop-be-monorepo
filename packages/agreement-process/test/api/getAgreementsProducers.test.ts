@@ -14,6 +14,7 @@ describe("API GET /producers test", () => {
   const defaultQuery = {
     offset: 0,
     limit: 10,
+    producerName: "Producer",
   };
 
   const producers: ListResult<agreementApi.CompactOrganization> = {
@@ -32,7 +33,10 @@ describe("API GET /producers test", () => {
       .mockResolvedValue(producers);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get("/producers")
       .set("Authorization", `Bearer ${token}`)
@@ -75,7 +79,7 @@ describe("API GET /producers test", () => {
     { query: { offset: 0, limit: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query);
+    const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });

@@ -17,6 +17,10 @@ describe("API GET /agreements test", () => {
     offset: 0,
     limit: 10,
     states: "DRAFT,ACTIVE",
+    eservicesIds: generateId(),
+    consumersIds: `${generateId()},${generateId()}`,
+    producersIds: `${generateId()},${generateId()}`,
+    descriptorsIds: `${generateId()},${generateId()}`,
   };
 
   const agreements: ListResult<Agreement> = {
@@ -35,7 +39,10 @@ describe("API GET /agreements test", () => {
     agreementService.getAgreements = vi.fn().mockResolvedValue(agreements);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get("/agreements")
       .set("Authorization", `Bearer ${token}`)
@@ -77,12 +84,14 @@ describe("API GET /agreements test", () => {
     { query: { offset: 0, limit: 55 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
-    {
-      query: { offset: 0, limit: 10, states: "ACTIVE,invalid" },
-    },
+    { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
+    { query: { ...defaultQuery, eservicesIds: `${generateId()},invalid` } },
+    { query: { ...defaultQuery, consumersIds: `${generateId()},invalid` } },
+    { query: { ...defaultQuery, producersIds: `invalid,${generateId()}` } },
+    { query: { ...defaultQuery, descriptorsIds: `invalid,${generateId()}` } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query);
+    const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });
