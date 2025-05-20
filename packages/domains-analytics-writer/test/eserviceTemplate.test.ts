@@ -39,7 +39,6 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     const template = getMockEServiceTemplate();
     const version = getMockEServiceTemplateVersion();
 
-    // populate nested arrays
     version.interface = {
       id: generateId(),
       name: "iface",
@@ -278,7 +277,6 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
         { id: version.id }
       )
     ).forEach((r) => expect(r.deleted).toBe(true));
-    // interface
     (
       await getManyFromDb(
         dbContext,
