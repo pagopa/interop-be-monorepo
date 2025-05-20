@@ -45,7 +45,7 @@ describe("POST /agreements/:agreementId/approve router test", () => {
     }
   );
 
-  it("Should return 400 for incorrect value for purpose id", async () => {
+  it("Should return 400 for incorrect value for agreement id", async () => {
     mockAgreementService.approveAgreement = vi
       .fn()
       .mockResolvedValue(mockM2MAgreementResponse);
