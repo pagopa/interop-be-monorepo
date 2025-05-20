@@ -20,7 +20,6 @@ import {
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
-import { agreementServiceBuilder } from "../src/service/agreementService.js";
 import { getColumnNameMapper } from "../src/utils/sqlQueryHelper.js";
 
 export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
@@ -39,10 +38,6 @@ export const dbContext: DBContext = {
   conn: connection,
   pgp: analyticsPostgresDB.$config.pgp,
 };
-export const attributeService = attributeServiceBuilder(dbContext);
-export const catalogService = catalogServiceBuilder(dbContext);
-export const agreementService = agreementServiceBuilder(dbContext);
-export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export const attributeTables: AttributeDbTable[] = [AttributeDbTable.attribute];
 
@@ -60,21 +55,23 @@ export const catalogTables: CatalogDbTable[] = [
 
 export const agreementTables: AgreementDbTable[] = [
   AgreementDbTable.agreement,
-  AgreementDbTable.agreement_stamp,
   AgreementDbTable.agreement_attribute,
   AgreementDbTable.agreement_consumer_document,
   AgreementDbTable.agreement_contract,
+  AgreementDbTable.agreement_stamp,
 ];
 
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
   DeletingDbTable.catalog_risk_deleting_table,
+  DeletingDbTable.agreement_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
   ...attributeTables,
   ...catalogTables,
+  ...agreementTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
@@ -84,6 +81,10 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
     name: DeletingDbTable.catalog_risk_deleting_table,
     columns: ["id", "eserviceId"],
   },
+  {
+    name: DeletingDbTable.agreement_deleting_table,
+    columns: ["id"],
+  },
 ];
 
 await retryConnection(
@@ -91,32 +92,6 @@ await retryConnection(
   dbContext,
   config,
   async (db) => {
-    await setupDbServiceBuilder(db.conn, config).setupStagingTables([
-      AttributeDbTable.attribute,
-      CatalogDbTable.eservice,
-      CatalogDbTable.eservice_descriptor,
-      CatalogDbTable.eservice_descriptor_template_version_ref,
-      CatalogDbTable.eservice_descriptor_rejection_reason,
-      CatalogDbTable.eservice_descriptor_interface,
-      CatalogDbTable.eservice_descriptor_document,
-      CatalogDbTable.eservice_descriptor_attribute,
-      CatalogDbTable.eservice_risk_analysis,
-      CatalogDbTable.eservice_risk_analysis_answer,
-      AgreementDbTable.agreement,
-      AgreementDbTable.agreement_stamp,
-      AgreementDbTable.agreement_attribute,
-      AgreementDbTable.agreement_consumer_document,
-      AgreementDbTable.agreement_contract,
-    ]);
-    await setupDbServiceBuilder(db.conn, config).setupStagingDeletingTables([
-      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
-      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
-      {
-        name: DeletingDbTable.catalog_risk_deleting_table,
-        columns: ["id", "eserviceId"],
-      },
-      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
-    ]);
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables(domainTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
@@ -129,6 +104,9 @@ export async function resetTargetTables(
 ): Promise<void> {
   await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
 }
+export const attributeService = attributeServiceBuilder(dbContext);
+export const catalogService = catalogServiceBuilder(dbContext);
+export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
   db: DBConnection,
