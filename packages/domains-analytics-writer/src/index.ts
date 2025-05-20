@@ -17,6 +17,7 @@ import {
   DeletingDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
+import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
 
 const dbInstance = initDB({
   username: config.dbUsername,
@@ -51,6 +52,13 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      EserviceTemplateDbTable.eservice_template,
+      EserviceTemplateDbTable.eservice_template_version,
+      EserviceTemplateDbTable.eservice_template_version_attribute,
+      EserviceTemplateDbTable.eservice_template_version_document,
+      EserviceTemplateDbTable.eservice_template_version_interface,
+      EserviceTemplateDbTable.eservice_template_risk_analysis,
+      EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
@@ -59,9 +67,13 @@ await retryConnection(
         name: DeletingDbTable.catalog_risk_deleting_table,
         columns: ["id", "eserviceId"],
       },
+      {
+        name: DeletingDbTable.eservice_template_deleting_table,
+        columns: ["id"],
+      },
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -72,7 +84,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -89,5 +101,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch
+  processBatch,
 );

@@ -16,6 +16,7 @@ import {
   DeletingDbTableConfigMap,
   DomainDbTable,
   DomainDbTableSchemas,
+  EserviceTemplateDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
@@ -29,7 +30,7 @@ export const { cleanup, analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("analyticsSQLDbConfig")
+  inject("analyticsSQLDbConfig"),
 );
 const connection = await analyticsPostgresDB.connect();
 
@@ -52,15 +53,27 @@ export const catalogTables: CatalogDbTable[] = [
   CatalogDbTable.eservice_risk_analysis_answer,
 ];
 
+export const eserviceTemplateTables: EserviceTemplateDbTable[] = [
+  EserviceTemplateDbTable.eservice_template,
+  EserviceTemplateDbTable.eservice_template_version,
+  EserviceTemplateDbTable.eservice_template_version_attribute,
+  EserviceTemplateDbTable.eservice_template_version_document,
+  EserviceTemplateDbTable.eservice_template_version_interface,
+  EserviceTemplateDbTable.eservice_template_risk_analysis,
+  EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+];
+
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
   DeletingDbTable.catalog_risk_deleting_table,
+  DeletingDbTable.eservice_template_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
   ...attributeTables,
   ...catalogTables,
+  ...eserviceTemplateTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
@@ -69,6 +82,10 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   {
     name: DeletingDbTable.catalog_risk_deleting_table,
     columns: ["id", "eserviceId"],
+  },
+  {
+    name: DeletingDbTable.eservice_template_deleting_table,
+    columns: ["id"],
   },
 ];
 
@@ -81,11 +98,11 @@ await retryConnection(
     await setupDbService.setupStagingTables(domainTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
   },
-  genericLogger
+  genericLogger,
 );
 
 export async function resetTargetTables(
-  tables: DomainDbTable[]
+  tables: DomainDbTable[],
 ): Promise<void> {
   await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
 }
@@ -95,7 +112,7 @@ export const setupDbService = setupDbServiceBuilder(dbContext.conn, config);
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[]
+  tables: string[],
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename
@@ -109,7 +126,7 @@ export async function getTablesByName(
 export async function getOneFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
 ): Promise<z.infer<DomainDbTableSchemas[T]>> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
@@ -121,7 +138,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
 
   const row = await db.conn.one(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values
+    values,
   );
 
   return camelcaseKeys(row);
@@ -130,7 +147,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
 export async function getManyFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
 ): Promise<Array<z.infer<DomainDbTableSchemas[T]>>> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
@@ -142,7 +159,7 @@ export async function getManyFromDb<T extends DomainDbTable>(
 
   const rows = await db.conn.any(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values
+    values,
   );
 
   return rows.map((row) => camelcaseKeys(row));
