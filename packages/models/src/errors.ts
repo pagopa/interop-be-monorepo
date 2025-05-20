@@ -292,11 +292,11 @@ const errorCodes = {
   interfaceExtractingSoapFieldValueError: "10017",
   soapFileCreatingError: "10018",
   notAllowedMultipleKeysException: "10019",
-  kafkaApplicationAuditingFailed: "10020",
-  fallbackApplicationAuditFailed: "10021",
-  invalidSqsMessage: "10022",
-  decodeSQSMessageError: "10023",
   featureFlagNotEnabled: "10020",
+  kafkaApplicationAuditingFailed: "10021",
+  fallbackApplicationAuditdingFailed: "10022",
+  invalidSqsMessage: "10023",
+  decodeSQSMessageError: "10024",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -336,10 +336,10 @@ export function kafkaApplicationAuditingFailed(): InternalError<CommonErrorCodes
   });
 }
 
-export function fallbackApplicationAuditFailed(): InternalError<CommonErrorCodes> {
+export function fallbackApplicationAuditdingFailed(): InternalError<CommonErrorCodes> {
   return new InternalError({
-    code: "fallbackApplicationAuditFailed",
-    detail: `Fallback application audit failed`,
+    code: "fallbackApplicationAuditdingFailed",
+    detail: `Fallback application auditing failed`,
   });
 }
 

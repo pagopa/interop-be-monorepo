@@ -6,7 +6,7 @@ import {
   ApplicationAuditEndRequestSessionTokenExchange,
   ApplicationAuditEndRequestAuthServer,
   ApplicationAuditPhase,
-  fallbackApplicationAuditFailed,
+  fallbackApplicationAuditdingFailed,
   genericInternalError,
   kafkaApplicationAuditingFailed,
 } from "pagopa-interop-models";
@@ -402,6 +402,6 @@ export const fallbackApplicationAudit = async (
 
     logger.info("Application audit sent to fallback SQS queue successfully");
   } catch {
-    throw fallbackApplicationAuditFailed();
+    throw fallbackApplicationAuditdingFailed();
   }
 };
