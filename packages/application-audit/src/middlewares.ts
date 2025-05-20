@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { RequestHandler, Request } from "express";
 import { initProducer } from "kafka-iam-auth";
 import {
@@ -19,6 +20,7 @@ import {
   fromAppContext,
   getUserInfoFromAuthData,
   initQueueManager,
+  isFeatureFlagEnabled,
   JWTConfig,
   logger,
   Logger,
@@ -73,6 +75,8 @@ export async function applicationAuditBeginMiddleware(
       spanId: context?.spanId,
     });
 
+    loggerInstance.debug(`Application auditing begin middleware`);
+
     // eslint-disable-next-line functional/immutable-data
     context.requestTimestamp = requestTimestamp;
 
@@ -106,11 +110,22 @@ export async function applicationAuditBeginMiddleware(
         ],
       });
       if (res.length === 0 || res[0].errorCode !== 0) {
+        loggerInstance.warn(
+          `Kafka producer send response not successful. Details: ${
+            res.length === 0
+              ? "Empty response"
+              : `Error code: ${res[0].errorCode}`
+          }`
+        );
         throw kafkaApplicationAuditingFailed();
       }
     } catch (e) {
+      loggerInstance.warn(
+        `Initializing fallback SQS for application auditing begin middleware. Error: ${e}`
+      );
       await fallbackApplicationAudit(
         queueManager,
+        config,
         config.producerQueueUrl,
         initialAudit,
         loggerInstance
@@ -144,6 +159,8 @@ export async function applicationAuditEndMiddleware(
           correlationId: context?.correlationId,
           spanId: context?.spanId,
         });
+
+        loggerInstance.debug(`Application auditing end middleware`);
 
         const correlationId = context.correlationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
@@ -185,11 +202,22 @@ export async function applicationAuditEndMiddleware(
             ],
           });
           if (res.length === 0 || res[0].errorCode !== 0) {
+            loggerInstance.warn(
+              `Kafka producer send response not successful. Details: ${
+                res.length === 0
+                  ? "Empty response"
+                  : `Error code: ${res[0].errorCode}`
+              }`
+            );
             throw kafkaApplicationAuditingFailed();
           }
         } catch (e) {
+          loggerInstance.warn(
+            `Initializing fallback SQS for application auditing end middleware. Error: ${e}`
+          );
           await fallbackApplicationAudit(
             queueManager,
+            config,
             config.producerQueueUrl,
             finalAudit,
             loggerInstance
@@ -236,6 +264,10 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           correlationId: context?.correlationId,
           spanId: context?.spanId,
         });
+
+        loggerInstance.debug(
+          `Application auditing end session token exchange middleware`
+        );
 
         const correlationId = context.correlationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
@@ -287,11 +319,22 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
             ],
           });
           if (res.length === 0 || res[0].errorCode !== 0) {
+            loggerInstance.warn(
+              `Kafka producer send response not successful. Details: ${
+                res.length === 0
+                  ? "Empty response"
+                  : `Error code: ${res[0].errorCode}`
+              }`
+            );
             throw kafkaApplicationAuditingFailed();
           }
         } catch (e) {
+          loggerInstance.warn(
+            `Initializing fallback SQS for application auditing end session token exchange middleware. Error: ${e}`
+          );
           await fallbackApplicationAudit(
             queueManager,
+            config,
             config.producerQueueUrl,
             finalAudit,
             loggerInstance
@@ -326,6 +369,10 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
         correlationId: context?.correlationId,
         spanId: context?.spanId,
       });
+
+      loggerInstance.debug(
+        `Application auditing authorization server middleware`
+      );
 
       const correlationId = context.correlationId;
       const amznTraceId = parseAmznTraceIdHeader(req);
@@ -363,11 +410,22 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
           ],
         });
         if (res.length === 0 || res[0].errorCode !== 0) {
+          loggerInstance.warn(
+            `Kafka producer send response not successful. Details: ${
+              res.length === 0
+                ? "Empty response"
+                : `Error code: ${res[0].errorCode}`
+            }`
+          );
           throw kafkaApplicationAuditingFailed();
         }
       } catch (e) {
+        loggerInstance.warn(
+          `Initializing fallback SQS for application authorization server middleware. Error: ${e}`
+        );
         await fallbackApplicationAudit(
           queueManager,
+          config,
           config.producerQueueUrl,
           finalAudit,
           loggerInstance
@@ -381,6 +439,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
 
 export const fallbackApplicationAudit = async (
   queueManager: QueueManager,
+  config: ApplicationAuditProducerConfig,
   queueUrl: string,
   messageBody:
     | ApplicationAuditBeginRequest
@@ -400,8 +459,10 @@ export const fallbackApplicationAudit = async (
       logger
     );
 
-    logger.info("Application audit sent to fallback SQS queue successfully");
+    logger.info("Application audit sent to Kafka topic through fallback path");
   } catch {
-    throw fallbackApplicationAuditingFailed();
+    if (isFeatureFlagEnabled(config, "featureFlagApplicationAuditStrict")) {
+      throw fallbackApplicationAuditingFailed();
+    }
   }
 };
