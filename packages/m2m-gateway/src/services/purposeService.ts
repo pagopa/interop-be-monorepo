@@ -34,15 +34,12 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
 
-  const retrievePurposeCurrentVersion = (
-    purpose: purposeApi.Purpose
+  const retrieveLatestPurposeVersionByState = (
+    purpose: purposeApi.Purpose,
+    state: purposeApi.PurposeVersionState
   ): purposeApi.PurposeVersion => {
-    const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
-      m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
-      m2mGatewayApi.PurposeVersionState.Values.REJECTED,
-    ];
     const currentVersion = purpose.versions
-      .filter((v) => !statesToExclude.includes(v.state))
+      .filter((v) => v.state === state)
       .sort(
         (a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
@@ -208,7 +205,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Retrieveing current version for purpose ${purposeId} activation`
+        `Retrieveing latest draft version for purpose ${purposeId} activation`
       );
       const purposeResponse = await clients.purposeProcessClient.getPurpose({
         params: {
@@ -217,8 +214,9 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      const versionToActivate = retrievePurposeCurrentVersion(
-        purposeResponse.data
+      const versionToActivate = retrieveLatestPurposeVersionByState(
+        purposeResponse.data,
+        purposeApi.PurposeVersionState.Values.DRAFT
       );
 
       logger.info(
