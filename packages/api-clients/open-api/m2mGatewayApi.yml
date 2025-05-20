@@ -178,6 +178,7 @@ paths:
       tags:
         - agreements
       description: Creates an agreement
+      operationId: createAgreement
       requestBody:
         content:
           application/json:
