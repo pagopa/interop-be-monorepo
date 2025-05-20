@@ -31,8 +31,9 @@ export function delegationContractDocumentRepository(conn: DBConnection) {
         await t.none(`
             DELETE FROM ${stagingTableName} a
             USING ${stagingTableName} b
-            WHERE a.id = b.id
-            AND a.metadata_version < b.metadata_version;
+            WHERE a.delegation_id = b.delegation_id
+              AND a.kind = b.kind
+              AND a.metadata_version < b.metadata_version;
           `);
       } catch (error: unknown) {
         throw genericInternalError(

@@ -28,7 +28,7 @@ export function delegationRepository(conn: DBConnection) {
             DELETE FROM ${stagingTableName} a
             USING ${stagingTableName} b
             WHERE a.id = b.id
-            AND a.metadata_version < b.metadata_version;
+              AND a.metadata_version < b.metadata_version;
           `);
       } catch (error: unknown) {
         throw genericInternalError(
