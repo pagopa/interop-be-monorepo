@@ -15,8 +15,8 @@ import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.
 
 describe("getEservices", () => {
   const mockParams: m2mGatewayApi.GetEServicesQueryParams = {
-    producersIds: [generateId()],
-    templatesIds: [generateId()],
+    producerIds: [generateId()],
+    templateIds: [generateId()],
     offset: 0,
     limit: 10,
   };
@@ -93,8 +93,8 @@ describe("getEservices", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServices,
       queries: {
-        producersIds: mockParams.producersIds,
-        templatesIds: mockParams.templatesIds,
+        producersIds: mockParams.producerIds,
+        templatesIds: mockParams.templateIds,
         offset: mockParams.offset,
         limit: mockParams.limit,
         name: undefined,

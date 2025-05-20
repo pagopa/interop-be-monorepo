@@ -4,8 +4,8 @@ export function toGetEServicesQueryParams(
   params: m2mGatewayApi.GetEServicesQueryParams
 ): catalogApi.GetEServicesQueryParams {
   return {
-    producersIds: params.producersIds,
-    templatesIds: params.templatesIds,
+    producersIds: params.producerIds,
+    templatesIds: params.templateIds,
     name: undefined,
     eservicesIds: [],
     attributesIds: [],

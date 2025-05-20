@@ -22,8 +22,8 @@ describe("GET /eservices router test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetEServicesQueryParams = {
-    producersIds: [generateId()],
-    templatesIds: [generateId()],
+    producerIds: [generateId()],
+    templateIds: [generateId()],
     offset: 0,
     limit: 10,
   };
@@ -70,8 +70,8 @@ describe("GET /eservices router test", () => {
     { ...mockQueryParams, limit: 100 },
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
-    { ...mockQueryParams, producersIds: ["invalidProducerId"] },
-    { ...mockQueryParams, templatesIds: ["invalidTemplateId"] },
+    { ...mockQueryParams, producerIds: ["invalidProducerId"] },
+    { ...mockQueryParams, templateIds: ["invalidTemplateId"] },
     { ...mockQueryParams, offset: undefined },
     { ...mockQueryParams, limit: undefined },
   ])("Should return 400 if passed invalid query params", async (query) => {

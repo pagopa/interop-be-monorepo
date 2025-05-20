@@ -33,7 +33,7 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServices> {
       logger.info(
-        `Retrieving eservices with producersIds ${params.producersIds} templatesIds ${params.templatesIds} offset ${params.offset} limit ${params.limit}`
+        `Retrieving eservices with producerIds ${params.producerIds} templateIds ${params.templateIds} offset ${params.offset} limit ${params.limit}`
       );
 
       const response = await clients.catalogProcessClient.getEServices({
