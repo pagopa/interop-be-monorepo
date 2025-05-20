@@ -31,8 +31,8 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
 });
 const readModelService =
   config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
+    config.readModelSQLDbHost &&
+    config.readModelSQLDbPort
     ? readModelServiceSQL
     : oldReadModelService;
 
