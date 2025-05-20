@@ -12,6 +12,7 @@ import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import {
   AttributeDbTable,
   CatalogDbTable,
+  ClientDbTable,
   DeletingDbTable,
   DeletingDbTableConfigMap,
   DomainDbTable,
@@ -52,6 +53,13 @@ export const catalogTables: CatalogDbTable[] = [
   CatalogDbTable.eservice_risk_analysis_answer,
 ];
 
+export const clientTables: ClientDbTable[] = [
+  ClientDbTable.client,
+  ClientDbTable.client_purpose,
+  ClientDbTable.client_user,
+  ClientDbTable.client_key,
+];
+
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
@@ -61,6 +69,7 @@ export const deletingTables: DeletingDbTable[] = [
 export const domainTables: DomainDbTable[] = [
   ...attributeTables,
   ...catalogTables,
+  ...clientTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [

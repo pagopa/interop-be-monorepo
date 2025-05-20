@@ -149,3 +149,42 @@ CREATE TABLE domains.eservice_risk_analysis_answer (
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id),
   FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)
 );
+
+CREATE TABLE IF NOT EXISTS domains.client (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  consumer_id VARCHAR(36) NOT NULL,
+  admin_id VARCHAR(36),
+  name VARCHAR NOT NULL,
+  description VARCHAR,
+  kind VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_user (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  user_id VARCHAR(36) NOT NULL,
+  PRIMARY KEY (client_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_purpose (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  purpose_id VARCHAR(36) NOT NULL,
+  PRIMARY KEY (client_id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_key (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  user_id VARCHAR(36),
+  kid VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
+  encoded_pem VARCHAR NOT NULL,
+  "algorithm" VARCHAR NOT NULL,
+  "use" VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (client_id, kid)
+);

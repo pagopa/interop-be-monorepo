@@ -14,6 +14,7 @@ import { retryConnection } from "./db/buildColumnSet.js";
 import {
   AttributeDbTable,
   CatalogDbTable,
+  ClientDbTable,
   DeletingDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
@@ -51,6 +52,10 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      ClientDbTable.client,
+      ClientDbTable.client_purpose,
+      ClientDbTable.client_user,
+      ClientDbTable.client_key,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
@@ -58,6 +63,19 @@ await retryConnection(
       {
         name: DeletingDbTable.catalog_risk_deleting_table,
         columns: ["id", "eserviceId"],
+      },
+      { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.client_user_deleting_table,
+        columns: ["clientId", "userId"],
+      },
+      {
+        name: DeletingDbTable.client_purpose_deleting_table,
+        columns: ["clientId", "purposeId"],
+      },
+      {
+        name: DeletingDbTable.client_key_deleting_table,
+        columns: ["clientId", "kid"],
       },
     ]);
   },
