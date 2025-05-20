@@ -96,10 +96,12 @@ export function getMockedApiAgreement(): WithMetadata<agreementApi.Agreement> {
       producerId: generateId(),
       consumerId: generateId(),
       state: agreementApi.AgreementState.Values.ACTIVE,
-      certifiedAttributes: [],
-      declaredAttributes: [],
-      consumerDocuments: [],
-      verifiedAttributes: [],
+      certifiedAttributes: generateMock(
+        z.array(agreementApi.CertifiedAttribute)
+      ),
+      declaredAttributes: generateMock(z.array(agreementApi.DeclaredAttribute)),
+      consumerDocuments: generateMock(z.array(agreementApi.Document)),
+      verifiedAttributes: generateMock(z.array(agreementApi.VerifiedAttribute)),
       createdAt: new Date().toISOString(),
     },
     metadata: {
