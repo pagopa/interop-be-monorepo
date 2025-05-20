@@ -24,12 +24,19 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import {
   NotificationEmailSenderService,
   notificationEmailSenderServiceBuilder,
 } from "./services/notificationEmailSenderService.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 interface TopicHandlers {
   catalogTopic: string;
@@ -37,9 +44,27 @@ interface TopicHandlers {
   purposeTopic: string;
 }
 
-const readModelService = readModelServiceBuilder(
+const readModelDB = makeDrizzleConnection(config);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  agreementReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+});
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
 const templateService = buildHTMLTemplateService();
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
@@ -92,6 +117,7 @@ export async function handleCatalogMessage(
           "EServiceDescriptorSuspended",
           "EServiceDescriptorArchived",
           "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",

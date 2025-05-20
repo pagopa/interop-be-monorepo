@@ -200,7 +200,7 @@ export async function createApp(
     ),
     authenticationMiddleware(config),
     uiAuthDataValidationMiddleware(),
-    // Authenticated routes - rate limiter relies on auth data to work
+    // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
     rateLimiterMiddleware,
     agreementRouter(zodiosCtx, services.agreementService),
     attributeRouter(zodiosCtx, services.attributeService),

@@ -1,5 +1,6 @@
 import {
   Client,
+  ClientId,
   ClientKind,
   genericInternalError,
   Key,
@@ -17,7 +18,7 @@ import {
   ClientSQL,
   ClientUserSQL,
 } from "pagopa-interop-readmodel-models";
-import { makeUniqueKey } from "../utils.js";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateClient = ({
   clientSQL,
@@ -29,20 +30,22 @@ export const aggregateClient = ({
   const purposes: PurposeId[] = purposesSQL.map((p) =>
     unsafeBrandId(p.purposeId)
   );
-  const keys: Key[] = keysSQL.map((keySQL) => {
-    if (keySQL.userId === null) {
-      throw genericInternalError("UserId can't be null in key");
-    }
-    return {
-      userId: unsafeBrandId(keySQL.userId),
-      kid: keySQL.kid,
-      name: keySQL.name,
-      encodedPem: keySQL.encodedPem,
-      algorithm: keySQL.algorithm,
-      use: KeyUse.parse(keySQL.use),
-      createdAt: stringToDate(keySQL.createdAt),
-    };
-  });
+  const keys: Key[] = [...keysSQL]
+    .sort((key1, key2) => key1.name.localeCompare(key2.name))
+    .map((keySQL) => {
+      if (keySQL.userId === null) {
+        throw genericInternalError("UserId can't be null in key");
+      }
+      return {
+        userId: unsafeBrandId(keySQL.userId),
+        kid: keySQL.kid,
+        name: keySQL.name,
+        encodedPem: keySQL.encodedPem,
+        algorithm: keySQL.algorithm,
+        use: KeyUse.parse(keySQL.use),
+        createdAt: stringToDate(keySQL.createdAt),
+      };
+    });
 
   return {
     data: {
@@ -79,15 +82,36 @@ export const aggregateClientArray = ({
   usersSQL: ClientUserSQL[];
   purposesSQL: ClientPurposeSQL[];
   keysSQL: ClientKeySQL[];
-}): Array<WithMetadata<Client>> =>
-  clientsSQL.map((clientSQL) =>
-    aggregateClient({
+}): Array<WithMetadata<Client>> => {
+  const usersSQLByClientId = createClientSQLPropertyMap(usersSQL);
+  const purposesSQLByClientId = createClientSQLPropertyMap(purposesSQL);
+  const keysSQLByClientId = createClientSQLPropertyMap(keysSQL);
+
+  return clientsSQL.map((clientSQL) => {
+    const clientId = unsafeBrandId<ClientId>(clientSQL.id);
+    return aggregateClient({
       clientSQL,
-      usersSQL: usersSQL.filter((u) => u.clientId === clientSQL.id),
-      purposesSQL: purposesSQL.filter((p) => p.clientId === clientSQL.id),
-      keysSQL: keysSQL.filter((k) => k.clientId === clientSQL.id),
-    })
-  );
+      usersSQL: usersSQLByClientId.get(clientId) || [],
+      purposesSQL: purposesSQLByClientId.get(clientId) || [],
+      keysSQL: keysSQLByClientId.get(clientId) || [],
+    });
+  });
+};
+
+const createClientSQLPropertyMap = <
+  T extends ClientUserSQL | ClientPurposeSQL | ClientKeySQL
+>(
+  items: T[]
+): Map<ClientId, T[]> =>
+  items.reduce((acc, item) => {
+    const clientId = unsafeBrandId<ClientId>(item.clientId);
+    const values = acc.get(clientId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(clientId, values);
+
+    return acc;
+  }, new Map<ClientId, T[]>());
 
 export const toClientAggregator = (
   queryRes: Array<{
@@ -99,6 +123,9 @@ export const toClientAggregator = (
 ): ClientItemsSQL => {
   const { clientsSQL, usersSQL, purposesSQL, keysSQL } =
     toClientAggregatorArray(queryRes);
+
+  throwIfMultiple(clientsSQL, "client");
+
   return {
     clientSQL: clientsSQL[0],
     usersSQL,

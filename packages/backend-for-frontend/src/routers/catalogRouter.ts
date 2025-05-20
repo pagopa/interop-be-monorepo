@@ -347,6 +347,33 @@ const catalogRouter = (
       }
     )
     .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.updateAgreementApprovalPolicy(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating agreementApprovalPolicy of descriptor ${
+              req.params.descriptorId
+            } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
+              req.body
+            )}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);

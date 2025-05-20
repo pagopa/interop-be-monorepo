@@ -151,6 +151,24 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
       );
     },
 
+    async setAdminToClient(
+      adminId: string,
+      clientId: string,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Client> {
+      ctx.logger.info(`Add admin ${adminId} to client ${clientId}`);
+
+      const client = await authorizationClient.client.setAdminToClient(
+        { adminId },
+        {
+          params: { clientId },
+          headers: ctx.headers,
+        }
+      );
+
+      return enhanceClient(apiClients, client, ctx);
+    },
+
     async createKey(
       clientId: string,
       keySeed: bffApi.KeySeed,
@@ -323,6 +341,19 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
       });
 
       return { id };
+    },
+
+    async removeClientAdmin(
+      clientId: string,
+      adminId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+
+      return authorizationClient.client.removeClientAdmin(undefined, {
+        params: { clientId, adminId },
+        headers,
+      });
     },
   };
 }

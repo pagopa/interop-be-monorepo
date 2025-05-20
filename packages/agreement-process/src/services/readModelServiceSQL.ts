@@ -1,4 +1,4 @@
-import { ilike, inArray, or, and, eq, sql } from "drizzle-orm";
+import { ilike, inArray, or, and, eq } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -43,8 +43,8 @@ import {
 import {
   escapeRegExp,
   createListResult,
-  ascLowerMulti,
   ascLower,
+  withTotalCount,
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { alias, PgSelect } from "drizzle-orm/pg-core";
@@ -253,11 +253,12 @@ export function readModelServiceBuilderSQL(
       );
 
       const queryBaseAgreementIds = readmodelDB
-        .select({
-          id: agreementInReadmodelAgreement.id,
-          eserviceName: eserviceInReadmodelCatalog.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            id: agreementInReadmodelAgreement.id,
+            eserviceName: eserviceInReadmodelCatalog.name,
+          })
+        )
         .from(agreementInReadmodelAgreement)
         .leftJoin(
           eserviceInReadmodelCatalog,
@@ -387,7 +388,7 @@ export function readModelServiceBuilderSQL(
           eserviceInReadmodelCatalog.name
         )
         .orderBy(
-          ascLowerMulti(eserviceInReadmodelCatalog.name),
+          ascLower(eserviceInReadmodelCatalog.name),
           agreementInReadmodelAgreement.id
         );
 
@@ -440,6 +441,10 @@ export function readModelServiceBuilderSQL(
             agreementInReadmodelAgreement.id,
             agreementStampInReadmodelAgreement.agreementId
           )
+        )
+        .orderBy(
+          ascLower(queryAgreementIds.eserviceName),
+          agreementInReadmodelAgreement.id
         );
 
       const agreements = aggregateAgreementArray(
@@ -502,11 +507,12 @@ export function readModelServiceBuilderSQL(
       } = explicitFilters(filters);
 
       const queryBaseAgreementIds = readmodelDB
-        .select({
-          id: agreementInReadmodelAgreement.id,
-          eserviceName: eserviceInReadmodelCatalog.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            id: agreementInReadmodelAgreement.id,
+            eserviceName: eserviceInReadmodelCatalog.name,
+          })
+        )
         .from(agreementInReadmodelAgreement)
         .leftJoin(
           eserviceInReadmodelCatalog,
@@ -580,10 +586,8 @@ export function readModelServiceBuilderSQL(
           eserviceInReadmodelCatalog.name
         )
         .orderBy(
-          ascLowerMulti(
-            eserviceInReadmodelCatalog.name,
-            agreementInReadmodelAgreement.id
-          )
+          ascLower(eserviceInReadmodelCatalog.name),
+          agreementInReadmodelAgreement.id
         );
 
       const queryAgreementIds = queryBaseAgreementIds.as("queryAgreementIds");
@@ -630,6 +634,10 @@ export function readModelServiceBuilderSQL(
             agreementInReadmodelAgreement.id,
             agreementStampInReadmodelAgreement.agreementId
           )
+        )
+        .orderBy(
+          ascLower(queryAgreementIds.eserviceName),
+          agreementInReadmodelAgreement.id
         );
 
       return aggregateAgreementArray(toAgreementAggregatorArray(resultSet));
@@ -670,11 +678,12 @@ export function readModelServiceBuilderSQL(
       );
 
       const resultSet = await readmodelDB
-        .select({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
-        })
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+        )
         .from(tenantInReadmodelTenant)
         .leftJoin(
           agreementInReadmodelAgreement,
@@ -764,11 +773,12 @@ export function readModelServiceBuilderSQL(
       );
 
       const resultSet = await readmodelDB
-        .select({
-          id: tenantInReadmodelTenant.id,
-          name: tenantInReadmodelTenant.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
-        })
+        .select(
+          withTotalCount({
+            id: tenantInReadmodelTenant.id,
+            name: tenantInReadmodelTenant.name,
+          })
+        )
         .from(tenantInReadmodelTenant)
         .leftJoin(
           agreementInReadmodelAgreement,
@@ -860,11 +870,12 @@ export function readModelServiceBuilderSQL(
       );
 
       const resultSet = await readmodelDB
-        .select({
-          id: eserviceInReadmodelCatalog.id,
-          name: eserviceInReadmodelCatalog.name,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
-        })
+        .select(
+          withTotalCount({
+            id: eserviceInReadmodelCatalog.id,
+            name: eserviceInReadmodelCatalog.name,
+          })
+        )
         .from(eserviceInReadmodelCatalog)
         .leftJoin(
           agreementInReadmodelAgreement,
@@ -913,7 +924,10 @@ export function readModelServiceBuilderSQL(
           and(
             // FILTER NAME
             eserviceName
-              ? ilike(eserviceInReadmodelCatalog.name, `%${eserviceName}%`)
+              ? ilike(
+                  eserviceInReadmodelCatalog.name,
+                  `%${escapeRegExp(eserviceName)}%`
+                )
               : undefined,
             // FILTER PRODUCER
             producerIds.length > 0

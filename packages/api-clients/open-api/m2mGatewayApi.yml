@@ -1210,6 +1210,12 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
@@ -2279,8 +2285,34 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Name Conflict
           content:
             application/json:
               schema:
@@ -2323,24 +2355,27 @@ paths:
         - name: offset
           in: query
           description: The offset used for pagination
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 0
         - name: limit
           in: query
           description: The limit used for pagination
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Purposes retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Purposes"
+                $ref: "#/components/schemas/Purposes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3344,6 +3379,19 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /tenants/{tenantId}/certifiedAttributes:
     parameters:
       - name: tenantId
@@ -3358,6 +3406,22 @@ paths:
         - tenants
       operationId: getCertifiedAttributes
       description: Retrieve certified attributes for a Tenant
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Certified attributes retrieved
@@ -3387,6 +3451,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
           content:
             application/json:
               schema:
@@ -4211,6 +4288,9 @@ components:
           $ref: "#/components/schemas/PurposeVersion"
         rejectedVersion:
           $ref: "#/components/schemas/PurposeVersion"
+          description: >
+            Represents the latest version of the purpose when it has been rejected. 
+            This property is present only if the most recent version is in a rejected status.
       required:
         - id
         - eserviceId
@@ -4220,7 +4300,6 @@ components:
         - createdAt
         - isRiskAnalysisValid
         - isFreeOfCharge
-        - currentVersion
     PurposeSeed:
       type: object
       additionalProperties: false
@@ -4249,6 +4328,7 @@ components:
         dailyCalls:
           type: integer
           format: int32
+          minimum: 0
       required:
         - eserviceId
         - title

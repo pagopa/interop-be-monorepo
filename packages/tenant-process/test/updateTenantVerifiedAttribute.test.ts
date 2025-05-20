@@ -7,6 +7,7 @@ import {
   protobufDecoder,
   toTenantV2,
   TenantVerifiedAttributeExpirationUpdatedV2,
+  TenantVerifier,
   TenantId,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -19,7 +20,7 @@ import {
   tenantNotFound,
   expirationDateCannotBeInThePast,
   verifiedAttributeNotFoundInTenant,
-  organizationNotFoundInVerifiers,
+  tenantNotFoundInVerifiers,
 } from "../src/model/domain/errors.js";
 import {
   addOneTenant,
@@ -41,7 +42,11 @@ describe("updateTenantVerifiedAttribute", async () => {
       expirationDate: expirationDate.toISOString(),
     };
 
-  const mockVerifiedBy = getMockVerifiedBy();
+  const verifier = getMockTenant();
+  const mockVerifiedBy: TenantVerifier = {
+    ...getMockVerifiedBy(),
+    id: verifier.id,
+  };
   const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
   const tenant: Tenant = {
     ...getMockTenant(),
@@ -62,6 +67,7 @@ describe("updateTenantVerifiedAttribute", async () => {
   const attributeId = tenant.attributes.map((a) => a.id)[0];
   const verifierId = mockVerifiedBy.id;
   it("should update the expirationDate", async () => {
+    await addOneTenant(verifier);
     await addOneTenant(tenant);
     const returnedTenant = await tenantService.updateTenantVerifiedAttribute(
       {
@@ -126,6 +132,7 @@ describe("updateTenantVerifiedAttribute", async () => {
         expirationDate: expirationDateinPast.toISOString(),
       };
 
+    await addOneTenant(verifier);
     await addOneTenant(tenant);
     expect(
       tenantService.updateTenantVerifiedAttribute(
@@ -165,7 +172,8 @@ describe("updateTenantVerifiedAttribute", async () => {
       verifiedAttributeNotFoundInTenant(updatedCertifiedTenant.id, attributeId)
     );
   });
-  it("should throw organizationNotFoundInVerifiers when the organization is not verified", async () => {
+  it("should throw tenantNotFoundInVerifiers when the tenant is not verified", async () => {
+    await addOneTenant(verifier);
     await addOneTenant(tenant);
     const verifierId = generateId<TenantId>();
     expect(
@@ -180,7 +188,7 @@ describe("updateTenantVerifiedAttribute", async () => {
         })
       )
     ).rejects.toThrowError(
-      organizationNotFoundInVerifiers(verifierId, tenant.id, attributeId)
+      tenantNotFoundInVerifiers(verifierId, tenant.id, attributeId)
     );
   });
 });

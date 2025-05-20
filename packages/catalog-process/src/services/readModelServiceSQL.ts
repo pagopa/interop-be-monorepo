@@ -6,6 +6,7 @@ import {
   M2MAuthData,
   UIAuthData,
   userRole,
+  withTotalCount,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -75,7 +76,6 @@ import {
   notExists,
   or,
   SQL,
-  sql,
 } from "drizzle-orm";
 import { match } from "ts-pattern";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
@@ -130,10 +130,11 @@ export function readModelServiceBuilderSQL(
       } = filters;
 
       const subquery = readmodelDB
-        .select({
-          id: eserviceInReadmodelCatalog.id,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number).as("totalCount"),
-        })
+        .select(
+          withTotalCount({
+            id: eserviceInReadmodelCatalog.id,
+          })
+        )
         .from(eserviceInReadmodelCatalog)
         .leftJoin(
           agreementInReadmodelAgreement,
@@ -319,9 +320,9 @@ export function readModelServiceBuilderSQL(
           )
         )
         .groupBy(eserviceInReadmodelCatalog.id)
+        .orderBy(ascLower(eserviceInReadmodelCatalog.name))
         .limit(limit)
         .offset(offset)
-        .orderBy(ascLower(eserviceInReadmodelCatalog.name))
         .as("subquery");
 
       const queryResult = await readmodelDB
@@ -432,12 +433,14 @@ export function readModelServiceBuilderSQL(
       limit: number
     ): Promise<ListResult<Consumer>> {
       const res = await readmodelDB
-        .selectDistinctOn([tenantInReadmodelTenant.id], {
-          tenant: tenantInReadmodelTenant,
-          agreement: agreementInReadmodelAgreement,
-          descriptor: eserviceDescriptorInReadmodelCatalog,
-          totalCount: sql`COUNT(*) OVER()`.mapWith(Number),
-        })
+        .selectDistinctOn(
+          [tenantInReadmodelTenant.id],
+          withTotalCount({
+            tenant: tenantInReadmodelTenant,
+            agreement: agreementInReadmodelAgreement,
+            descriptor: eserviceDescriptorInReadmodelCatalog,
+          })
+        )
         .from(tenantInReadmodelTenant)
         .innerJoin(
           agreementInReadmodelAgreement,

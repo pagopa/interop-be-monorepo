@@ -1,18 +1,35 @@
-import { and, eq, lte } from "drizzle-orm";
-import { Tenant, TenantId, WithMetadata } from "pagopa-interop-models";
+import { and, eq, lte, SQL } from "drizzle-orm";
+import {
+  genericInternalError,
+  Tenant,
+  TenantId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   DrizzleReturnType,
   tenantCertifiedAttributeInReadmodelTenant,
+  TenantCertifiedAttributeSQL,
   tenantDeclaredAttributeInReadmodelTenant,
+  TenantDeclaredAttributeSQL,
   tenantFeatureInReadmodelTenant,
+  TenantFeatureSQL,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  TenantMailSQL,
+  TenantSQL,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
+  TenantVerifiedAttributeRevokerSQL,
+  TenantVerifiedAttributeSQL,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
+  TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
-import { aggregateTenant, toTenantAggregator } from "./tenant/aggregators.js";
+import {
+  aggregateTenant,
+  aggregateTenantArray,
+  toTenantAggregatorArray,
+} from "./tenant/aggregators.js";
 import { checkMetadataVersion } from "./index.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -91,14 +108,74 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
     async getTenantById(
       tenantId: TenantId
     ): Promise<WithMetadata<Tenant> | undefined> {
-      /*
-      tenant  ->1 tenant_mail
-				      ->2 tenant_certified_attribute
-				      ->3 tenant_declared_attribute
-				      ->4 tenant_verified_attribute ->5 tenant_verified_attribute_verifier
-																		        ->6 tenant_verified_attribute_revoker
-				      ->7 tenant_feature
-      */
+      const [
+        tenantSQL,
+        mailsSQL,
+        certifiedAttributesSQL,
+        declaredAttributesSQL,
+        verifiedAttributesSQL,
+        verifiedAttributeVerifiersSQL,
+        verifiedAttributeRevokersSQL,
+        featuresSQL,
+      ] = await Promise.all([
+        readTenantSQL(eq(tenantInReadmodelTenant.id, tenantId), db),
+        readTenantMailsSQL(
+          eq(tenantMailInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+        readTenantCertifiedAttributesSQL(
+          eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+        readTenantDeclaredAttributesSQL(
+          eq(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+        readTenantVerifiedAttributesSQL(
+          eq(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+        readTenantVerifiedAttributeVerifiersSQL(
+          eq(
+            tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
+            tenantId
+          ),
+          db
+        ),
+        readTenantVerifiedAttributeRevokersSQL(
+          eq(
+            tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
+            tenantId
+          ),
+          db
+        ),
+        readTenantFeaturesSQL(
+          eq(tenantFeatureInReadmodelTenant.tenantId, tenantId),
+          db
+        ),
+      ]);
+
+      if (!tenantSQL) {
+        return undefined;
+      }
+      return aggregateTenant({
+        tenantSQL,
+        mailsSQL,
+        certifiedAttributesSQL,
+        declaredAttributesSQL,
+        verifiedAttributesSQL,
+        verifiedAttributeVerifiersSQL,
+        verifiedAttributeRevokersSQL,
+        featuresSQL,
+      });
+    },
+    async getTenantsByFilter(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<Tenant>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
       const queryResult = await db
         .select({
           tenant: tenantInReadmodelTenant,
@@ -111,14 +188,12 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           feature: tenantFeatureInReadmodelTenant,
         })
         .from(tenantInReadmodelTenant)
-        .where(eq(tenantInReadmodelTenant.id, tenantId))
+        .where(filter)
         .leftJoin(
-          // 1
           tenantMailInReadmodelTenant,
           eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
         )
         .leftJoin(
-          // 2
           tenantCertifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -126,7 +201,6 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           tenantDeclaredAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -134,7 +208,6 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           tenantVerifiedAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -142,7 +215,6 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 5
           tenantVerifiedAttributeVerifierInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -150,7 +222,6 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 6
           tenantVerifiedAttributeRevokerInReadmodelTenant,
           eq(
             tenantVerifiedAttributeInReadmodelTenant.attributeId,
@@ -158,7 +229,6 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 7
           tenantFeatureInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
@@ -166,11 +236,7 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         );
 
-      if (queryResult.length === 0) {
-        return undefined;
-      }
-
-      return aggregateTenant(toTenantAggregator(queryResult));
+      return aggregateTenantArray(toTenantAggregatorArray(queryResult));
     },
     async deleteTenantById(tenantId: TenantId, version: number): Promise<void> {
       await db
@@ -188,3 +254,69 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
 export type TenantReadModelService = ReturnType<
   typeof tenantReadModelServiceBuilder
 >;
+
+// these are used for getTenantByid with await Promise.all.
+const readTenantSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantSQL | undefined> => {
+  const result = await db.select().from(tenantInReadmodelTenant).where(filter);
+  return result[0];
+};
+
+const readTenantMailsSQL = async (
+  filter: SQL | undefined,
+  db: DrizzleReturnType
+): Promise<TenantMailSQL[]> =>
+  await db.select().from(tenantMailInReadmodelTenant).where(filter);
+
+const readTenantCertifiedAttributesSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantCertifiedAttributeSQL[]> =>
+  await db
+    .select()
+    .from(tenantCertifiedAttributeInReadmodelTenant)
+    .where(filter);
+
+const readTenantDeclaredAttributesSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantDeclaredAttributeSQL[]> =>
+  await db
+    .select()
+    .from(tenantDeclaredAttributeInReadmodelTenant)
+    .where(filter);
+
+const readTenantVerifiedAttributesSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantVerifiedAttributeSQL[]> =>
+  await db
+    .select()
+    .from(tenantVerifiedAttributeInReadmodelTenant)
+    .where(filter);
+
+const readTenantVerifiedAttributeVerifiersSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantVerifiedAttributeVerifierSQL[]> =>
+  await db
+    .select()
+    .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
+    .where(filter);
+
+const readTenantVerifiedAttributeRevokersSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantVerifiedAttributeRevokerSQL[]> =>
+  await db
+    .select()
+    .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
+    .where(filter);
+
+const readTenantFeaturesSQL = async (
+  filter: SQL,
+  db: DrizzleReturnType
+): Promise<TenantFeatureSQL[]> =>
+  await db.select().from(tenantFeatureInReadmodelTenant).where(filter);
