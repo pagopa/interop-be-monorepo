@@ -1,10 +1,6 @@
 import {
-  ReadModelRepository,
   authenticationMiddleware,
   contextMiddleware,
-  initDB,
-  initFileManager,
-  initPDFGenerator,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -13,78 +9,16 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import {
-  agreementReadModelServiceBuilder,
-  attributeReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  makeDrizzleConnection,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import healthRouter from "./routers/HealthRouter.js";
 import agreementRouter from "./routers/AgreementRouter.js";
 import { config } from "./config/config.js";
-import {
-  AgreementService,
-  agreementServiceBuilder,
-} from "./services/agreementService.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { AgreementService } from "./services/agreementService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createDefaultAgreementService = async () => {
-  const db = makeDrizzleConnection(config);
-  const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
-  const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
-  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
-  const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
-  const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
-
-  const oldReadModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-  const readModelServiceSQL = readModelServiceBuilderSQL(
-    db,
-    agreementReadModelServiceSQL,
-    catalogReadModelServiceSQL,
-    tenantReadModelServiceSQL,
-    attributeReadModelServiceSQL,
-    delegationReadModelServiceSQL
-  );
-
-  const readModelService =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelServiceSQL
-      : oldReadModelService;
-
-  const pdfGenerator = await initPDFGenerator();
-
-  return agreementServiceBuilder(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    readModelService,
-    initFileManager(config),
-    pdfGenerator
-  );
-};
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function createApp(service?: AgreementService) {
+export async function createApp(service: AgreementService) {
   const serviceName = modelsServiceName.AGREEMENT_PROCESS;
 
-  const router =
-    service != null
-      ? agreementRouter(zodiosCtx, service)
-      : agreementRouter(zodiosCtx, await createDefaultAgreementService());
+  const router = agreementRouter(zodiosCtx, service);
 
   const app = zodiosCtx.app();
 
