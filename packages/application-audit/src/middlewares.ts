@@ -1,9 +1,14 @@
 import { RequestHandler, Request } from "express";
 import { initProducer } from "kafka-iam-auth";
 import {
-  CorrelationId,
+  ApplicationAuditBeginRequest,
+  ApplicationAuditEndRequest,
+  ApplicationAuditEndRequestSessionTokenExchange,
+  ApplicationAuditEndRequestAuthServer,
+  ApplicationAuditPhase,
+  fallbackApplicationAuditingFailed,
   genericInternalError,
-  SpanId,
+  kafkaApplicationAuditingFailed,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -13,101 +18,14 @@ import {
   decodeJwtToken,
   fromAppContext,
   getUserInfoFromAuthData,
+  initQueueManager,
   JWTConfig,
+  logger,
+  Logger,
+  QueueManager,
   readAuthDataFromJwtToken,
 } from "pagopa-interop-commons";
 import { z } from "zod";
-
-const Phase = {
-  BEGIN_REQUEST: "BEGIN_REQUEST",
-  END_REQUEST: "END_REQUEST",
-} as const;
-
-const ApplicationAuditBeginRequest = z.object({
-  correlationId: CorrelationId,
-  spanId: SpanId,
-  service: z.string(),
-  serviceVersion: z.string(),
-  endpoint: z.string(),
-  httpMethod: z.string(),
-  phase: z.literal(Phase.BEGIN_REQUEST),
-  requesterIpAddress: z.string().optional(),
-  nodeIp: z.string(),
-  podName: z.string(),
-  uptimeSeconds: z.number(),
-  timestamp: z.number(),
-  amazonTraceId: z.string().optional(),
-});
-type ApplicationAuditBeginRequest = z.infer<
-  typeof ApplicationAuditBeginRequest
->;
-
-const ApplicationAuditEndRequest = z.object({
-  correlationId: CorrelationId,
-  spanId: SpanId,
-  service: z.string(),
-  serviceVersion: z.string(),
-  endpoint: z.string(),
-  httpMethod: z.string(),
-  phase: z.literal(Phase.END_REQUEST),
-  requesterIpAddress: z.string().optional(),
-  nodeIp: z.string(),
-  podName: z.string(),
-  uptimeSeconds: z.number(),
-  timestamp: z.number(),
-  amazonTraceId: z.string().optional(),
-  organizationId: z.string().optional(),
-  userId: z.string().optional(),
-  httpResponseStatus: z.number(),
-  executionTimeMs: z.number(),
-});
-type ApplicationAuditEndRequest = z.infer<typeof ApplicationAuditEndRequest>;
-
-const ApplicationAuditEndRequestAuthServer = z.object({
-  correlationId: CorrelationId,
-  spanId: SpanId,
-  service: z.string(),
-  serviceVersion: z.string(),
-  endpoint: z.string(),
-  httpMethod: z.string(),
-  phase: z.literal(Phase.END_REQUEST),
-  requesterIpAddress: z.string().optional(),
-  nodeIp: z.string(),
-  podName: z.string(),
-  uptimeSeconds: z.number(),
-  timestamp: z.number(),
-  amazonTraceId: z.string().optional(),
-  organizationId: z.string().optional(),
-  clientId: z.string().optional(),
-  httpResponseStatus: z.number(),
-  executionTimeMs: z.number(),
-});
-type ApplicationAuditEndRequestAuthServer = z.infer<
-  typeof ApplicationAuditEndRequestAuthServer
->;
-
-export const ApplicationAuditEndRequestSessionTokenExchange = z.object({
-  correlationId: CorrelationId,
-  spanId: SpanId,
-  service: z.string(),
-  serviceVersion: z.string(),
-  endpoint: z.string(),
-  httpMethod: z.string(),
-  phase: z.literal(Phase.END_REQUEST),
-  requesterIpAddress: z.string().optional(),
-  nodeIp: z.string(),
-  podName: z.string(),
-  uptimeSeconds: z.number(),
-  timestamp: z.number(),
-  amazonTraceId: z.string().optional(),
-  organizationId: z.string().optional(),
-  selfcareId: z.string().optional(),
-  httpResponseStatus: z.number(),
-  executionTimeMs: z.number(),
-});
-export type ApplicationAuditEndRequestSessionTokenExchange = z.infer<
-  typeof ApplicationAuditEndRequestSessionTokenExchange
->;
 
 export function parseAmznTraceIdHeader(req: Request): string | undefined {
   const parsed = z
@@ -136,14 +54,24 @@ export async function applicationAuditBeginMiddleware(
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
+  const queueManager = initQueueManager({
+    messageGroupId: "message_group_all_notification",
+    logLevel: config.logLevel,
+  });
 
   return async (req, _, next): Promise<void> => {
-    const context = (req as Request & { ctx?: AppContext }).ctx;
     const requestTimestamp = Date.now();
 
+    const context = (req as Request & { ctx?: AppContext }).ctx;
     if (!context) {
       throw genericInternalError("Failed to retrieve context");
     }
+
+    const loggerInstance = logger({
+      serviceName: context?.serviceName,
+      correlationId: context?.correlationId,
+      spanId: context?.spanId,
+    });
 
     // eslint-disable-next-line functional/immutable-data
     context.requestTimestamp = requestTimestamp;
@@ -159,7 +87,7 @@ export async function applicationAuditBeginMiddleware(
       serviceVersion: config.serviceVersion,
       endpoint: req.path,
       httpMethod: req.method,
-      phase: Phase.BEGIN_REQUEST,
+      phase: ApplicationAuditPhase.BEGIN_REQUEST,
       requesterIpAddress: forwardedFor,
       nodeIp: config.nodeIp,
       podName: config.podName,
@@ -168,14 +96,26 @@ export async function applicationAuditBeginMiddleware(
       amazonTraceId: amznTraceId,
     };
 
-    await producer.send({
-      messages: [
-        {
-          key: correlationId,
-          value: JSON.stringify(initialAudit),
-        },
-      ],
-    });
+    try {
+      const res = await producer.send({
+        messages: [
+          {
+            key: correlationId,
+            value: JSON.stringify(initialAudit),
+          },
+        ],
+      });
+      if (res.length === 0 || res[0].errorCode !== 0) {
+        throw kafkaApplicationAuditingFailed();
+      }
+    } catch (e) {
+      await fallbackApplicationAudit(
+        queueManager,
+        config.producerQueueUrl,
+        initialAudit,
+        loggerInstance
+      );
+    }
 
     return next();
   };
@@ -186,6 +126,11 @@ export async function applicationAuditEndMiddleware(
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
+  const queueManager = initQueueManager({
+    messageGroupId: "message_group_all_notification",
+    logLevel: config.logLevel,
+  });
+
   return async (req, res, next): Promise<void> => {
     if (req.path !== "/session/tokens") {
       res.on("finish", async () => {
@@ -193,6 +138,12 @@ export async function applicationAuditEndMiddleware(
         if (!context) {
           throw genericInternalError("Failed to retrieve context");
         }
+
+        const loggerInstance = logger({
+          serviceName: context?.serviceName,
+          correlationId: context?.correlationId,
+          spanId: context?.spanId,
+        });
 
         const correlationId = context.correlationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
@@ -211,7 +162,7 @@ export async function applicationAuditEndMiddleware(
           serviceVersion: config.serviceVersion,
           endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
           httpMethod: req.method,
-          phase: Phase.END_REQUEST,
+          phase: ApplicationAuditPhase.END_REQUEST,
           requesterIpAddress: forwardedFor,
           nodeIp: config.nodeIp,
           podName: config.podName,
@@ -224,14 +175,26 @@ export async function applicationAuditEndMiddleware(
           executionTimeMs: endTimestamp - context.requestTimestamp,
         };
 
-        await producer.send({
-          messages: [
-            {
-              key: correlationId,
-              value: JSON.stringify(finalAudit),
-            },
-          ],
-        });
+        try {
+          const res = await producer.send({
+            messages: [
+              {
+                key: correlationId,
+                value: JSON.stringify(finalAudit),
+              },
+            ],
+          });
+          if (res.length === 0 || res[0].errorCode !== 0) {
+            throw kafkaApplicationAuditingFailed();
+          }
+        } catch (e) {
+          await fallbackApplicationAudit(
+            queueManager,
+            config.producerQueueUrl,
+            finalAudit,
+            loggerInstance
+          );
+        }
       });
     }
 
@@ -244,6 +207,11 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
   config: ApplicationAuditProducerConfig & JWTConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
+  const queueManager = initQueueManager({
+    messageGroupId: "message_group_all_notification",
+    logLevel: config.logLevel,
+  });
+
   return async (req, res, next): Promise<void> => {
     if (req.path === "/session/tokens") {
       const defaultSend = res.send;
@@ -262,6 +230,12 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
         if (!context) {
           throw genericInternalError("Failed to retrieve context");
         }
+
+        const loggerInstance = logger({
+          serviceName: context?.serviceName,
+          correlationId: context?.correlationId,
+          spanId: context?.spanId,
+        });
 
         const correlationId = context.correlationId;
         const amznTraceId = parseAmznTraceIdHeader(req);
@@ -290,7 +264,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           serviceVersion: config.serviceVersion,
           endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
           httpMethod: req.method,
-          phase: Phase.END_REQUEST,
+          phase: ApplicationAuditPhase.END_REQUEST,
           requesterIpAddress: forwardedFor,
           nodeIp: config.nodeIp,
           podName: config.podName,
@@ -303,14 +277,26 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           executionTimeMs: endTimestamp - context.requestTimestamp,
         };
 
-        await producer.send({
-          messages: [
-            {
-              key: correlationId,
-              value: JSON.stringify(finalAudit),
-            },
-          ],
-        });
+        try {
+          const res = await producer.send({
+            messages: [
+              {
+                key: correlationId,
+                value: JSON.stringify(finalAudit),
+              },
+            ],
+          });
+          if (res.length === 0 || res[0].errorCode !== 0) {
+            throw kafkaApplicationAuditingFailed();
+          }
+        } catch (e) {
+          await fallbackApplicationAudit(
+            queueManager,
+            config.producerQueueUrl,
+            finalAudit,
+            loggerInstance
+          );
+        }
       });
     }
 
@@ -323,12 +309,23 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
   const producer = await initProducer(config, config.applicationAuditTopic);
+  const queueManager = initQueueManager({
+    messageGroupId: "message_group_all_notification",
+    logLevel: config.logLevel,
+  });
+
   return async (req, res, next): Promise<void> => {
     res.on("finish", async () => {
       const context = (req as Request & { ctx?: AuthServerAppContext }).ctx;
       if (!context) {
         throw genericInternalError("Failed to retrieve context");
       }
+
+      const loggerInstance = logger({
+        serviceName: context?.serviceName,
+        correlationId: context?.correlationId,
+        spanId: context?.spanId,
+      });
 
       const correlationId = context.correlationId;
       const amznTraceId = parseAmznTraceIdHeader(req);
@@ -343,7 +340,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
         serviceVersion: config.serviceVersion,
         endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
         httpMethod: req.method,
-        phase: Phase.END_REQUEST,
+        phase: ApplicationAuditPhase.END_REQUEST,
         requesterIpAddress: forwardedFor,
         nodeIp: config.nodeIp,
         podName: config.podName,
@@ -356,16 +353,55 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
         executionTimeMs: endTimestamp - context.requestTimestamp,
       };
 
-      await producer.send({
-        messages: [
-          {
-            key: correlationId,
-            value: JSON.stringify(finalAudit),
-          },
-        ],
-      });
+      try {
+        const res = await producer.send({
+          messages: [
+            {
+              key: correlationId,
+              value: JSON.stringify(finalAudit),
+            },
+          ],
+        });
+        if (res.length === 0 || res[0].errorCode !== 0) {
+          throw kafkaApplicationAuditingFailed();
+        }
+      } catch (e) {
+        await fallbackApplicationAudit(
+          queueManager,
+          config.producerQueueUrl,
+          finalAudit,
+          loggerInstance
+        );
+      }
     });
 
     return next();
   };
 }
+
+export const fallbackApplicationAudit = async (
+  queueManager: QueueManager,
+  queueUrl: string,
+  messageBody:
+    | ApplicationAuditBeginRequest
+    | ApplicationAuditEndRequest
+    | ApplicationAuditEndRequestSessionTokenExchange
+    | ApplicationAuditEndRequestAuthServer,
+  logger: Logger
+): Promise<void> => {
+  try {
+    await queueManager.send(
+      queueUrl,
+      {
+        spanId: messageBody.spanId,
+        correlationId: messageBody.correlationId,
+        payload: messageBody,
+      },
+      logger
+    );
+
+    logger.info("Application audit sent to fallback SQS queue successfully");
+  } catch {
+    throw fallbackApplicationAuditingFailed();
+  }
+};
