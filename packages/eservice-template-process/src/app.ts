@@ -1,9 +1,6 @@
 import {
-  ReadModelRepository,
   authenticationMiddleware,
   contextMiddleware,
-  initDB,
-  initFileManager,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -12,73 +9,17 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import {
-  attributeReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
-  makeDrizzleConnection,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import eserviceTemplatesRouter from "./routers/EServiceTemplateRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
-import {
-  EServiceTemplateService,
-  eserviceTemplateServiceBuilder,
-} from "./services/eserviceTemplateService.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { EServiceTemplateService } from "./services/eserviceTemplateService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createDefaultEserviceTemplateService = async () => {
-  const readModelDB = makeDrizzleConnection(config);
-  const eserviceTemplateReadModelServiceSQL =
-    eserviceTemplateReadModelServiceBuilder(readModelDB);
-  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-  const attributeReadModelServiceSQL =
-    attributeReadModelServiceBuilder(readModelDB);
 
-  const oldReadModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-  const readModelServiceSQL = readModelServiceBuilderSQL({
-    readModelDB,
-    eserviceTemplateReadModelServiceSQL,
-    tenantReadModelServiceSQL,
-    attributeReadModelServiceSQL,
-  });
-  const readModelService =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelServiceSQL
-      : oldReadModelService;
-
-  return eserviceTemplateServiceBuilder(
-    initDB({
-      username: config.eventStoreDbUsername,
-      password: config.eventStoreDbPassword,
-      host: config.eventStoreDbHost,
-      port: config.eventStoreDbPort,
-      database: config.eventStoreDbName,
-      schema: config.eventStoreDbSchema,
-      useSSL: config.eventStoreDbUseSSL,
-    }),
-    readModelService,
-    initFileManager(config)
-  );
-};
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function createApp(service?: EServiceTemplateService) {
+export async function createApp(service: EServiceTemplateService) {
   const serviceName = modelsServiceName.ESERVICE_TEMPLATE_PROCESS;
 
-  const router =
-    service != null
-      ? eserviceTemplatesRouter(zodiosCtx, service)
-      : eserviceTemplatesRouter(
-          zodiosCtx,
-          await createDefaultEserviceTemplateService()
-        );
+  const router = eserviceTemplatesRouter(zodiosCtx, service);
 
   const app = zodiosCtx.app();
 
