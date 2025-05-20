@@ -14,13 +14,13 @@ import {
 import {
   AppContext,
   ApplicationAuditProducerConfig,
-  assertFeatureFlagEnabled,
   AuthData,
   AuthServerAppContext,
   decodeJwtToken,
   fromAppContext,
   getUserInfoFromAuthData,
   initQueueManager,
+  isFeatureFlagEnabled,
   JWTConfig,
   logger,
   Logger,
@@ -110,7 +110,7 @@ export async function applicationAuditBeginMiddleware(
         ],
       });
       if (res.length === 0 || res[0].errorCode !== 0) {
-        loggerInstance.debug(
+        loggerInstance.warn(
           `Kafka producer send response not successful. Details: ${
             res.length === 0
               ? "Empty response"
@@ -201,7 +201,7 @@ export async function applicationAuditEndMiddleware(
             ],
           });
           if (res.length === 0 || res[0].errorCode !== 0) {
-            loggerInstance.debug(
+            loggerInstance.warn(
               `Kafka producer send response not successful. Details: ${
                 res.length === 0
                   ? "Empty response"
@@ -317,7 +317,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
             ],
           });
           if (res.length === 0 || res[0].errorCode !== 0) {
-            loggerInstance.debug(
+            loggerInstance.warn(
               `Kafka producer send response not successful. Details: ${
                 res.length === 0
                   ? "Empty response"
@@ -407,7 +407,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
           ],
         });
         if (res.length === 0 || res[0].errorCode !== 0) {
-          loggerInstance.debug(
+          loggerInstance.warn(
             `Kafka producer send response not successful. Details: ${
               res.length === 0
                 ? "Empty response"
@@ -444,7 +444,6 @@ export const fallbackApplicationAudit = async (
   logger: Logger
 ): Promise<void> => {
   try {
-    assertFeatureFlagEnabled(config, "featureFlagApplicationAudit");
     await queueManager.send(
       config.producerQueueUrl,
       {
@@ -457,6 +456,8 @@ export const fallbackApplicationAudit = async (
 
     logger.info("Application audit sent to fallback SQS queue successfully");
   } catch {
-    throw fallbackApplicationAuditFailed();
+    if (isFeatureFlagEnabled(config, "featureFlagApplicationAuditStrict")) {
+      throw fallbackApplicationAuditFailed();
+    }
   }
 };
