@@ -64,7 +64,6 @@ describe("POST /agreements router test", () => {
     { ...mockAgreementSeed, eserviceId: "invalidId" },
     { ...mockAgreementSeed, descriptorId: undefined },
     { ...mockAgreementSeed, descriptorId: "invalidId" },
-    { ...mockAgreementSeed, delegationId: undefined },
     { ...mockAgreementSeed, delegationId: "invalidId" },
   ])(
     "Should return 400 if passed an invalid agreement seed: %s",
