@@ -336,13 +336,13 @@ describe("create agreement", () => {
     const descriptor0: Descriptor = getMockDescriptorPublished();
     const descriptor1: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "1",
+      version: 1,
       state: descriptorState.draft,
     };
 
     const descriptor2: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "2",
+      version: 2,
       state: descriptorState.draft,
     };
 
@@ -464,12 +464,12 @@ describe("create agreement", () => {
 
     const descriptor0: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "0",
+      version: 0,
       state: randomArrayItem(notDraftDescriptorStates),
     };
     const descriptor1: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "1",
+      version: 1,
       state: randomArrayItem(notDraftDescriptorStates),
     };
 
@@ -500,7 +500,7 @@ describe("create agreement", () => {
 
     const descriptor: Descriptor = {
       ...getMockDescriptorPublished(),
-      version: "0",
+      version: 0,
       state: randomArrayItem(
         Object.values(descriptorState).filter(
           (state) =>

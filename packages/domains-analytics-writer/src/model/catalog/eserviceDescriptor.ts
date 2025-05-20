@@ -5,7 +5,7 @@ export const EserviceDescriptorSchema = z.object({
   id: z.string(),
   eservice_id: z.string(),
   metadata_version: z.number(),
-  version: z.string(),
+  version: z.number(),
   description: z.string().nullable(),
   created_at: z.string(),
   state: z.string(),
