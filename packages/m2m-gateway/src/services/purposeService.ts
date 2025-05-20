@@ -51,6 +51,26 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     return currentVersion;
   };
 
+  const retrievePurposeCurrentVersion = (
+    purpose: purposeApi.Purpose
+  ): purposeApi.PurposeVersion => {
+    const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
+      m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
+      m2mGatewayApi.PurposeVersionState.Values.REJECTED,
+    ];
+    const currentVersion = purpose.versions
+      .filter((v) => !statesToExclude.includes(v.state))
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      .at(-1);
+
+    assertPurposeVersionExists(currentVersion, purpose.id);
+
+    return currentVersion;
+  };
+
   return {
     async getPurposes(
       queryParams: m2mGatewayApi.GetPurposesQueryParams,
