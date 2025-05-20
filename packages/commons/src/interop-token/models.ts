@@ -158,7 +158,7 @@ export const SessionClaims = z.object({
 export type SessionClaims = z.infer<typeof SessionClaims>;
 
 export const UserClaims = z.object({
-  "user-roles": CommaSeparatedStringToArray(UserRole),
+  "user-roles": z.array(UserRole),
   organizationId: z.string().uuid(),
   selfcareId: z.string().uuid(),
   externalId: z.object({

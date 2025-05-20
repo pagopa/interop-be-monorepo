@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   AuthRole,
   userRole,
@@ -8,6 +7,7 @@ import {
   InteropJwtInternalPayload,
   InteropJwtUIPayload,
   UserRole,
+  AuthTokenPayload,
 } from "pagopa-interop-commons";
 import { ClientId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -32,7 +32,7 @@ function createUserPayload(role: UserRole): InteropJwtUIPayload {
       name: "PagoPA S.p.A.",
       roles: [
         {
-          partyRole: "MANAGER",
+          partyRole: role,
           role: "admin",
         },
       ],
@@ -105,7 +105,7 @@ function createM2MAdminPayload(): InteropJwtApiM2MAdminPayload {
   };
 }
 
-const createPayload = (role: AuthRole) =>
+const createPayload = (role: AuthRole): AuthTokenPayload =>
   match(role)
     .with("maintenance", () => createMaintenancePayload())
     .with("m2m", () => createM2MPayload())
@@ -117,5 +117,5 @@ const createPayload = (role: AuthRole) =>
     .with("support", () => createUserPayload(userRole.SUPPORT_ROLE))
     .exhaustive();
 
-export const generateToken = (role: AuthRole) =>
+export const generateToken = (role: AuthRole): string =>
   jwt.sign(createPayload(role), "test-secret");
