@@ -100,20 +100,29 @@ export async function handleEserviceTemplateMessageV2(
         );
       })
       .with({ type: "EServiceTemplateVersionInterfaceDeleted" }, (msg) => {
-        if (!msg.data.eserviceTemplate) {
+        const { eserviceTemplate, eserviceTemplateVersionId } = msg.data;
+
+        if (!eserviceTemplate) {
           throw genericInternalError("Missing `eserviceTemplate` in event");
         }
 
-        const version = msg.data.eserviceTemplate.versions.find(
-          (v) => v.id === msg.data.eserviceTemplateVersionId
+        const version = eserviceTemplate.versions.find(
+          (v) => v.id === eserviceTemplateVersionId
         );
-
-        const versionInterfaceId = version?.interface?.id;
-        if (!versionInterfaceId) {
+        if (!version) {
           throw genericInternalError(
-            "Missing `interface.id` for the specified version"
+            `Version not found for provided ID ${eserviceTemplateVersionId}`
           );
         }
+
+        if (!version.interface) {
+          throw genericInternalError(
+            `Missing interface for the specified version id: ${version.id}`
+          );
+        }
+
+        const { id: versionInterfaceId } = version.interface;
+
         deleteEserviceTemplateInterfaceBatch.push(
           EserviceTemplateDeletingSchema.parse({
             id: versionInterfaceId,
