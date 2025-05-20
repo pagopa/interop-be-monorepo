@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, tenantKind } from "pagopa-interop-models";
+import { TenantKind, generateId, tenantKind } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -17,7 +17,7 @@ describe("API GET /purposes/riskAnalysis/latest test", () => {
       .mockResolvedValue(mockRiskAnalysisFormConfig);
   });
 
-  const makeRequest = async (token: string, kind: string = tenantKind.PA) =>
+  const makeRequest = async (token: string, kind: TenantKind = tenantKind.PA) =>
     request(api)
       .get(`${appBasePath}/purposes/riskAnalysis/latest`)
       .set("Authorization", `Bearer ${token}`)
@@ -33,7 +33,7 @@ describe("API GET /purposes/riskAnalysis/latest test", () => {
 
   it("Should return 400 if passed an invalid tenant kind", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as TenantKind);
     expect(res.status).toBe(400);
   });
 });

@@ -1,9 +1,9 @@
 import { bffApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import { generateId } from "pagopa-interop-models";
+import { PurposeId, PurposeVersionId, generateId } from "pagopa-interop-models";
 
-export const getMockBffApiPurpose = (): bffApi.Purpose => ({
+export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   id: generateId(),
   title: generateMock(z.string()),
   description: generateMock(z.string()),
@@ -40,8 +40,34 @@ export const getMockBffApiPurposeUpdateContent =
     dailyCalls: generateMock(z.number().int().min(0)),
   });
 
-export const getMockBffApiPurposeVersionResource =
-  (): bffApi.PurposeVersionResource => ({
-    purposeId: generateId(),
-    versionId: generateId(),
-  });
+export const getMockBffApiPurposeVersionResource = (
+  purposeId: PurposeId = generateId(),
+  versionId: PurposeVersionId = generateId()
+): bffApi.PurposeVersionResource & {
+  purposeId: PurposeId;
+  versionId: PurposeVersionId;
+} => ({
+  purposeId,
+  versionId,
+});
+
+export const getMockPurposeSeed = (): bffApi.PurposeSeed => ({
+  eserviceId: generateId(),
+  consumerId: generateId(),
+  title: generateMock(z.string()),
+  description: generateMock(z.string()),
+  isFreeOfCharge: generateMock(z.boolean()),
+  freeOfChargeReason: generateMock(z.string().optional()),
+  dailyCalls: generateMock(z.number().int().min(0)),
+});
+
+export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
+  eserviceId: generateId(),
+  consumerId: generateId(),
+  riskAnalysisId: generateId(),
+  title: generateMock(z.string()),
+  description: generateMock(z.string()),
+  isFreeOfCharge: generateMock(z.boolean()),
+  freeOfChargeReason: generateMock(z.string().optional()),
+  dailyCalls: generateMock(z.number().int().min(0)),
+});
