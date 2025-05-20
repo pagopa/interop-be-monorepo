@@ -64,7 +64,9 @@ export async function handleEserviceTemplateMessageV2(
         },
         (msg) => {
           if (!msg.data.eserviceTemplate) {
-            throw genericInternalError("Missing `eserviceTemplate` in event");
+            throw genericInternalError(
+              "eserviceTemplate can't be missing in the event message"
+            );
           }
           const splitResult = splitEServiceTemplateIntoObjectsSQL(
             fromEServiceTemplateV2(msg.data.eserviceTemplate),
@@ -86,7 +88,9 @@ export async function handleEserviceTemplateMessageV2(
       )
       .with({ type: "EServiceTemplateDeleted" }, (msg) => {
         if (!msg.data.eserviceTemplate) {
-          throw genericInternalError("Missing `eserviceTemplate` in event");
+          throw genericInternalError(
+            "eserviceTemplate can't be missing in the event message"
+          );
         }
         deleteEserviceTemplateBatch.push(
           EserviceTemplateDeletingSchema.parse({
@@ -107,7 +111,9 @@ export async function handleEserviceTemplateMessageV2(
         const { eserviceTemplate, eserviceTemplateVersionId } = msg.data;
 
         if (!eserviceTemplate) {
-          throw genericInternalError("Missing `eserviceTemplate` in event");
+          throw genericInternalError(
+            "eserviceTemplate can't be missing in the event message"
+          );
         }
 
         const version = eserviceTemplate.versions.find(
@@ -115,7 +121,7 @@ export async function handleEserviceTemplateMessageV2(
         );
         if (!version) {
           throw genericInternalError(
-            `Version not found for provided ID ${eserviceTemplateVersionId}`
+            `Version not found for versionId: ${eserviceTemplateVersionId}`
           );
         }
 

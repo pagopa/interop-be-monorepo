@@ -450,3 +450,90 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     ).forEach((r) => expect(r.deleted).not.toBe(true));
   });
 });
+
+describe("EserviceTemplate messages consumers - Error Handling", () => {
+  it("throws error when EServiceTemplateAdded message has no eserviceTemplate", async () => {
+    const msg: EServiceTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: "some-id",
+      version: 1,
+      type: "EServiceTemplateAdded",
+      event_version: 2,
+      data: { eserviceTemplate: undefined as any },
+      log_date: new Date(),
+    };
+
+    await expect(
+      handleEserviceTemplateMessageV2([msg], dbContext)
+    ).rejects.toThrowError(
+      "eserviceTemplate can't be missing in the event message"
+    );
+  });
+
+  it("throws error when EServiceTemplateDeleted message has no eserviceTemplate", async () => {
+    const msg: EServiceTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: "some-id",
+      version: 1,
+      type: "EServiceTemplateDeleted",
+      event_version: 2,
+      data: { eserviceTemplate: undefined as any },
+      log_date: new Date(),
+    };
+
+    await expect(
+      handleEserviceTemplateMessageV2([msg], dbContext)
+    ).rejects.toThrowError(
+      "eserviceTemplate can't be missing in the event message"
+    );
+  });
+
+  it("throws error when version is not found in EServiceTemplateVersionInterfaceDeleted", async () => {
+    const template = getMockEServiceTemplate();
+
+    const msg = {
+      sequence_num: 1,
+      stream_id: template.id,
+      version: 1,
+      type: "EServiceTemplateVersionInterfaceDeleted",
+      event_version: 2,
+      data: {
+        eserviceTemplateVersionId: "non-existing-version-id",
+        eserviceTemplate: toEServiceTemplateV2(template),
+      },
+      log_date: new Date(),
+    } as any;
+
+    await expect(
+      handleEserviceTemplateMessageV2([msg], dbContext)
+    ).rejects.toThrowError(
+      "Version not found for versionId: non-existing-version-id"
+    );
+  });
+
+  it("throws error when interface is missing for version in EServiceTemplateVersionInterfaceDeleted", async () => {
+    const template = getMockEServiceTemplate();
+    const version = getMockEServiceTemplateVersion();
+    version.interface = undefined;
+    template.versions = [version];
+
+    const msg = {
+      sequence_num: 1,
+      stream_id: template.id,
+      version: 1,
+      type: "EServiceTemplateVersionInterfaceDeleted",
+      event_version: 2,
+      data: {
+        eserviceTemplateVersionId: version.id,
+        eserviceTemplate: toEServiceTemplateV2(template),
+      },
+      log_date: new Date(),
+    } as any;
+
+    await expect(
+      handleEserviceTemplateMessageV2([msg], dbContext)
+    ).rejects.toThrowError(
+      `Missing interface for the specified version id: ${version.id}`
+    );
+  });
+});
