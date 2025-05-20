@@ -1,7 +1,5 @@
 {
-  "extends": [
-    "../../../.eslintrc.cjs"
-  ],
+  "extends": ["../../../.eslintrc.cjs"],
   "rules": {
     "functional/immutable-data": "off",
     "functional/no-let": "off",
