@@ -81,8 +81,8 @@ export const verifyClientAssertion = (
   clientId: string | undefined,
   expectedAudiences: string[],
   logger: Logger,
-  // TODO: delete when FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS is removed
-  featureFlagImprovedProducerVerificationClaims: boolean = false
+  // TODO: delete when FEATURE_FLAG_CLIENT_ASSERTION_STRICT_CLAIMS_VALIDATION is removed
+  featureFlagClientAssertionStrictClaimsValidation: boolean = false
   // eslint-disable-next-line sonarjs/cognitive-complexity
 ): ValidationResult<ClientAssertion> => {
   try {
@@ -150,7 +150,7 @@ export const verifyClientAssertion = (
           )}`
         );
 
-        if (featureFlagImprovedProducerVerificationClaims) {
+        if (featureFlagClientAssertionStrictClaimsValidation) {
           return failedValidation([
             clientAssertionInvalidClaims(
               payloadStrictParseResult.error.message
@@ -176,7 +176,7 @@ export const verifyClientAssertion = (
           )}`
         );
 
-        if (featureFlagImprovedProducerVerificationClaims) {
+        if (featureFlagClientAssertionStrictClaimsValidation) {
           return failedValidation([
             clientAssertionInvalidClaims(headerStrictParseResult.error.message),
           ]);

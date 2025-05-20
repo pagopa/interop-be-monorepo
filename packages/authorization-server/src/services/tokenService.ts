@@ -117,7 +117,7 @@ export function tokenServiceBuilder({
           logger,
           isFeatureFlagEnabled(
             config,
-            "featureFlagImprovedProducerVerificationClaims"
+            "featureFlagClientAssertionStrictClaimsValidation"
           )
         );
 

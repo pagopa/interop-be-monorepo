@@ -81,7 +81,7 @@ export function toolsServiceBuilder(clients: PagoPAInteropBeClients) {
           ctx.logger,
           isFeatureFlagEnabled(
             config,
-            "featureFlagImprovedProducerVerificationClaims"
+            "featureFlagClientAssertionStrictClaimsValidation"
           )
         );
 
