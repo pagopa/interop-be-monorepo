@@ -256,7 +256,10 @@ export function agreementServiceBuilder(
     },
     async getAgreementById(
       agreementId: AgreementId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<Agreement> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 

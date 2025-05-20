@@ -1,5 +1,6 @@
 import { WithLogger } from "pagopa-interop-commons";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AgreementId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -38,6 +39,22 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount,
         },
       };
+    },
+    async getAgreement(
+      agreementId: AgreementId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
+
+      const { data: agreement } =
+        await clients.agreementProcessClient.getAgreementById({
+          params: {
+            agreementId,
+          },
+          headers: ctx.headers,
+        });
+
+      return toM2MGatewayApiAgreement(agreement);
     },
   };
 }
