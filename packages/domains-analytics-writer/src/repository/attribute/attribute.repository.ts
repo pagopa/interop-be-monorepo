@@ -6,17 +6,20 @@ import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { DBConnection } from "../../db/db.js";
 import {
   AttributeMapping,
-  attributeSchema,
+  AttributeSchema,
 } from "../../model/attribute/attribute.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, AttributeDbtable } from "../../model/db.js";
+import {
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
+import { DeletingDbTable, AttributeDbTable } from "../../model/db.js";
 
 /* eslint-disable-next-line @typescript-eslint/explicit-function-return-type */
 export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = AttributeDbtable.attribute;
+  const tableName = AttributeDbTable.attribute;
   const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTable = DeletingDbTable.attribute_deleting_table;
+  const deletingTable = `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -53,11 +56,11 @@ export function attributeRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          attributeSchema,
+          AttributeSchema,
           schemaName,
           tableName,
           stagingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -77,41 +80,43 @@ export function attributeRepository(conn: DBConnection) {
       }
     },
 
-    async insertDeletingById(
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      id: string
+      recordsId: Array<AttributeSQL["id"]>
     ): Promise<void> {
-      const mapping = {
-        id: () => id,
-        deleted: () => true,
-      };
       try {
+        const mapping = {
+          id: (r: { id: string }) => r.id,
+          deleted: () => true,
+        };
         const cs = buildColumnSet<{ id: string; deleted: boolean }>(
           pgp,
           mapping,
-          DeletingDbTable.attribute_deleting_table
+          deletingTable
         );
+
+        const records = recordsId.map((id: string) => ({ id, deleted: true }));
+
         await t.none(
-          pgp.helpers.insert({ id, deleted: true }, cs) +
-            " ON CONFLICT DO NOTHING"
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${DeletingDbTable.attribute_deleting_table}: ${error}`
+          `Error inserting into deleting table ${deletingTable}: ${error}`
         );
       }
     },
 
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        await t.none(`
-          MERGE INTO ${schemaName}.${tableName} AS target
-          USING ${deletingTable} AS src
-          ON target.id = src.id
-          WHEN MATCHED THEN
-            UPDATE SET deleted = src.deleted;
-        `);
+        const mergeQuery = generateMergeDeleteQuery(
+          schemaName,
+          tableName,
+          deletingTable,
+          ["id"]
+        );
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging deletion flag from ${deletingTable} into ${schemaName}.${tableName}: ${error}`
