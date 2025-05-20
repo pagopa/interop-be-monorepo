@@ -3266,12 +3266,18 @@ paths:
           name: IPACode
           schema:
             type: string
-          description: IPA code of the tenant. Mutually exclusive with taxCode.
+          description: |
+            IPA code of the tenant.
+            Available only for Tenants listed in IPA.
+            Mutually exclusive with taxCode.
         - in: query
           name: taxCode
           schema:
             type: string
-          description: Tax code of the tenant. Mutually exclusive with IPACode.
+          description: |
+            Tax code of the tenant.
+            Available only for Tenants not listed in IPA.
+            Mutually exclusive with IPACode.
         - in: query
           name: offset
           required: true
