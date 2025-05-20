@@ -83,7 +83,7 @@ describe("POST /agreements/:agreementId/approve router test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockAgreementService.createAgreement = vi
+      mockAgreementService.approveAgreement = vi
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
