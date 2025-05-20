@@ -7,6 +7,7 @@ export const EserviceTemplateRiskAnalysisSchema = createSelectSchema(
 ).extend({
   deleted: z.boolean().default(false).optional(),
 });
+
 export type EserviceTemplateRiskAnalysisSchema = z.infer<
   typeof EserviceTemplateRiskAnalysisSchema
 >;

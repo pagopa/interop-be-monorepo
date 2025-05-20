@@ -7,6 +7,7 @@ export const EserviceTemplateVersionSchema = createSelectSchema(
 ).extend({
   deleted: z.boolean().default(false).optional(),
 });
+
 export type EserviceTemplateVersionSchema = z.infer<
   typeof EserviceTemplateVersionSchema
 >;

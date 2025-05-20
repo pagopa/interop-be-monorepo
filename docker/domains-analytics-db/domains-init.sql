@@ -151,9 +151,9 @@ CREATE TABLE domains.eservice_risk_analysis_answer (
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template (
-  id UUID,
+  id VARCHAR(36),
   metadata_version INTEGER NOT NULL,
-  creator_id UUID NOT NULL,
+  creator_id VARCHAR(36) NOT NULL,
   name VARCHAR NOT NULL,
   intended_target VARCHAR NOT NULL,
   description VARCHAR NOT NULL,
@@ -161,12 +161,13 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   mode VARCHAR NOT NULL,
   is_signal_hub_enabled BOOLEAN,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template_version (
-  id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES domains.eservice_template (id),
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
   metadata_version INTEGER NOT NULL,
   version INTEGER NOT NULL,
   description VARCHAR,
@@ -179,66 +180,72 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_version (
   published_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template_version_interface (
-  id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES domains.eservice_template (id),
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
   metadata_version INTEGER NOT NULL,
-  version_id UUID UNIQUE NOT NULL REFERENCES domains.eservice_template_version (id),
+  version_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.eservice_template_version (id),
   name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template_version_document (
-  id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES domains.eservice_template (id),
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
   metadata_version INTEGER NOT NULL,
-  version_id UUID NOT NULL REFERENCES domains.eservice_template_version (id),
+  version_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template_version (id),
   name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
   path VARCHAR NOT NULL,
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template_version_attribute (
-  attribute_id UUID NOT NULL,
-  eservice_template_id UUID NOT NULL REFERENCES domains.eservice_template (id),
+  attribute_id VARCHAR(36) NOT NULL,
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
   metadata_version INTEGER NOT NULL,
-  version_id UUID NOT NULL REFERENCES domains.eservice_template_version (id),
+  version_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template_version (id),
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (attribute_id, version_id, group_id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template_risk_analysis (
-  id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES domains.eservice_template (id),
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
   metadata_version INTEGER NOT NULL,
   name VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  risk_analysis_form_id UUID UNIQUE NOT NULL,
+  risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template_risk_analysis_answer (
-  id UUID,
-  eservice_template_id UUID NOT NULL REFERENCES domains.eservice_template (id),
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id UUID NOT NULL REFERENCES domains.eservice_template_risk_analysis (risk_analysis_form_id),
+  risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template_risk_analysis (risk_analysis_form_id),
   kind VARCHAR NOT NULL,
   key VARCHAR NOT NULL,
-  value VARCHAR ARRAY NOT NULL,
+  value VARCHAR(65535) NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );
