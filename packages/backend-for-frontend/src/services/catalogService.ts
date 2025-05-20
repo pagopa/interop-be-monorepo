@@ -194,7 +194,7 @@ const enhanceProducerEService = (
       : undefined;
 
   const eserviceTemplate = eserviceTemplates.find(
-    (t) => t.id === eservice.templateRef?.id
+    (t) => t.id === eservice.templateId
   );
 
   return {
@@ -397,7 +397,7 @@ export function catalogServiceBuilder(
         },
       });
 
-      const eServiceTemplateId = eservice.templateRef?.id;
+      const eServiceTemplateId = eservice.templateId;
 
       const eserviceTemplate = eServiceTemplateId
         ? await eserviceTemplateProcessClient.getEServiceTemplateById({
@@ -462,7 +462,6 @@ export function catalogServiceBuilder(
         templateRef: eserviceTemplate && {
           templateId: eserviceTemplate.id,
           templateName: eserviceTemplate.name,
-          instanceLabel: eservice.templateRef?.instanceLabel,
           templateVersionId: descriptor.templateVersionRef?.id,
           templateInterface: eserviceTemplateInterface
             ? toBffCatalogApiDescriptorDoc(eserviceTemplateInterface)
@@ -799,7 +798,7 @@ export function catalogServiceBuilder(
       const eserviceTemplatesIds = Array.from(
         new Set(
           res.results
-            .map((r) => r.templateRef?.id)
+            .map((r) => r.templateId)
             .filter((id): id is string => !!id)
         )
       );
@@ -1097,7 +1096,7 @@ export function catalogServiceBuilder(
 
       const previousDescriptor = retrieveLatestDescriptor(eService.descriptors);
 
-      if (eService.templateRef) {
+      if (eService.templateId) {
         const { id } =
           await catalogProcessClient.createTemplateInstanceDescriptor(
             {
@@ -1283,6 +1282,24 @@ export function catalogServiceBuilder(
         },
       });
     },
+    updateAgreementApprovalPolicy: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.CreatedResource> => {
+      logger.info(
+        `Updating descriptor ${descriptorId} agreementApprovalPolicy of EService ${eServiceId}`
+      );
+
+      return await catalogProcessClient.updateAgreementApprovalPolicy(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
     publishDescriptor: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1321,7 +1338,7 @@ export function catalogServiceBuilder(
       documentId: EServiceDocumentId,
       updateEServiceDescriptorDocumentSeed: bffApi.UpdateEServiceDescriptorDocumentSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.EServiceDoc> => {
+    ): Promise<catalogApi.EServiceDoc> => {
       logger.info(
         `Updating document ${documentId} of descriptor ${descriptorId} of EService ${eServiceId}`
       );
@@ -1695,11 +1712,7 @@ export function catalogServiceBuilder(
       seed: bffApi.InstanceEServiceSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedEServiceDescriptor> => {
-      logger.info(
-        `Creating EService from template ${templateId} ${
-          seed.instanceLabel ? `with instanceLabel ${seed.instanceLabel}` : ""
-        }`
-      );
+      logger.info(`Creating EService from template ${templateId}`);
 
       const eService =
         await catalogProcessClient.createEServiceInstanceFromTemplate(seed, {

@@ -1,19 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import {
-  attributeKind,
-  tenantAttributeType,
-  toReadModelAttribute,
-} from "pagopa-interop-models";
+import { attributeKind, tenantAttributeType } from "pagopa-interop-models";
 
 import {
-  writeInReadmodel,
   getMockAttribute,
   getMockTenant,
   readEventByStreamIdAndVersion,
+  getMockContextInternal,
 } from "pagopa-interop-commons-test";
 import {
-  generateId,
   Tenant,
   Attribute,
   unsafeBrandId,
@@ -23,23 +18,24 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   tenantNotFoundByExternalId,
 } from "../src/model/domain/errors.js";
 import {
+  addOneAttribute,
   addOneTenant,
-  attributes,
   postgresDB,
   tenantService,
 } from "./utils.js";
 
 describe("internalAssignCertifiedAttributes", async () => {
-  const attribute: Attribute = {
+  const certifiedAttribute: Attribute = {
     ...getMockAttribute(),
     kind: attributeKind.certified,
+    origin: "certifier-id",
+    code: "0001",
   };
 
   beforeAll(async () => {
@@ -56,17 +52,17 @@ describe("internalAssignCertifiedAttributes", async () => {
       ...getMockTenant(),
       attributes: [],
     };
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+
+    await addOneAttribute(certifiedAttribute);
     await addOneTenant(targetTenant);
     await tenantService.internalAssignCertifiedAttribute(
       {
         tenantOrigin: targetTenant.externalId.origin,
         tenantExternalId: targetTenant.externalId.value,
-        attributeOrigin: attribute.origin!,
-        attributeExternalId: attribute.code!,
-        correlationId: generateId(),
+        attributeOrigin: certifiedAttribute.origin!,
+        attributeExternalId: certifiedAttribute.code!,
       },
-      genericLogger
+      getMockContextInternal({})
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
       targetTenant.id,
@@ -90,7 +86,7 @@ describe("internalAssignCertifiedAttributes", async () => {
       ...targetTenant,
       attributes: [
         {
-          id: unsafeBrandId(attribute.id),
+          id: unsafeBrandId(certifiedAttribute.id),
           type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
@@ -105,7 +101,7 @@ describe("internalAssignCertifiedAttributes", async () => {
       ...getMockTenant(),
       attributes: [
         {
-          id: unsafeBrandId(attribute.id),
+          id: unsafeBrandId(certifiedAttribute.id),
           type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
           revocationTimestamp: new Date(),
@@ -113,17 +109,16 @@ describe("internalAssignCertifiedAttributes", async () => {
       ],
     };
 
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(certifiedAttribute);
     await addOneTenant(tenantWithCertifiedAttribute);
     await tenantService.internalAssignCertifiedAttribute(
       {
         tenantOrigin: tenantWithCertifiedAttribute.externalId.origin,
         tenantExternalId: tenantWithCertifiedAttribute.externalId.value,
-        attributeOrigin: attribute.origin!,
-        attributeExternalId: attribute.code!,
-        correlationId: generateId(),
+        attributeOrigin: certifiedAttribute.origin!,
+        attributeExternalId: certifiedAttribute.code!,
       },
-      genericLogger
+      getMockContextInternal({})
     );
     const writtenEvent = await readEventByStreamIdAndVersion(
       tenantWithCertifiedAttribute.id,
@@ -147,7 +142,7 @@ describe("internalAssignCertifiedAttributes", async () => {
       ...tenantWithCertifiedAttribute,
       attributes: [
         {
-          id: unsafeBrandId(attribute.id),
+          id: unsafeBrandId(certifiedAttribute.id),
           type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
@@ -162,45 +157,43 @@ describe("internalAssignCertifiedAttributes", async () => {
       ...getMockTenant(),
       attributes: [
         {
-          id: attribute.id,
+          id: certifiedAttribute.id,
           type: tenantAttributeType.CERTIFIED,
           assignmentTimestamp: new Date(),
         },
       ],
     };
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(certifiedAttribute);
     await addOneTenant(tenantAlreadyAssigned);
     expect(
       tenantService.internalAssignCertifiedAttribute(
         {
           tenantOrigin: tenantAlreadyAssigned.externalId.origin,
           tenantExternalId: tenantAlreadyAssigned.externalId.value,
-          attributeOrigin: attribute.origin!,
-          attributeExternalId: attribute.code!,
-          correlationId: generateId(),
+          attributeOrigin: certifiedAttribute.origin!,
+          attributeExternalId: certifiedAttribute.code!,
         },
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       certifiedAttributeAlreadyAssigned(
-        unsafeBrandId(attribute.id),
+        unsafeBrandId(certifiedAttribute.id),
         unsafeBrandId(tenantAlreadyAssigned.id)
       )
     );
   });
   it("Should throw tenantNotFoundByExternalId if the target tenant doesn't exist", async () => {
-    await writeInReadmodel(toReadModelAttribute(attribute), attributes);
+    await addOneAttribute(certifiedAttribute);
     const targetTenant = getMockTenant();
     expect(
       tenantService.internalAssignCertifiedAttribute(
         {
           tenantOrigin: targetTenant.externalId.origin,
           tenantExternalId: targetTenant.externalId.value,
-          attributeOrigin: attribute.origin!,
-          attributeExternalId: attribute.code!,
-          correlationId: generateId(),
+          attributeOrigin: certifiedAttribute.origin!,
+          attributeExternalId: certifiedAttribute.code!,
         },
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
@@ -218,14 +211,15 @@ describe("internalAssignCertifiedAttributes", async () => {
         {
           tenantOrigin: targetTenant.externalId.origin,
           tenantExternalId: targetTenant.externalId.value,
-          attributeOrigin: attribute.origin!,
-          attributeExternalId: attribute.code!,
-          correlationId: generateId(),
+          attributeOrigin: certifiedAttribute.origin!,
+          attributeExternalId: certifiedAttribute.code!,
         },
-        genericLogger
+        getMockContextInternal({})
       )
     ).rejects.toThrowError(
-      attributeNotFound(unsafeBrandId(`${attribute.origin}/${attribute.code}`))
+      attributeNotFound(
+        unsafeBrandId(`${certifiedAttribute.origin}/${certifiedAttribute.code}`)
+      )
     );
   });
 });

@@ -1,11 +1,19 @@
-/* eslint-disable no-console */
 import { expect, describe, it } from "vitest";
 import { getMockTenant } from "pagopa-interop-commons-test";
-import { Tenant, TenantId, generateId } from "pagopa-interop-models";
 import {
+  PUBLIC_SERVICES_MANAGERS,
+  Tenant,
+  TenantId,
+  generateId,
+} from "pagopa-interop-models";
+import {
+  ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+  PUBLIC_SERVICES_MANAGERS_TYPOLOGY,
   TenantSeed,
   getTenantUpsertData,
 } from "../src/services/ipaCertifiedAttributesImporterService.js";
+import { Institution } from "../src/services/openDataExtractor.js";
+import { config } from "../src/config/config.js";
 import { agency, aoo, attributes, uo } from "./expectation.js";
 
 const registryData = {
@@ -50,9 +58,30 @@ describe("TenantUpsertData", async () => {
 
     expect(upsertData.length).toEqual(platformTenant.length);
 
-    const gpsTenants = registryData.institutions.filter(
-      (i) => i.kind === "Gestori di Pubblici Servizi"
+    const [gpsTenants, notGpsTenants] = registryData.institutions.reduce<
+      [Institution[], Institution[]]
+    >(
+      (acc, institution) => {
+        const isGpsTenant =
+          institution.kind === PUBLIC_SERVICES_MANAGERS_TYPOLOGY ||
+          (institution.kind === ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY &&
+            config.economicAccountCompaniesAllowlist.includes(
+              institution.originId
+            ));
+
+        if (isGpsTenant) {
+          // eslint-disable-next-line functional/immutable-data
+          acc[0].push(institution);
+        } else {
+          // eslint-disable-next-line functional/immutable-data
+          acc[1].push(institution);
+        }
+
+        return acc;
+      },
+      [[], []]
     );
+
     expect(gpsTenants.length).toBeGreaterThan(0);
 
     gpsTenants.forEach((i) => {
@@ -60,20 +89,20 @@ describe("TenantUpsertData", async () => {
 
       expect(upsertEntry?.attributes).toContainEqual({
         origin: i.origin,
-        code: "L37",
+        code: PUBLIC_SERVICES_MANAGERS,
       });
     });
 
-    const notGpsTenants = registryData.institutions.filter(
-      (i) => i.kind !== "Gestori di Pubblici Servizi"
-    );
+    // In the env 1VO9PWVQ is not present in ECONOMIC_ACCOUNT_COMPANIES_ALLOWLIST
+    expect(gpsTenants).not.toContainEqual({ originId: "1VO9PWVQ" });
+
     expect(notGpsTenants.length).toBeGreaterThan(0);
 
     notGpsTenants.forEach((i) => {
       const upsertEntry = findUpsertDataEntryForInstitution(upsertData, i);
 
       expect(
-        upsertEntry?.attributes.find((a) => a.code === "L37")
+        upsertEntry?.attributes.find((a) => a.code === PUBLIC_SERVICES_MANAGERS)
       )?.toBeUndefined();
     });
   });

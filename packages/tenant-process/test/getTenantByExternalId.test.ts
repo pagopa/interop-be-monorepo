@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, expect, it } from "vitest";
 import { Tenant } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { getMockTenant } from "pagopa-interop-commons-test";
+import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
 import { tenantNotFoundByExternalId } from "../src/model/domain/errors.js";
 import { addOneTenant, tenantService } from "./utils.js";
 
@@ -29,7 +28,7 @@ describe("getTenantByExternalId", () => {
         value: tenant1.externalId.value,
         origin: tenant1.externalId.origin,
       },
-      genericLogger
+      getMockContext({})
     );
     expect(returnedTenant).toEqual(tenant1);
   });
@@ -41,7 +40,7 @@ describe("getTenantByExternalId", () => {
           value: tenant1.externalId.value,
           origin: tenant1.externalId.origin,
         },
-        genericLogger
+        getMockContext({})
       )
     ).rejects.toThrowError(
       tenantNotFoundByExternalId(
