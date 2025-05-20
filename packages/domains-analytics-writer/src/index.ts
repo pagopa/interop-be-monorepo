@@ -14,6 +14,7 @@ import { retryConnection } from "./db/buildColumnSet.js";
 import {
   AttributeDbTable,
   CatalogDbTable,
+  DelegationDbTable,
   DeletingDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
@@ -51,6 +52,9 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      DelegationDbTable.delegation,
+      DelegationDbTable.delegation_stamp,
+      DelegationDbTable.delegation_contract_document,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
