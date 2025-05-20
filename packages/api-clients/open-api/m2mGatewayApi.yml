@@ -1210,6 +1210,12 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
@@ -2279,8 +2285,34 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Name Conflict
           content:
             application/json:
               schema:
@@ -2323,24 +2355,27 @@ paths:
         - name: offset
           in: query
           description: The offset used for pagination
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 0
         - name: limit
           in: query
           description: The limit used for pagination
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Purposes retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Purposes"
+                $ref: "#/components/schemas/Purposes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3344,6 +3379,19 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /tenants/{tenantId}/certifiedAttributes:
     parameters:
       - name: tenantId
@@ -3358,6 +3406,22 @@ paths:
         - tenants
       operationId: getCertifiedAttributes
       description: Retrieve certified attributes for a Tenant
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: Certified attributes retrieved
@@ -3387,6 +3451,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
           content:
             application/json:
               schema:
@@ -3817,14 +3894,17 @@ components:
         revokedAt:
           type: string
           format: date-time
+        submittedAt:
+          type: string
+          format: date-time
+        activatedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
         state:
           $ref: "#/components/schemas/DelegationState"
-        activationContract:
-          $ref: "#/components/schemas/DelegationContractDocument"
-        revocationContract:
-          $ref: "#/components/schemas/DelegationContractDocument"
-        stamps:
-          $ref: "#/components/schemas/DelegationStamps"
       required:
         - id
         - delegatorId
@@ -3833,7 +3913,7 @@ components:
         - createdAt
         - state
         - kind
-        - stamps
+        - submittedAt
     ConsumerDelegations:
       type: object
       additionalProperties: false
@@ -3847,58 +3927,6 @@ components:
       required:
         - results
         - pagination
-    DelegationContractDocument:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        prettyName:
-          type: string
-        contentType:
-          type: string
-        path:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-      required:
-        - id
-        - name
-        - prettyName
-        - contentType
-        - path
-        - createdAt
-    DelegationStamp:
-      type: object
-      additionalProperties: false
-      properties:
-        who:
-          type: string
-          format: uuid
-        when:
-          type: string
-          format: date-time
-      required:
-        - who
-        - when
-    DelegationStamps:
-      type: object
-      additionalProperties: false
-      properties:
-        submission:
-          $ref: "#/components/schemas/DelegationStamp"
-        activation:
-          $ref: "#/components/schemas/DelegationStamp"
-        rejection:
-          $ref: "#/components/schemas/DelegationStamp"
-        revocation:
-          $ref: "#/components/schemas/DelegationStamp"
-      required:
-        - submission
     DelegationState:
       type: string
       enum:
@@ -4260,6 +4288,9 @@ components:
           $ref: "#/components/schemas/PurposeVersion"
         rejectedVersion:
           $ref: "#/components/schemas/PurposeVersion"
+          description: >
+            Represents the latest version of the purpose when it has been rejected. 
+            This property is present only if the most recent version is in a rejected status.
       required:
         - id
         - eserviceId
@@ -4269,7 +4300,6 @@ components:
         - createdAt
         - isRiskAnalysisValid
         - isFreeOfCharge
-        - currentVersion
     PurposeSeed:
       type: object
       additionalProperties: false
@@ -4298,6 +4328,7 @@ components:
         dailyCalls:
           type: integer
           format: int32
+          minimum: 0
       required:
         - eserviceId
         - title
@@ -4343,8 +4374,6 @@ components:
           type: integer
           format: int32
           minimum: 0
-        riskAnalysisDocument:
-          $ref: "#/components/schemas/PurposeVersionDocument"
         rejectionReason:
           type: string
       required:
@@ -4366,25 +4395,6 @@ components:
       required:
         - results
         - pagination
-    PurposeVersionDocument:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - contentType
-        - path
-        - createdAt
-      properties:
-        id:
-          type: string
-          format: uuid
-        contentType:
-          type: string
-        path:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
     PurposeVersionSeed:
       type: object
       additionalProperties: false

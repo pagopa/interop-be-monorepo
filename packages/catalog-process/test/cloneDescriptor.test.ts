@@ -20,6 +20,7 @@ import {
   delegationState,
   delegationKind,
   EServiceTemplateId,
+  EServiceDocumentId,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
@@ -54,21 +55,27 @@ describe("clone descriptor", () => {
   });
   it("should write on event-store for the cloning of a descriptor, and clone the descriptor docs and interface files", async () => {
     vi.spyOn(fileManager, "copy");
+    const documentId1 = generateId<EServiceDocumentId>();
+    const documentId2 = generateId<EServiceDocumentId>();
+    const interfaceId = generateId<EServiceDocumentId>();
 
-    const document1 = {
+    const document1: Document = {
       ...mockDocument,
+      id: documentId1,
       name: `${mockDocument.name}_1`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,
+      path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
     };
-    const document2 = {
+    const document2: Document = {
       ...mockDocument,
+      id: documentId2,
       name: `${mockDocument.name}_2`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
+      path: `${config.eserviceDocumentsPath}/${documentId2}/${mockDocument.name}_2`,
     };
-    const interfaceDocument = {
+    const interfaceDocument: Document = {
       ...mockDocument,
+      id: interfaceId,
       name: `${mockDocument.name}_interface`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_interface`,
+      path: `${config.eserviceDocumentsPath}/${interfaceId}/${mockDocument.name}_interface`,
     };
 
     const descriptor: Descriptor = {
@@ -115,6 +122,7 @@ describe("clone descriptor", () => {
       },
       genericLogger
     );
+
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
@@ -269,7 +277,7 @@ describe("clone descriptor", () => {
       ...mockEService,
       id: generateId(),
       name: conflictEServiceName,
-      descriptors: [descriptor],
+      descriptors: [getMockDescriptor()],
     };
     await addOneEService(eservice2);
 

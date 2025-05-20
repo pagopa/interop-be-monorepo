@@ -9,9 +9,15 @@ import {
   fromAppContext,
   validateAuthorization,
   authRole,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import {
+  attributeReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../services/readModelService.js";
 import {
   toAttributeKind,
@@ -19,7 +25,10 @@ import {
 } from "../model/domain/apiConverter.js";
 import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { attributeRegistryServiceBuilder } from "../services/attributeRegistryService.js";
+import {
+  AttributeRegistryService,
+  attributeRegistryServiceBuilder,
+} from "../services/attributeRegistryService.js";
 import {
   createCertifiedAttributesErrorMapper,
   createDeclaredAttributesErrorMapper,
@@ -29,10 +38,29 @@ import {
   getAttributeByOriginAndCodeErrorMapper,
   getAttributesByNameErrorMapper,
 } from "../utilities/errorMappers.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
+
+const readModelDB = makeDrizzleConnection(config);
+const attributeReadModelServiceSQL =
+  attributeReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
 const readModelRepository = ReadModelRepository.init(config);
-const readModelService = readModelServiceBuilder(readModelRepository);
-const attributeRegistryService = attributeRegistryServiceBuilder(
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  attributeReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+});
+
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
+
+const defaultAttributeRegistryService = attributeRegistryServiceBuilder(
   initDB({
     username: config.eventStoreDbUsername,
     password: config.eventStoreDbPassword,
@@ -46,7 +74,8 @@ const attributeRegistryService = attributeRegistryServiceBuilder(
 );
 
 const attributeRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  attributeRegistryService: AttributeRegistryService = defaultAttributeRegistryService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const attributeRouter = ctx.router(attributeRegistryApi.attributeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -57,6 +86,7 @@ const attributeRouter = (
     SECURITY_ROLE,
     API_ROLE,
     M2M_ROLE,
+    M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
   } = authRole;
@@ -177,21 +207,20 @@ const attributeRouter = (
             API_ROLE,
             SUPPORT_ROLE,
             SECURITY_ROLE,
+            M2M_ADMIN_ROLE,
             M2M_ROLE,
           ]);
 
-          const attribute = await attributeRegistryService.getAttributeById(
-            unsafeBrandId(req.params.attributeId),
-            ctx
-          );
+          const { data, metadata } =
+            await attributeRegistryService.getAttributeById(
+              unsafeBrandId(req.params.attributeId),
+              ctx
+            );
 
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
-            .send(
-              attributeRegistryApi.Attribute.parse(
-                toApiAttribute(attribute.data)
-              )
-            );
+            .send(attributeRegistryApi.Attribute.parse(toApiAttribute(data)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -213,6 +242,7 @@ const attributeRouter = (
           SUPPORT_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
         ]);
 
         const attributes = await attributeRegistryService.getAttributesByIds(
@@ -238,18 +268,18 @@ const attributeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const attribute =
+        const { data, metadata } =
           await attributeRegistryService.createCertifiedAttribute(
             req.body,
             ctx
           );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
-          .send(
-            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
-          );
+          .send(attributeRegistryApi.Attribute.parse(toApiAttribute(data)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

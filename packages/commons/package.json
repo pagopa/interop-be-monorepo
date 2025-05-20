@@ -47,10 +47,11 @@
     "rate-limiter-flexible": "5.0.3",
     "redis": "4.6.15",
     "ts-pattern": "5.2.0",
-    "winston": "3.13.0",
+    "winston": "3.16.0",
     "yaml": "2.4.5",
     "zod": "3.23.8",
-    "zod-validation-error": "3.3.0"
+    "zod-validation-error": "3.3.0",
+    "drizzle-orm": "0.39.3"
   },
   "devDependencies": {
     "@types/express": "4.17.21",

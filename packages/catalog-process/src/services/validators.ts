@@ -36,6 +36,7 @@ import {
   templateInstanceNotAllowed,
   eServiceNotAnInstance,
   inconsistentDailyCalls,
+  eserviceWithoutValidDescriptors,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -61,6 +62,13 @@ export function descriptorStatesNotAllowingDocumentOperations(
 export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.draft,
   descriptorState.waitingForApproval,
+];
+
+export const validDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+  descriptorState.archived,
 ];
 
 export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
@@ -310,5 +318,12 @@ export function assertConsistentDailyCalls({
 export function assertDescriptorUpdatable(descriptor: Descriptor): void {
   if (!isDescriptorUpdatable(descriptor)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+  }
+}
+
+export function assertEServiceUpdatable(eservice: EService): void {
+  const hasValidDescriptor = eservice.descriptors.some(isDescriptorUpdatable);
+  if (!hasValidDescriptor) {
+    throw eserviceWithoutValidDescriptors(eservice.id);
   }
 }

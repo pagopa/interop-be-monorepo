@@ -1,5 +1,6 @@
-import { eq, and, lte } from "drizzle-orm";
+import { eq, and, lte, SQL } from "drizzle-orm";
 import {
+  genericInternalError,
   ProducerJWKKey,
   ProducerKeychainId,
   WithMetadata,
@@ -24,54 +25,71 @@ export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {
           tx,
           producerJwkKeyInReadmodelProducerJwkKey,
           metadataVersion,
-          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+          and(
+            eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid),
+            eq(
+              producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+              jwkKey.producerKeychainId
+            )
+          )
         );
 
-        if (shouldUpsert) {
-          await tx
-            .delete(producerJwkKeyInReadmodelProducerJwkKey)
-            .where(
-              and(
-                eq(
-                  producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-                  jwkKey.producerKeychainId
-                ),
-                eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
-              )
-            );
+        if (!shouldUpsert) {
+          return;
+        }
 
-          const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
-            jwkKey,
-            metadataVersion
+        await tx
+          .delete(producerJwkKeyInReadmodelProducerJwkKey)
+          .where(
+            and(
+              eq(
+                producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+                jwkKey.producerKeychainId
+              ),
+              eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+            )
           );
 
-          await tx
-            .insert(producerJwkKeyInReadmodelProducerJwkKey)
-            .values(producerJWKKeySQL);
-        }
+        const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
+          jwkKey,
+          metadataVersion
+        );
+
+        await tx
+          .insert(producerJwkKeyInReadmodelProducerJwkKey)
+          .values(producerJWKKeySQL);
       });
     },
     async getProducerJWKKeyByProducerKeychainIdAndKid(
       producerKeychainId: ProducerKeychainId,
       kid: string
     ): Promise<WithMetadata<ProducerJWKKey> | undefined> {
+      return this.getProducerJWKKeyByFilter(
+        and(
+          eq(
+            producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+            producerKeychainId
+          ),
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kid)
+        )
+      );
+    },
+    async getProducerJWKKeyByFilter(
+      filter: SQL | undefined
+    ): Promise<WithMetadata<ProducerJWKKey> | undefined> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
       const queryResult = await db
         .select()
         .from(producerJwkKeyInReadmodelProducerJwkKey)
-        .where(
-          and(
-            eq(
-              producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
-              producerKeychainId
-            ),
-            eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kid)
-          )
-        );
+        .where(filter);
       if (queryResult.length === 0) {
         return undefined;
       }
       return aggregateProducerJWKKey(queryResult[0]);
     },
+
     async deleteProducerJWKKeyByProducerKeychainAndKid(
       producerKeychainId: ProducerKeychainId,
       kid: string,

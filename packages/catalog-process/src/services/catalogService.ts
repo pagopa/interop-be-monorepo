@@ -7,7 +7,6 @@ import {
   DB,
   eventRepository,
   FileManager,
-  formatDateddMMyyyyHHmmss,
   hasAtLeastOneUserRole,
   InternalAuthData,
   interpolateApiSpec,
@@ -19,6 +18,9 @@ import {
   userRole,
   verifyAndCreateDocument,
   WithLogger,
+  formatDateddMMyyyyHHmmss,
+  assertFeatureFlagEnabled,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -102,6 +104,7 @@ import {
   toCreateEventEServiceDescriptorActivated,
   toCreateEventEServiceDescriptorAdded,
   toCreateEventEServiceDescriptorApprovedByDelegator,
+  toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated,
   toCreateEventEServiceDescriptorArchived,
   toCreateEventEServiceDescriptorAttributesUpdated,
   toCreateEventEServiceDescriptorAttributesUpdatedByTemplateUpdate,
@@ -153,13 +156,13 @@ import {
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
-  isDescriptorUpdatable,
   isNotActiveDescriptor,
   validateRiskAnalysisSchemaOrThrow,
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
   assertDescriptorUpdatable,
+  assertEServiceUpdatable,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -451,10 +454,10 @@ async function parseAndCheckAttributes(
 
 function isTenantInSignalHubWhitelist(
   organizationId: TenantId,
-  isSignalubEnabled: boolean | undefined
+  isSignalHubEnabled: boolean | undefined
 ): boolean | undefined {
   return config.signalhubWhitelistProducer?.includes(organizationId)
-    ? isSignalubEnabled
+    ? isSignalHubEnabled
     : false;
 }
 
@@ -497,7 +500,10 @@ async function innerCreateEService(
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: [],
-    isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+    isSignalHubEnabled: isFeatureFlagEnabled(
+      config,
+      "featureFlagSignalhubWhitelist"
+    )
       ? isTenantInSignalHubWhitelist(
           authData.organizationId,
           seed.isSignalHubEnabled
@@ -871,7 +877,10 @@ export function catalogServiceBuilder(
               serverUrls: [],
             }))
           : eservice.data.descriptors,
-        isSignalHubEnabled: config.featureFlagSignalhubWhitelist
+        isSignalHubEnabled: isFeatureFlagEnabled(
+          config,
+          "featureFlagSignalhubWhitelist"
+        )
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
               eservice.data.isSignalHubEnabled
@@ -1933,6 +1942,57 @@ export function catalogServiceBuilder(
 
       return updatedEService;
     },
+    async updateAgreementApprovalPolicy(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.UpdateEServiceDescriptorAgreementApprovalPolicySeed,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      assertFeatureFlagEnabled(
+        config,
+        "featureFlagAgreementApprovalPolicyUpdate"
+      );
+
+      logger.info(
+        `Updating Agreement approval policy of Descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDescriptorUpdatable(descriptor);
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        agreementApprovalPolicy:
+          apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+            seed.agreementApprovalPolicy
+          ),
+      };
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        updatedDescriptor
+      );
+
+      const event =
+        toCreateEventEServiceDescriptorAgreementApprovalPolicyUpdated(
+          eserviceId,
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        );
+      await repository.createEvent(event);
+
+      return updatedEService;
+    },
     async createRiskAnalysis(
       eserviceId: EServiceId,
       eserviceRiskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
@@ -2141,12 +2201,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const hasValidDescriptor = eservice.data.descriptors.some(
-        isDescriptorUpdatable
-      );
-      if (!hasValidDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
+      assertEServiceUpdatable(eservice.data);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -2182,12 +2237,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const hasValidDescriptor = eservice.data.descriptors.some(
-        isDescriptorUpdatable
-      );
-      if (!hasValidDescriptor) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
+      assertEServiceUpdatable(eservice.data);
 
       if (!isConsumerDelegable && isClientAccessDelegable) {
         throw invalidEServiceFlags(eserviceId);
@@ -2332,15 +2382,8 @@ export function catalogServiceBuilder(
         authData,
         readModelService
       );
-      if (
-        eservice.data.descriptors.every(
-          (descriptor) =>
-            descriptor.state === descriptorState.draft ||
-            descriptor.state === descriptorState.archived
-        )
-      ) {
-        throw eserviceWithoutValidDescriptors(eserviceId);
-      }
+
+      assertEServiceUpdatable(eservice.data);
 
       if (name !== eservice.data.name) {
         await assertNotDuplicatedEServiceNameForProducer(
@@ -2474,13 +2517,7 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-
-      if (
-        descriptor.state !== descriptorState.published &&
-        descriptor.state !== descriptorState.suspended
-      ) {
-        throw notValidDescriptorState(descriptorId, descriptor.state);
-      }
+      assertDescriptorUpdatable(descriptor);
 
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
