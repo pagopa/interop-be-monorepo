@@ -20,6 +20,10 @@ describe("API GET /producers/purposes test", () => {
     results: [getMockBffApiPurpose(), getMockBffApiPurpose()],
     pagination: { offset: 0, limit: 10, totalCount: 20 },
   };
+  const defaultQuery = {
+    offset: 0,
+    limit: 5,
+  };
 
   beforeEach(() => {
     services.purposeService.getProducerPurposes = vi
@@ -27,15 +31,12 @@ describe("API GET /producers/purposes test", () => {
       .mockResolvedValue(mockPurposes);
   });
 
-  const makeRequest = async (token: string, limit: unknown = 5) =>
+  const makeRequest = async (token: string, query: object = defaultQuery) =>
     request(api)
       .get(`${appBasePath}/producers/purposes`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit,
-      })
+      .query(query)
       .send();
 
   it("Should return 200 for user with role Admin", async () => {
@@ -65,9 +66,21 @@ describe("API GET /producers/purposes test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid limit", async () => {
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -2 } },
+    { query: { offset: 0, limit: 55 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+    { query: { ...defaultQuery, eservicesIds: `${generateId()},invalid` } },
+    { query: { ...defaultQuery, consumersIds: `invalid,${generateId()}` } },
+    { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
+  ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, query);
     expect(res.status).toBe(400);
   });
 });

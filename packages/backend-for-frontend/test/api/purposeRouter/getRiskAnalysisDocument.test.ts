@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import {
+  PurposeId,
+  PurposeVersionDocumentId,
+  PurposeVersionId,
+  generateId,
+} from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -21,9 +26,9 @@ describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{document
 
   const makeRequest = async (
     token: string,
-    purposeId: string = generateId(),
-    versionId: string = generateId(),
-    documentId: string = generateId()
+    purposeId: PurposeId = generateId(),
+    versionId: PurposeVersionId = generateId(),
+    documentId: PurposeVersionDocumentId = generateId()
   ) =>
     request(api)
       .get(
@@ -39,9 +44,16 @@ describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{document
     expect(res.body).toEqual(mockDocumentResponse);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { purposeId: "invalid" as PurposeId },
+    { versionId: "invalid" as PurposeVersionId },
+    { documentId: "invalid" as PurposeVersionDocumentId },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ purposeId, versionId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, purposeId, versionId, documentId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

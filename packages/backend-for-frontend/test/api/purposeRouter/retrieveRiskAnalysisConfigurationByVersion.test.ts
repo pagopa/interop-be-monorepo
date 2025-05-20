@@ -10,6 +10,7 @@ import { getMockBffApiRiskAnalysisFormConfig } from "../../mockUtils.js";
 
 describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", () => {
   const mockRiskAnalysisFormConfig = getMockBffApiRiskAnalysisFormConfig();
+  const defaultQuery = { eserviceId: generateId() };
 
   beforeEach(() => {
     services.purposeService.retrieveRiskAnalysisConfigurationByVersion = vi
@@ -20,7 +21,7 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
   const makeRequest = async (
     token: string,
     riskAnalysisVersion: string = "1",
-    eserviceId: string = generateId()
+    query: typeof defaultQuery = defaultQuery
   ) =>
     request(api)
       .get(
@@ -28,7 +29,7 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ eserviceId });
+      .query(query);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -37,9 +38,12 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
     expect(res.body).toEqual(mockRiskAnalysisFormConfig);
   });
 
-  it("Should return 400 if passed an invalid eservice id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "1", "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ query: {} }, { query: { eserviceId: "invalid" } }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ query }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, "1", query as typeof defaultQuery);
+      expect(res.status).toBe(400);
+    }
+  );
 });
