@@ -101,6 +101,10 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/activate",
       templateId: mockEserviceTemplate.id,
       templateVersionId: "invalidId",
     },
+    {
+      templateId: "invalidId",
+      templateVersionId: "invalidId",
+    },
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ templateId, templateVersionId }) => {

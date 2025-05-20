@@ -86,6 +86,23 @@ describe("API POST /templates", () => {
       ...mockEserviceTemplateSeed,
       version: { ...mockEserviceTemplateSeed.version, dailyCallsTotal: -1 },
     },
+    {
+      ...mockEserviceTemplateSeed,
+      version: {
+        ...mockEserviceTemplateSeed.version,
+        agreementApprovalPolicy: "INVALID_POLICY",
+      },
+    },
+    {
+      ...mockEserviceTemplateSeed,
+      version: {
+        ...mockEserviceTemplateSeed.version,
+        voucherLifespan: undefined,
+        dailyCallsPerConsumer: undefined,
+        dailyCallsTotal: undefined,
+        agreementApprovalPolicy: undefined,
+      },
+    },
   ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
