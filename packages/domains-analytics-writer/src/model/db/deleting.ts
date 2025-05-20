@@ -38,7 +38,7 @@ export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
 export type DeletingDbTable = keyof DeletingDbTableConfig;
 
 export const DeletingDbTable = Object.fromEntries(
-  Object.keys(DeletingDbTableConfig).map((k) => [k, k])
+  Object.keys(DeletingDbTableConfig).map((k) => [k, k]),
 ) as { [K in DeletingDbTable]: K };
 
 export type DeletingDbTableConfigMap = {
