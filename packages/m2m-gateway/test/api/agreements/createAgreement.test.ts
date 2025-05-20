@@ -18,7 +18,7 @@ describe("POST /agreements router test", () => {
   const mockAgreementSeed: m2mGatewayApi.AgreementSeed = {
     eserviceId: generateId(),
     descriptorId: generateId(),
-    delegationId: generateId()
+    delegationId: generateId(),
   };
 
   const mockApiAgreement = getMockedApiAgreement();

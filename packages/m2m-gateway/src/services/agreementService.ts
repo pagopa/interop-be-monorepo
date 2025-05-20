@@ -79,9 +79,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       seed: agreementApi.AgreementPayload,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
-      logger.info(`Creating agreement for e-service ${seed.eserviceId} and descriptor ${seed.descriptorId}${
-          seed.delegationId ? ` with delegation ${seed.delegationId}` :  ""
-        }`);
+      logger.info(
+        `Creating agreement for e-service ${seed.eserviceId} and descriptor ${seed.descriptorId}` +
+          (seed.delegationId ? ` with delegation ${seed.delegationId}` : "")
+      );
 
       const response = await clients.agreementProcessClient.createAgreement(
         seed,
