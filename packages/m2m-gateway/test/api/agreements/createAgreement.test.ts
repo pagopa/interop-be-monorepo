@@ -18,6 +18,7 @@ describe("POST /agreements router test", () => {
   const mockAgreementSeed: m2mGatewayApi.AgreementSeed = {
     eserviceId: generateId(),
     descriptorId: generateId(),
+    delegationId: generateId(),
   };
 
   const mockApiAgreement = getMockedApiAgreement();
@@ -35,7 +36,7 @@ describe("POST /agreements router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockAgreementService.createAgreement = vi
         .fn()
@@ -57,19 +58,48 @@ describe("POST /agreements router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid agreement seed", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      invalidParam: "invalidValue",
-    } as unknown as m2mGatewayApi.AgreementSeed);
+  it.each([
+    { ...mockAgreementSeed, invalidParam: "invalidValue" },
+    { ...mockAgreementSeed, eserviceId: undefined },
+    { ...mockAgreementSeed, eserviceId: "invalidId" },
+    { ...mockAgreementSeed, descriptorId: undefined },
+    { ...mockAgreementSeed, descriptorId: "invalidId" },
+    { ...mockAgreementSeed, delegationId: undefined },
+    { ...mockAgreementSeed, delegationId: "invalidId" },
+  ])(
+    "Should return 400 if passed an invalid agreement seed: %s",
+    async (body) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        body as unknown as m2mGatewayApi.AgreementSeed
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([missingMetadata(), resourcePollingTimeout(3)])(
     "Should return 500 in case of $code error",
     async (error) => {
       mockAgreementService.createAgreement = vi.fn().mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockAgreementSeed);
+
+      expect(res.status).toBe(500);
+    }
+  );
+
+  it.each([
+    { ...mockM2MAgreementResponse, state: "INVALID_STATE" },
+    { ...mockM2MAgreementResponse, invalidParam: "invalidValue" },
+    { ...mockM2MAgreementResponse, createdAt: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockAgreementService.createAgreement = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockAgreementSeed);
 
