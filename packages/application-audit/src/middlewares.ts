@@ -454,7 +454,7 @@ export const fallbackApplicationAudit = async (
       logger
     );
 
-    logger.info("Application audit sent to fallback SQS queue successfully");
+    logger.info("Application audit sent to Kafka topic through fallback path");
   } catch {
     if (isFeatureFlagEnabled(config, "featureFlagApplicationAuditStrict")) {
       throw fallbackApplicationAuditingFailed();
