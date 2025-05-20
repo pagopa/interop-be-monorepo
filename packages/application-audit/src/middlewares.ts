@@ -126,6 +126,7 @@ export async function applicationAuditBeginMiddleware(
       await fallbackApplicationAudit(
         queueManager,
         config,
+        config.producerQueueUrl,
         initialAudit,
         loggerInstance
       );
@@ -217,6 +218,7 @@ export async function applicationAuditEndMiddleware(
           await fallbackApplicationAudit(
             queueManager,
             config,
+            config.producerQueueUrl,
             finalAudit,
             loggerInstance
           );
@@ -333,6 +335,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           await fallbackApplicationAudit(
             queueManager,
             config,
+            config.producerQueueUrl,
             finalAudit,
             loggerInstance
           );
@@ -423,6 +426,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
         await fallbackApplicationAudit(
           queueManager,
           config,
+          config.producerQueueUrl,
           finalAudit,
           loggerInstance
         );
@@ -436,6 +440,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
 export const fallbackApplicationAudit = async (
   queueManager: QueueManager,
   config: ApplicationAuditProducerConfig,
+  queueUrl: string,
   messageBody:
     | ApplicationAuditBeginRequest
     | ApplicationAuditEndRequest
@@ -445,7 +450,7 @@ export const fallbackApplicationAudit = async (
 ): Promise<void> => {
   try {
     await queueManager.send(
-      config.producerQueueUrl,
+      queueUrl,
       {
         spanId: messageBody.spanId,
         correlationId: messageBody.correlationId,
