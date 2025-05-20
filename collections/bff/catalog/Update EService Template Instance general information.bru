@@ -16,7 +16,6 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  X-Correlation-Id: {{correlation-id}}
 }
 
 body:json {
@@ -24,7 +23,6 @@ body:json {
     "isSignalHubEnabled": true,
     "isConsumerDelegable": true,
     "isClientAccessDelegable": false,
-    "instanceLabel": ""
   }
 }
 

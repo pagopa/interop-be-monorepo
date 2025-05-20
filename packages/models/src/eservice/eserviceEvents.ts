@@ -57,6 +57,7 @@ import {
   EServiceDescriptorDocumentAddedByTemplateUpdateV2,
   EServiceDescriptorDocumentUpdatedByTemplateUpdateV2,
   EServiceDescriptorDocumentDeletedByTemplateUpdateV2,
+  EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
 } from "../gen/v2/eservice/events.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
@@ -135,6 +136,11 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceDescriptorQuotasUpdated" }, ({ data }) =>
       EServiceDescriptorQuotasUpdatedV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
+      ({ data }) =>
+        EServiceDescriptorAgreementApprovalPolicyUpdatedV2.toBinary(data)
     )
     .with({ type: "EServiceDescriptorActivated" }, ({ data }) =>
       EServiceDescriptorActivatedV2.toBinary(data)
@@ -350,6 +356,11 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
     type: z.literal("EServiceDescriptorQuotasUpdated"),
+    data: protobufDecoder(EServiceDescriptorQuotasUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDescriptorAgreementApprovalPolicyUpdated"),
     data: protobufDecoder(EServiceDescriptorQuotasUpdatedV2),
   }),
   z.object({

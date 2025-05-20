@@ -498,7 +498,7 @@ describe("create risk analysis", () => {
 
     const eservice: EService = {
       ...mockEService,
-      templateRef: { id: templateId },
+      templateId,
       producerId: producer.id,
       mode: eserviceMode.receive,
       descriptors: [

@@ -103,7 +103,8 @@
           "consumerId",
           "clientKind",
           "publicKey",
-          "GSIPK_clientId_kid"
+          "GSIPK_clientId_kid",
+          "adminId"
         ]
       }
     },

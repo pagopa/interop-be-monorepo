@@ -4,6 +4,9 @@ import { z } from "zod";
 export const CorrelationId = z.string().brand("CorrelationId");
 export type CorrelationId = z.infer<typeof CorrelationId>;
 
+export const SpanId = z.string().brand("SpanId");
+export type SpanId = z.infer<typeof SpanId>;
+
 export const EServiceId = z.string().uuid().brand("EServiceId");
 export type EServiceId = z.infer<typeof EServiceId>;
 
@@ -166,6 +169,7 @@ export type EServiceTemplateVersionId = z.infer<
 
 type IDS =
   | CorrelationId
+  | SpanId
   | EServiceId
   | EServiceDocumentId
   | AgreementId
