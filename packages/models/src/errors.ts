@@ -294,7 +294,7 @@ const errorCodes = {
   notAllowedMultipleKeysException: "10019",
   featureFlagNotEnabled: "10020",
   kafkaApplicationAuditingFailed: "10021",
-  fallbackApplicationAuditdingFailed: "10022",
+  fallbackApplicationAuditingFailed: "10022",
   invalidSqsMessage: "10023",
   decodeSQSMessageError: "10024",
 } as const;
@@ -336,9 +336,9 @@ export function kafkaApplicationAuditingFailed(): InternalError<CommonErrorCodes
   });
 }
 
-export function fallbackApplicationAuditdingFailed(): InternalError<CommonErrorCodes> {
+export function fallbackApplicationAuditingFailed(): InternalError<CommonErrorCodes> {
   return new InternalError({
-    code: "fallbackApplicationAuditdingFailed",
+    code: "fallbackApplicationAuditingFailed",
     detail: `Fallback application auditing failed`,
   });
 }
