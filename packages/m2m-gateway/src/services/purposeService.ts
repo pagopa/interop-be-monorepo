@@ -70,23 +70,6 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
     return currentVersion;
   };
-  const retrieveLastSuspendedVersion = (
-    purpose: purposeApi.Purpose
-  ): purposeApi.PurposeVersion => {
-    const lastSuspendedVersion = purpose.versions
-      .filter(
-        (v) => v.state === purposeApi.PurposeVersionState.Values.SUSPENDED
-      )
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      )
-      .at(-1);
-
-    assertPurposeVersionExists(lastSuspendedVersion, purpose.id);
-
-    return lastSuspendedVersion;
-  };
 
   return {
     async getPurposes(
@@ -396,9 +379,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      const versionToApprove = retrieveLastSuspendedVersion(
-        purposeResponse.data
+      const versionToApprove = retrieveLatestPurposeVersionByState(
+        purposeResponse.data,
+        purposeApi.PurposeVersionState.Values.SUSPENDED
       );
+
       logger.info(
         `Unsuspending (activating) version ${versionToApprove.id} of purpose ${purposeId}`
       );
