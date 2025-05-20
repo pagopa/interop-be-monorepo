@@ -1,21 +1,12 @@
-import { EServiceDescriptorAttributeSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { eserviceDescriptorAttributeInReadmodelCatalog } from "pagopa-interop-readmodel-models";
 
-export const EserviceDescriptorAttributeSchema = z.object({
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  attribute_id: z.string(),
-  descriptor_id: z.string(),
-  explicit_attribute_verification: z.coerce.boolean(),
-  kind: z.string(),
-  group_id: z.number(),
+export const EserviceDescriptorAttributeSchema = createSelectSchema(
+  eserviceDescriptorAttributeInReadmodelCatalog
+).extend({
+  deleted: z.boolean().default(false).optional(),
 });
 export type EserviceDescriptorAttributeSchema = z.infer<
   typeof EserviceDescriptorAttributeSchema
 >;
-
-export type EserviceDescriptorAttributeMapping = {
-  [K in keyof EserviceDescriptorAttributeSchema]: (
-    record: EServiceDescriptorAttributeSQL
-  ) => EserviceDescriptorAttributeSchema[K];
-};
