@@ -6,6 +6,7 @@ import {
   invalidPublicKey,
   jwkDecodingError,
   notAllowedCertificateException,
+  notAllowedMultipleKeysException,
   notAllowedPrivateKeyException,
 } from "pagopa-interop-models";
 import { JWTConfig } from "../config/index.js";
@@ -20,8 +21,14 @@ export const decodeBase64ToPem = (base64String: string): string => {
   }
 };
 
-export const createJWK = (pemKeyBase64: string): JsonWebKey =>
-  createPublicKey(pemKeyBase64).export({ format: "jwk" });
+export const createJWK = ({
+  pemKeyBase64,
+  strictCheck = true,
+}: {
+  pemKeyBase64: string;
+  strictCheck?: boolean;
+}): JsonWebKey =>
+  createPublicKey({ key: pemKeyBase64, strictCheck }).export({ format: "jwk" });
 
 export const calculateKid = (jwk: JsonWebKey): string => {
   const sortedJwk = sortJWK(jwk);
@@ -45,6 +52,14 @@ function assertNotPrivateKey(key: string): void {
     return;
   }
   throw notAllowedPrivateKeyException();
+}
+
+function assertSingleKey(keyString: string): void {
+  const beginMatches = keyString.match(/-----BEGIN [^\r\n]+-----/g);
+
+  if (beginMatches && beginMatches.length > 1) {
+    throw notAllowedMultipleKeysException();
+  }
 }
 
 export function assertValidRSAKey(key: KeyObject): void {
@@ -71,13 +86,24 @@ function tryToCreatePublicKey(key: string): KeyObject {
   }
 }
 
-export function createPublicKey(key: string): KeyObject {
+export function createPublicKey({
+  key,
+  strictCheck = true,
+}: {
+  key: string;
+  strictCheck?: boolean;
+}): KeyObject {
   const pemKey = decodeBase64ToPem(key);
+  if (strictCheck) {
+    assertSingleKey(pemKey);
+  }
   assertNotPrivateKey(pemKey);
   assertNotCertificate(pemKey);
   const publicKey = tryToCreatePublicKey(pemKey);
-  assertValidRSAKey(publicKey);
-  assertValidRSAKeyLength(publicKey);
+  if (strictCheck) {
+    assertValidRSAKey(publicKey);
+    assertValidRSAKeyLength(publicKey);
+  }
   return publicKey;
 }
 

@@ -9,9 +9,7 @@ type ErrorCodes = BFFErrorCodes | CommonErrorCodes;
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
-  HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_FORBIDDEN,
-  HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
 } = constants;
@@ -25,8 +23,6 @@ export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
 
 export const reversePurposeUpdateErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -57,11 +53,6 @@ export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const clonePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("purposeDraftVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const getSelfcareErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
@@ -73,14 +64,6 @@ export const getSelfcareUserErrorMapper = (
   match(error.code)
     .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
-export const sessionTokenErrorMapper = (error: ApiError<ErrorCodes>): number =>
-  match(error.code)
-    .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
-    .with("tenantLoginNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
-    .with("missingUserRolesInIdentityToken", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -145,9 +128,6 @@ export const acceptPrivacyNoticeErrorMapper = (
     .with("dynamoReadingError", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const attributeEmptyErrorMapper = (): number =>
-  HTTP_STATUS_INTERNAL_SERVER_ERROR;
-
 export const getProducerKeychainUsersErrorMapper = (
   error: ApiError<ErrorCodes>
   // eslint-disable-next-line sonarjs/no-identical-functions
@@ -168,7 +148,7 @@ export const createEServiceDocumentErrorMapper = (
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "invalidInterfaceContentTypeDetected",
-      "invalidInterfaceFileDetected",
+      "invalidEserviceInterfaceFileDetected",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -180,7 +160,7 @@ export const createEServiceTemplateDocumentErrorMapper = (
     .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "invalidInterfaceContentTypeDetected",
-      "invalidInterfaceFileDetected",
+      "invalidEserviceInterfaceFileDetected",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -251,7 +231,7 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
       "eserviceTemplateInterfaceNotFound",
       "eserviceTemplateInterfaceDataNotValid",
       "invalidInterfaceContentTypeDetected",
-      "invalidInterfaceFileDetected",
+      "invalidEserviceInterfaceFileDetected",
       "interfaceExtractingInfoError",
       "templateDataNotFound",
       () => HTTP_STATUS_BAD_REQUEST

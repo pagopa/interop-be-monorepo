@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import crypto from "crypto";
@@ -13,11 +14,13 @@ import {
   writeTokenGenStatesConsumerClient,
   writeTokenGenStatesApiClient,
   getMockClientAssertion,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
   ClientId,
   clientKindTokenGenStates,
+  CorrelationId,
   EServiceId,
   GeneratedTokenAuditDetails,
   generateId,
@@ -31,11 +34,13 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenerationStatesConsumerClient,
   unsafeBrandId,
+  UserId,
 } from "pagopa-interop-models";
 import {
   formatDateyyyyMMdd,
   genericLogger,
   secondsToMilliseconds,
+  systemRole,
 } from "pagopa-interop-commons";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
@@ -90,7 +95,12 @@ describe("authorization server tests", () => {
       client_id: clientId,
     };
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       clientAssertionRequestValidationFailed(
         clientId,
@@ -112,7 +122,12 @@ describe("authorization server tests", () => {
       client_id: clientId,
     };
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       clientAssertionValidationFailed(clientId, issuedAtNotFound().detail)
     );
@@ -138,7 +153,12 @@ describe("authorization server tests", () => {
       purposeId,
     });
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(tokenGenerationStatesEntryNotFound(entryPK));
   });
 
@@ -175,7 +195,12 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       incompleteTokenGenerationStatesConsumerClient(
         tokenGenStatesConsumerClient.PK
@@ -211,7 +236,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       incompleteTokenGenerationStatesConsumerClient(
         tokenGenStatesConsumerClient.PK
@@ -257,7 +287,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       clientAssertionSignatureValidationFailed(
         request.client_id,
@@ -303,7 +338,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       platformStateValidationFailed(
         invalidEServiceState(descriptorState).detail
@@ -348,8 +388,9 @@ describe("authorization server tests", () => {
     for (let i = 0; i < config.rateLimiterMaxRequests; i++) {
       const response = await tokenService.generateToken(
         request,
-        generateId(),
-        genericLogger
+        getMockContext({}),
+        () => {},
+        () => {}
       );
       expect(response.limitReached).toBe(false);
       expect(response.rateLimiterStatus.remainingRequests).toBe(
@@ -359,8 +400,9 @@ describe("authorization server tests", () => {
 
     const responseAfterLimitExceeded = await tokenService.generateToken(
       request,
-      generateId(),
-      genericLogger
+      getMockContext({}),
+      () => {},
+      () => {}
     );
 
     expect(responseAfterLimitExceeded).toEqual({
@@ -419,7 +461,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       Error("JWT Signature failed. Empty signature returned")
     );
@@ -461,7 +508,12 @@ describe("authorization server tests", () => {
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(
       Error("JWT Signature failed. Empty signature returned")
     );
@@ -511,7 +563,12 @@ describe("authorization server tests", () => {
     );
 
     expect(
-      tokenService.generateToken(request, generateId(), genericLogger)
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
     ).rejects.toThrowError(fallbackAuditFailed(clientId));
   });
 
@@ -561,11 +618,12 @@ describe("authorization server tests", () => {
     const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
-    const correlationId = generateId();
+    const correlationId = generateId<CorrelationId>();
     const response = await tokenService.generateToken(
       request,
-      unsafeBrandId(correlationId),
-      genericLogger
+      getMockContext({ correlationId }),
+      () => {},
+      () => {}
     );
 
     const date = new Date();
@@ -699,11 +757,12 @@ describe("authorization server tests", () => {
     const uuidSpy = vi.spyOn(crypto, "randomUUID");
     uuidSpy.mockReturnValue(uuid);
 
-    const correlationId = generateId();
+    const correlationId = generateId<CorrelationId>();
     const result = await tokenService.generateToken(
       request,
-      unsafeBrandId(correlationId),
-      genericLogger
+      getMockContext({ correlationId }),
+      () => {},
+      () => {}
     );
 
     expect(result.token).toBeDefined();
@@ -767,7 +826,7 @@ describe("authorization server tests", () => {
     expect(parsedAuditSent).toEqual(expectedMessageBody);
   });
 
-  it("should succeed - api key - no audit", async () => {
+  it("should succeed - api key - no audit - M2M role", async () => {
     vi.spyOn(fileManager, "storeBytes");
 
     const clientId = generateId<ClientId>();
@@ -804,8 +863,74 @@ describe("authorization server tests", () => {
 
     const response = await tokenService.generateToken(
       request,
-      generateId(),
+      getMockContext({}),
+      () => {},
+      () => {}
+    );
+
+    const fileListAfter = await fileManager.listFiles(
+      config.s3Bucket,
       genericLogger
+    );
+    expect(fileListAfter).toHaveLength(0);
+    expect(fileManager.storeBytes).not.toHaveBeenCalled();
+
+    expect(response.limitReached).toBe(false);
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ROLE,
+    });
+    expect(response.token?.payload).not.toMatchObject({
+      adminId: expect.any(String),
+    });
+    expect(response.rateLimiterStatus).toEqual({
+      maxRequests: config.rateLimiterMaxRequests,
+      rateInterval: config.rateLimiterRateInterval,
+      remainingRequests: config.rateLimiterMaxRequests - 1,
+    });
+  });
+
+  it("should succeed - api key - no audit - M2M_ADMIN role", async () => {
+    vi.spyOn(fileManager, "storeBytes");
+
+    const clientId = generateId<ClientId>();
+    const clientAdminId = generateId<UserId>();
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: { sub: clientId },
+      });
+
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
+    };
+
+    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
+      clientId,
+      kid: clientAssertion.header.kid!,
+    });
+
+    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
+      ...getMockTokenGenStatesApiClient(tokenClientKidK),
+      clientKind: clientKindTokenGenStates.api,
+      publicKey: publicKeyEncodedPem,
+      adminId: clientAdminId,
+    };
+
+    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
+
+    const fileListBefore = await fileManager.listFiles(
+      config.s3Bucket,
+      genericLogger
+    );
+    expect(fileListBefore).toHaveLength(0);
+
+    const response = await tokenService.generateToken(
+      request,
+      getMockContext({}),
+      () => {},
+      () => {}
     );
 
     const fileListAfter = await fileManager.listFiles(
@@ -817,6 +942,10 @@ describe("authorization server tests", () => {
 
     expect(response.limitReached).toBe(false);
     expect(response.token).toBeDefined();
+    expect(response.token?.payload).toMatchObject({
+      role: systemRole.M2M_ADMIN_ROLE,
+      adminId: tokenClientKidEntry.adminId,
+    });
     expect(response.rateLimiterStatus).toEqual({
       maxRequests: config.rateLimiterMaxRequests,
       rateInterval: config.rateLimiterRateInterval,

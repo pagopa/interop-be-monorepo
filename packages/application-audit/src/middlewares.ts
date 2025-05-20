@@ -1,12 +1,18 @@
 import { RequestHandler, Request } from "express";
 import { initProducer } from "kafka-iam-auth";
-import { genericInternalError } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  genericInternalError,
+  SpanId,
+} from "pagopa-interop-models";
 import {
   AppContext,
   ApplicationAuditProducerConfig,
   AuthData,
+  AuthServerAppContext,
   decodeJwtToken,
   fromAppContext,
+  getUserInfoFromAuthData,
   JWTConfig,
   readAuthDataFromJwtToken,
 } from "pagopa-interop-commons";
@@ -18,7 +24,8 @@ const Phase = {
 } as const;
 
 const ApplicationAuditBeginRequest = z.object({
-  correlationId: z.string(),
+  correlationId: CorrelationId,
+  spanId: SpanId,
   service: z.string(),
   serviceVersion: z.string(),
   endpoint: z.string(),
@@ -36,7 +43,8 @@ type ApplicationAuditBeginRequest = z.infer<
 >;
 
 const ApplicationAuditEndRequest = z.object({
-  correlationId: z.string(),
+  correlationId: CorrelationId,
+  spanId: SpanId,
   service: z.string(),
   serviceVersion: z.string(),
   endpoint: z.string(),
@@ -55,31 +63,32 @@ const ApplicationAuditEndRequest = z.object({
 });
 type ApplicationAuditEndRequest = z.infer<typeof ApplicationAuditEndRequest>;
 
-// TODO use this for auth server audit
-// const ApplicationAuditEndRequestAuthServer = z.object({
-//   correlationId: z.string(),
-//   service: z.string(),
-//   serviceVersion: z.string(),
-//   endpoint: z.string(),
-//   httpMethod: z.string(),
-//   phase: z.literal(phase.END_REQUEST),
-//   requesterIpAddress: z.string().optional(),
-//   nodeIp: z.string(),
-//   podName: z.string(),
-//   uptimeSeconds: z.number(),
-//   timestamp: z.number(),
-//   amazonTraceId: z.string().optional(),
-//   organizationId: z.string().optional(),
-//   clientId: z.string().optional(),
-//   httpResponseStatus: z.number(),
-//   executionTimeMs: z.number(),
-// });
-// type ApplicationAuditEndRequestAuthServer = z.infer<
-//   typeof ApplicationAuditEndRequestAuthServer
-// >;
+const ApplicationAuditEndRequestAuthServer = z.object({
+  correlationId: CorrelationId,
+  spanId: SpanId,
+  service: z.string(),
+  serviceVersion: z.string(),
+  endpoint: z.string(),
+  httpMethod: z.string(),
+  phase: z.literal(Phase.END_REQUEST),
+  requesterIpAddress: z.string().optional(),
+  nodeIp: z.string(),
+  podName: z.string(),
+  uptimeSeconds: z.number(),
+  timestamp: z.number(),
+  amazonTraceId: z.string().optional(),
+  organizationId: z.string().optional(),
+  clientId: z.string().optional(),
+  httpResponseStatus: z.number(),
+  executionTimeMs: z.number(),
+});
+type ApplicationAuditEndRequestAuthServer = z.infer<
+  typeof ApplicationAuditEndRequestAuthServer
+>;
 
 export const ApplicationAuditEndRequestSessionTokenExchange = z.object({
-  correlationId: z.string(),
+  correlationId: CorrelationId,
+  spanId: SpanId,
   service: z.string(),
   serviceVersion: z.string(),
   endpoint: z.string(),
@@ -145,6 +154,7 @@ export async function applicationAuditBeginMiddleware(
 
     const initialAudit: ApplicationAuditBeginRequest = {
       correlationId,
+      spanId: context.spanId,
       service: serviceName,
       serviceVersion: config.serviceVersion,
       endpoint: req.path,
@@ -190,8 +200,13 @@ export async function applicationAuditEndMiddleware(
 
         const endTimestamp = Date.now();
 
+        const { organizationId, userId } = getUserInfoFromAuthData(
+          context.authData
+        );
+
         const finalAudit: ApplicationAuditEndRequest = {
           correlationId,
+          spanId: context.spanId,
           service: serviceName,
           serviceVersion: config.serviceVersion,
           endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
@@ -203,8 +218,8 @@ export async function applicationAuditEndMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
-          organizationId: context.authData?.organizationId,
-          userId: context.authData?.userId,
+          organizationId,
+          userId,
           httpResponseStatus: res.statusCode,
           executionTimeMs: endTimestamp - context.requestTimestamp,
         };
@@ -264,10 +279,13 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           authData = decoded && readAuthDataFromJwtToken(decoded);
         }
 
+        const { organizationId, selfcareId } =
+          getUserInfoFromAuthData(authData);
         const endTimestamp = Date.now();
 
         const finalAudit: ApplicationAuditEndRequestSessionTokenExchange = {
           correlationId,
+          spanId: context.spanId,
           service: serviceName,
           serviceVersion: config.serviceVersion,
           endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
@@ -279,8 +297,8 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
           uptimeSeconds: Math.round(process.uptime()),
           timestamp: endTimestamp,
           amazonTraceId: amznTraceId,
-          organizationId: authData?.organizationId,
-          selfcareId: authData?.selfcareId,
+          organizationId,
+          selfcareId,
           httpResponseStatus: res.statusCode,
           executionTimeMs: endTimestamp - context.requestTimestamp,
         };
@@ -295,6 +313,58 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
         });
       });
     }
+
+    return next();
+  };
+}
+
+export async function applicationAuditAuthorizationServerEndMiddleware(
+  serviceName: string,
+  config: ApplicationAuditProducerConfig
+): Promise<RequestHandler> {
+  const producer = await initProducer(config, config.applicationAuditTopic);
+  return async (req, res, next): Promise<void> => {
+    res.on("finish", async () => {
+      const context = (req as Request & { ctx?: AuthServerAppContext }).ctx;
+      if (!context) {
+        throw genericInternalError("Failed to retrieve context");
+      }
+
+      const correlationId = context.correlationId;
+      const amznTraceId = parseAmznTraceIdHeader(req);
+      const forwardedFor = parseForwardedForHeader(req);
+
+      const endTimestamp = Date.now();
+
+      const finalAudit: ApplicationAuditEndRequestAuthServer = {
+        correlationId,
+        spanId: context.spanId,
+        service: serviceName,
+        serviceVersion: config.serviceVersion,
+        endpoint: req.route?.path || req.path, // fallback because "req.route.path" is only available after entering the application router
+        httpMethod: req.method,
+        phase: Phase.END_REQUEST,
+        requesterIpAddress: forwardedFor,
+        nodeIp: config.nodeIp,
+        podName: config.podName,
+        uptimeSeconds: Math.round(process.uptime()),
+        timestamp: endTimestamp,
+        amazonTraceId: amznTraceId,
+        organizationId: context.organizationId,
+        clientId: context.clientId,
+        httpResponseStatus: res.statusCode,
+        executionTimeMs: endTimestamp - context.requestTimestamp,
+      };
+
+      await producer.send({
+        messages: [
+          {
+            key: correlationId,
+            value: JSON.stringify(finalAudit),
+          },
+        ],
+      });
+    });
 
     return next();
   };

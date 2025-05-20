@@ -14,6 +14,7 @@ import {
   EServiceAddedV2,
   EServiceDescriptorAddedV2,
   EServiceDescriptorDocumentAddedV2,
+  EServiceDocumentId,
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
@@ -61,7 +62,7 @@ describe("create eService from template", () => {
 
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
-      { instanceLabel: undefined },
+      {},
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
@@ -106,10 +107,7 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isConsumerDelegable: false,
       isClientAccessDelegable: false,
-      templateRef: {
-        id: eServiceTemplate.id,
-        instanceLabel: eService?.templateRef?.instanceLabel,
-      },
+      templateId: eServiceTemplate.id,
     };
 
     const expectedEServiceWithDescriptor: EService = {
@@ -121,7 +119,7 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
-      templateRef: { id: eServiceTemplate.id },
+      templateId: eServiceTemplate.id,
       descriptors: [
         {
           ...mockDescriptor,
@@ -144,117 +142,26 @@ describe("create eService from template", () => {
       toEServiceV2(expectedEServiceWithDescriptor)
     );
   });
-  it("should write on event-store for the creation of an eService from a template with a custom instanceLabel", async () => {
-    const instanceLabel = generateId();
 
-    const publishedVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.published,
-    };
-    const eServiceTemplate: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      versions: [publishedVersion],
-    };
-
-    await addOneEServiceTemplate(eServiceTemplate);
-
-    const eService = await catalogService.createEServiceInstanceFromTemplate(
-      eServiceTemplate.id,
-      { instanceLabel },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
-
-    expect(eService).toBeDefined();
-
-    const eServiceCreationEvent = await readEventByStreamIdAndVersion(
-      eService.id,
-      0,
-      "catalog",
-      postgresDB
-    );
-    const descriptorCreationEvent = await readLastEserviceEvent(eService.id);
-
-    expect(eServiceCreationEvent).toMatchObject({
-      stream_id: eService.id,
-      version: "0",
-      type: "EServiceAdded",
-      event_version: 2,
-    });
-    expect(descriptorCreationEvent).toMatchObject({
-      stream_id: eService.id,
-      version: "1",
-      type: "EServiceDescriptorAdded",
-      event_version: 2,
-    });
-
-    const eServiceCreationPayload = decodeProtobufPayload({
-      messageType: EServiceAddedV2,
-      payload: eServiceCreationEvent.data,
-    });
-    const descriptorCreationPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorAddedV2,
-      payload: descriptorCreationEvent.data,
-    });
-
-    const expectedEService: EService = {
-      ...mockEService,
-      description: eServiceTemplate.description,
-      name: `${eServiceTemplate.name} ${instanceLabel}`,
-      createdAt: eService.createdAt,
-      id: eService.id,
-      isSignalHubEnabled: eService.isSignalHubEnabled,
-      isClientAccessDelegable: false,
-      isConsumerDelegable: false,
-      descriptors: [],
-      templateRef: { id: eServiceTemplate.id, instanceLabel },
-    };
-
-    const expectedEServiceWithDescriptor: EService = {
-      ...mockEService,
-      description: eServiceTemplate.description,
-      name: `${eServiceTemplate.name} ${instanceLabel}`,
-      createdAt: new Date(),
-      id: eService.id,
-      isSignalHubEnabled: eService.isSignalHubEnabled,
-      isClientAccessDelegable: false,
-      isConsumerDelegable: false,
-      templateRef: { id: eServiceTemplate.id, instanceLabel },
-      descriptors: [
-        {
-          ...mockDescriptor,
-          description: publishedVersion.description,
-          id: eService.descriptors[0].id,
-          createdAt: new Date(),
-          serverUrls: [],
-          audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
-          templateVersionRef: { id: publishedVersion.id },
-        },
-      ],
-    };
-
-    expect(eServiceCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEService)
-    );
-    expect(descriptorCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEServiceWithDescriptor)
-    );
-  });
   it("should write on event-store for the creation of an eService from a template with documents", async () => {
     vi.spyOn(fileManager, "copy");
 
+    const documentId1 = generateId<EServiceDocumentId>();
+    const documentId2 = generateId<EServiceDocumentId>();
+
     const document1 = {
       ...mockDocument,
+      id: documentId1,
       name: `${mockDocument.name}_1`,
       prettyName: `${mockDocument.prettyName}_1`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_1`,
+      path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
     };
     const document2 = {
       ...mockDocument,
+      id: documentId2,
       name: `${mockDocument.name}_2`,
       prettyName: `${mockDocument.prettyName}_2`,
-      path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}_2`,
+      path: `${config.eserviceDocumentsPath}/${documentId2}/${mockDocument.name}_2`,
     };
 
     const eserviceTemplatePublishedVersionId =
@@ -304,7 +211,7 @@ describe("create eService from template", () => {
 
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
-      { instanceLabel: undefined },
+      {},
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
 
@@ -389,7 +296,7 @@ describe("create eService from template", () => {
       isSignalHubEnabled: eService.isSignalHubEnabled,
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
-      templateRef: { id: eServiceTemplate.id },
+      templateId: eServiceTemplate.id,
       descriptors: [
         {
           ...mockDescriptor,
@@ -499,7 +406,7 @@ describe("create eService from template", () => {
     await expect(
       catalogService.createEServiceInstanceFromTemplate(
         generateId(),
-        { instanceLabel: undefined },
+        {},
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toMatchObject({
@@ -517,7 +424,7 @@ describe("create eService from template", () => {
     await expect(
       catalogService.createEServiceInstanceFromTemplate(
         eServiceTemplate.id,
-        { instanceLabel: undefined },
+        {},
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toMatchObject({

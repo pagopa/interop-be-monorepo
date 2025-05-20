@@ -1,6 +1,5 @@
 import {
   Attribute,
-  AttributeId,
   AttributeKind,
   stringToDate,
   unsafeBrandId,
@@ -27,7 +26,7 @@ export const aggregateAttribute = ({
 
   return {
     data: {
-      id: unsafeBrandId<AttributeId>(id),
+      id: unsafeBrandId(id),
       name,
       kind: AttributeKind.parse(kind),
       description,

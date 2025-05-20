@@ -36,6 +36,9 @@ paths:
         - attribute
       operationId: createCertifiedAttribute
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Certified attribute created
           content:
@@ -240,6 +243,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Attributes"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/attributes/name/{name}":
     get:
       summary: Get Attribute by name
@@ -317,6 +326,9 @@ paths:
       tags:
         - attribute
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Attribute data
           content:
@@ -355,6 +367,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Attributes"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
       description: Returns the list of attributes indicated in the request
       parameters:
         - in: query
@@ -385,6 +403,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  headers:
+    MetadataVersionHeader:
+      description: The version number of the resource in the read model
+      schema:
+        type: integer
   parameters:
     CorrelationIdHeader:
       in: header
