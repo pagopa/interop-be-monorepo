@@ -34,6 +34,23 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
 
+  const retrieveLatestPurposeVersionByState = (
+    purpose: purposeApi.Purpose,
+    state: purposeApi.PurposeVersionState
+  ): purposeApi.PurposeVersion => {
+    const currentVersion = purpose.versions
+      .filter((v) => v.state === state)
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      .at(-1);
+
+    assertPurposeVersionExists(currentVersion, purpose.id);
+
+    return currentVersion;
+  };
+
   const retrievePurposeCurrentVersion = (
     purpose: purposeApi.Purpose
   ): purposeApi.PurposeVersion => {
@@ -225,7 +242,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Retrieveing current version for purpose ${purposeId} activation`
+        `Retrieveing latest draft version for purpose ${purposeId} activation`
       );
       const purposeResponse = await clients.purposeProcessClient.getPurpose({
         params: {
@@ -234,8 +251,9 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      const versionToActivate = retrievePurposeCurrentVersion(
-        purposeResponse.data
+      const versionToActivate = retrieveLatestPurposeVersionByState(
+        purposeResponse.data,
+        purposeApi.PurposeVersionState.Values.DRAFT
       );
 
       logger.info(
@@ -341,9 +359,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      const versionToApprove = retrievePurposeCurrentVersion(
-        purposeResponse.data
+      const versionToApprove = retrieveLatestPurposeVersionByState(
+        purposeResponse.data,
+        purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
       );
+
       logger.info(
         `Approving (activating) version ${versionToApprove.id} of purpose ${purposeId}`
       );
