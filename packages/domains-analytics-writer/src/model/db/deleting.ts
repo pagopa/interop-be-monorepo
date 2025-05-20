@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -10,11 +11,13 @@ import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
 import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
 import { EserviceTemplateDeletingSchema } from "../eserviceTemplate/eserviceTemplate.js";
+import { AgreementDeletingSchema } from "../agreement/agreement.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
   catalog_deleting_table: EserviceDeletingSchema,
   catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
+  agreement_deleting_table: AgreementDeletingSchema,
   eservice_template_deleting_table: EserviceTemplateDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
@@ -23,6 +26,7 @@ export const DeletingDbTableReadModel = {
   attribute_deleting_table: attributeInReadmodelAttribute,
   catalog_deleting_table: eserviceInReadmodelCatalog,
   catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
+  agreement_deleting_table: agreementInReadmodelAgreement,
   eservice_template_deleting_table: eserviceTemplateInReadmodelEserviceTemplate,
 } as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;

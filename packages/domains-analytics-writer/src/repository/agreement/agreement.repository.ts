@@ -1,41 +1,41 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
-import { config } from "../../config/config.js";
-import { DBConnection } from "../../db/db.js";
-import {
-  AttributeSchema,
-  AttributeDeletingSchema,
-} from "../../model/attribute/attribute.js";
-import {
-  buildColumnSet,
-  generateMergeDeleteQuery,
-  generateMergeQuery,
-} from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, AttributeDbTable } from "../../model/db/index.js";
+import { genericInternalError } from "pagopa-interop-models";
 
-export function attributeRepository(conn: DBConnection) {
+import { DBConnection } from "../../db/db.js";
+import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
+import {
+  generateMergeQuery,
+  generateMergeDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
+import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
+import { config } from "../../config/config.js";
+import {
+  AgreementSchema,
+  AgreementDeletingSchema,
+} from "../../model/agreement/agreement.js";
+
+export function agreementRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = AttributeDbTable.attribute;
+  const tableName = AgreementDbTable.agreement;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName = DeletingDbTable.attribute_deleting_table;
+  const deletingTableName = DeletingDbTable.agreement_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: AttributeSchema[]
+      records: AgreementSchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(pgp, tableName, AttributeSchema);
+        const cs = buildColumnSet(pgp, tableName, AgreementSchema);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
-            DELETE FROM ${stagingTableName} a
-            USING ${stagingTableName} b
-            WHERE a.id = b.id
-            AND a.metadata_version < b.metadata_version;
-          `);
+          DELETE FROM ${stagingTableName} a
+          USING ${stagingTableName} b
+          WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
+        `);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -46,7 +46,7 @@ export function attributeRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          AttributeSchema,
+          AgreementSchema,
           schemaName,
           tableName,
           ["id"]
@@ -72,13 +72,13 @@ export function attributeRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: AttributeDeletingSchema[]
+      records: AgreementDeletingSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           deletingTableName,
-          AttributeDeletingSchema
+          AgreementDeletingSchema
         );
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
@@ -117,3 +117,5 @@ export function attributeRepository(conn: DBConnection) {
     },
   };
 }
+
+export type AgreementRepo = ReturnType<typeof agreementRepo>;

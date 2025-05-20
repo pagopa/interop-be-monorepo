@@ -10,6 +10,7 @@ import { config } from "../src/config/config.js";
 import { retryConnection } from "../src/db/buildColumnSet.js";
 import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import {
+  AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
@@ -53,6 +54,14 @@ export const catalogTables: CatalogDbTable[] = [
   CatalogDbTable.eservice_risk_analysis_answer,
 ];
 
+export const agreementTables: AgreementDbTable[] = [
+  AgreementDbTable.agreement,
+  AgreementDbTable.agreement_attribute,
+  AgreementDbTable.agreement_consumer_document,
+  AgreementDbTable.agreement_contract,
+  AgreementDbTable.agreement_stamp,
+];
+
 export const eserviceTemplateTables: EserviceTemplateDbTable[] = [
   EserviceTemplateDbTable.eservice_template,
   EserviceTemplateDbTable.eservice_template_version,
@@ -67,12 +76,14 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
   DeletingDbTable.catalog_risk_deleting_table,
+  DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.eservice_template_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
   ...attributeTables,
   ...catalogTables,
+  ...agreementTables,
   ...eserviceTemplateTables,
 ];
 
@@ -82,6 +93,10 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   {
     name: DeletingDbTable.catalog_risk_deleting_table,
     columns: ["id", "eserviceId"],
+  },
+  {
+    name: DeletingDbTable.agreement_deleting_table,
+    columns: ["id"],
   },
   {
     name: DeletingDbTable.eservice_template_deleting_table,

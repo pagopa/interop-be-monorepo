@@ -1,4 +1,8 @@
 import {
+  AgreementDbTableConfig,
+  AgreementDbTableReadModel,
+} from "./agreement.js";
+import {
   AttributeDbTableConfig,
   AttributeDbTableReadModel,
 } from "./attribute.js";
@@ -12,6 +16,7 @@ import {
 export const DomainDbTable = {
   ...AttributeDbTableConfig,
   ...CatalogDbTableConfig,
+  ...AgreementDbTableConfig,
   ...EserviceTemplateDbTableConfig,
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
@@ -27,6 +32,7 @@ export type DbTable = keyof DbTableSchemas;
 export const DomainDbTableReadModels = {
   ...AttributeDbTableReadModel,
   ...CatalogDbTableReadModel,
+  ...AgreementDbTableReadModel,
   ...EserviceTemplateDbTableReadModel,
 } as const;
 export type DomainDbTableReadModels = typeof DomainDbTableReadModels;
@@ -39,5 +45,6 @@ export type DbTableReadModels = typeof DbTableReadModels;
 
 export * from "./attribute.js";
 export * from "./catalog.js";
-export * from "./deleting.js";
+export * from "./agreement.js";
 export * from "./eserviceTemplate.js";
+export * from "./deleting.js";
