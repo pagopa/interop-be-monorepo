@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -14,11 +15,13 @@ import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnaly
 import { TenantDeletingSchema } from "../tenant/tenant.js";
 import { TenantMailDeletingByIdAndTenantSchema } from "../tenant/tenantMail.js";
 import { TenantFeatureDeletingSchema } from "../tenant/tenantFeature.js";
+import { AgreementDeletingSchema } from "../agreement/agreement.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
   catalog_deleting_table: EserviceDeletingSchema,
   catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
+  agreement_deleting_table: AgreementDeletingSchema,
   tenant_deleting_table: TenantDeletingSchema,
   tenant_mail_deleting_table: TenantMailDeletingByIdAndTenantSchema,
   tenant_feature_deleting_table: TenantFeatureDeletingSchema,
@@ -29,6 +32,7 @@ export const DeletingDbTableReadModel = {
   attribute_deleting_table: attributeInReadmodelAttribute,
   catalog_deleting_table: eserviceInReadmodelCatalog,
   catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
+  agreement_deleting_table: agreementInReadmodelAgreement,
   tenant_deleting_table: tenantInReadmodelTenant,
   tenant_mail_deleting_table: tenantMailInReadmodelTenant,
   tenant_feature_deleting_table: tenantFeatureInReadmodelTenant,
