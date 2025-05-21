@@ -12,10 +12,11 @@ import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
 import {
+  AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
-} from "./model/db.js";
+} from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
 const dbInstance = initDB({
@@ -51,14 +52,20 @@ await retryConnection(
       CatalogDbTable.eservice_descriptor_attribute,
       CatalogDbTable.eservice_risk_analysis,
       CatalogDbTable.eservice_risk_analysis_answer,
+      AgreementDbTable.agreement,
+      AgreementDbTable.agreement_stamp,
+      AgreementDbTable.agreement_attribute,
+      AgreementDbTable.agreement_consumer_document,
+      AgreementDbTable.agreement_contract,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.catalog_risk_deleting_table,
-        columns: ["id", "eservice_id"],
+        columns: ["id", "eserviceId"],
       },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
     ]);
   },
   logger({ serviceName: config.serviceName })

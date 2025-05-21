@@ -73,7 +73,7 @@ describe("POST /consumerDelegations router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        body as unknown as m2mGatewayApi.DelegationSeed
+        body as m2mGatewayApi.DelegationSeed
       );
 
       expect(res.status).toBe(400);

@@ -79,7 +79,7 @@ describe("POST /certifiedAttributes router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        body as unknown as m2mGatewayApi.CertifiedAttributeSeed
+        body as m2mGatewayApi.CertifiedAttributeSeed
       );
 
       expect(res.status).toBe(400);
