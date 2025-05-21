@@ -135,9 +135,16 @@ describe("API POST /consumer/delegations test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it.each([
+    { body: {} },
+    { body: { delegateId: mockDelegator.id } },
+    { body: { eserviceId: mockEService.id } },
+    { body: { delegateId: "invalid", eserviceId: mockEService.id } },
+    { body: { delegateId: mockDelegator.id, eserviceId: "invalid" } },
+    { body: { ...defaultBody, extraField: 1 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {} as delegationApi.DelegationSeed);
+    const res = await makeRequest(token, body as delegationApi.DelegationSeed);
     expect(res.status).toBe(400);
   });
 });

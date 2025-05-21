@@ -95,9 +95,21 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid" as DelegationId);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { delegationId: "invalid" as DelegationId },
+    { body: {} },
+    { body: { rejectionReason: 1 } },
+    { body: { ...defaultBody, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ delegationId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        delegationId,
+        body as delegationApi.RejectDelegationPayload
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 });

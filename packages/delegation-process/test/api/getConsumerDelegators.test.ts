@@ -18,7 +18,7 @@ describe("API GET /consumer/delegators test", () => {
     offset: 0,
     limit: 10,
     delegatorName: "Comune",
-    eservicesIds: `${generateId()},${generateId()}`,
+    eserviceIds: `${generateId()},${generateId()}`,
   };
 
   const mockDelegators = {
@@ -73,12 +73,19 @@ describe("API GET /consumer/delegators test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -2 } },
+    { query: { offset: 0, limit: 55 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+    { query: { ...defaultQuery, eserviceIds: `${generateId()},invalid` } },
+  ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      ...defaultQuery,
-      limit: "invalid",
-    } as unknown as typeof defaultQuery);
+    const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });

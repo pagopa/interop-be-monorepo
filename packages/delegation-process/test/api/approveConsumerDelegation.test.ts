@@ -102,7 +102,7 @@ describe("API POST /consumer/delegations/:delegationId/approve test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 400 if passed an invalid delegation id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as DelegationId);
     expect(res.status).toBe(400);
