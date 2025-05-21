@@ -93,7 +93,7 @@ export function descriptorNotInExpectedState(
   allowedStates: DescriptorState[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} of EService ${eserviceId} has not status in ${allowedStates.join(
+    detail: `Descriptor ${descriptorId} of EService ${eserviceId} shall have one of the following states ${allowedStates.join(
       ","
     )}`,
     code: "descriptorNotInExpectedState",

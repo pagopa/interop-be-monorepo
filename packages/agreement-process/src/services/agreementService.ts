@@ -1323,9 +1323,9 @@ export function agreementServiceBuilder(
         ...archiveEvents,
       ]);
 
-      const latestVersion = createdEvents.reduce(
-        (acc, event) => Math.max(acc, event.newVersion),
-        0
+      const latestVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
       );
 
       return {

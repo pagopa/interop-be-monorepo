@@ -1,23 +1,16 @@
-// attribute.ts
-import { AttributeSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { attributeInReadmodelAttribute } from "pagopa-interop-readmodel-models";
 
-export const attributeSchema = z.object({
-  id: z.string(),
-  metadata_version: z.number(),
-  code: z.string().nullable(),
-  kind: z.string(),
-  description: z.string(),
-  origin: z.string().nullable(),
-  name: z.string(),
-  creation_time: z.string(),
-  deleted: z.boolean(),
+export const AttributeSchema = createSelectSchema(
+  attributeInReadmodelAttribute
+).extend({
+  deleted: z.boolean().default(false).optional(),
 });
+export type AttributeSchema = z.infer<typeof AttributeSchema>;
 
-export type AttributeSchema = z.infer<typeof attributeSchema>;
-
-export type AttributeMapping = {
-  [K in keyof Omit<AttributeSchema, "deleted">]: (
-    record: AttributeSQL
-  ) => Omit<AttributeSchema, "deleted">[K];
-};
+export const AttributeDeletingSchema = AttributeSchema.pick({
+  id: true,
+  deleted: true,
+});
+export type AttributeDeletingSchema = z.infer<typeof AttributeDeletingSchema>;

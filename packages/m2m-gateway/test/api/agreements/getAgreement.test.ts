@@ -50,7 +50,7 @@ describe("GET /agreements/:agreementId route test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 for incorrect value for purpose id", async () => {
+  it("Should return 400 for incorrect value for agreement id", async () => {
     mockAgreementService.getAgreement = vi
       .fn()
       .mockResolvedValue(mockM2MAgreementResponse);

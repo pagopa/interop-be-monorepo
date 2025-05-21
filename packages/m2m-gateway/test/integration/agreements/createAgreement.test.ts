@@ -3,6 +3,7 @@ import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import {
   agreementService,
+  expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
   mockPollingResponse,
@@ -69,6 +70,11 @@ describe("createAgreement", () => {
       mockPost: mockInteropBeClients.agreementProcessClient.createAgreement,
       body: mockAgreementSeed,
     });
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
+      params: { agreementId: m2mAgreementResponse.id },
+    });
+    expect(mockGetAgreement).toHaveBeenCalledTimes(2);
   });
 
   it("Should throw missingMetadata in case the agreement returned by the creation POST call has no metadata", async () => {
