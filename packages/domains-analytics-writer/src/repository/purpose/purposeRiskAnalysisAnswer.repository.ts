@@ -8,6 +8,7 @@ import { DBConnection } from "../../db/db.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { PurposeRiskAnalysisAnswerSchema } from "../../model/purpose/purposeRiskAnalysisAnswer.js";
 import { PurposeDbTable } from "../../model/db/index.js";
+import { clean, merge } from "../../utils/repositoryUtils.js";
 
 export function purposeRiskAnalysisAnswerRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
@@ -42,29 +43,17 @@ export function purposeRiskAnalysisAnswerRepo(conn: DBConnection) {
     },
 
     async merge(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeQuery = generateMergeQuery(
-          PurposeRiskAnalysisAnswerSchema,
-          schemaName,
-          tableName,
-          ["id", "purposeId"]
-        );
-        await t.none(mergeQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
-        );
-      }
+      const mergeQuery = generateMergeQuery(
+        PurposeRiskAnalysisAnswerSchema,
+        schemaName,
+        tableName,
+        ["id", "purposeId"]
+      );
+      await merge(t, mergeQuery, stagingTableName, schemaName, tableName);
     },
 
     async clean(): Promise<void> {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error cleaning staging table ${stagingTableName}: ${error}`
-        );
-      }
+      await clean(conn, stagingTableName);
     },
   };
 }
