@@ -164,14 +164,19 @@ export const SessionClaims = z.object({
 });
 export type SessionClaims = z.infer<typeof SessionClaims>;
 
+export const ui_Role = "ORGANIZATION_USER_ROLES";
+
 export const UserClaims = z.object({
-  "user-roles": z.array(UserRole),
+  "user-roles": z.string(),
   organizationId: z.string().uuid(),
   selfcareId: z.string().uuid(),
   externalId: z.object({
     origin: z.string(),
     value: z.string(),
   }),
+  // This field is required solely to support the correct functioning of the discriminated union.
+  // The actual roles assigned to the user are defined in the 'user-roles' claim.
+  role: z.literal(ui_Role),
 });
 export type UserClaims = z.infer<typeof UserClaims>;
 
@@ -179,13 +184,7 @@ export const UIClaims = SessionClaims.merge(UserClaims);
 
 export type UIClaims = z.infer<typeof UIClaims>;
 
-export const InteropJwtUIPayload = InteropJwtCommonPayload.merge(
-  UIClaims
-).extend({
-  // setting role to z.undefined() to make the discriminated union work.
-  // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
-  role: z.undefined(),
-});
+export const InteropJwtUIPayload = InteropJwtCommonPayload.merge(UIClaims);
 
 export type InteropJwtUIPayload = z.infer<typeof InteropJwtUIPayload>;
 

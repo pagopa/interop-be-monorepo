@@ -4,9 +4,14 @@ import {
   UserId,
   ClientId,
   unsafeBrandId,
+  invalidClaim,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { AuthTokenPayload } from "../interop-token/models.js";
+import {
+  AuthTokenPayload,
+  CommaSeparatedStringToArray,
+  ui_Role,
+} from "../interop-token/models.js";
 import { SystemRole, UserRole, systemRole } from "./roles.js";
 
 /* NOTE:
@@ -73,14 +78,23 @@ export const getAuthDataFromToken = (token: AuthTokenPayload): AuthData =>
       clientId: unsafeBrandId<ClientId>(t.client_id),
       userId: unsafeBrandId<UserId>(t.adminId),
     }))
-    .with({ "user-roles": P.not(P.nullish) }, (t) => ({
-      systemRole: undefined,
-      organizationId: unsafeBrandId<TenantId>(t.organizationId),
-      userId: unsafeBrandId<UserId>(t.uid),
-      userRoles: t["user-roles"],
-      selfcareId: unsafeBrandId<SelfcareId>(t.selfcareId),
-      externalId: t.externalId,
-    }))
+    .with({ role: ui_Role }, (t) => {
+      const userRolesResult = CommaSeparatedStringToArray(UserRole).safeParse(
+        t["user-roles"]
+      );
+      if (!userRolesResult.success) {
+        throw invalidClaim(userRolesResult.error);
+      }
+
+      return {
+        systemRole: undefined,
+        organizationId: unsafeBrandId<TenantId>(t.organizationId),
+        userId: unsafeBrandId<UserId>(t.uid),
+        userRoles: userRolesResult.data,
+        selfcareId: unsafeBrandId<SelfcareId>(t.selfcareId),
+        externalId: t.externalId,
+      };
+    })
     .exhaustive();
 
 export type AuthDataUserInfo = {

@@ -25,7 +25,7 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
     async (role) => {
       mockTenantService.revokeCertifiedAttribute = vi.fn();
 
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(204);
@@ -35,7 +35,7 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
@@ -46,7 +46,7 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
       mockTenantService.revokeCertifiedAttribute = vi
         .fn()
         .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(500);
