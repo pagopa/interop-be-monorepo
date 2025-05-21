@@ -16,6 +16,7 @@ export const errorCodes = {
   purposeNotFound: "0008",
   missingActivePurposeVersion: "0009",
   taxCodeAndIPACodeConflict: "0010",
+  eserviceDescriptorNotFound: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -98,5 +99,16 @@ export function taxCodeAndIPACodeConflict(): ApiError<ErrorCodes> {
     detail: "IPACode and taxCode query parameters cannot be provided together",
     code: "taxCodeAndIPACodeConflict",
     title: "Tax code and IPA code conflict in tenant query",
+  });
+}
+
+export function eserviceDescriptorNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "Eservice descriptor not found",
   });
 }
