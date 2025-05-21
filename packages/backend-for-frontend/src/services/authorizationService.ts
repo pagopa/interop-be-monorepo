@@ -1,16 +1,20 @@
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
+  CustomClaims,
   InteropTokenGenerator,
   Logger,
+  ORGANIZATION,
+  ORGANIZATION_EXTERNAL_ID_CLAIM,
+  ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM,
+  ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM,
+  ORGANIZATION_ID_CLAIM,
   RateLimiter,
   RateLimiterStatus,
-  SUPPORT_USER_ID,
+  SELFCARE_ID_CLAIM,
   SessionClaims,
-  UIClaims,
-  UserClaims,
-  UserRole,
+  UID,
+  USER_ROLES,
   WithLogger,
-  ui_Role,
   userRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
@@ -24,6 +28,8 @@ import {
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
+
+const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
 type GetSessionTokenReturnType =
   | {
@@ -49,7 +55,7 @@ export function authorizationServiceBuilder(
     identityToken: string,
     logger: Logger
   ): Promise<{
-    roles: UserRole[];
+    roles: string;
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
@@ -61,8 +67,8 @@ export function authorizationServiceBuilder(
       throw invalidClaim(error);
     }
 
-    const userRoles: UserRole[] = sessionClaims.organization.roles.map(
-      (r: { role: UserRole }) => r.role
+    const userRoles: string[] = sessionClaims.organization.roles.map(
+      (r: { role: string }) => r.role
     );
 
     if (userRoles.length === 0) {
@@ -70,7 +76,7 @@ export function authorizationServiceBuilder(
     }
 
     return {
-      roles: userRoles,
+      roles: userRoles.join(","),
       sessionClaims,
       selfcareId: sessionClaims.organization.id,
     };
@@ -85,42 +91,60 @@ export function authorizationServiceBuilder(
     }
   };
 
-  const buildUserClaims = (
-    roles: UserRole[],
+  const buildJwtCustomClaims = (
+    roles: string,
     tenantId: string,
     selfcareId: string,
-    externalId: tenantApi.ExternalId
-  ): UserClaims => ({
-    "user-roles": roles.join(","),
-    organizationId: tenantId,
-    selfcareId,
-    externalId,
-    role: ui_Role,
+    tenantOrigin: string,
+    tenantExternalId: string
+  ): CustomClaims => ({
+    [USER_ROLES]: roles,
+    [ORGANIZATION_ID_CLAIM]: tenantId,
+    [SELFCARE_ID_CLAIM]: selfcareId,
+    [ORGANIZATION_EXTERNAL_ID_CLAIM]: {
+      [ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM]: tenantOrigin,
+      [ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM]: tenantExternalId,
+    },
   });
 
-  const retrieveSupportClaims = ({
-    selfcareId,
-    id,
-    name,
-    externalId,
-  }: tenantApi.Tenant): UIClaims => {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const buildSupportClaims = (selfcareId: string, tenant: tenantApi.Tenant) => {
+    const organization = {
+      id: selfcareId,
+      name: tenant.name,
+      roles: [
+        {
+          role: userRole.SUPPORT_ROLE,
+        },
+      ],
+    };
+
+    const selfcareClaims = {
+      [ORGANIZATION]: organization,
+      [UID]: SUPPORT_USER_ID,
+    };
+
+    return {
+      ...buildJwtCustomClaims(
+        userRole.SUPPORT_ROLE,
+        tenant.id,
+        selfcareId,
+        tenant.externalId.origin,
+        tenant.externalId.value
+      ),
+      ...selfcareClaims,
+    };
+  };
+
+  const retrieveSupportClaims = (
+    tenant: tenantApi.Tenant
+  ): ReturnType<typeof buildSupportClaims> => {
+    const selfcareId = tenant.selfcareId;
     if (!selfcareId) {
       throw missingSelfcareId(config.pagoPaTenantId);
     }
 
-    return {
-      ...buildUserClaims([userRole.SUPPORT_ROLE], id, selfcareId, externalId),
-      organization: {
-        id: selfcareId,
-        name,
-        roles: [
-          {
-            role: userRole.SUPPORT_ROLE,
-          },
-        ],
-      },
-      uid: SUPPORT_USER_ID,
-    };
+    return buildSupportClaims(selfcareId, tenant);
   };
 
   return {
@@ -164,11 +188,12 @@ export function authorizationServiceBuilder(
         };
       }
 
-      const customClaims = buildUserClaims(
+      const customClaims = buildJwtCustomClaims(
         roles,
         tenantId,
         selfcareId,
-        tenantBySelfcareId.externalId
+        tenantBySelfcareId.externalId.origin,
+        tenantBySelfcareId.externalId.value
       );
 
       const { serialized: sessionToken } =

@@ -39,7 +39,7 @@ describe("API /attributes/{attributeId} authorization test", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken([role]);
+      const token = generateToken(role);
       const res = await makeRequest(token, attribute.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiAttribute);
@@ -50,7 +50,7 @@ describe("API /attributes/{attributeId} authorization test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken([role]);
+    const token = generateToken(role);
     const res = await makeRequest(token, attribute.id);
 
     expect(res.status).toBe(403);
@@ -62,7 +62,7 @@ describe("API /attributes/{attributeId} authorization test", () => {
       .mockRejectedValue(attributeNotFound(attribute.id));
 
     const res = await makeRequest(
-      generateToken([authRole.ADMIN_ROLE]),
+      generateToken(authRole.ADMIN_ROLE),
       generateId()
     );
 
@@ -71,7 +71,7 @@ describe("API /attributes/{attributeId} authorization test", () => {
 
   it("Should return 400 if passed an invalid attribute id", async () => {
     const res = await makeRequest(
-      generateToken([authRole.ADMIN_ROLE]),
+      generateToken(authRole.ADMIN_ROLE),
       "invalid"
     );
     expect(res.status).toBe(400);

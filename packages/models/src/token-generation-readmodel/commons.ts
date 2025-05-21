@@ -1,21 +1,21 @@
 import { z } from "zod";
 import {
-  ClientId,
-  DescriptorId,
   EServiceId,
-  GSIPKClientIdKid,
-  GSIPKClientIdPurposeId,
-  GSIPKConsumerIdEServiceId,
-  GSIPKEServiceIdDescriptorId,
-  PlatformStatesAgreementPK,
-  PlatformStatesClientPK,
-  PlatformStatesEServiceDescriptorPK,
-  PlatformStatesPurposePK,
+  DescriptorId,
   PurposeId,
+  ClientId,
   TenantId,
-  TokenGenerationStatesClientKidPK,
+  PlatformStatesEServiceDescriptorPK,
+  PlatformStatesAgreementPK,
+  PlatformStatesPurposePK,
+  PlatformStatesClientPK,
   TokenGenerationStatesClientKidPurposePK,
+  TokenGenerationStatesClientKidPK,
+  GSIPKEServiceIdDescriptorId,
+  GSIPKClientIdPurposeId,
   unsafeBrandId,
+  GSIPKClientIdKid,
+  GSIPKConsumerIdEServiceId,
 } from "../brandedIds.js";
 
 export const makePlatformStatesEServiceDescriptorPK = ({

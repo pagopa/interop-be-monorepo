@@ -42,7 +42,7 @@ describe("POST /purposes router test", () => {
         .fn()
         .mockResolvedValue(mockM2MPurpose);
 
-      const token = generateToken([role]);
+      const token = generateToken(role);
       const res = await makeRequest(token, mockPurposeSeed);
 
       expect(res.status).toBe(201);
@@ -53,7 +53,7 @@ describe("POST /purposes router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken([role]);
+    const token = generateToken(role);
     const res = await makeRequest(token, mockPurposeSeed);
     expect(res.status).toBe(403);
   });
@@ -63,7 +63,7 @@ describe("POST /purposes router test", () => {
     { ...mockPurposeSeed, extraParam: -1 },
     { ...mockPurposeSeed, description: "short" },
   ])("Should return 400 if passed invalid delegation seed", async (body) => {
-    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, body as m2mGatewayApi.PurposeSeed);
 
     expect(res.status).toBe(400);
@@ -73,7 +73,7 @@ describe("POST /purposes router test", () => {
     "Should return 500 in case of $code error",
     async (error) => {
       mockPurposeService.createPurpose = vi.fn().mockRejectedValue(error);
-      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockPurposeSeed);
 
       expect(res.status).toBe(500);
