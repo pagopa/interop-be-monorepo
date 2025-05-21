@@ -21,9 +21,7 @@ export const errorCodes = {
   purposeNotFound: "0009",
   missingActivePurposeVersion: "0010",
   purposeVersionNotFound: "0011",
-  missingActivePurposeVersion: "0012",
-  taxCodeAndIPACodeConflict: "0013",
-  eserviceDescriptorNotFound: "0014",
+  taxCodeAndIPACodeConflict: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -101,7 +99,6 @@ export function clientAdminIdNotFound(
   });
 }
 
-
 export function purposeVersionNotFound(
   purposeId: PurposeId,
   versionId: string
@@ -112,7 +109,6 @@ export function purposeVersionNotFound(
     title: "Purpose version not found",
   });
 }
-
 
 export function taxCodeAndIPACodeConflict(): ApiError<ErrorCodes> {
   return new ApiError({
