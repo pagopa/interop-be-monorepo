@@ -36,11 +36,4 @@ describe("API GET /attributes/origin/:origin/code/:code", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockApiAttribute);
   });
-
-  // Problem: there seem to be no way of passing invalid parameters?
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, null);
-    expect(res.status).toBe(400);
-  });
 });

@@ -22,7 +22,7 @@ describe("API DELETE /clients/:clientId/keys/:keyId", () => {
     clients.authorizationClient.client = {} as ReturnType<
       typeof createClientApiClient
     >;
-    clients.authorizationClient.client.deleteClient = vi
+    clients.authorizationClient.client.deleteClientKeyById = vi
       .fn()
       .mockResolvedValue(undefined);
   });

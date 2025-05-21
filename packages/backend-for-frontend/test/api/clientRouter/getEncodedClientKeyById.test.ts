@@ -15,15 +15,11 @@ describe("API GET /clients/:clientId/encoded/keys/:keyId", () => {
   const mockApiEncodedClientKey = getMockApiEncodedClientKey();
   const mockKey = { encodedPem: mockApiEncodedClientKey.key };
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (token: string, clientId: string = mockClientId) =>
     request(api)
-      .get(`${appBasePath}/clients/${mockClientId}/encoded/keys/${mockKeyId}`)
+      .get(`${appBasePath}/clients/${clientId}/encoded/keys/${mockKeyId}`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit,
-      });
+      .set("X-Correlation-Id", generateId());
 
   beforeEach(() => {
     clients.authorizationClient.client = {} as ReturnType<

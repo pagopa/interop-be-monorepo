@@ -6,20 +6,19 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiCompactClient } from "../../mockUtils.js";
+import { getMockApiClient } from "../../mockUtils.js";
 
-describe("API GET /clients", () => {
-  const mockApiClient = getMockApiCompactClient();
+describe("API GET /clients/:clientId", () => {
+  const mockApiClient = getMockApiClient();
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (
+    token: string,
+    clientId: string = mockApiClient.id
+  ) =>
     request(api)
-      .get(`${appBasePath}/clients`)
+      .get(`${appBasePath}/clients/${clientId}`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit,
-      });
+      .set("X-Correlation-Id", generateId());
 
   beforeEach(() => {
     services.clientService.getClientById = vi
