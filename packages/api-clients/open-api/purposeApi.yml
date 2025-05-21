@@ -808,6 +808,9 @@ paths:
       summary: Archive Purpose Version
       operationId: archivePurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Archived
           content:

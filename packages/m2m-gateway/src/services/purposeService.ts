@@ -15,9 +15,28 @@ import {
   isPolledVersionAtLeastTargetVersion,
 } from "../utils/polling.js";
 import { purposeVersionNotFound } from "../model/errors.js";
-import { assertPurposeVersionExistsWithState } from "../utils/validators/purposeValidator.js";
+import {
+  assertPurposeVersionExists,
+  assertPurposeVersionExistsWithState,
+} from "../utils/validators/purposeValidator.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
+
+export const getPurposeCurrentVersion = (
+  purpose: purposeApi.Purpose
+): purposeApi.PurposeVersion | undefined => {
+  const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
+    m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
+    m2mGatewayApi.PurposeVersionState.Values.REJECTED,
+  ];
+  return purpose.versions
+    .filter((v) => !statesToExclude.includes(v.state))
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )
+    .at(-1);
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
@@ -65,6 +84,16 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     assertPurposeVersionExistsWithState(latestVersion, purpose.id, state);
 
     return latestVersion;
+  };
+
+  const retrievePurposeCurrentVersion = (
+    purpose: purposeApi.Purpose
+  ): purposeApi.PurposeVersion => {
+    const currentVersion = getPurposeCurrentVersion(purpose);
+
+    assertPurposeVersionExists(currentVersion, purpose.id);
+
+    return currentVersion;
   };
 
   return {
@@ -221,7 +250,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Retrieveing latest draft version for purpose ${purposeId} activation`
+        `Retrieving latest draft version for purpose ${purposeId} activation`
       );
       const purposeResponse = await clients.purposeProcessClient.getPurpose({
         params: {
@@ -242,6 +271,36 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       const { metadata } =
         await clients.purposeProcessClient.activatePurposeVersion(undefined, {
           params: { purposeId, versionId: versionToActivate.id },
+          headers,
+        });
+
+      await pollPurposeVersion(purposeId, metadata?.version, headers);
+    },
+    async archivePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieving current version for purpose ${purposeId} archiving`
+      );
+      const purposeResponse = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const versionToArchive = retrievePurposeCurrentVersion(
+        purposeResponse.data
+      );
+
+      logger.info(
+        `Archiving version ${versionToArchive.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.archivePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToArchive.id },
           headers,
         });
 

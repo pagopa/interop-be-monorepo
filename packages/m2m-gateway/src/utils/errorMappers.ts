@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -43,3 +44,11 @@ export const activatePurposeErrorMapper = (
   match(error.code)
     .with("missingActivePurposeVersionWithState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const archivePurposeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("missingPurposeCurrentVersion", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+

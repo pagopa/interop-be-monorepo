@@ -14,6 +14,7 @@ import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getPurposeVersionErrorMapper,
+  archivePurposeErrorMapper,
   activatePurposeErrorMapper,
 } from "../utils/errorMappers.js";
 
@@ -195,11 +196,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/archive", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.archivePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          archivePurposeErrorMapper,
           ctx,
           `Error archiving purpose ${req.params.purposeId}`
         );

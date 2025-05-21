@@ -534,8 +534,12 @@ export function purposeServiceBuilder(
         purposeId: PurposeId;
         versionId: PurposeVersionId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<PurposeVersion> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -568,15 +572,20 @@ export function purposeServiceBuilder(
         archivedVersion
       );
 
-      const event = toCreateEventPurposeArchived({
+      const eventToCreate = toCreateEventPurposeArchived({
         purpose: updatedPurpose,
         purposeVersionId: archivedVersion.id,
         version: purpose.metadata.version,
         correlationId,
       });
 
-      await repository.createEvent(event);
-      return archivedVersion;
+      const event = await repository.createEvent(eventToCreate);
+      return {
+        data: archivedVersion,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async internalArchivePurposeVersionAfterDelegationRevocation(
       {
@@ -1743,6 +1752,7 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
+  updatedPurpose: Purpose;
   updatedPurposeVersion: PurposeVersion;
 } {
   const updatedPurposeVersion: PurposeVersion = {
@@ -1763,6 +1773,7 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
       correlationId,
     }),
     updatedPurposeVersion,
+    updatedPurpose,
   };
 }
 
@@ -1772,6 +1783,7 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
+  updatedPurpose: Purpose;
   updatedPurposeVersion: PurposeVersion;
 } {
   const newPurposeVersion: PurposeVersion = {
@@ -1799,6 +1811,7 @@ function activatePurposeVersionFromOverQuotaSuspendedLogic(
       correlationId,
     }),
     updatedPurposeVersion: newPurposeVersion,
+    updatedPurpose,
   };
 }
 
@@ -1826,6 +1839,7 @@ async function activatePurposeLogic({
   logger: Logger;
 }): Promise<{
   event: CreateEvent<PurposeEvent>;
+  updatedPurpose: Purpose;
   updatedPurposeVersion: PurposeVersion;
 }> {
   const updatedPurposeVersion: PurposeVersion = {
@@ -1867,6 +1881,7 @@ async function activatePurposeLogic({
         correlationId,
       }),
       updatedPurposeVersion,
+      updatedPurpose,
     };
   } else {
     return {
@@ -1877,6 +1892,7 @@ async function activatePurposeLogic({
         correlationId,
       }),
       updatedPurposeVersion,
+      updatedPurpose,
     };
   }
 }
@@ -1888,6 +1904,7 @@ function activatePurposeVersionFromSuspendedLogic(
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
+  updatedPurpose: Purpose;
   updatedPurposeVersion: PurposeVersion;
 } {
   const newState = match({
@@ -1935,6 +1952,10 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
+      updatedPurpose: {
+        ...updatedPurpose,
+        suspendedByProducer: false,
+      },
     };
   } else {
     return {
@@ -1945,6 +1966,10 @@ function activatePurposeVersionFromSuspendedLogic(
         correlationId,
       }),
       updatedPurposeVersion,
+      updatedPurpose: {
+        ...updatedPurpose,
+        suspendedByConsumer: false,
+      },
     };
   }
 }
