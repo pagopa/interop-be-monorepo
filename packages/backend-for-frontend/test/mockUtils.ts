@@ -49,6 +49,17 @@ export const getMockApiCompactClient = (): bffApi.CompactClient => ({
   admin: generateMock(bffApi.CompactUser.optional()),
 });
 
+export const getMockApiClient = (): bffApi.Client => ({
+  id: generateId<ClientId>(),
+  createdAt: new Date().toISOString(),
+  consumer: generateMock(bffApi.CompactOrganization),
+  admin: generateMock(bffApi.CompactUser.optional()),
+  name: generateMock(z.string()),
+  purposes: generateMock(z.array(bffApi.ClientPurpose)),
+  description: generateMock(z.string()),
+  kind: generateMock(bffApi.ClientKind),
+});
+
 export const getMockApiPublicKey = (): bffApi.PublicKey => ({
   keyId: generateMock(z.string()),
   name: generateMock(z.string()),
