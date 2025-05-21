@@ -9,6 +9,7 @@ import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
 import { getMockedApiTenant } from "../../mockUtils.js";
+import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
 describe("GET /tenants route test", () => {
   const mockApiTenant1 = getMockedApiTenant();
@@ -27,8 +28,8 @@ describe("GET /tenants route test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetTenantsQueryParams = {
-    externalIdOrigin: generateMock(z.string()),
-    externalIdValue: generateMock(z.string()),
+    IPACode: generateMock(z.string()),
+    taxCode: generateMock(z.string()),
     offset: 0,
     limit: 10,
   };
@@ -107,4 +108,14 @@ describe("GET /tenants route test", () => {
       expect(res.status).toBe(500);
     }
   );
+
+  it("Should return 400 in case of taxCodeAndIPACodeConflict error", async () => {
+    mockTenantService.getTenants = vi
+      .fn()
+      .mockRejectedValue(taxCodeAndIPACodeConflict());
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockQueryParams);
+
+    expect(res.status).toBe(400);
+  });
 });
