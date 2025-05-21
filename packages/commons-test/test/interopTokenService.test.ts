@@ -14,6 +14,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   ClientAssertionDigest,
   ClientId,
+  DescriptorId,
+  EServiceId,
   generateId,
   PurposeId,
   TenantId,
@@ -267,6 +269,10 @@ describe("Token Generator", () => {
       const subClientId: ClientId = generateId();
       const audience = ["Audience1", "Audience2"];
       const purposeId = generateId<PurposeId>();
+      const consumerId: TenantId = generateId();
+      const producerId: TenantId = generateId();
+      const eserviceId: EServiceId = generateId();
+      const descriptorId: DescriptorId = generateId();
       const tokenDurationInSeconds = 1000;
 
       const digest: ClientAssertionDigest = {
@@ -286,6 +292,11 @@ describe("Token Generator", () => {
           purposeId,
           tokenDurationInSeconds,
           digest,
+          producerId,
+          consumerId,
+          eserviceId,
+          descriptorId,
+          featureFlagImprovedProducerVerificationClaims: false,
         });
 
       expect(actualToken.header).toEqual({
