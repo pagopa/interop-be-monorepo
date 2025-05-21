@@ -67,8 +67,7 @@ describe("upgradeAgreement", () => {
       config.defaultPollingMaxAttempts
     );
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost:
-        mockInteropBeClients.agreementProcessClient.upgradeAgreement,
+      mockPost: mockInteropBeClients.agreementProcessClient.upgradeAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
