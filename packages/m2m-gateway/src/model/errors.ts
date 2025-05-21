@@ -9,12 +9,15 @@ export const errorCodes = {
   resourcePollingTimeout: "0001",
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
-  agreementNotInPendingState: "0004",
-  agreementNotInSuspendedState: "0005",
-  unexpectedAttributeKind: "0006",
-  unexpectedUndefinedAttributeOriginOrCode: "0007",
-  attributeNotFound: "0008",
-  clientAdminIdNotFound: "0009",
+  clientAdminIdNotFound: "0004",
+  unexpectedAttributeKind: "0005",
+  unexpectedUndefinedAttributeOriginOrCode: "0006",
+  attributeNotFound: "0007",
+  purposeNotFound: "0008",
+  missingActivePurposeVersion: "0009",
+  agreementNotInPendingState: "0010",
+  eserviceDescriptorNotFound: "0011",
+  agreementNotInSuspendedState: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -109,5 +112,16 @@ export function agreementNotInSuspendedState(
     detail: `Agreement ${agreementId} is not in suspended state`,
     code: "agreementNotInSuspendedState",
     title: "Agreement Not In Suspended State",
+  });
+}
+
+export function eserviceDescriptorNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "Eservice descriptor not found",
   });
 }
