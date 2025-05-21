@@ -1,4 +1,15 @@
 import {
+  DelegationId,
+  generateId,
+  PurposeId,
+  PurposeVersionId,
+  DescriptorId,
+  EServiceId,
+  EServiceTemplateId,
+  AgreementId,
+  TenantId,
+} from "pagopa-interop-models";
+import {
   delegationApi,
   eserviceTemplateApi,
   agreementApi,
@@ -7,17 +18,6 @@ import {
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import {
-  DelegationId,
-  DescriptorId,
-  EServiceId,
-  EServiceTemplateId,
-  AgreementId,
-  PurposeId,
-  PurposeVersionId,
-  generateId,
-  TenantId,
-} from "pagopa-interop-models";
 import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
 
 export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
