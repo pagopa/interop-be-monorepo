@@ -651,8 +651,12 @@ export function purposeServiceBuilder(
         purposeId: PurposeId;
         versionId: PurposeVersionId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<PurposeVersion> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -681,7 +685,7 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const event = match(suspender)
+      const eventToCreate = match(suspender)
         .with(ownership.CONSUMER, () => {
           const updatedPurpose: Purpose = {
             ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
@@ -708,8 +712,11 @@ export function purposeServiceBuilder(
         })
         .exhaustive();
 
-      await repository.createEvent(event);
-      return suspendedPurposeVersion;
+      const createdEvent = await repository.createEvent(eventToCreate);
+      return {
+        data: suspendedPurposeVersion,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async getPurposes(
       filters: GetPurposesFilters,

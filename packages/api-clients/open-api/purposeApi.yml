@@ -762,6 +762,9 @@ paths:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Suspended
           content:

@@ -516,20 +516,21 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          const suspendedVersion = await purposeService.suspendPurposeVersion(
+          const { data, metadata } = await purposeService.suspendPurposeVersion(
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
             },
             ctx
           );
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
               purposeApi.PurposeVersion.parse(
-                purposeVersionToApiPurposeVersion(suspendedVersion)
+                purposeVersionToApiPurposeVersion(data)
               )
             );
         } catch (error) {

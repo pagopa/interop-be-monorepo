@@ -112,7 +112,6 @@ export function purposeVersionNotFound(
   });
 }
 
-
 export function missingActivePurposeVersionWithState(
   purposeId: string,
   state: purposeApi.PurposeVersionState
@@ -124,7 +123,6 @@ export function missingActivePurposeVersionWithState(
   });
 }
 
-
 export function missingPurposeCurrentVersion(
   purposeId: string
 ): ApiError<ErrorCodes> {
@@ -134,6 +132,7 @@ export function missingPurposeCurrentVersion(
     title: "Missing current purpose version",
   });
 }
+
 
 export function taxCodeAndIPACodeConflict(): ApiError<ErrorCodes> {
   return new ApiError({
