@@ -107,6 +107,7 @@ export function purposeVersionNotFound(
     code: "purposeVersionNotFound",
     title: "Purpose version not found",
   });
+}
 
 export function eserviceDescriptorNotFound(
   eserviceId: string,
