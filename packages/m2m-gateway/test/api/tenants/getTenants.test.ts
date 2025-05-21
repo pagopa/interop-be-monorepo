@@ -28,8 +28,8 @@ describe("GET /tenants route test", () => {
   };
 
   const mockQueryParams: m2mGatewayApi.GetTenantsQueryParams = {
-    externalIdOrigin: generateMock(z.string()),
-    externalIdValue: generateMock(z.string()),
+    IPACode: generateMock(z.string()),
+    taxCode: generateMock(z.string()),
     offset: 0,
     limit: 10,
   };
