@@ -22,6 +22,7 @@ export const errorCodes = {
   purposeNotFound: "0009",
   missingActivePurposeVersionWithState: "0010",
   purposeVersionNotFound: "0011",
+  missingPurposeCurrentVersion: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -118,6 +119,16 @@ export function missingActivePurposeVersionWithState(
     detail: `There is no ${state} version for purpose ${purposeId}`,
     code: "missingActivePurposeVersionWithState",
     title: `Missing ${state} purpose version`,
+  });
+}
+
+export function missingPurposeCurrentVersion(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `There is no current valid version for purpose ${purposeId}`,
+    code: "missingPurposeCurrentVersion",
+    title: "Missing current purpose version",
   });
 }
 

@@ -6,7 +6,7 @@ import { generateId, PurposeId } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  missingActivePurposeVersion,
+  missingPurposeCurrentVersion,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
@@ -33,10 +33,16 @@ describe("POST /purposes/:purposeId/archive router test", () => {
   it("Should return 400 for missing purpose version", async () => {
     mockPurposeService.archivePurpose = vi
       .fn()
-      .mockRejectedValue(missingActivePurposeVersion(generateId<PurposeId>()));
+      .mockRejectedValue(missingPurposeCurrentVersion(generateId<PurposeId>()));
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, generateId());
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 for invalid purpose id", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, "INVALID_ID");
     expect(res.status).toBe(400);
   });
 

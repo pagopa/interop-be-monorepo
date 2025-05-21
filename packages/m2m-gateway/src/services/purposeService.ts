@@ -15,7 +15,10 @@ import {
   isPolledVersionAtLeastTargetVersion,
 } from "../utils/polling.js";
 import { purposeVersionNotFound } from "../model/errors.js";
-import { assertPurposeVersionExistsWithState } from "../utils/validators/purposeValidator.js";
+import {
+  assertPurposeVersionExists,
+  assertPurposeVersionExistsWithState,
+} from "../utils/validators/purposeValidator.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -305,13 +308,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      await pollPurpose(
-        {
-          data: purposeResponse.data,
-          metadata,
-        },
-        headers
-      );
+      await pollPurposeVersion(purposeId, metadata?.version, headers);
     },
   };
 }
