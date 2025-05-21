@@ -65,6 +65,22 @@ export type FeatureFlagAdminClientConfig = z.infer<
   typeof FeatureFlagAdminClientConfig
 >;
 
+export const FeatureFlagApplicationAuditStrictConfig = z
+  .object({
+    FEATURE_FLAG_APPLICATION_AUDIT_STRICT_STRICT: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+  })
+  .transform((c) => ({
+    featureFlagApplicationAuditStrict:
+      c.FEATURE_FLAG_APPLICATION_AUDIT_STRICT_STRICT ?? false,
+  }));
+
+export type FeatureFlagApplicationAuditStrictConfig = z.infer<
+  typeof FeatureFlagApplicationAuditStrictConfig
+>;
+
 export const FeatureFlagImprovedProducerVerificationClaimsConfig = z
   .object({
     FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS: z
@@ -84,6 +100,7 @@ type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagSQLConfig &
   FeatureFlagAdminClientConfig &
+  FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;

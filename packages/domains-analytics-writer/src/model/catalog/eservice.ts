@@ -1,30 +1,37 @@
-// eservice.ts
-import { EServiceSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { eserviceInReadmodelCatalog } from "pagopa-interop-readmodel-models";
+import { EserviceDescriptorSchema } from "./eserviceDescriptor.js";
+import { EserviceDescriptorAttributeSchema } from "./eserviceDescriptorAttribute.js";
+import { EserviceDescriptorDocumentSchema } from "./eserviceDescriptorDocument.js";
+import { EserviceDescriptorInterfaceSchema } from "./eserviceDescriptorInterface.js";
+import { EserviceDescriptorRejectionReasonSchema } from "./eserviceDescriptorRejection.js";
+import { EserviceDescriptorTemplateVersionRefSchema } from "./eserviceDescriptorTemplateVersionRef.js";
+import { EserviceRiskAnalysisSchema } from "./eserviceRiskAnalysis.js";
+import { EserviceRiskAnalysisAnswerSchema } from "./eserviceRiskAnalysisAnswer.js";
 
-export const EserviceSchema = z.object({
-  id: z.string(),
-  metadata_version: z.number(),
-  name: z.string(),
-  created_at: z.string(),
-  producer_id: z.string(),
-  description: z.string(),
-  technology: z.string(),
-  mode: z.string(),
-  is_signal_hub_enabled: z.boolean().nullable(),
-  is_consumer_delegable: z.boolean().nullable(),
-  is_client_access_delegable: z.boolean().nullable(),
-  template_id: z.string().nullable(),
+export const EserviceSchema = createSelectSchema(
+  eserviceInReadmodelCatalog
+).extend({
   deleted: z.boolean().default(false).optional(),
 });
 export type EserviceSchema = z.infer<typeof EserviceSchema>;
 
-export const EserviceDeletingSchema = z.object({
-  id: z.string(),
-  deleted: z.boolean().default(false).optional(),
+export const EserviceDeletingSchema = EserviceSchema.pick({
+  id: true,
+  deleted: true,
 });
 export type EserviceDeletingSchema = z.infer<typeof EserviceDeletingSchema>;
 
-export type EserviceMapping = {
-  [K in keyof EserviceSchema]: (record: EServiceSQL) => EserviceSchema[K];
-};
+export const EserviceItemsSchema = z.object({
+  eserviceSQL: EserviceSchema,
+  riskAnalysesSQL: z.array(EserviceRiskAnalysisSchema),
+  riskAnalysisAnswersSQL: z.array(EserviceRiskAnalysisAnswerSchema),
+  descriptorsSQL: z.array(EserviceDescriptorSchema),
+  attributesSQL: z.array(EserviceDescriptorAttributeSchema),
+  interfacesSQL: z.array(EserviceDescriptorInterfaceSchema),
+  documentsSQL: z.array(EserviceDescriptorDocumentSchema),
+  rejectionReasonsSQL: z.array(EserviceDescriptorRejectionReasonSchema),
+  templateVersionRefsSQL: z.array(EserviceDescriptorTemplateVersionRefSchema),
+});
+export type EserviceItemsSchema = z.infer<typeof EserviceItemsSchema>;
