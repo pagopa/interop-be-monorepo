@@ -56,7 +56,8 @@ export const FeatureFlagAdminClientConfig = z
     FEATURE_FLAG_ADMIN_CLIENT: z
       .enum(["true", "false"])
       .default("false")
-      .transform((value) => value === "true"),
+      .transform((value) => value === "true")
+      .optional(),
   })
   .transform((c) => ({
     featureFlagAdminClient: c.FEATURE_FLAG_ADMIN_CLIENT ?? false,
