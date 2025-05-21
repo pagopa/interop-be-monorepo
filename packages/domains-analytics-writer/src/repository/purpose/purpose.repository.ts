@@ -58,7 +58,7 @@ export function purposeRepo(conn: DBConnection) {
         ["id"]
       );
 
-      await merge(t, mergeQuery, stagingTableName, schemaName, tableName);
+      await merge({ t, mergeQuery, stagingTableName, schemaName, tableName });
     },
 
     async clean(): Promise<void> {
@@ -94,13 +94,13 @@ export function purposeRepo(conn: DBConnection) {
         ["id"]
       );
 
-      await mergeDeleting(
+      await mergeDeleting({
         t,
         mergeQuery,
         stagingDeletingTableName,
         schemaName,
-        tableName
-      );
+        tableName,
+      });
     },
 
     async cleanDeleting(): Promise<void> {

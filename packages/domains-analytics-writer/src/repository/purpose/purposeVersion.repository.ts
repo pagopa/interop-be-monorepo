@@ -96,13 +96,13 @@ export function purposeVersionRepo(conn: DBConnection) {
         deletingTableName,
         ["id"]
       );
-      await mergeDeleting(
+      await mergeDeleting({
         t,
         mergeQuery,
         stagingDeletingTableName,
         schemaName,
-        tableName
-      );
+        tableName,
+      });
     },
 
     async cleanDeleting(): Promise<void> {

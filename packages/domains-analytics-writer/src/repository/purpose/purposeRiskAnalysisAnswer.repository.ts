@@ -49,7 +49,7 @@ export function purposeRiskAnalysisAnswerRepo(conn: DBConnection) {
         tableName,
         ["id", "purposeId"]
       );
-      await merge(t, mergeQuery, stagingTableName, schemaName, tableName);
+      await merge({ t, mergeQuery, stagingTableName, schemaName, tableName });
     },
 
     async clean(): Promise<void> {

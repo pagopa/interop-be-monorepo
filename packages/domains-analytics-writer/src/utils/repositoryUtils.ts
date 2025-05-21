@@ -2,13 +2,19 @@ import { genericInternalError } from "pagopa-interop-models";
 import { ITask } from "pg-promise";
 import { DBConnection } from "../db/db.js";
 
-export async function merge(
-  t: ITask<unknown>,
-  mergeQuery: string,
-  stagingTableName: string,
-  schemaName: string,
-  tableName: string
-): Promise<void> {
+export async function merge({
+  t,
+  mergeQuery,
+  stagingTableName,
+  schemaName,
+  tableName,
+}: {
+  t: ITask<unknown>;
+  mergeQuery: string;
+  stagingTableName: string;
+  schemaName: string;
+  tableName: string;
+}): Promise<void> {
   try {
     await t.none(mergeQuery);
   } catch (error: unknown) {
@@ -31,13 +37,19 @@ export async function clean(
   }
 }
 
-export async function mergeDeleting(
-  t: ITask<unknown>,
-  mergeQuery: string,
-  stagingDeletingTableName: string,
-  schemaName: string,
-  tableName: string
-): Promise<void> {
+export async function mergeDeleting({
+  t,
+  mergeQuery,
+  stagingDeletingTableName,
+  schemaName,
+  tableName,
+}: {
+  t: ITask<unknown>;
+  mergeQuery: string;
+  stagingDeletingTableName: string;
+  schemaName: string;
+  tableName: string;
+}): Promise<void> {
   try {
     await t.none(mergeQuery);
   } catch (error: unknown) {

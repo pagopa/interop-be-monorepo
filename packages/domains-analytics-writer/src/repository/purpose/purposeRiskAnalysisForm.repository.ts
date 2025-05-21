@@ -50,7 +50,7 @@ export function purposeRiskAnalysisFormRepo(conn: DBConnection) {
         ["id", "purposeId"]
       );
 
-      await merge(t, mergeQuery, stagingTableName, schemaName, tableName);
+      await merge({ t, mergeQuery, stagingTableName, schemaName, tableName });
     },
 
     async clean(): Promise<void> {
