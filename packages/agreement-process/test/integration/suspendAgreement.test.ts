@@ -19,7 +19,6 @@ import {
   randomArrayItem,
   randomBoolean,
   sortAgreementV2,
-  sortAgreement,
   getMockDescriptorPublished,
 } from "pagopa-interop-commons-test";
 import {
@@ -138,7 +137,7 @@ describe("suspend agreement", () => {
     ]);
     const authData = getMockAuthData(requesterId);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
+    const suspendAgreementResponse = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -196,7 +195,12 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
+    expect(suspendAgreementResponse).toEqual({
+      data: expectedAgreementSuspended,
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
@@ -265,7 +269,7 @@ describe("suspend agreement", () => {
 
     const authData = getMockAuthData(producerAndConsumerId);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
+    const suspendAgreementResponse = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -307,7 +311,12 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
+    expect(suspendAgreementResponse).toEqual({
+      data: expectedAgreementSuspended,
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   it("should preserve the suspension flags and the stamps that it does not update", async () => {
@@ -349,7 +358,7 @@ describe("suspend agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(agreement);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
+    const suspendAgreementResponse = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -408,7 +417,12 @@ describe("suspend agreement", () => {
     expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
       sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
     );
-    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
+    expect(suspendAgreementResponse).toEqual({
+      data: expectedAgreementSuspended,
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   describe.each(agreementSuspendableStates)(
@@ -512,13 +526,18 @@ describe("suspend agreement", () => {
           },
         };
 
-        const actualAgreement = await agreementService.suspendAgreement(
-          agreement.id,
-          getMockContext({ authData })
-        );
-        expect(sortAgreement(actualAgreement)).toEqual(
-          sortAgreement(expectedAgreement)
-        );
+        const suspendAgreementResponse =
+          await agreementService.suspendAgreement(
+            agreement.id,
+            getMockContext({ authData })
+          );
+
+        expect(suspendAgreementResponse).toEqual({
+          data: expectedAgreement,
+          metadata: {
+            version: 1,
+          },
+        });
       });
     }
   );

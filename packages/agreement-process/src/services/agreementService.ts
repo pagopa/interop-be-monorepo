@@ -942,8 +942,12 @@ export function agreementServiceBuilder(
     },
     async suspendAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Suspending agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -987,7 +991,7 @@ export function agreementServiceBuilder(
         activeDelegations,
       });
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         createAgreementSuspendedEvent(
           authData,
           correlationId,
@@ -997,7 +1001,10 @@ export function agreementServiceBuilder(
         )
       );
 
-      return updatedAgreement;
+      return {
+        data: updatedAgreement,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
