@@ -7,7 +7,7 @@ import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { api, attributeRegistryService } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
-import { attributeDuplicateByNameAndCode } from "../../src/model/domain/errors.js";
+import { attributeDuplicateByCodeOriginOrName } from "../../src/model/domain/errors.js";
 
 describe("API /certifiedAttributes authorization test", () => {
   const mockCertifiedAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed =
@@ -67,12 +67,12 @@ describe("API /certifiedAttributes authorization test", () => {
     attributeRegistryService.createCertifiedAttribute = vi
       .fn()
       .mockRejectedValue(
-        attributeDuplicateByNameAndCode(
+        attributeDuplicateByCodeOriginOrName(
           mockCertifiedAttributeSeed.name,
-          mockCertifiedAttributeSeed.code
+          mockCertifiedAttributeSeed.code,
+          "origin"
         )
       );
-
     const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
 
     expect(res.status).toBe(409);

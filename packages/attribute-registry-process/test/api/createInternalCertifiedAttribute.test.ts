@@ -7,7 +7,7 @@ import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { api, attributeRegistryService } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
-import { attributeDuplicateByNameAndCode } from "../../src/model/domain/errors.js";
+import { attributeDuplicateByCodeOriginOrName } from "../../src/model/domain/errors.js";
 
 describe("API /internal/certifiedAttributes authorization test", () => {
   const mockInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed =
@@ -60,9 +60,10 @@ describe("API /internal/certifiedAttributes authorization test", () => {
     attributeRegistryService.internalCreateCertifiedAttribute = vi
       .fn()
       .mockRejectedValue(
-        attributeDuplicateByNameAndCode(
+        attributeDuplicateByCodeOriginOrName(
           mockInternalCertifiedAttributeSeed.name,
-          mockInternalCertifiedAttributeSeed.code
+          mockInternalCertifiedAttributeSeed.code,
+          mockInternalCertifiedAttributeSeed.origin
         )
       );
 
