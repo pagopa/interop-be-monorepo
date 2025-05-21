@@ -43,7 +43,7 @@ describe("API /attributes/origin/{origin}/code/{code} authorization test", () =>
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, attribute.origin!, attribute.code!);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiAttribute);
@@ -53,7 +53,7 @@ describe("API /attributes/origin/{origin}/code/{code} authorization test", () =>
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, attribute.origin!, attribute.code!);
 
     expect(res.status).toBe(403);
@@ -64,7 +64,7 @@ describe("API /attributes/origin/{origin}/code/{code} authorization test", () =>
       .fn()
       .mockRejectedValue(attributeNotFound(attribute.id));
 
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE), "", "");
+    const res = await makeRequest(generateToken([authRole.ADMIN_ROLE]), "", "");
 
     expect(res.status).toBe(404);
   });
@@ -72,7 +72,7 @@ describe("API /attributes/origin/{origin}/code/{code} authorization test", () =>
   it("Should return 400 if passed an empty origin and no code", async () => {
     const res = await request(api)
       .get(`/attributes/origin/`)
-      .set("Authorization", `Bearer ${generateToken(authRole.ADMIN_ROLE)}`)
+      .set("Authorization", `Bearer ${generateToken([authRole.ADMIN_ROLE])}`)
       .set("X-Correlation-Id", generateId())
       .send();
     expect(res.status).toBe(400);

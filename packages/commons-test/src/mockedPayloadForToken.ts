@@ -1,6 +1,5 @@
 import {
   AuthRole,
-  userRole,
   InteropJwtMaintenancePayload,
   InteropJwtApiM2MAdminPayload,
   InteropJwtApiM2MPayload,
@@ -8,13 +7,14 @@ import {
   InteropJwtUIPayload,
   UserRole,
   AuthTokenPayload,
+  ui_Role,
 } from "pagopa-interop-commons";
 import { ClientId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
-import { getMockAuthData } from "./testUtils.js";
 
-function createUserPayload(role: UserRole): InteropJwtUIPayload {
+function createUserPayload(roles: UserRole[]): InteropJwtUIPayload {
+  const organizationId = generateId();
   return {
     iss: "dev.interop.pagopa.it",
     aud: ["dev.interop.pagopa.it/ui"],
@@ -26,20 +26,26 @@ function createUserPayload(role: UserRole): InteropJwtUIPayload {
     name: "Mario",
     family_name: "Rossi",
     email: "Mario.rossi@psp.it",
-    ...getMockAuthData(),
     organization: {
-      id: generateId(),
+      id: organizationId,
       name: "PagoPA S.p.A.",
       roles: [
         {
-          partyRole: role,
+          partyRole: "MANAGER",
           role: "admin",
         },
       ],
       fiscal_code: "15376371009",
       ipaCode: "5N2TR557",
     },
-    "user-roles": [role],
+    "user-roles": roles.join(","),
+    organizationId,
+    externalId: {
+      value: "123456",
+      origin: "IPA",
+    },
+    selfcareId: generateId(),
+    role: ui_Role,
   };
 }
 
@@ -105,17 +111,13 @@ function createM2MAdminPayload(): InteropJwtApiM2MAdminPayload {
   };
 }
 
-const createPayload = (role: AuthRole): AuthTokenPayload =>
-  match(role)
-    .with("maintenance", () => createMaintenancePayload())
-    .with("m2m", () => createM2MPayload())
-    .with("m2m-admin", () => createM2MAdminPayload())
-    .with("internal", () => createInternalPayload())
-    .with("admin", () => createUserPayload(userRole.ADMIN_ROLE))
-    .with("api", () => createUserPayload(userRole.API_ROLE))
-    .with("security", () => createUserPayload(userRole.SECURITY_ROLE))
-    .with("support", () => createUserPayload(userRole.SUPPORT_ROLE))
-    .exhaustive();
+export const createPayload = (roles: AuthRole[]): AuthTokenPayload =>
+  match(roles)
+    .with(["maintenance"], () => createMaintenancePayload())
+    .with(["m2m"], () => createM2MPayload())
+    .with(["m2m-admin"], () => createM2MAdminPayload())
+    .with(["internal"], () => createInternalPayload())
+    .otherwise(() => createUserPayload(roles as UserRole[]));
 
-export const generateToken = (role: AuthRole): string =>
-  jwt.sign(createPayload(role), "test-secret");
+export const generateToken = (roles: AuthRole[]): string =>
+  jwt.sign(createPayload(roles), "test-secret");

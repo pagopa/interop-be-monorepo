@@ -52,7 +52,7 @@ describe("POST /certifiedAttributes router test", () => {
         .fn()
         .mockResolvedValue(mockM2MCertifiedAttributeResponse);
 
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, mockCertifiedAttributeSeed);
 
       expect(res.status).toBe(201);
@@ -63,7 +63,7 @@ describe("POST /certifiedAttributes router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, mockCertifiedAttributeSeed);
     expect(res.status).toBe(403);
   });
@@ -76,7 +76,7 @@ describe("POST /certifiedAttributes router test", () => {
   ])(
     "Should return 400 if passed an invalid certified attribute seed: %s",
     async (body) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
       const res = await makeRequest(
         token,
         body as unknown as m2mGatewayApi.CertifiedAttributeSeed
@@ -96,7 +96,7 @@ describe("POST /certifiedAttributes router test", () => {
       mockAttributeService.createCertifiedAttribute = vi
         .fn()
         .mockResolvedValueOnce(resp);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
       const res = await makeRequest(token, mockCertifiedAttributeSeed);
 
       expect(res.status).toBe(500);
@@ -112,7 +112,7 @@ describe("POST /certifiedAttributes router test", () => {
     mockAttributeService.createCertifiedAttribute = vi
       .fn()
       .mockRejectedValue(error);
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
     const res = await makeRequest(token, mockCertifiedAttributeSeed);
 
     expect(res.status).toBe(500);

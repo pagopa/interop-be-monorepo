@@ -57,7 +57,7 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, clientId, keyId);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiKeyWithClient);
@@ -67,7 +67,7 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, clientId, keyId);
     expect(res.status).toBe(403);
   });
@@ -92,7 +92,7 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
           .mockRejectedValue(error);
       }
 
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken([authRole.ADMIN_ROLE]);
       const res = await makeRequest(token, clientId, mockKey.kid);
       expect(res.status).toBe(expectedStatus);
     }
@@ -101,7 +101,7 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
   it.each([{}, { clientId: "invalidId" }])(
     "Should return 400 if passed invalid params: %s",
     async ({ clientId }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken([authRole.ADMIN_ROLE]);
       const res = await makeRequest(token, clientId as ClientId, mockKey.kid);
 
       expect(res.status).toBe(400);

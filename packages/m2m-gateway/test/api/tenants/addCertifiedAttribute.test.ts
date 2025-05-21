@@ -28,7 +28,7 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
     async (role) => {
       mockTenantService.addCertifiedAttribute = vi.fn();
 
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, { id: generateId() });
 
       expect(res.status).toBe(204);
@@ -38,13 +38,13 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, { id: generateId() });
     expect(res.status).toBe(403);
   });
 
   it("Should return 400 if passed an invalid seed", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
     const res = await makeRequest(token, {
       invalidParam: "invalidValue",
     } as unknown as m2mGatewayApi.TenantCertifiedAttributeSeed);
@@ -58,7 +58,7 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
       mockTenantService.addCertifiedAttribute = vi
         .fn()
         .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
       const res = await makeRequest(token, { id: generateId() });
 
       expect(res.status).toBe(500);
