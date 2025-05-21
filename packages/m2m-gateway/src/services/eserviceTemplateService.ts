@@ -1,11 +1,16 @@
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
+import {
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toM2MGatewayEServiceTemplate,
   toM2MGatewayEServiceTemplateVersion,
 } from "../api/eserviceTemplateApiConverter.js";
+import { eServiceTemplateVersionNotFound } from "../model/errors.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -17,10 +22,10 @@ export function eserviceTemplateServiceBuilder(
 ) {
   return {
     async getEServiceTemplateById(
-      templateId: string,
+      templateId: EServiceTemplateId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplate> {
-      logger.info(`Retrieving eservice template with id${templateId}`);
+      logger.info(`Retrieving eservice template with id ${templateId}`);
 
       const { data } =
         await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
@@ -31,7 +36,7 @@ export function eserviceTemplateServiceBuilder(
       return toM2MGatewayEServiceTemplate(data);
     },
     async getEServiceTemplateVersions(
-      templateId: string,
+      templateId: EServiceTemplateId,
       queryParams: m2mGatewayApi.GetEServiceTemplateVersionsQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplateVersions> {
@@ -61,6 +66,29 @@ export function eserviceTemplateServiceBuilder(
           totalCount: versions.length,
         },
       };
+    },
+    async getEServiceTemplateVersion(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.EServiceTemplateVersion> {
+      logger.info(
+        `Retrieving version ${versionId} of eservice template with id ${templateId}`
+      );
+
+      const { data } =
+        await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
+          headers,
+          params: { templateId },
+        });
+
+      const version = data.versions.find((v) => v.id === versionId);
+
+      if (!version) {
+        throw eServiceTemplateVersionNotFound(templateId, versionId);
+      }
+
+      return toM2MGatewayEServiceTemplateVersion(version);
     },
   };
 }
