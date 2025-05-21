@@ -109,6 +109,8 @@ import {
   UserRole,
   userRole,
   WithLogger,
+  SessionClaims,
+  CustomClaims,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -1098,4 +1100,25 @@ export const getMockContextM2M = ({
   spanId: generateId(),
   logger: genericLogger,
   requestTimestamp: Date.now(),
+});
+
+export const getMockSessionClaims = (
+  roles: UserRole[] = [userRole.ADMIN_ROLE]
+): SessionClaims & CustomClaims => ({
+  uid: generateId(),
+  organization: {
+    id: generateId(),
+    name: "My Org",
+    roles: roles.map((r) => ({ role: r })),
+  },
+  name: "A generic user",
+  family_name: "Family name",
+  email: "randomEmailforTest@tester.com",
+  "user-roles": roles.join(","),
+  organizationId: generateId(),
+  selfcareId: generateId(),
+  externalId: {
+    origin: "Internals",
+    value: generateId(),
+  },
 });
