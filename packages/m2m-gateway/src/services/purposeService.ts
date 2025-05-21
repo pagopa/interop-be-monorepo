@@ -54,7 +54,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     purpose: purposeApi.Purpose,
     state: purposeApi.PurposeVersionState
   ): purposeApi.PurposeVersion => {
-    const currentVersion = purpose.versions
+    const latestVersion = purpose.versions
       .filter((v) => v.state === state)
       .sort(
         (a, b) =>
@@ -62,9 +62,9 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       )
       .at(-1);
 
-    assertPurposeVersionExists(currentVersion, purpose.id);
+    assertPurposeVersionExists(latestVersion, purpose.id);
 
-    return currentVersion;
+    return latestVersion;
   };
 
   const retrievePurposeCurrentVersion = (
