@@ -11,7 +11,8 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
-  missingActivePurposeVersion,
+  missingMetadata,
+  missingPurposeCurrentVersion,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
@@ -35,7 +36,7 @@ describe("suspendPurposeVersion", () => {
   };
 
   const pollingTentatives = 2;
-  const mocksuspendPurposeVersion = vi
+  const mockSuspendPurposeVersion = vi
     .fn()
     .mockResolvedValue(suspendPurposeApiResponse);
   const mockGetPurpose = vi.fn(
@@ -44,15 +45,16 @@ describe("suspendPurposeVersion", () => {
 
   mockInteropBeClients.purposeProcessClient = {
     getPurpose: mockGetPurpose,
-    suspendPurposeVersion: mocksuspendPurposeVersion,
+    suspendPurposeVersion: mockSuspendPurposeVersion,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
-    mocksuspendPurposeVersion.mockClear();
+    mockSuspendPurposeVersion.mockClear();
     mockGetPurpose.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    // The suspend will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
     await purposeService.suspendPurpose(
@@ -76,10 +78,11 @@ describe("suspendPurposeVersion", () => {
     ).toHaveBeenCalledTimes(pollingTentatives + 1);
   });
 
-  it("Should throw missingActivePurposeVersion in case of missing active version to suspend", async () => {
+  it("Should throw missingPurposeCurrentVersion in case of missing active version to suspend", async () => {
     const invalidPurpose = getMockedApiPurpose({
       versions: [getMockedApiPurposeVersion({ state: "REJECTED" })],
     });
+    // The suspend will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
 
     await expect(
@@ -87,7 +90,38 @@ describe("suspendPurposeVersion", () => {
         unsafeBrandId(mockApiPurpose.data.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingActivePurposeVersion(invalidPurpose.data.id));
+    ).rejects.toThrowError(
+      missingPurposeCurrentVersion(invalidPurpose.data.id)
+    );
+  });
+
+  it("Should throw missingMetadata in case the purpose returned by the suspend POST call has no metadata", async () => {
+    mockSuspendPurposeVersion.mockResolvedValueOnce({
+      data: mockApiPurposeVersion1,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeService.suspendPurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the purpose returned by the polling GET call has no metadata", async () => {
+    // The suspend will first get the purpose, then perform the polling
+    mockGetPurpose.mockResolvedValueOnce(mockApiPurpose).mockResolvedValue({
+      data: mockApiPurpose.data,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeService.suspendPurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
   });
 
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
