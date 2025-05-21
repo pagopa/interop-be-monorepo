@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
-import { generateMock } from "@anatine/zod-mock";
-import { z } from "zod";
+import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -13,11 +12,12 @@ import {
   getMockedApiTenant,
 } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
 describe("getTenants", () => {
   const mockParams: m2mGatewayApi.GetTenantsQueryParams = {
-    externalIdOrigin: generateMock(z.string()),
-    externalIdValue: generateMock(z.string()),
+    taxCode: undefined,
+    IPACode: undefined,
     offset: 0,
     limit: 10,
   };
@@ -95,13 +95,64 @@ describe("getTenants", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenants,
       queries: {
-        externalIdOrigin: mockParams.externalIdOrigin,
-        externalIdValue: mockParams.externalIdValue,
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
         features: [],
         name: undefined,
         offset: mockParams.offset,
         limit: mockParams.limit,
       },
     });
+  });
+
+  it("Should call the process getTenants with externalIdOrigin filter as IPA identifier and externalIdValue as the passed IPACode value", async () => {
+    await tenantService.getTenants(
+      { ...mockParams, IPACode: "IPA123" },
+      getMockM2MAdminAppContext()
+    );
+
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenants,
+      queries: {
+        externalIdOrigin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+        externalIdValue: "IPA123",
+        features: [],
+        name: undefined,
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+      },
+    });
+  });
+
+  it("Should call the process getTenants with externalIdOrigin filter as undefined and externalIdValue as the passed TaxCode value", async () => {
+    await tenantService.getTenants(
+      { ...mockParams, taxCode: "TAX123" },
+      getMockM2MAdminAppContext()
+    );
+
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenants,
+      queries: {
+        externalIdOrigin: undefined,
+        externalIdValue: "TAX123",
+        features: [],
+        name: undefined,
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+      },
+    });
+  });
+
+  it("Should throw taxCodeAndIPACodeConflict if both IPACode and taxCode are provided", async () => {
+    const params: m2mGatewayApi.GetTenantsQueryParams = {
+      IPACode: "IPA123",
+      taxCode: "TAX123",
+      offset: 0,
+      limit: 10,
+    };
+
+    await expect(
+      tenantService.getTenants(params, getMockM2MAdminAppContext())
+    ).rejects.toThrowError(taxCodeAndIPACodeConflict());
   });
 });
