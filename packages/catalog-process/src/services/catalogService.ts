@@ -21,6 +21,7 @@ import {
   formatDateddMMyyyyHHmmss,
   assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -713,7 +714,10 @@ export function catalogServiceBuilder(
   return {
     async getEServiceById(
       eserviceId: EServiceId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -729,7 +733,10 @@ export function catalogServiceBuilder(
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EService>> {
       logger.info(
         `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, mode = ${filters.mode}, isConsumerDelegable = ${filters.isConsumerDelegable}, limit = ${limit}, offset = ${offset}`
@@ -3305,7 +3312,7 @@ async function createOpenApiInterfaceByTemplate(
 
 async function applyVisibilityToEService(
   eservice: EService,
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
   if (

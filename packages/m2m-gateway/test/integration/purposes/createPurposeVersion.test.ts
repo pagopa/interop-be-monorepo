@@ -11,6 +11,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
+  missingMetadata,
   purposeVersionNotFound,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
@@ -93,6 +94,39 @@ describe("createPurposeVersion", () => {
         mockApiPurposeVersion.id
       )
     );
+  });
+
+  it("Should throw missingMetadata in case the purpose returned by the creation POST call has no metadata", async () => {
+    mockCreatePurposeVersion.mockResolvedValueOnce({
+      data: {
+        purpose: mockApiPurpose.data,
+        createdVersionId: mockApiPurposeVersion.id,
+      },
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeService.createPurposeVersion(
+        unsafeBrandId(mockApiPurpose.data.id),
+        mockPurposeVersionSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the purpose returned by the polling GET call has no metadata", async () => {
+    mockGetPurpose.mockResolvedValueOnce({
+      data: mockApiPurpose.data,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeService.createPurposeVersion(
+        unsafeBrandId(mockApiPurpose.data.id),
+        mockPurposeVersionSeed,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
   });
 
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
