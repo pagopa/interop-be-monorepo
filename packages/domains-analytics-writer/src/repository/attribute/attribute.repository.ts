@@ -1,51 +1,44 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import { ITask, IMain } from "pg-promise";
 import { config } from "../../config/config.js";
-import { buildColumnSet } from "../../db/buildColumnSet.js";
 import { DBConnection } from "../../db/db.js";
 import {
-  AttributeMapping,
-  attributeSchema,
+  AttributeSchema,
+  AttributeDeletingSchema,
 } from "../../model/attribute/attribute.js";
-import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, AttributeDbtable } from "../../model/db.js";
+import {
+  buildColumnSet,
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
+import { DeletingDbTable, AttributeDbTable } from "../../model/db/index.js";
 
-/* eslint-disable-next-line @typescript-eslint/explicit-function-return-type */
 export function attributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = AttributeDbtable.attribute;
-  const stagingTable = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTable = DeletingDbTable.attribute_deleting_table;
+  const tableName = AttributeDbTable.attribute;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+  const deletingTableName = DeletingDbTable.attribute_deleting_table;
+  const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: AttributeSQL[]
+      records: AttributeSchema[]
     ): Promise<void> {
-      const mapping: AttributeMapping = {
-        id: (r: AttributeSQL) => r.id,
-        metadata_version: (r: AttributeSQL) => r.metadataVersion,
-        code: (r: AttributeSQL) => r.code,
-        kind: (r: AttributeSQL) => r.kind,
-        description: (r: AttributeSQL) => r.description,
-        origin: (r: AttributeSQL) => r.origin,
-        name: (r: AttributeSQL) => r.name,
-        creation_time: (r: AttributeSQL) => r.creationTime,
-      };
-      const cs = buildColumnSet<AttributeSQL>(pgp, mapping, stagingTable);
       try {
+        const cs = buildColumnSet(pgp, tableName, AttributeSchema);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
-            DELETE FROM ${stagingTable} a
-            USING ${stagingTable} b
+            DELETE FROM ${stagingTableName} a
+            USING ${stagingTableName} b
             WHERE a.id = b.id
             AND a.metadata_version < b.metadata_version;
           `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTable}: ${error}`
+          `Error inserting into staging table ${stagingTableName}: ${error}`
         );
       }
     },
@@ -53,78 +46,72 @@ export function attributeRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          attributeSchema,
+          AttributeSchema,
           schemaName,
           tableName,
-          stagingTable,
-          "id"
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
     async clean(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingTable};`);
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning staging table ${stagingTable}: ${error}`
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },
 
-    async insertDeletingById(
+    async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      id: string
+      records: AttributeDeletingSchema[]
     ): Promise<void> {
-      const mapping = {
-        id: () => id,
-        deleted: () => true,
-      };
       try {
-        const cs = buildColumnSet<{ id: string; deleted: boolean }>(
+        const cs = buildColumnSet(
           pgp,
-          mapping,
-          DeletingDbTable.attribute_deleting_table
+          deletingTableName,
+          AttributeDeletingSchema
         );
         await t.none(
-          pgp.helpers.insert({ id, deleted: true }, cs) +
-            " ON CONFLICT DO NOTHING"
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${DeletingDbTable.attribute_deleting_table}: ${error}`
+          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
 
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        await t.none(`
-          MERGE INTO ${schemaName}.${tableName} AS target
-          USING ${deletingTable} AS src
-          ON target.id = src.id
-          WHEN MATCHED THEN
-            UPDATE SET deleted = src.deleted;
-        `);
+        const mergeQuery = generateMergeDeleteQuery(
+          schemaName,
+          tableName,
+          deletingTableName,
+          ["id"]
+        );
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging deletion flag from ${deletingTable} into ${schemaName}.${tableName}: ${error}`
+          `Error merging deletion flag from ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${deletingTable};`);
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning deleting table ${deletingTable}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
         );
       }
     },

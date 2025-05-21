@@ -3,6 +3,7 @@ import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
   agreementService,
+  expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
   mockPollingResponse,
@@ -65,14 +66,18 @@ describe("approveAgreement", () => {
     );
 
     expect(result).toEqual(m2mAgreementResponse);
-    expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts + 1
-    );
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
+    });
+    expect(mockGetAgreement).toHaveBeenCalledTimes(
+      config.defaultPollingMaxAttempts + 1
+    );
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
+      params: { agreementId: m2mAgreementResponse.id },
     });
   });
 

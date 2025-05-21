@@ -11,7 +11,11 @@ import {
 import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
-import { AttributeDbtable, DeletingDbTable } from "./model/db.js";
+import {
+  AttributeDbTable,
+  CatalogDbTable,
+  DeletingDbTable,
+} from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
 const dbInstance = initDB({
@@ -36,9 +40,25 @@ await retryConnection(
   config,
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
-    await setupDbService.setupStagingTables([AttributeDbtable.attribute]);
-    await setupDbService.setupStagingDeletingByIdTables([
-      DeletingDbTable.attribute_deleting_table,
+    await setupDbService.setupStagingTables([
+      AttributeDbTable.attribute,
+      CatalogDbTable.eservice,
+      CatalogDbTable.eservice_descriptor,
+      CatalogDbTable.eservice_descriptor_template_version_ref,
+      CatalogDbTable.eservice_descriptor_rejection_reason,
+      CatalogDbTable.eservice_descriptor_interface,
+      CatalogDbTable.eservice_descriptor_document,
+      CatalogDbTable.eservice_descriptor_attribute,
+      CatalogDbTable.eservice_risk_analysis,
+      CatalogDbTable.eservice_risk_analysis_answer,
+    ]);
+    await setupDbService.setupStagingDeletingTables([
+      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.catalog_risk_deleting_table,
+        columns: ["id", "eserviceId"],
+      },
     ]);
   },
   logger({ serviceName: config.serviceName })
