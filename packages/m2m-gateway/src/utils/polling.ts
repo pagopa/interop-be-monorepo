@@ -4,7 +4,10 @@ import { WithMetadata } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { resourcePollingTimeout } from "../model/errors.js";
-import { assertMetadataExists } from "./validators/validators.js";
+import {
+  assertMetadataExists,
+  assertMetadataVersionExists,
+} from "./validators/validators.js";
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -64,4 +67,19 @@ export function isPolledVersionAtLeastResponseVersion<T>(
   assertMetadataExists(response);
   return (polledResource: WithMetadata<NonNullable<T>>) =>
     polledResource.metadata.version >= response.metadata.version;
+}
+
+/**
+ * Generic check function that verifies if a polled resource's version meets or exceeds a target version.
+ * This can be used with any resource type that includes metadata with a version number.
+ *
+ * @param targetVersion - The version number that the polled resource should meet or exceed
+ * @returns A function that takes a polled resource and returns true if its version is >= targetVersion
+ */
+export function isPolledVersionAtLeastTargetVersion(
+  targetVersion: number | undefined
+): <T>(polledResource: WithMetadata<NonNullable<T>>) => boolean {
+  assertMetadataVersionExists(targetVersion);
+  return <T>(polledResource: WithMetadata<NonNullable<T>>) =>
+    polledResource.metadata.version >= targetVersion;
 }

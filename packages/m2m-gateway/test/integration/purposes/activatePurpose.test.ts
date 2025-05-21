@@ -11,7 +11,8 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
-  missingActivePurposeVersion,
+  missingActivePurposeVersionWithState,
+  missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
@@ -53,6 +54,7 @@ describe("activatePurposeVersion", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    // The activate will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
     await purposeService.activatePurpose(
@@ -77,10 +79,11 @@ describe("activatePurposeVersion", () => {
     ).toHaveBeenCalledTimes(pollingTentatives + 1);
   });
 
-  it("Should throw missingActivePurposeVersion in case of missing active version to activate", async () => {
+  it("Should throw missingActivePurposeVersionWithState in case of missing active version to activate", async () => {
     const invalidPurpose = getMockedApiPurpose({
       versions: [getMockedApiPurposeVersion({ state: "REJECTED" })],
     });
+    // The activate will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
 
     await expect(
@@ -88,7 +91,41 @@ describe("activatePurposeVersion", () => {
         unsafeBrandId(mockApiPurpose.data.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingActivePurposeVersion(invalidPurpose.data.id));
+    ).rejects.toThrowError(
+      missingActivePurposeVersionWithState(
+        invalidPurpose.data.id,
+        purposeApi.PurposeVersionState.Values.DRAFT
+      )
+    );
+  });
+
+  it("Should throw missingMetadata in case the purpose returned by the activation POST call has no metadata", async () => {
+    mockActivatePurposeVersion.mockResolvedValueOnce({
+      data: mockApiPurposeVersion1,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeService.activatePurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
+  it("Should throw missingMetadata in case the purpose returned by the polling GET call has no metadata", async () => {
+    // The activate will first get the purpose, then perform the polling
+    mockGetPurpose.mockResolvedValueOnce(mockApiPurpose).mockResolvedValue({
+      data: mockApiPurpose.data,
+      metadata: undefined,
+    });
+
+    await expect(
+      purposeService.activatePurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
   });
 
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
