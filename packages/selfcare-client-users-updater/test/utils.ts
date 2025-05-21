@@ -1,9 +1,21 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { EachMessagePayload } from "kafkajs";
 import { InteropInternalToken, userRole } from "pagopa-interop-commons";
-import { generateId, UserId } from "pagopa-interop-models";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import {
+  Client,
+  generateId,
+  toReadModelClient,
+  UserId,
+} from "pagopa-interop-models";
+import {
+  setupTestContainersVitest,
+  writeInReadmodel,
+} from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
+import { clientReadModelServiceBuilder } from "pagopa-interop-readmodel";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { config } from "../src/config/config.js";
 
 export const correctEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
@@ -63,7 +75,7 @@ export const interopToken: InteropInternalToken = {
   serialized: "the-token",
 };
 
-export const { cleanup, readModelRepository, postgresDB } =
+export const { cleanup, readModelRepository, readModelDB } =
   await setupTestContainersVitest(
     inject("readModelConfig"),
     undefined,
@@ -75,3 +87,21 @@ export const { cleanup, readModelRepository, postgresDB } =
   );
 
 afterEach(cleanup);
+
+export const clients = readModelRepository.clients;
+
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  clientReadModelServiceSQL,
+});
+export const readModelService = config.featureFlagSQL
+  ? readModelServiceSQL
+  : oldReadModelService;
+
+export const addOneClient = async (client: Client): Promise<void> => {
+  await writeInReadmodel(toReadModelClient(client), clients);
+
+  await clientReadModelServiceSQL.upsertClient(client, 0);
+};

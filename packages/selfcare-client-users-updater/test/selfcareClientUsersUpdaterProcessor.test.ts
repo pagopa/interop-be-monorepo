@@ -18,31 +18,20 @@ import {
 } from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
 import { getMockClient } from "pagopa-interop-commons-test";
-import {
-  Client,
-  clientKind,
-  unsafeBrandId,
-  UserId,
-} from "pagopa-interop-models";
+import { clientKind, unsafeBrandId, UserId } from "pagopa-interop-models";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
 import { config } from "../src/config/config.js";
 import { AuthorizationProcessClient } from "../src/clients/authorizationProcessClient.js";
 import { relationshipStatus } from "../src/model/UsersEventPayload.js";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import {
+  addOneClient,
   correctEventPayload,
   generateInternalTokenMock,
   kafkaMessagePayload,
+  readModelService,
 } from "./utils.js";
-import { readModelRepository } from "./utils.js";
 
 describe("selfcareClientUsersUpdaterProcessor", () => {
-  const readModelService = readModelServiceBuilder(readModelRepository);
-
-  async function seedCollection(data: Array<{ data: Client }>): Promise<void> {
-    await readModelRepository.clients.insertMany(data as never);
-  }
-
   const authorizationProcessClientMock = {
     client: {
       internalRemoveClientAdmin: vi.fn().mockResolvedValue(undefined),
@@ -111,22 +100,17 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
         },
       };
 
-      await seedCollection([
-        {
-          data: {
-            ...clientMock,
-            consumerId: unsafeBrandId(correctEventPayload.institutionId),
-            adminId: unsafeBrandId<UserId>(correctEventPayload.user.userId),
-          },
-        },
-        {
-          data: {
-            ...clientMock2,
-            consumerId: unsafeBrandId(correctEventPayload.institutionId),
-            adminId: unsafeBrandId<UserId>(correctEventPayload.user.userId),
-          },
-        },
-      ]);
+      await addOneClient({
+        ...clientMock,
+        consumerId: unsafeBrandId(correctEventPayload.institutionId),
+        adminId: unsafeBrandId<UserId>(correctEventPayload.user.userId),
+      });
+
+      await addOneClient({
+        ...clientMock2,
+        consumerId: unsafeBrandId(correctEventPayload.institutionId),
+        adminId: unsafeBrandId<UserId>(correctEventPayload.user.userId),
+      });
 
       await selfcareClientUsersUpdaterProcessor.processMessage(message);
 

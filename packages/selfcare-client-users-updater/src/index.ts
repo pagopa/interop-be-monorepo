@@ -8,42 +8,37 @@ import {
   clientReadModelServiceBuilder,
   makeDrizzleConnection,
 } from "pagopa-interop-readmodel";
-import {
-  config,
-  SelfcareClientUsersUpdaterConsumerConfig,
-} from "./config/config.js";
+import { config } from "./config/config.js";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "./services/selfcareClientUsersUpdaterProcessor.js";
 import { authorizationProcessClientBuilder } from "./clients/authorizationProcessClient.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function getReadModelService(
-  config: SelfcareClientUsersUpdaterConsumerConfig
-) {
-  const readModelDB = makeDrizzleConnection(config);
-  const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
-  const oldReadModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-  const readModelServiceSQL = readModelServiceBuilderSQL({
-    clientReadModelServiceSQL,
-  });
-  return config.featureFlagSQL ? readModelServiceSQL : oldReadModelService;
-}
+const readModelDB = makeDrizzleConnection(config);
+const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
-const tokenGenerator = new InteropTokenGenerator(config);
-const refreshableToken = new RefreshableInteropToken(tokenGenerator);
-await refreshableToken.init();
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  clientReadModelServiceSQL,
+});
+const readModelService = config.featureFlagSQL
+  ? readModelServiceSQL
+  : oldReadModelService;
 
 const authorizationProcessClient = authorizationProcessClientBuilder(
   config.authorizationProcessUrl
 );
 
+const tokenGenerator = new InteropTokenGenerator(config);
+const refreshableToken = new RefreshableInteropToken(tokenGenerator);
+await refreshableToken.init();
+
 const processor = selfcareClientUsersUpdaterProcessorBuilder(
   refreshableToken,
   authorizationProcessClient,
-  getReadModelService(config),
+  readModelService,
   config.interopProduct
 );
 
