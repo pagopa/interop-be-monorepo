@@ -207,11 +207,13 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Upgrading agreement with id ${agreementId}`);
 
-      const response =
-        await clients.agreementProcessClient.upgradeAgreementById(undefined, {
+      const response = await clients.agreementProcessClient.upgradeAgreement(
+        undefined,
+        {
           params: { agreementId },
           headers,
-        });
+        }
+      );
 
       const polledResource = await pollAgreement(response, headers);
 

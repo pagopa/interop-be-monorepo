@@ -36,7 +36,7 @@ describe("upgradeAgreement", () => {
   );
 
   mockInteropBeClients.agreementProcessClient = {
-    upgradeAgreementById: mockUpgradeAgreement,
+    upgradeAgreement: mockUpgradeAgreement,
     getAgreementById: mockGetAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
@@ -68,7 +68,7 @@ describe("upgradeAgreement", () => {
     );
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
-        mockInteropBeClients.agreementProcessClient.upgradeAgreementById,
+        mockInteropBeClients.agreementProcessClient.upgradeAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
