@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -14,8 +16,8 @@ import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.
 
 describe("getTenants", () => {
   const mockParams: m2mGatewayApi.GetTenantsQueryParams = {
-    externalIdOrigin: undefined,
-    externalIdValue: undefined,
+    externalIdOrigin: generateMock(z.string()),
+    externalIdValue: generateMock(z.string()),
     offset: 0,
     limit: 10,
   };
