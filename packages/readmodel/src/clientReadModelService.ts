@@ -117,7 +117,7 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
           )
         );
     },
-    async getClientsByFilter(
+    async getClients(
       filter: SQL | undefined
     ): Promise<Array<WithMetadata<Client>>> {
       if (filter === undefined) {

@@ -14,11 +14,11 @@ export type SelfCareClientConfig = z.infer<typeof SelfCareClientConfig>;
 
 export const SelfcareConsumerConfig = z
   .object({
-    SELFCARE_USERS_TOPIC: z.string(),
+    SELFCARE_TOPIC: z.string(),
     INTEROP_PRODUCT: z.string(),
   })
   .transform((c) => ({
-    selfcareUsersTopic: c.SELFCARE_USERS_TOPIC,
+    selfcareUsersTopic: c.SELFCARE_TOPIC,
     interopProduct: c.INTEROP_PRODUCT,
   }));
 

@@ -18,7 +18,7 @@ export function readModelServiceBuilderSQL({
       adminId: UserId;
     }): Promise<Client[]> =>
       (
-        await clientReadModelServiceSQL.getClientsByFilter(
+        await clientReadModelServiceSQL.getClients(
           and(
             eq(clientInReadmodelClient.kind, clientKind.api),
             eq(clientInReadmodelClient.consumerId, consumerId),

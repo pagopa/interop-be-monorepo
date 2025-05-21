@@ -29,11 +29,7 @@ export function getReadModelService(
   const readModelServiceSQL = readModelServiceBuilderSQL({
     clientReadModelServiceSQL,
   });
-  return config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
+  return config.featureFlagSQL ? readModelServiceSQL : oldReadModelService;
 }
 
 const tokenGenerator = new InteropTokenGenerator(config);
