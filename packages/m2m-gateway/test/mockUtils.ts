@@ -1,6 +1,5 @@
 import {
   attributeRegistryApi,
-  authorizationApi,
   catalogApi,
   delegationApi,
   purposeApi,
