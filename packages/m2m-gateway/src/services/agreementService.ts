@@ -121,5 +121,24 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiAgreement(polledResource.data);
     },
+    async rejectAgreement(
+      agreementId: AgreementId,
+      body: m2mGatewayApi.AgreementRejection,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Rejecting agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.rejectAgreement(
+        body,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
   };
 }

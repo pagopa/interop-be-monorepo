@@ -230,7 +230,7 @@ describe("reject agreement", () => {
         await addOneDelegation(delegation);
       }
 
-      const returnedAgreement = await agreementService.rejectAgreement(
+      const rejectAgreementReponse = await agreementService.rejectAgreement(
         agreement.id,
         "Rejected by producer due to test reasons",
         getMockContext({ authData })
@@ -280,7 +280,12 @@ describe("reject agreement", () => {
       expect(sortAgreementAttributes(actualAgreementRejected)).toMatchObject(
         sortAgreementAttributes(toAgreementV2(expectedAgreementRejected))
       );
-      expect(actualAgreementRejected).toEqual(toAgreementV2(returnedAgreement));
+      expect(rejectAgreementReponse).toEqual({
+        data: expectedAgreementRejected,
+        metadata: {
+          version: 1,
+        },
+      });
       vi.useRealTimers();
     }
   );
