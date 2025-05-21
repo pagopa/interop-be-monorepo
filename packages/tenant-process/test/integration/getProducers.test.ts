@@ -45,6 +45,14 @@ describe("getProducers", () => {
     };
     await addOneEService(eService1);
 
+    const eService1a: EService = {
+      ...getMockEService(),
+      name: "1A",
+      descriptors: [],
+      producerId: tenant1.id,
+    };
+    await addOneEService(eService1a);
+
     await addOneTenant(tenant2);
 
     const descriptor2: Descriptor = {
@@ -54,7 +62,7 @@ describe("getProducers", () => {
 
     const eService2: EService = {
       ...getMockEService(),
-      name: "A",
+      name: "B",
       descriptors: [descriptor2],
       producerId: tenant2.id,
     };
@@ -69,7 +77,7 @@ describe("getProducers", () => {
 
     const eService3: EService = {
       ...getMockEService(),
-      name: "A",
+      name: "C",
       descriptors: [descriptor3],
       producerId: tenant3.id,
     };

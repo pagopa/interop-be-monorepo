@@ -41,10 +41,23 @@ describe("getConsumers", () => {
       state: descriptorState.published,
     };
 
+    const descriptor1a: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+    };
+
     const eService1: EService = {
       ...getMockEService(),
       name: "A",
       descriptors: [descriptor1],
+      producerId: producer.id,
+    };
+    await addOneEService(eService1);
+
+    const eService1a: EService = {
+      ...getMockEService(),
+      name: "1A",
+      descriptors: [descriptor1a],
       producerId: producer.id,
     };
     await addOneEService(eService1);
@@ -56,6 +69,14 @@ describe("getConsumers", () => {
       consumerId: tenant1.id,
     });
     await addOneAgreement(agreementEservice1);
+
+    const agreementEservice1a = getMockAgreement({
+      eserviceId: eService1a.id,
+      descriptorId: descriptor1a.id,
+      producerId: eService1a.producerId,
+      consumerId: tenant1.id,
+    });
+    await addOneAgreement(agreementEservice1a);
 
     await addOneTenant(tenant2);
 

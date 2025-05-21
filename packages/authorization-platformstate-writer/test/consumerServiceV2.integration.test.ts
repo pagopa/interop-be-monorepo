@@ -251,6 +251,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement1.id,
         agreementTimestamp: agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
+        producerId: agreement1.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry1,
@@ -279,6 +280,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement2.id,
         agreementTimestamp: agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
+        producerId: agreement2.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry2,
@@ -412,6 +414,7 @@ describe("integration tests V2 events", async () => {
           }),
           agreementId: agreement1.id,
           agreementState: platformAgreementEntry1.state,
+          producerId: agreement1.producerId,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
             eserviceId: agreement1.eserviceId,
             descriptorId: descriptor1.id,
@@ -448,6 +451,7 @@ describe("integration tests V2 events", async () => {
           }),
           agreementId: agreement2.id,
           agreementState: platformAgreementEntry2.state,
+          producerId: agreement2.producerId,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
             eserviceId: agreement2.eserviceId,
             descriptorId: descriptor2.id,
@@ -564,6 +568,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement1.id,
         agreementTimestamp: agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
+        producerId: agreement1.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry1,
@@ -592,6 +597,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement2.id,
         agreementTimestamp: agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
+        producerId: agreement2.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry2,
@@ -733,6 +739,7 @@ describe("integration tests V2 events", async () => {
           }),
           agreementId: agreement1.id,
           agreementState: platformAgreementEntry1.state,
+          producerId: agreement1.producerId,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
             eserviceId: agreement1.eserviceId,
             descriptorId: descriptor1.id,
@@ -769,6 +776,7 @@ describe("integration tests V2 events", async () => {
           }),
           agreementId: agreement2.id,
           agreementState: platformAgreementEntry2.state,
+          producerId: agreement2.producerId,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
             eserviceId: agreement2.eserviceId,
             descriptorId: descriptor2.id,
@@ -885,6 +893,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement1.id,
         agreementTimestamp: agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
+        producerId: agreement1.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry1,
@@ -913,6 +922,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement2.id,
         agreementTimestamp: agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
+        producerId: agreement2.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry2,
@@ -1106,6 +1116,7 @@ describe("integration tests V2 events", async () => {
           }),
           agreementId: agreement1.id,
           agreementState: platformAgreementEntry1.state,
+          producerId: agreement1.producerId,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
             eserviceId: agreement1.eserviceId,
             descriptorId: descriptor1.id,
@@ -1142,6 +1153,7 @@ describe("integration tests V2 events", async () => {
           }),
           agreementId: agreement2.id,
           agreementState: platformAgreementEntry2.state,
+          producerId: agreement2.producerId,
           GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
             eserviceId: agreement2.eserviceId,
             descriptorId: descriptor2.id,
@@ -1883,231 +1895,6 @@ describe("integration tests V2 events", async () => {
       );
     });
 
-    it("should update platform-states entry and convert client-kid entries to client-kid-purpose entries in token-generation-states table", async () => {
-      const previousPlatformEntryVersion = 1;
-      const messageVersion = 2;
-
-      const consumerId = generateId<TenantId>();
-      const purpose: Purpose = {
-        ...getMockPurpose(),
-        consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
-      };
-      const key1 = getMockKey();
-      const key2 = getMockKey();
-      const client: Client = {
-        ...getMockClient(),
-        purposes: [purpose.id],
-        keys: [key1, key2],
-      };
-
-      const payload: ClientPurposeAddedV2 = {
-        purposeId: purpose.id,
-        client: toClientV2(client),
-      };
-      const message: AuthorizationEventEnvelope = {
-        sequence_num: 1,
-        stream_id: client.id,
-        version: messageVersion,
-        type: "ClientPurposeAdded",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
-
-      // platform-states
-      const platformPurposeEntry: PlatformStatesPurposeEntry = {
-        PK: makePlatformStatesPurposePK(purpose.id),
-        version: 1,
-        state: itemState.active,
-        updatedAt: new Date().toISOString(),
-        purposeVersionId: purpose.versions[0].id,
-        purposeEserviceId: purpose.eserviceId,
-        purposeConsumerId: purpose.consumerId,
-      };
-      await writePlatformPurposeEntry(platformPurposeEntry, dynamoDBClient);
-
-      const agreement: Agreement = {
-        ...getMockAgreement(),
-        consumerId,
-        eserviceId: purpose.eserviceId,
-        stamps: {
-          activation: {
-            when: new Date(),
-            who: generateId(),
-          },
-        },
-      };
-      const platformAgreementEntry: PlatformStatesAgreementEntry = {
-        PK: makePlatformStatesAgreementPK({
-          consumerId,
-          eserviceId: agreement.eserviceId,
-        }),
-        version: 1,
-        state: itemState.active,
-        updatedAt: new Date().toISOString(),
-        agreementId: agreement.id,
-        agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
-        agreementDescriptorId: agreement.descriptorId,
-      };
-      await writePlatformAgreementEntry(platformAgreementEntry, dynamoDBClient);
-
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(),
-        id: agreement.descriptorId,
-      };
-      const previousDescriptorEntry: PlatformStatesCatalogEntry = {
-        PK: makePlatformStatesEServiceDescriptorPK({
-          eserviceId: purpose.eserviceId,
-          descriptorId: descriptor.id,
-        }),
-        state: itemState.active,
-        descriptorAudience: ["pagopa.it"],
-        descriptorVoucherLifespan: descriptor.voucherLifespan,
-        version: 2,
-        updatedAt: new Date().toISOString(),
-      };
-      await writePlatformCatalogEntry(previousDescriptorEntry, dynamoDBClient);
-
-      const platformClientPK = makePlatformStatesClientPK(client.id);
-      const previousPlatformClientEntry: PlatformStatesClientEntry = {
-        PK: platformClientPK,
-        version: previousPlatformEntryVersion,
-        state: itemState.active,
-        clientKind: clientKindToTokenGenerationStatesClientKind(client.kind),
-        clientConsumerId: client.consumerId,
-        updatedAt: new Date().toISOString(),
-        clientPurposesIds: [],
-      };
-      await writePlatformClientEntry(
-        previousPlatformClientEntry,
-        dynamoDBClient,
-        genericLogger
-      );
-
-      // token-generation-states
-      const tokenClientKidPK1 = makeTokenGenerationStatesClientKidPK({
-        clientId: client.id,
-        kid: key1.kid,
-      });
-      const tokenClientKidPK2 = makeTokenGenerationStatesClientKidPK({
-        clientId: client.id,
-        kid: key2.kid,
-      });
-
-      const tokenClientEntry1: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenGenStatesConsumerClient(tokenClientKidPK1),
-        consumerId,
-        GSIPK_clientId: client.id,
-        GSIPK_clientId_kid: makeGSIPKClientIdKid({
-          clientId: client.id,
-          kid: key1.kid,
-        }),
-        publicKey: key1.encodedPem,
-      };
-      const tokenClientEntry2: TokenGenerationStatesConsumerClient = {
-        ...getMockTokenGenStatesConsumerClient(tokenClientKidPK2),
-        consumerId,
-        GSIPK_clientId: client.id,
-        GSIPK_clientId_kid: makeGSIPKClientIdKid({
-          clientId: client.id,
-          kid: key2.kid,
-        }),
-        publicKey: key2.encodedPem,
-      };
-      const tokenConsumerClientWithOtherClient =
-        getMockTokenGenStatesConsumerClient();
-
-      await writeTokenGenStatesConsumerClient(
-        tokenClientEntry1,
-        dynamoDBClient
-      );
-      await writeTokenGenStatesConsumerClient(
-        tokenClientEntry2,
-        dynamoDBClient
-      );
-      await writeTokenGenStatesConsumerClient(
-        tokenConsumerClientWithOtherClient,
-        dynamoDBClient
-      );
-
-      await handleMessageV2(message, dynamoDBClient, genericLogger);
-
-      // platform-states
-      const retrievedPlatformStatesEntry = await readPlatformClientEntry(
-        platformClientPK,
-        dynamoDBClient
-      );
-      const expectedPlatformStatesEntry: PlatformStatesClientEntry = {
-        ...previousPlatformClientEntry,
-        version: messageVersion,
-        clientPurposesIds: [],
-        updatedAt: new Date().toISOString(),
-      };
-      expect(retrievedPlatformStatesEntry).toEqual(expectedPlatformStatesEntry);
-
-      // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
-      const newTokenConsumerClientData = {
-        clientKind: clientKindTokenGenStates.consumer,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-          clientId: client.id,
-          purposeId: purpose.id,
-        }),
-        GSIPK_purposeId: purpose.id,
-        purposeState: platformPurposeEntry.state,
-        purposeVersionId: platformPurposeEntry.purposeVersionId,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId,
-          eserviceId: agreement.eserviceId,
-        }),
-        agreementId: agreement.id,
-        agreementState: platformAgreementEntry.state,
-        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: purpose.eserviceId,
-          descriptorId: descriptor.id,
-        }),
-        descriptorState: previousDescriptorEntry.state,
-        descriptorAudience: previousDescriptorEntry.descriptorAudience,
-        descriptorVoucherLifespan:
-          previousDescriptorEntry.descriptorVoucherLifespan,
-        updatedAt: new Date().toISOString(),
-      };
-
-      const expectedTokenConsumerClient1: TokenGenerationStatesConsumerClient =
-        {
-          ...tokenClientEntry1,
-          ...newTokenConsumerClientData,
-          PK: makeTokenGenerationStatesClientKidPurposePK({
-            clientId: client.id,
-            purposeId: purpose.id,
-            kid: key1.kid,
-          }),
-        };
-
-      const expectedTokenConsumerClient2: TokenGenerationStatesConsumerClient =
-        {
-          ...tokenClientEntry2,
-          ...newTokenConsumerClientData,
-          PK: makeTokenGenerationStatesClientKidPurposePK({
-            clientId: client.id,
-            purposeId: purpose.id,
-            kid: key2.kid,
-          }),
-        };
-
-      expect(retrievedTokenGenStatesEntries).toHaveLength(3);
-      expect(retrievedTokenGenStatesEntries).toEqual(
-        expect.arrayContaining([
-          tokenConsumerClientWithOtherClient,
-          expectedTokenConsumerClient1,
-          expectedTokenConsumerClient2,
-        ])
-      );
-    });
-
     it("should update platform-states entry and insert client-kid-purpose entries to token-generation-states table", async () => {
       const previousPlatformEntryVersion = 1;
       const messageVersion = 2;
@@ -2191,6 +1978,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement1.id,
         agreementTimestamp: agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
+        producerId: agreement1.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry1,
@@ -2219,6 +2007,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement2.id,
         agreementTimestamp: agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
+        producerId: agreement2.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry2,
@@ -2352,30 +2141,32 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
       );
-      const newTokenConsumerClientData = {
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-          clientId: client.id,
-          purposeId: purpose2.id,
-        }),
-        GSIPK_purposeId: purpose2.id,
-        purposeState: platformPurposeEntry2.state,
-        purposeVersionId: platformPurposeEntry2.purposeVersionId,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
-          consumerId,
-          eserviceId: agreement2.eserviceId,
-        }),
-        agreementId: agreement2.id,
-        agreementState: platformAgreementEntry2.state,
-        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: agreement2.eserviceId,
-          descriptorId: descriptor2.id,
-        }),
-        descriptorState: previousDescriptorEntry2.state,
-        descriptorAudience: previousDescriptorEntry2.descriptorAudience,
-        descriptorVoucherLifespan:
-          previousDescriptorEntry2.descriptorVoucherLifespan,
-        updatedAt: new Date().toISOString(),
-      };
+      const newTokenConsumerClientData: Partial<TokenGenerationStatesConsumerClient> =
+        {
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: client.id,
+            purposeId: purpose2.id,
+          }),
+          GSIPK_purposeId: purpose2.id,
+          purposeState: platformPurposeEntry2.state,
+          purposeVersionId: platformPurposeEntry2.purposeVersionId,
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId,
+            eserviceId: agreement2.eserviceId,
+          }),
+          agreementId: agreement2.id,
+          agreementState: platformAgreementEntry2.state,
+          producerId: agreement2.producerId,
+          GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+            eserviceId: agreement2.eserviceId,
+            descriptorId: descriptor2.id,
+          }),
+          descriptorState: previousDescriptorEntry2.state,
+          descriptorAudience: previousDescriptorEntry2.descriptorAudience,
+          descriptorVoucherLifespan:
+            previousDescriptorEntry2.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
 
       const expectedTokenConsumerClient1: TokenGenerationStatesConsumerClient =
         {
@@ -2494,6 +2285,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement1.id,
         agreementTimestamp: agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
+        producerId: agreement1.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry1,
@@ -2522,6 +2314,7 @@ describe("integration tests V2 events", async () => {
         agreementId: agreement2.id,
         agreementTimestamp: agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
+        producerId: agreement2.producerId,
       };
       await writePlatformAgreementEntry(
         platformAgreementEntry2,
@@ -2697,31 +2490,33 @@ describe("integration tests V2 events", async () => {
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
       );
-      const newTokenConsumerClientData = {
-        consumerId,
-        GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
-          clientId: client.id,
-          purposeId: purpose2.id,
-        }),
-        GSIPK_purposeId: purpose2.id,
-        purposeState: platformPurposeEntry2.state,
-        purposeVersionId: platformPurposeEntry2.purposeVersionId,
-        GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+      const newTokenConsumerClientData: Partial<TokenGenerationStatesConsumerClient> =
+        {
           consumerId,
-          eserviceId: agreement2.eserviceId,
-        }),
-        agreementId: agreement2.id,
-        agreementState: platformAgreementEntry2.state,
-        GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
-          eserviceId: agreement2.eserviceId,
-          descriptorId: descriptor2.id,
-        }),
-        descriptorState: previousDescriptorEntry2.state,
-        descriptorAudience: previousDescriptorEntry2.descriptorAudience,
-        descriptorVoucherLifespan:
-          previousDescriptorEntry2.descriptorVoucherLifespan,
-        updatedAt: new Date().toISOString(),
-      };
+          GSIPK_clientId_purposeId: makeGSIPKClientIdPurposeId({
+            clientId: client.id,
+            purposeId: purpose2.id,
+          }),
+          GSIPK_purposeId: purpose2.id,
+          purposeState: platformPurposeEntry2.state,
+          purposeVersionId: platformPurposeEntry2.purposeVersionId,
+          GSIPK_consumerId_eserviceId: makeGSIPKConsumerIdEServiceId({
+            consumerId,
+            eserviceId: agreement2.eserviceId,
+          }),
+          agreementId: agreement2.id,
+          agreementState: platformAgreementEntry2.state,
+          producerId: agreement2.producerId,
+          GSIPK_eserviceId_descriptorId: makeGSIPKEServiceIdDescriptorId({
+            eserviceId: agreement2.eserviceId,
+            descriptorId: descriptor2.id,
+          }),
+          descriptorState: previousDescriptorEntry2.state,
+          descriptorAudience: previousDescriptorEntry2.descriptorAudience,
+          descriptorVoucherLifespan:
+            previousDescriptorEntry2.descriptorVoucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
       const expectedTokenConsumerClient3: TokenGenerationStatesConsumerClient =
         {
           ...tokenConsumerClient3,
