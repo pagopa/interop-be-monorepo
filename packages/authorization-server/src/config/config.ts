@@ -38,8 +38,8 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
           c.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
       }))
   )
-  .and(FeatureFlagImprovedProducerVerificationClaimsConfig)
-  .and(ApplicationAuditProducerConfig);
+  .and(ApplicationAuditProducerConfig)
+  .and(FeatureFlagImprovedProducerVerificationClaimsConfig);
 
 export type AuthorizationServerConfig = z.infer<
   typeof AuthorizationServerConfig
