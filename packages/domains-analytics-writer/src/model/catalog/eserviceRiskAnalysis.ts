@@ -1,36 +1,22 @@
-import { EServiceRiskAnalysisSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { eserviceRiskAnalysisInReadmodelCatalog } from "pagopa-interop-readmodel-models";
 
-export const EserviceRiskAnalysisSchema = z.object({
-  id: z.string(),
-  metadata_version: z.number(),
-  eservice_id: z.string(),
-  name: z.string(),
-  created_at: z.string(),
-  risk_analysis_form_id: z.string(),
-  risk_analysis_form_version: z.string(),
+export const EserviceRiskAnalysisSchema = createSelectSchema(
+  eserviceRiskAnalysisInReadmodelCatalog
+).extend({
+  deleted: z.boolean().default(false).optional(),
 });
 export type EserviceRiskAnalysisSchema = z.infer<
   typeof EserviceRiskAnalysisSchema
 >;
 
-export type EserviceRiskAnalysisMapping = {
-  [K in keyof EserviceRiskAnalysisSchema]: (
-    record: EServiceRiskAnalysisSQL
-  ) => EserviceRiskAnalysisSchema[K];
-};
-
-export const EserviceRiskAnalysisDeletingSchema = z.object({
-  id: z.string(),
-  eservice_id: z.string(),
-  deleted: z.boolean(),
-});
-
+export const EserviceRiskAnalysisDeletingSchema =
+  EserviceRiskAnalysisSchema.pick({
+    id: true,
+    eserviceId: true,
+    deleted: true,
+  });
 export type EserviceRiskAnalysisDeletingSchema = z.infer<
   typeof EserviceRiskAnalysisDeletingSchema
 >;
-export type EserviceRiskAnalysisDeletingMapping = {
-  [K in keyof EserviceRiskAnalysisDeletingSchema]: (
-    record: Pick<EServiceRiskAnalysisSQL, "id" | "eserviceId">
-  ) => EserviceRiskAnalysisDeletingSchema[K];
-};
