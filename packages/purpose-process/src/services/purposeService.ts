@@ -729,8 +729,18 @@ export function purposeServiceBuilder(
     async createPurposeVersion(
       purposeId: PurposeId,
       seed: purposeApi.PurposeVersionSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<PurposeVersion> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        purpose: Purpose;
+        isRiskAnalysisValid: boolean;
+        createdVersionId: string;
+      }>
+    > {
       logger.info(`Creating Version for Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -772,10 +782,18 @@ export function purposeServiceBuilder(
         );
       }
 
-      const eservice = await retrieveEService(
-        purpose.data.eserviceId,
-        readModelService
-      );
+      const [eservice, tenantKind] = await Promise.all([
+        retrieveEService(purpose.data.eserviceId, readModelService),
+        retrieveTenantKind(authData.organizationId, readModelService),
+      ]);
+
+      const isRiskAnalysisValid = purposeIsDraft(purpose.data)
+        ? isRiskAnalysisFormValid(
+            purpose.data.riskAnalysisForm,
+            false,
+            tenantKind
+          )
+        : true;
 
       // isOverQuota doesn't include dailyCalls of suspended versions, so we don't have to calculate the delta. The delta is needed for active versions because those would be counted again inside isOverQuota
       const deltaDailyCalls =
@@ -808,7 +826,7 @@ export function purposeServiceBuilder(
           updatedAt: new Date(),
         };
 
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventNewPurposeVersionWaitingForApproval({
             purpose: updatedPurpose,
             versionId: newPurposeVersion.id,
@@ -817,7 +835,14 @@ export function purposeServiceBuilder(
           })
         );
 
-        return newPurposeVersion;
+        return {
+          data: {
+            purpose: updatedPurpose,
+            isRiskAnalysisValid,
+            createdVersionId: newPurposeVersion.id,
+          },
+          metadata: { version: event.newVersion },
+        };
       }
 
       /**
@@ -853,7 +878,7 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventNewPurposeVersionActivated({
           purpose: updatedPurpose,
           versionId: newPurposeVersion.id,
@@ -862,7 +887,14 @@ export function purposeServiceBuilder(
         })
       );
 
-      return newPurposeVersion;
+      return {
+        data: {
+          purpose: updatedPurpose,
+          isRiskAnalysisValid,
+          createdVersionId: newPurposeVersion.id,
+        },
+        metadata: { version: event.newVersion },
+      };
     },
     async activatePurposeVersion(
       {

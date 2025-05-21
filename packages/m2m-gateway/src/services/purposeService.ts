@@ -116,5 +116,40 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2mGatewayApiPurposeVersion(version);
     },
+    async createPurposeVersion(
+      purposeId: PurposeId,
+      versionSeed: m2mGatewayApi.PurposeVersionSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeVersion> {
+      logger.info(
+        `Creating version for purpose ${purposeId} with dailyCalls ${versionSeed.dailyCalls}`
+      );
+
+      const {
+        data: { createdVersionId, purpose },
+        metadata,
+      } = await clients.purposeProcessClient.createPurposeVersion(versionSeed, {
+        params: { purposeId },
+        headers,
+      });
+
+      await pollPurpose(
+        {
+          data: purpose,
+          metadata,
+        },
+        headers
+      );
+
+      const createdVersion = purpose.versions.find(
+        (v) => v.id === createdVersionId
+      );
+
+      if (!createdVersion) {
+        throw purposeVersionNotFound(purposeId, createdVersionId);
+      }
+
+      return toM2mGatewayApiPurposeVersion(createdVersion);
+    },
   };
 }
