@@ -3,10 +3,11 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId, PurposeId } from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  missingActivePurposeVersion,
+  missingActivePurposeVersionWithState,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
@@ -33,7 +34,12 @@ describe("POST /purposes/:purposeId/activate router test", () => {
   it("Should return 400 for missing purpose version", async () => {
     mockPurposeService.activatePurpose = vi
       .fn()
-      .mockRejectedValue(missingActivePurposeVersion(generateId<PurposeId>()));
+      .mockRejectedValue(
+        missingActivePurposeVersionWithState(
+          generateId<PurposeId>(),
+          purposeApi.PurposeVersionState.Enum.DRAFT
+        )
+      );
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, generateId());

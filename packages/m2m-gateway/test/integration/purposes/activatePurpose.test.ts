@@ -11,7 +11,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
-  missingActivePurposeVersion,
+  missingActivePurposeVersionWithState,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
@@ -77,7 +77,7 @@ describe("activatePurposeVersion", () => {
     ).toHaveBeenCalledTimes(pollingTentatives + 1);
   });
 
-  it("Should throw missingActivePurposeVersion in case of missing active version to activate", async () => {
+  it("Should throw missingActivePurposeVersionWithState in case of missing active version to activate", async () => {
     const invalidPurpose = getMockedApiPurpose({
       versions: [getMockedApiPurposeVersion({ state: "REJECTED" })],
     });
@@ -88,7 +88,12 @@ describe("activatePurposeVersion", () => {
         unsafeBrandId(mockApiPurpose.data.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingActivePurposeVersion(invalidPurpose.data.id));
+    ).rejects.toThrowError(
+      missingActivePurposeVersionWithState(
+        invalidPurpose.data.id,
+        purposeApi.PurposeVersionState.Values.DRAFT
+      )
+    );
   });
 
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
