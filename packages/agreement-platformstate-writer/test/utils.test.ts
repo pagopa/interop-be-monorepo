@@ -165,6 +165,7 @@ describe("utils", async () => {
         agreementId: generateId<AgreementId>(),
         agreementTimestamp: new Date().toISOString(),
         agreementDescriptorId: generateId<DescriptorId>(),
+        producerId: generateId(),
       };
       await writePlatformAgreementEntry(
         previousPlatformStatesAgreement,
@@ -179,6 +180,7 @@ describe("utils", async () => {
         agreementId: generateId<AgreementId>(),
         agreementTimestamp: new Date().toISOString(),
         agreementDescriptorId: generateId<DescriptorId>(),
+        producerId: generateId(),
       };
       await upsertPlatformStatesAgreementEntry(
         updatedPlatformStatesAgreement,
@@ -195,7 +197,7 @@ describe("utils", async () => {
   });
 
   describe("readAgreementEntry", async () => {
-    it("should return undefined if entry doesn't exist", async () => {
+    it("should return undefined if the entry doesn't exist", async () => {
       const primaryKey = makePlatformStatesAgreementPK({
         consumerId: generateId<TenantId>(),
         eserviceId: generateId<EServiceId>(),
@@ -220,6 +222,7 @@ describe("utils", async () => {
         agreementId: generateId<AgreementId>(),
         agreementTimestamp: new Date().toISOString(),
         agreementDescriptorId: generateId<DescriptorId>(),
+        producerId: generateId(),
       };
       await writePlatformAgreementEntry(agreementStateEntry, dynamoDBClient);
       const retrievedEntry = await readAgreementEntry(
@@ -469,9 +472,7 @@ describe("utils", async () => {
 
   describe("updateAgreementStateAndDescriptorInfoOnTokenGenStates", async () => {
     it("should do nothing if previous entry doesn't exist", async () => {
-      const agreementId = generateId<AgreementId>();
       const eserviceId = generateId<EServiceId>();
-      const descriptorId = generateId<DescriptorId>();
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: generateId(),
         eserviceId,
@@ -479,12 +480,12 @@ describe("utils", async () => {
 
       const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId,
-        descriptorId: generateId<DescriptorId>(),
+        descriptorId: generateId(),
       });
 
       const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
         eserviceId,
-        descriptorId,
+        descriptorId: generateId(),
       });
 
       const catalogEntry: PlatformStatesCatalogEntry = {
@@ -503,8 +504,9 @@ describe("utils", async () => {
       expect(
         updateAgreementStateAndDescriptorInfoOnTokenGenStates({
           GSIPK_consumerId_eserviceId,
-          agreementId,
+          agreementId: generateId(),
           agreementState: agreementState.archived,
+          producerId: generateId(),
           dynamoDBClient,
           GSIPK_eserviceId_descriptorId,
           catalogEntry,
@@ -520,7 +522,7 @@ describe("utils", async () => {
     it("should update state if previous entries exist", async () => {
       const agreementId = generateId<AgreementId>();
       const eserviceId = generateId<EServiceId>();
-      const descriptorId = generateId<DescriptorId>();
+      const producerId = generateId<TenantId>();
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: generateId(),
         eserviceId,
@@ -528,12 +530,12 @@ describe("utils", async () => {
 
       const GSIPK_eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId,
-        descriptorId: generateId<DescriptorId>(),
+        descriptorId: generateId(),
       });
 
       const pkCatalogEntry = makePlatformStatesEServiceDescriptorPK({
         eserviceId,
-        descriptorId,
+        descriptorId: generateId(),
       });
 
       const catalogEntry: PlatformStatesCatalogEntry = {
@@ -587,6 +589,7 @@ describe("utils", async () => {
         GSIPK_consumerId_eserviceId,
         agreementId,
         agreementState: agreementState.active,
+        producerId,
         dynamoDBClient,
         GSIPK_eserviceId_descriptorId,
         catalogEntry,
@@ -601,6 +604,7 @@ describe("utils", async () => {
           GSIPK_eserviceId_descriptorId,
           agreementId,
           agreementState: itemState.active,
+          producerId,
           updatedAt: new Date().toISOString(),
           descriptorState: catalogEntry.state,
           descriptorAudience: catalogEntry.descriptorAudience,
@@ -612,6 +616,7 @@ describe("utils", async () => {
           GSIPK_eserviceId_descriptorId,
           agreementId,
           agreementState: itemState.active,
+          producerId,
           updatedAt: new Date().toISOString(),
           descriptorState: catalogEntry.state,
           descriptorAudience: catalogEntry.descriptorAudience,

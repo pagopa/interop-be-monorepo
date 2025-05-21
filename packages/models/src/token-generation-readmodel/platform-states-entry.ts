@@ -55,6 +55,7 @@ export const PlatformStatesAgreementEntry = PlatformStatesBaseEntry.extend({
   agreementId: AgreementId,
   agreementTimestamp: z.string().datetime(),
   agreementDescriptorId: DescriptorId,
+  producerId: TenantId,
 });
 export type PlatformStatesAgreementEntry = z.infer<
   typeof PlatformStatesAgreementEntry
