@@ -1,10 +1,12 @@
 import {
   attributeRegistryApi,
-  authorizationApi,
   catalogApi,
   delegationApi,
   purposeApi,
   tenantApi,
+  authorizationApi,
+  m2mGatewayApi,
+  eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
@@ -255,3 +257,38 @@ export const getMockM2MAdminAppContext = ({
     },
   };
 };
+
+export function getMockedApiEServiceTemplate(): WithMetadata<eserviceTemplateApi.EServiceTemplate> {
+  return {
+    data: {
+      id: generateId(),
+      creatorId: generateId(),
+      description: generateMock(z.string().length(10)),
+      intendedTarget: generateMock(z.string().length(10)),
+      mode: generateMock(m2mGatewayApi.EServiceMode),
+      name: generateMock(z.string().length(10)),
+      technology: generateMock(m2mGatewayApi.EServiceTechnology),
+      versions: [getMockedApiEserviceTemplateVersion()],
+      isSignalHubEnabled: generateMock(z.boolean().optional()),
+      riskAnalysis: [],
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiEserviceTemplateVersion(): eserviceTemplateApi.EServiceTemplateVersion {
+  return {
+    id: generateId(),
+    state: generateMock(m2mGatewayApi.EServiceTemplateVersionState),
+    voucherLifespan: generateMock(z.number().positive()),
+    version: 0,
+    attributes: {
+      certified: [],
+      declared: [],
+      verified: [],
+    },
+    docs: [],
+  };
+}

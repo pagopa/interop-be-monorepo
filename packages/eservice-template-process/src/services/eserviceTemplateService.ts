@@ -14,6 +14,7 @@ import {
   hasAtLeastOneUserRole,
   userRole,
   M2MAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -59,7 +60,7 @@ import {
   riskAnalysisValidationFailed,
   tenantNotFound,
   originNotCompliant,
-  eserviceTemaplateRiskAnalysisNameDuplicate,
+  eserviceTemplateRiskAnalysisNameDuplicate,
   missingTemplateVersionInterface,
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
@@ -809,7 +810,10 @@ export function eserviceTemplateServiceBuilder(
     },
     async getEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(`Retrieving EService template ${eserviceTemplateId}`);
 
@@ -912,7 +916,7 @@ export function eserviceTemplateServiceBuilder(
         (ra) => ra.name === createRiskAnalysis.name
       );
       if (raSameName) {
-        throw eserviceTemaplateRiskAnalysisNameDuplicate(
+        throw eserviceTemplateRiskAnalysisNameDuplicate(
           createRiskAnalysis.name
         );
       }
@@ -1777,7 +1781,7 @@ export type EServiceTemplateService = ReturnType<
 
 function applyVisibilityToEServiceTemplate(
   eserviceTemplate: EServiceTemplate,
-  authData: UIAuthData | M2MAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): EServiceTemplate {
   if (
     hasAtLeastOneUserRole(authData, [
