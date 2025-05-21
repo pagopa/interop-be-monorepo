@@ -5,8 +5,13 @@ import {
 } from "pagopa-interop-commons";
 import express from "express";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import {
+  applicationAuditAuthorizationServerEndMiddleware,
+  applicationAuditBeginMiddleware,
+} from "pagopa-interop-application-audit";
 import healthRouter from "./routers/HealthRouter.js";
 import authorizationServerRouter from "./routers/AuthorizationServerRouter.js";
+import { config } from "./config/config.js";
 
 const serviceName = modelsServiceName.AUTHORIZATION_SERVER;
 
@@ -18,6 +23,10 @@ app.disable("x-powered-by");
 
 app.use(healthRouter);
 app.use(contextMiddleware(serviceName, false));
+app.use(await applicationAuditBeginMiddleware(serviceName, config));
+app.use(
+  await applicationAuditAuthorizationServerEndMiddleware(serviceName, config)
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(loggerMiddleware(serviceName));
 app.use(authorizationServerRouter(zodiosCtx));

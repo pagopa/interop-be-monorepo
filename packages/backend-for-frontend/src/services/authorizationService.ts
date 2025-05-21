@@ -14,7 +14,6 @@ import {
   verifyJwtToken,
 } from "pagopa-interop-commons";
 import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
-import { z } from "zod";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
@@ -49,7 +48,7 @@ export function authorizationServiceBuilder(
     identityToken: string,
     logger: Logger
   ): Promise<{
-    roles: string;
+    roles: UserRole[];
     sessionClaims: SessionClaims;
     selfcareId: string;
   }> => {
@@ -70,7 +69,7 @@ export function authorizationServiceBuilder(
     }
 
     return {
-      roles: userRoles.join(","),
+      roles: userRoles,
       sessionClaims,
       selfcareId: sessionClaims.organization.id,
     };
@@ -86,12 +85,12 @@ export function authorizationServiceBuilder(
   };
 
   const buildUserClaims = (
-    roles: string,
+    roles: UserRole[],
     tenantId: string,
     selfcareId: string,
     externalId: tenantApi.ExternalId
   ): UserClaims => ({
-    "user-roles": z.array(UserRole).parse(roles === "" ? [] : roles.split(",")),
+    "user-roles": roles,
     organizationId: tenantId,
     selfcareId,
     externalId,
@@ -108,7 +107,7 @@ export function authorizationServiceBuilder(
     }
 
     return {
-      ...buildUserClaims(userRole.SUPPORT_ROLE, id, selfcareId, externalId),
+      ...buildUserClaims([userRole.SUPPORT_ROLE], id, selfcareId, externalId),
       organization: {
         id: selfcareId,
         name,
