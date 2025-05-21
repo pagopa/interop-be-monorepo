@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { ReadModelRepository } from "pagopa-interop-commons";
 import {
-  TenantReadModel,
-  AttributeReadmodel,
-  EServiceReadModel,
   genericInternalError,
   AttributeId,
+  EService,
+  Tenant,
+  Attribute,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -21,13 +21,13 @@ export function readModelServiceBuilder(
      *
      * @returns The array of e-services
      */
-    async getActiveEServices(): Promise<EServiceReadModel[]> {
+    async getActiveEServices(): Promise<EService[]> {
       const data = await eservices
         .find({ "data.descriptors.state": { $in: ["Published", "Suspended"] } })
         .map(({ data }) => data)
         .toArray();
 
-      const result = z.array(EServiceReadModel).safeParse(data);
+      const result = z.array(EService).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
@@ -46,15 +46,13 @@ export function readModelServiceBuilder(
      * @param attributeIds - The array of attributes ids
      * @returns The array of attributes
      * */
-    async getAttributes(
-      attributeIds: AttributeId[]
-    ): Promise<AttributeReadmodel[]> {
+    async getAttributes(attributeIds: AttributeId[]): Promise<Attribute[]> {
       const data = await attributes
         .find({ "data.id": { $in: attributeIds } })
         .map(({ data }) => data)
         .toArray();
 
-      const result = z.array(AttributeReadmodel).safeParse(data);
+      const result = z.array(Attribute).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
@@ -73,13 +71,13 @@ export function readModelServiceBuilder(
      * @param tenantIds - The array of tenant ids to retrieve
      * @returns The array of tenants
      * */
-    async getEServicesTenants(tenantIds: string[]): Promise<TenantReadModel[]> {
+    async getTenantsByIds(tenantIds: string[]): Promise<Tenant[]> {
       const data = await tenants
         .find({ "data.id": { $in: tenantIds } })
         .map(({ data }) => data)
         .toArray();
 
-      const result = z.array(TenantReadModel).safeParse(data);
+      const result = z.array(Tenant).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
@@ -97,13 +95,13 @@ export function readModelServiceBuilder(
      *
      * @returns The array of all tenants
      */
-    async getAllTenants(): Promise<TenantReadModel[]> {
+    async getAllTenants(): Promise<Tenant[]> {
       const data = await tenants
         .find()
         .map(({ data }) => data)
         .toArray();
 
-      const result = z.array(TenantReadModel).safeParse(data);
+      const result = z.array(Tenant).safeParse(data);
 
       if (!result.success) {
         throw genericInternalError(
