@@ -126,7 +126,7 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       body: m2mGatewayApi.AgreementRejection,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
-      logger.info(`Rejecting pending agreement with id ${agreementId}`);
+      logger.info(`Rejecting agreement with id ${agreementId}`);
 
       const response = await clients.agreementProcessClient.rejectAgreement(
         body,
