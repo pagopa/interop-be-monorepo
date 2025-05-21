@@ -49,19 +49,22 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   const snakeCaseMapper = getColumnNameMapper(tableName);
   const keys = Object.keys(tableSchema.shape).map(snakeCaseMapper);
 
-  const updateSet = keys
-    .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
-    .join(",\n      ");
-
   const colList = keys.map(quoteColumn).join(", ");
   const valList = keys.map((c) => `source.${quoteColumn(c)}`).join(", ");
 
   const onCondition = keysOn
     .map((k) => {
-      const key = quoteColumn(snakeCaseMapper(String(k)));
-      return `${schemaName}.${tableName}.${key} = source.${key}`;
+      const columnName = quoteColumn(snakeCaseMapper(String(k)));
+      const targetColumn = `${schemaName}.${tableName}.${columnName}`;
+      const sourceColumn = columnName;
+      return `${targetColumn} = source.${sourceColumn}`;
     })
     .join(" AND ");
+
+  const updateSet = keys
+    .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
+    .join(",\n      ");
+
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   return `
@@ -106,23 +109,21 @@ export function generateMergeDeleteQuery<
   const snakeCaseMapper = getColumnNameMapper(targetTableName);
 
   const onCondition = deleteKeysOn
-    .map(
-      (k) =>
-        `${schemaName}.${targetTableName}.${quoteColumn(
-          snakeCaseMapper(String(k))
-        )} = source.${
-          useIdAsSourceDeleteKey
-            ? "id"
-            : quoteColumn(snakeCaseMapper(String(k)))
-        }`
-    )
+    .map((k) => {
+      const columnName = quoteColumn(snakeCaseMapper(String(k)));
+      const targetColumn = `${schemaName}.${targetTableName}.${columnName}`;
+      const sourceColumn = useIdAsSourceDeleteKey ? "id" : columnName;
+      return `${targetColumn} = source.${sourceColumn}`;
+    })
     .join(" AND ");
 
-  const updateSet = [
+  const fieldsToUpdate = [
     "deleted",
-    ...(additionalsKeyToUpdate?.map((k) => String(k)) ?? []),
-  ]
-    .map((k) => `${k} = source.${quoteColumn(k)}`)
+    ...(additionalsKeyToUpdate?.map(String) ?? []),
+  ];
+
+  const updateSet = fieldsToUpdate
+    .map((field) => `${field} = source.${quoteColumn(field)}`)
     .join(",\n      ");
 
   return `
