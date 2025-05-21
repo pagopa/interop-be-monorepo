@@ -2,6 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   DelegationId,
+  PurposeId,
+  PurposeVersionId,
   generateId,
   purposeVersionState,
 } from "pagopa-interop-models";
@@ -39,8 +41,8 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/archive test", () 
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id,
-    versionId: string = mockPurposeVersion.id
+    purposeId: PurposeId = mockPurpose.id,
+    versionId: PurposeVersionId = mockPurposeVersion.id
   ) =>
     request(api)
       .post(`/purposes/${purposeId}/versions/${versionId}/archive`)
@@ -93,7 +95,10 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/archive test", () 
     }
   );
 
-  it.each([{ purposeId: "invalid" }, { versionId: "invalid" }])(
+  it.each([
+    { purposeId: "invalid" as PurposeId },
+    { versionId: "invalid" as PurposeVersionId },
+  ])(
     "Should return 400 if passed invalid data: %s",
     async ({ purposeId, versionId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

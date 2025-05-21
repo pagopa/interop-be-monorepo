@@ -40,7 +40,10 @@ describe("API POST /purposes test", () => {
     purposeService.createPurpose = vi.fn().mockResolvedValue(serviceResponse);
   });
 
-  const makeRequest = async (token: string, body: object = mockPurposeSeed) =>
+  const makeRequest = async (
+    token: string,
+    body: purposeApi.PurposeSeed = mockPurposeSeed
+  ) =>
     request(api)
       .post("/purposes")
       .set("Authorization", `Bearer ${token}`)
@@ -109,7 +112,7 @@ describe("API POST /purposes test", () => {
     { body: { ...mockPurposeSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body);
+    const res = await makeRequest(token, body as purposeApi.PurposeSeed);
     expect(res.status).toBe(400);
   });
 });

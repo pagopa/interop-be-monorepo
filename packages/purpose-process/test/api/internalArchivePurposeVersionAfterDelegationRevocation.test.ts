@@ -2,6 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   DelegationId,
+  PurposeId,
+  PurposeVersionId,
   generateId,
   purposeVersionState,
 } from "pagopa-interop-models";
@@ -33,9 +35,9 @@ describe("API POST /internal/delegations/{delegationId}/purposes/{purposeId}/ver
 
   const makeRequest = async (
     token: string,
-    delegationId: string = generateId(),
-    purposeId: string = mockPurpose.id,
-    versionId: string = mockPurposeVersion.id
+    delegationId: DelegationId = generateId(),
+    purposeId: PurposeId = mockPurpose.id,
+    versionId: PurposeVersionId = mockPurposeVersion.id
   ) =>
     request(api)
       .post(
@@ -92,9 +94,9 @@ describe("API POST /internal/delegations/{delegationId}/purposes/{purposeId}/ver
   );
 
   it.each([
-    { delegationId: "invalid" },
-    { purposeId: "invalid" },
-    { versionId: "invalid" },
+    { delegationId: "invalid" as DelegationId },
+    { purposeId: "invalid" as PurposeId },
+    { versionId: "invalid" as PurposeVersionId },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ delegationId, purposeId, versionId }) => {

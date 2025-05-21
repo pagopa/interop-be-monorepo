@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DelegationId, generateId } from "pagopa-interop-models";
+import { DelegationId, PurposeId, generateId } from "pagopa-interop-models";
 import { generateToken, getMockPurpose } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -23,8 +23,8 @@ describe("API DELETE /internal/delegations/{delegationId}/purposes/{id} test", (
 
   const makeRequest = async (
     token: string,
-    delegationId: string = generateId<DelegationId>(),
-    purposeId: string = mockPurpose.id
+    delegationId: DelegationId = generateId(),
+    purposeId: PurposeId = mockPurpose.id
   ) =>
     request(api)
       .delete(`/internal/delegations/${delegationId}/purposes/${purposeId}`)
@@ -68,7 +68,10 @@ describe("API DELETE /internal/delegations/{delegationId}/purposes/{id} test", (
     }
   );
 
-  it.each([{ delegationId: "invalid" }, { purposeId: "invalid" }])(
+  it.each([
+    { delegationId: "invalid" as DelegationId },
+    { purposeId: "invalid" as PurposeId },
+  ])(
     "Should return 400 if passed invalid data: %s",
     async ({ delegationId, purposeId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

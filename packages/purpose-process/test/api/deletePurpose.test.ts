@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DelegationId, generateId } from "pagopa-interop-models";
+import { DelegationId, PurposeId, generateId } from "pagopa-interop-models";
 import { generateToken, getMockPurpose } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -21,7 +21,7 @@ describe("API DELETE /purposes/{id} test", () => {
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id
+    purposeId: PurposeId = mockPurpose.id
   ) =>
     request(api)
       .delete(`/purposes/${purposeId}`)
@@ -63,7 +63,7 @@ describe("API DELETE /purposes/{id} test", () => {
     }
   );
 
-  it.each([{ purposeId: "invalid" }])(
+  it.each([{ purposeId: "invalid" as PurposeId }])(
     "Should return 400 if passed invalid data: %s",
     async ({ purposeId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

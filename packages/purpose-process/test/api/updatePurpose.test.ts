@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   DelegationId,
   Purpose,
+  PurposeId,
   eserviceMode,
   generateId,
   tenantKind,
@@ -30,7 +31,7 @@ import {
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
 describe("API POST /purposes/{purposeId} test", () => {
-  const mockPurposeUpdateContent = {
+  const mockPurposeUpdateContent: purposeApi.PurposeUpdateContent = {
     title: "Mock purpose title",
     dailyCalls: 10,
     description: "Mock purpose description",
@@ -54,8 +55,8 @@ describe("API POST /purposes/{purposeId} test", () => {
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id,
-    body: object = mockPurposeUpdateContent
+    purposeId: PurposeId = mockPurpose.id,
+    body: purposeApi.PurposeUpdateContent = mockPurposeUpdateContent
   ) =>
     request(api)
       .post(`/purposes/${purposeId}`)
@@ -110,7 +111,7 @@ describe("API POST /purposes/{purposeId} test", () => {
   );
 
   it.each([
-    { purposeId: "invalid" },
+    { purposeId: "invalid" as PurposeId },
     { body: {} },
     { body: { ...mockPurposeUpdateContent, dailyCalls: -1 } },
     { body: { ...mockPurposeUpdateContent, extraField: 1 } },
@@ -118,7 +119,11 @@ describe("API POST /purposes/{purposeId} test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ purposeId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeId, body);
+      const res = await makeRequest(
+        token,
+        purposeId,
+        body as purposeApi.PurposeUpdateContent
+      );
       expect(res.status).toBe(400);
     }
   );

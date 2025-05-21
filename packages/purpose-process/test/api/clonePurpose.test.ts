@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Purpose, generateId } from "pagopa-interop-models";
+import { Purpose, PurposeId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockEService,
@@ -19,7 +19,9 @@ import {
 
 describe("API POST /purposes/{purposeId}/clone test", () => {
   const mockEService = getMockEService();
-  const mockPurposeCloneSeed = { eserviceId: mockEService.id };
+  const mockPurposeCloneSeed: purposeApi.PurposeCloneSeed = {
+    eserviceId: mockEService.id,
+  };
   const mockPurpose: Purpose = getMockPurpose();
   const isRiskAnalysisValid = true;
 
@@ -35,8 +37,8 @@ describe("API POST /purposes/{purposeId}/clone test", () => {
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id,
-    body: object = mockPurposeCloneSeed
+    purposeId: PurposeId = mockPurpose.id,
+    body: purposeApi.PurposeCloneSeed = mockPurposeCloneSeed
   ) =>
     request(api)
       .post(`/purposes/${purposeId}/clone`)
@@ -74,7 +76,7 @@ describe("API POST /purposes/{purposeId}/clone test", () => {
   );
 
   it.each([
-    { purposeId: "invalid" },
+    { purposeId: "invalid" as PurposeId },
     { body: {} },
     { body: { eserviceId: "invalid" } },
     { body: { ...mockPurposeCloneSeed, extraField: 1 } },
@@ -82,7 +84,11 @@ describe("API POST /purposes/{purposeId}/clone test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ purposeId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeId, body);
+      const res = await makeRequest(
+        token,
+        purposeId,
+        body as purposeApi.PurposeCloneSeed
+      );
       expect(res.status).toBe(400);
     }
   );

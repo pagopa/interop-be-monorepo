@@ -2,6 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   DelegationId,
+  PurposeId,
+  PurposeVersionId,
   generateId,
   purposeVersionState,
 } from "pagopa-interop-models";
@@ -11,6 +13,7 @@ import {
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
+import { purposeApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
 import {
@@ -24,7 +27,7 @@ import {
 describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () => {
   const mockPurposeVersion = getMockPurposeVersion();
   const mockPurpose = { ...getMockPurpose(), versions: [mockPurposeVersion] };
-  const defaultBody = {
+  const defaultBody: purposeApi.RejectPurposeVersionPayload = {
     rejectionReason: "Mock rejection reason",
   };
 
@@ -36,9 +39,9 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () =
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id,
-    versionId: string = mockPurposeVersion.id,
-    body: object = defaultBody
+    purposeId: PurposeId = mockPurpose.id,
+    versionId: PurposeVersionId = mockPurposeVersion.id,
+    body: purposeApi.RejectPurposeVersionPayload = defaultBody
   ) =>
     request(api)
       .post(`/purposes/${purposeId}/versions/${versionId}/reject`)
@@ -92,8 +95,8 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () =
   );
 
   it.each([
-    { purposeId: "invalid" },
-    { versionId: "invalid" },
+    { purposeId: "invalid" as PurposeId },
+    { versionId: "invalid" as PurposeVersionId },
     { body: {} },
     { body: { rejectionReason: "too short" } },
     { body: { ...defaultBody, extraField: 1 } },
@@ -101,7 +104,12 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () =
     "Should return 400 if passed invalid data: %s",
     async ({ purposeId, versionId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeId, versionId, body);
+      const res = await makeRequest(
+        token,
+        purposeId,
+        versionId,
+        body as purposeApi.RejectPurposeVersionPayload
+      );
       expect(res.status).toBe(400);
     }
   );

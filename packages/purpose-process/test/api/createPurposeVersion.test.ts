@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   DelegationId,
   Purpose,
+  PurposeId,
   generateId,
   purposeVersionState,
 } from "pagopa-interop-models";
@@ -27,7 +28,7 @@ import {
 describe("API POST /purposes/{purposeId}/versions test", () => {
   const mockPurpose: Purpose = getMockPurpose();
   const mockPurposeVersion = getMockPurposeVersion();
-  const defaultBody = { dailyCalls: 10 };
+  const defaultBody: purposeApi.PurposeVersionSeed = { dailyCalls: 10 };
 
   const apiResponse = purposeApi.PurposeVersion.parse(
     purposeVersionToApiPurposeVersion(mockPurposeVersion)
@@ -45,8 +46,8 @@ describe("API POST /purposes/{purposeId}/versions test", () => {
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id,
-    body: object = defaultBody
+    purposeId: PurposeId = mockPurpose.id,
+    body: purposeApi.PurposeVersionSeed = defaultBody
   ) =>
     request(api)
       .post(`/purposes/${purposeId}/versions`)
@@ -99,7 +100,7 @@ describe("API POST /purposes/{purposeId}/versions test", () => {
   );
 
   it.each([
-    { purposeId: "invalid" },
+    { purposeId: "invalid" as PurposeId },
     { body: {} },
     { body: { dailyCalls: -1 } },
     { body: { ...defaultBody, extraField: 1 } },
@@ -107,7 +108,11 @@ describe("API POST /purposes/{purposeId}/versions test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ purposeId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeId, body);
+      const res = await makeRequest(
+        token,
+        purposeId,
+        body as purposeApi.PurposeVersionSeed
+      );
       expect(res.status).toBe(400);
     }
   );

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { PurposeId, PurposeVersionId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockPurpose,
@@ -38,8 +38,8 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id,
-    versionId: string = mockPurposeVersion.id
+    purposeId: PurposeId = mockPurpose.id,
+    versionId: PurposeVersionId = mockPurposeVersion.id
   ) =>
     request(api)
       .post(`/purposes/${purposeId}/versions/${versionId}/activate`)
@@ -86,7 +86,10 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
     }
   );
 
-  it.each([{ purposeId: "invalid" }, { versionId: "invalid" }])(
+  it.each([
+    { purposeId: "invalid" as PurposeId },
+    { versionId: "invalid" as PurposeVersionId },
+  ])(
     "Should return 400 if passed invalid data: %s",
     async ({ purposeId, versionId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

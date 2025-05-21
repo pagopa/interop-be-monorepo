@@ -25,6 +25,12 @@ describe("API GET /purposes test", () => {
   const defaultQuery = {
     offset: 0,
     limit: 10,
+    name: "Mock",
+    eservicesIds: generateId(),
+    consumersIds: `${generateId()},${generateId()}`,
+    producersIds: `${generateId()},${generateId()}`,
+    states: "ACTIVE,DRAFT",
+    excludeDraft: false,
   };
 
   const purposes: ListResult<Purpose> = {
@@ -43,7 +49,10 @@ describe("API GET /purposes test", () => {
     purposeService.getPurposes = vi.fn().mockResolvedValue(purposes);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get("/purposes")
       .set("Authorization", `Bearer ${token}`)
@@ -86,9 +95,14 @@ describe("API GET /purposes test", () => {
     { query: { offset: 0, limit: 55 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
+    { query: { ...defaultQuery, eservicesIds: `${generateId()},invalid` } },
+    { query: { ...defaultQuery, consumersIds: `${generateId()},invalid` } },
+    { query: { ...defaultQuery, producersIds: `invalid,${generateId()}` } },
+    { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
+    { query: { ...defaultQuery, excludeDraft: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query);
+    const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });

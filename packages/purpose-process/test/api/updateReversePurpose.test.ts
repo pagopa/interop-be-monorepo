@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   DelegationId,
   Purpose,
+  PurposeId,
   eserviceMode,
   generateId,
 } from "pagopa-interop-models";
@@ -24,12 +25,13 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /reverse/purposes/{purposeId} test", () => {
-  const mockReversePurposeUpdateContent = {
-    title: "Mock purpose title",
-    dailyCalls: 10,
-    description: "Mock purpose description",
-    isFreeOfCharge: false,
-  };
+  const mockReversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent =
+    {
+      title: "Mock purpose title",
+      dailyCalls: 10,
+      description: "Mock purpose description",
+      isFreeOfCharge: false,
+    };
   const mockPurpose: Purpose = getMockPurpose();
   const isRiskAnalysisValid = true;
 
@@ -45,8 +47,8 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
 
   const makeRequest = async (
     token: string,
-    purposeId: string = mockPurpose.id,
-    body: object = mockReversePurposeUpdateContent
+    purposeId: PurposeId = mockPurpose.id,
+    body: purposeApi.ReversePurposeUpdateContent = mockReversePurposeUpdateContent
   ) =>
     request(api)
       .post(`/reverse/purposes/${purposeId}`)
@@ -101,7 +103,7 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
   );
 
   it.each([
-    { purposeId: "invalid" },
+    { purposeId: "invalid" as PurposeId },
     { body: {} },
     { body: { ...mockReversePurposeUpdateContent, dailyCalls: -1 } },
     { body: { ...mockReversePurposeUpdateContent, extraField: 1 } },
@@ -109,7 +111,11 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ purposeId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeId, body);
+      const res = await makeRequest(
+        token,
+        purposeId,
+        body as purposeApi.ReversePurposeUpdateContent
+      );
       expect(res.status).toBe(400);
     }
   );
