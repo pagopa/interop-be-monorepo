@@ -81,11 +81,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       )
       .at(-1);
 
-    assertPurposeVersionExistsWithState(
-      latestVersion,
-      purpose.id,
-      purposeApi.PurposeVersionState.Values.DRAFT
-    );
+    assertPurposeVersionExistsWithState(latestVersion, purpose.id, state);
 
     return latestVersion;
   };
@@ -344,7 +340,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Retrieveing current version for purpose ${purposeId} approval`
+        `Retrieving current version for purpose ${purposeId} approval`
       );
       const purposeResponse = await clients.purposeProcessClient.getPurpose({
         params: {
@@ -368,13 +364,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      await pollPurpose(
-        {
-          data: purposeResponse.data,
-          metadata,
-        },
-        headers
-      );
+      await pollPurposeVersion(purposeId, metadata?.version, headers);
     },
   };
 }
