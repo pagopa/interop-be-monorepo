@@ -2,6 +2,7 @@
 import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
 import {
   Delegation,
+  DelegationId,
   delegationKind,
   generateId,
   TenantId,
@@ -28,7 +29,7 @@ describe("API DELETE /producer/delegations/:delegationId test", () => {
 
   const makeRequest = async (
     token: string,
-    delegationId: string = mockDelegation.id
+    delegationId: DelegationId = mockDelegation.id
   ) =>
     request(api)
       .delete(`/producer/delegations/${delegationId}`)
@@ -81,7 +82,7 @@ describe("API DELETE /producer/delegations/:delegationId test", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as DelegationId);
     expect(res.status).toBe(400);
   });
 });

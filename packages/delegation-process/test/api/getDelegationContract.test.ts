@@ -8,6 +8,8 @@ import {
 import {
   Delegation,
   DelegationContractDocument,
+  DelegationContractId,
+  DelegationId,
   delegationKind,
   generateId,
   operationForbidden,
@@ -40,15 +42,13 @@ describe("API GET /delegations/:delegationId/contracts/:contractId test", () => 
 
   const makeRequest = async (
     token: string,
-    delegationContractId: string = mockDelegationContract.id
+    delegationId: DelegationId = mockDelegation.id,
+    delegationContractId: DelegationContractId = mockDelegationContract.id
   ) =>
     request(api)
-      .get(
-        `/delegations/${mockDelegation.id}/contracts/${delegationContractId}`
-      )
+      .get(`/delegations/${delegationId}/contracts/${delegationContractId}`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit: 10 });
+      .set("X-Correlation-Id", generateId());
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -106,7 +106,7 @@ describe("API GET /delegations/:delegationId/contracts/:contractId test", () => 
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as DelegationId);
     expect(res.status).toBe(400);
   });
 });

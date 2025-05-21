@@ -19,6 +19,13 @@ describe("API GET /consumer/eservices test", () => {
   const mockEservice2 = { ...getMockEService(), name: "Servizio 2" };
   const mockEservice3 = { ...getMockEService(), name: "Servizio 3" };
 
+  const defaultQuery = {
+    eserviceName: "Servizio",
+    delegatorId: mockDelegator.id,
+    offset: 0,
+    limit: 10,
+  };
+
   const mockEservices = {
     results: [mockEservice1, mockEservice2, mockEservice3],
     totalCount: 3,
@@ -33,12 +40,15 @@ describe("API GET /consumer/eservices test", () => {
     .fn()
     .mockResolvedValue(apiEservices);
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get("/consumer/eservices")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ delegatorId: mockDelegator.id, offset: 0, limit });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -68,7 +78,10 @@ describe("API GET /consumer/eservices test", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, {
+      ...defaultQuery,
+      limit: "invalid" as unknown as number,
+    });
     expect(res.status).toBe(400);
   });
 });

@@ -36,6 +36,10 @@ describe("API POST /consumer/delegations test", () => {
   const mockDelegation: Delegation = getMockDelegation({
     kind: delegationKind.delegatedConsumer,
   });
+  const defaultBody: delegationApi.DelegationSeed = {
+    delegateId: mockDelegator.id,
+    eserviceId: mockEService.id,
+  };
 
   const serviceResponse = getMockWithMetadata(mockDelegation);
   const apiDelegation = delegationApi.Delegation.parse(
@@ -48,16 +52,13 @@ describe("API POST /consumer/delegations test", () => {
 
   const makeRequest = async (
     token: string,
-    delegateId: string = mockDelegator.id
+    body: delegationApi.DelegationSeed = defaultBody
   ) =>
     request(api)
       .post("/consumer/delegations")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({
-        delegateId,
-        eserviceId: mockEService.id,
-      });
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -134,7 +135,7 @@ describe("API POST /consumer/delegations test", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, {} as delegationApi.DelegationSeed);
     expect(res.status).toBe(400);
   });
 });

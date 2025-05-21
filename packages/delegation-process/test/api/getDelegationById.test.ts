@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { delegationApi } from "pagopa-interop-api-clients";
 import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
-import { Delegation, delegationKind, generateId } from "pagopa-interop-models";
+import {
+  Delegation,
+  DelegationId,
+  delegationKind,
+  generateId,
+} from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -26,13 +31,12 @@ describe("API GET /delegations/:delegationId test", () => {
 
   const makeRequest = async (
     token: string,
-    delegationId: string = mockDelegation.id
+    delegationId: DelegationId = mockDelegation.id
   ) =>
     request(api)
       .get(`/delegations/${delegationId}`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit: 10 });
+      .set("X-Correlation-Id", generateId());
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -75,7 +79,7 @@ describe("API GET /delegations/:delegationId test", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as DelegationId);
     expect(res.status).toBe(400);
   });
 });

@@ -2,12 +2,14 @@
 import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
 import {
   Delegation,
+  DelegationId,
   delegationKind,
   generateId,
   TenantId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { delegationApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 
 import { api, delegationService } from "../vitest.api.setup.js";
@@ -21,6 +23,9 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
   const mockDelegation: Delegation = getMockDelegation({
     kind: delegationKind.delegatedProducer,
   });
+  const defaultBody: delegationApi.RejectDelegationPayload = {
+    rejectionReason: "reason",
+  };
 
   delegationService.rejectProducerDelegation = vi
     .fn()
@@ -28,15 +33,14 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
 
   const makeRequest = async (
     token: string,
-    delegationId: string = mockDelegation.id
+    delegationId: DelegationId = mockDelegation.id,
+    body: delegationApi.RejectDelegationPayload = defaultBody
   ) =>
     request(api)
       .post(`/producer/delegations/${delegationId}/reject`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send({
-        rejectionReason: "reason",
-      });
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
@@ -91,7 +95,7 @@ describe("API POST /producer/delegations/:delegationId/reject test", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as DelegationId);
     expect(res.status).toBe(400);
   });
 });

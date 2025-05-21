@@ -14,6 +14,13 @@ describe("API GET /consumer/delegators test", () => {
   const mockDelegator2 = { ...getMockTenant(), name: "Comune di Milano" };
   const mockDelegator3 = { ...getMockTenant(), name: "DeleganteTre" };
 
+  const defaultQuery = {
+    offset: 0,
+    limit: 10,
+    delegatorName: "Comune",
+    eservicesIds: `${generateId()},${generateId()}`,
+  };
+
   const mockDelegators = {
     results: [mockDelegator1, mockDelegator2, mockDelegator3],
     totalCount: 3,
@@ -28,12 +35,15 @@ describe("API GET /consumer/delegators test", () => {
     .fn()
     .mockResolvedValue(apiDelegators);
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get("/consumer/delegators")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -63,7 +73,10 @@ describe("API GET /consumer/delegators test", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, {
+      ...defaultQuery,
+      limit: "invalid",
+    } as unknown as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });

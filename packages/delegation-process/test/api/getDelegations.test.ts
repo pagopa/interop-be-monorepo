@@ -20,6 +20,16 @@ describe("API GET /delegations test", () => {
     kind: delegationKind.delegatedConsumer,
   });
 
+  const defaultQuery = {
+    offset: 0,
+    limit: 10,
+    delegationStates: "ACTIVE,WAITING_FOR_APPROVAL",
+    delegatorIds: `${generateId()},${generateId()}`,
+    delegateIds: `${generateId()},${generateId()}`,
+    eserviceIds: generateId(),
+    kind: "DELEGATED_CONSUMER",
+  };
+
   const mockDelegations = {
     results: [mockDelegation1, mockDelegation2, mockDelegation3],
     totalCount: 3,
@@ -32,12 +42,15 @@ describe("API GET /delegations test", () => {
 
   delegationService.getDelegations = vi.fn().mockResolvedValue(mockDelegations);
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get("/delegations")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit });
+      .query(query);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -68,7 +81,10 @@ describe("API GET /delegations test", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(
+      token,
+      "invalid" as unknown as typeof defaultQuery
+    );
     expect(res.status).toBe(400);
   });
 });

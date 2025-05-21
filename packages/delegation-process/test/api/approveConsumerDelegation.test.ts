@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Delegation,
+  DelegationId,
   TenantId,
   delegationKind,
   generateId,
@@ -37,7 +38,7 @@ describe("API POST /consumer/delegations/:delegationId/approve test", () => {
 
   const makeRequest = async (
     token: string,
-    delegationId: string = mockDelegation.id
+    delegationId: DelegationId = mockDelegation.id
   ) =>
     request(api)
       .post(`/consumer/delegations/${delegationId}/approve`)
@@ -101,7 +102,7 @@ describe("API POST /consumer/delegations/:delegationId/approve test", () => {
 
   it("Should return 400 if passed an invalid parameter", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as DelegationId);
     expect(res.status).toBe(400);
   });
 });
