@@ -73,19 +73,16 @@ describe("POST /agreements/:agreementId/reject router test", () => {
 
   it.each([
     { ...mockRejectAgreementBody, invalidParam: "invalidValue" },
-    { ...mockRejectAgreementBody, reason: undefined },
-  ])(
-    "Should return 400 if passed an invalid body",
-    async (body) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        body as m2mGatewayApi.AgreementRejection
-      );
+    { reason: undefined },
+  ])("Should return 400 if passed an invalid body", async (body) => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      body as m2mGatewayApi.AgreementRejection
+    );
 
-      expect(res.status).toBe(400);
-    }
-  );
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     { ...mockM2MAgreementResponse, state: "INVALID_STATE" },
