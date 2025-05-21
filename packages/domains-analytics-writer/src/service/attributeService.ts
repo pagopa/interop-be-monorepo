@@ -1,32 +1,35 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericLogger } from "pagopa-interop-commons";
-import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import { DBContext } from "../db/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import { attributeRepository } from "../repository/attribute/attribute.repository.js";
 import { config } from "../config/config.js";
+import {
+  AttributeSchema,
+  AttributeDeletingSchema,
+} from "../model/attribute/attribute.js";
 
 export function attributeServiceBuilder(db: DBContext) {
   const repo = attributeRepository(db.conn);
 
   return {
     async upsertBatchAttribute(
-      upsertBatch: AttributeSQL[],
-      dbContext: DBContext
+      dbContext: DBContext,
+      items: AttributeSchema[]
     ): Promise<void> {
-      for (const batch of batchMessages(
-        upsertBatch,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await repo.insert(t, dbContext.pgp, batch);
-        });
-        genericLogger.info(
-          `Staging data inserted for batch of attributes: ${batch
-            .map((r) => r.id)
-            .join(", ")}`
-        );
-      }
+          genericLogger.info(
+            `Staging data inserted for batch of attributes: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
+          );
+        }
+      });
 
       await dbContext.conn.tx(async (t) => {
         await repo.merge(t);
@@ -39,17 +42,19 @@ export function attributeServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchAttribute(
-      attributeIds: string[],
-      dbContext: DBContext
+      dbContext: DBContext,
+      items: AttributeDeletingSchema[]
     ): Promise<void> {
       await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(
-          attributeIds,
+          items,
           config.dbMessagesToInsertPerBatch
         )) {
           await repo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for attributeIds: ${batch.join(", ")}`
+            `Staging deletion inserted for attributeIds: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
       });
