@@ -231,19 +231,27 @@ export function readModelServiceBuilder(
       });
     },
 
-    async getAttributeByCodeAndName(
+    async getAttributeByCodeOriginOrName(
       code: string,
-      name: string
+      name: string,
+      origin: string
     ): Promise<WithMetadata<Attribute> | undefined> {
       return getAttribute(attributes, {
-        "data.code": {
-          $regex: `^${ReadModelRepository.escapeRegExp(code)}$$`,
-          $options: "i",
-        },
-        "data.name": {
-          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-          $options: "i",
-        },
+        $or: [
+          {
+            "data.name": {
+              $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
+              $options: "i",
+            },
+          },
+          {
+            "data.code": {
+              $regex: `^${ReadModelRepository.escapeRegExp(code)}$$`,
+              $options: "i",
+            },
+            "data.origin": origin,
+          },
+        ],
       });
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
