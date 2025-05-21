@@ -16,7 +16,8 @@ export const errorCodes = {
   purposeNotFound: "0008",
   missingActivePurposeVersion: "0009",
   agreementNotInPendingState: "0010",
-  eserviceDescriptorNotFound: "0011",
+  taxCodeAndIPACodeConflict: "0011",
+  eserviceDescriptorNotFound: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -101,6 +102,14 @@ export function agreementNotInPendingState(
     detail: `Agreement ${agreementId} is not in pending state`,
     code: "agreementNotInPendingState",
     title: "Agreement Not In Pending State",
+  });
+}
+
+export function taxCodeAndIPACodeConflict(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "IPACode and taxCode query parameters cannot be provided together",
+    code: "taxCodeAndIPACodeConflict",
+    title: "Tax code and IPA code conflict in tenant query",
   });
 }
 

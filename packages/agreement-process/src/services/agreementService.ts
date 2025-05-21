@@ -661,15 +661,15 @@ export function agreementServiceBuilder(
         ...archivedAgreementsUpdates,
       ]);
 
-      const latestVersion = createdEvents.reduce(
-        (acc, event) => Math.max(acc, event.newVersion),
-        0
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
       );
 
       return {
         data: submittedAgreement,
         metadata: {
-          version: latestVersion,
+          version: newVersion,
         },
       };
     },
