@@ -58,7 +58,7 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",
     async (role) => {
-      const token = generateToken([role]);
+      const token = generateToken(role);
       const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(204);
     }
@@ -67,7 +67,7 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken([role]);
+    const token = generateToken(role);
     const res = await makeRequest(token, mockProducerKeychain.id);
     expect(res.status).toBe(403);
   });
@@ -106,7 +106,7 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
         .fn()
         .mockRejectedValue(error);
 
-      const token = generateToken([authRole.ADMIN_ROLE]);
+      const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, mockProducerKeychain.id);
       expect(res.status).toBe(expectedStatus);
     }
@@ -119,7 +119,7 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ producerKeychainId, eserviceId }) => {
-      const token = generateToken([authRole.ADMIN_ROLE]);
+      const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
         producerKeychainId as ProducerKeychainId,

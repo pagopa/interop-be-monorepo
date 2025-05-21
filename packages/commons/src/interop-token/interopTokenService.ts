@@ -10,12 +10,13 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { systemRole } from "../auth/roles.js";
+import { systemRole } from "../auth/authData.js";
 import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
 import { dateToSeconds } from "../utils/date.js";
 import {
+  CustomClaims,
   InteropApiToken,
   InteropConsumerToken,
   InteropInternalToken,
@@ -24,9 +25,11 @@ import {
   InteropJwtConsumerPayload,
   InteropJwtHeader,
   InteropJwtInternalPayload,
-  InteropJwtUIPayload,
-  InteropUIToken,
-  UIClaims,
+  ORGANIZATION_ID_CLAIM,
+  ROLE_CLAIM,
+  SessionClaims,
+  SessionJwtPayload,
+  SessionToken,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 
@@ -92,9 +95,9 @@ export class InteropTokenGenerator {
   }
 
   public async generateSessionToken(
-    claims: UIClaims,
+    claims: SessionClaims & CustomClaims,
     jwtDuration?: number
-  ): Promise<InteropUIToken> {
+  ): Promise<SessionToken> {
     if (
       !this.config.generatedKid ||
       !this.config.generatedIssuer ||
@@ -115,7 +118,7 @@ export class InteropTokenGenerator {
 
     const duration = jwtDuration ?? this.config.generatedSecondsDuration;
 
-    const payload: InteropJwtUIPayload = {
+    const payload: SessionJwtPayload = {
       jti: crypto.randomUUID(),
       iss: this.config.generatedIssuer,
       aud: this.config.generatedAudience,
@@ -177,16 +180,16 @@ export class InteropTokenGenerator {
       nbf: currentTimestamp,
       exp:
         currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
-      organizationId: consumerId,
+      [ORGANIZATION_ID_CLAIM]: consumerId,
     };
 
     const systemRolePayload = clientAdminId
       ? {
-          role: systemRole.M2M_ADMIN_ROLE,
+          [ROLE_CLAIM]: systemRole.M2M_ADMIN_ROLE,
           adminId: clientAdminId,
         }
       : {
-          role: systemRole.M2M_ROLE,
+          [ROLE_CLAIM]: systemRole.M2M_ROLE,
         };
 
     const payload: InteropJwtApiPayload = {
@@ -292,7 +295,7 @@ export class InteropTokenGenerator {
     header: InteropJwtHeader;
     payload:
       | InteropJwtInternalPayload
-      | InteropJwtUIPayload
+      | SessionJwtPayload
       | InteropJwtConsumerPayload
       | InteropJwtApiPayload;
     keyId: string;
@@ -319,6 +322,6 @@ export class InteropTokenGenerator {
     return `${serializedToken}.${jwtSignature}`;
   }
 
-  private toJwtAudience = (input: string | string[]): string[] =>
-    Array.isArray(input) ? input : [input];
+  private toJwtAudience = (input: string | string[]): string | string[] =>
+    Array.isArray(input) && input.length === 1 ? input[0] : input;
 }
