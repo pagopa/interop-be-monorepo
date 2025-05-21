@@ -12,8 +12,10 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   pollResource,
   isPolledVersionAtLeastResponseVersion,
+  isPolledVersionAtLeastTargetVersion,
 } from "../utils/polling.js";
 import { purposeVersionNotFound } from "../model/errors.js";
+import { assertPurposeVersionExistsWithState } from "../utils/validators/purposeValidator.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -32,6 +34,38 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const pollPurposeVersion = (
+    purposeId: PurposeId,
+    targetVersion: number | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ) =>
+    pollResource(() =>
+      clients.purposeProcessClient.getPurpose({
+        params: { id: purposeId },
+        headers,
+      })
+    )({
+      checkFn: isPolledVersionAtLeastTargetVersion(targetVersion),
+    });
+
+  const retrieveLatestPurposeVersionByState = (
+    purpose: purposeApi.Purpose,
+    state: purposeApi.PurposeVersionState
+  ): purposeApi.PurposeVersion => {
+    const latestVersion = purpose.versions
+      .filter((v) => v.state === state)
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      )
+      .at(-1);
+
+    assertPurposeVersionExistsWithState(latestVersion, purpose.id, state);
+
+    return latestVersion;
+  };
 
   return {
     async getPurposes(
@@ -181,6 +215,37 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       }
 
       return toM2mGatewayApiPurposeVersion(createdVersion);
+    },
+    async activatePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieveing latest draft version for purpose ${purposeId} activation`
+      );
+      const purposeResponse = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const versionToActivate = retrieveLatestPurposeVersionByState(
+        purposeResponse.data,
+        purposeApi.PurposeVersionState.Values.DRAFT
+      );
+
+      logger.info(
+        `Activating version ${versionToActivate.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToActivate.id },
+          headers,
+        });
+
+      await pollPurposeVersion(purposeId, metadata?.version, headers);
     },
   };
 }

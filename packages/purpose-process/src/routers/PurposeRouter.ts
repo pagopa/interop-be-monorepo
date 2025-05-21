@@ -456,21 +456,24 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           const { purposeId, versionId } = req.params;
-          const purposeVersion = await purposeService.activatePurposeVersion(
-            {
-              purposeId: unsafeBrandId(purposeId),
-              versionId: unsafeBrandId(versionId),
-            },
-            ctx
-          );
+          const { data, metadata } =
+            await purposeService.activatePurposeVersion(
+              {
+                purposeId: unsafeBrandId(purposeId),
+                versionId: unsafeBrandId(versionId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
               purposeApi.PurposeVersion.parse(
-                purposeVersionToApiPurposeVersion(purposeVersion)
+                purposeVersionToApiPurposeVersion(data)
               )
             );
         } catch (error) {

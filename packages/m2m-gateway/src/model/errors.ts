@@ -2,6 +2,7 @@ import {
   attributeRegistryApi,
   delegationApi,
   authorizationApi,
+  purposeApi,
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
@@ -19,7 +20,7 @@ export const errorCodes = {
   attributeNotFound: "0007",
   eserviceDescriptorNotFound: "0008",
   purposeNotFound: "0009",
-  missingActivePurposeVersion: "0010",
+  missingActivePurposeVersionWithState: "0010",
   purposeVersionNotFound: "0011",
   taxCodeAndIPACodeConflict: "0012",
 };
@@ -107,6 +108,18 @@ export function purposeVersionNotFound(
     detail: `Version ${versionId} not found in purpose ${purposeId}`,
     code: "purposeVersionNotFound",
     title: "Purpose version not found",
+  });
+}
+
+
+export function missingActivePurposeVersionWithState(
+  purposeId: string,
+  state: purposeApi.PurposeVersionState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `There is no ${state} version for purpose ${purposeId}`,
+    code: "missingActivePurposeVersionWithState",
+    title: `Missing ${state} purpose version`,
   });
 }
 
