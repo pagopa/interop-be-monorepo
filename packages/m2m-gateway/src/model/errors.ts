@@ -16,8 +16,9 @@ export const errorCodes = {
   purposeNotFound: "0008",
   missingActivePurposeVersion: "0009",
   agreementNotInPendingState: "0010",
-  taxCodeAndIPACodeConflict: "0011",
-  eserviceDescriptorNotFound: "0012",
+  eserviceDescriptorNotFound: "0011",
+  agreementNotInSuspendedState: "0012",
+  taxCodeAndIPACodeConflict: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -102,6 +103,16 @@ export function agreementNotInPendingState(
     detail: `Agreement ${agreementId} is not in pending state`,
     code: "agreementNotInPendingState",
     title: "Agreement Not In Pending State",
+  });
+}
+
+export function agreementNotInSuspendedState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in suspended state`,
+    code: "agreementNotInSuspendedState",
+    title: "Agreement Not In Suspended State",
   });
 }
 

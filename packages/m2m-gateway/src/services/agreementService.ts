@@ -8,7 +8,10 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResource,
 } from "../utils/polling.js";
-import { assertAgreementIsPending } from "../utils/validators/agreementValidators.js";
+import {
+  assertAgreementIsPending,
+  assertAgreementIsSuspended,
+} from "../utils/validators/agreementValidators.js";
 import {
   toGetAgreementsApiQueryParams,
   toM2MGatewayApiAgreement,
@@ -173,6 +176,27 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
         }
       );
 
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
+    async unsuspendAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Unsuspending agreement with id ${agreementId}`);
+
+      const agreement = await retrieveAgreementById(headers, agreementId);
+
+      assertAgreementIsSuspended(agreement.data);
+
+      const response = await clients.agreementProcessClient.activateAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
       const polledResource = await pollAgreement(response, headers);
 
       return toM2MGatewayApiAgreement(polledResource.data);
