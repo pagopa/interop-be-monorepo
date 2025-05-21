@@ -26,7 +26,7 @@ describe("API POST /maintenance/tenants/{tenantId}/certifier test", () => {
   const makeRequest = async (
     token: string,
     tenantId: TenantId = tenant.id,
-    body: object = { certifierId }
+    body: tenantApi.CertifierPromotionPayload = { certifierId }
   ) =>
     request(api)
       .post(`/maintenance/tenants/${tenantId}/certifier`)
@@ -77,7 +77,11 @@ describe("API POST /maintenance/tenants/{tenantId}/certifier test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ tenantId, body }) => {
       const token = generateToken(authRole.MAINTENANCE_ROLE);
-      const res = await makeRequest(token, tenantId, body);
+      const res = await makeRequest(
+        token,
+        tenantId,
+        body as tenantApi.CertifierPromotionPayload
+      );
       expect(res.status).toBe(400);
     }
   );

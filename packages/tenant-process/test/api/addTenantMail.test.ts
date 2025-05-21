@@ -31,7 +31,7 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
   const makeRequest = async (
     token: string,
     tenantId: TenantId = tenant.id,
-    body: object = mailSeed
+    body: tenantApi.MailSeed = mailSeed
   ) =>
     request(api)
       .post(`/tenants/${tenantId}/mails`)
@@ -77,7 +77,11 @@ describe("API POST /tenants/{tenantId}/mails test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ tenantId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, tenantId, body);
+      const res = await makeRequest(
+        token,
+        tenantId,
+        body as tenantApi.MailSeed
+      );
       expect(res.status).toBe(400);
     }
   );

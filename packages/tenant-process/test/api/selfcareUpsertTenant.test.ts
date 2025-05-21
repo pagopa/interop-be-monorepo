@@ -39,7 +39,10 @@ describe("API POST /selfcare/tenants test", () => {
     authRole.INTERNAL_ROLE,
   ];
 
-  const makeRequest = async (token: string, body: object = tenantSeed) =>
+  const makeRequest = async (
+    token: string,
+    body: tenantApi.SelfcareTenantSeed = tenantSeed
+  ) =>
     request(api)
       .post("/selfcare/tenants")
       .set("Authorization", `Bearer ${token}`)
@@ -94,7 +97,7 @@ describe("API POST /selfcare/tenants test", () => {
     { body: { ...tenantSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body);
+    const res = await makeRequest(token, body as tenantApi.SelfcareTenantSeed);
     expect(res.status).toBe(400);
   });
 });

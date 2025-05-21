@@ -32,7 +32,10 @@ describe("API POST /m2m/tenants test", () => {
     tenantService.m2mUpsertTenant = vi.fn().mockResolvedValue(tenant);
   });
 
-  const makeRequest = async (token: string, body: object = tenantSeed) =>
+  const makeRequest = async (
+    token: string,
+    body: tenantApi.M2MTenantSeed = tenantSeed
+  ) =>
     request(api)
       .post("/m2m/tenants")
       .set("Authorization", `Bearer ${token}`)
@@ -90,7 +93,7 @@ describe("API POST /m2m/tenants test", () => {
     { body: { ...tenantSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token, body);
+    const res = await makeRequest(token, body as tenantApi.M2MTenantSeed);
     expect(res.status).toBe(400);
   });
 });

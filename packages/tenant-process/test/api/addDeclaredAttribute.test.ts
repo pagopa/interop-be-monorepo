@@ -25,7 +25,7 @@ describe("API POST /tenants/attributes/declared test", () => {
 
   const makeRequest = async (
     token: string,
-    body: object = { id: generateId() }
+    body: tenantApi.DeclaredTenantAttributeSeed = { id: generateId() }
   ) =>
     request(api)
       .post("/tenants/attributes/declared")
@@ -66,10 +66,14 @@ describe("API POST /tenants/attributes/declared test", () => {
   it.each([
     { body: {} },
     { body: { id: "invalid" } },
+    { body: { id: generateId(), delegationId: "invalid" } },
     { body: { id: generateId(), extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body);
+    const res = await makeRequest(
+      token,
+      body as tenantApi.DeclaredTenantAttributeSeed
+    );
     expect(res.status).toBe(400);
   });
 });

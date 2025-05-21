@@ -25,7 +25,10 @@ describe("API GET /tenants test", () => {
   const defaultQuery = {
     offset: 0,
     limit: 10,
+    name: "Tenant",
     features: "PERSISTENT_CERTIFIER,DELEGATED_PRODUCER",
+    externalIdOrigin: "",
+    externalIdValue: "",
   };
 
   const mockResponse = {
@@ -51,7 +54,10 @@ describe("API GET /tenants test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get("/tenants")
       .set("Authorization", `Bearer ${token}`)
@@ -86,11 +92,11 @@ describe("API GET /tenants test", () => {
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
     {
-      query: { offset: 0, limit: 10, features: "PERSISTENT_CERTIFIER,invalid" },
+      query: { ...defaultQuery, features: "PERSISTENT_CERTIFIER,invalid" },
     },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query);
+    const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });

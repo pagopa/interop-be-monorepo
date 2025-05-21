@@ -30,7 +30,10 @@ describe("API POST /internal/tenants test", () => {
     tenantService.internalUpsertTenant = vi.fn().mockResolvedValue(tenant);
   });
 
-  const makeRequest = async (token: string, body: object = tenantSeed) =>
+  const makeRequest = async (
+    token: string,
+    body: tenantApi.InternalTenantSeed = tenantSeed
+  ) =>
     request(api)
       .post("/internal/tenants")
       .set("Authorization", `Bearer ${token}`)
@@ -77,7 +80,7 @@ describe("API POST /internal/tenants test", () => {
     { body: { ...tenantSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token, body);
+    const res = await makeRequest(token, body as tenantApi.InternalTenantSeed);
     expect(res.status).toBe(400);
   });
 });

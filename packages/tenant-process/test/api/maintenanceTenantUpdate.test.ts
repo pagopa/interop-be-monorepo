@@ -4,6 +4,7 @@ import request from "supertest";
 import { generateId, TenantId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { api, tenantService } from "../vitest.api.setup.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 import { getMockMaintenanceTenantUpdate } from "../mockUtils.js";
@@ -11,7 +12,10 @@ import { getMockMaintenanceTenantUpdate } from "../mockUtils.js";
 describe("API POST /maintenance/tenants/{tenantId} test", () => {
   const defaultTenantId = generateId<TenantId>();
   const maintenanceTenantUpdate = getMockMaintenanceTenantUpdate();
-  const defaultBody = { currentVersion: 0, tenant: maintenanceTenantUpdate };
+  const defaultBody: tenantApi.MaintenanceTenantUpdatePayload = {
+    currentVersion: 0,
+    tenant: maintenanceTenantUpdate,
+  };
 
   beforeEach(() => {
     tenantService.maintenanceTenantUpdate = vi
@@ -22,7 +26,7 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
   const makeRequest = async (
     token: string,
     tenantId: TenantId = defaultTenantId,
-    body: object = defaultBody
+    body: tenantApi.MaintenanceTenantUpdatePayload = defaultBody
   ) =>
     request(api)
       .post(`/maintenance/tenants/${tenantId}`)
@@ -75,7 +79,11 @@ describe("API POST /maintenance/tenants/{tenantId} test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ tenantId, body }) => {
       const token = generateToken(authRole.MAINTENANCE_ROLE);
-      const res = await makeRequest(token, tenantId, body);
+      const res = await makeRequest(
+        token,
+        tenantId,
+        body as tenantApi.MaintenanceTenantUpdatePayload
+      );
       expect(res.status).toBe(400);
     }
   );

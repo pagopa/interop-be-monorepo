@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import {
+  AgreementId,
   AttributeId,
   generateId,
   Tenant,
@@ -25,7 +26,9 @@ import {
 
 describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test", () => {
   const tenant: Tenant = getMockTenant();
-  const defaultBody = { agreementId: generateId() };
+  const defaultBody: { agreementId: AgreementId } = {
+    agreementId: generateId(),
+  };
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
@@ -37,7 +40,7 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     token: string,
     tenantId: TenantId = tenant.id,
     attributeId: AttributeId = generateId(),
-    body: object = defaultBody
+    body: { agreementId: AgreementId } = defaultBody
   ) =>
     request(api)
       .delete(`/tenants/${tenantId}/attributes/verified/${attributeId}`)
@@ -98,7 +101,12 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     "Should return 400 if passed invalid data: %s",
     async ({ tenantId, attributeId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, tenantId, attributeId, body);
+      const res = await makeRequest(
+        token,
+        tenantId,
+        attributeId,
+        body as { agreementId: AgreementId }
+      );
       expect(res.status).toBe(400);
     }
   );

@@ -19,7 +19,7 @@ import {
 
 describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
   const tenant: Tenant = getMockTenant();
-  const defaultBody = {
+  const defaultBody: tenantApi.VerifiedTenantAttributeSeed = {
     id: generateId(),
     agreementId: generateId(),
   };
@@ -33,7 +33,7 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
   const makeRequest = async (
     token: string,
     tenantId: TenantId = tenant.id,
-    body: object = defaultBody
+    body: tenantApi.VerifiedTenantAttributeSeed = defaultBody
   ) =>
     request(api)
       .post(`/tenants/${tenantId}/attributes/verified`)
@@ -96,7 +96,11 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ tenantId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, tenantId, body);
+      const res = await makeRequest(
+        token,
+        tenantId,
+        body as tenantApi.VerifiedTenantAttributeSeed
+      );
       expect(res.status).toBe(400);
     }
   );

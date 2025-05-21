@@ -20,7 +20,7 @@ describe("API DELETE /maintenance/tenants/{tenantId} test", () => {
   const makeRequest = async (
     token: string,
     tenantId: TenantId = tenant.id,
-    body: object = defaultBody
+    body: { currentVersion: number } = defaultBody
   ) =>
     request(api)
       .delete(`/maintenance/tenants/${tenantId}`)
@@ -61,7 +61,11 @@ describe("API DELETE /maintenance/tenants/{tenantId} test", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ tenantId, body }) => {
       const token = generateToken(authRole.MAINTENANCE_ROLE);
-      const res = await makeRequest(token, tenantId, body);
+      const res = await makeRequest(
+        token,
+        tenantId,
+        body as { currentVersion: number }
+      );
       expect(res.status).toBe(400);
     }
   );

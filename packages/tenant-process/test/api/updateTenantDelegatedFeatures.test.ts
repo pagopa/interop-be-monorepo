@@ -4,11 +4,12 @@ import request from "supertest";
 import { generateId, operationForbidden } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
+import { tenantApi } from "pagopa-interop-api-clients";
 import { api, tenantService } from "../vitest.api.setup.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 
 describe("API POST /tenants/delegatedFeatures/update test", () => {
-  const tenantFeatures = {
+  const tenantFeatures: tenantApi.TenantDelegatedFeaturesFlagsUpdateSeed = {
     isDelegatedConsumerFeatureEnabled: true,
     isDelegatedProducerFeatureEnabled: false,
   };
@@ -19,7 +20,10 @@ describe("API POST /tenants/delegatedFeatures/update test", () => {
       .mockResolvedValue(undefined);
   });
 
-  const makeRequest = async (token: string, body: object = tenantFeatures) =>
+  const makeRequest = async (
+    token: string,
+    body: tenantApi.TenantDelegatedFeaturesFlagsUpdateSeed = tenantFeatures
+  ) =>
     request(api)
       .post("/tenants/delegatedFeatures/update")
       .set("Authorization", `Bearer ${token}`)
@@ -62,7 +66,10 @@ describe("API POST /tenants/delegatedFeatures/update test", () => {
     { body: { ...tenantFeatures, extraField: 1 } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body);
+    const res = await makeRequest(
+      token,
+      body as tenantApi.TenantDelegatedFeaturesFlagsUpdateSeed
+    );
     expect(res.status).toBe(400);
   });
 });

@@ -83,7 +83,10 @@ describe("API GET /tenants/attributes/certified test", () => {
     authRole.SUPPORT_ROLE,
   ];
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get("/tenants/attributes/certified")
       .set("Authorization", `Bearer ${token}`)
@@ -132,7 +135,7 @@ describe("API GET /tenants/attributes/certified test", () => {
     { query: { offset: 0, limit: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query);
+    const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });
