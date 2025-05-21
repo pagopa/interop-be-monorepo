@@ -74,7 +74,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           riskAnalysisAnswer: sql<null>`NULL`,
         })
         .from(eserviceInReadmodelCatalog)
-        .leftJoin(
+        .innerJoin(
           eserviceDescriptorInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -157,6 +157,31 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       ).map((agreement) => ExportedAgreement.parse(agreement.data));
     },
     async getPurposes(): Promise<ExportedPurpose[]> {
+      const subquery = readModelDB
+        .select({
+          id: purposeInReadmodelPurpose.id,
+        })
+        .from(purposeInReadmodelPurpose)
+        .innerJoin(
+          purposeVersionInReadmodelPurpose,
+          and(
+            eq(
+              purposeInReadmodelPurpose.id,
+              purposeVersionInReadmodelPurpose.purposeId
+            ),
+            ne(
+              purposeVersionInReadmodelPurpose.state,
+              purposeVersionState.draft
+            ),
+            ne(
+              purposeVersionInReadmodelPurpose.state,
+              purposeVersionState.waitingForApproval
+            )
+          )
+        )
+        .groupBy(purposeInReadmodelPurpose.id)
+        .as("subquery");
+
       const queryResult = await readModelDB
         .select({
           purpose: purposeInReadmodelPurpose,
@@ -166,6 +191,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purposeRiskAnalysisAnswer: sql<null>`NULL`,
         })
         .from(purposeInReadmodelPurpose)
+        .innerJoin(subquery, eq(purposeInReadmodelPurpose.id, subquery.id))
         .innerJoin(
           purposeVersionInReadmodelPurpose,
           eq(
@@ -178,18 +204,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionDocumentInReadmodelPurpose.purposeVersionId
-          )
-        )
-        .where(
-          and(
-            ne(
-              purposeVersionInReadmodelPurpose.state,
-              purposeVersionState.draft
-            ),
-            ne(
-              purposeVersionInReadmodelPurpose.state,
-              purposeVersionState.waitingForApproval
-            )
           )
         );
 
