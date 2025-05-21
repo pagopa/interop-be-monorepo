@@ -59,17 +59,17 @@ describe("POST /agreements/:agreementId/submit router test", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid agreement seed: %s", async () => {
+  it("Should return 400 if passed an invalid body", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, {
       ...mockSubmitAgreementBody,
       invalidParam: "invalidValue",
-    } as unknown as m2mGatewayApi.AgreementSubmission);
+    } as m2mGatewayApi.AgreementSubmission);
 
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 for incorrect value for purpose id", async () => {
+  it("Should return 400 for incorrect value for agreement id", async () => {
     mockAgreementService.submitAgreement = vi
       .fn()
       .mockResolvedValue(mockM2MAgreementResponse);

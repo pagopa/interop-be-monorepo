@@ -113,6 +113,9 @@ paths:
       summary: Agreement Activation
       operationId: activateAgreement
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Pending agreement activated.
           content:

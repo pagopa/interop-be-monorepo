@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { agreementApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
-  agreementService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
   mockPollingResponse,
+  agreementService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
@@ -16,59 +16,41 @@ import {
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
-  getMockM2MAdminAppContext,
   getMockedApiAgreement,
+  getMockM2MAdminAppContext,
 } from "../../mockUtils.js";
 
 describe("unsuspendAgreement", () => {
   const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.PENDING,
+    state: agreementApi.AgreementState.Values.SUSPENDED,
   });
 
+  const pollingTentatives = 2;
   const mockActivateAgreement = vi
     .fn()
     .mockResolvedValue(mockAgreementProcessResponse);
-
-  const mockGetAgreement = vi.fn();
+  const mockGetAgreement = vi.fn(
+    mockPollingResponse(mockAgreementProcessResponse, pollingTentatives)
+  );
 
   mockInteropBeClients.agreementProcessClient = {
-    activateAgreement: mockActivateAgreement,
     getAgreementById: mockGetAgreement,
+    activateAgreement: mockActivateAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
     mockActivateAgreement.mockClear();
     mockGetAgreement.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mAgreementResponse: m2mGatewayApi.Agreement = {
-      id: mockAgreementProcessResponse.data.id,
-      eserviceId: mockAgreementProcessResponse.data.eserviceId,
-      descriptorId: mockAgreementProcessResponse.data.descriptorId,
-      producerId: mockAgreementProcessResponse.data.producerId,
-      consumerId: mockAgreementProcessResponse.data.consumerId,
-      state: mockAgreementProcessResponse.data.state,
-      createdAt: mockAgreementProcessResponse.data.createdAt,
-    };
-
     mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-    mockGetAgreement.mockImplementation(
-      mockPollingResponse(
-        mockAgreementProcessResponse,
-        config.defaultPollingMaxAttempts
-      )
-    );
-    const result = await agreementService.unsuspendAgreement(
+
+    await agreementService.unsuspendAgreement(
       unsafeBrandId(mockAgreementProcessResponse.data.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAgreementResponse);
-    expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts + 1
-    );
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
       params: {
@@ -77,33 +59,36 @@ describe("unsuspendAgreement", () => {
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
-      params: {
-        agreementId: mockAgreementProcessResponse.data.id,
-      },
+      params: { agreementId: mockAgreementProcessResponse.data.id },
     });
+    expect(
+      mockInteropBeClients.agreementProcessClient.getAgreementById
+    ).toHaveBeenCalledTimes(pollingTentatives + 1);
   });
 
-  it("Should throw missingMetadata in case the agreement returned by the activate agreement POST call has no metadata", async () => {
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-    mockActivateAgreement.mockResolvedValueOnce({
-      ...mockAgreementProcessResponse,
-      metadata: undefined,
+  it("Should throw agreementNotInSuspendedState in case of non-suspended agreement", async () => {
+    const mockAgreementNotSuspended = getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.ACTIVE,
     });
+    mockGetAgreement.mockResolvedValueOnce(mockAgreementNotSuspended);
 
     await expect(
       agreementService.unsuspendAgreement(
-        unsafeBrandId(mockAgreementProcessResponse.data.id),
+        unsafeBrandId(mockAgreementNotSuspended.data.id),
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingMetadata());
+    ).rejects.toThrowError(
+      agreementNotInSuspendedState(mockAgreementNotSuspended.data.id)
+    );
   });
 
   it("Should throw missingMetadata in case the agreement returned by the polling GET call has no metadata", async () => {
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-    mockGetAgreement.mockResolvedValueOnce({
-      ...mockAgreementProcessResponse,
-      metadata: undefined,
-    });
+    mockGetAgreement
+      .mockResolvedValueOnce(mockAgreementProcessResponse)
+      .mockResolvedValueOnce({
+        ...mockAgreementProcessResponse,
+        metadata: undefined,
+      });
 
     await expect(
       agreementService.unsuspendAgreement(
@@ -114,13 +99,15 @@ describe("unsuspendAgreement", () => {
   });
 
   it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-    mockGetAgreement.mockImplementation(
-      mockPollingResponse(
-        mockAgreementProcessResponse,
-        config.defaultPollingMaxAttempts + 1
-      )
-    );
+    // The activate will first get the agreement, then perform the polling
+    mockGetAgreement
+      .mockResolvedValueOnce(mockAgreementProcessResponse)
+      .mockImplementation(
+        mockPollingResponse(
+          mockAgreementProcessResponse,
+          config.defaultPollingMaxAttempts + 1
+        )
+      );
 
     await expect(
       agreementService.unsuspendAgreement(
@@ -133,22 +120,5 @@ describe("unsuspendAgreement", () => {
     expect(mockGetAgreement).toHaveBeenCalledTimes(
       config.defaultPollingMaxAttempts + 1
     );
-  });
-
-  it("Should throw agreementNotInSuspendedState if agreement is not in suspend state", async () => {
-    const mockAgreementProcessResponse = getMockedApiAgreement({
-      state: agreementApi.AgreementState.Values.ACTIVE,
-    });
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-
-    await expect(
-      agreementService.unsuspendAgreement(
-        unsafeBrandId(mockAgreementProcessResponse.data.id),
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(
-      agreementNotInSuspendedState(mockAgreementProcessResponse.data.id)
-    );
-    expect(mockGetAgreement).toHaveBeenCalledTimes(1);
   });
 });
