@@ -1130,8 +1130,12 @@ export function agreementServiceBuilder(
     },
     async activateAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Activating agreement ${agreementId}`);
 
       const contractBuilderInstance = contractBuilder(
@@ -1296,9 +1300,20 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      await repository.createEvents([...activationEvents, ...archiveEvents]);
+      const createdEvents = await repository.createEvents([
+        ...activationEvents,
+        ...archiveEvents,
+      ]);
 
-      return updatedAgreement;
+      const latestVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
+      );
+
+      return {
+        data: updatedAgreement,
+        metadata: { version: latestVersion },
+      };
     },
     async archiveAgreement(
       agreementId: AgreementId,
@@ -1480,7 +1495,7 @@ export async function createAndCopyDocumentsForClonedAgreement(
 
 export function createAgreementArchivedByUpgradeEvent(
   agreement: WithMetadata<Agreement>,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeDelegations: ActiveDelegations,
   correlationId: CorrelationId
 ): CreateEvent<AgreementEvent> {
