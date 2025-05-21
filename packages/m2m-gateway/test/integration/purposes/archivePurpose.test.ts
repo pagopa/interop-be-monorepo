@@ -36,7 +36,7 @@ describe("archivePurposeVersion", () => {
   };
 
   const pollingTentatives = 2;
-  const mockarchivePurposeVersion = vi
+  const mockArchivePurposeVersion = vi
     .fn()
     .mockResolvedValue(archivePurposeApiResponse);
   const mockGetPurpose = vi.fn(
@@ -45,11 +45,11 @@ describe("archivePurposeVersion", () => {
 
   mockInteropBeClients.purposeProcessClient = {
     getPurpose: mockGetPurpose,
-    archivePurposeVersion: mockarchivePurposeVersion,
+    archivePurposeVersion: mockArchivePurposeVersion,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
-    mockarchivePurposeVersion.mockClear();
+    mockArchivePurposeVersion.mockClear();
     mockGetPurpose.mockClear();
   });
 
@@ -96,7 +96,7 @@ describe("archivePurposeVersion", () => {
   });
 
   it("Should throw missingMetadata in case the purpose returned by the archive POST call has no metadata", async () => {
-    mockarchivePurposeVersion.mockResolvedValueOnce({
+    mockArchivePurposeVersion.mockResolvedValueOnce({
       data: mockApiPurposeVersion1,
       metadata: undefined,
     });
