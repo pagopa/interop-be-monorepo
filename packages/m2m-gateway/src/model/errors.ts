@@ -13,8 +13,7 @@ export const errorCodes = {
   unexpectedAttributeKind: "0005",
   unexpectedUndefinedAttributeOriginOrCode: "0006",
   attributeNotFound: "0007",
-  purposeNotFound: "0008",
-  missingActivePurposeVersion: "0009",
+  eserviceDescriptorNotFound: "0008",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -89,5 +88,16 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
+  });
+}
+
+export function eserviceDescriptorNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "Eservice descriptor not found",
   });
 }
