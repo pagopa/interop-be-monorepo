@@ -23,8 +23,8 @@ import {
   eserviceNotFound,
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegatedConsumer,
   riskAnalysisValidationFailed,
 } from "../../src/model/domain/errors.js";
 import { getMockReversePurposeSeed } from "../mockUtils.js";
@@ -75,9 +75,9 @@ describe("API POST /reverse/purposes test", () => {
   });
 
   it.each([
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegatedConsumer(
+      error: tenantIsNotTheDelegatedConsumer(
         generateId(),
         generateId<DelegationId>()
       ),

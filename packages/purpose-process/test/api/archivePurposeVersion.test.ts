@@ -17,8 +17,8 @@ import { api, purposeService } from "../vitest.api.setup.js";
 import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
 import {
   notValidVersionState,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegatedConsumer,
   purposeNotFound,
   purposeVersionNotFound,
 } from "../../src/model/domain/errors.js";
@@ -70,9 +70,9 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/archive test", () 
       ),
       expectedStatus: 400,
     },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegatedConsumer(
+      error: tenantIsNotTheDelegatedConsumer(
         generateId(),
         generateId<DelegationId>()
       ),

@@ -15,8 +15,8 @@ import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
 import {
   notValidVersionState,
-  organizationIsNotTheDelegatedProducer,
-  organizationIsNotTheProducer,
+  tenantIsNotTheDelegatedProducer,
+  tenantIsNotTheProducer,
   purposeNotFound,
   purposeVersionNotFound,
 } from "../../src/model/domain/errors.js";
@@ -66,9 +66,9 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/reject test", () =
       error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
       expectedStatus: 404,
     },
-    { error: organizationIsNotTheProducer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheProducer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegatedProducer(
+      error: tenantIsNotTheDelegatedProducer(
         generateId(),
         generateId<DelegationId>()
       ),

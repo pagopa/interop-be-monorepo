@@ -10,7 +10,7 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
 import {
-  organizationIsNotTheConsumer,
+  tenantIsNotTheConsumer,
   purposeNotFound,
   purposeVersionCannotBeDeleted,
   purposeVersionNotFound,
@@ -54,7 +54,7 @@ describe("API DELETE /purposes/{purposeId}/versions/{versionId} test", () => {
       error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
       expectedStatus: 404,
     },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
       error: purposeVersionCannotBeDeleted(
         mockPurpose.id,

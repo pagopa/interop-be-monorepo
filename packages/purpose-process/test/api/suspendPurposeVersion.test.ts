@@ -12,7 +12,7 @@ import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
 import {
   notValidVersionState,
-  organizationNotAllowed,
+  tenantNotAllowed,
   purposeNotFound,
   purposeVersionNotFound,
 } from "../../src/model/domain/errors.js";
@@ -63,7 +63,7 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
       error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
       expectedStatus: 404,
     },
-    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
       error: notValidVersionState(
         mockPurposeVersion.id,

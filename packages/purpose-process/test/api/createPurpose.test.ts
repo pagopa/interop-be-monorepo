@@ -5,8 +5,9 @@ import {
   generateToken,
   getMockEService,
   getMockPurpose,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
@@ -15,8 +16,8 @@ import {
   agreementNotFound,
   duplicatedPurposeTitle,
   missingFreeOfChargeReason,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegatedConsumer,
   riskAnalysisValidationFailed,
 } from "../../src/model/domain/errors.js";
 import { getMockPurposeSeed } from "../mockUtils.js";
@@ -26,15 +27,17 @@ describe("API POST /purposes test", () => {
   const mockPurposeSeed = getMockPurposeSeed(mockEService.id);
   const mockPurpose: Purpose = getMockPurpose();
   const isRiskAnalysisValid = true;
+  const serviceResponse = getMockWithMetadata({
+    purpose: mockPurpose,
+    isRiskAnalysisValid,
+  });
 
   const apiResponse = purposeApi.Purpose.parse(
     purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
   );
 
   beforeEach(() => {
-    purposeService.createPurpose = vi
-      .fn()
-      .mockResolvedValue({ purpose: mockPurpose, isRiskAnalysisValid });
+    purposeService.createPurpose = vi.fn().mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (token: string, body: object = mockPurposeSeed) =>
@@ -44,15 +47,26 @@ describe("API POST /purposes test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(apiResponse);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -60,9 +74,9 @@ describe("API POST /purposes test", () => {
   });
 
   it.each([
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegatedConsumer(
+      error: tenantIsNotTheDelegatedConsumer(
         generateId(),
         generateId<DelegationId>()
       ),

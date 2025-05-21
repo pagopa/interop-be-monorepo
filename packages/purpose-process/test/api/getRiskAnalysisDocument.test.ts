@@ -11,7 +11,7 @@ import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
 import { purposeVersionDocumentToApiPurposeVersionDocument } from "../../src/model/domain/apiConverter.js";
 import {
-  organizationNotAllowed,
+  tenantNotAllowed,
   purposeNotFound,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
@@ -80,7 +80,7 @@ describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{document
       ),
       expectedStatus: 404,
     },
-    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

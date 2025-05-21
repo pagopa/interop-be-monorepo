@@ -17,8 +17,8 @@ import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
 import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
 import {
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegatedConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegatedConsumer,
   purposeNotFound,
   purposeVersionStateConflict,
   unchangedDailyCalls,
@@ -71,9 +71,9 @@ describe("API POST /purposes/{purposeId}/versions test", () => {
 
   it.each([
     { error: unchangedDailyCalls(mockPurpose.id), expectedStatus: 400 },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegatedConsumer(
+      error: tenantIsNotTheDelegatedConsumer(
         generateId(),
         generateId<DelegationId>()
       ),

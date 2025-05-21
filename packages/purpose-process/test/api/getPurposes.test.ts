@@ -55,6 +55,7 @@ describe("API GET /purposes test", () => {
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
   ];
 
