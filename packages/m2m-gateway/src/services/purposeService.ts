@@ -18,6 +18,22 @@ import { assertPurposeVersionExists } from "../utils/validators/purposeValidator
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
+export const getPurposeCurrentVersion = (
+  purpose: purposeApi.Purpose
+): purposeApi.PurposeVersion | undefined => {
+  const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
+    m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
+    m2mGatewayApi.PurposeVersionState.Values.REJECTED,
+  ];
+  return purpose.versions
+    .filter((v) => !statesToExclude.includes(v.state))
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )
+    .at(-1);
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -38,7 +54,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     purpose: purposeApi.Purpose,
     state: purposeApi.PurposeVersionState
   ): purposeApi.PurposeVersion => {
-    const currentVersion = purpose.versions
+    const latestVersion = purpose.versions
       .filter((v) => v.state === state)
       .sort(
         (a, b) =>
@@ -46,25 +62,15 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       )
       .at(-1);
 
-    assertPurposeVersionExists(currentVersion, purpose.id);
+    assertPurposeVersionExists(latestVersion, purpose.id);
 
-    return currentVersion;
+    return latestVersion;
   };
 
   const retrievePurposeCurrentVersion = (
     purpose: purposeApi.Purpose
   ): purposeApi.PurposeVersion => {
-    const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
-      m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
-      m2mGatewayApi.PurposeVersionState.Values.REJECTED,
-    ];
-    const currentVersion = purpose.versions
-      .filter((v) => !statesToExclude.includes(v.state))
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      )
-      .at(-1);
+    const currentVersion = getPurposeCurrentVersion(purpose);
 
     assertPurposeVersionExists(currentVersion, purpose.id);
 
@@ -225,7 +231,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Retrieveing latest draft version for purpose ${purposeId} activation`
+        `Retrieving latest draft version for purpose ${purposeId} activation`
       );
       const purposeResponse = await clients.purposeProcessClient.getPurpose({
         params: {
@@ -262,7 +268,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Retrieveing current version for purpose ${purposeId} archiving`
+        `Retrieving current version for purpose ${purposeId} archiving`
       );
       const purposeResponse = await clients.purposeProcessClient.getPurpose({
         params: {
