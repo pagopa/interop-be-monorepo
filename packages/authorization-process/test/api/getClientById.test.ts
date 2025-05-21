@@ -40,7 +40,7 @@ describe("API /clients/{clientId} authorization test", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken([role]);
+      const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiClient);
@@ -50,7 +50,7 @@ describe("API /clients/{clientId} authorization test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken([role]);
+    const token = generateToken(role);
     const res = await makeRequest(token, mockClient.id);
 
     expect(res.status).toBe(403);
@@ -71,7 +71,7 @@ describe("API /clients/{clientId} authorization test", () => {
       authorizationService.getClientById = vi.fn().mockRejectedValue(error);
 
       const res = await makeRequest(
-        generateToken([authRole.ADMIN_ROLE]),
+        generateToken(authRole.ADMIN_ROLE),
         mockClient.id
       );
       expect(res.status).toBe(expectedStatus);

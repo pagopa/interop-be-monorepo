@@ -45,7 +45,7 @@ describe("POST /consumerDelegations router test", () => {
         .fn()
         .mockResolvedValue(mockM2MDelegationResponse);
 
-      const token = generateToken([role]);
+      const token = generateToken(role);
       const res = await makeRequest(token, mockDelegationSeed);
 
       expect(res.status).toBe(201);
@@ -56,7 +56,7 @@ describe("POST /consumerDelegations router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken([role]);
+    const token = generateToken(role);
     const res = await makeRequest(token, mockDelegationSeed);
     expect(res.status).toBe(403);
   });
@@ -70,7 +70,7 @@ describe("POST /consumerDelegations router test", () => {
   ])(
     "Should return 400 if passed an invalid delegation seed: %s",
     async (body) => {
-      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
         body as unknown as m2mGatewayApi.DelegationSeed
@@ -90,7 +90,7 @@ describe("POST /consumerDelegations router test", () => {
       mockDelegationService.createConsumerDelegation = vi
         .fn()
         .mockResolvedValueOnce(resp);
-      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockDelegationSeed);
 
       expect(res.status).toBe(500);
@@ -105,7 +105,7 @@ describe("POST /consumerDelegations router test", () => {
     mockDelegationService.createConsumerDelegation = vi
       .fn()
       .mockRejectedValue(error);
-    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockDelegationSeed);
 
     expect(res.status).toBe(500);

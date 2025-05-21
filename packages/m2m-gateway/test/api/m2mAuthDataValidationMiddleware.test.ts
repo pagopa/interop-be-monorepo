@@ -36,7 +36,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
   );
 
   it("Should correctly validate m2m-admin auth data and client admin id", async () => {
-    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 
     expect(res.status).toBe(200);
@@ -48,7 +48,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
   });
 
   it("Should correctly validate m2m auth data no matter the client admin id", async () => {
-    const token = generateToken([authRole.M2M_ROLE]);
+    const token = generateToken(authRole.M2M_ROLE);
     const res1 = await makeRequest(token);
 
     expect(res1.status).toBe(200);
@@ -62,7 +62,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
   });
 
   it("Should return 403 in case the client adminId is not the same as the one in the token", async () => {
-    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     mockGetClientAdminId.mockResolvedValueOnce(generateId());
     const res = await makeRequest(token);
 
@@ -81,7 +81,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
   )(
     "Should return 403 for user with role %s, no matter the client id",
     async (role) => {
-      const token = generateToken([role]);
+      const token = generateToken(role);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(403);
@@ -91,7 +91,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
   );
 
   it("Should return 403 if getClientAdminId throws clientAdminIdNotFound", async () => {
-    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     mockGetClientAdminId.mockRejectedValue(
       clientAdminIdNotFound(getMockedApiClient().data)
     );

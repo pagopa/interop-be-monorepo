@@ -1,17 +1,19 @@
 import {
   AuthRole,
+  userRole,
   InteropJwtMaintenancePayload,
   InteropJwtApiM2MAdminPayload,
   InteropJwtApiM2MPayload,
   InteropJwtInternalPayload,
-  UserRole,
   SerializedAuthTokenPayload,
 } from "pagopa-interop-commons";
 import { ClientId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
 
-function createUserPayload(roles: UserRole[]): SerializedAuthTokenPayload {
+function createUserPayload(
+  commaSeparatedUserRoles: string
+): SerializedAuthTokenPayload {
   const organizationId = generateId();
   return {
     iss: "dev.interop.pagopa.it",
@@ -36,7 +38,7 @@ function createUserPayload(roles: UserRole[]): SerializedAuthTokenPayload {
       fiscal_code: "15376371009",
       ipaCode: "5N2TR557",
     },
-    "user-roles": roles.join(","),
+    "user-roles": commaSeparatedUserRoles,
     organizationId,
     externalId: {
       value: "123456",
@@ -109,14 +111,18 @@ function createM2MAdminPayload(): InteropJwtApiM2MAdminPayload {
 }
 
 export const createPayload = (
-  roles: AuthRole[]
+  role: AuthRole
 ): SerializedAuthTokenPayload | InteropJwtMaintenancePayload =>
-  match(roles)
-    .with(["maintenance"], () => createMaintenancePayload())
-    .with(["m2m"], () => createM2MPayload())
-    .with(["m2m-admin"], () => createM2MAdminPayload())
-    .with(["internal"], () => createInternalPayload())
-    .otherwise(() => createUserPayload(roles as UserRole[]));
+  match(role)
+    .with("maintenance", () => createMaintenancePayload())
+    .with("m2m", () => createM2MPayload())
+    .with("m2m-admin", () => createM2MAdminPayload())
+    .with("internal", () => createInternalPayload())
+    .with("admin", () => createUserPayload(userRole.ADMIN_ROLE))
+    .with("api", () => createUserPayload(userRole.API_ROLE))
+    .with("security", () => createUserPayload(userRole.SECURITY_ROLE))
+    .with("support", () => createUserPayload(userRole.SUPPORT_ROLE))
+    .exhaustive();
 
-export const generateToken = (roles: AuthRole[]): string =>
-  jwt.sign(createPayload(roles), "test-secret");
+export const generateToken = (role: AuthRole): string =>
+  jwt.sign(createPayload(role), "test-secret");
