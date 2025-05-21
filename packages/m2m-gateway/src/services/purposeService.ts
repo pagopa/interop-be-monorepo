@@ -315,7 +315,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
-        `Retrieveing current version for purpose ${purposeId} suspension`
+        `Retrieving current version for purpose ${purposeId} suspension`
       );
       const purposeResponse = await clients.purposeProcessClient.getPurpose({
         params: {
@@ -337,13 +337,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      await pollPurpose(
-        {
-          data: purposeResponse.data,
-          metadata,
-        },
-        headers
-      );
+      await pollPurposeVersion(purposeId, metadata?.version, headers);
     },
   };
 }
