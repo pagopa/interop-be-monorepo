@@ -8,12 +8,7 @@ import {
   authRole,
   validateAuthorization,
 } from "pagopa-interop-commons";
-import {
-  EServiceId,
-  TenantId,
-  emptyErrorMapper,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   apiPurposeVersionStateToPurposeVersionState,
@@ -40,6 +35,7 @@ import {
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
   getPurposesErrorMapper,
+  retrieveLatestRiskAnalysisConfigurationErrorMapper,
 } from "../utilities/errorMappers.js";
 import { PurposeService } from "../services/purposeService.js";
 
@@ -546,7 +542,11 @@ const purposeRouter = (
             )
           );
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          retrieveLatestRiskAnalysisConfigurationErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })

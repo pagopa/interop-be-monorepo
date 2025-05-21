@@ -7,6 +7,11 @@ import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
 import { riskAnalysisFormConfigToApiRiskAnalysisFormConfig } from "../../src/model/domain/apiConverter.js";
+import {
+  riskAnalysisConfigLatestVersionNotFound,
+  tenantKindNotFound,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API GET /purposes/riskAnalysis/latest test", () => {
   const mockRiskAnalysisConfiguration = {
@@ -60,6 +65,28 @@ describe("API GET /purposes/riskAnalysis/latest test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    { error: tenantNotFound(generateId()), expectedStatus: 400 },
+    {
+      error: tenantKindNotFound(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: riskAnalysisConfigLatestVersionNotFound(tenantKind.PA),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      purposeService.retrieveLatestRiskAnalysisConfiguration = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it.each([{ query: { tenantKind: "invalid" } }])(
     "Should return 400 if passed invalid data: %s",
