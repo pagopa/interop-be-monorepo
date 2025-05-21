@@ -22,6 +22,7 @@ export const errorCodes = {
   purposeNotFound: "0009",
   missingActivePurposeVersionWithState: "0010",
   purposeVersionNotFound: "0011",
+  taxCodeAndIPACodeConflict: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -110,6 +111,7 @@ export function purposeVersionNotFound(
   });
 }
 
+
 export function missingActivePurposeVersionWithState(
   purposeId: string,
   state: purposeApi.PurposeVersionState
@@ -118,6 +120,14 @@ export function missingActivePurposeVersionWithState(
     detail: `There is no ${state} version for purpose ${purposeId}`,
     code: "missingActivePurposeVersionWithState",
     title: `Missing ${state} purpose version`,
+  });
+}
+
+export function taxCodeAndIPACodeConflict(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "IPACode and taxCode query parameters cannot be provided together",
+    code: "taxCodeAndIPACodeConflict",
+    title: "Tax code and IPA code conflict in tenant query",
   });
 }
 
