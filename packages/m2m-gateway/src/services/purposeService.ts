@@ -335,5 +335,6 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       await pollPurposeVersion(purposeId, metadata?.version, headers);
     },
+
   };
 }
