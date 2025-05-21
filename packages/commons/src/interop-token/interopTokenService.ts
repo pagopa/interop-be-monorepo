@@ -3,6 +3,8 @@ import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
 import {
   ClientAssertionDigest,
   ClientId,
+  DescriptorId,
+  EServiceId,
   generateId,
   PurposeId,
   TenantId,
@@ -214,12 +216,22 @@ export class InteropTokenGenerator {
     purposeId,
     tokenDurationInSeconds,
     digest,
+    producerId,
+    consumerId,
+    eserviceId,
+    descriptorId,
+    featureFlagImprovedProducerVerificationClaims = false,
   }: {
     sub: ClientId;
     audience: string[];
     purposeId: PurposeId;
     tokenDurationInSeconds: number;
     digest: ClientAssertionDigest | undefined;
+    producerId: TenantId;
+    consumerId: TenantId;
+    eserviceId: EServiceId;
+    descriptorId: DescriptorId;
+    featureFlagImprovedProducerVerificationClaims: boolean;
   }): Promise<InteropConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -251,6 +263,15 @@ export class InteropTokenGenerator {
       exp: currentTimestamp + tokenDurationInSeconds,
       purposeId,
       ...(digest ? { digest } : {}),
+      // TODO: remove featureFlagImprovedProducerVerificationClaims after the feature flag disappears
+      ...(featureFlagImprovedProducerVerificationClaims
+        ? {
+            producerId,
+            consumerId,
+            eserviceId,
+            descriptorId,
+          }
+        : {}),
     };
 
     const serializedToken = await this.createAndSignToken({
