@@ -100,7 +100,6 @@ export function clientAdminIdNotFound(
   });
 }
 
-
 export function eServiceTemplateVersionNotFound(
   templateId: EServiceTemplateId,
   versionId: EServiceTemplateVersionId
