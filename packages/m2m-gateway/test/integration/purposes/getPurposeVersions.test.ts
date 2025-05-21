@@ -24,9 +24,24 @@ describe("getPurposeVersions", () => {
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
     state: "ACTIVE",
   });
+  const mockApiPurposeVersion3 = getMockedApiPurposeVersion({
+    state: "DRAFT",
+  });
+  const mockApiPurposeVersion4 = getMockedApiPurposeVersion({
+    state: "ACTIVE",
+  });
+  const mockApiPurposeVersion5 = getMockedApiPurposeVersion({
+    state: "SUSPENDED",
+  });
 
   const mockApiPurpose = getMockedApiPurpose({
-    versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+    versions: [
+      mockApiPurposeVersion1,
+      mockApiPurposeVersion2,
+      mockApiPurposeVersion3,
+      mockApiPurposeVersion4,
+      mockApiPurposeVersion5,
+    ],
   });
   const mockGetPurpose = vi.fn().mockResolvedValue(mockApiPurpose);
 
@@ -43,9 +58,15 @@ describe("getPurposeVersions", () => {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
-        totalCount: 2,
+        totalCount: mockApiPurpose.data.versions.length,
       },
-      results: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+      results: [
+        mockApiPurposeVersion1,
+        mockApiPurposeVersion2,
+        mockApiPurposeVersion3,
+        mockApiPurposeVersion4,
+        mockApiPurposeVersion5,
+      ],
     };
 
     const result = await purposeService.getPurposeVersions(
@@ -61,30 +82,81 @@ describe("getPurposeVersions", () => {
     });
   });
 
-  it("Should correctly apply pagination from the retrieved purpose", async () => {
+  it("Should apply filters (offset, limit, state)", async () => {
     const m2mPurposeResponse: m2mGatewayApi.PurposeVersions = {
       pagination: {
-        limit: mockParams.limit,
-        offset: mockParams.offset,
-        totalCount: 1,
+        offset: 0,
+        limit: 2,
+        totalCount: mockApiPurpose.data.versions.length,
       },
-      results: [mockApiPurposeVersion2],
+      results: [mockApiPurposeVersion1, mockApiPurposeVersion2],
     };
-
     const result = await purposeService.getPurposeVersions(
       unsafeBrandId(mockApiPurpose.data.id),
       {
         offset: 0,
-        limit: 10,
+        limit: 2,
+        state: undefined,
+      },
+      getMockM2MAdminAppContext()
+    );
+    expect(result).toEqual(m2mPurposeResponse);
+
+    const m2mPurposeResponse2: m2mGatewayApi.PurposeVersions = {
+      pagination: {
+        offset: 2,
+        limit: 2,
+        totalCount: mockApiPurpose.data.versions.length,
+      },
+      results: [mockApiPurposeVersion3, mockApiPurposeVersion4],
+    };
+    const result2 = await purposeService.getPurposeVersions(
+      unsafeBrandId(mockApiPurpose.data.id),
+      {
+        offset: 2,
+        limit: 2,
+        state: undefined,
+      },
+      getMockM2MAdminAppContext()
+    );
+    expect(result2).toEqual(m2mPurposeResponse2);
+
+    const m2mPurposeResponse3: m2mGatewayApi.PurposeVersions = {
+      pagination: {
+        offset: 4,
+        limit: 2,
+        totalCount: mockApiPurpose.data.versions.length,
+      },
+      results: [mockApiPurposeVersion5],
+    };
+    const result3 = await purposeService.getPurposeVersions(
+      unsafeBrandId(mockApiPurpose.data.id),
+      {
+        offset: 4,
+        limit: 2,
+        state: undefined,
+      },
+      getMockM2MAdminAppContext()
+    );
+    expect(result3).toEqual(m2mPurposeResponse3);
+
+    const m2mPurposeResponse4: m2mGatewayApi.PurposeVersions = {
+      pagination: {
+        offset: 0,
+        limit: 2,
+        totalCount: 2,
+      },
+      results: [mockApiPurposeVersion2, mockApiPurposeVersion4],
+    };
+    const result4 = await purposeService.getPurposeVersions(
+      unsafeBrandId(mockApiPurpose.data.id),
+      {
+        offset: 0,
+        limit: 2,
         state: "ACTIVE",
       },
       getMockM2MAdminAppContext()
     );
-
-    expect(result).toEqual(m2mPurposeResponse);
-    expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
-      params: { id: mockApiPurpose.data.id },
-    });
+    expect(result4).toEqual(m2mPurposeResponse4);
   });
 });

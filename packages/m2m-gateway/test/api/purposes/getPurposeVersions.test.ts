@@ -85,4 +85,37 @@ describe("GET /purposes/:purposeId/versions router test", () => {
     const res = await makeRequest(token, mockParams, mockApiPurpose.data.id);
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        { ...mockApiPurposeVersion1, createdAt: undefined },
+        mockApiPurposeVersion2,
+      ],
+    },
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        { ...mockApiPurposeVersion1, invalidParam: "invalidValue" },
+        mockApiPurposeVersion2,
+      ],
+    },
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        { ...mockApiPurposeVersion1, state: "INVALID_STATE" },
+        mockApiPurposeVersion2,
+      ],
+    },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockPurposeService.getPurposeVersions = vi.fn().mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockParams, mockApiPurpose.data.id);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });
