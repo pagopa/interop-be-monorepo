@@ -538,7 +538,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Archiving purpose ${purposeId} with version ${versionId}`);
 
-      const { id } = await purposeProcessClient.archivePurposeVersion(
+      const result = await purposeProcessClient.archivePurposeVersion(
         undefined,
         {
           params: {
@@ -551,7 +551,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId,
-        versionId: id,
+        versionId: result.id,
       };
     },
     async suspendPurposeVersion(
@@ -561,7 +561,7 @@ export function purposeServiceBuilder(
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Suspending Version ${versionId} of Purpose ${purposeId}`);
 
-      const { id } = await purposeProcessClient.suspendPurposeVersion(
+      const result = await purposeProcessClient.suspendPurposeVersion(
         undefined,
         {
           params: {
@@ -574,7 +574,7 @@ export function purposeServiceBuilder(
 
       return {
         purposeId,
-        versionId: id,
+        versionId: result.id,
       };
     },
     async activatePurposeVersion(
