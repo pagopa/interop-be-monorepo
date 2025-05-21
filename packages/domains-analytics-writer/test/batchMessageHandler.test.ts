@@ -3,7 +3,8 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { KafkaMessage } from "kafkajs";
-import { mockAttributeBatch, mockCatalogBatch } from "./utils.js";
+import { mockAttributeBatch } from "./utilsAttribute.js";
+import { mockCatalogBatch } from "./utilsCatalog.js";
 
 beforeEach(() => {
   vi.clearAllMocks();
