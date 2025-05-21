@@ -528,6 +528,7 @@ export const getMockTokenGenStatesConsumerClient = (
     ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
+  const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
   const descriptorId = generateId<DescriptorId>();
@@ -552,6 +553,7 @@ export const getMockTokenGenStatesConsumerClient = (
       descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
       descriptorVoucherLifespan: 60,
       updatedAt: new Date().toISOString(),
+      producerId,
       consumerId,
       agreementId,
       purposeVersionId,
@@ -599,6 +601,7 @@ export const getMockPlatformStatesAgreementEntry = (
   agreementId,
   agreementTimestamp: new Date().toISOString(),
   agreementDescriptorId: generateId<DescriptorId>(),
+  producerId: generateId(),
 });
 
 export const getMockTokenGenStatesApiClient = (
