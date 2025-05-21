@@ -13,7 +13,10 @@ export const errorCodes = {
   unexpectedAttributeKind: "0005",
   unexpectedUndefinedAttributeOriginOrCode: "0006",
   attributeNotFound: "0007",
-  eserviceDescriptorNotFound: "0008",
+  purposeNotFound: "0008",
+  missingActivePurposeVersion: "0009",
+  taxCodeAndIPACodeConflict: "0010",
+  eserviceDescriptorNotFound: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -88,6 +91,14 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
+  });
+}
+
+export function taxCodeAndIPACodeConflict(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "IPACode and taxCode query parameters cannot be provided together",
+    code: "taxCodeAndIPACodeConflict",
+    title: "Tax code and IPA code conflict in tenant query",
   });
 }
 
