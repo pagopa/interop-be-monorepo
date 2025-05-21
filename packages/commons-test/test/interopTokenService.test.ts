@@ -7,6 +7,7 @@ import {
   UserRole,
   b64ByteUrlDecode,
   dateToSeconds,
+  systemRole,
   userRole,
 } from "pagopa-interop-commons";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -19,7 +20,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { KMSClient } from "@aws-sdk/client-kms";
-import { getMockCustomClaims, getMockSessionClaims } from "../src/testUtils.js";
+import { getMockSessionClaims } from "../src/testUtils.js";
 
 const deserializeJWT = (jwt: string): JSON =>
   b64ByteUrlDecode(jwt.split(".")[1]);
@@ -83,11 +84,11 @@ describe("Token Generator", () => {
   } as unknown as KMSClient;
 
   describe("Session JWT Token", () => {
-    it("should token have a Session claims for multiple user roles: api,security", async () => {
-      const claims = {
-        ...getMockSessionClaims(),
-        ...getMockCustomClaims([userRole.API_ROLE, userRole.SECURITY_ROLE]),
-      };
+    it("should have Session claims for multiple user roles: api,security", async () => {
+      const claims = getMockSessionClaims([
+        userRole.API_ROLE,
+        userRole.SECURITY_ROLE,
+      ]);
 
       const interopTokenGenerator = new InteropTokenGenerator(
         sessionTokenGenerationConfig,
@@ -124,17 +125,13 @@ describe("Token Generator", () => {
         name: claims.name,
         family_name: claims.family_name,
         email: claims.email,
-        organizationId: claims.organizationId,
       });
     });
 
     it.each(Object.values(userRole))(
-      "should token have a Session claims for role %s",
+      "should have Session claims for role %s",
       async (role: UserRole) => {
-        const claims = {
-          ...getMockSessionClaims(),
-          ...getMockCustomClaims([role]),
-        };
+        const claims = getMockSessionClaims([role]);
 
         const interopTokenGenerator = new InteropTokenGenerator(
           sessionTokenGenerationConfig,
@@ -246,9 +243,8 @@ describe("Token Generator", () => {
       });
 
       const decodedActualToken = deserializeJWT(actualToken.serialized);
-      expect(decodedActualToken).toBeDefined();
 
-      expect(decodedActualToken).toMatchObject({
+      expect(decodedActualToken).toEqual({
         jti: expect.any(String),
         iss: authServerConfig.generatedInteropTokenIssuer,
         aud: authServerConfig.generatedInteropTokenM2MAudience,
@@ -260,6 +256,8 @@ describe("Token Generator", () => {
           mockTimeStamp +
           authServerConfig.generatedInteropTokenM2MDurationSeconds,
         organizationId: consumerId,
+        adminId: adminClientId,
+        role: systemRole.M2M_ADMIN_ROLE,
       });
     });
   });

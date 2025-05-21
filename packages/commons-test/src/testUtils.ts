@@ -1100,23 +1100,18 @@ export const getMockContextM2M = ({
 });
 
 export const getMockSessionClaims = (
-  role: string = userRole.ADMIN_ROLE
-): SessionClaims => ({
+  roles: UserRole[] = [userRole.ADMIN_ROLE]
+): SessionClaims & CustomClaims => ({
   uid: generateId(),
   organization: {
     id: generateId(),
     name: "My Org",
-    roles: [{ role }],
+    roles: roles.map((r) => ({ role: r })),
   },
   name: "A generic user",
   family_name: "Family name",
   email: "randomEmailforTest@tester.com",
-});
-
-export const getMockCustomClaims = (
-  role: UserRole[] = [userRole.ADMIN_ROLE]
-): CustomClaims => ({
-  "user-roles": role.join(","),
+  "user-roles": roles.join(","),
   organizationId: generateId(),
   selfcareId: generateId(),
   externalId: {
