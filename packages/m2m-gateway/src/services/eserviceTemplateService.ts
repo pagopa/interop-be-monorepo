@@ -20,7 +20,7 @@ export function eserviceTemplateServiceBuilder(
       templateId: string,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.EServiceTemplate> {
-      logger.info(`Retrieving eservice template with id ${templateId}`);
+      logger.info(`Retrieving eservice template with id${templateId}`);
 
       const { data } =
         await clients.eserviceTemplateProcessClient.getEServiceTemplateById({
