@@ -14,6 +14,11 @@ import {
   PurposeVersionSchema,
 } from "../../model/purpose/purposeVersion.js";
 import { DeletingDbTable, PurposeDbTable } from "../../model/db/index.js";
+import {
+  clean,
+  cleanDeleting,
+  mergeDeleting,
+} from "../../utils/repositoryUtils.js";
 
 export function purposeVersionRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
@@ -60,13 +65,7 @@ export function purposeVersionRepo(conn: DBConnection) {
     },
 
     async clean(): Promise<void> {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error cleaning staging table ${stagingTableName}: ${error}`
-        );
-      }
+      await clean(conn, stagingTableName);
     },
 
     async insertDeleting(
@@ -91,29 +90,23 @@ export function purposeVersionRepo(conn: DBConnection) {
     },
 
     async mergeDeleting(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeQuery = generateMergeDeleteQuery(
-          schemaName,
-          tableName,
-          deletingTableName,
-          ["id"]
-        );
-        await t.none(mergeQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
-        );
-      }
+      const mergeQuery = generateMergeDeleteQuery(
+        schemaName,
+        tableName,
+        deletingTableName,
+        ["id"]
+      );
+      await mergeDeleting(
+        t,
+        mergeQuery,
+        stagingDeletingTableName,
+        schemaName,
+        tableName
+      );
     },
 
     async cleanDeleting(): Promise<void> {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
-        );
-      }
+      await cleanDeleting(conn, stagingDeletingTableName);
     },
   };
 }
