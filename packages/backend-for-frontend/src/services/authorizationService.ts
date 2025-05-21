@@ -10,7 +10,6 @@ import {
   UserClaims,
   UserRole,
   WithLogger,
-  ui_Role,
   userRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
@@ -91,11 +90,10 @@ export function authorizationServiceBuilder(
     selfcareId: string,
     externalId: tenantApi.ExternalId
   ): UserClaims => ({
-    "user-roles": roles.join(","),
+    "user-roles": roles,
     organizationId: tenantId,
     selfcareId,
     externalId,
-    role: ui_Role,
   });
 
   const retrieveSupportClaims = ({

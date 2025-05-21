@@ -2,7 +2,9 @@ import {
   ClientAssertionDigest,
   ClientId,
   PurposeId,
+  SelfcareId,
   TenantId,
+  UserId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { systemRole, UserRole } from "../auth/roles.js";
@@ -41,8 +43,8 @@ const InteropJwtCommonPayload = z.object({
 });
 export type InteropJwtCommonPayload = z.infer<typeof InteropJwtCommonPayload>;
 
-/* ========================================== 
-    Interop CONSUMER Token 
+/* ==========================================
+    Interop CONSUMER Token
   ========================================== */
 export const InteropJwtConsumerPayload = InteropJwtCommonPayload.merge(
   z.object({
@@ -84,7 +86,7 @@ export type InteropJwtApiM2MPayload = z.infer<typeof InteropJwtApiM2MPayload>;
 export const InteropJwtApiM2MAdminPayload = InteropJwtApiCommonPayload.merge(
   z.object({
     role: z.literal(systemRole.M2M_ADMIN_ROLE),
-    adminId: z.string().uuid(),
+    adminId: UserId,
     // ^ ID of the admin user associated with the client
   })
 );
@@ -138,9 +140,9 @@ export type InteropInternalToken = {
 //    Interop UI Token
 // ==========================================
 export const SessionClaims = z.object({
-  uid: z.string().uuid(),
+  uid: UserId,
   organization: z.object({
-    id: z.string().uuid(),
+    id: SelfcareId,
     name: z.string(),
     roles: z.array(
       z.object({
@@ -157,19 +159,14 @@ export const SessionClaims = z.object({
 });
 export type SessionClaims = z.infer<typeof SessionClaims>;
 
-export const ui_Role = "ORGANIZATION_USER_ROLES";
-
 export const UserClaims = z.object({
-  "user-roles": z.string(),
-  organizationId: z.string().uuid(),
-  selfcareId: z.string().uuid(),
+  "user-roles": CommaSeparatedStringToArray(UserRole),
+  organizationId: TenantId,
+  selfcareId: SelfcareId,
   externalId: z.object({
     origin: z.string(),
     value: z.string(),
   }),
-  // This field is required solely to support the correct functioning of the discriminated union.
-  // The actual roles assigned to the user are defined in the 'user-roles' claim.
-  role: z.literal(ui_Role),
 });
 export type UserClaims = z.infer<typeof UserClaims>;
 
@@ -177,7 +174,13 @@ export const UIClaims = SessionClaims.merge(UserClaims);
 
 export type UIClaims = z.infer<typeof UIClaims>;
 
-export const InteropJwtUIPayload = InteropJwtCommonPayload.merge(UIClaims);
+export const InteropJwtUIPayload = InteropJwtCommonPayload.merge(
+  UIClaims
+).extend({
+  // setting role to z.undefined() to make the discriminated union work.
+  // z.discriminatedUnion performs better than z.union and gives more meaningful parsing errors.
+  role: z.undefined(),
+});
 
 export type InteropJwtUIPayload = z.infer<typeof InteropJwtUIPayload>;
 
@@ -187,6 +190,14 @@ export type InteropUIToken = {
   serialized: string;
 };
 
+// ===========================================
+//    Parsing utilities
+// ===========================================
+
+// AuthTokenPayload is a discriminated union used to parse the payload of
+// the auth token we receive in API requests phase. It includes only the payloads
+// that we actually can receive. For example, it does not include the
+// InteropJwtConsumerPayload, because interop generates it but nevere receives it in API requests.
 export const AuthTokenPayload = z.discriminatedUnion("role", [
   InteropJwtInternalPayload,
   InteropJwtUIPayload,
@@ -195,3 +206,31 @@ export const AuthTokenPayload = z.discriminatedUnion("role", [
   InteropJwtMaintenancePayload,
 ]);
 export type AuthTokenPayload = z.infer<typeof AuthTokenPayload>;
+
+// ===========================================
+//    Serialization utilities
+// ===========================================
+export type SerializedInteropJwtUIPayload = Omit<
+  InteropJwtUIPayload,
+  "user-roles"
+> & {
+  "user-roles": string;
+  // ^ user-roles is serialized as a comma-separated string
+};
+export function toSerializedJwtUIPayload(
+  tokenPayload: InteropJwtUIPayload
+): SerializedInteropJwtUIPayload {
+  return {
+    ...tokenPayload,
+    "user-roles": tokenPayload["user-roles"].join(","),
+  };
+}
+
+// SerializedAuthTokenPayload is a union of all payloads we actually
+// generate and need to serialize in the generation phase. It does not include
+// the payloads we don't generate in this repo (e.g. maintenance tokens).
+export type SerializedAuthTokenPayload =
+  | InteropJwtInternalPayload
+  | InteropJwtApiPayload
+  | InteropJwtConsumerPayload
+  | SerializedInteropJwtUIPayload;

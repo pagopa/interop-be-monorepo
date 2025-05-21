@@ -27,7 +27,7 @@ describe("JWT tests", () => {
       }
     );
 
-    it.only("should successfully read auth data from a UI token with multiple comma separated user roles", async () => {
+    it("should successfully read auth data from a UI token with multiple comma separated user roles", async () => {
       const roles = [authRole.API_ROLE, authRole.SECURITY_ROLE];
       const token = jwt.decode(generateToken(roles)) as jwt.JwtPayload;
 
@@ -42,13 +42,15 @@ describe("JWT tests", () => {
     });
 
     it("should fail reading auth data from a UI token with invalid user roles", async () => {
-      const token1 = jwt.decode(generateToken([""] as unknown as AuthRole[]));
+      const token1 = jwt.decode(
+        generateToken(["invalid"] as unknown as AuthRole[])
+      );
 
       expect(() => {
         readAuthDataFromJwtToken(token1!);
       }).toThrowError(
         invalidClaim(
-          "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received '' at \"user-roles[0]\""
+          "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid' at \"user-roles[0]\""
         )
       );
 

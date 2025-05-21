@@ -24,7 +24,9 @@ import {
   InteropJwtInternalPayload,
   InteropJwtUIPayload,
   InteropUIToken,
+  SerializedAuthTokenPayload,
   UIClaims,
+  toSerializedJwtUIPayload,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 
@@ -125,7 +127,7 @@ export class InteropTokenGenerator {
 
     const serializedToken = await this.createAndSignToken({
       header,
-      payload,
+      payload: toSerializedJwtUIPayload(payload),
       keyId: this.config.generatedKid,
     });
 
@@ -269,11 +271,7 @@ export class InteropTokenGenerator {
     keyId,
   }: {
     header: InteropJwtHeader;
-    payload:
-      | InteropJwtInternalPayload
-      | InteropJwtUIPayload
-      | InteropJwtConsumerPayload
-      | InteropJwtApiPayload;
+    payload: SerializedAuthTokenPayload;
     keyId: string;
   }): Promise<string> {
     const serializedToken = `${b64UrlEncode(

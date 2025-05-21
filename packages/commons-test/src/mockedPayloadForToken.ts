@@ -4,16 +4,14 @@ import {
   InteropJwtApiM2MAdminPayload,
   InteropJwtApiM2MPayload,
   InteropJwtInternalPayload,
-  InteropJwtUIPayload,
   UserRole,
-  AuthTokenPayload,
-  ui_Role,
+  SerializedAuthTokenPayload,
 } from "pagopa-interop-commons";
 import { ClientId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
 
-function createUserPayload(roles: UserRole[]): InteropJwtUIPayload {
+function createUserPayload(roles: UserRole[]): SerializedAuthTokenPayload {
   const organizationId = generateId();
   return {
     iss: "dev.interop.pagopa.it",
@@ -45,7 +43,6 @@ function createUserPayload(roles: UserRole[]): InteropJwtUIPayload {
       origin: "IPA",
     },
     selfcareId: generateId(),
-    role: ui_Role,
   };
 }
 
@@ -111,7 +108,9 @@ function createM2MAdminPayload(): InteropJwtApiM2MAdminPayload {
   };
 }
 
-export const createPayload = (roles: AuthRole[]): AuthTokenPayload =>
+export const createPayload = (
+  roles: AuthRole[]
+): SerializedAuthTokenPayload | InteropJwtMaintenancePayload =>
   match(roles)
     .with(["maintenance"], () => createMaintenancePayload())
     .with(["m2m"], () => createM2MPayload())
