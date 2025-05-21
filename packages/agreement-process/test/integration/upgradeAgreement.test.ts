@@ -229,11 +229,13 @@ describe("upgrade Agreement", () => {
         await uploadDocument(agreementId, doc.id, doc.name);
       }
 
-      const returnedAgreement = await agreementService.upgradeAgreement(
+      const upgradeAgreementResponse = await agreementService.upgradeAgreement(
         agreement.id,
         getMockContext({ authData })
       );
-      const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
+      const newAgreementId = unsafeBrandId<AgreementId>(
+        upgradeAgreementResponse.data.id
+      );
 
       const actualAgreementArchivedEvent = await readAgreementEventByVersion(
         agreement.id,
@@ -335,7 +337,10 @@ describe("upgrade Agreement", () => {
       };
 
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
-      expect(actualAgreementUpgraded).toEqual(returnedAgreement);
+      expect(upgradeAgreementResponse).toEqual({
+        data: actualAgreementUpgraded,
+        metadata: { version: 1 },
+      });
 
       for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
         const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -485,12 +490,13 @@ describe("upgrade Agreement", () => {
           }
 
           vi.spyOn(pdfGenerator, "generate");
-          const returnedAgreement = await agreementService.upgradeAgreement(
-            agreement.id,
-            getMockContext({ authData })
-          );
+          const upgradeAgreementResponse =
+            await agreementService.upgradeAgreement(
+              agreement.id,
+              getMockContext({ authData })
+            );
           const newAgreementId = unsafeBrandId<AgreementId>(
-            returnedAgreement.id
+            upgradeAgreementResponse.data.id
           );
 
           const actualAgreementArchivedEvent =
@@ -590,7 +596,10 @@ describe("upgrade Agreement", () => {
           };
 
           expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
-          expect(actualAgreementUpgraded).toEqual(returnedAgreement);
+          expect(upgradeAgreementResponse).toEqual({
+            data: actualAgreementUpgraded,
+            metadata: { version: 1 },
+          });
 
           for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
             const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -808,11 +817,13 @@ describe("upgrade Agreement", () => {
         await uploadDocument(agreementId, doc.id, doc.name);
       }
 
-      const returnedAgreement = await agreementService.upgradeAgreement(
+      const upgradeAgreementResponse = await agreementService.upgradeAgreement(
         agreement.id,
         getMockContext({ authData })
       );
-      const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
+      const newAgreementId = unsafeBrandId<AgreementId>(
+        upgradeAgreementResponse.data.id
+      );
 
       expect(newAgreementId).toBeDefined();
       const actualAgreementCreatedEvent = await readAgreementEventByVersion(
@@ -861,7 +872,10 @@ describe("upgrade Agreement", () => {
       };
 
       expect(actualCreatedAgreement).toEqual(expectedCreatedAgreement);
-      expect(actualCreatedAgreement).toEqual(returnedAgreement);
+      expect(upgradeAgreementResponse).toEqual({
+        data: actualCreatedAgreement,
+        metadata: { version: 0 },
+      });
 
       for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
         const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
