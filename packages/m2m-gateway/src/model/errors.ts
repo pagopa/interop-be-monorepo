@@ -133,7 +133,6 @@ export function missingPurposeCurrentVersion(
   });
 }
 
-
 export function taxCodeAndIPACodeConflict(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: "IPACode and taxCode query parameters cannot be provided together",
