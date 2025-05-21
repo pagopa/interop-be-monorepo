@@ -97,7 +97,7 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetCertifiedAttributesQueryParams
+      query as m2mGatewayApi.GetCertifiedAttributesQueryParams
     );
 
     expect(res.status).toBe(400);
