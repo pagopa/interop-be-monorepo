@@ -15084,6 +15084,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     get:
       description: Retrieves delegation
       summary: Retrieves delegation
