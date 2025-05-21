@@ -19,6 +19,11 @@ export const getCertifiedAttributeErrorMapper = (
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getTenantsErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("taxCodeAndIPACodeConflict", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getEserviceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -67,3 +72,4 @@ export const unsuspendPurposeErrorMapper = (
   match(error.code)
     .with("missingActivePurposeVersionWithState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
