@@ -46,7 +46,7 @@ describe("POST /purposes/:purposeId/activate router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 for missing purpose version", async () => {
+  it("Should return 400 for invalid purpose id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "INVALID_ID");
     expect(res.status).toBe(400);
