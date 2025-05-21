@@ -35,7 +35,7 @@ describe("POST /consumerDelegations/:delegationId/accept router test", () => {
         .fn()
         .mockResolvedValue(mockM2MDelegationResponse);
 
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, mockApiDelegation.data.id);
 
       expect(res.status).toBe(200);
@@ -46,13 +46,13 @@ describe("POST /consumerDelegations/:delegationId/accept router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, mockApiDelegation.data.id);
     expect(res.status).toBe(403);
   });
 
   it("Should return 400 if passed an invalid delegation id", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
     const res = await makeRequest(token, "invalid-delegation-id");
 
     expect(res.status).toBe(400);
@@ -68,7 +68,7 @@ describe("POST /consumerDelegations/:delegationId/accept router test", () => {
       mockDelegationService.acceptConsumerDelegation = vi
         .fn()
         .mockResolvedValueOnce(resp);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
       const res = await makeRequest(token, mockApiDelegation.data.id);
 
       expect(res.status).toBe(500);
@@ -83,7 +83,7 @@ describe("POST /consumerDelegations/:delegationId/accept router test", () => {
     mockDelegationService.acceptConsumerDelegation = vi
       .fn()
       .mockRejectedValue(error);
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
     const res = await makeRequest(token, mockApiDelegation.data.id);
 
     expect(res.status).toBe(500);

@@ -39,7 +39,7 @@ describe("API /clientsApi authorization test", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, clientSeed);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiClient);
@@ -49,7 +49,7 @@ describe("API /clientsApi authorization test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, clientSeed);
     expect(res.status).toBe(403);
   });
@@ -62,7 +62,7 @@ describe("API /clientsApi authorization test", () => {
     { ...clientSeed, name: undefined },
     { ...clientSeed, members: undefined },
   ])("Should return 400 if passed invalid params: %s", async (body) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken([authRole.ADMIN_ROLE]);
     const res = await makeRequest(token, body as authorizationApi.ClientSeed);
 
     expect(res.status).toBe(400);

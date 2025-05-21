@@ -41,7 +41,7 @@ describe("API /verifiedAttributes authorization test", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token);
 
       expect(res.status).toBe(200);
@@ -52,7 +52,7 @@ describe("API /verifiedAttributes authorization test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
@@ -64,13 +64,13 @@ describe("API /verifiedAttributes authorization test", () => {
         attributeDuplicateByName(mockVerifiedAttributeSeed.name)
       );
 
-    const res = await makeRequest(generateToken(authRole.ADMIN_ROLE));
+    const res = await makeRequest(generateToken([authRole.ADMIN_ROLE]));
 
     expect(res.status).toBe(409);
   });
 
   it("Should return 400 if passed an invalid attribute seed", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken([authRole.ADMIN_ROLE]);
     const res = await request(api)
       .post("/verifiedAttributes")
       .set("Authorization", `Bearer ${token}`)

@@ -48,7 +48,7 @@ describe("GET /purposes router test", () => {
         .fn()
         .mockResolvedValue(mockM2MPurposesResponse);
 
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(200);
@@ -63,7 +63,7 @@ describe("GET /purposes router test", () => {
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, eserviceIds: ["invalidUUID"] },
   ])("Should return 400 if passed invalid query params", async (query) => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
     const res = await makeRequest(
       token,
       query as m2mGatewayApi.GetPurposesQueryParams
@@ -75,7 +75,7 @@ describe("GET /purposes router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, {
       offset: 0,
       limit: 10,
@@ -103,7 +103,7 @@ describe("GET /purposes router test", () => {
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
       mockPurposeService.getPurposes = vi.fn().mockResolvedValueOnce(resp);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(500);

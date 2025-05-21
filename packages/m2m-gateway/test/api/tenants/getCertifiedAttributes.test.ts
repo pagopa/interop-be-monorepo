@@ -71,7 +71,7 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
         .fn()
         .mockResolvedValue(mockResponse);
 
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(200);
@@ -82,7 +82,7 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, mockQueryParams);
     expect(res.status).toBe(403);
   });
@@ -94,7 +94,7 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
   ])("Should return 400 if passed invalid query params", async (query) => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
     const res = await makeRequest(
       token,
       query as unknown as m2mGatewayApi.GetCertifiedAttributesQueryParams
@@ -122,7 +122,7 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
       mockTenantService.getCertifiedAttributes = vi
         .fn()
         .mockResolvedValue(resp);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(500);
@@ -134,7 +134,7 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
     unexpectedUndefinedAttributeOriginOrCode(mockApiAttribute1.data),
   ])("Should return 500 in case of $code error", async (error) => {
     mockTenantService.getCertifiedAttributes = vi.fn().mockRejectedValue(error);
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
     const res = await makeRequest(token, mockQueryParams);
 
     expect(res.status).toBe(500);
