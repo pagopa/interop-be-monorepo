@@ -25,6 +25,7 @@ import {
   FullTokenGenerationStatesConsumerClient,
   CorrelationId,
   ClientKindTokenGenStates,
+  ClientId,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -35,6 +36,7 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import {
+  AuthServerAppContext,
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
@@ -46,6 +48,7 @@ import {
   RateLimiter,
   RateLimiterStatus,
   secondsToMilliseconds,
+  WithLogger,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import { config } from "../config/config.js";
@@ -90,8 +93,9 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      correlationId: CorrelationId,
-      logger: Logger
+      { logger, correlationId }: WithLogger<AuthServerAppContext>,
+      setCtxClientId: (clientId: ClientId) => void,
+      setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<GenerateTokenReturnType> {
       logger.info(`[CLIENTID=${request.client_id}] Token requested`);
 
@@ -128,6 +132,8 @@ export function tokenServiceBuilder({
       const kid = jwt.header.kid;
       const purposeId = jwt.payload.purposeId;
 
+      setCtxClientId(clientId);
+
       logTokenGenerationInfo({
         validatedJwt: jwt,
         clientKind: undefined,
@@ -145,6 +151,8 @@ export function tokenServiceBuilder({
         : makeTokenGenerationStatesClientKidPK({ clientId, kid });
 
       const key = await retrieveKey(dynamoDBClient, pk);
+
+      setCtxOrganizationId(key.consumerId);
 
       logTokenGenerationInfo({
         validatedJwt: jwt,
