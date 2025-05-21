@@ -2091,9 +2091,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceTemplateVersion"
+                $ref: "#/components/schemas/EServiceTemplateVersions"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4198,6 +4196,19 @@ components:
         - PUBLISHED
         - DEPRECATED
         - SUSPENDED
+    EServiceTemplateVersions:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersion"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     Pagination:
       type: object
       additionalProperties: false
