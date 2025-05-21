@@ -167,7 +167,7 @@ export async function handleAuthorizationMessageV1(
           ClientKeyDeletingSchema.parse({
             clientId: msg.data.clientId,
             kid: msg.data.keyId,
-            deactivationTimestamp: msg.data.deactivationTimestamp,
+            deletedAt: dateToString(msg.log_date),
             deleted: true,
           } satisfies z.input<typeof ClientKeyDeletingSchema>)
         );
@@ -179,7 +179,6 @@ export async function handleAuthorizationMessageV1(
             kid: msg.data.keyId,
             userId: msg.data.userId,
             metadataVersion: msg.version,
-            migratedUserAt: dateToString(new Date()),
           } satisfies z.input<typeof ClientKeyUserMigrationSchema>)
         );
       })

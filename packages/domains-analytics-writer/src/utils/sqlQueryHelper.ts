@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable max-params */
 import { z } from "zod";
 import { ColumnSet, IColumnDescriptor, IMain, ITask } from "pg-promise";
 import {
@@ -92,13 +93,14 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
 export function generateMergeDeleteQuery<
   TargetTable extends DomainDbTable,
   StagingTable extends DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable]>
+  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[TargetTable]>
 >(
   schemaName: string,
   targetTableName: TargetTable,
   stagingTableName: StagingTable,
-  deleteKeysOn: DeleteKey[],
-  useIdAsSourceDeleteKey: boolean = true
+  deleteKeysOn: ColumnKeys[],
+  useIdAsSourceDeleteKey: boolean = true,
+  additionalsKeyToUpdate?: ColumnKeys[]
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCaseMapper = getColumnNameMapper(targetTableName);
@@ -116,12 +118,19 @@ export function generateMergeDeleteQuery<
     )
     .join(" AND ");
 
+  const updateSet = [
+    "deleted",
+    ...(additionalsKeyToUpdate?.map((k) => String(k)) ?? []),
+  ]
+    .map((k) => `${k} = source.${quoteColumn(k)}`)
+    .join(",\n      ");
+
   return `
       MERGE INTO ${schemaName}.${targetTableName}
       USING ${stagingTableName}_${config.mergeTableSuffix} AS source
         ON ${onCondition}
       WHEN MATCHED THEN
-        UPDATE SET deleted = source.deleted;
+        UPDATE SET ${updateSet};
     `.trim();
 }
 

@@ -252,7 +252,6 @@ CREATE TABLE IF NOT EXISTS domains.client_key (
   "algorithm" VARCHAR NOT NULL,
   "use" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  migrated_user_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  deactivation_timestamp TIMESTAMP WITH TIME ZONE,
-  PRIMARY KEY (client_id, kid, user_id)
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (client_id, kid)
 );
