@@ -1,10 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import {
   AttributeEventEnvelope,
-  Attribute,
   AttributeId,
+  fromAttributeV1,
+  genericInternalError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { AttributeSQL } from "pagopa-interop-readmodel-models";
@@ -24,12 +25,19 @@ export async function handleAttributeMessageV1(
   for (const message of messages) {
     match(message)
       .with({ type: "AttributeAdded" }, (msg) => {
-        const parsed = Attribute.parse(msg.data.attribute);
-        const attributeSql = splitAttributeIntoObjectsSQL(parsed, msg.version);
+        if (!msg.data.attribute) {
+          throw genericInternalError(
+            `Attribute can't be missing in the event message`
+          );
+        }
+        const attributeSql = splitAttributeIntoObjectsSQL(
+          fromAttributeV1(msg.data.attribute),
+          msg.version
+        );
         upsertBatch.push(attributeSql);
       })
       .with({ type: "MaintenanceAttributeDeleted" }, (msg) => {
-        const attributeId = AttributeId.parse(msg.data.id);
+        const attributeId = unsafeBrandId<AttributeId>(msg.data.id);
         deleteBatch.push(attributeId);
       })
       .exhaustive();

@@ -6,6 +6,7 @@ import {
   AuthorizationServerTokenGenerationConfig,
   HTTPServerConfig,
   LoggerConfig,
+  ApplicationAuditProducerConfig,
   FeatureFlagImprovedProducerVerificationClaimsConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
 } from "pagopa-interop-commons";
@@ -38,6 +39,7 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
           c.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
       }))
   )
+  .and(ApplicationAuditProducerConfig)
   .and(FeatureFlagImprovedProducerVerificationClaimsConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig);
 
