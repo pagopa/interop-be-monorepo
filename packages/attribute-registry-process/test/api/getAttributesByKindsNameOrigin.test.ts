@@ -61,7 +61,7 @@ describe("API /attributes authorization test", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, ["DECLARED", "CERTIFIED"]);
 
       expect(res.status).toBe(200);
@@ -72,13 +72,13 @@ describe("API /attributes authorization test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, ["DECLARED", "CERTIFIED"]);
     expect(res.status).toBe(403);
   });
 
   it("Should return 400 if passed an invalid kind", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken([authRole.ADMIN_ROLE]);
     const res = await request(api)
       .get(`/attributes`)
       .set("Authorization", `Bearer ${token}`)

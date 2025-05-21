@@ -39,7 +39,7 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
         .fn()
         .mockResolvedValue(mockM2MDelegationResponse);
 
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, mockApiDelegation.data.id, {
         rejectionReason: "test reason",
       });
@@ -52,7 +52,7 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, mockApiDelegation.data.id, {
       rejectionReason: "test reason",
     });
@@ -60,7 +60,7 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
   });
 
   it("Should return 400 if passed an invalid delegation id", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
     const res = await makeRequest(token, "invalid-delegation-id", {
       rejectionReason: "test reason",
     });
@@ -71,7 +71,7 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
   it.each([{ invalidParam: "invalidValue" }, {}, { rejectionReason: 42 }])(
     "Should return 400 if passed an invalid body: %s",
     async (body) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
       const res = await makeRequest(
         token,
         mockApiDelegation.data.id,
@@ -92,7 +92,7 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
       mockDelegationService.rejectConsumerDelegation = vi
         .fn()
         .mockResolvedValueOnce(resp);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
       const res = await makeRequest(token, mockApiDelegation.data.id, {
         rejectionReason: "test reason",
       });
@@ -109,7 +109,7 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
     mockDelegationService.rejectConsumerDelegation = vi
       .fn()
       .mockRejectedValue(error);
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
     const res = await makeRequest(token, mockApiDelegation.data.id, {
       rejectionReason: "test reason",
     });

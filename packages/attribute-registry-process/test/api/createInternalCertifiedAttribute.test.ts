@@ -41,7 +41,7 @@ describe("API /internal/certifiedAttributes authorization test", () => {
       .send(mockInternalCertifiedAttributeSeed);
 
   it("Should return 200 for user with role Internal", async () => {
-    const token = generateToken(authRole.INTERNAL_ROLE);
+    const token = generateToken([authRole.INTERNAL_ROLE]);
     const res = await makeRequest(token);
 
     expect(res.status).toBe(200);
@@ -51,7 +51,7 @@ describe("API /internal/certifiedAttributes authorization test", () => {
   it.each(
     Object.values(authRole).filter((role) => role !== authRole.INTERNAL_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
   });
@@ -66,13 +66,13 @@ describe("API /internal/certifiedAttributes authorization test", () => {
         )
       );
 
-    const res = await makeRequest(generateToken(authRole.INTERNAL_ROLE));
+    const res = await makeRequest(generateToken([authRole.INTERNAL_ROLE]));
 
     expect(res.status).toBe(409);
   });
 
   it("Should return 400 if passed an invalid attribute seed", async () => {
-    const token = generateToken(authRole.INTERNAL_ROLE);
+    const token = generateToken([authRole.INTERNAL_ROLE]);
     const res = await request(api)
       .post("/internal/certifiedAttributes")
       .set("Authorization", `Bearer ${token}`)

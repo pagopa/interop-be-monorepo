@@ -30,7 +30,7 @@ describe("GET /purpose/:purposeId router test", () => {
         .fn()
         .mockResolvedValue(mockM2MPurposesResponse);
 
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, mockM2MPurposesResponse.id);
 
       expect(res.status).toBe(200);
@@ -43,7 +43,7 @@ describe("GET /purpose/:purposeId router test", () => {
       .fn()
       .mockResolvedValue(mockM2MPurposesResponse);
 
-    const token = generateToken(authRole.M2M_ROLE);
+    const token = generateToken([authRole.M2M_ROLE]);
     const res = await makeRequest(token, "INVALID ID");
     expect(res.status).toBe(400);
   });
@@ -51,7 +51,7 @@ describe("GET /purpose/:purposeId router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, generateId());
     expect(res.status).toBe(403);
   });

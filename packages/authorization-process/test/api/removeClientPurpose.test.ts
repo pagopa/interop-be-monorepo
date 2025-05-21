@@ -37,7 +37,7 @@ describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () =
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",
     async (role) => {
-      const token = generateToken(role);
+      const token = generateToken([role]);
       const res = await makeRequest(token, mockClient.id, purposeIdToRemove);
       expect(res.status).toBe(204);
     }
@@ -46,7 +46,7 @@ describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () =
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken(role);
+    const token = generateToken([role]);
     const res = await makeRequest(token, mockClient.id, purposeIdToRemove);
     expect(res.status).toBe(403);
   });
@@ -70,7 +70,7 @@ describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () =
       authorizationService.removeClientPurpose = vi
         .fn()
         .mockRejectedValue(error);
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken([authRole.ADMIN_ROLE]);
       const res = await makeRequest(token, mockClient.id, purposeIdToRemove);
       expect(res.status).toBe(expectedStatus);
     }
@@ -83,7 +83,7 @@ describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () =
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ clientId, purposeId }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
+      const token = generateToken([authRole.ADMIN_ROLE]);
       const res = await makeRequest(
         token,
         clientId as ClientId,
