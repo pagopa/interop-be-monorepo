@@ -2660,15 +2660,6 @@ components:
         templateId:
           type: string
           format: uuid
-    EServiceTemplateRef:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          format: uuid
     EServiceTemplateVersionRef:
       type: object
       additionalProperties: false
