@@ -18,9 +18,10 @@ export const errorCodes = {
   unexpectedAttributeKind: "0005",
   unexpectedUndefinedAttributeOriginOrCode: "0006",
   attributeNotFound: "0007",
-  purposeNotFound: "0008",
-  missingActivePurposeVersion: "0009",
-  purposeVersionNotFound: "0010",
+  eserviceDescriptorNotFound: "0008",
+  purposeNotFound: "0009",
+  missingActivePurposeVersion: "0010",
+  purposeVersionNotFound: "0011",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -106,5 +107,15 @@ export function purposeVersionNotFound(
     detail: `Version ${versionId} not found in purpose ${purposeId}`,
     code: "purposeVersionNotFound",
     title: "Purpose version not found",
+  });
+
+export function eserviceDescriptorNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorNotFound",
+    title: "Eservice descriptor not found",
   });
 }
