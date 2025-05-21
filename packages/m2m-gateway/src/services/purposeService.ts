@@ -62,11 +62,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       )
       .at(-1);
 
-    assertPurposeVersionExistsWithState(
-      latestVersion,
-      purpose.id,
-      purposeApi.PurposeVersionState.Values.DRAFT
-    );
+    assertPurposeVersionExistsWithState(latestVersion, purpose.id, state);
 
     return latestVersion;
   };
