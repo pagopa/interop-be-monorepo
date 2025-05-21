@@ -39,7 +39,7 @@ describe("GET /certifiedAttribute router test", () => {
         .fn()
         .mockResolvedValue(mockM2MCertifiedAttributeResponse);
 
-      const token = generateToken([role]);
+      const token = generateToken(role);
       const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
 
       expect(res.status).toBe(200);
@@ -50,13 +50,13 @@ describe("GET /certifiedAttribute router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken([role]);
+    const token = generateToken(role);
     const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
     expect(res.status).toBe(403);
   });
 
   it("Should return 400 if passed an invalid attribute id", async () => {
-    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "invalidId");
 
     expect(res.status).toBe(400);
@@ -66,7 +66,7 @@ describe("GET /certifiedAttribute router test", () => {
     mockAttributeService.getCertifiedAttribute = vi
       .fn()
       .mockRejectedValue(attributeNotFound(mockApiCertifiedAttribute.data));
-    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
 
     expect(res.status).toBe(404);

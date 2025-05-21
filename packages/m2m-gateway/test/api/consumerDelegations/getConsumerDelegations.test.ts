@@ -55,7 +55,7 @@ describe("GET /consumerDelegations router test", () => {
         .fn()
         .mockResolvedValue(mockM2MDelegationsResponse);
 
-      const token = generateToken([role]);
+      const token = generateToken(role);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(200);
@@ -66,7 +66,7 @@ describe("GET /consumerDelegations router test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken([role]);
+    const token = generateToken(role);
     const res = await makeRequest(token, mockQueryParams);
     expect(res.status).toBe(403);
   });
@@ -78,7 +78,7 @@ describe("GET /consumerDelegations router test", () => {
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
   ])("Should return 400 if passed invalid query params", async (query) => {
-    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
       query as unknown as m2mGatewayApi.GetConsumerDelegationsQueryParams
@@ -108,7 +108,7 @@ describe("GET /consumerDelegations router test", () => {
       mockDelegationService.getConsumerDelegations = vi
         .fn()
         .mockResolvedValueOnce(resp);
-      const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(500);
@@ -119,7 +119,7 @@ describe("GET /consumerDelegations router test", () => {
     mockDelegationService.getConsumerDelegations = vi
       .fn()
       .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation1.data));
-    const token = generateToken([authRole.M2M_ADMIN_ROLE]);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockQueryParams);
 
     expect(res.status).toBe(500);

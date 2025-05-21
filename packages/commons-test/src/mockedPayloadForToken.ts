@@ -1,23 +1,14 @@
-import {
-  AuthRole,
-  InteropJwtMaintenancePayload,
-  InteropJwtApiM2MAdminPayload,
-  InteropJwtApiM2MPayload,
-  InteropJwtInternalPayload,
-  InteropJwtUIPayload,
-  UserRole,
-  AuthTokenPayload,
-  ui_Role,
-} from "pagopa-interop-commons";
-import { ClientId, UserId, generateId } from "pagopa-interop-models";
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AuthRole, userRole } from "pagopa-interop-commons";
+import { UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
+import { getMockAuthData } from "./testUtils.js";
 
-function createUserPayload(roles: UserRole[]): InteropJwtUIPayload {
-  const organizationId = generateId();
+function createUserPayload(role: AuthRole) {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: ["dev.interop.pagopa.it/ui"],
+    aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -26,8 +17,9 @@ function createUserPayload(roles: UserRole[]): InteropJwtUIPayload {
     name: "Mario",
     family_name: "Rossi",
     email: "Mario.rossi@psp.it",
+    ...getMockAuthData(),
     organization: {
-      id: organizationId,
+      id: generateId(),
       name: "PagoPA S.p.A.",
       roles: [
         {
@@ -38,21 +30,14 @@ function createUserPayload(roles: UserRole[]): InteropJwtUIPayload {
       fiscal_code: "15376371009",
       ipaCode: "5N2TR557",
     },
-    "user-roles": roles.join(","),
-    organizationId,
-    externalId: {
-      value: "123456",
-      origin: "IPA",
-    },
-    selfcareId: generateId(),
-    role: ui_Role,
+    "user-roles": role,
   };
 }
 
-function createMaintenancePayload(): InteropJwtMaintenancePayload {
+function createMaintenancePayload() {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: ["dev.interop.pagopa.it/ui"],
+    aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -62,10 +47,10 @@ function createMaintenancePayload(): InteropJwtMaintenancePayload {
   };
 }
 
-function createM2MPayload(): InteropJwtApiM2MPayload {
+function createM2MPayload() {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: ["dev.interop.pagopa.it/ui"],
+    aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -77,10 +62,10 @@ function createM2MPayload(): InteropJwtApiM2MPayload {
   };
 }
 
-function createInternalPayload(): InteropJwtInternalPayload {
+function createInternalPayload() {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: ["dev.interop.pagopa.it/ui"],
+    aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -90,15 +75,15 @@ function createInternalPayload(): InteropJwtInternalPayload {
   };
 }
 
-export const mockM2MAdminClientId = generateId<ClientId>();
+export const mockM2MAdminClientId = generateId();
 export const mockM2MAdminUserId: UserId = generateId();
 // ^ ID of the client and the admin user associated with the client.
 // Mocked and exported because in the M2M gateway we need to
 // validate the admin ID in the token against the adminId in the client.
-function createM2MAdminPayload(): InteropJwtApiM2MAdminPayload {
+function createM2MAdminPayload() {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: ["dev.interop.pagopa.it/ui"],
+    aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -111,13 +96,17 @@ function createM2MAdminPayload(): InteropJwtApiM2MAdminPayload {
   };
 }
 
-export const createPayload = (roles: AuthRole[]): AuthTokenPayload =>
-  match(roles)
-    .with(["maintenance"], () => createMaintenancePayload())
-    .with(["m2m"], () => createM2MPayload())
-    .with(["m2m-admin"], () => createM2MAdminPayload())
-    .with(["internal"], () => createInternalPayload())
-    .otherwise(() => createUserPayload(roles as UserRole[]));
+const createPayload = (role: AuthRole) =>
+  match(role)
+    .with("maintenance", () => createMaintenancePayload())
+    .with("m2m", () => createM2MPayload())
+    .with("m2m-admin", () => createM2MAdminPayload())
+    .with("internal", () => createInternalPayload())
+    .with("admin", () => createUserPayload(userRole.ADMIN_ROLE))
+    .with("api", () => createUserPayload(userRole.API_ROLE))
+    .with("security", () => createUserPayload(userRole.SECURITY_ROLE))
+    .with("support", () => createUserPayload(userRole.SUPPORT_ROLE))
+    .exhaustive();
 
-export const generateToken = (roles: AuthRole[]): string =>
-  jwt.sign(createPayload(roles), "test-secret");
+export const generateToken = (role: AuthRole) =>
+  jwt.sign(createPayload(role), "test-secret");

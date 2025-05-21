@@ -92,7 +92,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      const token = generateToken([role]);
+      const token = generateToken(role);
       const res = await makeRequest(token, clientWithKeyUser.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiKeys);
@@ -102,7 +102,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
-    const token = generateToken([role]);
+    const token = generateToken(role);
     const res = await makeRequest(token, mockClient.id);
     expect(res.status).toBe(403);
   });
@@ -124,7 +124,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
       authorizationService.getClientKeys = vi.fn().mockRejectedValue(error);
-      const token = generateToken([authRole.ADMIN_ROLE]);
+      const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(expectedStatus);
     }
@@ -140,7 +140,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
   ])(
     "Should return 400 if passed invalid params: %s (clientId: %s)",
     async (query, clientId) => {
-      const token = generateToken([authRole.ADMIN_ROLE]);
+      const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
         clientId as ClientId,
