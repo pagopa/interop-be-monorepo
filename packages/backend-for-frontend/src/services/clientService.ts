@@ -372,11 +372,11 @@ async function enhanceClient(
     }),
     client.adminId
       ? getSelfcareCompactUserById(
-        apiClients.selfcareV2UserClient,
-        client.adminId,
-        ctx.authData.selfcareId,
-        ctx.correlationId
-      )
+          apiClients.selfcareV2UserClient,
+          client.adminId,
+          ctx.authData.selfcareId,
+          ctx.correlationId
+        )
       : Promise.resolve(undefined),
     ...client.purposes.map((p) => enhancePurpose(apiClients, p, ctx)),
   ]);

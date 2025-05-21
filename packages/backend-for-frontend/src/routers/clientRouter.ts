@@ -166,7 +166,8 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error adding users ${req.body.userIds.join(",")} to client ${req.params.clientId
+          `Error adding users ${req.body.userIds.join(",")} to client ${
+            req.params.clientId
           }`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -206,7 +207,6 @@ const clientRouter = (
 
         return res.status(204).send();
       } catch (error) {
-        console.log(error);
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
