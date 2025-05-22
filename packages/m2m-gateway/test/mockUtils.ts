@@ -274,10 +274,36 @@ export function getMockedApiEServiceTemplate({
       technology: generateMock(m2mGatewayApi.EServiceTechnology),
       versions: versions ?? [getMockedApiEserviceTemplateVersion()],
       isSignalHubEnabled: generateMock(z.boolean().optional()),
-      riskAnalysis: [],
+      riskAnalysis: [getMockedApiRiskAnalysis()],
     },
     metadata: {
       version: 0,
+    },
+  };
+}
+
+export function getMockedApiRiskAnalysis(): catalogApi.EServiceRiskAnalysis {
+  return {
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    name: generateMock(z.string().length(10)),
+    riskAnalysisForm: {
+      id: generateId(),
+      multiAnswers: [
+        {
+          id: generateId(),
+          key: generateMock(z.string()),
+          values: generateMock(z.array(z.string())),
+        },
+      ],
+      singleAnswers: [
+        {
+          id: generateId(),
+          key: generateMock(z.string()),
+          value: generateMock(z.string()),
+        },
+      ],
+      version: "0",
     },
   };
 }
@@ -293,10 +319,35 @@ export function getMockedApiEserviceTemplateVersion({
     voucherLifespan: generateMock(z.number().positive()),
     version: 0,
     attributes: {
-      certified: [],
-      declared: [],
-      verified: [],
+      certified: [[getMockedApiEServiceAttribute()]],
+      declared: [[getMockedApiEServiceAttribute()]],
+      verified: [[getMockedApiEServiceAttribute()]],
     },
     docs: [],
+  };
+}
+
+export function getMockedApiEServiceAttribute(): catalogApi.Attribute {
+  return {
+    id: generateId(),
+    explicitAttributeVerification: generateMock(z.boolean()),
+  };
+}
+
+export function getMockedApiEServiceDocument(): catalogApi.EServiceDoc {
+  return {
+    id: generateId(),
+    checksum: generateMock(z.string()),
+    contentType: generateMock(z.string()),
+    name: generateMock(z.string()),
+    path: generateMock(z.string()),
+    prettyName: generateMock(z.string()),
+    contacts: {
+      name: generateMock(z.string()),
+      email: generateMock(z.string().email()),
+      serverUrls: generateMock(z.array(z.string().url())),
+      termsAndConditionsUrl: generateMock(z.string().url()),
+      url: generateMock(z.string().url()),
+    },
   };
 }

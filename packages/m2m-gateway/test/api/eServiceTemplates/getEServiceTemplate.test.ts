@@ -9,11 +9,6 @@ import { getMockedApiEServiceTemplate } from "../../mockUtils.js";
 import { toM2MGatewayEServiceTemplate } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("GET /eserviceTemplates/:templateId router test", () => {
-  const authorizedRoles: AuthRole[] = [
-    authRole.M2M_ADMIN_ROLE,
-    authRole.M2M_ROLE,
-  ];
-
   const makeRequest = async (token: string, templateId: string) =>
     request(api)
       .get(`${appBasePath}/eserviceTemplates/${templateId}`)
@@ -25,6 +20,10 @@ describe("GET /eserviceTemplates/:templateId router test", () => {
     mockApiTemplate.data
   );
 
+  const authorizedRoles: AuthRole[] = [
+    authRole.M2M_ADMIN_ROLE,
+    authRole.M2M_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
@@ -57,4 +56,21 @@ describe("GET /eserviceTemplates/:templateId router test", () => {
     const res = await makeRequest(token, generateId());
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    { ...mockM2MTemplateResponse, id: undefined },
+    { ...mockM2MTemplateResponse, invalidParam: "invalidValue" },
+    { ...mockM2MTemplateResponse, createdAt: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockEServiceTemplateService.getEServiceTemplateById = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockM2MTemplateResponse.id);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });

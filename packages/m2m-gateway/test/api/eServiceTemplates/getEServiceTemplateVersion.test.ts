@@ -111,4 +111,25 @@ describe("GET /eserviceTemplates/:templateId/version/:versionId router test", ()
     );
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    { ...mockM2MVersionResponse, id: undefined },
+    { ...mockM2MVersionResponse, invalidParam: "invalidValue" },
+    { ...mockM2MVersionResponse, createdAt: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockEServiceTemplateService.getEServiceTemplateVersion = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockApiTemplate.data.id,
+        mockApiTemplateVersion1.id
+      );
+
+      expect(res.status).toBe(500);
+    }
+  );
 });

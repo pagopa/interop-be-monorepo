@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
   eserviceTemplateService,
@@ -12,7 +12,6 @@ import {
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
 } from "../../mockUtils.js";
-import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("getEServiceTemplateVersions", () => {
   const mockParams: m2mGatewayApi.GetEServiceTemplateVersionsQueryParams = {
@@ -22,22 +21,30 @@ describe("getEServiceTemplateVersions", () => {
   };
 
   const mockApiTemplateVersion1 = getMockedApiEserviceTemplateVersion({
-    state: "DRAFT",
+    state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DRAFT,
   });
   const mockApiTemplateVersion2 = getMockedApiEserviceTemplateVersion({
-    state: "DEPRECATED",
+    state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DEPRECATED,
+  });
+  const mockApiTemplateVersion3 = getMockedApiEserviceTemplateVersion({
+    state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DRAFT,
+  });
+  const mockApiTemplateVersion4 = getMockedApiEserviceTemplateVersion({
+    state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.PUBLISHED,
+  });
+  const mockApiTemplateVersion5 = getMockedApiEserviceTemplateVersion({
+    state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.SUSPENDED,
   });
 
   const mockApiTemplate = getMockedApiEServiceTemplate({
-    versions: [mockApiTemplateVersion1, mockApiTemplateVersion2],
+    versions: [
+      mockApiTemplateVersion1,
+      mockApiTemplateVersion2,
+      mockApiTemplateVersion3,
+      mockApiTemplateVersion4,
+      mockApiTemplateVersion5,
+    ],
   });
-
-  const mockM2MVersion1 = toM2MGatewayEServiceTemplateVersion(
-    mockApiTemplateVersion1
-  );
-  const mockM2MVersion2 = toM2MGatewayEServiceTemplateVersion(
-    mockApiTemplateVersion2
-  );
 
   const mockGetTemplate = vi.fn().mockResolvedValue(mockApiTemplate);
 
@@ -49,14 +56,47 @@ describe("getEServiceTemplateVersions", () => {
     mockGetTemplate.mockClear();
   });
 
+  const testToM2MGatewayApiEServiceTemplateVersion = (
+    template: eserviceTemplateApi.EServiceTemplateVersion
+  ): m2mGatewayApi.EServiceTemplateVersion => ({
+    id: template.id,
+    state: template.state,
+    version: template.version,
+    voucherLifespan: template.voucherLifespan,
+    agreementApprovalPolicy: template.agreementApprovalPolicy,
+    dailyCallsPerConsumer: template.dailyCallsPerConsumer,
+    dailyCallsTotal: template.dailyCallsTotal,
+    deprecatedAt: template.deprecatedAt,
+    description: template.description,
+    publishedAt: template.publishedAt,
+    suspendedAt: template.suspendedAt,
+  });
+
+  const expectedM2MTemplateVersion1 =
+    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion1);
+  const expectedM2MTemplateVersion2 =
+    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion2);
+  const expectedM2MTemplateVersion3 =
+    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion3);
+  const expectedM2MTemplateVersion4 =
+    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion4);
+  const expectedM2MTemplateVersion5 =
+    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion5);
+
   it("Should succeed and perform API clients calls", async () => {
     const m2mTemplateResponse: m2mGatewayApi.EServiceTemplateVersions = {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
-        totalCount: 2,
+        totalCount: mockApiTemplate.data.versions.length,
       },
-      results: [mockM2MVersion1, mockM2MVersion2],
+      results: [
+        expectedM2MTemplateVersion1,
+        expectedM2MTemplateVersion2,
+        expectedM2MTemplateVersion3,
+        expectedM2MTemplateVersion4,
+        expectedM2MTemplateVersion5,
+      ],
     };
 
     const result = await eserviceTemplateService.getEServiceTemplateVersions(
@@ -76,14 +116,27 @@ describe("getEServiceTemplateVersions", () => {
     });
   });
 
-  it("Should correctly apply pagination from the retrieved template", async () => {
+  it("Should correctly apply pagination from the retrieved template (offset, limit)", async () => {
+    const expectedM2MTemplateVersion: m2mGatewayApi.EServiceTemplateVersion = {
+      id: mockApiTemplateVersion2.id,
+      state: mockApiTemplateVersion2.state,
+      version: mockApiTemplateVersion2.version,
+      voucherLifespan: mockApiTemplateVersion2.voucherLifespan,
+      agreementApprovalPolicy: mockApiTemplateVersion2.agreementApprovalPolicy,
+      dailyCallsPerConsumer: mockApiTemplateVersion2.dailyCallsPerConsumer,
+      dailyCallsTotal: mockApiTemplateVersion2.dailyCallsTotal,
+      deprecatedAt: mockApiTemplateVersion2.deprecatedAt,
+      description: mockApiTemplateVersion2.description,
+      publishedAt: mockApiTemplateVersion2.publishedAt,
+      suspendedAt: mockApiTemplateVersion2.suspendedAt,
+    };
     const m2mTemplateResponse: m2mGatewayApi.EServiceTemplateVersions = {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
         totalCount: 1,
       },
-      results: [mockM2MVersion2],
+      results: [expectedM2MTemplateVersion],
     };
 
     const result = await eserviceTemplateService.getEServiceTemplateVersions(

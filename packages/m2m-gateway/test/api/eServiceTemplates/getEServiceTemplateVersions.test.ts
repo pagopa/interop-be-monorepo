@@ -96,4 +96,39 @@ describe("GET /eserviceTemplates/:templateId/versions router test", () => {
     const res = await makeRequest(token, mockParams, mockApiTemplate.data.id);
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        { ...mockApiTemplateVersion1, createdAt: undefined },
+        mockApiTemplateVersion2,
+      ],
+    },
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        { ...mockApiTemplateVersion1, invalidParam: "invalidValue" },
+        mockApiTemplateVersion2,
+      ],
+    },
+    {
+      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      results: [
+        { ...mockApiTemplateVersion1, state: "invalidState" },
+        mockApiTemplateVersion2,
+      ],
+    },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockEServiceTemplateService.getEServiceTemplateVersions = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockParams, mockApiTemplate.data.id);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });
