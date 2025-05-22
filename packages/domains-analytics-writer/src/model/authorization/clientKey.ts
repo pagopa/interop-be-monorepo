@@ -5,16 +5,16 @@ import { z } from "zod";
 export const ClientKeySchema = createSelectSchema(
   clientKeyInReadmodelClient
 ).extend({
-  deletedAt: z.string().optional(),
   deleted: z.boolean().default(false).optional(),
+  deleted_at: z.string().optional(),
 });
 export type ClientKeySchema = z.infer<typeof ClientKeySchema>;
 
 export const ClientKeyDeletingSchema = ClientKeySchema.pick({
   clientId: true,
   kid: true,
-  deletedAt: true,
   deleted: true,
+  deleted_at: true,
 });
 export type ClientKeyDeletingSchema = z.infer<typeof ClientKeyDeletingSchema>;
 

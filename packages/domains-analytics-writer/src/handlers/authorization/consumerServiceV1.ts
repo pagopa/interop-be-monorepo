@@ -167,8 +167,8 @@ export async function handleAuthorizationMessageV1(
           ClientKeyDeletingSchema.parse({
             clientId: msg.data.clientId,
             kid: msg.data.keyId,
-            deletedAt: dateToString(msg.log_date),
             deleted: true,
+            deleted_at: dateToString(msg.log_date),
           } satisfies z.input<typeof ClientKeyDeletingSchema>)
         );
       })

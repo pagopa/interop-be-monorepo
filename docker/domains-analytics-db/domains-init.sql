@@ -225,6 +225,7 @@ CREATE TABLE IF NOT EXISTS domains.client (
   description VARCHAR,
   kind VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (id)
 );
 
@@ -232,6 +233,7 @@ CREATE TABLE IF NOT EXISTS domains.client_user (
   metadata_version INTEGER NOT NULL,
   client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
   user_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (client_id, user_id)
 );
 
@@ -239,6 +241,7 @@ CREATE TABLE IF NOT EXISTS domains.client_purpose (
   metadata_version INTEGER NOT NULL,
   client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
   purpose_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
   PRIMARY KEY (client_id, purpose_id)
 );
 
@@ -253,5 +256,6 @@ CREATE TABLE IF NOT EXISTS domains.client_key (
   "use" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted_at TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
   PRIMARY KEY (client_id, kid)
 );
