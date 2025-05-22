@@ -143,7 +143,7 @@ export function clientKeyRepository(conn: DBConnection) {
       }
     },
 
-    async mergeKeyUserMigration(): Promise<void> {
+    async mergeKeyUserMigration(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
           ClientKeyUserMigrationSchema,
@@ -151,7 +151,7 @@ export function clientKeyRepository(conn: DBConnection) {
           tableName,
           ["clientId", "kid", "userId"]
         );
-        await conn.none(mergeQuery);
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`

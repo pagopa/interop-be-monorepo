@@ -39,18 +39,18 @@ export function authorizationServiceBuilder(db: DBContext) {
 
   return {
     async upsertClientBatch(dbContext: DBContext, items: ClientItemsSchema[]) {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        const batchItems = {
-          clientSQL: batch.map((i) => i.clientSQL),
-          usersSQL: batch.flatMap((i) => i.usersSQL),
-          purposesSQL: batch.flatMap((i) => i.purposesSQL),
-          keysSQL: batch.flatMap((i) => i.keysSQL),
-        };
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          const batchItems = {
+            clientSQL: batch.map((i) => i.clientSQL),
+            usersSQL: batch.flatMap((i) => i.usersSQL),
+            purposesSQL: batch.flatMap((i) => i.purposesSQL),
+            keysSQL: batch.flatMap((i) => i.keysSQL),
+          };
 
-        await dbContext.conn.tx(async (t) => {
           if (batchItems.clientSQL.length) {
             await clientRepo.insert(t, dbContext.pgp, batchItems.clientSQL);
           }
@@ -67,16 +67,14 @@ export function authorizationServiceBuilder(db: DBContext) {
           if (batchItems.keysSQL.length) {
             await clientKeyRepo.insert(t, dbContext.pgp, batchItems.keysSQL);
           }
-        });
 
-        genericLogger.info(
-          `Staging data inserted for Client batch: ${batch
-            .map((i) => i.clientSQL.id)
-            .join(", ")}`
-        );
-      }
+          genericLogger.info(
+            `Staging data inserted for Client batch: ${batch
+              .map((i) => i.clientSQL.id)
+              .join(", ")}`
+          );
+        }
 
-      await dbContext.conn.tx(async (t) => {
         await clientRepo.merge(t);
         await clientUserRepo.merge(t);
         await clientPurposeRepo.merge(t);
@@ -99,21 +97,19 @@ export function authorizationServiceBuilder(db: DBContext) {
       dbContext: DBContext,
       items: ClientDeletingSchema[]
     ) {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await dbContext.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
           await clientRepo.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for Client ids: ${batch
               .map((i) => i.id)
               .join(", ")}`
           );
-        });
-      }
+        }
 
-      await dbContext.conn.tx(async (t) => {
         await clientRepo.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
@@ -130,7 +126,9 @@ export function authorizationServiceBuilder(db: DBContext) {
       genericLogger.info(
         `Staging deletion merged into target tables for Client`
       );
+
       await clientRepo.cleanDeleting();
+
       genericLogger.info(`Client deleting table cleaned`);
     },
 
@@ -139,21 +137,27 @@ export function authorizationServiceBuilder(db: DBContext) {
       items: ClientUserSchema[]
     ) {
       await dbContext.conn.tx(async (t) => {
-        await clientUserRepo.insert(t, dbContext.pgp, items);
-        genericLogger.info(
-          `Staging data inserted for ClientUser batch: ${items
-            .map((i) => `${i.clientId}/${i.userId}`)
-            .join(", ")}`
-        );
-      });
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await clientUserRepo.insert(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staging data inserted for ClientUser batch: ${batch
+              .map((i) => `${i.clientId}/${i.userId}`)
+              .join(", ")}`
+          );
+        }
 
-      await dbContext.conn.tx(async (t) => {
         await clientUserRepo.merge(t);
       });
+
       genericLogger.info(
         `Staging data merged into target tables for ClientUser`
       );
+
       await clientUserRepo.clean();
+
       genericLogger.info(`Staging data cleaned for ClientUser`);
     },
 
@@ -162,20 +166,25 @@ export function authorizationServiceBuilder(db: DBContext) {
       items: ClientUserDeletingSchema[]
     ) {
       await dbContext.conn.tx(async (t) => {
-        await clientUserRepo.insertDeleting(t, dbContext.pgp, items);
-        genericLogger.info(
-          `Staging deletion inserted for ClientUser: ${items
-            .map((i) => `${i.clientId}/${i.userId}`)
-            .join(", ")}`
-        );
-      });
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await clientUserRepo.insertDeleting(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staging deletion inserted for ClientUser: ${batch
+              .map((i) => `${i.clientId}/${i.userId}`)
+              .join(", ")}`
+          );
+        }
 
-      await dbContext.conn.tx(async (t) => {
         await clientUserRepo.mergeDeleting(t);
       });
+
       genericLogger.info(
         `Staging deletion merged into target tables for ClientUser`
       );
+
       await clientUserRepo.cleanDeleting();
       genericLogger.info(`ClientUser deleting table cleaned`);
     },
@@ -185,21 +194,27 @@ export function authorizationServiceBuilder(db: DBContext) {
       items: ClientPurposeSchema[]
     ) {
       await dbContext.conn.tx(async (t) => {
-        await clientPurposeRepo.insert(t, dbContext.pgp, items);
-        genericLogger.info(
-          `Staging data inserted for ClientPurpose batch: ${items
-            .map((i) => `${i.clientId}/${i.purposeId}`)
-            .join(", ")}`
-        );
-      });
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await clientPurposeRepo.insert(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staging data inserted for ClientPurpose batch: ${batch
+              .map((i) => `${i.clientId}/${i.purposeId}`)
+              .join(", ")}`
+          );
+        }
 
-      await dbContext.conn.tx(async (t) => {
         await clientPurposeRepo.merge(t);
       });
+
       genericLogger.info(
         `Staging data merged into target tables for ClientPurpose`
       );
+
       await clientPurposeRepo.clean();
+
       genericLogger.info(`Staging data cleaned for ClientPurpose`);
     },
 
@@ -208,41 +223,53 @@ export function authorizationServiceBuilder(db: DBContext) {
       items: ClientPurposeDeletingSchema[]
     ) {
       await dbContext.conn.tx(async (t) => {
-        await clientPurposeRepo.insertDeleting(t, dbContext.pgp, items);
-        genericLogger.info(
-          `Staging deletion inserted for ClientPurpose: ${items
-            .map((i) => `${i.clientId}/${i.purposeId}`)
-            .join(", ")}`
-        );
-      });
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await clientPurposeRepo.insertDeleting(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staging deletion inserted for ClientPurpose: ${batch
+              .map((i) => `${i.clientId}/${i.purposeId}`)
+              .join(", ")}`
+          );
+        }
 
-      await dbContext.conn.tx(async (t) => {
         await clientPurposeRepo.mergeDeleting(t);
       });
+
       genericLogger.info(
         `Staging deletion merged into target tables for ClientPurpose`
       );
+
       await clientPurposeRepo.cleanDeleting();
+
       genericLogger.info(`ClientPurpose deleting table cleaned`);
     },
 
     async upsertKeyBatch(dbContext: DBContext, items: ClientKeySchema[]) {
       await dbContext.conn.tx(async (t) => {
-        await clientKeyRepo.insert(t, dbContext.pgp, items);
-        genericLogger.info(
-          `Staging data inserted for ClientKey batch: ${items
-            .map((i) => `${i.clientId}/${i.kid}`)
-            .join(", ")}`
-        );
-      });
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await clientKeyRepo.insert(t, dbContext.pgp, batch);
 
-      await dbContext.conn.tx(async (t) => {
+          genericLogger.info(
+            `Staging data inserted for ClientKey batch: ${batch
+              .map((i) => `${i.clientId}/${i.kid}`)
+              .join(", ")}`
+          );
+        }
         await clientKeyRepo.merge(t);
       });
+
       genericLogger.info(
         `Staging data merged into target tables for ClientKey`
       );
+
       await clientKeyRepo.clean();
+
       genericLogger.info(`Staging data cleaned for ClientKey`);
     },
 
@@ -251,21 +278,26 @@ export function authorizationServiceBuilder(db: DBContext) {
       items: ClientKeyDeletingSchema[]
     ) {
       await dbContext.conn.tx(async (t) => {
-        await clientKeyRepo.insertDeleting(t, dbContext.pgp, items);
-        genericLogger.info(
-          `Staging deletion inserted for ClientKey: ${items
-            .map((i) => `${i.clientId}/${i.kid}`)
-            .join(", ")}`
-        );
-      });
-
-      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await clientKeyRepo.insertDeleting(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staging deletion inserted for ClientKey: ${batch
+              .map((i) => `${i.clientId}/${i.kid}`)
+              .join(", ")}`
+          );
+        }
         await clientKeyRepo.mergeDeleting(t);
       });
+
       genericLogger.info(
         `Staging deletion merged into target tables for ClientKey`
       );
+
       await clientKeyRepo.cleanDeleting();
+
       genericLogger.info(`ClientKey deleting table cleaned`);
     },
 
@@ -285,14 +317,16 @@ export function authorizationServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
+
+        await clientKeyRepo.mergeKeyUserMigration(t);
       });
 
-      await clientKeyRepo.mergeKeyUserMigration();
       genericLogger.info(
         `Staging data merged into target tables for ClientKeyUserMigration`
       );
 
       await clientKeyRepo.clean();
+
       genericLogger.info(`Staging table cleaned for ClientKeyUserMigration`);
     },
   };
