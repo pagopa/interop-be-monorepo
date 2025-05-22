@@ -80,7 +80,7 @@ describe("unsuspendPurposeVersion", () => {
     ).toHaveBeenCalledTimes(pollingTentatives + 1);
   });
 
-  it("Should throw missingActivePurposeVersionWithState in case of missing version to unsuspend", async () => {
+  it("Should throw missingPurposeVersionWithState in case of missing version to unsuspend", async () => {
     const invalidPurpose = getMockedApiPurpose({
       versions: [
         getMockedApiPurposeVersion({

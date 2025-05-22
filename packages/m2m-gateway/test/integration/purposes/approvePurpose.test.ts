@@ -81,7 +81,7 @@ describe("approvePurposeVersion", () => {
     ).toHaveBeenCalledTimes(pollingTentatives + 1);
   });
 
-  it("Should throw missingActivePurposeVersionWithState in case of missing active version to approve", async () => {
+  it("Should throw missingPurposeVersionWithState in case of missing active version to approve", async () => {
     const invalidPurpose = getMockedApiPurpose({
       versions: [
         getMockedApiPurposeVersion({
