@@ -42,7 +42,8 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await addOneAgreement(
+      readModelDB,
       agreement.data,
       agreement.metadata.version
     );
@@ -76,7 +77,8 @@ describe("Check agreement readmodels", () => {
     await addOneAgreement(agreement1);
     await addOneAgreement(agreement2);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await addOneAgreement(
+      readModelDB,
       agreement2.data,
       agreement2.metadata.version
     );
@@ -109,11 +111,13 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement1);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await addOneAgreement(
+      readModelDB,
       agreement1.data,
       agreement1.metadata.version
     );
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await addOneAgreement(
+      readModelDB,
       agreement2.data,
       agreement2.metadata.version
     );
@@ -149,7 +153,8 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement1);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await addOneAgreement(
+      readModelDB,
       agreement1InPostgresDb.data,
       agreement1InPostgresDb.metadata.version
     );
@@ -184,7 +189,8 @@ describe("Check agreement readmodels", () => {
 
     await addOneAgreement(agreement1);
 
-    await agreementReadModelServiceSQL.upsertAgreement(
+    await addOneAgreement(
+      readModelDB,
       agreement1InPostgresDb.data,
       agreement1InPostgresDb.metadata.version
     );

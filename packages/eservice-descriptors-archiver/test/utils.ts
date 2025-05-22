@@ -1,4 +1,5 @@
 import {
+  addOneAgreementSQL,
   setupTestContainersVitest,
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
@@ -53,7 +54,7 @@ export const readModelService =
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await addOneAgreementSQL(readModelDB, agreement, 0);
 };
 
 export const addOneEService = async (eservice: EService): Promise<void> => {
