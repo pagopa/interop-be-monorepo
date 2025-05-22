@@ -12,13 +12,13 @@ import {
 } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { generateToken } from "pagopa-interop-commons-test";
-import { api, catalogService } from "../vitest.api.setup.js";
 import {
+  generateToken,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
-} from "../mockUtils.js";
+} from "pagopa-interop-commons-test";
+import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNotFound,

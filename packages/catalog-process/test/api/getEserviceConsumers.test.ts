@@ -8,15 +8,16 @@ import {
   EServiceId,
   generateId,
 } from "pagopa-interop-models";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
 import {
+  generateToken,
+  getMockTenant,
   getMockAgreement,
   getMockDescriptor,
   getMockEService,
-} from "../mockUtils.js";
+} from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { api, catalogService } from "../vitest.api.setup.js";
 import {
   agreementStateToApiAgreementState,
   descriptorStateToApiEServiceDescriptorState,
@@ -34,12 +35,7 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
 
   const tenant = getMockTenant();
 
-  const agreement = getMockAgreement({
-    eserviceId: eservice.id,
-    descriptorId: descriptor.id,
-    producerId: eservice.producerId,
-    consumerId: tenant.id,
-  });
+  const agreement = getMockAgreement(eservice.id, tenant.id);
 
   const mockResponse = {
     results: [

@@ -12,11 +12,12 @@ import {
 import {
   generateToken,
   getMockValidRiskAnalysis,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { buildRiskAnalysisSeed, getMockEService } from "../mockUtils.js";
+import { buildRiskAnalysisSeed } from "../mockUtils.js";
 import {
   eServiceNotFound,
   eserviceNotInDraftState,

@@ -13,11 +13,12 @@ import {
 import {
   generateToken,
   getMockEServiceTemplate,
+  getMockDescriptor,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   attributeNotFound,

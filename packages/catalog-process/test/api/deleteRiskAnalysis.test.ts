@@ -12,10 +12,10 @@ import {
 import {
   generateToken,
   getMockValidRiskAnalysis,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { getMockEService } from "../mockUtils.js";
 import {
   eServiceNotFound,
   eserviceNotInDraftState,

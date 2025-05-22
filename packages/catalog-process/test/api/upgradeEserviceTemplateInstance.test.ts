@@ -15,15 +15,13 @@ import {
   generateToken,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
 import { descriptorToApiDescriptor } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceAlreadyUpgraded,

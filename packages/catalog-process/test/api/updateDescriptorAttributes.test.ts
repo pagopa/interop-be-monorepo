@@ -11,11 +11,15 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockAttribute,
+  getMockDescriptor,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import {
   attributeNotFound,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,

@@ -2,11 +2,10 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { EService, EServiceId, generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockEService } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { getMockEService } from "../mockUtils.js";
 import { eServiceNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /internal/templates/eservices/{eServiceId}/description/update authorization test", () => {

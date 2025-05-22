@@ -3,7 +3,6 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Attribute,
-  Descriptor,
   EService,
   EServiceId,
   generateId,
@@ -11,9 +10,13 @@ import {
 } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { getMockDescriptor, getMockEService } from "../mockUtils.js";
+import { buildCreateDescriptorSeed } from "../mockUtils.js";
 import { descriptorToApiDescriptor } from "../../src/model/domain/apiConverter.js";
 import {
   attributeNotFound,
@@ -24,30 +27,6 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
-  const buildCreateDescriptorSeed = (
-    descriptor: Descriptor
-  ): catalogApi.EServiceDescriptorSeed => ({
-    audience: descriptor.audience,
-    voucherLifespan: descriptor.voucherLifespan,
-    dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
-    dailyCallsTotal: descriptor.dailyCallsTotal,
-    agreementApprovalPolicy: "AUTOMATIC",
-    description: descriptor.description,
-    attributes: {
-      certified: [],
-      declared: [],
-      verified: [],
-    },
-    docs: descriptor.docs.map((d) => ({
-      ...d,
-      kind: "DOCUMENT",
-      serverUrls: [],
-      documentId: d.id,
-      filePath: d.path,
-      fileName: d.name,
-    })),
-  });
-
   const mockDescriptor = {
     ...getMockDescriptor(),
     docs: [],

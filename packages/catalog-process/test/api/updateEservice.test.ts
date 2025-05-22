@@ -9,12 +9,16 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import { generateToken, randomArrayItem } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  randomArrayItem,
+  getMockDescriptor,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNameDuplicate,

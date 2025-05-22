@@ -1,23 +1,6 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
-import {
-  Agreement,
-  agreementState,
-  Descriptor,
-  DescriptorId,
-  descriptorState,
-  DescriptorState,
-  Document,
-  EService,
-  EServiceAttribute,
-  EserviceAttributes,
-  EServiceId,
-  eserviceMode,
-  generateId,
-  RiskAnalysis,
-  technology,
-  TenantId,
-} from "pagopa-interop-models";
+import { Descriptor, generateId, RiskAnalysis } from "pagopa-interop-models";
 
 export const buildDescriptorSeedForEserviceCreation = (
   descriptor: Descriptor
@@ -79,52 +62,6 @@ export const buildRiskAnalysisSeed = (
   ),
 });
 
-export const getMockEService = (): EService => ({
-  id: generateId(),
-  name: "eservice name",
-  description: "eservice description",
-  createdAt: new Date(),
-  producerId: generateId(),
-  technology: technology.rest,
-  descriptors: [],
-  mode: eserviceMode.deliver,
-  riskAnalysis: [],
-});
-
-export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
-  id: generateId(),
-  version: "1",
-  docs: [],
-  state: state || descriptorState.draft,
-  audience: ["pagopa.it"],
-  voucherLifespan: 60,
-  dailyCallsPerConsumer: 10,
-  dailyCallsTotal: 1000,
-  createdAt: new Date(),
-  serverUrls: ["pagopa.it"],
-  agreementApprovalPolicy: "Automatic",
-  attributes: {
-    certified: [],
-    verified: [],
-    declared: [],
-  },
-  ...(state === descriptorState.archived ? { archivedAt: new Date() } : {}),
-  ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
-  ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
-  ...(state === descriptorState.published ? { publishedAt: new Date() } : {}),
-});
-
-export const getMockEServiceAttribute = (): EServiceAttribute => ({
-  id: generateId(),
-  explicitAttributeVerification: false,
-});
-
-export const getMockEServiceAttributes = (): EserviceAttributes => ({
-  certified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
-  declared: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
-  verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
-});
-
 export const buildInterfaceSeed =
   (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
     contentType: "json",
@@ -148,46 +85,3 @@ export const buildDocumentSeed =
     fileName: "fileName",
     checksum: "checksum",
   });
-
-export const getMockDocument = (): Document => ({
-  name: "fileName",
-  path: "filePath",
-  id: generateId(),
-  prettyName: "prettyName",
-  contentType: "json",
-  checksum: "checksum",
-  uploadDate: new Date(),
-});
-
-export const getMockAgreement = ({
-  eserviceId,
-  descriptorId,
-  producerId,
-  consumerId,
-}: {
-  eserviceId: EServiceId;
-  descriptorId: DescriptorId;
-  producerId: TenantId;
-  consumerId: TenantId;
-}): Agreement => ({
-  id: generateId(),
-  createdAt: new Date(),
-  eserviceId,
-  descriptorId,
-  producerId,
-  consumerId,
-  state: agreementState.active,
-  verifiedAttributes: [],
-  certifiedAttributes: [],
-  declaredAttributes: [],
-  consumerDocuments: [],
-  stamps: {
-    submission: undefined,
-    activation: undefined,
-    rejection: undefined,
-    suspensionByProducer: undefined,
-    suspensionByConsumer: undefined,
-    upgrade: undefined,
-    archiving: undefined,
-  },
-});

@@ -94,6 +94,7 @@ import {
   CertifiedAttributeV2,
   AgreementDocumentV2,
   PurposeV2,
+  Technology,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -199,14 +200,15 @@ export const getMockEServiceAttributes = (num: number): EServiceAttribute[] =>
 export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
-  descriptors: Descriptor[] = []
+  descriptors: Descriptor[] = [],
+  technology: Technology = "Rest"
 ): EService => ({
   id: eserviceId,
-  name: "eService name",
-  description: "eService description",
+  name: `Test EService with technology: ${technology.toUpperCase()}`,
+  description: `Test description for eservice with technology: ${technology.toUpperCase()}`,
   createdAt: new Date(),
   producerId,
-  technology: technology.rest,
+  technology,
   descriptors,
   riskAnalysis: [],
   mode: "Deliver",

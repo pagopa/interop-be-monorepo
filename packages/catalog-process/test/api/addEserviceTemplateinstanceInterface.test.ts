@@ -9,19 +9,24 @@ import {
   descriptorState,
   EService,
   EServiceId,
-  EServiceTemplateId,
   generateId,
   interfaceExtractingInfoError,
   invalidInterfaceContentTypeDetected,
   invalidInterfaceFileDetected,
   operationForbidden,
+  technology,
   Technology,
   TenantId,
 } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { getMockDescriptor, getMockDocument } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   documentPrettyNameDuplicate,
@@ -43,23 +48,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
 
-  const getMockEServiceByTechnology = (
-    technology: Technology,
-    descriptor: Descriptor
-  ): EService => ({
-    name: `Test EService ${technology.toUpperCase()}`,
-    id: generateId<EServiceId>(),
-    createdAt: new Date(),
-    producerId: generateId<TenantId>(),
-    description: `Test description for ${technology.toUpperCase()}`,
-    technology: technology === "Rest" ? "Rest" : "Soap",
-    descriptors: [descriptor],
-    templateId: generateId<EServiceTemplateId>(),
-    riskAnalysis: [],
-    mode: "Deliver",
-  });
-
-  const restBody = {
+  const restBody: catalogApi.TemplateInstanceInterfaceRESTSeed = {
     contactName: "John Doe",
     contactUrl: "https://contact.url",
     contactEmail: "john.doe@example.com",
@@ -67,7 +56,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
     serverUrls: ["https://server1.com", "https://server2.com"],
   };
 
-  const soapBody = {
+  const soapBody: catalogApi.TemplateInstanceInterfaceSOAPSeed = {
     serverUrls: ["https://soap.server1.com", "https://soap.server2.com"],
   };
 
@@ -76,7 +65,9 @@ describe("addEServiceTemplateInstanceInterface", () => {
     eServiceId: EServiceId,
     descriptorId: DescriptorId,
     technology: Technology,
-    body?: typeof restBody | typeof soapBody
+    body?:
+      | catalogApi.TemplateInstanceInterfaceRESTSeed
+      | catalogApi.TemplateInstanceInterfaceSOAPSeed
   ) => {
     const payload = body ?? (technology === "Rest" ? restBody : soapBody);
 
@@ -89,7 +80,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       .send(payload);
   };
 
-  (["Rest", "Soap"] as Technology[]).forEach((technology) => {
+  Object.values(technology).forEach((technology) => {
     describe(`POST /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/${technology}`, () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
@@ -97,9 +88,11 @@ describe("addEServiceTemplateInstanceInterface", () => {
         state: descriptorState.draft,
       };
 
-      const eservice: EService = getMockEServiceByTechnology(
-        technology,
-        descriptor
+      const eservice: EService = getMockEService(
+        generateId<EServiceId>(),
+        generateId<TenantId>(),
+        [descriptor],
+        technology
       );
 
       beforeEach(() => {

@@ -4,14 +4,17 @@ import request from "supertest";
 import { EService, generateId } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNameDuplicate,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
-import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import { EServiceSeed } from "../../../api-clients/dist/catalogApi.js";
 
 describe("API /eservices authorization test", () => {

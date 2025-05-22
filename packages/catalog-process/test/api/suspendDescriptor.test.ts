@@ -10,10 +10,13 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
-import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
