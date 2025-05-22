@@ -1,6 +1,8 @@
 import {
   ClientAssertionDigest,
   ClientId,
+  DescriptorId,
+  EServiceId,
   PurposeId,
   TenantId,
   UserId,
@@ -46,6 +48,11 @@ export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
   sub: ClientId;
   [PURPOSE_ID_CLAIM]: PurposeId;
   digest?: ClientAssertionDigest;
+  // TODO: the new claims are behind the feature flag FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS. They should become required after the feature flag disappears.
+  producerId?: TenantId;
+  consumerId?: TenantId;
+  eserviceId?: EServiceId;
+  descriptorId?: DescriptorId;
 };
 
 export type InteropConsumerToken = {
