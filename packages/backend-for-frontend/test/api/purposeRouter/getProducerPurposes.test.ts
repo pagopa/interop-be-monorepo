@@ -23,6 +23,10 @@ describe("API GET /producers/purposes test", () => {
   const defaultQuery = {
     offset: 0,
     limit: 5,
+    q: "",
+    eservicesIds: generateId(),
+    producersIds: `${generateId()},${generateId()}`,
+    states: "ACTIVE,DRAFT",
   };
 
   beforeEach(() => {
@@ -31,7 +35,10 @@ describe("API GET /producers/purposes test", () => {
       .mockResolvedValue(mockPurposes);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get(`${appBasePath}/producers/purposes`)
       .set("Authorization", `Bearer ${token}`)
@@ -80,7 +87,7 @@ describe("API GET /producers/purposes test", () => {
     { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query);
+    const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });
