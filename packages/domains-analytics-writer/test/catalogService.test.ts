@@ -266,7 +266,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
 
   it("EServiceRiskAnalysisDeleted: marks riskAnalysis deleted", async () => {
     const eservice = getMockEService();
-    const risk = getMockValidRiskAnalysis("PA");
+    const riskAnalysis = getMockValidRiskAnalysis("PA");
 
     await handleCatalogMessageV1(
       [
@@ -277,7 +277,10 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
           type: "EServiceAdded",
           event_version: 1,
           data: {
-            eservice: toEServiceV1({ ...eservice, riskAnalysis: [risk] }),
+            eservice: toEServiceV1({
+              ...eservice,
+              riskAnalysis: [riskAnalysis],
+            }),
           },
           log_date: new Date(),
         },
@@ -292,7 +295,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
       type: "EServiceRiskAnalysisDeleted",
       event_version: 1,
       data: {
-        riskAnalysisId: risk.id,
+        riskAnalysisId: riskAnalysis.id,
         eservice: toEServiceV1(eservice),
       } as EServiceRiskAnalysisDeletedV1,
       log_date: new Date(),
@@ -302,7 +305,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     const stored = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_risk_analysis,
-      { id: risk.id }
+      { id: riskAnalysis.id }
     );
     stored.forEach((r) => expect(r.deleted).toBe(true));
   });
@@ -426,18 +429,18 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
       docs: [document],
     };
     const riskAnalysis = getMockValidRiskAnalysis("PA");
-    const mockEService: EService = {
+    const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
       riskAnalysis: [riskAnalysis],
     };
 
     const payload: EServiceAddedV2 = {
-      eservice: toEServiceV2(mockEService),
+      eservice: toEServiceV2(eservice),
     };
     const msg: EServiceEventEnvelopeV2 = {
       sequence_num: 1,
-      stream_id: mockEService.id,
+      stream_id: eservice.id,
       version: 1,
       type: "EServiceAdded",
       event_version: 2,
@@ -449,7 +452,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     const storedEservice = await getOneFromDb(
       dbContext,
       CatalogDbTable.eservice,
-      { id: mockEService.id }
+      { id: eservice.id }
     );
     expect(storedEservice).toBeDefined();
     expect(storedEservice.metadataVersion).toBe(1);
@@ -628,7 +631,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
 
   it("EServiceRiskAnalysisDeleted: marks riskAnalysis deleted", async () => {
     const eservice = getMockEService();
-    const risk = getMockValidRiskAnalysis("PA");
+    const riskAnalysis = getMockValidRiskAnalysis("PA");
 
     await handleCatalogMessageV2(
       [
@@ -639,7 +642,10 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
           type: "EServiceAdded",
           event_version: 2,
           data: {
-            eservice: toEServiceV2({ ...eservice, riskAnalysis: [risk] }),
+            eservice: toEServiceV2({
+              ...eservice,
+              riskAnalysis: [riskAnalysis],
+            }),
           } as EServiceAddedV2,
           log_date: new Date(),
         },
@@ -654,7 +660,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
       type: "EServiceRiskAnalysisDeleted",
       event_version: 2,
       data: {
-        riskAnalysisId: risk.id,
+        riskAnalysisId: riskAnalysis.id,
         eservice: toEServiceV2(eservice),
       } as EServiceRiskAnalysisDeletedV2,
       log_date: new Date(),
@@ -664,7 +670,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     const stored = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_risk_analysis,
-      { id: risk.id }
+      { id: riskAnalysis.id }
     );
     stored.forEach((r) => expect(r.deleted).toBe(true));
   });
@@ -673,7 +679,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     const eservice = getMockEService();
     const descriptor = getMockDescriptor();
     const document = getMockDocument();
-    const risk = getMockValidRiskAnalysis("PA");
+    const riskAnalysis = getMockValidRiskAnalysis("PA");
 
     await handleCatalogMessageV2(
       [
@@ -687,7 +693,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
             eservice: toEServiceV2({
               ...eservice,
               descriptors: [descriptor],
-              riskAnalysis: [risk],
+              riskAnalysis: [riskAnalysis],
             }),
           } as EServiceAddedV2,
           log_date: new Date(),
@@ -767,7 +773,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
 
     (
       await getManyFromDb(dbContext, CatalogDbTable.eservice_risk_analysis, {
-        id: risk.id,
+        id: riskAnalysis.id,
       })
     ).forEach((r) => expect(r.deleted).toBe(true));
   });

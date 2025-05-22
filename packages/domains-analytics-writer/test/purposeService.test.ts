@@ -387,39 +387,39 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
   });
 
   it("DraftPurposeUpdated: upserts purpose metadata_version incremented", async () => {
-    const mock = getMockPurpose();
+    const purpose = getMockPurpose();
 
     await handlePurposeMessageV2(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: purpose.id,
           version: 1,
           type: "PurposeAdded",
           event_version: 2,
-          data: { purpose: toPurposeV2(mock) },
+          data: { purpose: toPurposeV2(purpose) },
           log_date: new Date(),
         },
       ],
       dbContext
     );
 
-    const updated = { ...mock, title: "updated" };
+    const updatedPurpose: Purpose = { ...purpose, title: "updated" };
 
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 2,
       type: "DraftPurposeUpdated",
       event_version: 2,
-      data: { purpose: toPurposeV2(updated) },
+      data: { purpose: toPurposeV2(updatedPurpose) },
       log_date: new Date(),
     };
 
     await handlePurposeMessageV2([msg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mock.id,
+      id: purpose.id,
     });
     expect(stored.title).toBe("updated");
     expect(stored.metadataVersion).toBe(2);
@@ -506,16 +506,16 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
   });
 
   it("NewPurposeVersionActivated: adds a version on a existing purpose", async () => {
-    const mock = getMockPurpose();
+    const purpose = getMockPurpose();
     await handlePurposeMessageV2(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: purpose.id,
           version: 1,
           type: "PurposeAdded",
           event_version: 2,
-          data: { purpose: toPurposeV2(mock) },
+          data: { purpose: toPurposeV2(purpose) },
           log_date: new Date(),
         },
       ],
@@ -523,16 +523,16 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     );
 
     const version = getMockPurposeVersion();
-    mock.versions.push(version);
+    purpose.versions.push(version);
 
     const payload: NewPurposeVersionActivatedV2 = {
       versionId: version.id,
-      purpose: toPurposeV2(mock),
+      purpose: toPurposeV2(purpose),
     };
 
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 2,
       type: "NewPurposeVersionActivated",
       event_version: 2,
@@ -626,21 +626,21 @@ describe("Check on metadata_version merge - Purpose", () => {
   });
 
   it("should skip update when incoming metadata_version is lower or equal", async () => {
-    const mock = getMockPurpose();
+    const purpose = getMockPurpose();
 
     const msgV1: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 1,
       type: "PurposeCreated",
       event_version: 1,
-      data: { purpose: toPurposeV1({ ...mock, title: "Title v1" }) },
+      data: { purpose: toPurposeV1({ ...purpose, title: "Title v1" }) },
       log_date: new Date(),
     };
 
     await handlePurposeMessageV1([msgV1], dbContext);
     const stored1 = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mock.id,
+      id: purpose.id,
     });
     expect(stored1.title).toBe("Title v1");
     expect(stored1.metadataVersion).toBe(1);
@@ -649,11 +649,11 @@ describe("Check on metadata_version merge - Purpose", () => {
       ...msgV1,
       version: 3,
       sequence_num: 2,
-      data: { purpose: toPurposeV1({ ...mock, title: "Title v3" }) },
+      data: { purpose: toPurposeV1({ ...purpose, title: "Title v3" }) },
     };
     await handlePurposeMessageV1([msgV3], dbContext);
     const stored2 = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mock.id,
+      id: purpose.id,
     });
     expect(stored2.title).toBe("Title v3");
     expect(stored2.metadataVersion).toBe(3);
@@ -662,11 +662,11 @@ describe("Check on metadata_version merge - Purpose", () => {
       ...msgV1,
       version: 2,
       sequence_num: 3,
-      data: { purpose: toPurposeV1({ ...mock, title: "Title v2" }) },
+      data: { purpose: toPurposeV1({ ...purpose, title: "Title v2" }) },
     };
     await handlePurposeMessageV1([msgV2], dbContext);
     const stored3 = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mock.id,
+      id: purpose.id,
     });
     expect(stored3.title).toBe("Title v3");
     expect(stored3.metadataVersion).toBe(3);

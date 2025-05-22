@@ -17,6 +17,7 @@ import {
   AgreementDocumentId,
   toAgreementV2,
   Agreement,
+  AgreementDocument,
 } from "pagopa-interop-models";
 import {
   getMockAgreement,
@@ -41,20 +42,21 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
   });
 
   it("AgreementAdded: inserts agreement with stamps, attributes, consumer docs and contract", async () => {
-    const mock = getMockAgreement();
     const doc = getMockAgreementDocument();
-    mock.consumerDocuments = [doc];
-    const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
-    const contractDoc = { ...getMockAgreementDocument(), id: contractId };
-    mock.contract = contractDoc;
+    const contractDoc = getMockAgreementDocument();
+    const agreement = {
+      ...getMockAgreement(),
+      consumerDocuments: [doc],
+      contract: contractDoc,
+    };
 
     const msg: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 1,
       event_version: 1,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      data: { agreement: toAgreementV1(agreement) } as AgreementAddedV1,
       log_date: new Date(),
     };
 
@@ -63,7 +65,7 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     const storedAgreement = await getOneFromDb(
       dbContext,
       AgreementDbTable.agreement,
-      { id: mock.id }
+      { id: agreement.id }
     );
     expect(storedAgreement).toBeDefined();
     expect(storedAgreement.metadataVersion).toBe(1);
@@ -71,11 +73,11 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     const storedStamps = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_stamp,
-      { agreementId: mock.id }
+      { agreementId: agreement.id }
     );
     expect(storedStamps.length).toBeGreaterThan(0);
 
-    const attrId = mock.certifiedAttributes[0].id;
+    const attrId = agreement.certifiedAttributes[0].id;
     const attrs = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_attribute,
@@ -94,33 +96,33 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     const storedContract = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_contract,
-      { id: contractId }
+      { id: contractDoc.id }
     );
     expect(storedContract.length).toBeGreaterThan(0);
     expect(storedContract[0].metadataVersion).toBe(1);
   });
 
   it("AgreementConsumerDocumentAdded: inserts new document", async () => {
-    const mock = getMockAgreement();
+    const agreement = getMockAgreement();
     const doc = getMockAgreementDocument();
 
     const addMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 1,
       event_version: 1,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      data: { agreement: toAgreementV1(agreement) } as AgreementAddedV1,
       log_date: new Date(),
     };
     const docMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 2,
       event_version: 1,
       type: "AgreementConsumerDocumentAdded",
       data: {
-        agreementId: mock.id,
+        agreementId: agreement.id,
         document: toAgreementDocumentV1(doc),
       } as AgreementConsumerDocumentAddedV1,
       log_date: new Date(),
@@ -138,22 +140,22 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
   });
 
   it("AgreementUpdated: applies update", async () => {
-    const mock = getMockAgreement();
+    const agreement = getMockAgreement();
     const addMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 1,
       event_version: 1,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      data: { agreement: toAgreementV1(agreement) } as AgreementAddedV1,
       log_date: new Date(),
     };
 
-    const updated: Agreement = { ...mock, state: "Suspended" };
+    const updated: Agreement = { ...agreement, state: "Suspended" };
 
     const updatedMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 2,
       event_version: 1,
       type: "AgreementUpdated",
@@ -164,7 +166,7 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     await handleAgreementMessageV1([addMsg, updatedMsg], dbContext);
 
     const stored = await getOneFromDb(dbContext, AgreementDbTable.agreement, {
-      id: mock.id,
+      id: agreement.id,
     });
     expect(stored.metadataVersion).toBe(2);
     expect(stored.state).toBe("Suspended");
@@ -174,7 +176,7 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     const doc = getMockAgreementDocument();
     const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
     const contractDoc = { ...getMockAgreementDocument(), id: contractId };
-    const mock = {
+    const agreement = {
       ...getMockAgreement(),
       consumerDocuments: [doc],
       contract: contractDoc,
@@ -182,20 +184,20 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
 
     const addMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 1,
       event_version: 1,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      data: { agreement: toAgreementV1(agreement) } as AgreementAddedV1,
       log_date: new Date(),
     };
     const delMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 2,
       event_version: 1,
       type: "AgreementDeleted",
-      data: { agreementId: mock.id } as AgreementDeletedV1,
+      data: { agreementId: agreement.id } as AgreementDeletedV1,
       log_date: new Date(),
     };
 
@@ -204,18 +206,18 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     const storedAgreement = await getOneFromDb(
       dbContext,
       AgreementDbTable.agreement,
-      { id: mock.id }
+      { id: agreement.id }
     );
     expect(storedAgreement.deleted).toBe(true);
 
     const storedStamps = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_stamp,
-      { agreementId: mock.id }
+      { agreementId: agreement.id }
     );
     storedStamps.forEach((s) => expect(s.deleted).toBe(true));
 
-    const attrId = mock.certifiedAttributes[0].id;
+    const attrId = agreement.certifiedAttributes[0].id;
     const attrs = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_attribute,
@@ -239,35 +241,37 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
   });
 
   it("AgreementContractAdded: overwrites contract if metadata_version is higher", async () => {
-    const mock = getMockAgreement();
-    const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
-    const original = {
+    const previousContract: AgreementDocument = {
       ...getMockAgreementDocument(),
-      id: contractId,
       prettyName: "orig.pdf",
     };
-    mock.contract = original;
-
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      contract: previousContract,
+    };
     const addMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 1,
       event_version: 1,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV1(mock) } as AgreementAddedV1,
+      data: { agreement: toAgreementV1(agreement) } as AgreementAddedV1,
       log_date: new Date(),
     };
 
-    const updated = { ...original, prettyName: "updated.pdf" };
+    const updatedContract: AgreementDocument = {
+      ...previousContract,
+      prettyName: "updated.pdf",
+    };
     const updateMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 2,
       event_version: 1,
       type: "AgreementContractAdded",
       data: {
-        agreementId: mock.id,
-        contract: toAgreementDocumentV1(updated),
+        agreementId: agreement.id,
+        contract: toAgreementDocumentV1(updatedContract),
       } as AgreementContractAddedV1,
       log_date: new Date(),
     };
@@ -277,7 +281,7 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
     const stored = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_contract,
-      { id: contractId }
+      { id: previousContract.id }
     );
     expect(stored.length).toBe(1);
     expect(stored[0].prettyName).toBe("updated.pdf");
@@ -291,20 +295,21 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
   });
 
   it("AgreementAdded: inserts agreement with stamps, attributes, consumer docs and contract (V2)", async () => {
-    const mock = getMockAgreement();
     const doc = getMockAgreementDocument();
-    mock.consumerDocuments = [doc];
-    const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
-    const contractDoc = { ...getMockAgreementDocument(), id: contractId };
-    mock.contract = contractDoc;
+    const contractDoc = getMockAgreementDocument();
+    const agreement = {
+      ...getMockAgreement(),
+      consumerDocuments: [doc],
+      contract: contractDoc,
+    };
 
     const msg: AgreementEventEnvelopeV2 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 1,
       event_version: 2,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV2(mock) } as AgreementAddedV2,
+      data: { agreement: toAgreementV2(agreement) } as AgreementAddedV2,
       log_date: new Date(),
     };
 
@@ -313,7 +318,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     const storedAgreement = await getOneFromDb(
       dbContext,
       AgreementDbTable.agreement,
-      { id: mock.id }
+      { id: agreement.id }
     );
     expect(storedAgreement).toBeDefined();
     expect(storedAgreement.metadataVersion).toBe(1);
@@ -321,11 +326,11 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     const storedStamps = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_stamp,
-      { agreementId: mock.id }
+      { agreementId: agreement.id }
     );
     expect(storedStamps.length).toBeGreaterThan(0);
 
-    const attrId = mock.certifiedAttributes[0].id;
+    const attrId = agreement.certifiedAttributes[0].id;
     const attrs = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_attribute,
@@ -344,7 +349,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     const storedContract = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_contract,
-      { id: contractId }
+      { id: contractDoc.id }
     );
     expect(storedContract.length).toBeGreaterThan(0);
     expect(storedContract[0].metadataVersion).toBe(1);
@@ -352,25 +357,28 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
 
   it("AgreementConsumerDocumentRemoved: marks consumer document as deleted ", async () => {
     const doc = getMockAgreementDocument();
-    const mock = { ...getMockAgreement(), consumerDocuments: [doc] };
+    const agreement: Agreement = {
+      ...getMockAgreement(),
+      consumerDocuments: [doc],
+    };
 
     const addMsg: AgreementEventEnvelopeV2 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 1,
       event_version: 2,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV2(mock) } as AgreementAddedV2,
+      data: { agreement: toAgreementV2(agreement) } as AgreementAddedV2,
       log_date: new Date(),
     };
     const remMsg: AgreementEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 2,
       event_version: 2,
       type: "AgreementConsumerDocumentRemoved",
       data: {
-        agreement: toAgreementV2(mock),
+        agreement: toAgreementV2(agreement),
         documentId: doc.id,
       } as AgreementConsumerDocumentRemovedV2,
       log_date: new Date(),
@@ -388,22 +396,22 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
   });
 
   it("AgreementSuspendedByProducer: applies update", async () => {
-    const mock = getMockAgreement();
+    const agreement = getMockAgreement();
     const addMsg: AgreementEventEnvelopeV2 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 1,
       event_version: 2,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV2(mock) } as AgreementAddedV2,
+      data: { agreement: toAgreementV2(agreement) } as AgreementAddedV2,
       log_date: new Date(),
     };
 
-    const upgraded: Agreement = { ...mock, state: "Suspended" };
+    const upgraded: Agreement = { ...agreement, state: "Suspended" };
 
     const upgradeMsg: AgreementEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 2,
       event_version: 2,
       type: "AgreementSuspendedByProducer",
@@ -414,7 +422,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     await handleAgreementMessageV2([addMsg, upgradeMsg], dbContext);
 
     const stored = await getOneFromDb(dbContext, AgreementDbTable.agreement, {
-      id: mock.id,
+      id: agreement.id,
     });
     expect(stored.metadataVersion).toBe(2);
     expect(stored.state).toBe("Suspended");
@@ -424,7 +432,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     const doc = getMockAgreementDocument();
     const contractId = unsafeBrandId<AgreementDocumentId>(generateId());
     const contractDoc = { ...getMockAgreementDocument(), id: contractId };
-    const mock = {
+    const agreement = {
       ...getMockAgreement(),
       consumerDocuments: [doc],
       contract: contractDoc,
@@ -432,20 +440,20 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
 
     const addMsg: AgreementEventEnvelopeV2 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 1,
       event_version: 2,
       type: "AgreementAdded",
-      data: { agreement: toAgreementV2(mock) } as AgreementAddedV2,
+      data: { agreement: toAgreementV2(agreement) } as AgreementAddedV2,
       log_date: new Date(),
     };
     const delMsg: AgreementEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: agreement.id,
       version: 2,
       event_version: 2,
       type: "AgreementDeleted",
-      data: { agreement: toAgreementV2(mock) } as AgreementDeletedV2,
+      data: { agreement: toAgreementV2(agreement) } as AgreementDeletedV2,
       log_date: new Date(),
     };
 
@@ -454,18 +462,18 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     const storedAgreement = await getOneFromDb(
       dbContext,
       AgreementDbTable.agreement,
-      { id: mock.id }
+      { id: agreement.id }
     );
     expect(storedAgreement.deleted).toBe(true);
 
     const storedStamps = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_stamp,
-      { agreementId: mock.id }
+      { agreementId: agreement.id }
     );
     storedStamps.forEach((s) => expect(s.deleted).toBe(true));
 
-    const attrId = mock.certifiedAttributes[0].id;
+    const attrId = agreement.certifiedAttributes[0].id;
     const attrs = await getManyFromDb(
       dbContext,
       AgreementDbTable.agreement_attribute,
