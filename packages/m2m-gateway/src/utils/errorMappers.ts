@@ -9,13 +9,14 @@ const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const approveAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementNotInPendingState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("agreementNotInPendingState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getCertifiedAttributeErrorMapper = (

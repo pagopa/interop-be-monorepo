@@ -15,9 +15,9 @@ export const errorCodes = {
   attributeNotFound: "0007",
   purposeNotFound: "0008",
   missingActivePurposeVersion: "0009",
-  agreementNotInPendingState: "0010",
-  taxCodeAndIPACodeConflict: "0011",
-  eserviceDescriptorNotFound: "0012",
+  taxCodeAndIPACodeConflict: "0010",
+  eserviceDescriptorNotFound: "0011",
+  agreementNotInPendingState: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -101,7 +101,7 @@ export function agreementNotInPendingState(
   return new ApiError({
     detail: `Agreement ${agreementId} is not in pending state`,
     code: "agreementNotInPendingState",
-    title: "Agreement Not In Pending State",
+    title: "Agreement not in pending state",
   });
 }
 
