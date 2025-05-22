@@ -82,7 +82,7 @@ describe("getPurposeVersions", () => {
     });
   });
 
-  it("Should apply filters (offset, limit, state)", async () => {
+  it("Should apply filters (offset, limit)", async () => {
     const m2mPurposeResponse: m2mGatewayApi.PurposeVersions = {
       pagination: {
         offset: 0,
@@ -139,24 +139,64 @@ describe("getPurposeVersions", () => {
       getMockM2MAdminAppContext()
     );
     expect(result3).toEqual(m2mPurposeResponse3);
+  });
 
-    const m2mPurposeResponse4: m2mGatewayApi.PurposeVersions = {
+  it("Should apply filters (offset, limit, state)", async () => {
+    const m2mPurposeResponse1: m2mGatewayApi.PurposeVersions = {
       pagination: {
         offset: 0,
-        limit: 2,
+        limit: 10,
         totalCount: 2,
       },
       results: [mockApiPurposeVersion2, mockApiPurposeVersion4],
     };
-    const result4 = await purposeService.getPurposeVersions(
+    const result1 = await purposeService.getPurposeVersions(
       unsafeBrandId(mockApiPurpose.data.id),
       {
         offset: 0,
-        limit: 2,
+        limit: 10,
         state: "ACTIVE",
       },
       getMockM2MAdminAppContext()
     );
-    expect(result4).toEqual(m2mPurposeResponse4);
+    expect(result1).toEqual(m2mPurposeResponse1);
+
+    const m2mPurposeResponse2: m2mGatewayApi.PurposeVersions = {
+      pagination: {
+        offset: 0,
+        limit: 1,
+        totalCount: 2,
+      },
+      results: [mockApiPurposeVersion2],
+    };
+    const result2 = await purposeService.getPurposeVersions(
+      unsafeBrandId(mockApiPurpose.data.id),
+      {
+        offset: 0,
+        limit: 1,
+        state: "ACTIVE",
+      },
+      getMockM2MAdminAppContext()
+    );
+    expect(result2).toEqual(m2mPurposeResponse2);
+
+    const m2mPurposeResponse3: m2mGatewayApi.PurposeVersions = {
+      pagination: {
+        offset: 0,
+        limit: 10,
+        totalCount: 1,
+      },
+      results: [mockApiPurposeVersion5],
+    };
+    const result3 = await purposeService.getPurposeVersions(
+      unsafeBrandId(mockApiPurpose.data.id),
+      {
+        offset: 0,
+        limit: 10,
+        state: "SUSPENDED",
+      },
+      getMockM2MAdminAppContext()
+    );
+    expect(result3).toEqual(m2mPurposeResponse3);
   });
 });
