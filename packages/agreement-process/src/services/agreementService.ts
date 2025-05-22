@@ -1346,14 +1346,14 @@ export function agreementServiceBuilder(
         ...archiveEvents,
       ]);
 
-      const latestVersion = Math.max(
+      const newVersion = Math.max(
         0,
         ...createdEvents.map((event) => event.newVersion)
       );
 
       return {
         data: updatedAgreement,
-        metadata: { version: latestVersion },
+        metadata: { version: newVersion },
       };
     },
     async archiveAgreement(

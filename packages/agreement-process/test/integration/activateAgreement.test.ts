@@ -324,7 +324,7 @@ describe("activate agreement", () => {
           delegateConsumer,
         });
 
-        const acrivateAgreementReturnValue =
+        const activateAgreementReturnValue =
           await agreementService.activateAgreement(
             agreement.id,
             getMockContext({ authData })
@@ -479,7 +479,7 @@ describe("activate agreement", () => {
         ).toContain(expectedContract.path);
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
-        expect(acrivateAgreementReturnValue).toMatchObject({
+        expect(activateAgreementReturnValue).toMatchObject({
           data: expectedActivatedAgreement,
           metadata: { version: 1 },
         });
