@@ -8,7 +8,6 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
-  makeApiProblemBuilder,
   PurposeId,
 } from "pagopa-interop-models";
 
