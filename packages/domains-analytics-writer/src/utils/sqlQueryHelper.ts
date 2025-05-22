@@ -78,7 +78,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
       USING ${stagingTableName} AS source
       ON ${onCondition}
       WHEN MATCHED
-        AND source.metadata_version::INTEGER > ${schemaName}.${tableName}.metadata_version
+        AND source.metadata_version > ${schemaName}.${tableName}.metadata_version
       THEN
         UPDATE SET
           ${updateSet}
