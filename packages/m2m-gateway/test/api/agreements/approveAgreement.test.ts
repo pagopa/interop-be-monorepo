@@ -66,14 +66,14 @@ describe("POST /agreements/:agreementId/approve router test", () => {
     }
   );
 
-  it("Should return 400 in case of agreementNotInPendingState error", async () => {
+  it("Should return 409 in case of agreementNotInPendingState error", async () => {
     mockAgreementService.approveAgreement = vi
       .fn()
       .mockRejectedValue(agreementNotInPendingState(mockApiAgreement.data.id));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(409);
   });
 
   it.each([

@@ -68,7 +68,7 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
     }
   );
 
-  it("Should return 400 in case of agreementNotInSuspendedState error", async () => {
+  it("Should return 409 in case of agreementNotInSuspendedState error", async () => {
     mockAgreementService.unsuspendAgreement = vi
       .fn()
       .mockRejectedValue(
@@ -77,7 +77,7 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(409);
   });
 
   it.each([
