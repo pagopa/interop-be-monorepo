@@ -6,6 +6,9 @@ import {
   getMockDelegation,
   getMockEServiceTemplate,
   getMockAuthData,
+  getMockDescriptor,
+  getMockEService,
+  getMockDocument,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -35,12 +38,7 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
-import {
-  getMockDescriptor,
-  getMockEService,
-  getMockDocument,
-  buildUpdateDescriptorSeed,
-} from "../mockUtils.js";
+import { buildUpdateDescriptorSeed } from "../mockUtils.js";
 
 describe("update draft descriptor instance", () => {
   const mockDescriptor = getMockDescriptor();

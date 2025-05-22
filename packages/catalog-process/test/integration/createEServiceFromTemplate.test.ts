@@ -6,6 +6,9 @@ import {
   getMockEServiceTemplateVersion,
   getMockAuthData,
   readEventByStreamIdAndVersion,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -31,11 +34,6 @@ import {
   addOneEServiceTemplate,
   fileManager,
 } from "../integrationUtils.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
 
 describe("create eService from template", () => {
   const mockEService = getMockEService();

@@ -1,18 +1,19 @@
 import { Descriptor, descriptorState, EService } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { getMockContext, getMockTenant } from "pagopa-interop-commons-test";
+import {
+  getMockContext,
+  getMockTenant,
+  getMockAgreement,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
   catalogService,
 } from "../integrationUtils.js";
-import {
-  getMockAgreement,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
 
 describe("get eservice consumers", () => {
   const mockDescriptor = getMockDescriptor();
@@ -31,12 +32,12 @@ describe("get eservice consumers", () => {
     await addOneEService(eservice1);
     const tenant = getMockTenant();
     await addOneTenant(tenant);
-    const agreement = getMockAgreement({
-      eserviceId: eservice1.id,
+    const agreement = {
+      ...getMockAgreement(eservice1.id),
       descriptorId: descriptor1.id,
       producerId: eservice1.producerId,
       consumerId: tenant.id,
-    });
+    };
     await addOneAgreement(agreement);
 
     const result = await catalogService.getEServiceConsumers(

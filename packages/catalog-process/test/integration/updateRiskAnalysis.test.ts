@@ -12,6 +12,8 @@ import {
   getMockDelegation,
   getMockContext,
   getMockAuthData,
+  getMockDescriptor,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   TenantKind,
@@ -53,11 +55,7 @@ import {
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
-import {
-  buildRiskAnalysisSeed,
-  getMockDescriptor,
-  getMockEService,
-} from "../mockUtils.js";
+import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
 describe("update risk analysis", () => {
   const mockDescriptor = getMockDescriptor();

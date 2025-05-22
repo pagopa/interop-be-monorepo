@@ -4,6 +4,9 @@ import {
   getMockContext,
   getMockDelegation,
   getMockAuthData,
+  getMockDocument,
+  getMockDescriptor,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -30,11 +33,6 @@ import {
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
-import {
-  getMockDocument,
-  getMockDescriptor,
-  getMockEService,
-} from "../mockUtils.js";
 
 describe("update eService description", () => {
   it("should write on event-store for the update of the eService description", async () => {

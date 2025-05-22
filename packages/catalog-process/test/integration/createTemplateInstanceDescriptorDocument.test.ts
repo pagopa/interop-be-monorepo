@@ -13,6 +13,9 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockAuthData,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   eServiceNotFound,
@@ -23,13 +26,7 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-  buildDocumentSeed,
-  buildInterfaceSeed,
-} from "../mockUtils.js";
+import { buildDocumentSeed, buildInterfaceSeed } from "../mockUtils.js";
 
 describe("createTemplateInstanceDescriptorDocument", () => {
   const mockDescriptor = getMockDescriptor();

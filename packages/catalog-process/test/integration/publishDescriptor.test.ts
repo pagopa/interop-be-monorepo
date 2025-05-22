@@ -7,6 +7,10 @@ import {
   getMockDelegation,
   getMockAuthData,
   getMockContext,
+  getMockEService,
+  getMockDescriptor,
+  getMockDocument,
+  getMockAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -44,16 +48,11 @@ import {
   addOneAgreement,
   addOneDelegation,
 } from "../integrationUtils.js";
-import {
-  getMockEService,
-  getMockDescriptor,
-  getMockDocument,
-  getMockAgreement,
-} from "../mockUtils.js";
 
 describe("publish descriptor", () => {
   const mockEService = getMockEService();
-  const mockDescriptor = getMockDescriptor();
+  const mockDescriptor: Descriptor = getMockDescriptor();
+
   const mockDocument = getMockDocument();
   beforeAll(() => {
     vi.useFakeTimers();
@@ -327,12 +326,12 @@ describe("publish descriptor", () => {
       ...getMockTenant(),
     };
     await addOneTenant(tenant);
-    const agreement = getMockAgreement({
-      eserviceId: eservice.id,
+    const agreement = {
+      ...getMockAgreement(eservice.id),
       descriptorId: descriptor1.id,
       producerId: eservice.producerId,
       consumerId: tenant.id,
-    });
+    };
     await addOneAgreement(agreement);
     await catalogService.publishDescriptor(
       eservice.id,

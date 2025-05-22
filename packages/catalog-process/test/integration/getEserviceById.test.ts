@@ -14,17 +14,15 @@ import {
   getMockAuthData,
   getMockContext,
   getMockDelegation,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
 } from "../integrationUtils.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
 import { eServiceNotFound } from "../../src/model/domain/errors.js";
 
 describe("get eservice by id", () => {

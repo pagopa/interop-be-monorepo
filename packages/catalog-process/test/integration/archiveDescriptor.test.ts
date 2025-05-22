@@ -3,6 +3,9 @@
 import {
   decodeProtobufPayload,
   getMockContextInternal,
+  getMockEService,
+  getMockDescriptor,
+  getMockDocument,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -21,11 +24,6 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import {
-  getMockEService,
-  getMockDescriptor,
-  getMockDocument,
-} from "../mockUtils.js";
 
 describe("archive descriptor", () => {
   const mockEService = getMockEService();

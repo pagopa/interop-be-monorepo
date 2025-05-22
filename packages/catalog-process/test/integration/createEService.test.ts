@@ -6,6 +6,7 @@ import {
   getMockDescriptor,
   randomArrayItem,
   readEventByStreamIdAndVersion,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   EServiceAddedV2,
@@ -28,10 +29,7 @@ import {
   postgresDB,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import {
-  getMockEService,
-  buildDescriptorSeedForEserviceCreation,
-} from "../mockUtils.js";
+import { buildDescriptorSeedForEserviceCreation } from "../mockUtils.js";
 describe("create eservice", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();

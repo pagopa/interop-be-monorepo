@@ -6,6 +6,9 @@ import {
   getMockDelegation,
   getMockAuthData,
   readEventByStreamIdAndVersion,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
@@ -39,12 +42,7 @@ import {
   postgresDB,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-  buildCreateDescriptorSeed,
-} from "../mockUtils.js";
+import { buildCreateDescriptorSeed } from "../mockUtils.js";
 
 describe("create descriptor", async () => {
   beforeAll(() => {

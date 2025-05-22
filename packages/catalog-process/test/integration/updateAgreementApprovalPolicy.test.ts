@@ -4,7 +4,10 @@ import {
   getMockAuthData,
   getMockContext,
   getMockDelegation,
-} from "pagopa-interop-commons-test/index.js";
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -25,11 +28,6 @@ import {
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
 import {
   addOneEService,
   catalogService,

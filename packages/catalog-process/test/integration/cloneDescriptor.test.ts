@@ -6,6 +6,9 @@ import {
   getMockContext,
   getMockDelegation,
   getMockAuthData,
+  getMockEService,
+  getMockDescriptor,
+  getMockDocument,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -38,11 +41,6 @@ import {
   fileManager,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import {
-  getMockEService,
-  getMockDescriptor,
-  getMockDocument,
-} from "../mockUtils.js";
 
 describe("clone descriptor", () => {
   const mockEService = getMockEService();

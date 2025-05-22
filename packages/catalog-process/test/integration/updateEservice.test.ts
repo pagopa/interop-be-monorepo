@@ -7,6 +7,9 @@ import {
   getMockValidRiskAnalysis,
   getMockAuthData,
   randomArrayItem,
+  getMockDocument,
+  getMockDescriptor,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -37,11 +40,6 @@ import {
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
-import {
-  getMockDocument,
-  getMockDescriptor,
-  getMockEService,
-} from "../mockUtils.js";
 
 describe("update eService", () => {
   const mockEService = getMockEService();

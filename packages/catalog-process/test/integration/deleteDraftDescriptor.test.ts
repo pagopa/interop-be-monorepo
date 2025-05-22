@@ -6,6 +6,9 @@ import {
   getMockDelegation,
   getMockAuthData,
   readEventByStreamIdAndVersion,
+  getMockEService,
+  getMockDescriptor,
+  getMockDocument,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -36,11 +39,6 @@ import {
   postgresDB,
   addOneDelegation,
 } from "../integrationUtils.js";
-import {
-  getMockEService,
-  getMockDescriptor,
-  getMockDocument,
-} from "../mockUtils.js";
 
 describe("delete draft descriptor", () => {
   const mockDocument = getMockDocument();

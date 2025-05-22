@@ -6,6 +6,10 @@ import {
   getMockEServiceTemplate,
   getMockTenant,
   sortEServices,
+  getMockEService,
+  getMockDescriptor,
+  getMockDocument,
+  getMockAgreement,
 } from "pagopa-interop-commons-test";
 import {
   TenantId,
@@ -30,13 +34,7 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
-import {
-  getMockEService,
-  getMockDescriptor,
-  getMockDocument,
-  getMockAgreement,
-  getMockEServiceAttributes,
-} from "../mockUtils.js";
+import { getMockEServiceAttributes } from "../mockUtils.js";
 
 describe("get eservices", () => {
   let organizationId1: TenantId;
@@ -164,27 +162,25 @@ describe("get eservices", () => {
       id: organizationId3,
     };
     await addOneTenant(tenant);
-    const agreement1 = getMockAgreement({
-      eserviceId: eservice1.id,
+    const agreement1 = {
+      ...getMockAgreement(eservice1.id),
       descriptorId: descriptor1.id,
       producerId: eservice1.producerId,
       consumerId: tenant.id,
-    });
+    };
     await addOneAgreement(agreement1);
-    const agreement2 = getMockAgreement({
-      eserviceId: eservice3.id,
+    const agreement2 = {
+      ...getMockAgreement(eservice3.id),
       descriptorId: descriptor3.id,
       producerId: eservice3.producerId,
       consumerId: tenant.id,
-    });
+    };
     await addOneAgreement(agreement2);
     const agreement3 = {
-      ...getMockAgreement({
-        eserviceId: eservice4.id,
-        descriptorId: descriptor4.id,
-        producerId: eservice4.producerId,
-        consumerId: tenant.id,
-      }),
+      ...getMockAgreement(eservice4.id),
+      descriptorId: descriptor4.id,
+      producerId: eservice4.producerId,
+      consumerId: tenant.id,
       state: agreementState.draft,
     };
     await addOneAgreement(agreement3);

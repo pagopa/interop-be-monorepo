@@ -8,6 +8,8 @@ import {
   getMockEServiceTemplateVersion,
   getMockAuthData,
   getMockDocument,
+  getMockDescriptor,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -29,7 +31,6 @@ import {
   eServiceNotFound,
   inconsistentDailyCalls,
 } from "../../src/model/domain/errors.js";
-import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 import {
   addOneDelegation,
   addOneEService,

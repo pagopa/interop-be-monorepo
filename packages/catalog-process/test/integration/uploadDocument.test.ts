@@ -20,6 +20,9 @@ import {
   getMockContext,
   getMockDelegation,
   getMockAuthData,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   eServiceNotFound,
@@ -35,13 +38,7 @@ import {
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
-import {
-  buildInterfaceSeed,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-  buildDocumentSeed,
-} from "../mockUtils.js";
+import { buildInterfaceSeed, buildDocumentSeed } from "../mockUtils.js";
 
 describe("upload Document", () => {
   const mockDescriptor = getMockDescriptor();

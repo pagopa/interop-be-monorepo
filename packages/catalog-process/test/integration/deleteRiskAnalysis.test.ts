@@ -5,6 +5,9 @@ import {
   getMockDelegation,
   getMockContext,
   getMockAuthData,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -33,11 +36,6 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
 
 describe("delete risk analysis", () => {
   const mockDescriptor = getMockDescriptor();

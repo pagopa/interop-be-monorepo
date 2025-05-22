@@ -4,6 +4,8 @@ import {
   getMockAttribute,
   getMockContext,
   getMockAuthData,
+  getMockDescriptor,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -30,7 +32,6 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import { getMockDescriptor, getMockEService } from "../mockUtils.js";
 
 describe("updateTemplateInstanceDescriptorAttributes", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);

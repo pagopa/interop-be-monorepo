@@ -1,6 +1,12 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
-import { Descriptor, generateId, RiskAnalysis } from "pagopa-interop-models";
+import { getMockEServiceAttribute } from "pagopa-interop-commons-test";
+import {
+  Descriptor,
+  EserviceAttributes,
+  generateId,
+  RiskAnalysis,
+} from "pagopa-interop-models";
 
 export const buildDescriptorSeedForEserviceCreation = (
   descriptor: Descriptor
@@ -60,6 +66,12 @@ export const buildRiskAnalysisSeed = (
   riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
   ),
+});
+
+export const getMockEServiceAttributes = (): EserviceAttributes => ({
+  certified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  declared: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
 });
 
 export const buildInterfaceSeed =

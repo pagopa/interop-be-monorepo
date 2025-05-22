@@ -6,6 +6,9 @@ import {
   getMockDelegation,
   getMockAuthData,
   readEventByStreamIdAndVersion,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   EService,
@@ -33,11 +36,6 @@ import {
   fileManager,
   addOneDelegation,
 } from "../integrationUtils.js";
-import {
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "../mockUtils.js";
 
 describe("delete eservice", () => {
   const mockDescriptor = getMockDescriptor();

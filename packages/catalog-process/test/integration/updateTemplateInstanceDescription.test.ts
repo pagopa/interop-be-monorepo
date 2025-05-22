@@ -3,6 +3,9 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockAuthData,
+  getMockDocument,
+  getMockDescriptor,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -18,11 +21,6 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import {
-  getMockDocument,
-  getMockDescriptor,
-  getMockEService,
-} from "../mockUtils.js";
 
 describe("internalupdateTemplateInstanceDescription", () => {
   it("should write on event-store for the internal update of the eService description", async () => {
