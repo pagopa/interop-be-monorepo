@@ -43,11 +43,11 @@ import {
   documentChangeNotAllowed,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
-  organizationIsNotTheDelegateProducer,
-  organizationIsNotTheProducer,
-  organizationNotAllowed,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
+  tenantIsNotTheDelegateProducer,
+  tenantIsNotTheProducer,
+  tenantNotAllowed,
 } from "./errors.js";
 import {
   ActiveDelegations,
@@ -140,7 +140,7 @@ const assertRequesterIsConsumer = (
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void => {
   if (authData.organizationId !== consumerId) {
-    throw organizationIsNotTheConsumer(authData.organizationId);
+    throw tenantIsNotTheConsumer(authData.organizationId);
   }
 };
 
@@ -149,13 +149,13 @@ const assertRequesterIsProducer = (
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void => {
   if (authData.organizationId !== agreement.producerId) {
-    throw organizationIsNotTheProducer(authData.organizationId);
+    throw tenantIsNotTheProducer(authData.organizationId);
   }
 };
 
 export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeDelegations: ActiveDelegations
 ): void => {
   try {
@@ -173,7 +173,7 @@ export const assertRequesterCanActAsConsumerOrProducer = (
         activeDelegations.producerDelegation
       );
     } catch {
-      throw organizationNotAllowed(authData.organizationId);
+      throw tenantNotAllowed(authData.organizationId);
     }
   }
 };
@@ -212,7 +212,7 @@ export const assertRequesterCanRetrieveAgreement = async (
             )
           );
         } catch {
-          throw organizationNotAllowed(authData.organizationId);
+          throw tenantNotAllowed(authData.organizationId);
         }
       }
     }
@@ -221,7 +221,7 @@ export const assertRequesterCanRetrieveAgreement = async (
 
 export const assertRequesterCanActAsProducer = (
   agreement: Agreement,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (!activeProducerDelegation) {
@@ -249,7 +249,7 @@ const assertRequesterIsDelegateProducer = (
     activeProducerDelegation?.state !== delegationState.active ||
     activeProducerDelegation?.eserviceId !== agreement.eserviceId
   ) {
-    throw organizationIsNotTheDelegateProducer(
+    throw tenantIsNotTheDelegateProducer(
       authData.organizationId,
       activeProducerDelegation?.id
     );
@@ -302,7 +302,7 @@ export const assertRequesterIsDelegateConsumer = (
     activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
     activeConsumerDelegation?.state !== delegationState.active
   ) {
-    throw organizationIsNotTheDelegateConsumer(
+    throw tenantIsNotTheDelegateConsumer(
       authData.organizationId,
       activeConsumerDelegation?.id
     );
@@ -312,7 +312,7 @@ export const assertRequesterIsDelegateConsumer = (
 export const assertRequesterCanActAsConsumer = (
   consumerId: TenantId,
   eserviceId: EServiceId,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeConsumerDelegation: Delegation | undefined
 ): void => {
   if (!activeConsumerDelegation) {

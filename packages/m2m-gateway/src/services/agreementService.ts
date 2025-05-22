@@ -9,6 +9,10 @@ import {
   pollResource,
 } from "../utils/polling.js";
 import {
+  assertAgreementIsPending,
+  assertAgreementIsSuspended,
+} from "../utils/validators/agreementValidators.js";
+import {
   toGetAgreementsApiQueryParams,
   toM2MGatewayApiAgreement,
 } from "../api/agreementApiConverter.js";
@@ -17,17 +21,23 @@ export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
+  const retrieveAgreementById = async (
+    headers: M2MGatewayAppContext["headers"],
+    agreementId: string
+  ): Promise<WithMaybeMetadata<agreementApi.Agreement>> =>
+    await clients.agreementProcessClient.getAgreementById({
+      params: {
+        agreementId,
+      },
+      headers,
+    });
+
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollAgreement = (
     response: WithMaybeMetadata<agreementApi.Agreement>,
     headers: M2MGatewayAppContext["headers"]
   ) =>
-    pollResource(() =>
-      clients.agreementProcessClient.getAgreementById({
-        params: { agreementId: response.data.id },
-        headers,
-      })
-    )({
+    pollResource(() => retrieveAgreementById(headers, response.data.id))({
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
 
@@ -65,13 +75,10 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Agreement> {
       ctx.logger.info(`Retrieving agreement with id ${agreementId}`);
 
-      const { data: agreement } =
-        await clients.agreementProcessClient.getAgreementById({
-          params: {
-            agreementId,
-          },
-          headers: ctx.headers,
-        });
+      const { data: agreement } = await retrieveAgreementById(
+        ctx.headers,
+        agreementId
+      );
 
       return toM2MGatewayApiAgreement(agreement);
     },
@@ -87,6 +94,123 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       const response = await clients.agreementProcessClient.createAgreement(
         seed,
         {
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
+    async approveAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Approving pending agreement with id ${agreementId}`);
+
+      const agreement = await retrieveAgreementById(headers, agreementId);
+
+      assertAgreementIsPending(agreement.data);
+
+      const response = await clients.agreementProcessClient.activateAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
+    async rejectAgreement(
+      agreementId: AgreementId,
+      body: m2mGatewayApi.AgreementRejection,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Rejecting agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.rejectAgreement(
+        body,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
+    async submitAgreement(
+      agreementId: AgreementId,
+      body: m2mGatewayApi.AgreementSubmission,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Submitting agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.submitAgreement(
+        body,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
+    async suspendAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Suspending agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.suspendAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
+    async unsuspendAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Unsuspending agreement with id ${agreementId}`);
+
+      const agreement = await retrieveAgreementById(headers, agreementId);
+
+      assertAgreementIsSuspended(agreement.data);
+
+      const response = await clients.agreementProcessClient.activateAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
+    async upgradeAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Upgrading agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.upgradeAgreement(
+        undefined,
+        {
+          params: { agreementId },
           headers,
         }
       );

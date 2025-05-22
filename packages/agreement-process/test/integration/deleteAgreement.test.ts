@@ -23,8 +23,8 @@ import { agreementDeletableStates } from "../../src/model/domain/agreement-valid
 import {
   agreementNotFound,
   agreementNotInExpectedState,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -174,7 +174,7 @@ describe("delete agreement", () => {
     });
   });
 
-  it("should throw organizationIsNotTheConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw tenantIsNotTheConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getMockAuthData();
 
     const agreement = {
@@ -198,10 +198,7 @@ describe("delete agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
     );
   });
 
@@ -217,7 +214,7 @@ describe("delete agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw organizationIsNotTheConsumer when the requester is not the Consumer", async () => {
+  it("should throw tenantIsNotTheConsumer when the requester is not the Consumer", async () => {
     const authData = getMockAuthData();
     const agreement = getMockAgreement();
     await addOneAgreement(agreement);
@@ -226,9 +223,7 @@ describe("delete agreement", () => {
         agreement.id,
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(authData.organizationId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a deletable state", async () => {
