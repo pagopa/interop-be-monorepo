@@ -17,6 +17,7 @@ import {
   DeletingDbTableConfigMap,
   DomainDbTable,
   DomainDbTableSchemas,
+  PurposeDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
@@ -61,17 +62,27 @@ export const agreementTables: AgreementDbTable[] = [
   AgreementDbTable.agreement_stamp,
 ];
 
+export const purposeTables: PurposeDbTable[] = [
+  PurposeDbTable.purpose,
+  PurposeDbTable.purpose_version,
+  PurposeDbTable.purpose_version_document,
+  PurposeDbTable.purpose_risk_analysis_form,
+  PurposeDbTable.purpose_risk_analysis_answer,
+];
+
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
   DeletingDbTable.catalog_risk_deleting_table,
   DeletingDbTable.agreement_deleting_table,
+  DeletingDbTable.purpose_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
   ...attributeTables,
   ...catalogTables,
   ...agreementTables,
+  ...purposeTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
@@ -83,6 +94,10 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   },
   {
     name: DeletingDbTable.agreement_deleting_table,
+    columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.purpose_deleting_table,
     columns: ["id"],
   },
 ];
