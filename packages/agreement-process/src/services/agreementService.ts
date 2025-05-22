@@ -55,7 +55,7 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -675,8 +675,12 @@ export function agreementServiceBuilder(
     },
     async upgradeAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Upgrading agreement ${agreementId}`);
 
       const agreementToBeUpgraded = await retrieveAgreement(
@@ -787,9 +791,21 @@ export function agreementServiceBuilder(
         logger,
       });
 
-      await repository.createEvents(events);
+      const createdEvents = await repository.createEvents(events);
 
-      return agreement;
+      const newVersion = Math.max(
+        0,
+        ...createdEvents
+          .filter((e) => e.streamId === agreement.id)
+          .map((event) => event.newVersion)
+      );
+
+      return {
+        data: agreement,
+        metadata: {
+          version: newVersion,
+        },
+      };
     },
     async cloneAgreement(
       agreementId: AgreementId,
@@ -942,8 +958,12 @@ export function agreementServiceBuilder(
     },
     async suspendAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Suspending agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -987,7 +1007,7 @@ export function agreementServiceBuilder(
         activeDelegations,
       });
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         createAgreementSuspendedEvent(
           authData,
           correlationId,
@@ -997,7 +1017,10 @@ export function agreementServiceBuilder(
         )
       );
 
-      return updatedAgreement;
+      return {
+        data: updatedAgreement,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
@@ -1624,7 +1647,7 @@ async function getConsumerFromDelegationOrRequester(
 
     if (delegation) {
       // If a delegation exists, the delegator cannot create the agreement
-      throw organizationIsNotTheDelegateConsumer(
+      throw tenantIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       );

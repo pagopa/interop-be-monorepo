@@ -19,6 +19,13 @@ export const approveAgreementErrorMapper = (
     .with("agreementNotInPendingState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const unsuspendAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotInSuspendedState", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getCertifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

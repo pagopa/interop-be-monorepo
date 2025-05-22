@@ -142,10 +142,11 @@ describe("Agreeement states flows", () => {
     /* =================================
       3) Consumer suspends the agreement (make it SUSPENDED byConsumer)
     ================================= */
-    const suspendedAgreement = await agreementService.suspendAgreement(
-      submittedAgreement.id,
-      getMockContext({ authData: consumerAuthData })
-    );
+    const { data: suspendedAgreement } =
+      await agreementService.suspendAgreement(
+        submittedAgreement.id,
+        getMockContext({ authData: consumerAuthData })
+      );
 
     expect(suspendedAgreement.state).toEqual(agreementState.suspended);
     expect(suspendedAgreement.suspendedByConsumer).toEqual(true);
@@ -184,7 +185,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       5) Consumer upgrades the Agreement
     ================================= */
-    const upgradedAgreement = await agreementService.upgradeAgreement(
+    const { data: upgradedAgreement } = await agreementService.upgradeAgreement(
       suspendedAgreement.id,
       getMockContext({ authData: consumerAuthData })
     );
@@ -395,7 +396,7 @@ describe("Agreeement states flows", () => {
     /* =================================
       5) Consumer upgrades the Agreement
     ================================= */
-    const upgradedAgreement = await agreementService.upgradeAgreement(
+    const { data: upgradedAgreement } = await agreementService.upgradeAgreement(
       submittedAgreement.id,
       getMockContext({ authData: consumerAuthData })
     );

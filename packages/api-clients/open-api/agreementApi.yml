@@ -277,6 +277,9 @@ paths:
       summary: Suspend Agreement
       operationId: suspendAgreement
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Active agreement suspended.
           content:
@@ -678,7 +681,7 @@ paths:
         - agreement
       summary: update an agreement in draft state.
       description: update agreement fields.
-      operationId: updateAgreementById
+      operationId: updateAgreement
       parameters:
         - name: agreementId
           in: path
@@ -726,7 +729,7 @@ paths:
         - agreement
       summary: upgrades an agreement.
       description: upgrades an agreement with a newer eservice version, if any.
-      operationId: upgradeAgreementById
+      operationId: upgradeAgreement
       parameters:
         - name: agreementId
           in: path
@@ -736,6 +739,9 @@ paths:
             type: string
             format: uuid
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement updated.
           content:
