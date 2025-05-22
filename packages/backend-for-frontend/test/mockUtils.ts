@@ -1,7 +1,86 @@
-import { bffApi } from "pagopa-interop-api-clients";
+import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
+import {
+  AttributeId,
+  ClientId,
+  DelegationId,
+  generateId,
+  UserId,
+  PurposeId,
+  PurposeVersionId,
+} from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import { PurposeId, PurposeVersionId, generateId } from "pagopa-interop-models";
+
+export const getMockApiDelegation = (): bffApi.Delegation => ({
+  id: generateId<DelegationId>(),
+  eservice: generateMock(bffApi.DelegationEService.optional()),
+  delegate: generateMock(bffApi.DelegationTenant),
+  delegator: generateMock(bffApi.DelegationTenant),
+  activationContract: generateMock(bffApi.Document.optional()),
+  revocationContract: generateMock(bffApi.Document.optional()),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  state: generateMock(bffApi.DelegationState),
+  kind: generateMock(bffApi.DelegationKind),
+});
+
+export const getMockApiAttributeSeed = (): bffApi.AttributeSeed => ({
+  description: generateMock(z.string()),
+  name: generateMock(z.string()),
+});
+
+export const getMockApiAttribute = (): bffApi.Attribute =>
+  bffApi.Attribute.parse(getMockAttributeRegistryApiAttribute());
+
+export const getMockAttributeRegistryApiAttribute =
+  (): attributeRegistryApi.Attribute => ({
+    id: generateId<AttributeId>(),
+    code: generateMock(z.string().optional()),
+    kind: generateMock(bffApi.AttributeKind),
+    description: generateMock(z.string()),
+    name: generateMock(z.string()),
+    creationTime: new Date().toISOString(),
+  });
+
+export const getMockApiCompactClient = (): bffApi.CompactClient => ({
+  id: generateId<ClientId>(),
+  name: generateMock(z.string()),
+  hasKeys: generateMock(z.boolean()),
+  admin: generateMock(bffApi.CompactUser.optional()),
+});
+
+export const getMockApiClient = (): bffApi.Client => ({
+  id: generateId<ClientId>(),
+  createdAt: new Date().toISOString(),
+  consumer: generateMock(bffApi.CompactOrganization),
+  admin: generateMock(bffApi.CompactUser.optional()),
+  name: generateMock(z.string()),
+  purposes: generateMock(z.array(bffApi.ClientPurpose)),
+  description: generateMock(z.string()),
+  kind: generateMock(bffApi.ClientKind),
+});
+
+export const getMockApiPublicKey = (): bffApi.PublicKey => ({
+  keyId: generateMock(z.string()),
+  name: generateMock(z.string()),
+  user: getMockApiCompactUser(),
+  createdAt: new Date().toISOString(),
+  isOrphan: generateMock(z.boolean()),
+});
+
+export const getMockApiCompactUser = (): bffApi.CompactUser => ({
+  userId: generateId<UserId>(),
+  name: generateMock(z.string()),
+  familyName: generateMock(z.string()),
+});
+
+export const getMockApiEncodedClientKey = (): bffApi.EncodedClientKey => ({
+  key: generateMock(z.string()),
+});
+
+export const getMockApiCreatedResource = (): bffApi.CreatedResource => ({
+  id: generateId(),
+});
 
 export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   id: generateId(),
