@@ -15,7 +15,6 @@ import { config } from "./config/config.js";
 import { EServiceTemplateService } from "./services/eserviceTemplateService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-
 export async function createApp(service: EServiceTemplateService) {
   const serviceName = modelsServiceName.ESERVICE_TEMPLATE_PROCESS;
 
