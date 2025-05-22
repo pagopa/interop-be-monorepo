@@ -23,7 +23,7 @@ export const Key = z.object({
 
 export type Key = z.infer<typeof Key>;
 
-const JWKKey = z.object({
+export const JWKKey = z.object({
   alg: z.string(),
   e: z.string(),
   kid: z.string(),
@@ -32,7 +32,7 @@ const JWKKey = z.object({
   use: z.string(),
 });
 
-type JWKKey = z.infer<typeof JWKKey>;
+export type JWKKey = z.infer<typeof JWKKey>;
 
 export const ClientJWKKey = JWKKey.extend({
   clientId: ClientId,
