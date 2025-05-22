@@ -230,7 +230,7 @@ export const verifyClientAssertionSignature = async (
     // instead of using the dedicated function from jose.
     // Why:
     // - it's the same function we use to create the public key when adding it to the client
-    // - jose throws and error in case of keys with missing trailing newline, while crypto does not
+    // - jose throws an error in case of keys with missing trailing newline, while crypto does not
     // See keyImport.test.ts
     // See also Jose docs, it accepts crypto KeyObject as well: https://github.com/panva/jose/blob/main/docs/types/types.KeyLike.md
     const publicKey = createPublicKey({ key: key.publicKey });
