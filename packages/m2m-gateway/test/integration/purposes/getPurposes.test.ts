@@ -10,10 +10,7 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
 } from "../../mockUtils.js";
-import {
-  toGetPurposesApiQueryParams,
-  toM2MGatewayApiPurpose,
-} from "../../../src/api/purposeApiConverter.js";
+import { toGetPurposesApiQueryParams } from "../../../src/api/purposeApiConverter.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getPurposes", () => {
@@ -47,12 +44,43 @@ describe("getPurposes", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mPurposeResponse1: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
-      mockApiPurpose1.data
-    );
-    const m2mPurposeResponse2: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
-      mockApiPurpose2.data
-    );
+    const expectedM2MPurpose1: m2mGatewayApi.Purpose = {
+      consumerId: mockApiPurpose1.data.consumerId,
+      createdAt: mockApiPurpose1.data.createdAt,
+      description: mockApiPurpose1.data.description,
+      eserviceId: mockApiPurpose1.data.eserviceId,
+      id: mockApiPurpose1.data.id,
+      isFreeOfCharge: mockApiPurpose1.data.isFreeOfCharge,
+      isRiskAnalysisValid: mockApiPurpose1.data.isRiskAnalysisValid,
+      title: mockApiPurpose1.data.title,
+      currentVersion: mockApiPurpose1.data.versions.at(0),
+      delegationId: mockApiPurpose1.data.delegationId,
+      freeOfChargeReason: mockApiPurpose1.data.freeOfChargeReason,
+      rejectedVersion: undefined,
+      suspendedByConsumer: undefined,
+      suspendedByProducer: undefined,
+      updatedAt: mockApiPurpose1.data.updatedAt,
+      waitingForApprovalVersion: undefined,
+    };
+
+    const expectedM2MPurpose2: m2mGatewayApi.Purpose = {
+      consumerId: mockApiPurpose2.data.consumerId,
+      createdAt: mockApiPurpose2.data.createdAt,
+      description: mockApiPurpose2.data.description,
+      eserviceId: mockApiPurpose2.data.eserviceId,
+      id: mockApiPurpose2.data.id,
+      isFreeOfCharge: mockApiPurpose2.data.isFreeOfCharge,
+      isRiskAnalysisValid: mockApiPurpose2.data.isRiskAnalysisValid,
+      title: mockApiPurpose2.data.title,
+      currentVersion: mockApiPurpose2.data.versions.at(0),
+      delegationId: mockApiPurpose2.data.delegationId,
+      freeOfChargeReason: mockApiPurpose2.data.freeOfChargeReason,
+      rejectedVersion: undefined,
+      suspendedByConsumer: undefined,
+      suspendedByProducer: undefined,
+      updatedAt: mockApiPurpose2.data.updatedAt,
+      waitingForApprovalVersion: undefined,
+    };
 
     const m2mPurposeResponse: m2mGatewayApi.Purposes = {
       pagination: {
@@ -60,7 +88,7 @@ describe("getPurposes", () => {
         offset: mockParams.offset,
         totalCount: mockPurposeProcessResponse.data.totalCount,
       },
-      results: [m2mPurposeResponse1, m2mPurposeResponse2],
+      results: [expectedM2MPurpose1, expectedM2MPurpose2],
     };
 
     const result = await purposeService.getPurposes(

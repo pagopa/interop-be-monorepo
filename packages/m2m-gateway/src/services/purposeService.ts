@@ -1,9 +1,10 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeId } from "pagopa-interop-models";
+import { PurposeId, PurposeVersionId } from "pagopa-interop-models";
 import {
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
+  toM2mGatewayApiPurposeVersion,
 } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -12,6 +13,7 @@ import {
   pollResource,
   isPolledVersionAtLeastResponseVersion,
 } from "../utils/polling.js";
+import { purposeVersionNotFound } from "../model/errors.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -91,6 +93,94 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       const polledResource = await pollPurpose(purposeResponse, headers);
 
       return toM2MGatewayApiPurpose(polledResource.data);
+    },
+    async getPurposeVersions(
+      purposeId: PurposeId,
+      { limit, offset, state }: m2mGatewayApi.GetPurposeVersionsQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeVersions> {
+      logger.info(
+        `Retrieving versions for purpose with id ${purposeId} state ${state} offset ${offset} limit ${limit}`
+      );
+
+      const { data } = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const filteredVersions = state
+        ? data.versions.filter((version) => version.state === state)
+        : data.versions;
+
+      const paginatedVersions = filteredVersions.slice(offset, offset + limit);
+
+      return {
+        results: paginatedVersions.map(toM2mGatewayApiPurposeVersion),
+        pagination: {
+          limit,
+          offset,
+          totalCount: filteredVersions.length,
+        },
+      };
+    },
+    async getPurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeVersion> {
+      logger.info(`Retrieving version ${versionId} of purpose ${purposeId}`);
+
+      const { data } = await clients.purposeProcessClient.getPurpose({
+        params: {
+          id: purposeId,
+        },
+        headers,
+      });
+
+      const version = data.versions.find((version) => version.id === versionId);
+
+      if (!version) {
+        throw purposeVersionNotFound(purposeId, versionId);
+      }
+
+      return toM2mGatewayApiPurposeVersion(version);
+    },
+    async createPurposeVersion(
+      purposeId: PurposeId,
+      versionSeed: m2mGatewayApi.PurposeVersionSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeVersion> {
+      logger.info(
+        `Creating version for purpose ${purposeId} with dailyCalls ${versionSeed.dailyCalls}`
+      );
+
+      const {
+        data: { createdVersionId, purpose },
+        metadata,
+      } = await clients.purposeProcessClient.createPurposeVersion(versionSeed, {
+        params: { purposeId },
+        headers,
+      });
+
+      await pollPurpose(
+        {
+          data: purpose,
+          metadata,
+        },
+        headers
+      );
+
+      const createdVersion = purpose.versions.find(
+        (v) => v.id === createdVersionId
+      );
+
+      if (!createdVersion) {
+        throw purposeVersionNotFound(purposeId, createdVersionId);
+      }
+
+      return toM2mGatewayApiPurposeVersion(createdVersion);
     },
   };
 }

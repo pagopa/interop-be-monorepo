@@ -8,6 +8,8 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
+  makeApiProblemBuilder,
+  PurposeId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -23,6 +25,7 @@ export const errorCodes = {
   taxCodeAndIPACodeConflict: "0010",
   eserviceDescriptorNotFound: "0011",
   eserviceTemplateVersionNotFound: "0012",
+  purposeVersionNotFound: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -108,6 +111,17 @@ export function eserviceTemplateVersionNotFound(
     detail: `Version ${versionId} not found in eservice template ${templateId}`,
     code: "eserviceTemplateVersionNotFound",
     title: "EService template version not found",
+  });
+}
+
+export function purposeVersionNotFound(
+  purposeId: PurposeId,
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${versionId} not found in purpose ${purposeId}`,
+    code: "purposeVersionNotFound",
+    title: "Purpose version not found",
   });
 }
 
