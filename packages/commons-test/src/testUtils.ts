@@ -94,6 +94,10 @@ import {
   CertifiedAttributeV2,
   AgreementDocumentV2,
   PurposeV2,
+  DPoPProof,
+  DPoPProofPayload,
+  DPoPProofHeader,
+  JWKKey,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -111,6 +115,8 @@ import {
   WithLogger,
   SessionClaims,
   CustomClaims,
+  createJWK,
+  calculateKid,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -683,7 +689,7 @@ export const getMockClientAssertion = async (props?: {
     ...props?.customHeader,
   };
 
-  const jws = await signClientAssertion({
+  const jws = await signJWT({
     payload: actualPayload,
     headers,
     keySet,
@@ -696,6 +702,54 @@ export const getMockClientAssertion = async (props?: {
       header: headers,
     },
     publicKeyEncodedPem,
+  };
+};
+
+export const getMockDPoPProof = async (): Promise<{
+  dPoPJWS: string;
+  dPoPProof: DPoPProof;
+}> => {
+  const { keySet, publicKeyEncodedPem } = generateKeySet();
+
+  const payload: DPoPProofPayload = {
+    htm: "POST",
+    htu: "test/authorization-server/token.oauth2",
+    iat: dateToSeconds(new Date()),
+    jti: generateId(),
+  };
+
+  const cryptoJWK = createJWK({ pemKeyBase64: publicKeyEncodedPem });
+  const jwk: JWKKey = {
+    ...cryptoJWK,
+    kid: calculateKid(cryptoJWK),
+    use: "sig",
+    alg: "RS256",
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    kty: cryptoJWK.kty!,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    e: cryptoJWK.e!,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    n: cryptoJWK.n!,
+  };
+
+  const header: DPoPProofHeader = {
+    typ: "dpop+jwt",
+    alg: "RS256",
+    jwk,
+  };
+
+  const dPoPJWS = await signJWT({
+    payload,
+    headers: header,
+    keySet,
+  });
+
+  return {
+    dPoPJWS,
+    dPoPProof: {
+      payload,
+      header,
+    },
   };
 };
 
@@ -730,7 +784,7 @@ export const generateKeySet = (): {
   };
 };
 
-const signClientAssertion = async ({
+const signJWT = async ({
   payload,
   headers,
   keySet,

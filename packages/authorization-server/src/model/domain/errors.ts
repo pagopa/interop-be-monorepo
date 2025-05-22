@@ -15,6 +15,9 @@ export const errorCodes = {
   tokenGenerationStatesEntryNotFound: "0006",
   incompleteTokenGenerationStatesConsumerClient: "0007",
   platformStateValidationFailed: "0008",
+  dPoPProofValidationFailed: "0009",
+  dPoPProofSignatureValidationFailed: "0010",
+  invalidDPoPProof: "0010",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -97,5 +100,36 @@ export function platformStateValidationFailed(
     detail: `Platform state validation failed - ${details}`,
     code: "platformStateValidationFailed",
     title: "Platform state validation failed",
+  });
+}
+
+export function dPoPProofValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof validation failed for clientId: ${clientId} - ${details}`,
+    code: "dPoPProofValidationFailed",
+    title: "DPoP proof validation failed",
+  });
+}
+
+export function dPoPProofSignatureValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof signature validation failed for client ${clientId} - ${details}`,
+    code: "dPoPProofSignatureValidationFailed",
+    title: "DPoP proof signature validation failed",
+  });
+}
+
+// TODO: better title and detail
+export function invalidDPoPProof(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Invalid DPoP proof",
+    code: "invalidDPoPProof",
+    title: "Invalid DPoP proof",
   });
 }

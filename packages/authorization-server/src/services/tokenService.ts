@@ -4,7 +4,6 @@ import {
   verifyClientAssertion,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   clientKindTokenGenStates,
   DescriptorId,
@@ -51,6 +50,11 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
+import {
+  verifyDPoPProof,
+  verifyDPoPProofSignature,
+  writeDPoPCache,
+} from "pagopa-interop-dpop-validation";
 import { config } from "../config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -61,7 +65,10 @@ import {
   kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
   platformStateValidationFailed,
+  dPoPProofValidationFailed,
+  dPoPProofSignatureValidationFailed,
 } from "../model/domain/errors.js";
+import { TokenRequest } from "../model/domain/models.js";
 
 export type GenerateTokenReturnType =
   | {
@@ -69,11 +76,13 @@ export type GenerateTokenReturnType =
       token: undefined;
       rateLimitedTenantId: TenantId;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+      isDPoP: boolean;
     }
   | {
       limitReached: false;
       token: InteropConsumerToken | InteropApiToken;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+      isDPoP: boolean;
     };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -92,38 +101,70 @@ export function tokenServiceBuilder({
 }) {
   return {
     async generateToken(
-      request: authorizationServerApi.AccessTokenRequest,
+      request: TokenRequest,
       { logger, correlationId }: WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<GenerateTokenReturnType> {
-      logger.info(`[CLIENTID=${request.client_id}] Token requested`);
+      logger.info(`[CLIENTID=${request.body.client_id}] Token requested`);
 
+      // DPoP proof validation
+      const { data, errors: dPoPProofErrors } = request.headers.DPoP
+        ? await verifyDPoPProof({
+            dPoPProof: request.headers.DPoP,
+            expectedDPoPProofHtu: config.dPoPHtu,
+          })
+        : { data: undefined, errors: undefined };
+
+      const dPoPProofJWT = data?.dPoPProofJWT;
+      const dPoPProofJWS = data?.dPoPProofJWS;
+
+      if (dPoPProofErrors) {
+        throw dPoPProofValidationFailed(
+          request.body.client_id,
+          dPoPProofErrors.map((error) => error.detail).join(", ")
+        );
+      }
+
+      if (dPoPProofJWT && dPoPProofJWS) {
+        const { errors: dPoPProofSignatureErrors } =
+          await verifyDPoPProofSignature(dPoPProofJWS, dPoPProofJWT.header.jwk);
+
+        if (dPoPProofSignatureErrors) {
+          throw dPoPProofSignatureValidationFailed(
+            request.body.client_id,
+            dPoPProofSignatureErrors.map((error) => error.detail).join(", ")
+          );
+        }
+      }
+
+      // Request body parameters validation
       const { errors: parametersErrors } = validateRequestParameters({
-        client_assertion: request.client_assertion,
-        client_assertion_type: request.client_assertion_type,
-        grant_type: request.grant_type,
-        client_id: request.client_id,
+        client_assertion: request.body.client_assertion,
+        client_assertion_type: request.body.client_assertion_type,
+        grant_type: request.body.grant_type,
+        client_id: request.body.client_id,
       });
 
       if (parametersErrors) {
         throw clientAssertionRequestValidationFailed(
-          request.client_id,
+          request.body.client_id,
           parametersErrors.map((error) => error.detail).join(", ")
         );
       }
 
+      // Client assertion validation
       const { data: jwt, errors: clientAssertionErrors } =
         verifyClientAssertion(
-          request.client_assertion,
-          request.client_id,
+          request.body.client_assertion,
+          request.body.client_id,
           config.clientAssertionAudience,
           logger
         );
 
       if (clientAssertionErrors) {
         throw clientAssertionValidationFailed(
-          request.client_id,
+          request.body.client_id,
           clientAssertionErrors.map((error) => error.detail).join(", ")
         );
       }
@@ -164,18 +205,19 @@ export function tokenServiceBuilder({
 
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
-          request.client_assertion,
+          request.body.client_assertion,
           key,
           jwt.header.alg
         );
 
       if (clientAssertionSignatureErrors) {
         throw clientAssertionSignatureValidationFailed(
-          request.client_id,
+          request.body.client_id,
           clientAssertionSignatureErrors.map((error) => error.detail).join(", ")
         );
       }
 
+      // Platform states validation
       const { errors: platformStateErrors } =
         validateClientKindAndPlatformState(key, jwt);
       if (platformStateErrors) {
@@ -184,6 +226,7 @@ export function tokenServiceBuilder({
         );
       }
 
+      // Rate limiter
       const { limitReached, ...rateLimiterStatus } =
         await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
       if (limitReached) {
@@ -192,7 +235,20 @@ export function tokenServiceBuilder({
           token: undefined,
           rateLimitedTenantId: key.consumerId,
           rateLimiterStatus,
+          isDPoP: dPoPProofJWT !== undefined,
         };
+      }
+
+      // Check if the DPoP proof is in the cache
+      if (dPoPProofJWT) {
+        const dPoPCacheTTL = dPoPProofJWT.payload.iat + 60;
+        await writeDPoPCache({
+          dynamoDBClient,
+          dPoPCacheTable: config.dPoPCacheTable,
+          jti: dPoPProofJWT.payload.jti,
+          iat: dPoPProofJWT.payload.iat,
+          ttl: dPoPCacheTTL,
+        });
       }
 
       return await match(key)
@@ -203,6 +259,9 @@ export function tokenServiceBuilder({
               deconstructGSIPK_eserviceId_descriptorId(
                 key.GSIPK_eserviceId_descriptorId
               );
+
+            // TODO: Add DPoP token
+
             const token = await tokenGenerator.generateInteropConsumerToken({
               sub: jwt.payload.sub,
               audience: key.descriptorAudience,
@@ -219,6 +278,8 @@ export function tokenServiceBuilder({
                   "featureFlagImprovedProducerVerificationClaims"
                 ),
             });
+
+            // TODO: Add DPoP audit
 
             await publishAudit({
               producer,
@@ -242,6 +303,7 @@ export function tokenServiceBuilder({
               limitReached: false as const,
               token,
               rateLimiterStatus,
+              isDPoP: dPoPProofJWT !== undefined,
             };
           }
         )
@@ -264,6 +326,7 @@ export function tokenServiceBuilder({
             limitReached: false as const,
             token,
             rateLimiterStatus,
+            isDPoP: dPoPProofJWT !== undefined,
           };
         })
         .exhaustive();

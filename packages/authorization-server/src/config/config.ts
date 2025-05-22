@@ -11,6 +11,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
+import { DPoPConfig } from "pagopa-interop-dpop-validation";
 
 const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
   .and(RedisRateLimiterConfig)
@@ -39,7 +40,8 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
       }))
   )
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagImprovedProducerVerificationClaimsConfig);
+  .and(FeatureFlagImprovedProducerVerificationClaimsConfig)
+  .and(DPoPConfig);
 
 export type AuthorizationServerConfig = z.infer<
   typeof AuthorizationServerConfig
