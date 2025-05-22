@@ -14,6 +14,7 @@ import {
   getMockAuthData,
   randomArrayItem,
   getMockDescriptorPublished,
+  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -281,7 +282,7 @@ describe("reject agreement", () => {
         sortAgreementAttributes(toAgreementV2(expectedAgreementRejected))
       );
       expect(rejectAgreementReponse).toEqual({
-        data: expectedAgreementRejected,
+        data: sortAgreement(expectedAgreementRejected),
         metadata: {
           version: 1,
         },
