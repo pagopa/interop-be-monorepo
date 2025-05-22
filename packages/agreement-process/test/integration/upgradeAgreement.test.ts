@@ -61,8 +61,8 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   noNewerDescriptor,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -339,7 +339,7 @@ describe("upgrade Agreement", () => {
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
       expect(upgradeAgreementResponse).toEqual({
         data: actualAgreementUpgraded,
-        metadata: { version: 1 },
+        metadata: { version: 0 },
       });
 
       for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
@@ -598,7 +598,7 @@ describe("upgrade Agreement", () => {
           expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
           expect(upgradeAgreementResponse).toEqual({
             data: actualAgreementUpgraded,
-            metadata: { version: 1 },
+            metadata: { version: 0 },
           });
 
           for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
@@ -901,7 +901,7 @@ describe("upgrade Agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an organizationIsNotTheConsumer error when the requester is not the consumer", async () => {
+  it("should throw an tenantIsNotTheConsumer error when the requester is not the consumer", async () => {
     const authData = getMockAuthData();
 
     const agreement: Agreement = getMockAgreement(
@@ -916,12 +916,10 @@ describe("upgrade Agreement", () => {
         agreement.id,
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(authData.organizationId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
   });
 
-  it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
+  it("should throw an tenantIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
     const authData = getMockAuthData();
     const agreement = {
       ...getMockAgreement(),
@@ -944,10 +942,7 @@ describe("upgrade Agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
     );
   });
 

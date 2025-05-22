@@ -45,7 +45,7 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
     }
   );
 
-  it("Should return 400 for incorrect value for purpose id", async () => {
+  it("Should return 400 for incorrect value for agreement id", async () => {
     mockAgreementService.unsuspendAgreement = vi
       .fn()
       .mockResolvedValue(mockM2MAgreementResponse);
@@ -79,4 +79,21 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
 
     expect(res.status).toBe(400);
   });
+
+  it.each([
+    { ...mockM2MAgreementResponse, state: "INVALID_STATE" },
+    { ...mockM2MAgreementResponse, invalidParam: "invalidValue" },
+    { ...mockM2MAgreementResponse, createdAt: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockAgreementService.unsuspendAgreement = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });

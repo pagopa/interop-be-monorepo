@@ -18,7 +18,7 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   agreementNotFound,
-  organizationNotAllowed,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -112,7 +112,7 @@ describe("get agreement", () => {
     });
   });
 
-  it(`should throw an organizationNotAllowed error when the requester is
+  it(`should throw an tenantNotAllowed error when the requester is
     not the consumer, producer, consumer delegate, or producer delegate`, async () => {
     const agreement = getMockAgreement();
 
@@ -124,7 +124,7 @@ describe("get agreement", () => {
         agreement.id,
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {

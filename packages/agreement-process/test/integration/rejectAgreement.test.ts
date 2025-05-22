@@ -41,8 +41,8 @@ import {
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
-  organizationIsNotTheDelegateProducer,
-  organizationIsNotTheProducer,
+  tenantIsNotTheDelegateProducer,
+  tenantIsNotTheProducer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -303,7 +303,7 @@ describe("reject agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw organizationIsNotTheProducer when the requester is not the Producer", async () => {
+  it("should throw tenantIsNotTheProducer when the requester is not the Producer", async () => {
     const authData = getMockAuthData();
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -317,9 +317,7 @@ describe("reject agreement", () => {
         "Rejected by producer due to test reasons",
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheProducer(authData.organizationId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
@@ -421,7 +419,7 @@ describe("reject agreement", () => {
     );
   });
 
-  it("should throw organizationIsNotTheDelegateProducer when the requester is the producer and there is an active delegation", async () => {
+  it("should throw tenantIsNotTheDelegateProducer when the requester is the producer and there is an active delegation", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptorPublished()],
@@ -457,14 +455,11 @@ describe("reject agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateProducer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateProducer(authData.organizationId, delegation.id)
     );
   });
 
-  it("should throw a organizationIsNotTheProducer error when the requester is the delegate but the delegation in not active", async () => {
+  it("should throw a tenantIsNotTheProducer error when the requester is the delegate but the delegation in not active", async () => {
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [getMockDescriptorPublished()],
@@ -498,8 +493,6 @@ describe("reject agreement", () => {
 
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheProducer(authData.organizationId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
   });
 });

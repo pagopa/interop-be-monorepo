@@ -82,6 +82,21 @@ describe("unsuspendAgreement", () => {
     );
   });
 
+  it("Should throw missingMetadata in case the agreement returned by the unsuspend agreement POST call has no metadata", async () => {
+    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
+    mockActivateAgreement.mockResolvedValueOnce({
+      ...mockAgreementProcessResponse,
+      metadata: undefined,
+    });
+
+    await expect(
+      agreementService.unsuspendAgreement(
+        unsafeBrandId(mockAgreementProcessResponse.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(missingMetadata());
+  });
+
   it("Should throw missingMetadata in case the agreement returned by the polling GET call has no metadata", async () => {
     mockGetAgreement
       .mockResolvedValueOnce(mockAgreementProcessResponse)

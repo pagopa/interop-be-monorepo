@@ -55,7 +55,7 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -791,12 +791,19 @@ export function agreementServiceBuilder(
         logger,
       });
 
-      await repository.createEvents(events);
+      const createdEvents = await repository.createEvents(events);
+
+      const newVersion = Math.max(
+        0,
+        ...createdEvents
+          .filter((e) => e.streamId === agreement.id)
+          .map((event) => event.newVersion)
+      );
 
       return {
         data: agreement,
         metadata: {
-          version: 0,
+          version: newVersion,
         },
       };
     },
@@ -1640,7 +1647,7 @@ async function getConsumerFromDelegationOrRequester(
 
     if (delegation) {
       // If a delegation exists, the delegator cannot create the agreement
-      throw organizationIsNotTheDelegateConsumer(
+      throw tenantIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       );
