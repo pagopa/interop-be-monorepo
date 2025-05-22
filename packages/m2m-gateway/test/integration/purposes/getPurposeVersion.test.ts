@@ -4,6 +4,7 @@ import {
   PurposeVersionId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -15,7 +16,6 @@ import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
-import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
 import { purposeVersionNotFound } from "../../../src/model/errors.js";
 
 describe("getPurposeVersion", () => {
@@ -35,17 +35,24 @@ describe("getPurposeVersion", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mPurposeVersionResponse = toM2mGatewayApiPurposeVersion(
-      mockApiPurposeVersionResponse
-    );
+    const expectedM2MPurposeVersion: m2mGatewayApi.PurposeVersion = {
+      createdAt: mockApiPurposeVersionResponse.createdAt,
+      dailyCalls: mockApiPurposeVersionResponse.dailyCalls,
+      id: mockApiPurposeVersionResponse.id,
+      state: mockApiPurposeVersionResponse.state,
+      firstActivationAt: mockApiPurposeVersionResponse.firstActivationAt,
+      rejectionReason: mockApiPurposeVersionResponse.rejectionReason,
+      suspendedAt: mockApiPurposeVersionResponse.suspendedAt,
+      updatedAt: mockApiPurposeVersionResponse.updatedAt,
+    };
 
     const result = await purposeService.getPurposeVersion(
       unsafeBrandId(mockApiPurposeResponse.data.id),
-      unsafeBrandId(m2mPurposeVersionResponse.id),
+      unsafeBrandId(expectedM2MPurposeVersion.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mPurposeVersionResponse);
+    expect(result).toEqual(expectedM2MPurposeVersion);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
       params: {
