@@ -165,7 +165,7 @@ export const deleteDynamoDBTables = async (
   };
   const dPoPCacheDeleteInput: DeleteTableInput = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    TableName: "dpop-cache",
+    TableName: "interop-dpop-cache",
   };
 
   const platformStatesDeleteCommand = new DeleteTableCommand(
