@@ -27,6 +27,7 @@ import {
   delegationState,
   EServiceDescriptorSubmittedByDelegateV2,
   delegationKind,
+  agreementState,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
@@ -331,6 +332,7 @@ describe("publish descriptor", () => {
       descriptorId: descriptor1.id,
       producerId: eservice.producerId,
       consumerId: tenant.id,
+      state: agreementState.active,
     };
     await addOneAgreement(agreement);
     await catalogService.publishDescriptor(

@@ -94,8 +94,6 @@ import {
   CertifiedAttributeV2,
   AgreementDocumentV2,
   PurposeV2,
-  Technology,
-  eserviceMode,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -187,7 +185,6 @@ export const getMockEServiceAttribute = (
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
   id: attributeId,
-  explicitAttributeVerification: false,
 });
 
 export const getMockAgreementAttribute = (
@@ -202,18 +199,17 @@ export const getMockEServiceAttributes = (num: number): EServiceAttribute[] =>
 export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
   producerId: TenantId = generateId<TenantId>(),
-  descriptors: Descriptor[] = [],
-  technology: Technology = "Rest"
+  descriptors: Descriptor[] = []
 ): EService => ({
   id: eserviceId,
-  name: `Test EService with technology: ${technology.toUpperCase()}`,
-  description: `Test description for eservice with technology: ${technology.toUpperCase()}`,
+  name: "eService name",
+  description: "eService description",
   createdAt: new Date(),
   producerId,
-  technology,
+  technology: technology.rest,
   descriptors,
   riskAnalysis: [],
-  mode: eserviceMode.deliver,
+  mode: "Deliver",
 });
 
 export const getMockVerifiedTenantAttribute = (

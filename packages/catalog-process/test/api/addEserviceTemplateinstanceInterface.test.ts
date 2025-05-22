@@ -88,12 +88,13 @@ describe("addEServiceTemplateInstanceInterface", () => {
         state: descriptorState.draft,
       };
 
-      const eservice: EService = getMockEService(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        [descriptor],
-        technology
-      );
+      const eservice: EService = {
+        ...getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
+          descriptor,
+        ]),
+        name: `Test EService with technology: ${technology.toUpperCase()}`,
+        description: `Test description for eservice with technology: ${technology.toUpperCase()}`,
+      };
 
       beforeEach(() => {
         catalogService.addEServiceTemplateInstanceInterface = vi

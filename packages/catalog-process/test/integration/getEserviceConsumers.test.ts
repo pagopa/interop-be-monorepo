@@ -1,4 +1,9 @@
-import { Descriptor, descriptorState, EService } from "pagopa-interop-models";
+import {
+  agreementState,
+  Descriptor,
+  descriptorState,
+  EService,
+} from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
   getMockContext,
@@ -32,12 +37,15 @@ describe("get eservice consumers", () => {
     await addOneEService(eservice1);
     const tenant = getMockTenant();
     await addOneTenant(tenant);
+
     const agreement = {
       ...getMockAgreement(eservice1.id),
       descriptorId: descriptor1.id,
       producerId: eservice1.producerId,
       consumerId: tenant.id,
+      state: agreementState.active,
     };
+
     await addOneAgreement(agreement);
 
     const result = await catalogService.getEServiceConsumers(

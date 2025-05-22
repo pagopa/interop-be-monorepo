@@ -167,6 +167,7 @@ describe("get eservices", () => {
       descriptorId: descriptor1.id,
       producerId: eservice1.producerId,
       consumerId: tenant.id,
+      state: agreementState.active,
     };
     await addOneAgreement(agreement1);
     const agreement2 = {
@@ -174,6 +175,7 @@ describe("get eservices", () => {
       descriptorId: descriptor3.id,
       producerId: eservice3.producerId,
       consumerId: tenant.id,
+      state: agreementState.active,
     };
     await addOneAgreement(agreement2);
     const agreement3 = {
