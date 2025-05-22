@@ -9,16 +9,18 @@ import {
 export const buildDynamoDBTables = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
-  const platformTableDefinition: CreateTableInput = {
+  const platformStatesTableDefinition: CreateTableInput = {
     TableName: "platform-states",
     AttributeDefinitions: [{ AttributeName: "PK", AttributeType: "S" }],
     KeySchema: [{ AttributeName: "PK", KeyType: "HASH" }],
     BillingMode: "PAY_PER_REQUEST",
   };
-  const command1 = new CreateTableCommand(platformTableDefinition);
-  await dynamoDBClient.send(command1);
+  const platformStatesCreationCommand = new CreateTableCommand(
+    platformStatesTableDefinition
+  );
+  await dynamoDBClient.send(platformStatesCreationCommand);
 
-  const tokenGenerationTableDefinition: CreateTableInput = {
+  const tokenGenStatesTableDefinition: CreateTableInput = {
     TableName: "token-generation-states",
     AttributeDefinitions: [
       { AttributeName: "PK", AttributeType: "S" },
@@ -119,23 +121,61 @@ export const buildDynamoDBTables = async (
       },
     ],
   };
-  const command2 = new CreateTableCommand(tokenGenerationTableDefinition);
-  await dynamoDBClient.send(command2);
+  const tokenGenStatesCreationCommand = new CreateTableCommand(
+    tokenGenStatesTableDefinition
+  );
+  await dynamoDBClient.send(tokenGenStatesCreationCommand);
+
+  const dPoPCacheTableDefinition: CreateTableInput = {
+    TableName: "interop-dpop-cache",
+    AttributeDefinitions: [
+      {
+        AttributeName: "jti",
+        AttributeType: "S",
+      },
+    ],
+    KeySchema: [
+      {
+        AttributeName: "jti",
+        KeyType: "HASH",
+      },
+    ],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 10,
+      WriteCapacityUnits: 5,
+    },
+    BillingMode: "PAY_PER_REQUEST",
+  };
+  const dPoPCacheCreationCommand = new CreateTableCommand(
+    dPoPCacheTableDefinition
+  );
+  await dynamoDBClient.send(dPoPCacheCreationCommand);
 };
 
 export const deleteDynamoDBTables = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
-  const tableToDelete1: DeleteTableInput = {
+  const platformStatesDeleteInput: DeleteTableInput = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "platform-states",
   };
-  const tableToDelete2: DeleteTableInput = {
+  const tokenGenStatesDeleteInput: DeleteTableInput = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "token-generation-states",
   };
-  const command1 = new DeleteTableCommand(tableToDelete1);
-  await dynamoDBClient.send(command1);
-  const command2 = new DeleteTableCommand(tableToDelete2);
-  await dynamoDBClient.send(command2);
+  const dPoPCacheDeleteInput: DeleteTableInput = {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    TableName: "dpop-cache",
+  };
+
+  const platformStatesDeleteCommand = new DeleteTableCommand(
+    platformStatesDeleteInput
+  );
+  await dynamoDBClient.send(platformStatesDeleteCommand);
+  const tokenGenStatesDeleteCommand = new DeleteTableCommand(
+    tokenGenStatesDeleteInput
+  );
+  await dynamoDBClient.send(tokenGenStatesDeleteCommand);
+  const dPoPCacheDeleteCommand = new DeleteTableCommand(dPoPCacheDeleteInput);
+  await dynamoDBClient.send(dPoPCacheDeleteCommand);
 };
