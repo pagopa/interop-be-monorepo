@@ -34,60 +34,70 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
 
   return {
     async upsertBatchEserviceTemplate(
-      ctx: DBContext,
+      dbContext: DBContext,
       items: EserviceTemplateItemsSchema[]
     ): Promise<void> {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        const batchItems = {
-          templateSQL: batch.map((item) => item.eserviceTemplateSQL),
-          versionsSQL: batch.flatMap((item) => item.versionsSQL),
-          interfacesSQL: batch.flatMap((item) => item.interfacesSQL),
-          documentsSQL: batch.flatMap((item) => item.documentsSQL),
-          attributesSQL: batch.flatMap((item) => item.attributesSQL),
-          riskAnalysesSQL: batch.flatMap((item) => item.riskAnalysesSQL),
-          riskAnalysisAnswersSQL: batch.flatMap(
-            (item) => item.riskAnalysisAnswersSQL
-          ),
-        };
-        await ctx.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          const batchItems = {
+            templateSQL: batch.map((item) => item.eserviceTemplateSQL),
+            versionsSQL: batch.flatMap((item) => item.versionsSQL),
+            interfacesSQL: batch.flatMap((item) => item.interfacesSQL),
+            documentsSQL: batch.flatMap((item) => item.documentsSQL),
+            attributesSQL: batch.flatMap((item) => item.attributesSQL),
+            riskAnalysesSQL: batch.flatMap((item) => item.riskAnalysesSQL),
+            riskAnalysisAnswersSQL: batch.flatMap(
+              (item) => item.riskAnalysisAnswersSQL
+            ),
+          };
           if (batchItems.templateSQL.length) {
-            await templateRepo.insert(t, ctx.pgp, batchItems.templateSQL);
+            await templateRepo.insert(t, dbContext.pgp, batchItems.templateSQL);
           }
           if (batchItems.versionsSQL.length) {
-            await versionRepo.insert(t, ctx.pgp, batchItems.versionsSQL);
+            await versionRepo.insert(t, dbContext.pgp, batchItems.versionsSQL);
           }
           if (batchItems.interfacesSQL.length) {
-            await interfaceRepo.insert(t, ctx.pgp, batchItems.interfacesSQL);
+            await interfaceRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.interfacesSQL
+            );
           }
           if (batchItems.documentsSQL.length) {
-            await documentRepo.insert(t, ctx.pgp, batchItems.documentsSQL);
+            await documentRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.documentsSQL
+            );
           }
           if (batchItems.attributesSQL.length) {
-            await attributeRepo.insert(t, ctx.pgp, batchItems.attributesSQL);
+            await attributeRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.attributesSQL
+            );
           }
           if (batchItems.riskAnalysesSQL.length) {
-            await riskRepo.insert(t, ctx.pgp, batchItems.riskAnalysesSQL);
+            await riskRepo.insert(t, dbContext.pgp, batchItems.riskAnalysesSQL);
           }
           if (batchItems.riskAnalysisAnswersSQL.length) {
             await riskAnswerRepo.insert(
               t,
-              ctx.pgp,
+              dbContext.pgp,
               batchItems.riskAnalysisAnswersSQL
             );
           }
-        });
 
-        genericLogger.info(
-          `Staged template batch: ${batch
-            .map((i) => i.eserviceTemplateSQL.id)
-            .join(", ")}`
-        );
-      }
+          genericLogger.info(
+            `Staged template batch: ${batch
+              .map((i) => i.eserviceTemplateSQL.id)
+              .join(", ")}`
+          );
+        }
 
-      await db.conn.tx(async (t) => {
         await templateRepo.merge(t);
         await versionRepo.merge(t);
         await interfaceRepo.merge(t);
@@ -111,22 +121,20 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchEserviceTemplate(
-      ctx: DBContext,
+      dbContext: DBContext,
       items: EserviceTemplateDeletingSchema[]
     ): Promise<void> {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
-          await templateRepo.insertDeleting(t, ctx.pgp, batch);
-        });
-        genericLogger.info(
-          `Staged template deletions: ${batch.map((i) => i.id).join(", ")}`
-        );
-      }
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await templateRepo.insertDeleting(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staged template deletions: ${batch.map((i) => i.id).join(", ")}`
+          );
+        }
 
-      await ctx.conn.tx(async (t) => {
         await templateRepo.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
@@ -150,22 +158,20 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchEserviceTemplateVersion(
-      ctx: DBContext,
+      dbContext: DBContext,
       items: EserviceTemplateVersionDeletingSchema[]
     ): Promise<void> {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
-          await versionRepo.insertDeleting(t, ctx.pgp, batch);
-        });
-        genericLogger.info(
-          `Staged version deletions: ${batch.map((i) => i.id).join(", ")}`
-        );
-      }
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await versionRepo.insertDeleting(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staged version deletions: ${batch.map((i) => i.id).join(", ")}`
+          );
+        }
 
-      await ctx.conn.tx(async (t) => {
         await versionRepo.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
@@ -186,22 +192,20 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchEserviceTemplateInterface(
-      ctx: DBContext,
+      dbContext: DBContext,
       items: EserviceTemplateInterfaceDeletingSchema[]
     ): Promise<void> {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
-          await interfaceRepo.insertDeleting(t, ctx.pgp, batch);
-        });
-        genericLogger.info(
-          `Staged interface deletions: ${batch.map((i) => i.id).join(", ")}`
-        );
-      }
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await interfaceRepo.insertDeleting(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staged interface deletions: ${batch.map((i) => i.id).join(", ")}`
+          );
+        }
 
-      await ctx.conn.tx(async (t) => {
         await interfaceRepo.mergeDeleting(t);
       });
 
@@ -212,22 +216,20 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchEserviceTemplateDocument(
-      ctx: DBContext,
+      dbContext: DBContext,
       items: EserviceTemplateDocumentDeletingSchema[]
     ): Promise<void> {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
-          await documentRepo.insertDeleting(t, ctx.pgp, batch);
-        });
-        genericLogger.info(
-          `Staged document deletions: ${batch.map((i) => i.id).join(", ")}`
-        );
-      }
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await documentRepo.insertDeleting(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staged document deletions: ${batch.map((i) => i.id).join(", ")}`
+          );
+        }
 
-      await ctx.conn.tx(async (t) => {
         await documentRepo.mergeDeleting(t);
       });
 
@@ -238,22 +240,22 @@ export function eserviceTemplateServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchEserviceTemplateRiskAnalysis(
-      ctx: DBContext,
+      dbContext: DBContext,
       items: EserviceTemplateRiskAnalysisDeletingSchema[]
     ): Promise<void> {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
-          await riskRepo.insertDeleting(t, ctx.pgp, batch);
-        });
-        genericLogger.info(
-          `Staged risk-analysis deletions: ${batch.map((i) => i.id).join(", ")}`
-        );
-      }
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await riskRepo.insertDeleting(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staged risk-analysis deletions: ${batch
+              .map((i) => i.id)
+              .join(", ")}`
+          );
+        }
 
-      await ctx.conn.tx(async (t) => {
         await riskRepo.mergeDeleting(t);
       });
 
