@@ -2,7 +2,7 @@
 import { delegationApi } from "pagopa-interop-api-clients";
 import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
 import { Delegation, delegationKind, generateId } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { delegationToApiDelegation } from "../../src/model/domain/apiConverter.js";
@@ -40,7 +40,11 @@ describe("API GET /delegations test", () => {
     totalCount: mockDelegations.totalCount,
   });
 
-  delegationService.getDelegations = vi.fn().mockResolvedValue(mockDelegations);
+  beforeEach(() => {
+    delegationService.getDelegations = vi
+      .fn()
+      .mockResolvedValue(mockDelegations);
+  });
 
   const makeRequest = async (
     token: string,

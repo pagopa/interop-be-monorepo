@@ -14,7 +14,7 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { delegationContractToApiDelegationContract } from "../../src/model/domain/apiConverter.js";
@@ -36,9 +36,11 @@ describe("API GET /delegations/:delegationId/contracts/:contractId test", () => 
     delegationContractToApiDelegationContract(mockDelegationContract)
   );
 
-  delegationService.getDelegationContract = vi
-    .fn()
-    .mockResolvedValue(mockDelegationContract);
+  beforeEach(() => {
+    delegationService.getDelegationContract = vi
+      .fn()
+      .mockResolvedValue(mockDelegationContract);
+  });
 
   const makeRequest = async (
     token: string,

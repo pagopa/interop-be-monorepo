@@ -11,7 +11,7 @@ import {
   delegationKind,
   generateId,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { delegationApi } from "pagopa-interop-api-clients";
 import request from "supertest";
@@ -32,9 +32,11 @@ describe("API POST /producer/delegations/:delegationId/approve test", () => {
     delegationToApiDelegation(mockDelegation)
   );
 
-  delegationService.approveProducerDelegation = vi
-    .fn()
-    .mockResolvedValue(serviceResponse);
+  beforeEach(() => {
+    delegationService.approveProducerDelegation = vi
+      .fn()
+      .mockResolvedValue(serviceResponse);
+  });
 
   const makeRequest = async (
     token: string,

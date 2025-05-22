@@ -7,7 +7,7 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { delegationApi } from "pagopa-interop-api-clients";
 import request from "supertest";
@@ -27,9 +27,11 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
     rejectionReason: "reason",
   };
 
-  delegationService.rejectConsumerDelegation = vi.fn().mockResolvedValue({
-    data: mockDelegation,
-    metadata: { version: 1 },
+  beforeEach(() => {
+    delegationService.rejectConsumerDelegation = vi.fn().mockResolvedValue({
+      data: mockDelegation,
+      metadata: { version: 1 },
+    });
   });
 
   const makeRequest = async (

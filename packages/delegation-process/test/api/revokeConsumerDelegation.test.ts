@@ -7,7 +7,7 @@ import {
   generateId,
   TenantId,
 } from "pagopa-interop-models";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 
@@ -23,9 +23,11 @@ describe("API DELETE /consumer/delegations/:delegationId test", () => {
     kind: delegationKind.delegatedConsumer,
   });
 
-  delegationService.revokeConsumerDelegation = vi
-    .fn()
-    .mockResolvedValue(undefined);
+  beforeEach(() => {
+    delegationService.revokeConsumerDelegation = vi
+      .fn()
+      .mockResolvedValue(undefined);
+  });
 
   const makeRequest = async (
     token: string,
