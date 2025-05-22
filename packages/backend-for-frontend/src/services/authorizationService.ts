@@ -13,7 +13,12 @@ import {
   userRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
+import {
+  SelfcareId,
+  TenantId,
+  invalidClaim,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
@@ -50,7 +55,7 @@ export function authorizationServiceBuilder(
   ): Promise<{
     roles: UserRole[];
     sessionClaims: SessionClaims;
-    selfcareId: string;
+    selfcareId: SelfcareId;
   }> => {
     const { decoded } = await verifyJwtToken(identityToken, config, logger);
 
@@ -75,7 +80,10 @@ export function authorizationServiceBuilder(
     };
   };
 
-  const assertTenantAllowed = (selfcareId: string, origin: string): void => {
+  const assertTenantAllowed = (
+    selfcareId: SelfcareId,
+    origin: string
+  ): void => {
     if (
       !config.tenantAllowedOrigins.includes(origin) &&
       !allowList.includes(selfcareId)
@@ -86,8 +94,8 @@ export function authorizationServiceBuilder(
 
   const buildUserClaims = (
     roles: UserRole[],
-    tenantId: string,
-    selfcareId: string,
+    tenantId: TenantId,
+    selfcareId: SelfcareId,
     externalId: tenantApi.ExternalId
   ): UserClaims => ({
     "user-roles": roles,
@@ -107,9 +115,14 @@ export function authorizationServiceBuilder(
     }
 
     return {
-      ...buildUserClaims([userRole.SUPPORT_ROLE], id, selfcareId, externalId),
+      ...buildUserClaims(
+        [userRole.SUPPORT_ROLE],
+        unsafeBrandId(id),
+        unsafeBrandId(selfcareId),
+        externalId
+      ),
       organization: {
-        id: selfcareId,
+        id: unsafeBrandId(selfcareId),
         name,
         roles: [
           {

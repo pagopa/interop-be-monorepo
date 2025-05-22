@@ -2,10 +2,9 @@ import {
   AuthRole,
   userRole,
   InteropJwtMaintenancePayload,
-  InteropJwtApiM2MAdminPayload,
-  InteropJwtApiM2MPayload,
-  InteropJwtInternalPayload,
   SerializedAuthTokenPayload,
+  SerializedInteropJwtInternalPayload,
+  SerializedInteropJwtApiPayload,
 } from "pagopa-interop-commons";
 import { ClientId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -14,10 +13,9 @@ import jwt from "jsonwebtoken";
 function createUserPayload(
   commaSeparatedUserRoles: string
 ): SerializedAuthTokenPayload {
-  const organizationId = generateId();
   return {
     iss: "dev.interop.pagopa.it",
-    aud: ["dev.interop.pagopa.it/ui"],
+    aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -27,7 +25,7 @@ function createUserPayload(
     family_name: "Rossi",
     email: "Mario.rossi@psp.it",
     organization: {
-      id: organizationId,
+      id: generateId(),
       name: "PagoPA S.p.A.",
       roles: [
         {
@@ -39,7 +37,7 @@ function createUserPayload(
       ipaCode: "5N2TR557",
     },
     "user-roles": commaSeparatedUserRoles,
-    organizationId,
+    organizationId: generateId(),
     externalId: {
       value: "123456",
       origin: "IPA",
@@ -61,10 +59,10 @@ function createMaintenancePayload(): InteropJwtMaintenancePayload {
   };
 }
 
-function createM2MPayload(): InteropJwtApiM2MPayload {
+function createM2MPayload(): SerializedInteropJwtApiPayload {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: ["dev.interop.pagopa.it/ui"],
+    aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -76,10 +74,10 @@ function createM2MPayload(): InteropJwtApiM2MPayload {
   };
 }
 
-function createInternalPayload(): InteropJwtInternalPayload {
+function createInternalPayload(): SerializedInteropJwtInternalPayload {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: ["dev.interop.pagopa.it/ui"],
+    aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
@@ -94,10 +92,10 @@ export const mockM2MAdminUserId: UserId = generateId();
 // ^ ID of the client and the admin user associated with the client.
 // Mocked and exported because in the M2M gateway we need to
 // validate the admin ID in the token against the adminId in the client.
-function createM2MAdminPayload(): InteropJwtApiM2MAdminPayload {
+function createM2MAdminPayload(): SerializedInteropJwtApiPayload {
   return {
     iss: "dev.interop.pagopa.it",
-    aud: ["dev.interop.pagopa.it/ui"],
+    aud: "dev.interop.pagopa.it/ui",
     exp: Math.floor(Date.now() / 1000) + 3600,
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),

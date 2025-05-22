@@ -206,31 +206,3 @@ export const AuthTokenPayload = z.discriminatedUnion("role", [
   InteropJwtMaintenancePayload,
 ]);
 export type AuthTokenPayload = z.infer<typeof AuthTokenPayload>;
-
-// ===========================================
-//    Serialization utilities
-// ===========================================
-export type SerializedInteropJwtUIPayload = Omit<
-  InteropJwtUIPayload,
-  "user-roles"
-> & {
-  "user-roles": string;
-  // ^ user-roles is serialized as a comma-separated string
-};
-export function toSerializedJwtUIPayload(
-  tokenPayload: InteropJwtUIPayload
-): SerializedInteropJwtUIPayload {
-  return {
-    ...tokenPayload,
-    "user-roles": tokenPayload["user-roles"].join(","),
-  };
-}
-
-// SerializedAuthTokenPayload is a union of all payloads we actually
-// generate and need to serialize in the generation phase. It does not include
-// the payloads we don't generate in this repo (e.g. maintenance tokens).
-export type SerializedAuthTokenPayload =
-  | InteropJwtInternalPayload
-  | InteropJwtApiPayload
-  | InteropJwtConsumerPayload
-  | SerializedInteropJwtUIPayload;

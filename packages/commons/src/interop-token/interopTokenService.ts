@@ -21,19 +21,22 @@ import {
   InteropJwtApiPayload,
   InteropJwtConsumerPayload,
   InteropJwtHeader,
-  InteropJwtInternalPayload,
   InteropJwtUIPayload,
   InteropUIToken,
-  SerializedAuthTokenPayload,
   UIClaims,
-  toSerializedJwtUIPayload,
+  InteropJwtInternalPayload,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
+import {
+  SerializedAuthTokenPayload,
+  toSerializedInteropJwtPayload,
+  toSerializedJwtUIPayload,
+} from "./jwtEncoder.js";
 
 const JWT_HEADER_ALG = "RS256";
+const JWT_HEADER_USE = "sig";
+const JWT_HEADER_TYP = "at+jwt";
 const KMS_SIGNING_ALG = "RSASSA_PKCS1_V1_5_SHA_256";
-const JWT_INTERNAL_ROLE = "internal";
-const JWT_ROLE_CLAIM = "role";
 
 export class InteropTokenGenerator {
   private kmsClient: KMSClient;
@@ -62,8 +65,8 @@ export class InteropTokenGenerator {
 
     const header: InteropJwtHeader = {
       alg: JWT_HEADER_ALG,
-      use: "sig",
-      typ: "at+jwt",
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
       kid: this.config.kid,
     };
 
@@ -75,12 +78,12 @@ export class InteropTokenGenerator {
       iat: currentTimestamp,
       nbf: currentTimestamp,
       exp: currentTimestamp + this.config.secondsDuration,
-      [JWT_ROLE_CLAIM]: JWT_INTERNAL_ROLE,
+      role: systemRole.INTERNAL_ROLE,
     };
 
     const serializedToken = await this.createAndSignToken({
       header,
-      payload,
+      payload: toSerializedInteropJwtPayload(payload),
       keyId: this.config.kid,
     });
 
@@ -108,8 +111,8 @@ export class InteropTokenGenerator {
 
     const header: InteropJwtHeader = {
       alg: JWT_HEADER_ALG,
-      use: "sig",
-      typ: "at+jwt",
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
       kid: this.config.generatedKid,
     };
 
@@ -161,16 +164,16 @@ export class InteropTokenGenerator {
     const currentTimestamp = dateToSeconds(new Date());
 
     const header: InteropJwtHeader = {
-      alg: "RS256",
-      use: "sig",
-      typ: "at+jwt",
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
       kid: this.config.generatedInteropTokenKid,
     };
 
     const userDataPayload: InteropJwtApiCommonPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
-      aud: this.toJwtAudience(this.config.generatedInteropTokenM2MAudience),
+      aud: [this.config.generatedInteropTokenM2MAudience],
       client_id: sub,
       sub,
       iat: currentTimestamp,
@@ -196,7 +199,7 @@ export class InteropTokenGenerator {
 
     const serializedToken = await this.createAndSignToken({
       header,
-      payload,
+      payload: toSerializedInteropJwtPayload(payload),
       keyId: this.config.generatedInteropTokenKid,
     });
 
@@ -233,16 +236,16 @@ export class InteropTokenGenerator {
     const currentTimestamp = dateToSeconds(new Date());
 
     const header: InteropJwtHeader = {
-      alg: "RS256",
-      use: "sig",
-      typ: "at+jwt",
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
       kid: this.config.generatedInteropTokenKid,
     };
 
     const payload: InteropJwtConsumerPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
-      aud: this.toJwtAudience(audience),
+      aud: audience,
       client_id: sub,
       sub,
       iat: currentTimestamp,
@@ -254,7 +257,7 @@ export class InteropTokenGenerator {
 
     const serializedToken = await this.createAndSignToken({
       header,
-      payload,
+      payload: toSerializedInteropJwtPayload(payload),
       keyId: this.config.generatedInteropTokenKid,
     });
 
@@ -295,7 +298,4 @@ export class InteropTokenGenerator {
 
     return `${serializedToken}.${jwtSignature}`;
   }
-
-  private toJwtAudience = (input: string | string[]): string[] =>
-    Array.isArray(input) ? input : [input];
 }

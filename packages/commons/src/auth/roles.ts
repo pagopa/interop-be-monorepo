@@ -1,6 +1,9 @@
+import { unsafeBrandId, UserId } from "pagopa-interop-models";
 import { z } from "zod";
 
-export const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
+export const SUPPORT_USER_ID = unsafeBrandId<UserId>(
+  "5119b1fa-825a-4297-8c9c-152e055cabca"
+);
 
 export const userRole = {
   ADMIN_ROLE: "admin",
