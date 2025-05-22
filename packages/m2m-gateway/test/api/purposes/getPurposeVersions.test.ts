@@ -37,12 +37,12 @@ describe("GET /purposes/:purposeId/versions router test", () => {
   });
 
   const mockM2MPurposesResponse: m2mGatewayApi.PurposeVersions = {
-    pagination: { offset: 0, limit: 10, totalCount: 2 },
-    results: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+    pagination: { offset: 0, limit: 10, totalCount: 1 },
+    results: [mockApiPurposeVersion2],
   };
 
   const mockParams: m2mGatewayApi.GetPurposeVersionsQueryParams = {
-    state: undefined,
+    state: "ACTIVE",
     offset: 0,
     limit: 10,
   };
@@ -67,6 +67,7 @@ describe("GET /purposes/:purposeId/versions router test", () => {
     { ...mockParams, limit: 100 },
     { ...mockParams, offset: "invalidOffset" },
     { ...mockParams, limit: "invalidLimit" },
+    { ...mockParams, state: "invalidState" },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(

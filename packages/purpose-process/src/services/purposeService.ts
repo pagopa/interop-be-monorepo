@@ -754,7 +754,7 @@ export function purposeServiceBuilder(
       WithMetadata<{
         purpose: Purpose;
         isRiskAnalysisValid: boolean;
-        createdVersionId: string;
+        createdVersionId: PurposeVersionId;
       }>
     > {
       logger.info(`Creating Version for Purpose ${purposeId}`);

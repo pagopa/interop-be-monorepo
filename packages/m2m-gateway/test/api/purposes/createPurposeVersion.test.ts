@@ -72,16 +72,19 @@ describe("POST /purposes/:purposeId/versions router test", () => {
     { invalidParam: "invalidValue" },
     { ...mockPurposeVersionSeed, extraParam: 0 },
     { dailyCalls: -100 },
-  ])("Should return 400 if passed invalid delegation seed", async (body) => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockPurpose.data.id,
-      body as unknown as m2mGatewayApi.PurposeSeed
-    );
+  ])(
+    "Should return 400 if passed invalid purpose version seed",
+    async (body) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockPurpose.data.id,
+        body as unknown as m2mGatewayApi.PurposeSeed
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([
     missingMetadata(),
@@ -101,4 +104,26 @@ describe("POST /purposes/:purposeId/versions router test", () => {
 
     expect(res.status).toBe(500);
   });
+
+  it.each([
+    { ...mockPurposeVersion, createdAt: undefined },
+    { ...mockPurposeVersion, state: "invalidState" },
+    { ...mockPurposeVersion, extraParam: "extraValue" },
+    { extraParam: true },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockPurposeService.createPurposeVersion = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockPurpose.data.id,
+        mockPurposeVersionSeed
+      );
+
+      expect(res.status).toBe(500);
+    }
+  );
 });
