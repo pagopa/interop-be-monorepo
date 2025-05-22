@@ -1,6 +1,8 @@
 import {
   ClientAssertionDigest,
   ClientId,
+  DescriptorId,
+  EServiceId,
   PurposeId,
   SelfcareId,
   TenantId,
@@ -52,6 +54,11 @@ export const InteropJwtConsumerPayload = InteropJwtCommonPayload.merge(
     sub: ClientId,
     purposeId: PurposeId,
     digest: ClientAssertionDigest.optional(),
+    // TODO: the new claims are behind the feature flag FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS. They should become required after the feature flag disappears.
+    producerId: TenantId.optional(),
+    consumerId: TenantId.optional(),
+    eserviceId: EServiceId.optional(),
+    descriptorId: DescriptorId.optional(),
   })
 );
 export type InteropJwtConsumerPayload = z.infer<

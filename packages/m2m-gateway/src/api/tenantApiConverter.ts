@@ -3,10 +3,12 @@ import {
   m2mGatewayApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 import {
   assertAttributeKindIs,
   assertAttributeOriginAndCodeAreDefined,
 } from "../utils/validators/attributeValidators.js";
+import { taxCodeAndIPACodeConflict } from "../model/errors.js";
 
 export function toM2MGatewayApiTenant(
   tenant: tenantApi.Tenant
@@ -26,9 +28,15 @@ export function toM2MGatewayApiTenant(
 export function toGetTenantsApiQueryParams(
   params: m2mGatewayApi.GetTenantsQueryParams
 ): tenantApi.GetTenantsQueryParams {
+  const { IPACode, taxCode } = params;
+
+  if (IPACode && taxCode) {
+    throw taxCodeAndIPACodeConflict();
+  }
+
   return {
-    externalIdOrigin: params.externalIdOrigin,
-    externalIdValue: params.externalIdValue,
+    externalIdOrigin: IPACode ? PUBLIC_ADMINISTRATIONS_IDENTIFIER : undefined,
+    externalIdValue: IPACode ?? taxCode,
     name: undefined,
     features: [],
     offset: params.offset,
