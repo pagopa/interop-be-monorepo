@@ -49,7 +49,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
-    const mockPurpose: Purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       delegationId: generateId<DelegationId>(),
       suspendedByConsumer: false,
@@ -59,10 +59,10 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [getMockPurposeVersion()],
     };
-    const payload: PurposeCreatedV1 = { purpose: toPurposeV1(mockPurpose) };
+    const payload: PurposeCreatedV1 = { purpose: toPurposeV1(purpose) };
     const msg: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 1,
       type: "PurposeCreated",
       event_version: 1,
@@ -73,11 +73,11 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     await handlePurposeMessageV1([msg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mockPurpose.id,
+      id: purpose.id,
     });
     expect(stored).toBeDefined();
 
-    for (const version of mockPurpose.versions) {
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -95,7 +95,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       const riskAnalysisStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_form,
-        { purposeId: mockPurpose.id }
+        { purposeId: purpose.id }
       );
 
       expect(riskAnalysisStored.length).toBeGreaterThan(0);
@@ -103,7 +103,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       const riskAnalysisAnswerStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_answer,
-        { purposeId: mockPurpose.id }
+        { purposeId: purpose.id }
       );
       expect(riskAnalysisAnswerStored.length).toBeGreaterThan(0);
     }
@@ -158,7 +158,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
-    const mockPurpose: Purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       delegationId: generateId<DelegationId>(),
       suspendedByConsumer: false,
@@ -170,32 +170,32 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     };
     const createMsg: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 1,
       type: "PurposeCreated",
       event_version: 1,
-      data: { purpose: toPurposeV1(mockPurpose) },
+      data: { purpose: toPurposeV1(purpose) },
       log_date: new Date(),
     };
     await handlePurposeMessageV1([createMsg], dbContext);
 
     const deleteMsg: PurposeEventEnvelopeV1 = {
       sequence_num: 2,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 2,
       type: "PurposeDeleted",
       event_version: 1,
-      data: { purposeId: mockPurpose.id },
+      data: { purposeId: purpose.id },
       log_date: new Date(),
     };
     await handlePurposeMessageV1([deleteMsg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mockPurpose.id,
+      id: purpose.id,
     });
     expect(stored.deleted).toBe(true);
-    expect(mockPurpose.versions.length).toBeGreaterThan(0);
-    for (const version of mockPurpose.versions) {
+    expect(purpose.versions.length).toBeGreaterThan(0);
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -218,7 +218,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     const riskAnalysisStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_form,
-      { purposeId: mockPurpose.id }
+      { purposeId: purpose.id }
     );
 
     expect(riskAnalysisStored.forEach((r) => expect(r.deleted).toBe(true)));
@@ -226,7 +226,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     const riskAnalysisAnswerStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_answer,
-      { purposeId: mockPurpose.id }
+      { purposeId: purpose.id }
     );
 
     expect(
@@ -326,7 +326,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
-    const mockPurpose: Purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       delegationId: generateId<DelegationId>(),
       suspendedByConsumer: false,
@@ -337,10 +337,10 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       versions: [getMockPurposeVersion()],
     };
 
-    const payload: PurposeAddedV2 = { purpose: toPurposeV2(mockPurpose) };
+    const payload: PurposeAddedV2 = { purpose: toPurposeV2(purpose) };
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 1,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 1,
       type: "PurposeAdded",
       event_version: 2,
@@ -351,11 +351,11 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     await handlePurposeMessageV2([msg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mockPurpose.id,
+      id: purpose.id,
     });
     expect(stored).toBeDefined();
 
-    for (const version of mockPurpose.versions) {
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -373,14 +373,14 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       const riskAnalysisStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_form,
-        { purposeId: mockPurpose.id }
+        { purposeId: purpose.id }
       );
       expect(riskAnalysisStored.length).toBeGreaterThan(0);
 
       const riskAnalysisAnswerStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_answer,
-        { purposeId: mockPurpose.id }
+        { purposeId: purpose.id }
       );
       expect(riskAnalysisAnswerStored.length).toBeGreaterThan(0);
     }
@@ -431,7 +431,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
-    const mockPurpose: Purpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       delegationId: generateId<DelegationId>(),
       suspendedByConsumer: false,
@@ -446,11 +446,11 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       [
         {
           sequence_num: 1,
-          stream_id: mockPurpose.id,
+          stream_id: purpose.id,
           version: 1,
           type: "PurposeAdded",
           event_version: 2,
-          data: { purpose: toPurposeV2(mockPurpose) },
+          data: { purpose: toPurposeV2(purpose) },
           log_date: new Date(),
         },
       ],
@@ -459,21 +459,21 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
 
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 2,
       type: "DraftPurposeDeleted",
       event_version: 2,
-      data: { purpose: toPurposeV2(mockPurpose) },
+      data: { purpose: toPurposeV2(purpose) },
       log_date: new Date(),
     };
     await handlePurposeMessageV2([msg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mockPurpose.id,
+      id: purpose.id,
     });
     expect(stored.deleted).toBe(true);
 
-    for (const version of mockPurpose.versions) {
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -493,14 +493,14 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     const riskAnalysisStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_form,
-      { purposeId: mockPurpose.id }
+      { purposeId: purpose.id }
     );
     riskAnalysisStored.forEach((r) => expect(r.deleted).toBe(true));
 
     const riskAnalysisAnswerStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_answer,
-      { purposeId: mockPurpose.id }
+      { purposeId: purpose.id }
     );
     riskAnalysisAnswerStored.forEach((r) => expect(r.deleted).toBe(true));
   });
