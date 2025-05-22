@@ -42,7 +42,6 @@ import {
   secondsToMilliseconds,
   systemRole,
 } from "pagopa-interop-commons";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   invalidEServiceState,
   invalidAssertionType,
@@ -59,11 +58,12 @@ import {
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
+import { TokenRequest } from "../src/model/domain/models.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
   fileManager,
-  getMockAccessTokenRequest,
+  getMockTokenRequest,
   mockKMSClient,
   mockProducer,
   tokenService,
@@ -88,11 +88,15 @@ describe("authorization server tests", () => {
     const { jws } = await getMockClientAssertion();
 
     const clientId = generateId<ClientId>();
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion_type: "wrong-client-assertion-type",
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion_type: "wrong-client-assertion-type",
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
     expect(
       tokenService.generateToken(
@@ -116,11 +120,16 @@ describe("authorization server tests", () => {
       standardClaimsOverride: { iat: undefined, sub: clientId },
     });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
+
     expect(
       tokenService.generateToken(
         request,
@@ -141,10 +150,14 @@ describe("authorization server tests", () => {
       customClaims: { purposeId },
     });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const entryPK = makeTokenGenerationStatesClientKidPurposePK({
@@ -171,10 +184,14 @@ describe("authorization server tests", () => {
       customClaims: { purposeId },
     });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -214,10 +231,14 @@ describe("authorization server tests", () => {
       standardClaimsOverride: { sub: clientId },
     });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -260,12 +281,16 @@ describe("authorization server tests", () => {
       });
 
     const splitJws = jws.split(".");
-    const jwsWithWrongSignature = `${splitJws[0]}.${splitJws[1]}.wrong-singature`;
+    const jwsWithWrongSignature = `${splitJws[0]}.${splitJws[1]}.wrong-signature`;
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jwsWithWrongSignature,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jwsWithWrongSignature,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -295,7 +320,7 @@ describe("authorization server tests", () => {
       )
     ).rejects.toThrowError(
       clientAssertionSignatureValidationFailed(
-        request.client_id,
+        request.body.client_id,
         invalidSignature().detail
       )
     );
@@ -311,10 +336,14 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -361,10 +390,14 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -414,6 +447,7 @@ describe("authorization server tests", () => {
         rateInterval: config.rateLimiterRateInterval,
         remainingRequests: 0,
       },
+      isDPoP: !!headers.DPoP,
     });
   });
 
@@ -435,10 +469,14 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -488,10 +526,14 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -538,10 +580,14 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -584,10 +630,14 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -747,10 +797,14 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    const request = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const uuid = crypto.randomUUID();
@@ -836,10 +890,14 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
@@ -900,10 +958,14 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const request: authorizationServerApi.AccessTokenRequest = {
-      ...(await getMockAccessTokenRequest()),
-      client_assertion: jws,
-      client_id: clientId,
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers,
+      body: {
+        ...body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
     };
 
     const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
@@ -952,4 +1014,6 @@ describe("authorization server tests", () => {
       remainingRequests: config.rateLimiterMaxRequests - 1,
     });
   });
+
+  // TODO: Add DPoP tests
 });

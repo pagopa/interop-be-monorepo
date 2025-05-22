@@ -30,6 +30,7 @@ export const createJWK = ({
 }): JsonWebKey =>
   createPublicKey({ key: pemKeyBase64, strictCheck }).export({ format: "jwk" });
 
+// TODO: same function for thumbprint
 export const calculateKid = (jwk: JsonWebKey): string => {
   const sortedJwk = sortJWK(jwk);
   const jwkString = JSON.stringify(sortedJwk);

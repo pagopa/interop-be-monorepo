@@ -1,5 +1,6 @@
 import {
   getMockClientAssertion,
+  getMockDPoPProof,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
 import {
@@ -21,6 +22,7 @@ import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { dateToSeconds, InteropTokenGenerator } from "pagopa-interop-commons";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
 import { config } from "../src/config/config.js";
+import { TokenRequest } from "../src/model/domain/models.js";
 
 export const configTokenGenerationStates = inject(
   "tokenGenerationReadModelConfig"
@@ -82,6 +84,15 @@ export const getMockAccessTokenRequest =
       grant_type: "client_credentials",
     };
   };
+
+export const getMockTokenRequest = async (
+  withDPoPProof: boolean = false
+): Promise<TokenRequest> => ({
+  headers: {
+    ...(withDPoPProof ? { DPoP: (await getMockDPoPProof()).dPoPJWS } : {}),
+  },
+  body: await getMockAccessTokenRequest(),
+});
 
 export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
   const correlationId = generateId();

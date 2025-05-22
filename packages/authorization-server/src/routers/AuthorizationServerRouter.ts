@@ -26,6 +26,7 @@ import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { tokenServiceBuilder } from "../services/tokenService.js";
 import { config } from "../config/config.js";
+import { tokenType } from "../model/domain/models.js";
 
 const dynamoDBClient = new DynamoDBClient();
 const redisRateLimiter = await initRedisRateLimiter({
@@ -90,7 +91,7 @@ const authorizationServerRouter = (
 
       try {
         const tokenResult = await tokenService.generateToken(
-          req.body,
+          req,
           ctx,
           setCtxClientId,
           setCtxOrganizationId
@@ -113,7 +114,7 @@ const authorizationServerRouter = (
 
         return res.status(200).send({
           access_token: tokenResult.token.serialized,
-          token_type: "Bearer",
+          token_type: tokenResult.isDPoP ? tokenType.dPoP : tokenType.bearer,
           expires_in:
             tokenResult.token.payload.exp - tokenResult.token.payload.iat,
         });
