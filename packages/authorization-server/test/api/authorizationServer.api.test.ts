@@ -94,6 +94,9 @@ describe("POST /authorization-server/token.oauth2", () => {
       token_type: "Bearer",
       expires_in: 90,
     });
+    expect(res.headers["x-rate-limit-limit"]).toBe("100");
+    expect(res.headers["x-rate-limit-interval"]).toBe("1");
+    expect(res.headers["x-rate-limit-remaining"]).toBe("10");
   });
 
   it.each([
