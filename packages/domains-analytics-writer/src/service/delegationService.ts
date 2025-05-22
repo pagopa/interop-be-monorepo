@@ -20,19 +20,19 @@ export function delegationServiceBuilder(dbContext: DBContext) {
       dbContext: DBContext,
       items: DelegationItemsSchema[]
     ): Promise<void> {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        const batchItems = {
-          delegationSQL: batch.map((item) => item.delegationSQL),
-          stampsSQL: batch.flatMap((item) => item.stampsSQL),
-          contractDocumentsSQL: batch.flatMap(
-            (item) => item.contractDocumentsSQL
-          ),
-        };
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          const batchItems = {
+            delegationSQL: batch.map((item) => item.delegationSQL),
+            stampsSQL: batch.flatMap((item) => item.stampsSQL),
+            contractDocumentsSQL: batch.flatMap(
+              (item) => item.contractDocumentsSQL
+            ),
+          };
 
-        await dbContext.conn.tx(async (t) => {
           if (batchItems.delegationSQL.length) {
             await delegationRepo.insert(
               t,
@@ -50,16 +50,14 @@ export function delegationServiceBuilder(dbContext: DBContext) {
               batchItems.contractDocumentsSQL
             );
           }
-        });
 
-        genericLogger.info(
-          `Staging delegation batch inserted: ${batch
-            .map((item) => item.delegationSQL.id)
-            .join(", ")}`
-        );
-      }
+          genericLogger.info(
+            `Staging delegation batch inserted: ${batch
+              .map((item) => item.delegationSQL.id)
+              .join(", ")}`
+          );
+        }
 
-      await dbContext.conn.tx(async (t) => {
         await delegationRepo.merge(t);
         await stampRepo.merge(t);
         await contractDocumentRepo.merge(t);
