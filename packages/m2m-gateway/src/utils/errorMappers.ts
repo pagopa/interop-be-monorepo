@@ -10,6 +10,7 @@ const {
   HTTP_STATUS_NOT_FOUND,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const getCertifiedAttributeErrorMapper = (
@@ -42,33 +43,33 @@ export const activatePurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("missingActivePurposeVersionWithState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const archivePurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("missingPurposeCurrentVersion", () => HTTP_STATUS_BAD_REQUEST)
+    .with("missingPurposeCurrentVersion", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const suspendPurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("missingPurposeCurrentVersion", () => HTTP_STATUS_BAD_REQUEST)
+    .with("missingPurposeCurrentVersion", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const approvePurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("missingActivePurposeVersionWithState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const unsuspendPurposeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("missingActivePurposeVersionWithState", () => HTTP_STATUS_BAD_REQUEST)
+    .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

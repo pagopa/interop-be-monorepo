@@ -19,12 +19,11 @@ export const errorCodes = {
   unexpectedUndefinedAttributeOriginOrCode: "0006",
   attributeNotFound: "0007",
   purposeNotFound: "0008",
-  missingActivePurposeVersion: "0009",
+  missingPurposeVersionWithState: "0009",
   taxCodeAndIPACodeConflict: "0010",
   eserviceDescriptorNotFound: "0011",
   purposeVersionNotFound: "0012",
-  missingPurposeVersionWithState: "0013",
-  missingPurposeCurrentVersion: "0014",
+  missingPurposeCurrentVersion: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

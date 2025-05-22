@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
   expectApiClientGetToHaveBeenCalledWith,
@@ -22,16 +22,16 @@ describe("getPurposeVersions", () => {
 
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion();
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
-    state: "ACTIVE",
+    state: purposeApi.PurposeVersionState.Enum.ACTIVE,
   });
   const mockApiPurposeVersion3 = getMockedApiPurposeVersion({
-    state: "DRAFT",
+    state: purposeApi.PurposeVersionState.Enum.DRAFT,
   });
   const mockApiPurposeVersion4 = getMockedApiPurposeVersion({
-    state: "ACTIVE",
+    state: purposeApi.PurposeVersionState.Enum.ACTIVE,
   });
   const mockApiPurposeVersion5 = getMockedApiPurposeVersion({
-    state: "SUSPENDED",
+    state: purposeApi.PurposeVersionState.Enum.SUSPENDED,
   });
 
   const mockApiPurpose = getMockedApiPurpose({
@@ -155,7 +155,7 @@ describe("getPurposeVersions", () => {
       {
         offset: 0,
         limit: 10,
-        state: "ACTIVE",
+        state: purposeApi.PurposeVersionState.Enum.ACTIVE,
       },
       getMockM2MAdminAppContext()
     );
@@ -193,7 +193,7 @@ describe("getPurposeVersions", () => {
       {
         offset: 0,
         limit: 10,
-        state: "SUSPENDED",
+        state: purposeApi.PurposeVersionState.Enum.SUSPENDED,
       },
       getMockM2MAdminAppContext()
     );

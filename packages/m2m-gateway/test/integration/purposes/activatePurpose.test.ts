@@ -22,9 +22,11 @@ import {
 } from "../../mockUtils.js";
 
 describe("activatePurposeVersion", () => {
-  const mockApiPurposeVersion1 = getMockedApiPurposeVersion({ state: "DRAFT" });
+  const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
+    state: purposeApi.PurposeVersionState.Enum.DRAFT,
+  });
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
-    state: "REJECTED",
+    state: purposeApi.PurposeVersionState.Enum.REJECTED,
   });
   const mockApiPurpose = getMockedApiPurpose({
     versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
@@ -81,7 +83,11 @@ describe("activatePurposeVersion", () => {
 
   it("Should throw missingActivePurposeVersionWithState in case of missing active version to activate", async () => {
     const invalidPurpose = getMockedApiPurpose({
-      versions: [getMockedApiPurposeVersion({ state: "REJECTED" })],
+      versions: [
+        getMockedApiPurposeVersion({
+          state: purposeApi.PurposeVersionState.Enum.REJECTED,
+        }),
+      ],
     });
     // The activate will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);

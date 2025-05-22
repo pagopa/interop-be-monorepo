@@ -22,9 +22,7 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
-      mockPurposeService.unsuspendPurpose = vi
-        .fn()
-        .mockResolvedValue(undefined);
+      mockPurposeService.unsuspendPurpose = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId());
@@ -33,7 +31,7 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
     }
   );
 
-  it("Should return 400 for missing purpose version", async () => {
+  it("Should return 409 for missing suspended purpose version", async () => {
     mockPurposeService.unsuspendPurpose = vi
       .fn()
       .mockRejectedValue(
@@ -45,7 +43,7 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
 
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, generateId());
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(409);
   });
 
   it("Should return 400 for invalid purpose id", async () => {

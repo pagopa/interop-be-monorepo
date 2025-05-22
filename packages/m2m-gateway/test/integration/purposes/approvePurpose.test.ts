@@ -23,10 +23,10 @@ import {
 
 describe("approvePurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
-    state: "WAITING_FOR_APPROVAL",
+    state: purposeApi.PurposeVersionState.Enum.WAITING_FOR_APPROVAL,
   });
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
-    state: "REJECTED",
+    state: purposeApi.PurposeVersionState.Enum.REJECTED,
   });
   const mockApiPurpose = getMockedApiPurpose({
     versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
@@ -83,7 +83,11 @@ describe("approvePurposeVersion", () => {
 
   it("Should throw missingActivePurposeVersionWithState in case of missing active version to approve", async () => {
     const invalidPurpose = getMockedApiPurpose({
-      versions: [getMockedApiPurposeVersion({ state: "REJECTED" })],
+      versions: [
+        getMockedApiPurposeVersion({
+          state: purposeApi.PurposeVersionState.Enum.REJECTED,
+        }),
+      ],
     });
     // The approve will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);

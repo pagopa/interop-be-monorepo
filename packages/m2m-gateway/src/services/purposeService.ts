@@ -4,6 +4,7 @@ import {
   PurposeId,
   PurposeVersionId,
   unsafeBrandId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
   toGetPurposesApiQueryParams,
@@ -26,6 +27,13 @@ import {
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
+export const sortPurposeVersionsByDate = (
+  versions: purposeApi.PurposeVersion[]
+): purposeApi.PurposeVersion[] =>
+  [...versions].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
 export const getPurposeCurrentVersion = (
   purpose: purposeApi.Purpose
 ): purposeApi.PurposeVersion | undefined => {
@@ -33,12 +41,8 @@ export const getPurposeCurrentVersion = (
     m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
     m2mGatewayApi.PurposeVersionState.Values.REJECTED,
   ];
-  return purpose.versions
+  return sortPurposeVersionsByDate(purpose.versions)
     .filter((v) => !statesToExclude.includes(v.state))
-    .sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-    )
     .at(-1);
 };
 
@@ -55,23 +59,21 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       headers,
     });
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollPurpose = (
     response: WithMaybeMetadata<purposeApi.Purpose>,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
+  ): Promise<WithMetadata<purposeApi.Purpose>> =>
     pollResource(() =>
       retrievePurposeById(unsafeBrandId(response.data.id), headers)
     )({
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollPurposeById = (
     purposeId: PurposeId,
     metadata: { version: number } | undefined,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
+  ): Promise<WithMetadata<purposeApi.Purpose>> =>
     pollResource(() => retrievePurposeById(purposeId, headers))({
       checkFn: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
@@ -80,12 +82,8 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     purpose: purposeApi.Purpose,
     state: purposeApi.PurposeVersionState
   ): purposeApi.PurposeVersion => {
-    const latestVersion = purpose.versions
+    const latestVersion = sortPurposeVersionsByDate(purpose.versions)
       .filter((v) => v.state === state)
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      )
       .at(-1);
 
     assertPurposeVersionExistsWithState(latestVersion, purpose.id, state);

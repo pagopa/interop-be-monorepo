@@ -22,9 +22,11 @@ import {
 } from "../../mockUtils.js";
 
 describe("archivePurposeVersion", () => {
-  const mockApiPurposeVersion1 = getMockedApiPurposeVersion({ state: "DRAFT" });
+  const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
+    state: purposeApi.PurposeVersionState.Enum.DRAFT,
+  });
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
-    state: "REJECTED",
+    state: purposeApi.PurposeVersionState.Enum.REJECTED,
   });
   const mockApiPurpose = getMockedApiPurpose({
     versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
@@ -80,7 +82,11 @@ describe("archivePurposeVersion", () => {
 
   it("Should throw missingPurposeCurrentVersion in case of missing version to archive", async () => {
     const invalidPurpose = getMockedApiPurpose({
-      versions: [getMockedApiPurposeVersion({ state: "REJECTED" })],
+      versions: [
+        getMockedApiPurposeVersion({
+          state: purposeApi.PurposeVersionState.Enum.REJECTED,
+        }),
+      ],
     });
     // The archive will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);

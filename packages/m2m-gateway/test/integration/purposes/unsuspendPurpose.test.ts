@@ -23,10 +23,10 @@ import {
 
 describe("unsuspendPurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
-    state: "SUSPENDED",
+    state: purposeApi.PurposeVersionState.Enum.SUSPENDED,
   });
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
-    state: "DRAFT",
+    state: purposeApi.PurposeVersionState.Enum.DRAFT,
   });
   const mockApiPurpose = getMockedApiPurpose({
     versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
@@ -82,7 +82,11 @@ describe("unsuspendPurposeVersion", () => {
 
   it("Should throw missingActivePurposeVersionWithState in case of missing version to unsuspend", async () => {
     const invalidPurpose = getMockedApiPurpose({
-      versions: [getMockedApiPurposeVersion({ state: "REJECTED" })],
+      versions: [
+        getMockedApiPurposeVersion({
+          state: purposeApi.PurposeVersionState.Enum.REJECTED,
+        }),
+      ],
     });
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
 
