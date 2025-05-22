@@ -45,7 +45,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   schemaName: string,
   tableName: DomainDbTable,
   keysOn: Array<keyof T>,
-  partialStagingTableName?: PartialDbTable
+  stagingPartialTableName?: PartialDbTable
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCaseMapper = getColumnNameMapper(tableName);
@@ -67,7 +67,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
     .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
     .join(",\n      ");
 
-  const stagingTableName = `${partialStagingTableName || tableName}_${
+  const stagingTableName = `${stagingPartialTableName || tableName}_${
     config.mergeTableSuffix
   }`;
 
