@@ -58,12 +58,9 @@ describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
     }
   );
 
-  it.each([{ attributeId: "invalid" as AttributeId }])(
-    "Should return 400 if passed invalid data: %s",
-    async ({ attributeId }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, attributeId);
-      expect(res.status).toBe(400);
-    }
-  );
+  it("Should return 400 if passed an invalid attribute id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid" as AttributeId);
+    expect(res.status).toBe(400);
+  });
 });

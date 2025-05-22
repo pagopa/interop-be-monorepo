@@ -66,12 +66,9 @@ describe("API GET /tenants/selfcare/{selfcareId} test", () => {
     }
   );
 
-  it.each([{ selfcareId: "invalid" }])(
-    "Should return 400 if passed invalid data: %s",
-    async ({ selfcareId }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, selfcareId);
-      expect(res.status).toBe(400);
-    }
-  );
+  it("Should return 400 if passed an invalid selfcare id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid");
+    expect(res.status).toBe(400);
+  });
 });

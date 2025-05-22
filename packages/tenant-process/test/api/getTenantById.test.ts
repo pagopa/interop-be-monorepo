@@ -70,12 +70,9 @@ describe("API GET /tenants/{id} test", () => {
     }
   );
 
-  it.each([{ tenantId: "invalid" as TenantId }])(
-    "Should return 400 if passed invalid data: %s",
-    async ({ tenantId }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, tenantId);
-      expect(res.status).toBe(400);
-    }
-  );
+  it("Should return 400 if passed an invalid tenant id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid" as TenantId);
+    expect(res.status).toBe(400);
+  });
 });
