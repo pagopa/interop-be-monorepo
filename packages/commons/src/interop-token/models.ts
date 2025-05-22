@@ -54,7 +54,9 @@ export const InteropJwtConsumerPayload = InteropJwtCommonPayload.merge(
     sub: ClientId,
     purposeId: PurposeId,
     digest: ClientAssertionDigest.optional(),
-    // TODO: the new claims are behind the feature flag FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS. They should become required after the feature flag disappears.
+    // NOTE: The following claims are currently handled the feature
+    // flag FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS.
+    // They should become required once the feature flag is removed.
     producerId: TenantId.optional(),
     consumerId: TenantId.optional(),
     eserviceId: EServiceId.optional(),
