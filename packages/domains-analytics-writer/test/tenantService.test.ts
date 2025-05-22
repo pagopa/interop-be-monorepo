@@ -21,6 +21,9 @@ import {
   MaintenanceTenantUpdatedV2,
   tenantKind,
   TenantDeletedV1,
+  TenantEventEnvelopeV1,
+  TenantMailAddedV1,
+  TenantOnboardedV2,
 } from "pagopa-interop-models";
 import {
   getMockTenant,
@@ -361,6 +364,22 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     });
     expect(mapping.selfcareId).toBe(selfcareId);
   });
+
+  it("TenantMailAdded: should throw error when tenant is missing", async () => {
+    const msg: TenantEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: "some-id",
+      version: 1,
+      type: "TenantMailAdded",
+      event_version: 1,
+      data: {} as unknown as TenantMailAddedV1,
+      log_date: new Date(),
+    };
+
+    await expect(() => handleTenantMessageV1([msg], dbContext)).rejects.toThrow(
+      "Tenant can't be missing in the event message"
+    );
+  });
 });
 
 describe("Tenant messages consumers - handleTenantMessageV2", () => {
@@ -529,5 +548,37 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
       }
     );
     features.forEach((f) => expect(f.deleted).toBe(true));
+  });
+
+  it("TenantOnboarded: should throw error when tenant is missing", async () => {
+    const msg: TenantEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: "some-id",
+      version: 1,
+      type: "TenantOnboarded",
+      event_version: 2,
+      data: {} as unknown as TenantOnboardedV2,
+      log_date: new Date(),
+    };
+
+    await expect(() => handleTenantMessageV2([msg], dbContext)).rejects.toThrow(
+      "Tenant can't be missing in the event message"
+    );
+  });
+
+  it("TenantDelegatedConsumerFeatureRemoved: should throw error when tenant is missing", async () => {
+    const msg: TenantEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: "some-id",
+      version: 1,
+      type: "TenantDelegatedConsumerFeatureRemoved",
+      event_version: 2,
+      data: {} as TenantOnboardedV2,
+      log_date: new Date(),
+    };
+
+    await expect(() => handleTenantMessageV2([msg], dbContext)).rejects.toThrow(
+      "Tenant can't be missing in the event message"
+    );
   });
 });
