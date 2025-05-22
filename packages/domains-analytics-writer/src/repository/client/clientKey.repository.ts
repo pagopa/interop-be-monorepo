@@ -100,7 +100,7 @@ export function clientKeyRepository(conn: DBConnection) {
           deletingTableName,
           ["clientId", "kid"],
           false,
-          ["deletedAt"]
+          ["deleted_at"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
