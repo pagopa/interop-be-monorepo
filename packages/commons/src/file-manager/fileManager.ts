@@ -10,8 +10,9 @@ import {
   S3ClientConfig,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { FileManagerConfig } from "../config/fileManagerConfig.js";
-import { Logger, LoggerConfig } from "../index.js";
+import { FileManagerConfig } from "../config/index.js";
+import { Logger } from "../logging/index.js";
+import { LoggerConfig } from "../config/index.js";
 import {
   fileManagerCopyError,
   fileManagerDeleteError,
