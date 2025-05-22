@@ -1,9 +1,10 @@
 import {
   attributeRegistryApi,
+  authorizationApi,
+  catalogApi,
   delegationApi,
   purposeApi,
   tenantApi,
-  authorizationApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
@@ -159,6 +160,66 @@ export function getMockedApiClient({
         kind === authorizationApi.ClientKind.Values.API
           ? generateId()
           : undefined,
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiEservice({
+  descriptors,
+}: {
+  descriptors?: catalogApi.EServiceDescriptor[];
+} = {}): WithMetadata<catalogApi.EService> {
+  return {
+    data: {
+      id: generateId(),
+      name: generateMock(z.string().length(10)),
+      producerId: generateId(),
+      description: generateMock(z.string().length(10)),
+      technology: generateMock(catalogApi.EServiceTechnology),
+      descriptors:
+        descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
+      riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
+      mode: generateMock(catalogApi.EServiceMode),
+      isSignalHubEnabled: generateMock(z.boolean()),
+      isConsumerDelegable: generateMock(z.boolean()),
+      isClientAccessDelegable: generateMock(z.boolean()),
+      templateId: generateId(),
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiEserviceDescriptor({
+  state,
+}: {
+  state?: catalogApi.EServiceDescriptorState;
+} = {}): WithMetadata<catalogApi.EServiceDescriptor> {
+  return {
+    data: {
+      id: generateId(),
+      version: generateMock(z.string()),
+      description: generateMock(z.string().length(10)),
+      audience: generateMock(z.array(z.string())),
+      voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
+      dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
+      dailyCallsTotal: generateMock(z.number().int().gte(1)),
+      interface: generateMock(catalogApi.EServiceDoc),
+      docs: generateMock(z.array(catalogApi.EServiceDoc)),
+      state: state ?? generateMock(catalogApi.EServiceDescriptorState),
+      agreementApprovalPolicy: generateMock(catalogApi.AgreementApprovalPolicy),
+      serverUrls: generateMock(z.array(z.string())),
+      publishedAt: new Date().toISOString(),
+      suspendedAt: new Date().toISOString(),
+      deprecatedAt: new Date().toISOString(),
+      archivedAt: new Date().toISOString(),
+      attributes: generateMock(catalogApi.Attributes),
+      rejectionReasons: generateMock(z.array(catalogApi.RejectionReason)),
+      templateVersionRef: generateMock(catalogApi.EServiceTemplateVersionRef),
     },
     metadata: {
       version: 0,

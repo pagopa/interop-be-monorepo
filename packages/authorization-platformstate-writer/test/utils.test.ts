@@ -1143,10 +1143,12 @@ describe("utils", () => {
 
   it("updateTokenGenStatesDataForSecondRetrieval", async () => {
     const consumerId = generateId<TenantId>();
+    const producerId = generateId<TenantId>();
     const descriptor = getMockDescriptor();
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
+      producerId,
     };
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -1165,6 +1167,8 @@ describe("utils", () => {
       ...getMockAgreement(),
       eserviceId: eservice.id,
       descriptorId: descriptor.id,
+      producerId,
+      consumerId,
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -1177,6 +1181,7 @@ describe("utils", () => {
     const tokenConsumerClient: TokenGenerationStatesConsumerClient = {
       ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
       consumerId,
+      producerId,
       GSIPK_clientId: client.id,
       GSIPK_clientId_kid: makeGSIPKClientIdKid({
         clientId: client.id,
@@ -1224,6 +1229,7 @@ describe("utils", () => {
       agreementId: agreement.id,
       agreementTimestamp: agreement.stamps.activation!.when.toISOString(),
       agreementDescriptorId: agreement.descriptorId,
+      producerId: agreement.producerId,
     };
 
     const platformCatalogEntry: PlatformStatesCatalogEntry = {
