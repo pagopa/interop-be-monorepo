@@ -4,6 +4,7 @@ import {
   DelegationEventEnvelopeV2,
   delegationKind,
   generateId,
+  ProducerDelegationSubmittedV2,
   toDelegationV2,
 } from "pagopa-interop-models";
 import { getMockDelegation } from "pagopa-interop-commons-test";
@@ -80,5 +81,21 @@ describe("Delegation messages consumers - handleDelegationMessageV2", () => {
 
     expect(storedDocs).toHaveLength(1);
     expect(storedDocs[0].delegationId).toBe(mockDelegation.id);
+  });
+
+  it("ProducerDelegationSubmitted: should throw error when delegation is missing", async () => {
+    const msg: DelegationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: "some-id",
+      version: 1,
+      type: "ProducerDelegationSubmitted",
+      event_version: 2,
+      data: {} as unknown as ProducerDelegationSubmittedV2,
+      log_date: new Date(),
+    };
+
+    await expect(() =>
+      handleDelegationMessageV2([msg], dbContext)
+    ).rejects.toThrow("Delegation can't be missing in event message");
   });
 });
