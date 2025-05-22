@@ -87,6 +87,7 @@ import {
   ProducerJWKKey,
   ProducerKeychainId,
   WithMetadata,
+  CorrelationId,
   AgreementV2,
   VerifiedAttributeV2,
   DeclaredAttributeV2,
@@ -527,6 +528,7 @@ export const getMockTokenGenStatesConsumerClient = (
     ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
+  const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
   const descriptorId = generateId<DescriptorId>();
@@ -551,6 +553,7 @@ export const getMockTokenGenStatesConsumerClient = (
       descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
       descriptorVoucherLifespan: 60,
       updatedAt: new Date().toISOString(),
+      producerId,
       consumerId,
       agreementId,
       purposeVersionId,
@@ -598,6 +601,7 @@ export const getMockPlatformStatesAgreementEntry = (
   agreementId,
   agreementTimestamp: new Date().toISOString(),
   agreementDescriptorId: generateId<DescriptorId>(),
+  producerId: generateId(),
 });
 
 export const getMockTokenGenStatesApiClient = (
@@ -809,13 +813,15 @@ export const getMockEServiceTemplate = (
 export const getMockContext = ({
   authData,
   serviceName,
+  correlationId,
 }: {
   authData?: UIAuthData;
   serviceName?: string;
+  correlationId?: CorrelationId;
 }): WithLogger<AppContext<UIAuthData>> => ({
   authData: authData || getMockAuthData(),
   serviceName: serviceName || "test",
-  correlationId: generateId(),
+  correlationId: correlationId || generateId(),
   spanId: generateId(),
   logger: genericLogger,
   requestTimestamp: Date.now(),

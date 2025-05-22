@@ -240,6 +240,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
     purposeVersionId: PurposeVersionId,
     logger: Logger
   ): Promise<void> => {
+    // eslint-disable-next-line complexity
     const runPaginatedUpdateQuery = async (
       dynamoDBClient: DynamoDBClient,
       purpose: Purpose,
@@ -306,7 +307,8 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
           (entry.agreementId !== platformAgreementEntry.agreementId ||
             entry.agreementState !== platformAgreementEntry.state ||
             entry.GSIPK_eserviceId_descriptorId !==
-              gsiPKEServiceIdDescriptorId);
+              gsiPKEServiceIdDescriptorId ||
+            entry.producerId !== platformAgreementEntry.producerId);
 
         if (isAgreementMissingInTokenGenStates) {
           logger.info(
@@ -324,6 +326,9 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
               ":agreementState": {
                 S: platformAgreementEntry.state,
               },
+              ":producerId": {
+                S: platformAgreementEntry.producerId,
+              },
               ":gsiPKEServiceIdDescriptorId": {
                 S: gsiPKEServiceIdDescriptorId,
               },
@@ -331,7 +336,8 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
           : {};
         const agreementUpdateExpression = isAgreementMissingInTokenGenStates
           ? `, agreementId = :agreementId, 
-      agreementState = :agreementState, 
+      agreementState = :agreementState,
+      producerId = :producerId,
       GSIPK_eserviceId_descriptorId = :gsiPKEServiceIdDescriptorId`
           : "";
 
