@@ -143,6 +143,94 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     );
   });
 
+  it("EServiceTemplateAdded: should skip update when incoming metadata_version is lower or equal", async () => {
+    const mock = getMockEServiceTemplate();
+    const templateV1 = toEServiceTemplateV2({ ...mock, name: "Template v1" });
+
+    const msgV1: EServiceTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      type: "EServiceTemplateAdded",
+      event_version: 2,
+      data: { eserviceTemplate: templateV1 },
+      log_date: new Date(),
+    };
+
+    await handleEserviceTemplateMessageV2([msgV1], dbContext);
+    const stored1 = await getOneFromDb(
+      dbContext,
+      EserviceTemplateDbTable.eservice_template,
+      {
+        id: mock.id,
+      }
+    );
+    expect(stored1.name).toBe("Template v1");
+    expect(stored1.metadataVersion).toBe(1);
+
+    const templateV3 = toEServiceTemplateV2({ ...mock, name: "Template v3" });
+    const msgV3 = {
+      ...msgV1,
+      version: 3,
+      sequence_num: 2,
+      data: { eserviceTemplate: templateV3 },
+    };
+    await handleEserviceTemplateMessageV2([msgV3], dbContext);
+    const stored2 = await getOneFromDb(
+      dbContext,
+      EserviceTemplateDbTable.eservice_template,
+      {
+        id: mock.id,
+      }
+    );
+    expect(stored2.name).toBe("Template v3");
+    expect(stored2.metadataVersion).toBe(3);
+
+    const templateV2 = toEServiceTemplateV2({ ...mock, name: "Template v2" });
+    const msgV2 = {
+      ...msgV1,
+      version: 2,
+      sequence_num: 3,
+      data: { eserviceTemplate: templateV2 },
+    };
+    await handleEserviceTemplateMessageV2([msgV2], dbContext);
+    const stored3 = await getOneFromDb(
+      dbContext,
+      EserviceTemplateDbTable.eservice_template,
+      {
+        id: mock.id,
+      }
+    );
+    expect(stored3.name).toBe("Template v3");
+    expect(stored3.metadataVersion).toBe(3);
+  });
+
+  it("EServiceTemplateAdded: should apply update when incoming metadata_version is greater", async () => {
+    const mock = getMockEServiceTemplate();
+
+    const templateV2 = toEServiceTemplateV2({ ...mock, name: "Template v2" });
+    const msgV2: EServiceTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 2,
+      type: "EServiceTemplateAdded",
+      event_version: 2,
+      data: { eserviceTemplate: templateV2 },
+      log_date: new Date(),
+    };
+    await handleEserviceTemplateMessageV2([msgV2], dbContext);
+
+    const stored = await getOneFromDb(
+      dbContext,
+      EserviceTemplateDbTable.eservice_template,
+      {
+        id: mock.id,
+      }
+    );
+    expect(stored.name).toBe("Template v2");
+    expect(stored.metadataVersion).toBe(2);
+  });
+
   it("EServiceTemplateDeleted: cascades delete to all nested tables", async () => {
     const template = getMockEServiceTemplate();
     const version = getMockEServiceTemplateVersion();
