@@ -10,7 +10,7 @@ import {
   getMockedApiEserviceTemplateVersion,
 } from "../../mockUtils.js";
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
-import { eServiceTemplateVersionNotFound } from "../../../src/model/errors.js";
+import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
 
 describe("GET /eserviceTemplates/:templateId/version/:versionId router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -88,7 +88,7 @@ describe("GET /eserviceTemplates/:templateId/version/:versionId router test", ()
     mockEServiceTemplateService.getEServiceTemplateVersion = vi
       .fn()
       .mockRejectedValue(
-        eServiceTemplateVersionNotFound(
+        eserviceTemplateVersionNotFound(
           unsafeBrandId(mockApiTemplate.data.id),
           unsafeBrandId(mockApiTemplateVersion1.id)
         )

@@ -15,7 +15,7 @@ import {
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
 } from "../../mockUtils.js";
-import { eServiceTemplateVersionNotFound } from "../../../src/model/errors.js";
+import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("getEServiceTemplateVersion", () => {
@@ -72,7 +72,7 @@ describe("getEServiceTemplateVersion", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrow(
-      eServiceTemplateVersionNotFound(
+      eserviceTemplateVersionNotFound(
         unsafeBrandId(mockApiTemplate.data.id),
         randomVersionId
       )

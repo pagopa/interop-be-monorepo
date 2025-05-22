@@ -10,7 +10,7 @@ import {
   toM2MGatewayEServiceTemplate,
   toM2MGatewayEServiceTemplateVersion,
 } from "../api/eserviceTemplateApiConverter.js";
-import { eServiceTemplateVersionNotFound } from "../model/errors.js";
+import { eserviceTemplateVersionNotFound } from "../model/errors.js";
 
 export type EserviceTemplateService = ReturnType<
   typeof eserviceTemplateServiceBuilder
@@ -52,18 +52,18 @@ export function eserviceTemplateServiceBuilder(
           params: { templateId },
         });
 
-      const versions = state
+      const filteredVersions = state
         ? data.versions.filter((version) => version.state === state)
         : data.versions;
 
-      const paginatedVersions = versions.slice(offset, offset + limit);
+      const paginatedVersions = filteredVersions.slice(offset, offset + limit);
 
       return {
         results: paginatedVersions.map(toM2MGatewayEServiceTemplateVersion),
         pagination: {
           limit,
           offset,
-          totalCount: versions.length,
+          totalCount: filteredVersions.length,
         },
       };
     },
@@ -85,7 +85,7 @@ export function eserviceTemplateServiceBuilder(
       const version = data.versions.find((v) => v.id === versionId);
 
       if (!version) {
-        throw eServiceTemplateVersionNotFound(templateId, versionId);
+        throw eserviceTemplateVersionNotFound(templateId, versionId);
       }
 
       return toM2MGatewayEServiceTemplateVersion(version);

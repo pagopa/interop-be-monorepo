@@ -67,7 +67,7 @@ export function notValidEServiceTemplateVersionState(
   eserviceTemplateVersionState: EServiceTemplateVersionState
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService template version ${eserviceTemplateVersionId} has a not valid status for this operation ${eserviceTemplateVersionState}`,
+    detail: `EService template version ${eserviceTemplateVersionId} is in an invalid status for this operation ${eserviceTemplateVersionState}`,
     code: "notValidEServiceTemplateVersionState",
     title: "Not valid eservice template version state",
   });

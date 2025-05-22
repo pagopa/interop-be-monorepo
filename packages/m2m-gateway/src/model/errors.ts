@@ -22,7 +22,7 @@ export const errorCodes = {
   missingActivePurposeVersion: "0009",
   taxCodeAndIPACodeConflict: "0010",
   eserviceDescriptorNotFound: "0011",
-  eServiceTemplateVersionNotFound: "0012",
+  eserviceTemplateVersionNotFound: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -100,13 +100,13 @@ export function clientAdminIdNotFound(
   });
 }
 
-export function eServiceTemplateVersionNotFound(
+export function eserviceTemplateVersionNotFound(
   templateId: EServiceTemplateId,
   versionId: EServiceTemplateVersionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Version ${versionId} not found in eService template ${templateId}`,
-    code: "eServiceTemplateVersionNotFound",
+    detail: `Version ${versionId} not found in eservice template ${templateId}`,
+    code: "eserviceTemplateVersionNotFound",
     title: "EService template version not found",
   });
 }

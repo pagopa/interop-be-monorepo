@@ -286,7 +286,7 @@ export function notValidDescriptor(
   state: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
+    detail: `Descriptor ${descriptorId} is in an invalid status for this operation ${state}`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
   });
