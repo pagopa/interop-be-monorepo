@@ -149,6 +149,7 @@ components:
       description: Represents the token type
       enum:
         - Bearer
+        - DPoP
     ClientCredentialsResponse:
       type: object
       required:
