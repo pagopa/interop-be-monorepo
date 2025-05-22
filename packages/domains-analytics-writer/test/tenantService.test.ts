@@ -380,6 +380,65 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
       "Tenant can't be missing in the event message"
     );
   });
+
+  it("TenantCreated: should skip update when incoming metadata_version is lower or equal (V1)", async () => {
+    const tenant = getMockTenant();
+    const tenantV1 = toTenantV1({ ...tenant, name: "V1" });
+    const tenantV3 = toTenantV1({ ...tenant, name: "V3" });
+    const tenantV2 = toTenantV1({ ...tenant, name: "V2" });
+
+    await handleTenantMessageV1(
+      [
+        {
+          sequence_num: 1,
+          stream_id: tenant.id,
+          version: 1,
+          type: "TenantCreated",
+          event_version: 1,
+          data: { tenant: tenantV1 },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    await handleTenantMessageV1(
+      [
+        {
+          sequence_num: 2,
+          stream_id: tenant.id,
+          version: 3,
+          type: "TenantUpdated",
+          event_version: 1,
+          data: { tenant: tenantV3 },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    await handleTenantMessageV1(
+      [
+        {
+          sequence_num: 3,
+          stream_id: tenant.id,
+          version: 2,
+          type: "TenantUpdated",
+          event_version: 1,
+          data: { tenant: tenantV2 },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: tenant.id,
+    });
+
+    expect(stored.name).toBe("V3");
+    expect(stored.metadataVersion).toBe(3);
+  });
 });
 
 describe("Tenant messages consumers - handleTenantMessageV2", () => {
@@ -580,5 +639,64 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     await expect(() => handleTenantMessageV2([msg], dbContext)).rejects.toThrow(
       "Tenant can't be missing in the event message"
     );
+  });
+
+  it("MaintenanceTenantUpdated: should skip update when incoming metadata_version is lower or equal (V2)", async () => {
+    const tenant = getMockTenant();
+    const tenantV1 = toTenantV2({ ...tenant, name: "V1" });
+    const tenantV3 = toTenantV2({ ...tenant, name: "V3" });
+    const tenantV2 = toTenantV2({ ...tenant, name: "V2" });
+
+    await handleTenantMessageV2(
+      [
+        {
+          sequence_num: 1,
+          stream_id: tenant.id,
+          version: 1,
+          type: "TenantOnboarded",
+          event_version: 2,
+          data: { tenant: tenantV1 },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    await handleTenantMessageV2(
+      [
+        {
+          sequence_num: 2,
+          stream_id: tenant.id,
+          version: 3,
+          type: "MaintenanceTenantUpdated",
+          event_version: 2,
+          data: { tenant: tenantV3 },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    await handleTenantMessageV2(
+      [
+        {
+          sequence_num: 3,
+          stream_id: tenant.id,
+          version: 2,
+          type: "MaintenanceTenantUpdated",
+          event_version: 2,
+          data: { tenant: tenantV2 },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const stored = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: tenant.id,
+    });
+
+    expect(stored.name).toBe("V3");
+    expect(stored.metadataVersion).toBe(3);
   });
 });
