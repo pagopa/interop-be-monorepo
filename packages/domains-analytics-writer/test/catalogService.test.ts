@@ -18,7 +18,9 @@ import {
   toEServiceV2,
   EServiceDescriptorDocumentAddedV2,
   generateId,
-  EServiceDocumentId,
+  EService,
+  Descriptor,
+  EServiceTemplateVersionRef,
 } from "pagopa-interop-models";
 import {
   getMockEService,
@@ -47,39 +49,33 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
   });
 
   it("EServiceAdded: inserts eService with descriptors, docs, interfaces, riskAnalysis", async () => {
-    const mock = getMockEService();
-    const descriptor = getMockDescriptor();
-    const interfaceId = generateId<EServiceDocumentId>();
-    descriptor.interface = {
-      path: "path",
-      id: interfaceId,
-      name: "name",
-      prettyName: "pretty name",
-      contentType: "",
-      checksum: "",
-      uploadDate: new Date(),
-    };
+    const descriptorInterface = getMockDocument();
     const document = getMockDocument();
-    descriptor.docs = [document];
-    const certifiedAttribute = getMockEServiceAttribute();
-    descriptor.attributes = {
-      certified: [[certifiedAttribute]],
-      declared: [],
-      verified: [],
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      interface: descriptorInterface,
+      attributes: {
+        certified: [[getMockEServiceAttribute()]],
+        declared: [],
+        verified: [],
+      },
+      docs: [document],
     };
-    const risk = getMockValidRiskAnalysis("PA");
-    const eserviceWithSubs = {
-      ...mock,
+
+    const riskAnalysis = getMockValidRiskAnalysis("PA");
+
+    const eservice: EService = {
+      ...getMockEService(),
       descriptors: [descriptor],
-      riskAnalysis: [risk],
+      riskAnalysis: [riskAnalysis],
     };
 
     const payload: EServiceAddedV1 = {
-      eservice: toEServiceV1(eserviceWithSubs),
+      eservice: toEServiceV1(eservice),
     };
     const msg: EServiceEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 1,
       type: "EServiceAdded",
       event_version: 1,
@@ -91,7 +87,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     const storedEservice = await getOneFromDb(
       dbContext,
       CatalogDbTable.eservice,
-      { id: mock.id }
+      { id: eservice.id }
     );
     expect(storedEservice).toBeDefined();
     expect(storedEservice.metadataVersion).toBe(1);
@@ -106,7 +102,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     const storedInterfaces = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_descriptor_interface,
-      { id: interfaceId }
+      { id: descriptorInterface.id }
     );
     expect(storedInterfaces.length).toBeGreaterThan(0);
 
@@ -120,35 +116,41 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     const storedRiskAnalysis = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_risk_analysis,
-      { id: risk.id }
+      { id: riskAnalysis.id }
     );
     expect(storedRiskAnalysis.length).toBeGreaterThan(0);
   });
 
   it("EServiceDescriptorAdded: inserts descriptor with attributes, rejection reasons, template refs", async () => {
-    const mock = getMockEService();
-    const descriptor = getMockDescriptor();
-    const certifiedAttribute = getMockEServiceAttribute();
-    descriptor.attributes = {
-      certified: [[certifiedAttribute]],
-      declared: [],
-      verified: [],
+    const templateVersionRef: EServiceTemplateVersionRef = {
+      id: generateId(),
     };
-    descriptor.rejectionReasons = [
-      { rejectionReason: "rejection reason", rejectedAt: new Date() },
-    ];
-    const templateVersionRefId = generateId();
-    descriptor.templateVersionRef = { id: templateVersionRefId as any };
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      attributes: {
+        certified: [[getMockEServiceAttribute()]],
+        declared: [],
+        verified: [],
+      },
+      rejectionReasons: [
+        { rejectionReason: "rejection reason", rejectedAt: new Date() },
+      ],
+      templateVersionRef,
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
 
     await handleCatalogMessageV1(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 1,
           type: "EServiceAdded",
           event_version: 1,
-          data: { eservice: toEServiceV1(mock) },
+          data: { eservice: toEServiceV1(eservice) },
           log_date: new Date(),
         },
       ],
@@ -156,12 +158,12 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     );
 
     const payload: EServiceDescriptorAddedV1 = {
-      eserviceId: mock.id,
+      eserviceId: eservice.id,
       eserviceDescriptor: toDescriptorV1(descriptor),
     };
     const msg: EServiceEventEnvelopeV1 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 2,
       type: "EServiceDescriptorAdded",
       event_version: 1,
@@ -195,13 +197,13 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     const tmplRefs = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_descriptor_template_version_ref,
-      { eserviceTemplateVersionId: templateVersionRefId }
+      { eserviceTemplateVersionId: templateVersionRef.id }
     );
     expect(tmplRefs.length).toBeGreaterThan(0);
   });
 
   it("EServiceDocumentAdded: inserts new document", async () => {
-    const mock = getMockEService();
+    const eservice = getMockEService();
     const descriptor = getMockDescriptor();
     const document = getMockDocument();
 
@@ -209,21 +211,21 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 1,
           type: "EServiceAdded",
           event_version: 1,
-          data: { eservice: toEServiceV1(mock) },
+          data: { eservice: toEServiceV1(eservice) },
           log_date: new Date(),
         },
         {
           sequence_num: 2,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 2,
           type: "EServiceDescriptorAdded",
           event_version: 1,
           data: {
-            eserviceId: mock.id,
+            eserviceId: eservice.id,
             eserviceDescriptor: toDescriptorV1({ ...descriptor, docs: [] }),
           },
           log_date: new Date(),
@@ -233,7 +235,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     );
 
     const payload: EServiceDocumentAddedV1 = {
-      eserviceId: mock.id,
+      eserviceId: eservice.id,
       descriptorId: descriptor.id,
       serverUrls: [],
       document: toDocumentV1({
@@ -244,7 +246,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     };
     const msg: EServiceEventEnvelopeV1 = {
       sequence_num: 3,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 3,
       type: "EServiceDocumentAdded",
       event_version: 1,
@@ -263,18 +265,20 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
   });
 
   it("EServiceRiskAnalysisDeleted: marks riskAnalysis deleted", async () => {
-    const mock = getMockEService();
+    const eservice = getMockEService();
     const risk = getMockValidRiskAnalysis("PA");
 
     await handleCatalogMessageV1(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 1,
           type: "EServiceAdded",
           event_version: 1,
-          data: { eservice: toEServiceV1({ ...mock, riskAnalysis: [risk] }) },
+          data: {
+            eservice: toEServiceV1({ ...eservice, riskAnalysis: [risk] }),
+          },
           log_date: new Date(),
         },
       ],
@@ -283,13 +287,13 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
 
     const msg: EServiceEventEnvelopeV1 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 2,
       type: "EServiceRiskAnalysisDeleted",
       event_version: 1,
       data: {
         riskAnalysisId: risk.id,
-        eservice: toEServiceV1(mock),
+        eservice: toEServiceV1(eservice),
       } as EServiceRiskAnalysisDeletedV1,
       log_date: new Date(),
     };
@@ -304,36 +308,36 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
   });
 
   it("EServiceDeleted: marks eService and all subobjects deleted", async () => {
-    const mock = getMockEService();
+    const eservice = getMockEService();
     const descriptor = getMockDescriptor();
     const document = getMockDocument();
-    const risk = getMockValidRiskAnalysis("PA");
+    const riskAnalysis = getMockValidRiskAnalysis("PA");
 
     await handleCatalogMessageV1(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 1,
           type: "EServiceAdded",
           event_version: 1,
           data: {
             eservice: toEServiceV1({
-              ...mock,
+              ...eservice,
               descriptors: [descriptor],
-              riskAnalysis: [risk],
+              riskAnalysis: [riskAnalysis],
             }),
           },
           log_date: new Date(),
         },
         {
           sequence_num: 2,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 2,
           type: "EServiceDescriptorAdded",
           event_version: 1,
           data: {
-            eserviceId: mock.id,
+            eserviceId: eservice.id,
             eserviceDescriptor: toDescriptorV1({
               ...descriptor,
               docs: [document],
@@ -343,12 +347,12 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
         },
         {
           sequence_num: 3,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 3,
           type: "EServiceDocumentAdded",
           event_version: 1,
           data: {
-            eserviceId: mock.id,
+            eserviceId: eservice.id,
             descriptorId: descriptor.id,
             serverUrls: [],
             document: toDocumentV1({
@@ -365,11 +369,11 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
 
     const msg: EServiceEventEnvelopeV1 = {
       sequence_num: 4,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 4,
       type: "EServiceDeleted",
       event_version: 1,
-      data: { eserviceId: mock.id } as EServiceDeletedV1,
+      data: { eserviceId: eservice.id } as EServiceDeletedV1,
       log_date: new Date(),
     };
     await handleCatalogMessageV1([msg], dbContext);
@@ -377,7 +381,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     const storedEservice = await getOneFromDb(
       dbContext,
       CatalogDbTable.eservice,
-      { id: mock.id }
+      { id: eservice.id }
     );
     expect(storedEservice.deleted).toBe(true);
 
@@ -397,7 +401,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
 
     (
       await getManyFromDb(dbContext, CatalogDbTable.eservice_risk_analysis, {
-        id: risk.id,
+        id: riskAnalysis.id,
       })
     ).forEach((r) => expect(r.deleted).toBe(true));
   });
@@ -409,39 +413,31 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
   });
 
   it("EServiceAdded: inserts eService with descriptors, docs, interfaces, riskAnalysis", async () => {
-    const mock = getMockEService();
-    const descriptor = getMockDescriptor();
-    const interfaceId = generateId();
-    descriptor.interface = {
-      path: "path",
-      id: interfaceId as any,
-      name: "name",
-      prettyName: "pretty name",
-      contentType: "",
-      checksum: "",
-      uploadDate: new Date(),
-    };
+    const descriptorInterface = getMockDocument();
     const document = getMockDocument();
-    descriptor.docs = [document];
-    const certifiedAttribute = getMockEServiceAttribute();
-    descriptor.attributes = {
-      certified: [[certifiedAttribute]],
-      declared: [],
-      verified: [],
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      interface: descriptorInterface,
+      attributes: {
+        certified: [[getMockEServiceAttribute()]],
+        declared: [],
+        verified: [],
+      },
+      docs: [document],
     };
-    const risk = getMockValidRiskAnalysis("PA");
-    const eserviceWithSubs = {
-      ...mock,
+    const riskAnalysis = getMockValidRiskAnalysis("PA");
+    const mockEService: EService = {
+      ...getMockEService(),
       descriptors: [descriptor],
-      riskAnalysis: [risk],
+      riskAnalysis: [riskAnalysis],
     };
 
     const payload: EServiceAddedV2 = {
-      eservice: toEServiceV2(eserviceWithSubs),
+      eservice: toEServiceV2(mockEService),
     };
     const msg: EServiceEventEnvelopeV2 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: mockEService.id,
       version: 1,
       type: "EServiceAdded",
       event_version: 2,
@@ -453,7 +449,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     const storedEservice = await getOneFromDb(
       dbContext,
       CatalogDbTable.eservice,
-      { id: mock.id }
+      { id: mockEService.id }
     );
     expect(storedEservice).toBeDefined();
     expect(storedEservice.metadataVersion).toBe(1);
@@ -468,7 +464,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     const storedInterfaces = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_descriptor_interface,
-      { id: interfaceId }
+      { id: descriptorInterface.id }
     );
     expect(storedInterfaces.length).toBeGreaterThan(0);
 
@@ -482,35 +478,42 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     const storedRiskAnalysis = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_risk_analysis,
-      { id: risk.id }
+      { id: riskAnalysis.id }
     );
     expect(storedRiskAnalysis.length).toBeGreaterThan(0);
   });
 
   it("EServiceDescriptorAdded: inserts descriptor with attributes, rejection reasons, template refs", async () => {
-    const mock = getMockEService();
-    const descriptor = getMockDescriptor();
-    const certifiedAttribute = getMockEServiceAttribute();
-    descriptor.attributes = {
-      certified: [[certifiedAttribute]],
-      declared: [],
-      verified: [],
+    const templateVersionRef: EServiceTemplateVersionRef = {
+      id: generateId(),
     };
-    descriptor.rejectionReasons = [
-      { rejectionReason: "rejection reason", rejectedAt: new Date() },
-    ];
-    const templateVersionRefId = generateId();
-    descriptor.templateVersionRef = { id: templateVersionRefId as any };
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      attributes: {
+        certified: [[getMockEServiceAttribute()]],
+        declared: [],
+        verified: [],
+      },
+      rejectionReasons: [
+        { rejectionReason: "rejection reason", rejectedAt: new Date() },
+      ],
+      templateVersionRef,
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
 
     await handleCatalogMessageV2(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 1,
           type: "EServiceAdded",
           event_version: 2,
-          data: { eservice: toEServiceV2(mock) } as EServiceAddedV2,
+          data: { eservice: toEServiceV2(eservice) } as EServiceAddedV2,
           log_date: new Date(),
         },
       ],
@@ -518,12 +521,12 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     );
 
     const payload: EServiceDescriptorAddedV2 = {
-      eservice: toEServiceV2({ ...mock, descriptors: [descriptor] }),
+      eservice: toEServiceV2({ ...eservice, descriptors: [descriptor] }),
       descriptorId: descriptor.id,
     };
     const msg: EServiceEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 2,
       type: "EServiceDescriptorAdded",
       event_version: 2,
@@ -557,13 +560,13 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     const tmplRefs = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_descriptor_template_version_ref,
-      { eserviceTemplateVersionId: templateVersionRefId }
+      { eserviceTemplateVersionId: templateVersionRef.id }
     );
     expect(tmplRefs.length).toBeGreaterThan(0);
   });
 
   it("EServiceDescriptorDocumentAdded: inserts new document", async () => {
-    const mock = getMockEService();
+    const eservice = getMockEService();
     const descriptor = getMockDescriptor();
     const document = getMockDocument();
     descriptor.docs = [document];
@@ -572,22 +575,22 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 1,
           type: "EServiceAdded",
           event_version: 2,
-          data: { eservice: toEServiceV2(mock) } as EServiceAddedV2,
+          data: { eservice: toEServiceV2(eservice) } as EServiceAddedV2,
           log_date: new Date(),
         },
         {
           sequence_num: 2,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 2,
           type: "EServiceDescriptorAdded",
           event_version: 2,
           data: {
             eservice: toEServiceV2({
-              ...mock,
+              ...eservice,
               descriptors: [{ ...descriptor, docs: [] }],
             }),
             descriptorId: descriptor.id,
@@ -599,13 +602,13 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     );
 
     const payload: EServiceDescriptorDocumentAddedV2 = {
-      eservice: toEServiceV2({ ...mock, descriptors: [{ ...descriptor }] }),
+      eservice: toEServiceV2({ ...eservice, descriptors: [{ ...descriptor }] }),
       descriptorId: descriptor.id,
       documentId: document.id,
     };
     const msg: EServiceEventEnvelopeV2 = {
       sequence_num: 3,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 3,
       type: "EServiceDescriptorDocumentAdded",
       event_version: 2,
@@ -624,19 +627,19 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
   });
 
   it("EServiceRiskAnalysisDeleted: marks riskAnalysis deleted", async () => {
-    const mock = getMockEService();
+    const eservice = getMockEService();
     const risk = getMockValidRiskAnalysis("PA");
 
     await handleCatalogMessageV2(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 1,
           type: "EServiceAdded",
           event_version: 2,
           data: {
-            eservice: toEServiceV2({ ...mock, riskAnalysis: [risk] }),
+            eservice: toEServiceV2({ ...eservice, riskAnalysis: [risk] }),
           } as EServiceAddedV2,
           log_date: new Date(),
         },
@@ -646,13 +649,13 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
 
     const msg: EServiceEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 2,
       type: "EServiceRiskAnalysisDeleted",
       event_version: 2,
       data: {
         riskAnalysisId: risk.id,
-        eservice: toEServiceV2(mock),
+        eservice: toEServiceV2(eservice),
       } as EServiceRiskAnalysisDeletedV2,
       log_date: new Date(),
     };
@@ -667,7 +670,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
   });
 
   it("EServiceDeleted: marks eService and all subobjects deleted", async () => {
-    const mock = getMockEService();
+    const eservice = getMockEService();
     const descriptor = getMockDescriptor();
     const document = getMockDocument();
     const risk = getMockValidRiskAnalysis("PA");
@@ -676,13 +679,13 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 1,
           type: "EServiceAdded",
           event_version: 2,
           data: {
             eservice: toEServiceV2({
-              ...mock,
+              ...eservice,
               descriptors: [descriptor],
               riskAnalysis: [risk],
             }),
@@ -691,13 +694,13 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
         },
         {
           sequence_num: 2,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 2,
           type: "EServiceDescriptorAdded",
           event_version: 2,
           data: {
             eservice: toEServiceV2({
-              ...mock,
+              ...eservice,
               descriptors: [{ ...descriptor, docs: [document] }],
             }),
             descriptorId: descriptor.id,
@@ -706,13 +709,13 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
         },
         {
           sequence_num: 3,
-          stream_id: mock.id,
+          stream_id: eservice.id,
           version: 3,
           type: "EServiceDescriptorDocumentAdded",
           event_version: 2,
           data: {
             eservice: toEServiceV2({
-              ...mock,
+              ...eservice,
               descriptors: [{ ...descriptor }],
             }),
             descriptorId: descriptor.id,
@@ -732,11 +735,11 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
 
     const msg: EServiceEventEnvelopeV2 = {
       sequence_num: 4,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 4,
       type: "EServiceDeleted",
       event_version: 2,
-      data: { eserviceId: mock.id } as EServiceDeletedV2,
+      data: { eserviceId: eservice.id } as EServiceDeletedV2,
       log_date: new Date(),
     };
     await handleCatalogMessageV2([msg], dbContext);
@@ -744,7 +747,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
     const storedEservice = await getOneFromDb(
       dbContext,
       CatalogDbTable.eservice,
-      { id: mock.id }
+      { id: eservice.id }
     );
     expect(storedEservice.deleted).toBe(true);
 
@@ -776,21 +779,21 @@ describe("Check on metadata_version merge", () => {
   });
 
   it("should skip update when incoming metadata_version is lower or equal", async () => {
-    const mock = getMockEService();
+    const eservice = getMockEService();
 
     const msgV1: EServiceEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 1,
       type: "EServiceAdded",
       event_version: 1,
-      data: { eservice: toEServiceV1({ ...mock, name: "Name v1" }) },
+      data: { eservice: toEServiceV1({ ...eservice, name: "Name v1" }) },
       log_date: new Date(),
     };
     await handleCatalogMessageV1([msgV1], dbContext);
 
     const stored1 = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
-      id: mock.id,
+      id: eservice.id,
     });
     expect(stored1.name).toBe("Name v1");
     expect(stored1.metadataVersion).toBe(1);
@@ -799,12 +802,12 @@ describe("Check on metadata_version merge", () => {
       ...msgV1,
       version: 3,
       sequence_num: 2,
-      data: { eservice: toEServiceV1({ ...mock, name: "Name v3" }) },
+      data: { eservice: toEServiceV1({ ...eservice, name: "Name v3" }) },
     };
     await handleCatalogMessageV1([msgV3], dbContext);
 
     const stored2 = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
-      id: mock.id,
+      id: eservice.id,
     });
     expect(stored2.name).toBe("Name v3");
     expect(stored2.metadataVersion).toBe(3);
@@ -813,33 +816,33 @@ describe("Check on metadata_version merge", () => {
       ...msgV1,
       version: 2,
       sequence_num: 3,
-      data: { eservice: toEServiceV1({ ...mock, name: "Name v2" }) },
+      data: { eservice: toEServiceV1({ ...eservice, name: "Name v2" }) },
     };
     await handleCatalogMessageV1([msgV2], dbContext);
 
     const stored3 = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
-      id: mock.id,
+      id: eservice.id,
     });
     expect(stored3.name).toBe("Name v3");
     expect(stored3.metadataVersion).toBe(3);
   });
 
   it("should apply update when incoming metadata_version is greater", async () => {
-    const mock = getMockEService();
+    const eservice = getMockEService();
 
     const msgV2: EServiceEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: eservice.id,
       version: 2,
       type: "EServiceAdded",
       event_version: 1,
-      data: { eservice: toEServiceV1({ ...mock, name: "Name v2" }) },
+      data: { eservice: toEServiceV1({ ...eservice, name: "Name v2" }) },
       log_date: new Date(),
     };
     await handleCatalogMessageV1([msgV2], dbContext);
 
     const stored = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
-      id: mock.id,
+      id: eservice.id,
     });
     expect(stored.name).toBe("Name v2");
     expect(stored.metadataVersion).toBe(2);
