@@ -6,7 +6,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { resourcePollingTimeout } from "../model/errors.js";
 import {
   assertMetadataExists,
-  assertMetadataVersionExists,
+  assertTargetMetadataExists,
 } from "./validators/validators.js";
 
 function delay(ms: number): Promise<void> {
@@ -71,15 +71,16 @@ export function isPolledVersionAtLeastResponseVersion<T>(
 
 /**
  * Generic check function that verifies if a polled resource's version meets or exceeds a target version.
- * This can be used with any resource type that includes metadata with a version number.
+ * Use this when only metadata (with a version number) is available rather than a full resource response.
+ * For cases where a complete response object is available, use isPolledVersionAtLeastResponseVersion instead.
  *
- * @param targetVersion - The version number that the polled resource should meet or exceed
- * @returns A function that takes a polled resource and returns true if its version is >= targetVersion
+ * @param metadata - Object containing the target version number to compare against
+ * @returns A function that takes a polled resource and returns true if its version is >= target version
  */
-export function isPolledVersionAtLeastTargetVersion(
-  targetVersion: number | undefined
+export function isPolledVersionAtLeastMetadataTargetVersion(
+  metadata: { version: number } | undefined
 ): <T>(polledResource: WithMetadata<NonNullable<T>>) => boolean {
-  assertMetadataVersionExists(targetVersion);
+  assertTargetMetadataExists(metadata);
   return <T>(polledResource: WithMetadata<NonNullable<T>>) =>
-    polledResource.metadata.version >= targetVersion;
+    polledResource.metadata.version >= metadata.version;
 }

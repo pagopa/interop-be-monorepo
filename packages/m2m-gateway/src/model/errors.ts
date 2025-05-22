@@ -20,7 +20,7 @@ export const errorCodes = {
   attributeNotFound: "0007",
   eserviceDescriptorNotFound: "0008",
   purposeNotFound: "0009",
-  missingActivePurposeVersionWithState: "0010",
+  missingPurposeVersionWithState: "0010",
   purposeVersionNotFound: "0011",
   taxCodeAndIPACodeConflict: "0012",
   missingPurposeCurrentVersion: "0013",
@@ -112,13 +112,13 @@ export function purposeVersionNotFound(
   });
 }
 
-export function missingActivePurposeVersionWithState(
+export function missingPurposeVersionWithState(
   purposeId: string,
   state: purposeApi.PurposeVersionState
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `There is no ${state} version for purpose ${purposeId}`,
-    code: "missingActivePurposeVersionWithState",
+    code: "missingPurposeVersionWithState",
     title: `Missing ${state} purpose version`,
   });
 }

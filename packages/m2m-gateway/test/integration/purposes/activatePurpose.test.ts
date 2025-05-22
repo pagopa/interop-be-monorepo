@@ -11,7 +11,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
-  missingActivePurposeVersionWithState,
+  missingPurposeVersionWithState,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
@@ -92,7 +92,7 @@ describe("activatePurposeVersion", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      missingActivePurposeVersionWithState(
+      missingPurposeVersionWithState(
         invalidPurpose.data.id,
         purposeApi.PurposeVersionState.Values.DRAFT
       )

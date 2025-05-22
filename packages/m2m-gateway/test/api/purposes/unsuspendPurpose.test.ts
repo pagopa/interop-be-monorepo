@@ -7,7 +7,7 @@ import { purposeApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  missingActivePurposeVersionWithState,
+  missingPurposeVersionWithState,
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
@@ -37,7 +37,7 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
     mockPurposeService.unsuspendPurpose = vi
       .fn()
       .mockRejectedValue(
-        missingActivePurposeVersionWithState(
+        missingPurposeVersionWithState(
           generateId<PurposeId>(),
           purposeApi.PurposeVersionState.Values.SUSPENDED
         )

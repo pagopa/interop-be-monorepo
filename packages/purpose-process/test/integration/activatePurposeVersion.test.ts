@@ -512,10 +512,6 @@ describe("activatePurposeVersion", () => {
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
     expect(activateResponse).toMatchObject({
-      data: updatedVersion,
-      metadata: { version: 1 },
-    });
-    expect(activateResponse).toMatchObject({
       data: expectedPurposeVersion,
       metadata: { version: 1 },
     });
