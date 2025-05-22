@@ -91,7 +91,7 @@ export function tenantFeatureRepository(conn: DBConnection) {
       }
     },
 
-    async mergeDeleting(): Promise<void> {
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
@@ -100,7 +100,7 @@ export function tenantFeatureRepository(conn: DBConnection) {
           ["tenantId", "kind"],
           false
         );
-        await conn.none(mergeQuery);
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging deleting table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`

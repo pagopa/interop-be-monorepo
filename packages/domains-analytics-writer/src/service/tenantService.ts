@@ -129,9 +129,7 @@ export function tenantServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
-      });
 
-      await dbContext.conn.tx(async (t) => {
         await tenantRepo.merge(t);
         await tenantMailRepo.merge(t);
         await tenantCertifiedAttributeRepo.merge(t);
@@ -140,9 +138,9 @@ export function tenantServiceBuilder(db: DBContext) {
         await tenantVerifiedAttributeVerifierRepo.merge(t);
         await tenantVerifiedAttributeRevokerRepo.merge(t);
         await tenantFeatureRepo.merge(t);
-      });
 
-      genericLogger.info(`Staging data merged into target tables for Tenant`);
+        genericLogger.info(`Staging data merged into target tables for Tenant`);
+      });
 
       await tenantRepo.clean();
       await tenantMailRepo.clean();
@@ -172,12 +170,12 @@ export function tenantServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
-      });
 
-      await tenantRepo.mergeTenantSelfcareId();
-      genericLogger.info(
-        `Staging data merged into target tables for TenantSelfcareId`
-      );
+        await tenantRepo.mergeTenantSelfcareId(t);
+        genericLogger.info(
+          `Staging data merged into target tables for TenantSelfcareId`
+        );
+      });
 
       await tenantRepo.clean();
       genericLogger.info(`Staging table cleaned for TenantSelfcareId`);
@@ -199,9 +197,7 @@ export function tenantServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
-      });
 
-      await dbContext.conn.tx(async (t) => {
         await tenantRepo.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
@@ -247,12 +243,12 @@ export function tenantServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
-      });
 
-      await tenantMailRepo.mergeDeletingByMailIdAndTenantId();
-      genericLogger.info(
-        `Staging deletion merged into target tables for TenantMailByTenantId`
-      );
+        await tenantMailRepo.mergeDeletingByMailIdAndTenantId(t);
+        genericLogger.info(
+          `Staging deletion merged into target tables for TenantMailByTenantId`
+        );
+      });
 
       await tenantRepo.cleanDeleting();
       genericLogger.info(
@@ -276,12 +272,12 @@ export function tenantServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
-      });
 
-      await tenantMailRepo.mergeDeleting();
-      genericLogger.info(
-        `Staging deletion merged into target tables for TenantMail`
-      );
+        await tenantMailRepo.mergeDeleting(t);
+        genericLogger.info(
+          `Staging deletion merged into target tables for TenantMail`
+        );
+      });
 
       await tenantRepo.cleanDeleting();
       genericLogger.info(`Staging deletion table cleaned for TenantMail`);
@@ -303,12 +299,12 @@ export function tenantServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
-      });
 
-      await tenantFeatureRepo.mergeDeleting();
-      genericLogger.info(
-        `Staging deletion merged into target tables for TenantFeature`
-      );
+        await tenantFeatureRepo.mergeDeleting(t);
+        genericLogger.info(
+          `Staging deletion merged into target tables for TenantFeature`
+        );
+      });
 
       await tenantFeatureRepo.cleanDeleting();
       genericLogger.info(`Staging deletion table cleaned for TenantFeature`);

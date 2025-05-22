@@ -21,6 +21,9 @@ export function tenantMailRepository(conn: DBConnection) {
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTableName = DeletingDbTable.tenant_mail_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
+  const deletingTableByIdAndTenantName =
+    DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table;
+  const stagingDeletingTablByIdAndTenantName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -93,7 +96,7 @@ export function tenantMailRepository(conn: DBConnection) {
       }
     },
 
-    async mergeDeleting(): Promise<void> {
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
@@ -101,7 +104,7 @@ export function tenantMailRepository(conn: DBConnection) {
           deletingTableName,
           ["id"]
         );
-        await conn.none(mergeQuery);
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging deleting table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
@@ -117,7 +120,7 @@ export function tenantMailRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(
           pgp,
-          deletingTableName,
+          deletingTableByIdAndTenantName,
           TenantMailDeletingByIdAndTenantSchema
         );
         await t.none(
@@ -125,34 +128,34 @@ export function tenantMailRepository(conn: DBConnection) {
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
+          `Error inserting into deleting table ${stagingDeletingTablByIdAndTenantName}: ${error}`
         );
       }
     },
 
-    async mergeDeletingByMailIdAndTenantId(): Promise<void> {
+    async mergeDeletingByMailIdAndTenantId(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
-          deletingTableName,
+          deletingTableByIdAndTenantName,
           ["id", "tenantId"],
           false
         );
-        await conn.none(mergeQuery);
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging deleting table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
+          `Error merging deleting table ${stagingDeletingTablByIdAndTenantName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
 
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
+        await conn.none(`TRUNCATE TABLE ${deletingTableByIdAndTenantName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTablByIdAndTenantName}: ${error}`
         );
       }
     },

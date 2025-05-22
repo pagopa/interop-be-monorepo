@@ -16,6 +16,7 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
+  TenantDbPartialTable,
   TenantDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
@@ -67,6 +68,9 @@ await retryConnection(
       TenantDbTable.tenant_verified_attribute_revoker,
       TenantDbTable.tenant_feature,
     ]);
+    await setupDbService.setupPartialStagingTables([
+      TenantDbPartialTable.tenant_self_care_id,
+    ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
@@ -81,6 +85,10 @@ await retryConnection(
       },
       {
         name: DeletingDbTable.tenant_mail_deleting_table,
+        columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table,
         columns: ["id", "tenantId"],
       },
       {

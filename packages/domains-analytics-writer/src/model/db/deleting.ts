@@ -13,7 +13,10 @@ import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
 import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
 import { TenantDeletingSchema } from "../tenant/tenant.js";
-import { TenantMailDeletingByIdAndTenantSchema } from "../tenant/tenantMail.js";
+import {
+  TenantMailDeletingByIdAndTenantSchema,
+  TenantMailDeletingSchema,
+} from "../tenant/tenantMail.js";
 import { TenantFeatureDeletingSchema } from "../tenant/tenantFeature.js";
 import { AgreementDeletingSchema } from "../agreement/agreement.js";
 
@@ -23,7 +26,9 @@ export const DeletingDbTableConfig = {
   catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
   agreement_deleting_table: AgreementDeletingSchema,
   tenant_deleting_table: TenantDeletingSchema,
-  tenant_mail_deleting_table: TenantMailDeletingByIdAndTenantSchema,
+  tenant_mail_deleting_table: TenantMailDeletingSchema,
+  tenant_mail_deleting_by_id_and_tenant_table:
+    TenantMailDeletingByIdAndTenantSchema,
   tenant_feature_deleting_table: TenantFeatureDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
@@ -35,6 +40,7 @@ export const DeletingDbTableReadModel = {
   agreement_deleting_table: agreementInReadmodelAgreement,
   tenant_deleting_table: tenantInReadmodelTenant,
   tenant_mail_deleting_table: tenantMailInReadmodelTenant,
+  tenant_mail_deleting_by_id_and_tenant_table: tenantMailInReadmodelTenant,
   tenant_feature_deleting_table: tenantFeatureInReadmodelTenant,
 } as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;

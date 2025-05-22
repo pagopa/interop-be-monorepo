@@ -13,7 +13,11 @@ import {
   TenantDeletingSchema,
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";
-import { TenantDbTable, DeletingDbTable } from "../../model/db/index.js";
+import {
+  TenantDbTable,
+  DeletingDbTable,
+  TenantDbPartialTable,
+} from "../../model/db/index.js";
 
 export function tenantRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
@@ -21,6 +25,9 @@ export function tenantRepository(conn: DBConnection) {
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTableName = DeletingDbTable.tenant_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
+  const tenantSelfcareUpsertTableName =
+    TenantDbPartialTable.tenant_self_care_id;
+  const stagingTenantSelfcareUpsertTableName = `${tenantSelfcareUpsertTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -37,7 +44,7 @@ export function tenantRepository(conn: DBConnection) {
           WHERE a.id = b.id
           AND a.metadata_version < b.metadata_version;
         `);
-      } catch (error: unknown) {
+      } catch (error) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
         );
@@ -119,33 +126,38 @@ export function tenantRepository(conn: DBConnection) {
       records: TenantSelfcareIdSchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(pgp, tableName, TenantSelfcareIdSchema);
+        const cs = buildColumnSet(
+          pgp,
+          tenantSelfcareUpsertTableName,
+          TenantSelfcareIdSchema
+        );
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
+          DELETE FROM ${stagingTenantSelfcareUpsertTableName} a
+          USING ${stagingTenantSelfcareUpsertTableName} b
           WHERE a.id = b.id
           AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingTableName}: ${error}`
+          `Error inserting into staging table ${stagingTenantSelfcareUpsertTableName}: ${error}`
         );
       }
     },
 
-    async mergeTenantSelfcareId(): Promise<void> {
+    async mergeTenantSelfcareId(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
           TenantSelfcareIdSchema,
           schemaName,
           tableName,
-          ["id"]
+          ["id"],
+          tenantSelfcareUpsertTableName
         );
-        await conn.none(mergeQuery);
+        await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTenantSelfcareUpsertTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },

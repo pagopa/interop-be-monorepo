@@ -17,6 +17,7 @@ import {
   DeletingDbTableConfigMap,
   DomainDbTable,
   DomainDbTableSchemas,
+  TenantDbPartialTable,
   TenantDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
@@ -73,9 +74,12 @@ export const tenantTables: TenantDbTable[] = [
   TenantDbTable.tenant_verified_attribute_verifier,
 ];
 
+export const partialTables = [TenantDbPartialTable.tenant_self_care_id];
+
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.tenant_deleting_table,
   DeletingDbTable.tenant_mail_deleting_table,
+  DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table,
   DeletingDbTable.tenant_feature_deleting_table,
   DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.attribute_deleting_table,
@@ -107,6 +111,10 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   },
   {
     name: DeletingDbTable.tenant_mail_deleting_table,
+    columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table,
     columns: ["id", "tenantId"],
   },
   {
@@ -122,6 +130,7 @@ await retryConnection(
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables(domainTables);
+    await setupDbService.setupPartialStagingTables(partialTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
   },
   genericLogger

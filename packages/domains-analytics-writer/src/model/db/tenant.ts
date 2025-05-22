@@ -8,7 +8,7 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { TenantSchema } from "../tenant/tenant.js";
+import { TenantSchema, TenantSelfcareIdSchema } from "../tenant/tenant.js";
 import { TenantCertifiedAttributeSchema } from "../tenant/tenantCertifiedAttribute.js";
 import { TenantDeclaredAttributeSchema } from "../tenant/tenantDeclaredAttribute.js";
 import { TenantFeatureSchema } from "../tenant/tenantFeature.js";
@@ -16,6 +16,22 @@ import { TenantMailSchema } from "../tenant/tenantMail.js";
 import { TenantVerifiedAttributeSchema } from "../tenant/tenantVerifiedAttribute.js";
 import { TenantVerifiedAttributeRevokerSchema } from "../tenant/tenantVerifiedAttributeRevoker.js";
 import { TenantVerifiedAttributeVerifierSchema } from "../tenant/tenantVerifiedAttributeVerifier.js";
+
+export const TenantDbPartialTableConfig = {
+  tenant_self_care_id: TenantSelfcareIdSchema,
+} as const;
+export type TenantDbPartialTableConfig = typeof TenantDbPartialTableConfig;
+
+export const TenantDbPartialTableReadModel = {
+  tenant_self_care_id: tenantInReadmodelTenant,
+} as const;
+export type TenantDbPartialTableReadModel =
+  typeof TenantDbPartialTableReadModel;
+
+export type TenantDbPartialTable = keyof typeof TenantDbPartialTableConfig;
+export const TenantDbPartialTable = Object.fromEntries(
+  Object.keys(TenantDbPartialTableConfig).map((k) => [k, k])
+) as { [K in TenantDbPartialTable]: K };
 
 export const TenantDbTableConfig = {
   tenant: TenantSchema,

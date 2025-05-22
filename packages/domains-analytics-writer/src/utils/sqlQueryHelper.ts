@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable max-params */
 import { z } from "zod";
 import { ColumnSet, IColumnDescriptor, IMain, ITask } from "pg-promise";
 import {
@@ -7,6 +8,7 @@ import {
   DeletingDbTable,
   DomainDbTable,
   DomainDbTableSchemas,
+  PartialDbTable,
 } from "../model/db/index.js";
 import { config } from "../config/config.js";
 
@@ -42,33 +44,39 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   tableSchema: z.ZodObject<T>,
   schemaName: string,
   tableName: DomainDbTable,
-  keysOn: Array<keyof T>
+  keysOn: Array<keyof T>,
+  partialStagingTableName?: PartialDbTable
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCaseMapper = getColumnNameMapper(tableName);
   const keys = Object.keys(tableSchema.shape).map(snakeCaseMapper);
-
-  const updateSet = keys
-    .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
-    .join(",\n      ");
 
   const colList = keys.map(quoteColumn).join(", ");
   const valList = keys.map((c) => `source.${quoteColumn(c)}`).join(", ");
 
   const onCondition = keysOn
     .map((k) => {
-      const key = quoteColumn(snakeCaseMapper(String(k)));
-      return `${schemaName}.${tableName}.${key} = source.${key}`;
+      const columnName = quoteColumn(snakeCaseMapper(String(k)));
+      const targetColumn = `${schemaName}.${tableName}.${columnName}`;
+      const sourceColumn = columnName;
+      return `${targetColumn} = source.${sourceColumn}`;
     })
     .join(" AND ");
-  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+
+  const updateSet = keys
+    .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
+    .join(",\n      ");
+
+  const stagingTableName = `${partialStagingTableName || tableName}_${
+    config.mergeTableSuffix
+  }`;
 
   return `
       MERGE INTO ${schemaName}.${tableName}
       USING ${stagingTableName} AS source
       ON ${onCondition}
       WHEN MATCHED
-        AND source.metadata_version > ${schemaName}.${tableName}.metadata_version
+        AND source.metadata_version::INTEGER > ${schemaName}.${tableName}.metadata_version
       THEN
         UPDATE SET
           ${updateSet}
@@ -92,36 +100,42 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
 export function generateMergeDeleteQuery<
   TargetTable extends DomainDbTable,
   StagingTable extends DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable]>
+  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[TargetTable]>
 >(
   schemaName: string,
   targetTableName: TargetTable,
   stagingTableName: StagingTable,
-  deleteKeysOn: DeleteKey[],
-  useIdAsSourceDeleteKey: boolean = true
+  deleteKeysOn: ColumnKeys[],
+  useIdAsSourceDeleteKey: boolean = true,
+  additionalsKeyToUpdate?: ColumnKeys[]
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCaseMapper = getColumnNameMapper(targetTableName);
 
   const onCondition = deleteKeysOn
-    .map(
-      (k) =>
-        `${schemaName}.${targetTableName}.${quoteColumn(
-          snakeCaseMapper(String(k))
-        )} = source.${
-          useIdAsSourceDeleteKey
-            ? "id"
-            : quoteColumn(snakeCaseMapper(String(k)))
-        }`
-    )
+    .map((k) => {
+      const columnName = quoteColumn(snakeCaseMapper(String(k)));
+      const targetColumn = `${schemaName}.${targetTableName}.${columnName}`;
+      const sourceColumn = useIdAsSourceDeleteKey ? "id" : columnName;
+      return `${targetColumn} = source.${sourceColumn}`;
+    })
     .join(" AND ");
+
+  const fieldsToUpdate = [
+    "deleted",
+    ...(additionalsKeyToUpdate?.map(String) ?? []),
+  ];
+
+  const updateSet = fieldsToUpdate
+    .map((field) => `${field} = source.${quoteColumn(field)}`)
+    .join(",\n      ");
 
   return `
       MERGE INTO ${schemaName}.${targetTableName}
       USING ${stagingTableName}_${config.mergeTableSuffix} AS source
         ON ${onCondition}
       WHEN MATCHED THEN
-        UPDATE SET deleted = source.deleted;
+        UPDATE SET ${updateSet};
     `.trim();
 }
 
