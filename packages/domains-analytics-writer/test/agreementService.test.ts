@@ -16,6 +16,7 @@ import {
   unsafeBrandId,
   AgreementDocumentId,
   toAgreementV2,
+  Agreement,
 } from "pagopa-interop-models";
 import {
   getMockAgreement,
@@ -148,7 +149,7 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
       log_date: new Date(),
     };
 
-    const updated = { ...mock, state: "Suspended" };
+    const updated: Agreement = { ...mock, state: "Suspended" };
 
     const updatedMsg: AgreementEventEnvelopeV1 = {
       sequence_num: 2,
@@ -156,7 +157,7 @@ describe("Agreement messages consumers - handleAgreementMessageV1", () => {
       version: 2,
       event_version: 1,
       type: "AgreementUpdated",
-      data: { agreement: toAgreementV1(updated as any) } as any,
+      data: { agreement: toAgreementV1(updated) },
       log_date: new Date(),
     };
 
@@ -398,7 +399,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
       log_date: new Date(),
     };
 
-    const upgraded = { ...mock, state: "Suspended" };
+    const upgraded: Agreement = { ...mock, state: "Suspended" };
 
     const upgradeMsg: AgreementEventEnvelopeV2 = {
       sequence_num: 2,
@@ -406,7 +407,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
       version: 2,
       event_version: 2,
       type: "AgreementSuspendedByProducer",
-      data: { agreement: toAgreementV2(upgraded as any) } as any,
+      data: { agreement: toAgreementV2(upgraded) },
       log_date: new Date(),
     };
 

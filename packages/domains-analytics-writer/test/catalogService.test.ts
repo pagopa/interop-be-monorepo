@@ -18,6 +18,7 @@ import {
   toEServiceV2,
   EServiceDescriptorDocumentAddedV2,
   generateId,
+  EServiceDocumentId,
 } from "pagopa-interop-models";
 import {
   getMockEService,
@@ -48,10 +49,10 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
   it("EServiceAdded: inserts eService with descriptors, docs, interfaces, riskAnalysis", async () => {
     const mock = getMockEService();
     const descriptor = getMockDescriptor();
-    const interfaceId = generateId();
+    const interfaceId = generateId<EServiceDocumentId>();
     descriptor.interface = {
       path: "path",
-      id: interfaceId as any,
+      id: interfaceId,
       name: "name",
       prettyName: "pretty name",
       contentType: "",
