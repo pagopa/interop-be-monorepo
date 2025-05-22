@@ -3,7 +3,11 @@ import {
   delegationApi,
   authorizationApi,
 } from "pagopa-interop-api-clients";
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  makeApiProblemBuilder,
+  PurposeId,
+} from "pagopa-interop-models";
 
 export const errorCodes = {
   resourcePollingTimeout: "0001",
@@ -17,6 +21,7 @@ export const errorCodes = {
   missingActivePurposeVersion: "0009",
   taxCodeAndIPACodeConflict: "0010",
   eserviceDescriptorNotFound: "0011",
+  purposeVersionNotFound: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -91,6 +96,17 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
+  });
+}
+
+export function purposeVersionNotFound(
+  purposeId: PurposeId,
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${versionId} not found in purpose ${purposeId}`,
+    code: "purposeVersionNotFound",
+    title: "Purpose version not found",
   });
 }
 
