@@ -281,7 +281,7 @@ describe("reject agreement", () => {
       expect(sortAgreementAttributes(actualAgreementRejected)).toMatchObject(
         sortAgreementAttributes(toAgreementV2(expectedAgreementRejected))
       );
-      expect(rejectAgreementReponse).toEqual({
+      expect(sortAgreement(rejectAgreementReponse)).toEqual({
         data: sortAgreement(expectedAgreementRejected),
         metadata: {
           version: 1,
