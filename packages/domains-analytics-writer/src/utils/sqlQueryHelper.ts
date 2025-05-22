@@ -38,6 +38,8 @@ export function getColumnNameMapper<T extends DbTable>(
  * @param schemaName - The target db schema name.
  * @param tableName - The  target table name.
  * @param keysOn - The column keys from the schema used in the ON condition of the MERGE.
+ * @param stagingPartialTableName - Optional staging table name for partial upserts; if provided,
+ * only the columns present in this table will be merged (e.g., for updating specific fields).
  * @returns The generated MERGE SQL query as a string.
  */
 export function generateMergeQuery<T extends z.ZodRawShape>(
@@ -95,6 +97,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
  * @param stagingTableName - The temporary staging table used as a source.
  * @param deleteKeysOn - Keys used to match records between the tables.
  * @param useIdAsSourceDeleteKey - Whether to always use "id" as the source key (default: true).
+ * @param additionalsKeyToUpdate - Additional column keys to include in the UPDATE aside from `deleted`. Defaults to none.
  * @returns A MERGE SQL query string to perform a logical delete.
  */
 export function generateMergeDeleteQuery<
