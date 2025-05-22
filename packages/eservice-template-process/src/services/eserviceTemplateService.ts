@@ -45,9 +45,9 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   checksumDuplicate,
-  eServiceTemplateDuplicate,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateDuplicate,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
   missingRiskAnalysis,
   instanceNameConflict,
@@ -119,7 +119,7 @@ export const retrieveEServiceTemplate = async (
     eserviceTemplateId
   );
   if (eserviceTemplate === undefined) {
-    throw eServiceTemplateNotFound(eserviceTemplateId);
+    throw eserviceTemplateNotFound(eserviceTemplateId);
   }
   return eserviceTemplate;
 };
@@ -133,7 +133,7 @@ const retrieveEServiceTemplateVersion = (
   );
 
   if (eserviceTemplateVersion === undefined) {
-    throw eServiceTemplateVersionNotFound(
+    throw eserviceTemplateVersionNotFound(
       eserviceTemplate.id,
       eserviceTemplateVersionId
     );
@@ -639,7 +639,7 @@ export function eserviceTemplateServiceBuilder(
             creatorId: eserviceTemplate.data.creatorId,
           });
         if (eserviceTemplateWithSameName !== undefined) {
-          throw eServiceTemplateDuplicate(name);
+          throw eserviceTemplateDuplicate(name);
         }
 
         const hasConflictingInstances =
@@ -1185,7 +1185,7 @@ export function eserviceTemplateServiceBuilder(
           creatorId: authData.organizationId,
         });
       if (eserviceTemplateWithSameName) {
-        throw eServiceTemplateDuplicate(seed.name);
+        throw eserviceTemplateDuplicate(seed.name);
       }
 
       assertConsistentDailyCalls(seed.version);
@@ -1261,7 +1261,7 @@ export function eserviceTemplateServiceBuilder(
             creatorId: eserviceTemplate.data.creatorId,
           });
         if (eserviceTemplateWithSameName !== undefined) {
-          throw eServiceTemplateDuplicate(eserviceTemplateSeed.name);
+          throw eserviceTemplateDuplicate(eserviceTemplateSeed.name);
         }
       }
 
@@ -1799,7 +1799,7 @@ function applyVisibilityToEServiceTemplate(
   );
 
   if (hasNoPublishedVersions) {
-    throw eServiceTemplateNotFound(eserviceTemplate.id);
+    throw eserviceTemplateNotFound(eserviceTemplate.id);
   }
 
   return {

@@ -10,10 +10,10 @@ import {
 } from "pagopa-interop-models";
 
 export const errorCodes = {
-  eServiceTemplateNotFound: "0001",
-  eServiceTemplateVersionNotFound: "0002",
+  eserviceTemplateNotFound: "0001",
+  eserviceTemplateVersionNotFound: "0002",
   notValidEServiceTemplateVersionState: "0003",
-  eServiceTemplateDuplicate: "0004",
+  eserviceTemplateDuplicate: "0004",
   eserviceTemplateWithoutPublishedVersion: "0005",
   riskAnalysisNameDuplicate: "0006",
   riskAnalysisValidationFailed: "0007",
@@ -41,23 +41,23 @@ export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function eServiceTemplateNotFound(
+export function eserviceTemplateNotFound(
   eserviceTemplateId: EServiceTemplateId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService Template ${eserviceTemplateId} not found`,
-    code: "eServiceTemplateNotFound",
+    code: "eserviceTemplateNotFound",
     title: "EService Template not found",
   });
 }
 
-export function eServiceTemplateVersionNotFound(
+export function eserviceTemplateVersionNotFound(
   eserviceTemplateId: EServiceTemplateId,
   eserviceTemplateVersionId: EServiceTemplateVersionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService Template ${eserviceTemplateId} version ${eserviceTemplateVersionId} not found`,
-    code: "eServiceTemplateVersionNotFound",
+    code: "eserviceTemplateVersionNotFound",
     title: "EService Template version not found",
   });
 }
@@ -81,12 +81,12 @@ export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceTemplateDuplicate(
+export function eserviceTemplateDuplicate(
   eserviceTemplateName: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `An EService Template with name ${eserviceTemplateName} already exists`,
-    code: "eServiceTemplateDuplicate",
+    code: "eserviceTemplateDuplicate",
     title: "Duplicated service name",
   });
 }
