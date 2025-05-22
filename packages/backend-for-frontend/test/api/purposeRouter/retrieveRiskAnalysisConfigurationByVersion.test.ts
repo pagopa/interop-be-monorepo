@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { EServiceId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -10,7 +10,7 @@ import { getMockBffApiRiskAnalysisFormConfig } from "../../mockUtils.js";
 
 describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", () => {
   const mockRiskAnalysisFormConfig = getMockBffApiRiskAnalysisFormConfig();
-  const defaultQuery = { eserviceId: generateId() };
+  const defaultQuery: { eserviceId: EServiceId } = { eserviceId: generateId() };
 
   beforeEach(() => {
     services.purposeService.retrieveRiskAnalysisConfigurationByVersion = vi
