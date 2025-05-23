@@ -108,7 +108,7 @@ paths:
         "200":
           description: This is the valid status from the server.
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
