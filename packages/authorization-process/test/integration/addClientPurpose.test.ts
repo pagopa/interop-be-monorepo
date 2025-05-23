@@ -36,8 +36,8 @@ import {
   eserviceNotFound,
   noActiveOrSuspendedAgreementFound,
   noActiveOrSuspendedPurposeVersionFound,
-  organizationNotAllowedOnClient,
-  organizationNotAllowedOnPurpose,
+  tenantNotAllowedOnClient,
+  tenantNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
   clientKindNotAllowed,
@@ -368,7 +368,7 @@ describe("addClientPurpose", async () => {
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the client consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the client consumer", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -416,7 +416,7 @@ describe("addClientPurpose", async () => {
         getMockContext({ authData: getMockAuthData(mockConsumerId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(mockConsumerId, mockClient.id)
+      tenantNotAllowedOnClient(mockConsumerId, mockClient.id)
     );
   });
   it("should throw clientKindNotAllowed if the requester is the client api", async () => {
@@ -493,7 +493,7 @@ describe("addClientPurpose", async () => {
       )
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
   });
-  it("should throw organizationNotAllowedOnPurpose if the requester is not the purpose consumer", async () => {
+  it("should throw tenantNotAllowedOnPurpose if the requester is not the purpose consumer", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -541,7 +541,7 @@ describe("addClientPurpose", async () => {
         getMockContext({ authData: getMockAuthData(mockConsumerId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnPurpose(mockConsumerId, mockPurpose.id)
+      tenantNotAllowedOnPurpose(mockConsumerId, mockPurpose.id)
     );
   });
   it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -1127,7 +1127,7 @@ describe("addClientPurpose", async () => {
       )
     ).rejects.toThrowError(purposeDelegationNotFound(delegation.id));
   });
-  it("should throw organizationNotAllowedOnPurpose if the requester is not the purpose delegation delegate nor delegator", async () => {
+  it("should throw tenantNotAllowedOnPurpose if the requester is not the purpose delegation delegate nor delegator", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -1187,7 +1187,7 @@ describe("addClientPurpose", async () => {
         getMockContext({ authData: getMockAuthData(delegateId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnPurpose(delegateId, mockPurpose.id, delegation.id)
+      tenantNotAllowedOnPurpose(delegateId, mockPurpose.id, delegation.id)
     );
   });
   it("should throw eserviceNotDelegableForClientAccess if for a purpose with a delegation the eservice doesn't have the isClientAccessDelegable to true", async () => {

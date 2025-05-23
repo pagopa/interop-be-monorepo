@@ -61,12 +61,12 @@ export function clientNotFound(clientId: ClientId): ApiError<ErrorCodes> {
   });
 }
 
-export function organizationNotAllowedOnClient(
-  organizationId: TenantId,
+export function tenantNotAllowedOnClient(
+  tenantId: TenantId,
   clientId: ClientId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${organizationId} is not allowed on client ${clientId}`,
+    detail: `Tenant ${tenantId} is not allowed on client ${clientId}`,
     code: "tenantNotAllowedOnClient",
     title: "Tenant not allowed on client",
   });
@@ -208,13 +208,13 @@ export function purposeAlreadyLinkedToClient(
   });
 }
 
-export function organizationNotAllowedOnPurpose(
-  organizationId: TenantId,
+export function tenantNotAllowedOnPurpose(
+  tenantId: TenantId,
   purposeId: PurposeId,
   delegationId?: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${organizationId} is not allowed on purpose ${purposeId} ${
+    detail: `Tenant ${tenantId} is not allowed on purpose ${purposeId} ${
       delegationId
         ? `as delegate for delegation ${delegationId}`
         : `as consumer`
@@ -275,12 +275,12 @@ export function producerKeychainNotFound(
   });
 }
 
-export function organizationNotAllowedOnProducerKeychain(
-  organizationId: TenantId,
+export function tenantNotAllowedOnProducerKeychain(
+  tenantId: TenantId,
   producerKeychainId: ProducerKeychainId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${organizationId} is not allowed on producer keychain ${producerKeychainId}`,
+    detail: `Tenant ${tenantId} is not allowed on producer keychain ${producerKeychainId}`,
     code: "tenantNotAllowedOnProducerKeychain",
     title: "Tenant not allowed on producer keychain",
   });
@@ -354,12 +354,12 @@ export function producerKeychainUserIdNotFound(
   });
 }
 
-export function organizationNotAllowedOnEService(
-  organizationId: TenantId,
+export function tenantNotAllowedOnEService(
+  tenantId: TenantId,
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${organizationId} is not allowed on e-service ${eserviceId}`,
+    detail: `Tenant ${tenantId} is not allowed on e-service ${eserviceId}`,
     code: "tenantNotAllowedOnEService",
     title: "Tenant not allowed on e-service",
   });

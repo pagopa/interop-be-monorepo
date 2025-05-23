@@ -30,8 +30,8 @@ import {
   eserviceNotDelegableForClientAccess,
   noActiveOrSuspendedAgreementFound,
   noActiveOrSuspendedPurposeVersionFound,
-  organizationNotAllowedOnClient,
-  organizationNotAllowedOnPurpose,
+  tenantNotAllowedOnClient,
+  tenantNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
   purposeDelegationNotFound,
   purposeNotFound,
@@ -140,11 +140,11 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
       expectedStatus: 403,
     },
     {
-      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {
-      error: organizationNotAllowedOnPurpose(generateId(), mockPurpose.id),
+      error: tenantNotAllowedOnPurpose(generateId(), mockPurpose.id),
       expectedStatus: 403,
     },
     {

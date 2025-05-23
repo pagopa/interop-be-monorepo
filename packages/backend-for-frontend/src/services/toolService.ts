@@ -44,7 +44,7 @@ import {
   ErrorCodes,
   eserviceDescriptorNotFound,
   missingActivePurposeVersion,
-  organizationNotAllowed,
+  tenantNotAllowed,
   purposeIdNotFoundInClientAssertion,
   purposeNotFound,
 } from "../model/errors.js";
@@ -197,7 +197,7 @@ function assertIsConsumer(
   keyWithClient: authorizationApi.KeyWithClient
 ) {
   if (requesterId !== keyWithClient.client.consumerId) {
-    throw organizationNotAllowed(keyWithClient.client.id);
+    throw tenantNotAllowed(keyWithClient.client.id);
   }
 }
 
