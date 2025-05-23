@@ -12,6 +12,7 @@ import {
   Logger,
   UIAuthData,
   M2MAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -42,9 +43,9 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   checksumDuplicate,
-  eServiceTemplateDuplicate,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateDuplicate,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
   missingRiskAnalysis,
   instanceNameConflict,
@@ -57,7 +58,7 @@ import {
   riskAnalysisValidationFailed,
   tenantNotFound,
   originNotCompliant,
-  eserviceTemaplateRiskAnalysisNameDuplicate,
+  eserviceTemplateRiskAnalysisNameDuplicate,
   missingTemplateVersionInterface,
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
@@ -117,7 +118,7 @@ export const retrieveEServiceTemplate = async (
     eserviceTemplateId
   );
   if (eserviceTemplate === undefined) {
-    throw eServiceTemplateNotFound(eserviceTemplateId);
+    throw eserviceTemplateNotFound(eserviceTemplateId);
   }
   return eserviceTemplate;
 };
@@ -131,7 +132,7 @@ const retrieveEServiceTemplateVersion = (
   );
 
   if (eserviceTemplateVersion === undefined) {
-    throw eServiceTemplateVersionNotFound(
+    throw eserviceTemplateVersionNotFound(
       eserviceTemplate.id,
       eserviceTemplateVersionId
     );
@@ -637,7 +638,7 @@ export function eserviceTemplateServiceBuilder(
             creatorId: eserviceTemplate.data.creatorId,
           });
         if (eserviceTemplateWithSameName !== undefined) {
-          throw eServiceTemplateDuplicate(name);
+          throw eserviceTemplateDuplicate(name);
         }
 
         const hasConflictingInstances =
@@ -808,7 +809,10 @@ export function eserviceTemplateServiceBuilder(
     },
     async getEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(`Retrieving EService template ${eserviceTemplateId}`);
 
@@ -911,7 +915,7 @@ export function eserviceTemplateServiceBuilder(
         (ra) => ra.name === createRiskAnalysis.name
       );
       if (raSameName) {
-        throw eserviceTemaplateRiskAnalysisNameDuplicate(
+        throw eserviceTemplateRiskAnalysisNameDuplicate(
           createRiskAnalysis.name
         );
       }
@@ -1180,7 +1184,7 @@ export function eserviceTemplateServiceBuilder(
           creatorId: authData.organizationId,
         });
       if (eserviceTemplateWithSameName) {
-        throw eServiceTemplateDuplicate(seed.name);
+        throw eserviceTemplateDuplicate(seed.name);
       }
 
       assertConsistentDailyCalls(seed.version);
@@ -1256,7 +1260,7 @@ export function eserviceTemplateServiceBuilder(
             creatorId: eserviceTemplate.data.creatorId,
           });
         if (eserviceTemplateWithSameName !== undefined) {
-          throw eServiceTemplateDuplicate(eserviceTemplateSeed.name);
+          throw eserviceTemplateDuplicate(eserviceTemplateSeed.name);
         }
       }
 
@@ -1786,7 +1790,7 @@ export type EServiceTemplateService = ReturnType<
 
 function applyVisibilityToEServiceTemplate(
   eserviceTemplate: EServiceTemplate,
-  authData: UIAuthData | M2MAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): EServiceTemplate {
   if (
     hasAccessToDraftTemplateVersions(authData) &&
@@ -1808,7 +1812,7 @@ function applyVisibilityToEServiceTemplate(
     };
   }
 
-  throw eServiceTemplateNotFound(eserviceTemplate.id);
+  throw eserviceTemplateNotFound(eserviceTemplate.id);
 }
 
 export async function cloneEServiceTemplateDocument({

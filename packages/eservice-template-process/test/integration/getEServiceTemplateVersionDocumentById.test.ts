@@ -14,8 +14,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   eserviceTemplateDocumentNotFound,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -83,7 +83,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         },
         getMockContext({})
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(invalidEServiceTemplateId));
+    ).rejects.toThrowError(eserviceTemplateNotFound(invalidEServiceTemplateId));
   });
   it("should throw eServiceTemplateVersion not found", async () => {
     const eServiceTemplate = {
@@ -106,7 +106,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         getMockContext({})
       )
     ).rejects.toThrowError(
-      eServiceTemplateVersionNotFound(
+      eserviceTemplateVersionNotFound(
         eServiceTemplate.id,
         invalidEServiceTemplateVersionId
       )
