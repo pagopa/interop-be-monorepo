@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
+  getMockAuthData,
   getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
@@ -113,19 +114,25 @@ describe("getEServiceTemplateVersionDocumentById", () => {
     );
   });
   it("Should throw eserviceTemplateDocumentNotFound", async () => {
-    // TODO fix this test
     const documentId = generateId();
-    const version: EServiceTemplateVersion = {
+    const versionDraft: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
+      state: "Draft",
       interface: {
         ...mockDocument,
         id: unsafeBrandId(documentId),
       },
     };
 
+    const versionPublished: EServiceTemplateVersion = {
+      ...mockEServiceTemplateVersion,
+      id: generateId(),
+      state: "Published",
+    };
+
     const eServiceTemplate = {
       ...mockEServiceTemplate,
-      versions: [version],
+      versions: [versionDraft, versionPublished],
     };
 
     await addOneEServiceTemplate(eServiceTemplate);
@@ -134,7 +141,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
       eserviceTemplateService.getEServiceTemplateDocument(
         {
           eServiceTemplateId: mockEServiceTemplate.id,
-          eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
+          eServiceTemplateVersionId: versionDraft.id,
           documentId: unsafeBrandId(documentId),
         },
         getMockContext({})
@@ -142,7 +149,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
     ).rejects.toThrowError(
       eserviceTemplateDocumentNotFound(
         mockEServiceTemplate.id,
-        mockEServiceTemplateVersion.id,
+        versionDraft.id,
         documentId
       )
     );
