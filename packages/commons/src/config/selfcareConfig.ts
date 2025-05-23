@@ -18,7 +18,7 @@ export const SelfcareConsumerConfig = z
     INTEROP_PRODUCT: z.string(),
   })
   .transform((c) => ({
-    selfcareUsersTopic: c.SELFCARE_TOPIC,
+    selfcareTopic: c.SELFCARE_TOPIC,
     interopProduct: c.INTEROP_PRODUCT,
   }));
 

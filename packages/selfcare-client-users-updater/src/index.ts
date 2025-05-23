@@ -42,8 +42,4 @@ const processor = selfcareClientUsersUpdaterProcessorBuilder(
   config.interopProduct
 );
 
-await runConsumer(
-  config,
-  [config.selfcareUsersTopic],
-  processor.processMessage
-);
+await runConsumer(config, [config.selfcareTopic], processor.processMessage);
