@@ -37,9 +37,9 @@ import {
   agreementDocumentNotFound,
   agreementNotFound,
   documentChangeNotAllowed,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
-  organizationNotAllowed,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -260,7 +260,7 @@ describe("agreement consumer document", () => {
       ).rejects.toThrowError(agreementNotFound(randomAgreementId));
     });
 
-    it("should throw an organizationNotAllowed error when the requester is not the consumer or producer", async () => {
+    it("should throw an tenantNotAllowed error when the requester is not the consumer or producer", async () => {
       const agreement: Agreement = {
         ...getMockAgreement(),
         consumerDocuments: [
@@ -279,7 +279,7 @@ describe("agreement consumer document", () => {
           agreement.consumerDocuments[0].id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     });
 
     it("should throw an agreementDocumentNotFound error when the document does not exist", async () => {
@@ -461,7 +461,7 @@ describe("agreement consumer document", () => {
       );
     });
 
-    it("should throw an organizationIsNotTheConsumer if is not consumer", async () => {
+    it("should throw an tenantIsNotTheConsumer if is not consumer", async () => {
       const authData = getMockAuthData();
       const organizationId = authData.organizationId;
       const agreement = getMockAgreement();
@@ -477,11 +477,11 @@ describe("agreement consumer document", () => {
       );
 
       await expect(actualConsumerDocument).rejects.toThrowError(
-        organizationIsNotTheConsumer(organizationId)
+        tenantIsNotTheConsumer(organizationId)
       );
     });
 
-    it("should throw an organizationIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
+    it("should throw an tenantIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
       const authData = getMockAuthData();
       const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
       const agreement = getMockAgreement(generateId<EServiceId>(), consumerId);
@@ -507,7 +507,7 @@ describe("agreement consumer document", () => {
       );
 
       await expect(actualConsumerDocument).rejects.toThrowError(
-        organizationIsNotTheDelegateConsumer(consumerId, delegation.id)
+        tenantIsNotTheDelegateConsumer(consumerId, delegation.id)
       );
     });
 
@@ -675,7 +675,7 @@ describe("agreement consumer document", () => {
       expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
     });
 
-    it("should throw organizationIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
+    it("should throw tenantIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
       const authData = getMockAuthData(agreement1.consumerId);
 
       const delegation = getMockDelegation({
@@ -695,10 +695,7 @@ describe("agreement consumer document", () => {
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
-        organizationIsNotTheDelegateConsumer(
-          authData.organizationId,
-          delegation.id
-        )
+        tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
       );
     });
 
@@ -718,7 +715,7 @@ describe("agreement consumer document", () => {
       );
     });
 
-    it("should throw an organizationIsNotTheConsumer if is not consumer", async () => {
+    it("should throw an tenantIsNotTheConsumer if is not consumer", async () => {
       const authData = getMockAuthData();
 
       const removeAgreementConsumerDocument =
@@ -729,7 +726,7 @@ describe("agreement consumer document", () => {
         );
 
       await expect(removeAgreementConsumerDocument).rejects.toThrowError(
-        organizationIsNotTheConsumer(authData.organizationId)
+        tenantIsNotTheConsumer(authData.organizationId)
       );
     });
 
