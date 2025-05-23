@@ -13,16 +13,13 @@ import {
   getSelfcareErrorMapper,
   getSelfcareUserErrorMapper,
 } from "../utilities/errorMappers.js";
-import { selfcareServiceBuilder } from "../services/selfcareService.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { SelfcareService } from "../services/selfcareService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
 const selfcareRouter = (
-  clients: PagoPAInteropBeClients,
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  selfcareService: SelfcareService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const selfcareService = selfcareServiceBuilder(clients);
-
   const selfcareRouter = ctx.router(bffApi.selfcareApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });

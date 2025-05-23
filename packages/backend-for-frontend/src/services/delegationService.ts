@@ -515,3 +515,5 @@ export function delegationServiceBuilder(
     },
   };
 }
+
+export type DelegationService = ReturnType<typeof delegationServiceBuilder>;
