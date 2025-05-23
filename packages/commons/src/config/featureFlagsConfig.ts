@@ -97,12 +97,28 @@ export type FeatureFlagImprovedProducerVerificationClaimsConfig = z.infer<
   typeof FeatureFlagImprovedProducerVerificationClaimsConfig
 >;
 
+export const FeatureFlagClientAssertionStrictClaimsValidationConfig = z
+  .object({
+    FEATURE_FLAG_CLIENT_ASSERTION_STRICT_CLAIMS_VALIDATION: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
+  })
+  .transform((c) => ({
+    featureFlagClientAssertionStrictClaimsValidation:
+      c.FEATURE_FLAG_CLIENT_ASSERTION_STRICT_CLAIMS_VALIDATION ?? false,
+  }));
+export type FeatureFlagClientAssertionStrictClaimsValidationConfig = z.infer<
+  typeof FeatureFlagClientAssertionStrictClaimsValidationConfig
+>;
+
 type FeatureFlags = FeatureFlagSignalhubWhitelistConfig &
   FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagSQLConfig &
   FeatureFlagAdminClientConfig &
   FeatureFlagApplicationAuditStrictConfig &
-  FeatureFlagImprovedProducerVerificationClaimsConfig;
+  FeatureFlagImprovedProducerVerificationClaimsConfig &
+  FeatureFlagClientAssertionStrictClaimsValidationConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
