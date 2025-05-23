@@ -25,7 +25,6 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   TenantReadModelService,
-  toTenantAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
@@ -282,7 +281,6 @@ export function readModelServiceBuilderSQL(
       return attributeWithMetadata.data;
     },
 
-    // TODO: rewrite
     async getConsumers({
       consumerName,
       producerId,
@@ -294,113 +292,118 @@ export function readModelServiceBuilderSQL(
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            tenantId: tenantInReadmodelTenant.id,
-          })
-        )
-        .from(tenantInReadmodelTenant)
-        .innerJoin(
-          agreementInReadmodelAgreement,
-          and(
-            eq(
-              tenantInReadmodelTenant.id,
-              agreementInReadmodelAgreement.consumerId
+      return await readModelDB.transaction(async (tx) => {
+        const queryResult = await tx
+          .select(
+            withTotalCount({
+              tenantId: tenantInReadmodelTenant.id,
+            })
+          )
+          .from(tenantInReadmodelTenant)
+          .innerJoin(
+            agreementInReadmodelAgreement,
+            and(
+              eq(
+                tenantInReadmodelTenant.id,
+                agreementInReadmodelAgreement.consumerId
+              ),
+              eq(agreementInReadmodelAgreement.producerId, producerId),
+              inArray(agreementInReadmodelAgreement.state, [
+                agreementState.active,
+                agreementState.suspended,
+              ])
+            )
+          )
+          .where(
+            and(
+              consumerName
+                ? ilike(
+                    tenantInReadmodelTenant.name,
+                    escapeRegExp(consumerName)
+                  )
+                : undefined,
+              isNotNull(tenantInReadmodelTenant.selfcareId)
+            )
+          )
+          .groupBy(tenantInReadmodelTenant.id)
+          .orderBy(ascLower(tenantInReadmodelTenant.name))
+          .limit(limit)
+          .offset(offset);
+
+        const tenantIds = queryResult.map((item) => item.tenantId);
+        const [
+          tenantsSQL,
+          mailsSQL,
+          certifiedAttributesSQL,
+          declaredAttributesSQL,
+          verifiedAttributesSQL,
+          verifiedAttributeVerifiersSQL,
+          verifiedAttributeRevokersSQL,
+          featuresSQL,
+        ] = await Promise.all([
+          readTenantsSQL(inArray(tenantInReadmodelTenant.id, tenantIds), tx),
+          readTenantMailsSQL(
+            inArray(tenantMailInReadmodelTenant.tenantId, tenantIds),
+            tx
+          ),
+          readTenantCertifiedAttributesSQL(
+            inArray(
+              tenantCertifiedAttributeInReadmodelTenant.tenantId,
+              tenantIds
             ),
-            eq(agreementInReadmodelAgreement.producerId, producerId),
-            inArray(agreementInReadmodelAgreement.state, [
-              agreementState.active,
-              agreementState.suspended,
-            ])
-          )
-        )
-        .where(
-          and(
-            consumerName
-              ? ilike(tenantInReadmodelTenant.name, escapeRegExp(consumerName))
-              : undefined,
-            isNotNull(tenantInReadmodelTenant.selfcareId)
-          )
-        )
-        .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(ascLower(tenantInReadmodelTenant.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+            tx
+          ),
+          readTenantDeclaredAttributesSQL(
+            inArray(
+              tenantDeclaredAttributeInReadmodelTenant.tenantId,
+              tenantIds
+            ),
+            tx
+          ),
+          readTenantVerifiedAttributesSQL(
+            inArray(
+              tenantVerifiedAttributeInReadmodelTenant.tenantId,
+              tenantIds
+            ),
+            tx
+          ),
+          readTenantVerifiedAttributeVerifiersSQL(
+            inArray(
+              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
+              tenantIds
+            ),
+            tx
+          ),
+          readTenantVerifiedAttributeRevokersSQL(
+            inArray(
+              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
+              tenantIds
+            ),
+            tx
+          ),
+          readTenantFeaturesSQL(
+            inArray(tenantFeatureInReadmodelTenant.tenantId, tenantIds),
+            tx
+          ),
+        ]);
 
-      const queryResult = await readModelDB
-        .select({
-          tenant: tenantInReadmodelTenant,
-          mail: tenantMailInReadmodelTenant,
-          certifiedAttribute: tenantCertifiedAttributeInReadmodelTenant,
-          declaredAttribute: tenantDeclaredAttributeInReadmodelTenant,
-          verifiedAttribute: tenantVerifiedAttributeInReadmodelTenant,
-          verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
-          revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
-          feature: tenantFeatureInReadmodelTenant,
-          totalCount: subquery.totalCount,
-        })
-        .from(tenantInReadmodelTenant)
-        .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
-        .leftJoin(
-          tenantMailInReadmodelTenant,
-          eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
-        )
-        .leftJoin(
-          tenantCertifiedAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantCertifiedAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          tenantDeclaredAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantDeclaredAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          tenantVerifiedAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantVerifiedAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          tenantVerifiedAttributeVerifierInReadmodelTenant,
-          eq(
-            tenantVerifiedAttributeInReadmodelTenant.attributeId,
-            tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId
-          )
-        )
-        .leftJoin(
-          tenantVerifiedAttributeRevokerInReadmodelTenant,
-          eq(
-            tenantVerifiedAttributeInReadmodelTenant.attributeId,
-            tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId
-          )
-        )
-        .leftJoin(
-          tenantFeatureInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantFeatureInReadmodelTenant.tenantId
-          )
-        )
-        .orderBy(ascLower(tenantInReadmodelTenant.name));
-
-      const tenants = aggregateTenantArray(
-        toTenantAggregatorArray(queryResult)
-      );
-      return createListResult(
-        tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
-        queryResult[0]?.totalCount
-      );
+        const tenants = aggregateTenantArray({
+          tenantsSQL,
+          mailsSQL,
+          certifiedAttributesSQL,
+          declaredAttributesSQL,
+          verifiedAttributesSQL,
+          verifiedAttributeVerifiersSQL,
+          verifiedAttributeRevokersSQL,
+          featuresSQL,
+        });
+        return createListResult(
+          tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+          queryResult[0]?.totalCount
+        );
+      });
     },
 
-    // TODO: rewrite
     async getProducers({
       producerName,
       offset,
@@ -410,106 +413,111 @@ export function readModelServiceBuilderSQL(
       offset: number;
       limit: number;
     }): Promise<ListResult<Tenant>> {
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            tenantId: tenantInReadmodelTenant.id,
-          })
-        )
-        .from(tenantInReadmodelTenant)
-        .innerJoin(
-          eserviceInReadmodelCatalog,
-          and(
-            eq(
-              tenantInReadmodelTenant.id,
-              eserviceInReadmodelCatalog.producerId
+      return await readModelDB.transaction(async (tx) => {
+        const queryResult = await tx
+          .select(
+            withTotalCount({
+              tenantId: tenantInReadmodelTenant.id,
+            })
+          )
+          .from(tenantInReadmodelTenant)
+          .innerJoin(
+            eserviceInReadmodelCatalog,
+            and(
+              eq(
+                tenantInReadmodelTenant.id,
+                eserviceInReadmodelCatalog.producerId
+              )
             )
           )
-        )
-        .where(
-          and(
-            producerName
-              ? ilike(tenantInReadmodelTenant.name, escapeRegExp(producerName))
-              : undefined,
-            isNotNull(tenantInReadmodelTenant.selfcareId)
+          .where(
+            and(
+              producerName
+                ? ilike(
+                    tenantInReadmodelTenant.name,
+                    escapeRegExp(producerName)
+                  )
+                : undefined,
+              isNotNull(tenantInReadmodelTenant.selfcareId)
+            )
           )
-        )
-        .groupBy(tenantInReadmodelTenant.id)
-        .orderBy(ascLower(tenantInReadmodelTenant.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+          .groupBy(tenantInReadmodelTenant.id)
+          .orderBy(ascLower(tenantInReadmodelTenant.name))
+          .limit(limit)
+          .offset(offset);
 
-      const queryResult = await readModelDB
-        .select({
-          tenant: tenantInReadmodelTenant,
-          mail: tenantMailInReadmodelTenant,
-          certifiedAttribute: tenantCertifiedAttributeInReadmodelTenant,
-          declaredAttribute: tenantDeclaredAttributeInReadmodelTenant,
-          verifiedAttribute: tenantVerifiedAttributeInReadmodelTenant,
-          verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
-          revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
-          feature: tenantFeatureInReadmodelTenant,
-          totalCount: subquery.totalCount,
-        })
-        .from(tenantInReadmodelTenant)
-        .innerJoin(subquery, eq(tenantInReadmodelTenant.id, subquery.tenantId))
-        .leftJoin(
-          tenantMailInReadmodelTenant,
-          eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
-        )
-        .leftJoin(
-          tenantCertifiedAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantCertifiedAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          tenantDeclaredAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantDeclaredAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          tenantVerifiedAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantVerifiedAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          tenantVerifiedAttributeVerifierInReadmodelTenant,
-          eq(
-            tenantVerifiedAttributeInReadmodelTenant.attributeId,
-            tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId
-          )
-        )
-        .leftJoin(
-          tenantVerifiedAttributeRevokerInReadmodelTenant,
-          eq(
-            tenantVerifiedAttributeInReadmodelTenant.attributeId,
-            tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId
-          )
-        )
-        .leftJoin(
-          tenantFeatureInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantFeatureInReadmodelTenant.tenantId
-          )
-        )
+        const tenantIds = queryResult.map((item) => item.tenantId);
+        const [
+          tenantsSQL,
+          mailsSQL,
+          certifiedAttributesSQL,
+          declaredAttributesSQL,
+          verifiedAttributesSQL,
+          verifiedAttributeVerifiersSQL,
+          verifiedAttributeRevokersSQL,
+          featuresSQL,
+        ] = await Promise.all([
+          readTenantsSQL(inArray(tenantInReadmodelTenant.id, tenantIds), tx),
+          readTenantMailsSQL(
+            inArray(tenantMailInReadmodelTenant.tenantId, tenantIds),
+            tx
+          ),
+          readTenantCertifiedAttributesSQL(
+            inArray(
+              tenantCertifiedAttributeInReadmodelTenant.tenantId,
+              tenantIds
+            ),
+            tx
+          ),
+          readTenantDeclaredAttributesSQL(
+            inArray(
+              tenantDeclaredAttributeInReadmodelTenant.tenantId,
+              tenantIds
+            ),
+            tx
+          ),
+          readTenantVerifiedAttributesSQL(
+            inArray(
+              tenantVerifiedAttributeInReadmodelTenant.tenantId,
+              tenantIds
+            ),
+            tx
+          ),
+          readTenantVerifiedAttributeVerifiersSQL(
+            inArray(
+              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
+              tenantIds
+            ),
+            tx
+          ),
+          readTenantVerifiedAttributeRevokersSQL(
+            inArray(
+              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
+              tenantIds
+            ),
+            tx
+          ),
+          readTenantFeaturesSQL(
+            inArray(tenantFeatureInReadmodelTenant.tenantId, tenantIds),
+            tx
+          ),
+        ]);
 
-        .orderBy(ascLower(tenantInReadmodelTenant.name));
-
-      const tenants = aggregateTenantArray(
-        toTenantAggregatorArray(queryResult)
-      );
-      return createListResult(
-        tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
-        queryResult[0]?.totalCount
-      );
+        const tenants = aggregateTenantArray({
+          tenantsSQL,
+          mailsSQL,
+          certifiedAttributesSQL,
+          declaredAttributesSQL,
+          verifiedAttributesSQL,
+          verifiedAttributeVerifiersSQL,
+          verifiedAttributeRevokersSQL,
+          featuresSQL,
+        });
+        return createListResult(
+          tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
+          queryResult[0]?.totalCount
+        );
+      });
     },
 
     async getAttributesByExternalIds(
