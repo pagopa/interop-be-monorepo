@@ -498,23 +498,27 @@ describe("integration tests for events V2", () => {
         consumerId: mockAgreement.consumerId,
         eserviceId: mockAgreement.eserviceId,
       });
-      const previousAgreementEntry: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: catalogAgreementEntryPK,
         state: itemState.active,
         agreementId: mockAgreement.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         agreementTimestamp: mockAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: mockAgreement.descriptorId,
+        producerId: mockAgreement.producerId,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(previousAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
 
       const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
       });
-      const previousDescriptorEntry: PlatformStatesCatalogEntry = {
+      const platformStatesDescriptorEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK,
         state: itemState.active,
         descriptorAudience: ["pagopa.it"],
@@ -522,7 +526,10 @@ describe("integration tests for events V2", () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(previousDescriptorEntry, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesDescriptorEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const purposeId = purpose.id;
@@ -541,6 +548,7 @@ describe("integration tests for events V2", () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -567,6 +575,7 @@ describe("integration tests for events V2", () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -594,12 +603,13 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -609,12 +619,13 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
           updatedAt: new Date().toISOString(),
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
@@ -1302,23 +1313,27 @@ describe("integration tests for events V2", () => {
         consumerId: mockAgreement.consumerId,
         eserviceId: mockAgreement.eserviceId,
       });
-      const previousAgreementEntry: PlatformStatesAgreementEntry = {
+      const platformStatesAgreementEntry: PlatformStatesAgreementEntry = {
         PK: catalogAgreementEntryPK,
         state: itemState.active,
         agreementId: mockAgreement.id,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         agreementTimestamp: mockAgreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: mockAgreement.descriptorId,
+        producerId: mockAgreement.producerId,
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformAgreementEntry(previousAgreementEntry, dynamoDBClient);
+      await writePlatformAgreementEntry(
+        platformStatesAgreementEntry,
+        dynamoDBClient
+      );
 
       const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
         eserviceId: purpose.eserviceId,
         descriptorId: mockDescriptor.id,
       });
-      const previousDescriptorEntry: PlatformStatesCatalogEntry = {
+      const platformStatesDescriptorEntry: PlatformStatesCatalogEntry = {
         PK: catalogEntryPK,
         state: itemState.active,
         descriptorAudience: ["pagopa.it"],
@@ -1326,7 +1341,10 @@ describe("integration tests for events V2", () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(previousDescriptorEntry, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        platformStatesDescriptorEntry,
+        dynamoDBClient
+      );
 
       // token-generation-states
       const purposeId = purpose.id;
@@ -1344,6 +1362,7 @@ describe("integration tests for events V2", () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -1369,6 +1388,7 @@ describe("integration tests for events V2", () => {
           GSIPK_consumerId_eserviceId: undefined,
           agreementId: undefined,
           agreementState: undefined,
+          producerId: undefined,
           GSIPK_eserviceId_descriptorId: undefined,
           descriptorState: undefined,
           descriptorAudience: undefined,
@@ -1397,12 +1417,13 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
           updatedAt: new Date().toISOString(),
         };
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
@@ -1413,12 +1434,13 @@ describe("integration tests for events V2", () => {
           purposeVersionId: purposeVersions[0].id,
           GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           agreementId: mockAgreement.id,
-          agreementState: previousAgreementEntry.state,
+          agreementState: platformStatesAgreementEntry.state,
+          producerId: platformStatesAgreementEntry.producerId,
           GSIPK_eserviceId_descriptorId: gsiPKEserviceIdDescriptorId,
-          descriptorState: previousDescriptorEntry.state,
-          descriptorAudience: previousDescriptorEntry.descriptorAudience,
+          descriptorState: platformStatesDescriptorEntry.state,
+          descriptorAudience: platformStatesDescriptorEntry.descriptorAudience,
           descriptorVoucherLifespan:
-            previousDescriptorEntry.descriptorVoucherLifespan,
+            platformStatesDescriptorEntry.descriptorVoucherLifespan,
           updatedAt: new Date().toISOString(),
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);

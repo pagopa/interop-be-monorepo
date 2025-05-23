@@ -87,6 +87,7 @@ import {
   ProducerJWKKey,
   ProducerKeychainId,
   WithMetadata,
+  CorrelationId,
   AgreementV2,
   VerifiedAttributeV2,
   DeclaredAttributeV2,
@@ -108,6 +109,8 @@ import {
   UserRole,
   userRole,
   WithLogger,
+  SessionClaims,
+  CustomClaims,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -527,6 +530,7 @@ export const getMockTokenGenStatesConsumerClient = (
     ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
+  const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
   const descriptorId = generateId<DescriptorId>();
@@ -551,6 +555,7 @@ export const getMockTokenGenStatesConsumerClient = (
       descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
       descriptorVoucherLifespan: 60,
       updatedAt: new Date().toISOString(),
+      producerId,
       consumerId,
       agreementId,
       purposeVersionId,
@@ -598,6 +603,7 @@ export const getMockPlatformStatesAgreementEntry = (
   agreementId,
   agreementTimestamp: new Date().toISOString(),
   agreementDescriptorId: generateId<DescriptorId>(),
+  producerId: generateId(),
 });
 
 export const getMockTokenGenStatesApiClient = (
@@ -809,13 +815,15 @@ export const getMockEServiceTemplate = (
 export const getMockContext = ({
   authData,
   serviceName,
+  correlationId,
 }: {
   authData?: UIAuthData;
   serviceName?: string;
+  correlationId?: CorrelationId;
 }): WithLogger<AppContext<UIAuthData>> => ({
   authData: authData || getMockAuthData(),
   serviceName: serviceName || "test",
-  correlationId: generateId(),
+  correlationId: correlationId || generateId(),
   spanId: generateId(),
   logger: genericLogger,
   requestTimestamp: Date.now(),
@@ -1092,4 +1100,25 @@ export const getMockContextM2M = ({
   spanId: generateId(),
   logger: genericLogger,
   requestTimestamp: Date.now(),
+});
+
+export const getMockSessionClaims = (
+  roles: UserRole[] = [userRole.ADMIN_ROLE]
+): SessionClaims & CustomClaims => ({
+  uid: generateId(),
+  organization: {
+    id: generateId(),
+    name: "My Org",
+    roles: roles.map((r) => ({ role: r })),
+  },
+  name: "A generic user",
+  family_name: "Family name",
+  email: "randomEmailforTest@tester.com",
+  "user-roles": roles.join(","),
+  organizationId: generateId(),
+  selfcareId: generateId(),
+  externalId: {
+    origin: "Internals",
+    value: generateId(),
+  },
 });

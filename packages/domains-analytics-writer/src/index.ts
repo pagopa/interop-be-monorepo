@@ -11,7 +11,13 @@ import {
 import { DBContext } from "./db/db.js";
 import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
-import { AttributeDbtable, DeletingDbTable } from "./model/db.js";
+import {
+  AgreementDbTable,
+  AttributeDbTable,
+  CatalogDbTable,
+  DeletingDbTable,
+  PurposeDbTable,
+} from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
 const dbInstance = initDB({
@@ -36,9 +42,37 @@ await retryConnection(
   config,
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
-    await setupDbService.setupStagingTables([AttributeDbtable.attribute]);
-    await setupDbService.setupStagingDeletingByIdTables([
-      DeletingDbTable.attribute_deleting_table,
+    await setupDbService.setupStagingTables([
+      AttributeDbTable.attribute,
+      CatalogDbTable.eservice,
+      CatalogDbTable.eservice_descriptor,
+      CatalogDbTable.eservice_descriptor_template_version_ref,
+      CatalogDbTable.eservice_descriptor_rejection_reason,
+      CatalogDbTable.eservice_descriptor_interface,
+      CatalogDbTable.eservice_descriptor_document,
+      CatalogDbTable.eservice_descriptor_attribute,
+      CatalogDbTable.eservice_risk_analysis,
+      CatalogDbTable.eservice_risk_analysis_answer,
+      AgreementDbTable.agreement,
+      AgreementDbTable.agreement_stamp,
+      AgreementDbTable.agreement_attribute,
+      AgreementDbTable.agreement_consumer_document,
+      AgreementDbTable.agreement_contract,
+      PurposeDbTable.purpose,
+      PurposeDbTable.purpose_version,
+      PurposeDbTable.purpose_version_document,
+      PurposeDbTable.purpose_risk_analysis_form,
+      PurposeDbTable.purpose_risk_analysis_answer,
+    ]);
+    await setupDbService.setupStagingDeletingTables([
+      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.catalog_risk_deleting_table,
+        columns: ["id", "eserviceId"],
+      },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
     ]);
   },
   logger({ serviceName: config.serviceName })
