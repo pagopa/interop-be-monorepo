@@ -28,16 +28,16 @@ import {
   Tenant,
   TenantAttribute,
   TenantId,
+  WithMetadata,
   agreementState,
   delegationKind,
   delegationState,
   descriptorState,
   generateId,
-  toAgreementStateV2,
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { agreementCreationConflictingStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -46,7 +46,7 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -70,13 +70,15 @@ import {
  * @returns A Promise that resolves return the created AgreementV1 object.
  */
 const expectedAgreementCreation = async (
-  agreement: Agreement,
+  createAgreementResponse: WithMetadata<Agreement>,
   expectedEserviceId: EServiceId,
   expectedDescriptorId: DescriptorId,
   expectedProducerId: TenantId,
   expectedConsumerId: TenantId
 ): Promise<AgreementV2> => {
-  const agreementId = unsafeBrandId<AgreementId>(agreement.id);
+  const agreementId = unsafeBrandId<AgreementId>(
+    createAgreementResponse.data.id
+  );
   expect(agreementId).toBeDefined();
   if (!agreementId) {
     fail("Unhandled error: returned agreementId is undefined");
@@ -107,26 +109,37 @@ const expectedAgreementCreation = async (
   expect(actualAgreement.contract).toBeUndefined();
   expect(actualAgreement).property("createdAt").satisfy(expectPastTimestamp);
 
-  expect(actualAgreement).toMatchObject({
+  const expectedAgreement: Agreement = {
     id: agreementId,
     eserviceId: expectedEserviceId,
     descriptorId: expectedDescriptorId,
     producerId: expectedProducerId,
     consumerId: expectedConsumerId,
-    state: toAgreementStateV2(agreementState.draft),
+    state: agreementState.draft,
     verifiedAttributes: [],
     certifiedAttributes: [],
     declaredAttributes: [],
     consumerDocuments: [],
     stamps: {},
-    createdAt: expect.any(BigInt),
-  });
-  expect(actualAgreement).toEqual(toAgreementV2(agreement));
+    createdAt: new Date(),
+  };
 
+  expect(actualAgreement).toEqual(toAgreementV2(expectedAgreement));
+  expect(createAgreementResponse).toEqual({
+    data: expectedAgreement,
+    metadata: { version: 0 },
+  });
   return actualAgreement;
 };
 
 describe("create agreement", () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
+  afterAll(() => {
+    vi.useRealTimers();
+  });
   it("should succeed when EService Producer and Agreement Consumer are the same, even on unmet attributes", async () => {
     const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
@@ -144,7 +157,7 @@ describe("create agreement", () => {
     await addOneEService(eservice);
     await addOneTenant(tenant);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const createdAgreementResponse = await agreementService.createAgreement(
       {
         eserviceId,
         descriptorId,
@@ -153,7 +166,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      createdAgreement,
+      createdAgreementResponse,
       eserviceId,
       descriptorId,
       authData.organizationId,
@@ -201,7 +214,7 @@ describe("create agreement", () => {
     await addOneTenant(consumer);
     await addOneEService(eservice);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const createdAgreementReponse = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
@@ -210,7 +223,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      createdAgreement,
+      createdAgreementReponse,
       eservice.id,
       descriptor.id,
       eserviceProducer.id,
@@ -276,7 +289,7 @@ describe("create agreement", () => {
     await addOneDelegation(delegation);
     await addOneAgreement(existingAgreementForDelegateAsConsumer);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const createdAgreementReponse = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
@@ -286,7 +299,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      createdAgreement,
+      createdAgreementReponse,
       eservice.id,
       descriptor.id,
       eserviceProducer.id,
@@ -313,7 +326,7 @@ describe("create agreement", () => {
 
     const authData = getMockAuthData(consumer.id); // different from eserviceProducer
 
-    const createdAgreement = await agreementService.createAgreement(
+    const createdAgreementReponse = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: eservice.descriptors[0].id,
@@ -322,7 +335,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      createdAgreement,
+      createdAgreementReponse,
       eservice.id,
       descriptor.id,
       eserviceProducer.id,
@@ -357,7 +370,7 @@ describe("create agreement", () => {
 
     const authData = getMockAuthData(tenant.id);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const createdAgreementReponse = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: descriptor0.id,
@@ -366,7 +379,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      createdAgreement,
+      createdAgreementReponse,
       eservice.id,
       descriptor0.id,
       tenant.id,
@@ -398,7 +411,7 @@ describe("create agreement", () => {
 
     const authData = getMockAuthData(tenant.id);
 
-    const createdAgreement = await agreementService.createAgreement(
+    const createdAgreementReponse = await agreementService.createAgreement(
       {
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
@@ -407,7 +420,7 @@ describe("create agreement", () => {
     );
 
     await expectedAgreementCreation(
-      createdAgreement,
+      createdAgreementReponse,
       eservice.id,
       descriptor.id,
       tenant.id,
@@ -741,7 +754,7 @@ describe("create agreement", () => {
       missingCertifiedAttributesError(descriptor.id, consumer.id)
     );
   });
-  it("should throw organizationIsNotTheDelegateConsumer error when there is an active delegation and the requester is the delegator", async () => {
+  it("should throw tenantIsNotTheDelegateConsumer error when there is an active delegation and the requester is the delegator", async () => {
     const authData = getMockAuthData();
 
     const eservice = getMockEService(
@@ -769,10 +782,7 @@ describe("create agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
     );
   });
   it("should throw delegationNotFound error when the provided delegation id does not exist", async () => {
@@ -803,7 +813,7 @@ describe("create agreement", () => {
       )
     ).rejects.toThrowError(delegationNotFound(delegationId));
   });
-  it("should throw organizationIsNotTheDelegateConsumer error when the requester is not the delegate if delegationId is provided", async () => {
+  it("should throw tenantIsNotTheDelegateConsumer error when the requester is not the delegate if delegationId is provided", async () => {
     const authData = getMockAuthData();
     const eservice = getMockEService(
       generateId<EServiceId>(),
@@ -830,10 +840,7 @@ describe("create agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
     );
   });
 });

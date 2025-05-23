@@ -181,6 +181,7 @@ export function readModelServiceBuilderSQL({
           )
         )
         .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
+        .orderBy(ascLower(eserviceTemplateInReadmodelEserviceTemplate.name))
         .limit(limit)
         .offset(offset)
         .as("subquery");

@@ -5,31 +5,36 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
+  validateAuthorization,
+  authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { getTenantsErrorMapper } from "../utils/errorMappers.js";
 
 const tenantRouter = (
   ctx: ZodiosContext,
   tenantService: TenantService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
+  const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
   const tenantRouter = ctx.router(m2mGatewayApi.tenantsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  void tenantService;
 
   tenantRouter
     .get("/tenants", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const tenants = await tenantService.getTenants(req.query, ctx);
+
+        return res.status(200).send(m2mGatewayApi.Tenants.parse(tenants));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getTenantsErrorMapper,
           ctx,
           "Error retrieving tenants"
         );
@@ -39,7 +44,13 @@ const tenantRouter = (
     .get("/tenants/:tenantId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const tenant = await tenantService.getTenant(
+          unsafeBrandId(req.params.tenantId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Tenant.parse(tenant));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -53,7 +64,18 @@ const tenantRouter = (
     .get("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const certifiedAttributes = await tenantService.getCertifiedAttributes(
+          unsafeBrandId(req.params.tenantId),
+          req.query,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(
+            m2mGatewayApi.TenantCertifiedAttributes.parse(certifiedAttributes)
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -67,7 +89,14 @@ const tenantRouter = (
     .post("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        await tenantService.addCertifiedAttribute(
+          unsafeBrandId(req.params.tenantId),
+          req.body,
+          ctx
+        );
+
+        return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -83,7 +112,14 @@ const tenantRouter = (
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
-          return res.status(501).send();
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await tenantService.revokeCertifiedAttribute(
+            unsafeBrandId(req.params.tenantId),
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+
+          return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

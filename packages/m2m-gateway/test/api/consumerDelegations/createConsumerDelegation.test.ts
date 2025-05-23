@@ -39,7 +39,7 @@ describe("POST /consumerDelegations router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform API clients calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockDelegationService.createConsumerDelegation = vi
         .fn()
@@ -48,7 +48,7 @@ describe("POST /consumerDelegations router test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockDelegationSeed);
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MDelegationResponse);
     }
   );
@@ -73,7 +73,7 @@ describe("POST /consumerDelegations router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        body as unknown as m2mGatewayApi.DelegationSeed
+        body as m2mGatewayApi.DelegationSeed
       );
 
       expect(res.status).toBe(400);
