@@ -128,72 +128,7 @@ export function readModelServiceBuilderSQL(
           .offset(offset);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
-        const [
-          tenantsSQL,
-          mailsSQL,
-          certifiedAttributesSQL,
-          declaredAttributesSQL,
-          verifiedAttributesSQL,
-          verifiedAttributeVerifiersSQL,
-          verifiedAttributeRevokersSQL,
-          featuresSQL,
-        ] = await Promise.all([
-          readTenantsSQL(inArray(tenantInReadmodelTenant.id, tenantIds), tx),
-          readTenantMailsSQL(
-            inArray(tenantMailInReadmodelTenant.tenantId, tenantIds),
-            tx
-          ),
-          readTenantCertifiedAttributesSQL(
-            inArray(
-              tenantCertifiedAttributeInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantDeclaredAttributesSQL(
-            inArray(
-              tenantDeclaredAttributeInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantVerifiedAttributesSQL(
-            inArray(
-              tenantVerifiedAttributeInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantVerifiedAttributeVerifiersSQL(
-            inArray(
-              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantVerifiedAttributeRevokersSQL(
-            inArray(
-              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantFeaturesSQL(
-            inArray(tenantFeatureInReadmodelTenant.tenantId, tenantIds),
-            tx
-          ),
-        ]);
-
-        const tenants = aggregateTenantArray({
-          tenantsSQL,
-          mailsSQL,
-          certifiedAttributesSQL,
-          declaredAttributesSQL,
-          verifiedAttributesSQL,
-          verifiedAttributeVerifiersSQL,
-          verifiedAttributeRevokersSQL,
-          featuresSQL,
-        });
+        const tenants = await readTenantsByIds(tenantIds, tx);
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
           queryResult[0]?.totalCount
@@ -331,72 +266,7 @@ export function readModelServiceBuilderSQL(
           .offset(offset);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
-        const [
-          tenantsSQL,
-          mailsSQL,
-          certifiedAttributesSQL,
-          declaredAttributesSQL,
-          verifiedAttributesSQL,
-          verifiedAttributeVerifiersSQL,
-          verifiedAttributeRevokersSQL,
-          featuresSQL,
-        ] = await Promise.all([
-          readTenantsSQL(inArray(tenantInReadmodelTenant.id, tenantIds), tx),
-          readTenantMailsSQL(
-            inArray(tenantMailInReadmodelTenant.tenantId, tenantIds),
-            tx
-          ),
-          readTenantCertifiedAttributesSQL(
-            inArray(
-              tenantCertifiedAttributeInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantDeclaredAttributesSQL(
-            inArray(
-              tenantDeclaredAttributeInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantVerifiedAttributesSQL(
-            inArray(
-              tenantVerifiedAttributeInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantVerifiedAttributeVerifiersSQL(
-            inArray(
-              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantVerifiedAttributeRevokersSQL(
-            inArray(
-              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantFeaturesSQL(
-            inArray(tenantFeatureInReadmodelTenant.tenantId, tenantIds),
-            tx
-          ),
-        ]);
-
-        const tenants = aggregateTenantArray({
-          tenantsSQL,
-          mailsSQL,
-          certifiedAttributesSQL,
-          declaredAttributesSQL,
-          verifiedAttributesSQL,
-          verifiedAttributeVerifiersSQL,
-          verifiedAttributeRevokersSQL,
-          featuresSQL,
-        });
+        const tenants = await readTenantsByIds(tenantIds, tx);
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
           queryResult[0]?.totalCount
@@ -447,72 +317,7 @@ export function readModelServiceBuilderSQL(
           .offset(offset);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
-        const [
-          tenantsSQL,
-          mailsSQL,
-          certifiedAttributesSQL,
-          declaredAttributesSQL,
-          verifiedAttributesSQL,
-          verifiedAttributeVerifiersSQL,
-          verifiedAttributeRevokersSQL,
-          featuresSQL,
-        ] = await Promise.all([
-          readTenantsSQL(inArray(tenantInReadmodelTenant.id, tenantIds), tx),
-          readTenantMailsSQL(
-            inArray(tenantMailInReadmodelTenant.tenantId, tenantIds),
-            tx
-          ),
-          readTenantCertifiedAttributesSQL(
-            inArray(
-              tenantCertifiedAttributeInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantDeclaredAttributesSQL(
-            inArray(
-              tenantDeclaredAttributeInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantVerifiedAttributesSQL(
-            inArray(
-              tenantVerifiedAttributeInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantVerifiedAttributeVerifiersSQL(
-            inArray(
-              tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantVerifiedAttributeRevokersSQL(
-            inArray(
-              tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-              tenantIds
-            ),
-            tx
-          ),
-          readTenantFeaturesSQL(
-            inArray(tenantFeatureInReadmodelTenant.tenantId, tenantIds),
-            tx
-          ),
-        ]);
-
-        const tenants = aggregateTenantArray({
-          tenantsSQL,
-          mailsSQL,
-          certifiedAttributesSQL,
-          declaredAttributesSQL,
-          verifiedAttributesSQL,
-          verifiedAttributeVerifiersSQL,
-          verifiedAttributeRevokersSQL,
-          featuresSQL,
-        });
+        const tenants = await readTenantsByIds(tenantIds, tx);
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
           queryResult[0]?.totalCount
@@ -757,3 +562,66 @@ const readTenantFeaturesSQL = async (
   tx: DrizzleTransactionType
 ): Promise<TenantFeatureSQL[]> =>
   await tx.select().from(tenantFeatureInReadmodelTenant).where(filter);
+
+const readTenantsByIds = async (
+  tenantIds: string[],
+  tx: DrizzleTransactionType
+): Promise<Array<WithMetadata<Tenant>>> => {
+  const [
+    tenantsSQL,
+    mailsSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+    featuresSQL,
+  ] = await Promise.all([
+    readTenantsSQL(inArray(tenantInReadmodelTenant.id, tenantIds), tx),
+    readTenantMailsSQL(
+      inArray(tenantMailInReadmodelTenant.tenantId, tenantIds),
+      tx
+    ),
+    readTenantCertifiedAttributesSQL(
+      inArray(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantIds),
+      tx
+    ),
+    readTenantDeclaredAttributesSQL(
+      inArray(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantIds),
+      tx
+    ),
+    readTenantVerifiedAttributesSQL(
+      inArray(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantIds),
+      tx
+    ),
+    readTenantVerifiedAttributeVerifiersSQL(
+      inArray(
+        tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
+        tenantIds
+      ),
+      tx
+    ),
+    readTenantVerifiedAttributeRevokersSQL(
+      inArray(
+        tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
+        tenantIds
+      ),
+      tx
+    ),
+    readTenantFeaturesSQL(
+      inArray(tenantFeatureInReadmodelTenant.tenantId, tenantIds),
+      tx
+    ),
+  ]);
+
+  return aggregateTenantArray({
+    tenantsSQL,
+    mailsSQL,
+    certifiedAttributesSQL,
+    declaredAttributesSQL,
+    verifiedAttributesSQL,
+    verifiedAttributeVerifiersSQL,
+    verifiedAttributeRevokersSQL,
+    featuresSQL,
+  });
+};
