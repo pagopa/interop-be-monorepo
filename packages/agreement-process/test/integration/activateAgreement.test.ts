@@ -73,9 +73,9 @@ import {
   descriptorNotFound,
   descriptorNotInExpectedState,
   eServiceNotFound,
-  organizationIsNotTheDelegateProducer,
-  organizationIsNotTheProducer,
-  organizationNotAllowed,
+  tenantIsNotTheDelegateProducer,
+  tenantIsNotTheProducer,
+  tenantNotAllowed,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
@@ -324,7 +324,7 @@ describe("activate agreement", () => {
           delegateConsumer,
         });
 
-        const acrivateAgreementReturnValue =
+        const activateAgreementReturnValue =
           await agreementService.activateAgreement(
             agreement.id,
             getMockContext({ authData })
@@ -479,9 +479,10 @@ describe("activate agreement", () => {
         ).toContain(expectedContract.path);
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
-        expect(acrivateAgreementReturnValue).toMatchObject(
-          expectedActivatedAgreement
-        );
+        expect(activateAgreementReturnValue).toMatchObject({
+          data: expectedActivatedAgreement,
+          metadata: { version: 1 },
+        });
       }
     );
 
@@ -691,7 +692,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
     });
 
-    it("Agreement Pending, Requester === Consumer -- error case: throws organizationIsNotTheProducer", async () => {
+    it("Agreement Pending, Requester === Consumer -- error case: throws tenantIsNotTheProducer", async () => {
       const consumerId = generateId<TenantId>();
       const authData = getMockAuthData(consumerId);
 
@@ -706,12 +707,10 @@ describe("activate agreement", () => {
           agreement.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        organizationIsNotTheProducer(authData.organizationId)
-      );
+      ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
     });
 
-    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws organizationIsNotTheProducer", async () => {
+    it("Agreement Pending, Requester === DelegateConsumer -- error case: throws tenantIsNotTheProducer", async () => {
       const delegateId = generateId<TenantId>();
       const authData = getMockAuthData(delegateId);
       const agreement: Agreement = {
@@ -736,12 +735,10 @@ describe("activate agreement", () => {
           agreement.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        organizationIsNotTheProducer(authData.organizationId)
-      );
+      ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
     });
 
-    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws organizationIsNotTheDelegateProducer", async () => {
+    it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws tenantIsNotTheDelegateProducer", async () => {
       const producerId = generateId<TenantId>();
       const authData = getMockAuthData(producerId);
       const agreement: Agreement = {
@@ -768,7 +765,7 @@ describe("activate agreement", () => {
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
-        organizationIsNotTheDelegateProducer(
+        tenantIsNotTheDelegateProducer(
           authData.organizationId,
           producerDelegation.id
         )
@@ -946,9 +943,10 @@ describe("activate agreement", () => {
           expectedActivatedAgreement
         );
 
-        expect(activateAgreementReturnValue).toMatchObject(
-          expectedActivatedAgreement
-        );
+        expect(activateAgreementReturnValue).toMatchObject({
+          data: expectedActivatedAgreement,
+          metadata: { version: 1 },
+        });
 
         await testRelatedAgreementsArchiviation(relatedAgreements);
       }
@@ -1090,9 +1088,10 @@ describe("activate agreement", () => {
         expectedActivatedAgreement
       );
 
-      expect(activateAgreementReturnValue).toMatchObject(
-        expectedActivatedAgreement
-      );
+      expect(activateAgreementReturnValue).toMatchObject({
+        data: expectedActivatedAgreement,
+        metadata: { version: 1 },
+      });
 
       await testRelatedAgreementsArchiviation(relatedAgreements);
     });
@@ -1296,7 +1295,10 @@ describe("activate agreement", () => {
 
           expect(actualAgreementUnsuspended).toMatchObject(expected);
 
-          expect(activateAgreementReturnValue).toMatchObject(expected);
+          expect(activateAgreementReturnValue).toMatchObject({
+            data: expected,
+            metadata: { version: 1 },
+          });
         });
 
         it("if suspendedByPlatform === true, unsuspends by Producer or Consumer and also by platform, and remains in a Suspended state", async () => {
@@ -1375,7 +1377,10 @@ describe("activate agreement", () => {
 
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspendedByPlatform).toMatchObject(expected2);
-          expect(activateAgreementReturnValue).toMatchObject(expected2);
+          expect(activateAgreementReturnValue).toMatchObject({
+            data: expected2,
+            metadata: { version: 2 },
+          });
         });
       }
     );
@@ -1593,7 +1598,10 @@ describe("activate agreement", () => {
           );
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspended).toMatchObject(expected);
-          expect(activateAgreementReturnValue).toMatchObject(expected);
+          expect(activateAgreementReturnValue).toMatchObject({
+            data: expected,
+            metadata: { version: 1 },
+          });
         });
 
         it("if suspendedByPlatform === false, unsuspends by Producer or Consumer and also suspends by platform, and remains in a Suspended state", async () => {
@@ -1672,12 +1680,15 @@ describe("activate agreement", () => {
 
           await testRelatedAgreementsArchiviation(relatedAgreements);
           expect(actualAgreementUnsuspendedByPlatform).toMatchObject(expected2);
-          expect(activateAgreementReturnValue).toMatchObject(expected2);
+          expect(activateAgreementReturnValue).toMatchObject({
+            data: expected2,
+            metadata: { version: 2 },
+          });
         });
       }
     );
 
-    it("Agreement Suspended, Requester === Producer and active producer delegation exists -- error case: throws organizationNotAllowed", async () => {
+    it("Agreement Suspended, Requester === Producer and active producer delegation exists -- error case: throws tenantNotAllowed", async () => {
       const producerId = generateId<TenantId>();
       const authData = getMockAuthData(producerId);
       const agreement: Agreement = {
@@ -1703,10 +1714,10 @@ describe("activate agreement", () => {
           agreement.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     });
 
-    it("Agreement Suspended, Requester === Consumer and active consumer delegation exists -- error case: throws organizationNotAllowed", async () => {
+    it("Agreement Suspended, Requester === Consumer and active consumer delegation exists -- error case: throws tenantNotAllowed", async () => {
       const consumerId = generateId<TenantId>();
       const authData = getMockAuthData(consumerId);
       const agreement: Agreement = {
@@ -1732,7 +1743,7 @@ describe("activate agreement", () => {
           agreement.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     });
   });
 
@@ -1749,7 +1760,7 @@ describe("activate agreement", () => {
       ).rejects.toThrowError(agreementNotFound(agreementId));
     });
 
-    it("should throw an organizationNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
+    it("should throw an tenantNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
       const authData = getMockAuthData();
       const agreement: Agreement = getMockAgreement(
         generateId<EServiceId>(),
@@ -1782,7 +1793,7 @@ describe("activate agreement", () => {
           agreement.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     });
 
     it.each(
