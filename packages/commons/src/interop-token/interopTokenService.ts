@@ -175,7 +175,7 @@ export class InteropTokenGenerator {
     const userDataPayload: InteropJwtApiCommonPayload = {
       jti: generateId(),
       iss: this.config.generatedInteropTokenIssuer,
-      aud: [this.config.generatedInteropTokenM2MAudience],
+      aud: this.config.generatedInteropTokenM2MAudience,
       client_id: sub,
       sub,
       iat: currentTimestamp,
