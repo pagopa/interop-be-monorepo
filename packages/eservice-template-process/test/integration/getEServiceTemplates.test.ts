@@ -340,158 +340,165 @@ describe("get eservices", () => {
       ]);
     }
   );
-  it("should include eservice templates whose only version is draft (requester is the creator, admin)", async () => {
-    const eserviceTemplateVersion6: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.draft,
-    };
-    const eserviceTemplate6: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      name: "eservice template 006",
-      creatorId: organizationId1,
-      versions: [eserviceTemplateVersion6],
-    };
-    const authData: UIAuthData = getMockAuthData(organizationId1);
-    await addOneEServiceTemplate(eserviceTemplate6);
-    const result = await eserviceTemplateService.getEServiceTemplates(
-      {
-        eserviceTemplatesIds: [],
-        creatorsIds: [],
-        states: [],
-      },
-      0,
-      50,
-      getMockContext({ authData })
-    );
-    expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eserviceTemplate1,
-      eserviceTemplate2,
-      eserviceTemplate3,
-      eserviceTemplate4,
-      eserviceTemplate5,
-      eserviceTemplate6,
-    ]);
-  });
-  it("should not include eservice templates whose only version is draft (requester is the creator, not admin nor api, nor support)", async () => {
-    const eserviceTemplateVersion6: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.draft,
-    };
-    const eserviceTemplate6: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      name: "eservice template 006",
-      creatorId: organizationId1,
-      versions: [eserviceTemplateVersion6],
-    };
-    const authData: UIAuthData = getMockAuthData(
-      organizationId1,
-      generateId<UserId>(),
-      [userRole.SECURITY_ROLE]
-    );
-    await addOneEServiceTemplate(eserviceTemplate6);
-    const result = await eserviceTemplateService.getEServiceTemplates(
-      {
-        eserviceTemplatesIds: [],
-        creatorsIds: [],
-        states: [],
-      },
-      0,
-      50,
-      getMockContext({ authData })
-    );
-    expect(result.totalCount).toBe(5);
-    expect(result.results).toEqual([
-      eserviceTemplate1,
-      eserviceTemplate2,
-      eserviceTemplate3,
-      eserviceTemplate4,
-      eserviceTemplate5,
-    ]);
-  });
-  it("should not include eservice templates whose only version is draft (requester is not the creator)", async () => {
-    const eserviceTemplateVersion6: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.draft,
-    };
-    const eserviceTemplate6: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      name: "eservice template 006",
-      creatorId: organizationId1,
-      versions: [eserviceTemplateVersion6],
-    };
-    const authData: UIAuthData = getMockAuthData(
-      generateId<TenantId>(),
-      generateId<UserId>(),
-      [userRole.SECURITY_ROLE]
-    );
-    await addOneEServiceTemplate(eserviceTemplate6);
-    const result = await eserviceTemplateService.getEServiceTemplates(
-      {
-        eserviceTemplatesIds: [],
-        creatorsIds: [],
-        states: [],
-      },
-      0,
-      50,
-      getMockContext({ authData })
-    );
-    expect(result.totalCount).toBe(5);
-    expect(result.results).toEqual([
-      eserviceTemplate1,
-      eserviceTemplate2,
-      eserviceTemplate3,
-      eserviceTemplate4,
-      eserviceTemplate5,
-    ]);
-  });
-  it("should not filter out %s versions if the eservice template has both of draft and published versions (requester is the creator, admin)", async () => {
-    const eserviceTemplateVersion6a: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      interface: getMockDocument(),
-      publishedAt: new Date(),
-      state: eserviceTemplateVersionState.published,
-    };
-    const eserviceTemplateVersion6b: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      version: 2,
-      state: eserviceTemplateVersionState.draft,
-    };
-    const eserviceTemplate6: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      name: "eservice template 006",
-      creatorId: organizationId1,
-      versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
-    };
 
-    const authData: UIAuthData = getMockAuthData(organizationId1);
-    await addOneEServiceTemplate(eserviceTemplate6);
-    const result = await eserviceTemplateService.getEServiceTemplates(
-      {
-        eserviceTemplatesIds: [],
-        creatorsIds: [],
-        states: [],
-      },
-      0,
-      50,
-      getMockContext({ authData })
-    );
-    expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual(
-      [
+  it.each(getContextsAllowedToSeeDraftVersions(organizationId1))(
+    "should include eservice templates whose only version is draft (requester is the creator, user roles: $authData.userRoles, system role: $authData.systemRole)",
+    async (context) => {
+      const eserviceTemplateVersion6: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        state: eserviceTemplateVersionState.draft,
+      };
+      const eserviceTemplate6: EServiceTemplate = {
+        ...getMockEServiceTemplate(),
+        name: "eservice template 006",
+        creatorId: organizationId1,
+        versions: [eserviceTemplateVersion6],
+      };
+      await addOneEServiceTemplate(eserviceTemplate6);
+      const result = await eserviceTemplateService.getEServiceTemplates(
+        {
+          eserviceTemplatesIds: [],
+          creatorsIds: [],
+          states: [],
+        },
+        0,
+        50,
+        context
+      );
+      expect(result.totalCount).toBe(6);
+      expect(result.results).toEqual([
         eserviceTemplate1,
         eserviceTemplate2,
         eserviceTemplate3,
         eserviceTemplate4,
         eserviceTemplate5,
         eserviceTemplate6,
-      ].map((e) => ({
-        ...e,
-        versions: expect.arrayContaining(e.versions),
-      }))
+      ]);
+    }
+  );
+
+  it("should not include eservice templates whose only version is draft (requester is the creator, but user role is 'security')", async () => {
+    const eserviceTemplateVersion6: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.draft,
+    };
+    const eserviceTemplate6: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      name: "eservice template 006",
+      creatorId: organizationId1,
+      versions: [eserviceTemplateVersion6],
+    };
+    const authData: UIAuthData = getMockAuthData(
+      organizationId1,
+      generateId<UserId>(),
+      [userRole.SECURITY_ROLE]
     );
+    await addOneEServiceTemplate(eserviceTemplate6);
+    const result = await eserviceTemplateService.getEServiceTemplates(
+      {
+        eserviceTemplatesIds: [],
+        creatorsIds: [],
+        states: [],
+      },
+      0,
+      50,
+      getMockContext({ authData })
+    );
+    expect(result.totalCount).toBe(5);
+    expect(result.results).toEqual([
+      eserviceTemplate1,
+      eserviceTemplate2,
+      eserviceTemplate3,
+      eserviceTemplate4,
+      eserviceTemplate5,
+    ]);
   });
-  it("should filter out draft versions if the eservice has both draft and published versions (requester is the creator, but not admin nor api, nor support)", async () => {
+
+  it.each(getContextsAllowedToSeeDraftVersions(generateId()))(
+    "should not include eservice templates whose only version is draft (requester is not the creator, user roles: $authData.userRoles, system role: $authData.systemRole))",
+    async (context) => {
+      const eserviceTemplateVersion6: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        state: eserviceTemplateVersionState.draft,
+      };
+      const eserviceTemplate6: EServiceTemplate = {
+        ...getMockEServiceTemplate(),
+        name: "eservice template 006",
+        creatorId: organizationId1,
+        versions: [eserviceTemplateVersion6],
+      };
+      await addOneEServiceTemplate(eserviceTemplate6);
+      const result = await eserviceTemplateService.getEServiceTemplates(
+        {
+          eserviceTemplatesIds: [],
+          creatorsIds: [],
+          states: [],
+        },
+        0,
+        50,
+        context
+      );
+      expect(result.totalCount).toBe(5);
+      expect(result.results).toEqual([
+        eserviceTemplate1,
+        eserviceTemplate2,
+        eserviceTemplate3,
+        eserviceTemplate4,
+        eserviceTemplate5,
+      ]);
+    }
+  );
+
+  it.each(getContextsAllowedToSeeDraftVersions(organizationId1))(
+    "should not filter out draft versions if the eservice template has both of draft and published versions (requester is the creator, , user roles: $authData.userRoles, system role: $authData.systemRole)",
+    async (context) => {
+      const eserviceTemplateVersion6a: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        interface: getMockDocument(),
+        publishedAt: new Date(),
+        state: eserviceTemplateVersionState.published,
+      };
+      const eserviceTemplateVersion6b: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        version: 2,
+        state: eserviceTemplateVersionState.draft,
+      };
+      const eserviceTemplate6: EServiceTemplate = {
+        ...getMockEServiceTemplate(),
+        name: "eservice template 006",
+        creatorId: organizationId1,
+        versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
+      };
+
+      await addOneEServiceTemplate(eserviceTemplate6);
+      const result = await eserviceTemplateService.getEServiceTemplates(
+        {
+          eserviceTemplatesIds: [],
+          creatorsIds: [],
+          states: [],
+        },
+        0,
+        50,
+        context
+      );
+      expect(result.totalCount).toBe(6);
+      expect(result.results).toEqual(
+        [
+          eserviceTemplate1,
+          eserviceTemplate2,
+          eserviceTemplate3,
+          eserviceTemplate4,
+          eserviceTemplate5,
+          eserviceTemplate6,
+        ].map((e) => ({
+          ...e,
+          versions: expect.arrayContaining(e.versions),
+        }))
+      );
+    }
+  );
+
+  it("should filter out draft versions if the eservice has both draft and published versions (requester is the creator, but user role is 'security')", async () => {
     const eserviceTemplateVersion6a: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       interface: getMockDocument(),
@@ -536,45 +543,48 @@ describe("get eservices", () => {
       { ...eserviceTemplate6, versions: [eserviceTemplateVersion6a] },
     ]);
   });
-  it("should filter out draft versions if the eservice template has both of draft and published versions (requester is not the creator)", async () => {
-    const eserviceTemplateVersion6a: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      interface: getMockDocument(),
-      publishedAt: new Date(),
-      state: eserviceTemplateVersionState.published,
-    };
-    const eserviceTemplateVersion6b: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      version: 2,
-      state: eserviceTemplateVersionState.draft,
-    };
-    const eserviceTemplate6: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      name: "eservice template 006",
-      creatorId: organizationId1,
-      versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
-    };
 
-    const authData: UIAuthData = getMockAuthData();
-    await addOneEServiceTemplate(eserviceTemplate6);
-    const result = await eserviceTemplateService.getEServiceTemplates(
-      {
-        eserviceTemplatesIds: [],
-        creatorsIds: [],
-        states: [],
-      },
-      0,
-      50,
-      getMockContext({ authData })
-    );
-    expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eserviceTemplate1,
-      eserviceTemplate2,
-      eserviceTemplate3,
-      eserviceTemplate4,
-      eserviceTemplate5,
-      { ...eserviceTemplate6, versions: [eserviceTemplateVersion6a] },
-    ]);
-  });
+  it.each(getContextsAllowedToSeeDraftVersions(generateId()))(
+    "should filter out draft versions if the eservice template has both of draft and published versions (requester is not the creator, , user roles: $authData.userRoles, system role: $authData.systemRole)",
+    async (context) => {
+      const eserviceTemplateVersion6a: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        interface: getMockDocument(),
+        publishedAt: new Date(),
+        state: eserviceTemplateVersionState.published,
+      };
+      const eserviceTemplateVersion6b: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        version: 2,
+        state: eserviceTemplateVersionState.draft,
+      };
+      const eserviceTemplate6: EServiceTemplate = {
+        ...getMockEServiceTemplate(),
+        name: "eservice template 006",
+        creatorId: organizationId1,
+        versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
+      };
+
+      await addOneEServiceTemplate(eserviceTemplate6);
+      const result = await eserviceTemplateService.getEServiceTemplates(
+        {
+          eserviceTemplatesIds: [],
+          creatorsIds: [],
+          states: [],
+        },
+        0,
+        50,
+        context
+      );
+      expect(result.totalCount).toBe(6);
+      expect(result.results).toEqual([
+        eserviceTemplate1,
+        eserviceTemplate2,
+        eserviceTemplate3,
+        eserviceTemplate4,
+        eserviceTemplate5,
+        { ...eserviceTemplate6, versions: [eserviceTemplateVersion6a] },
+      ]);
+    }
+  );
 });
