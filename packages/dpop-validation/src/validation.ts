@@ -160,7 +160,6 @@ export const verifyDPoPProofSignature = async (
     } else if (error instanceof JWSSignatureVerificationFailed) {
       return failedValidation([invalidSignature()]);
     } else if (error instanceof JWTClaimValidationFailed) {
-      // TODO: needed?
       if (error.claim === "nbf") {
         return failedValidation([notBeforeError()]);
       }
