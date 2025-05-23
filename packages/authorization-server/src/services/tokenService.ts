@@ -36,6 +36,7 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import {
   AuthServerAppContext,
+  calculateKid,
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
@@ -277,6 +278,9 @@ export function tokenServiceBuilder({
                   config,
                   "featureFlagImprovedProducerVerificationClaims"
                 ),
+              dPoPThumbprint: dPoPProofJWT
+                ? calculateKid(dPoPProofJWT.header.jwk)
+                : undefined,
             });
 
             // TODO: Add DPoP audit

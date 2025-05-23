@@ -221,6 +221,7 @@ export class InteropTokenGenerator {
     eserviceId,
     descriptorId,
     featureFlagImprovedProducerVerificationClaims = false,
+    dPoPThumbprint,
   }: {
     sub: ClientId;
     audience: string[];
@@ -232,6 +233,7 @@ export class InteropTokenGenerator {
     eserviceId: EServiceId;
     descriptorId: DescriptorId;
     featureFlagImprovedProducerVerificationClaims: boolean;
+    dPoPThumbprint?: string;
   }): Promise<InteropConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -270,6 +272,13 @@ export class InteropTokenGenerator {
             consumerId,
             eserviceId,
             descriptorId,
+          }
+        : {}),
+      ...(dPoPThumbprint
+        ? {
+            cnk: {
+              jkt: dPoPThumbprint,
+            },
           }
         : {}),
     };
