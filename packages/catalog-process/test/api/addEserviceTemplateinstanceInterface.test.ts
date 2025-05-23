@@ -94,6 +94,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         ]),
         name: `Test EService with technology: ${technology.toUpperCase()}`,
         description: `Test description for eservice with technology: ${technology.toUpperCase()}`,
+        technology,
       };
 
       beforeEach(() => {

@@ -328,11 +328,9 @@ describe("publish descriptor", () => {
     };
     await addOneTenant(tenant);
     const agreement = {
-      ...getMockAgreement(eservice.id),
+      ...getMockAgreement(eservice.id, tenant.id, agreementState.active),
       descriptorId: descriptor1.id,
       producerId: eservice.producerId,
-      consumerId: tenant.id,
-      state: agreementState.active,
     };
     await addOneAgreement(agreement);
     await catalogService.publishDescriptor(

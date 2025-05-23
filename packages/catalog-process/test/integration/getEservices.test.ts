@@ -10,6 +10,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockAgreement,
+  getMockEServiceAttributes,
 } from "pagopa-interop-commons-test";
 import {
   TenantId,
@@ -34,7 +35,6 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
-import { getMockEServiceAttributes } from "../mockUtils.js";
 
 describe("get eservices", () => {
   let organizationId1: TenantId;
@@ -163,27 +163,21 @@ describe("get eservices", () => {
     };
     await addOneTenant(tenant);
     const agreement1 = {
-      ...getMockAgreement(eservice1.id),
+      ...getMockAgreement(eservice1.id, tenant.id, agreementState.active),
       descriptorId: descriptor1.id,
       producerId: eservice1.producerId,
-      consumerId: tenant.id,
-      state: agreementState.active,
     };
     await addOneAgreement(agreement1);
     const agreement2 = {
-      ...getMockAgreement(eservice3.id),
+      ...getMockAgreement(eservice3.id, tenant.id, agreementState.active),
       descriptorId: descriptor3.id,
       producerId: eservice3.producerId,
-      consumerId: tenant.id,
-      state: agreementState.active,
     };
     await addOneAgreement(agreement2);
     const agreement3 = {
-      ...getMockAgreement(eservice4.id),
+      ...getMockAgreement(eservice4.id, tenant.id, agreementState.draft),
       descriptorId: descriptor4.id,
       producerId: eservice4.producerId,
-      consumerId: tenant.id,
-      state: agreementState.draft,
     };
     await addOneAgreement(agreement3);
   });

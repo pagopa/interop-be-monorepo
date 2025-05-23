@@ -2,6 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
+  agreementState,
   Descriptor,
   descriptorState,
   EService,
@@ -35,7 +36,11 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
 
   const tenant = getMockTenant();
 
-  const agreement = getMockAgreement(eservice.id, tenant.id);
+  const agreement = {
+    ...getMockAgreement(eservice.id, tenant.id, agreementState.active),
+    descriptorId: descriptor.id,
+    producerId: eservice.producerId,
+  };
 
   const mockResponse = {
     results: [
