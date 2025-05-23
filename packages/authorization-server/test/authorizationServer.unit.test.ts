@@ -29,13 +29,12 @@ import {
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
 import { config } from "../src/config/config.js";
+import { dynamoDBClient, fileManager } from "./integrationUtils.js";
 import {
-  dynamoDBClient,
-  fileManager,
   getMockAuditMessage,
   mockKMSClient,
   mockProducer,
-} from "./utils.js";
+} from "./mockUtils.js";
 
 describe("unit tests", () => {
   beforeEach(async () => {

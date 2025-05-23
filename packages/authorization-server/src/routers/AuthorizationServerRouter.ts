@@ -2,9 +2,6 @@ import { constants } from "http2";
 import {
   AuthServerAppContext,
   ExpressContext,
-  initFileManager,
-  initRedisRateLimiter,
-  InteropTokenGenerator,
   logger,
   rateLimiterHeadersFromStatus,
   WithLogger,
@@ -18,46 +15,15 @@ import {
   tooManyRequestsError,
 } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { initProducer } from "kafka-iam-auth";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
-import { tokenServiceBuilder } from "../services/tokenService.js";
-import { config } from "../config/config.js";
-
-const dynamoDBClient = new DynamoDBClient();
-const redisRateLimiter = await initRedisRateLimiter({
-  limiterGroup: "AUTHSERVER",
-  maxRequests: config.rateLimiterMaxRequests,
-  rateInterval: config.rateLimiterRateInterval,
-  burstPercentage: config.rateLimiterBurstPercentage,
-  redisHost: config.rateLimiterRedisHost,
-  redisPort: config.rateLimiterRedisPort,
-  timeout: config.rateLimiterTimeout,
-});
-const producer = await initProducer(config, config.tokenAuditingTopic);
-const fileManager = initFileManager(config);
-
-const tokenGenerator = new InteropTokenGenerator({
-  generatedInteropTokenKid: config.generatedInteropTokenKid,
-  generatedInteropTokenIssuer: config.generatedInteropTokenIssuer,
-  generatedInteropTokenM2MAudience: config.generatedInteropTokenM2MAudience,
-  generatedInteropTokenM2MDurationSeconds:
-    config.generatedInteropTokenM2MDurationSeconds,
-});
-
-const tokenService = tokenServiceBuilder({
-  tokenGenerator,
-  dynamoDBClient,
-  redisRateLimiter,
-  producer,
-  fileManager,
-});
+import { TokenService } from "../services/tokenService.js";
 
 const authorizationServerRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  tokenService: TokenService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const authorizationServerRouter = ctx.router(
     authorizationServerApi.authApi.api,
