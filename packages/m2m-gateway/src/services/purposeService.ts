@@ -235,7 +235,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2mGatewayApiPurposeVersion(createdVersion);
     },
-    async activatePurpose(
+    async activateDraftPurpose(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {

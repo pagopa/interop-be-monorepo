@@ -166,7 +166,7 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        await purposeService.activatePurpose(
+        await purposeService.activateDraftPurpose(
           unsafeBrandId(req.params.purposeId),
           ctx
         );

@@ -22,7 +22,7 @@ describe("POST /purposes/:purposeId/activate router test", () => {
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
-      mockPurposeService.activatePurpose = vi.fn();
+      mockPurposeService.activateDraftPurpose = vi.fn();
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId());
@@ -32,7 +32,7 @@ describe("POST /purposes/:purposeId/activate router test", () => {
   );
 
   it("Should return 409 for missing draft purpose version", async () => {
-    mockPurposeService.activatePurpose = vi
+    mockPurposeService.activateDraftPurpose = vi
       .fn()
       .mockRejectedValue(
         missingPurposeVersionWithState(
@@ -63,7 +63,9 @@ describe("POST /purposes/:purposeId/activate router test", () => {
   it.each([missingMetadata(), resourcePollingTimeout(3)])(
     "Should return 500 in case of $code error",
     async (error) => {
-      mockPurposeService.activatePurpose = vi.fn().mockRejectedValue(error);
+      mockPurposeService.activateDraftPurpose = vi
+        .fn()
+        .mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, generateId());
 

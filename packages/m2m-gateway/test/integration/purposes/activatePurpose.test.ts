@@ -59,7 +59,7 @@ describe("activatePurposeVersion", () => {
     // The activate will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
-    await purposeService.activatePurpose(
+    await purposeService.activateDraftPurpose(
       unsafeBrandId(mockApiPurpose.data.id),
       getMockM2MAdminAppContext()
     );
@@ -93,7 +93,7 @@ describe("activatePurposeVersion", () => {
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
 
     await expect(
-      purposeService.activatePurpose(
+      purposeService.activateDraftPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
         getMockM2MAdminAppContext()
       )
@@ -112,7 +112,7 @@ describe("activatePurposeVersion", () => {
     });
 
     await expect(
-      purposeService.activatePurpose(
+      purposeService.activateDraftPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
         getMockM2MAdminAppContext()
       )
@@ -127,7 +127,7 @@ describe("activatePurposeVersion", () => {
     });
 
     await expect(
-      purposeService.activatePurpose(
+      purposeService.activateDraftPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
         getMockM2MAdminAppContext()
       )
@@ -146,7 +146,7 @@ describe("activatePurposeVersion", () => {
       );
 
     await expect(
-      purposeService.activatePurpose(
+      purposeService.activateDraftPurpose(
         unsafeBrandId(mockApiPurpose.data.id),
         getMockM2MAdminAppContext()
       )
