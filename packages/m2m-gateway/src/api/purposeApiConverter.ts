@@ -1,4 +1,8 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  getPurposeCurrentVersion,
+  sortPurposeVersionsByDate,
+} from "../services/purposeService.js";
 
 export function toGetPurposesApiQueryParams(
   params: m2mGatewayApi.GetPurposesQueryParams
@@ -18,17 +22,9 @@ export function toGetPurposesApiQueryParams(
 export function toM2MGatewayApiPurpose(
   purpose: purposeApi.Purpose
 ): m2mGatewayApi.Purpose {
-  const sortedVersions = [...purpose.versions].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  );
+  const currentVersion = getPurposeCurrentVersion(purpose);
 
-  const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
-    m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
-    m2mGatewayApi.PurposeVersionState.Values.REJECTED,
-  ];
-  const currentVersion = sortedVersions.findLast(
-    (v) => !statesToExclude.includes(v.state)
-  );
+  const sortedVersions = sortPurposeVersionsByDate(purpose.versions);
 
   const waitingForApprovalVersion = sortedVersions.findLast(
     (v) =>
