@@ -3,7 +3,11 @@ import {
   delegationApi,
   authorizationApi,
 } from "pagopa-interop-api-clients";
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  makeApiProblemBuilder,
+  PurposeId,
+} from "pagopa-interop-models";
 
 export const errorCodes = {
   resourcePollingTimeout: "0001",
@@ -15,8 +19,11 @@ export const errorCodes = {
   attributeNotFound: "0007",
   purposeNotFound: "0008",
   missingActivePurposeVersion: "0009",
-  taxCodeAndIPACodeConflict: "0010",
-  eserviceDescriptorNotFound: "0011",
+  eserviceDescriptorNotFound: "0010",
+  taxCodeAndIPACodeConflict: "0011",
+  purposeVersionNotFound: "0012",
+  agreementNotInSuspendedState: "0013",
+  agreementNotInPendingState: "0014",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -91,6 +98,37 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
+  });
+}
+
+export function purposeVersionNotFound(
+  purposeId: PurposeId,
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${versionId} not found in purpose ${purposeId}`,
+    code: "purposeVersionNotFound",
+    title: "Purpose version not found",
+  });
+}
+
+export function agreementNotInPendingState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in pending state`,
+    code: "agreementNotInPendingState",
+    title: "Agreement not in pending state",
+  });
+}
+
+export function agreementNotInSuspendedState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in suspended state`,
+    code: "agreementNotInSuspendedState",
+    title: "Agreement not in suspended state",
   });
 }
 
