@@ -54,7 +54,7 @@ export const InteropJwtConsumerPayload = InteropJwtCommonPayload.merge(
     sub: ClientId,
     purposeId: PurposeId,
     digest: ClientAssertionDigest.optional(),
-    // NOTE: The following claims are currently handled the feature
+    // NOTE: The following claims are behind the feature flag
     // flag FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS.
     // They should become required once the feature flag is removed.
     producerId: TenantId.optional(),
@@ -204,9 +204,9 @@ export type InteropUIToken = {
 // ===========================================
 
 // AuthTokenPayload is a discriminated union used to parse the payload of
-// the auth token we receive in API requests phase. It includes only the payloads
+// the auth token we receive in API requests. It includes only the payloads
 // that we actually can receive. For example, it does not include the
-// InteropJwtConsumerPayload, because interop generates it but nevere receives it in API requests.
+// InteropJwtConsumerPayload, because interop generates it but never receives it in API requests.
 export const AuthTokenPayload = z.discriminatedUnion("role", [
   InteropJwtInternalPayload,
   InteropJwtUIPayload,

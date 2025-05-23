@@ -9,12 +9,11 @@ import {
 
 // ===========================================
 //    Auth tokens payloads
-// serialization type and utilities
+// serialization types and utilities
 // ===========================================
-
 /*
-  Serialization are used only in the generation phase in IteroptokenService, 
-  zod don't offers a valid encoder function to serialize the payload, 
+  Serializations are used only in the generation phase in IteroptokenService, 
+  zod doesn't offer a valid encoder function to serialize the payload,  
   so we need to implement it manually because we need to serialize the payload
    in a different way from the parsing phase.
 
@@ -37,8 +36,8 @@ export function toJwtSerializedAudience(input: string | string[]): string {
 }
 
 /*
-  Serialize the payload of the Interop UI JWT, the "aud","user-roles" 
-  are serialized in comma-separated string.
+  Serialize the payload of the Interop UI JWT, the "aud", "user-roles" 
+  are serialized in a comma-separated string.
 */
 export function toSerializedJwtUIPayload(
   tokenPayload: InteropJwtUIPayload
@@ -51,10 +50,10 @@ export function toSerializedJwtUIPayload(
 }
 
 /* 
-  This function is used to serialize the payload of the Interop Jwts,
-  At the moment interopTokenService only generates the InteropJwtInternalPayload,
-  InteropJwtConsumerPayload and InteropJwtApiPayload.
-  This function serialize the "aud" in comma-separated string.
+  This function is used to serialize the payload of the Interop JWTs.
+  At the moment, interopTokenService only generates the InteropJwtInternalPayload,
+  InteropJwtConsumerPayload, InteropJwtApiPayload, and InteropJwtUIPayload.
+  InteropJwtUIPayload has a dedicated serializer above, so this function accepts the other three and serializes the "aud" in a comma-separated string.
 */
 export function toSerializedInteropJwtPayload(
   tokenPayload:
@@ -71,7 +70,6 @@ export function toSerializedInteropJwtPayload(
 type SerializedAudience = {
   aud: string;
   // ^ aud is serialized as a string that can be a single string or a
-  // string as comma-separated values
 };
 
 export type SerializedInteropJwtUIPayload = Omit<
@@ -79,11 +77,9 @@ export type SerializedInteropJwtUIPayload = Omit<
   "user-roles" | "aud"
 > & {
   "user-roles": string;
-  // ^ user-roles is serialized as a comma-separated stringa
+  // ^ user-roles is serialized as a comma-separated string
 } & SerializedAudience;
 
-// SerializedInteropJwtPayload represents the union of all JWT payloads
-// with the "aud" field serialized as a string (possibly comma-separated).
 export type SerializedInteropJwtInternalPayload = Omit<
   InteropJwtInternalPayload,
   "aud"
