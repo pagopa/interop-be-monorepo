@@ -3,7 +3,13 @@ import {
   delegationApi,
   authorizationApi,
 } from "pagopa-interop-api-clients";
-import { ApiError, makeApiProblemBuilder } from "pagopa-interop-models";
+import {
+  ApiError,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+  makeApiProblemBuilder,
+  PurposeId,
+} from "pagopa-interop-models";
 
 export const errorCodes = {
   resourcePollingTimeout: "0001",
@@ -13,7 +19,14 @@ export const errorCodes = {
   unexpectedAttributeKind: "0005",
   unexpectedUndefinedAttributeOriginOrCode: "0006",
   attributeNotFound: "0007",
-  eserviceDescriptorNotFound: "0008",
+  purposeNotFound: "0008",
+  missingActivePurposeVersion: "0009",
+  eserviceDescriptorNotFound: "0010",
+  taxCodeAndIPACodeConflict: "0011",
+  purposeVersionNotFound: "0012",
+  agreementNotInSuspendedState: "0013",
+  agreementNotInPendingState: "0014",
+  eserviceTemplateVersionNotFound: "0015",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -88,6 +101,56 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
+  });
+}
+
+export function eserviceTemplateVersionNotFound(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${versionId} not found in eservice template ${templateId}`,
+    code: "eserviceTemplateVersionNotFound",
+    title: "EService template version not found",
+  });
+}
+
+export function purposeVersionNotFound(
+  purposeId: PurposeId,
+  versionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${versionId} not found in purpose ${purposeId}`,
+    code: "purposeVersionNotFound",
+    title: "Purpose version not found",
+  });
+}
+
+export function agreementNotInPendingState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in pending state`,
+    code: "agreementNotInPendingState",
+    title: "Agreement not in pending state",
+  });
+}
+
+export function agreementNotInSuspendedState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in suspended state`,
+    code: "agreementNotInSuspendedState",
+    title: "Agreement not in suspended state",
+  });
+}
+
+export function taxCodeAndIPACodeConflict(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "IPACode and taxCode query parameters cannot be provided together",
+    code: "taxCodeAndIPACodeConflict",
+    title: "Tax code and IPA code conflict in tenant query",
   });
 }
 

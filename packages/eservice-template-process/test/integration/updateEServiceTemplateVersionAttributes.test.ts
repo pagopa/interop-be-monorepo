@@ -23,8 +23,8 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
 import {
   attributeNotFound,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   inconsistentAttributesSeedGroupsCount,
   notValidEServiceTemplateVersionState,
   unchangedAttributes,
@@ -177,7 +177,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
     }
   );
 
-  it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
+  it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
     const mockEServiceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -202,10 +202,10 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
-  it("should throw eServiceTemplateVersionNotFound if the eservice template version doesn't exist", async () => {
+  it("should throw eserviceTemplateVersionNotFound if the eservice template version doesn't exist", async () => {
     const mockEServiceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -233,7 +233,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         })
       )
     ).rejects.toThrowError(
-      eServiceTemplateVersionNotFound(
+      eserviceTemplateVersionNotFound(
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id
       )

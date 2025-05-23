@@ -16,6 +16,7 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
+  PurposeDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
@@ -58,6 +59,11 @@ await retryConnection(
       AgreementDbTable.agreement_attribute,
       AgreementDbTable.agreement_consumer_document,
       AgreementDbTable.agreement_contract,
+      PurposeDbTable.purpose,
+      PurposeDbTable.purpose_version,
+      PurposeDbTable.purpose_version_document,
+      PurposeDbTable.purpose_risk_analysis_form,
+      PurposeDbTable.purpose_risk_analysis_answer,
       EserviceTemplateDbTable.eservice_template,
       EserviceTemplateDbTable.eservice_template_version,
       EserviceTemplateDbTable.eservice_template_version_attribute,
@@ -74,6 +80,7 @@ await retryConnection(
         columns: ["id", "eserviceId"],
       },
       { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.eservice_template_deleting_table,
         columns: ["id"],

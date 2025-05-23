@@ -33,8 +33,8 @@ import {
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
-  eserviceTemaplateRiskAnalysisNameDuplicate,
-  eServiceTemplateNotFound,
+  eserviceTemplateRiskAnalysisNameDuplicate,
+  eserviceTemplateNotFound,
   riskAnalysisValidationFailed,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
@@ -175,7 +175,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
   });
   it("should throw operationForbidden if the requester is not the creator", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
@@ -348,7 +348,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         getMockContext({ authData: getMockAuthData(creator.id) })
       )
     ).rejects.toThrowError(
-      eserviceTemaplateRiskAnalysisNameDuplicate(riskAnalysis.name)
+      eserviceTemplateRiskAnalysisNameDuplicate(riskAnalysis.name)
     );
   });
   it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
