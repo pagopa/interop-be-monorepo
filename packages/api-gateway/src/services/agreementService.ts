@@ -2,8 +2,7 @@ import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import {
   AgreementProcessClient,
-  PurposeProcessClient,
-  TenantProcessClient,
+  PagoPAInteropBeClients,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAgreementIfNotDraft } from "../api/agreementApiConverter.js";
@@ -61,11 +60,7 @@ const retrieveAgreement = (
     });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function agreementServiceBuilder(
-  agreementProcessClient: AgreementProcessClient,
-  tenantProcessClient: TenantProcessClient,
-  purposeProcessClient: PurposeProcessClient
-) {
+export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getAgreements: async (
       ctx: WithLogger<ApiGatewayAppContext>,
@@ -82,7 +77,11 @@ export function agreementServiceBuilder(
         throw producerAndConsumerParamMissing();
       }
 
-      return await getAllAgreements(agreementProcessClient, ctx, queryParams);
+      return await getAllAgreements(
+        clients.agreementProcessClient,
+        ctx,
+        queryParams
+      );
     },
 
     getAgreementById: async (
@@ -91,7 +90,7 @@ export function agreementServiceBuilder(
     ): Promise<apiGatewayApi.Agreement> => {
       logger.info(`Retrieving agreement by id = ${agreementId}`);
       const agreement = await retrieveAgreement(
-        agreementProcessClient,
+        clients.agreementProcessClient,
         headers,
         agreementId
       );
@@ -106,12 +105,12 @@ export function agreementServiceBuilder(
       logger.info(`Retrieving Attributes for Agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(
-        agreementProcessClient,
+        clients.agreementProcessClient,
         headers,
         agreementId
       );
 
-      const tenant = await tenantProcessClient.tenant.getTenant({
+      const tenant = await clients.tenantProcessClient.tenant.getTenant({
         headers,
         params: {
           id: agreement.consumerId,
@@ -128,15 +127,17 @@ export function agreementServiceBuilder(
       ctx.logger.info(`Retrieving Purposes for Agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(
-        agreementProcessClient,
+        clients.agreementProcessClient,
         ctx.headers,
         agreementId
       );
 
-      return await getAllPurposes(purposeProcessClient, ctx, {
+      return await getAllPurposes(clients.purposeProcessClient, ctx, {
         eserviceId: agreement.eserviceId,
         consumerId: agreement.consumerId,
       });
     },
   };
 }
+
+export type AgreementService = ReturnType<typeof agreementServiceBuilder>;

@@ -10,9 +10,8 @@ import {
   delegationApi,
 } from "pagopa-interop-api-clients";
 import {
-  AgreementProcessClient,
-  CatalogProcessClient,
   DelegationProcessClient,
+  PagoPAInteropBeClients,
   PurposeProcessClient,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
@@ -95,12 +94,7 @@ const retrieveActiveProducerDelegationByEServiceId = async (
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeServiceBuilder(
-  purposeProcessClient: PurposeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
-  agreementProcessClient: AgreementProcessClient,
-  delegationProcessClient: DelegationProcessClient
-) {
+export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getPurpose: async (
       {
@@ -113,13 +107,13 @@ export function purposeServiceBuilder(
       logger.info(`Retrieving Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(
-        purposeProcessClient,
+        clients.purposeProcessClient,
         headers,
         purposeId
       );
 
       if (purpose.consumerId !== organizationId) {
-        const eservice = await catalogProcessClient.getEServiceById({
+        const eservice = await clients.catalogProcessClient.getEServiceById({
           headers,
           params: {
             eServiceId: purpose.eserviceId,
@@ -131,7 +125,7 @@ export function purposeServiceBuilder(
         } catch {
           const producerDelegation =
             await retrieveActiveProducerDelegationByEServiceId(
-              delegationProcessClient,
+              clients.delegationProcessClient,
               headers,
               eservice.id
             );
@@ -150,7 +144,7 @@ export function purposeServiceBuilder(
       ctx.logger.info(
         `Retrieving Purposes for eservice ${eserviceId} and consumer ${consumerId}"`
       );
-      return await getAllPurposes(purposeProcessClient, ctx, {
+      return await getAllPurposes(clients.purposeProcessClient, ctx, {
         eserviceId,
         consumerId,
       });
@@ -162,13 +156,13 @@ export function purposeServiceBuilder(
     ): Promise<apiGatewayApi.Agreement> => {
       ctx.logger.info(`Retrieving agreement by purpose ${purposeId}`);
       const purpose = await retrievePurpose(
-        purposeProcessClient,
+        clients.purposeProcessClient,
         ctx.headers,
         purposeId
       );
 
       const { agreements } = await getAllAgreements(
-        agreementProcessClient,
+        clients.agreementProcessClient,
         ctx,
         {
           consumerId: purpose.consumerId,
@@ -192,3 +186,5 @@ export function purposeServiceBuilder(
     },
   };
 }
+
+export type PurposeService = ReturnType<typeof purposeServiceBuilder>;

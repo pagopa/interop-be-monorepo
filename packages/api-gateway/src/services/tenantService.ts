@@ -8,7 +8,7 @@ import {
 import {
   TenantProcessClient,
   AttributeProcessClient,
-  CatalogProcessClient,
+  PagoPAInteropBeClients,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
@@ -53,11 +53,7 @@ export async function getOrganization(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function tenantServiceBuilder(
-  tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
-  catalogProcessClient: CatalogProcessClient
-) {
+export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getOrganization: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -66,8 +62,8 @@ export function tenantServiceBuilder(
       logger.info(`Retrieving tenant ${tenantId}`);
 
       return getOrganization(
-        tenantProcessClient,
-        attributeProcessClient,
+        clients.tenantProcessClient,
+        clients.attributeProcessClient,
         headers,
         tenantId
       ).catch((res) => {
@@ -90,7 +86,7 @@ export function tenantServiceBuilder(
         `Retrieving Organization EServices for origin ${origin} externalId ${externalId} attributeOrigin ${attributeOrigin} attributeCode ${attributeCode}`
       );
 
-      const tenant = await tenantProcessClient.tenant
+      const tenant = await clients.tenantProcessClient.tenant
         .getTenantByExternalId({
           headers,
           params: {
@@ -104,7 +100,7 @@ export function tenantServiceBuilder(
           });
         });
 
-      const attribute = await attributeProcessClient
+      const attribute = await clients.attributeProcessClient
         .getAttributeByOriginAndCode({
           headers,
           params: {
@@ -119,7 +115,7 @@ export function tenantServiceBuilder(
         });
 
       const allEservices = await getAllEservices(
-        catalogProcessClient,
+        clients.catalogProcessClient,
         headers,
         tenant.id,
         attribute.id
@@ -131,8 +127,8 @@ export function tenantServiceBuilder(
       const eservices = await Promise.all(
         allowedEservices.map((eservice) =>
           enhanceEservice(
-            tenantProcessClient,
-            attributeProcessClient,
+            clients.tenantProcessClient,
+            clients.attributeProcessClient,
             headers,
             eservice,
             logger
@@ -154,7 +150,7 @@ export function tenantServiceBuilder(
         `Revoking attribute ${attributeCode} of tenant (${origin},${externalId})`
       );
 
-      await tenantProcessClient.m2m
+      await clients.tenantProcessClient.m2m
         .m2mRevokeAttribute(undefined, {
           headers,
           params: {
@@ -187,7 +183,7 @@ export function tenantServiceBuilder(
       const tenantSeed = toM2MTenantSeed(origin, externalId, attributeCode);
 
       const tenant: tenantApi.Tenant | undefined =
-        await tenantProcessClient.tenant
+        await clients.tenantProcessClient.tenant
           .getTenantByExternalId({
             headers,
             params: {
@@ -196,7 +192,7 @@ export function tenantServiceBuilder(
             },
           })
           .catch(() => undefined);
-      await tenantProcessClient.m2m
+      await clients.tenantProcessClient.m2m
         .m2mUpsertTenant(tenantSeed, {
           headers,
         })
@@ -217,3 +213,5 @@ export function tenantServiceBuilder(
     },
   };
 }
+
+export type TenantService = ReturnType<typeof tenantServiceBuilder>;
