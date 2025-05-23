@@ -74,7 +74,7 @@ beforeEach(() => {
 
 export const mockClientService = {
   getClientAdminId: mockGetClientAdminId,
-} as ClientService;
+} as unknown as ClientService;
 // ^ Mocking getClientAdminId here to make the m2m auth data validation middleware
 // pass in all the api tests
 
