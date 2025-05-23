@@ -2311,6 +2311,47 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  "/producerKeys/{kid}":
+    get:
+      tags:
+        - keys
+      summary: Retrieve a producer key in JWK format
+      description: Retrieve the producer JWK by kid
+      operationId: getProducerJWKByKid
+      parameters:
+        - name: kid
+          in: path
+          description: the unique identifier of the key (kid)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: returns the Key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKey"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Producer Key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /purposes:
     post:
       tags:
@@ -4453,6 +4494,18 @@ components:
           $ref: "#/components/schemas/JWK"
       required:
         - clientId
+        - jwk
+    ProducerKey:
+      description: Key
+      type: object
+      properties:
+        producerKeychainId:
+          type: string
+          format: uuid
+        jwk:
+          $ref: "#/components/schemas/JWK"
+      required:
+        - producerKeychainId
         - jwk
     Pagination:
       type: object
