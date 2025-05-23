@@ -26,8 +26,7 @@ export const errorCodes = {
   agreementNotInSuspendedState: "0013",
   agreementNotInPendingState: "0014",
   missingPurposeVersionWithState: "0015",
-  purposeVersionNotFound: "0016",
-  missingPurposeCurrentVersion: "0017",
+  missingPurposeCurrentVersion: "0016",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
