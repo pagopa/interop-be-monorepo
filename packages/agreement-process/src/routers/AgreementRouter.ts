@@ -2,11 +2,7 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
-  ReadModelRepository,
   ZodiosContext,
-  initDB,
-  initFileManager,
-  initPDFGenerator,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   authRole,
@@ -23,22 +19,12 @@ import {
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
-  agreementReadModelServiceBuilder,
-  attributeReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  makeDrizzleConnection,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
-import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
-import { agreementServiceBuilder } from "../services/agreementService.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
+import { AgreementService } from "../services/agreementService.js";
 import {
   activateAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
@@ -58,50 +44,6 @@ import {
   verifyTenantCertifiedAttributesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
-
-const db = makeDrizzleConnection(config);
-const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
-const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
-const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
-
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const readModelServiceSQL = readModelServiceBuilderSQL(
-  db,
-  agreementReadModelServiceSQL,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-  attributeReadModelServiceSQL,
-  delegationReadModelServiceSQL
-);
-
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
-const pdfGenerator = await initPDFGenerator();
-
-const agreementService = agreementServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  initFileManager(config),
-  pdfGenerator
-);
 
 const {
   ADMIN_ROLE,
@@ -114,7 +56,8 @@ const {
 } = authRole;
 
 const agreementRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(agreementApi.agreementApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
