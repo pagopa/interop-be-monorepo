@@ -28,6 +28,7 @@ import {
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
+  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -1059,7 +1060,7 @@ describe("submit agreement", () => {
       // https://pagopa.atlassian.net/browse/IMN-623
       expect(agreementSubmitReponse.data.contract).not.toBeDefined();
 
-      const expectedAgreement = {
+      const expectedAgreement: Agreement = {
         ...agreement,
         state: agreementState.active,
         consumerNotes: consumerNotesText,
@@ -1068,20 +1069,20 @@ describe("submit agreement", () => {
           ...agreement.stamps,
           submission: {
             who: authData.userId,
-            when: agreementSubmitReponse.data.stamps?.submission?.when,
+            when: agreementSubmitReponse.data.stamps?.submission?.when as Date,
             delegationId: consumerDelegation?.id,
           },
           activation: {
             who: authData.userId,
-            when: agreementSubmitReponse.data.stamps?.activation?.when,
+            when: agreementSubmitReponse.data.stamps?.activation?.when as Date,
             delegationId: consumerDelegation?.id,
           },
         },
       };
 
       expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
-      expect(agreementSubmitReponse).toEqual({
-        data: expectedAgreement,
+      expect(sortAgreement(agreementSubmitReponse)).toEqual({
+        data: sortAgreement(expectedAgreement),
         metadata: { version: 1 },
       });
 
