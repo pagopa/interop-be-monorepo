@@ -51,3 +51,5 @@ export function readModelServiceBuilder(
     },
   };
 }
+
+export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;

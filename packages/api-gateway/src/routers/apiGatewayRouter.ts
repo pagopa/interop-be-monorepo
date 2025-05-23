@@ -3,21 +3,13 @@ import { ZodiosRouter } from "@zodios/express";
 import { apiGatewayApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
-  ReadModelRepository,
   ZodiosContext,
   authRole,
   validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  clientJWKKeyReadModelServiceBuilder,
-  makeDrizzleConnection,
-  producerJWKKeyReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { fromApiGatewayAppContext } from "../utilities/context.js";
-import { agreementServiceBuilder } from "../services/agreementService.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../models/errors.js";
 import {
   createCertifiedAttributeErrorMapper,
@@ -35,93 +27,17 @@ import {
   revokeTenantAttributeErrorMapper,
   upsertTenantErrorMapper,
 } from "../utilities/errorMappers.js";
-import { purposeServiceBuilder } from "../services/purposeService.js";
-import { catalogServiceBuilder } from "../services/catalogService.js";
-import { tenantServiceBuilder } from "../services/tenantService.js";
-import { notifierEventsServiceBuilder } from "../services/notifierEventsService.js";
-import { attributeServiceBuilder } from "../services/attributeService.js";
-import { authorizationServiceBuilder } from "../services/authorizationService.js";
-import { config } from "../config/config.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
+import { ApiGatewayServices } from "../app.js";
 
 const apiGatewayRouter = (
-  ctx: ZodiosContext,
-  {
-    agreementProcessClient,
-    tenantProcessClient,
-    purposeProcessClient,
-    catalogProcessClient,
-    attributeProcessClient,
-    notifierEventsClient,
-    authorizationProcessClient,
-    delegationProcessClient,
-  }: PagoPAInteropBeClients
+  services: ApiGatewayServices,
+  ctx: ZodiosContext
 ): // eslint-disable-next-line sonarjs/cognitive-complexity
 ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE } = authRole;
   const apiGatewayRouter = ctx.router(apiGatewayApi.gatewayApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const catalogService = catalogServiceBuilder(
-    catalogProcessClient,
-    tenantProcessClient,
-    attributeProcessClient
-  );
-
-  const agreementService = agreementServiceBuilder(
-    agreementProcessClient,
-    tenantProcessClient,
-    purposeProcessClient
-  );
-
-  const purposeService = purposeServiceBuilder(
-    purposeProcessClient,
-    catalogProcessClient,
-    agreementProcessClient,
-    delegationProcessClient
-  );
-
-  const tenantService = tenantServiceBuilder(
-    tenantProcessClient,
-    attributeProcessClient,
-    catalogProcessClient
-  );
-
-  const notifierEventsService =
-    notifierEventsServiceBuilder(notifierEventsClient);
-
-  const attributeService = attributeServiceBuilder(attributeProcessClient);
-
-  const oldReadModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-
-  const db = makeDrizzleConnection(config);
-  const clientJWKKeyReadModelServiceSQL =
-    clientJWKKeyReadModelServiceBuilder(db);
-  const producerJWKKeyReadModelServiceSQL =
-    producerJWKKeyReadModelServiceBuilder(db);
-
-  const readModelServiceSQL = readModelServiceBuilderSQL(
-    clientJWKKeyReadModelServiceSQL,
-    producerJWKKeyReadModelServiceSQL
-  );
-
-  const readModelService =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelServiceSQL
-      : oldReadModelService;
-
-  const authorizationService = authorizationServiceBuilder(
-    authorizationProcessClient,
-    purposeProcessClient,
-    catalogProcessClient,
-    readModelService
-  );
 
   apiGatewayRouter
     .get("/agreements", async (req, res) => {
@@ -130,7 +46,10 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const agreements = await agreementService.getAgreements(ctx, req.query);
+        const agreements = await services.agreementService.getAgreements(
+          ctx,
+          req.query
+        );
 
         return res.status(200).send(apiGatewayApi.Agreements.parse(agreements));
       } catch (error) {
@@ -144,7 +63,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const agreement = await agreementService.getAgreementById(
+        const agreement = await services.agreementService.getAgreementById(
           ctx,
           req.params.agreementId
         );
@@ -161,10 +80,11 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const attributes = await agreementService.getAgreementAttributes(
-          ctx,
-          req.params.agreementId
-        );
+        const attributes =
+          await services.agreementService.getAgreementAttributes(
+            ctx,
+            req.params.agreementId
+          );
 
         return res.status(200).send(apiGatewayApi.Attributes.parse(attributes));
       } catch (error) {
@@ -178,7 +98,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const purposes = await agreementService.getAgreementPurposes(
+        const purposes = await services.agreementService.getAgreementPurposes(
           ctx,
           req.params.agreementId
         );
@@ -195,10 +115,11 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const attribute = await attributeService.createCertifiedAttribute(
-          ctx,
-          req.body
-        );
+        const attribute =
+          await services.attributeService.createCertifiedAttribute(
+            ctx,
+            req.body
+          );
 
         return res.status(200).send(apiGatewayApi.Attribute.parse(attribute));
       } catch (error) {
@@ -216,7 +137,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const attribute = await attributeService.getAttribute(
+        const attribute = await services.attributeService.getAttribute(
           ctx,
           req.params.attributeId
         );
@@ -233,7 +154,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const client = await authorizationService.getClient(
+        const client = await services.authorizationService.getClient(
           ctx,
           req.params.clientId
         );
@@ -249,7 +170,10 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const eservices = await catalogService.getEservices(ctx, req.query);
+        const eservices = await services.catalogService.getEservices(
+          ctx,
+          req.query
+        );
         return res
           .status(200)
           .send(apiGatewayApi.CatalogEServices.parse(eservices));
@@ -264,7 +188,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const eservice = await catalogService.getEservice(
+        const eservice = await services.catalogService.getEservice(
           ctx,
           req.params.eserviceId
         );
@@ -283,10 +207,11 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
         try {
           validateAuthorization(ctx, [M2M_ROLE]);
 
-          const descriptors = await catalogService.getEserviceDescriptors(
-            ctx,
-            req.params.eserviceId
-          );
+          const descriptors =
+            await services.catalogService.getEserviceDescriptors(
+              ctx,
+              req.params.eserviceId
+            );
           return res
             .status(200)
             .send(apiGatewayApi.EServiceDescriptors.parse(descriptors));
@@ -305,11 +230,12 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
         try {
           validateAuthorization(ctx, [M2M_ROLE]);
 
-          const descriptor = await catalogService.getEserviceDescriptor(
-            ctx,
-            req.params.eserviceId,
-            req.params.descriptorId
-          );
+          const descriptor =
+            await services.catalogService.getEserviceDescriptor(
+              ctx,
+              req.params.eserviceId,
+              req.params.descriptorId
+            );
           return res
             .status(200)
             .send(apiGatewayApi.EServiceDescriptor.parse(descriptor));
@@ -329,7 +255,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const events = await notifierEventsService.getEventsFromId(
+        const events = await services.notifierEventsService.getEventsFromId(
           ctx,
           req.query.lastEventId,
           req.query.limit
@@ -347,11 +273,12 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const events = await notifierEventsService.getAgreementsEventsFromId(
-          ctx,
-          req.query.lastEventId,
-          req.query.limit
-        );
+        const events =
+          await services.notifierEventsService.getAgreementsEventsFromId(
+            ctx,
+            req.query.lastEventId,
+            req.query.limit
+          );
 
         return res.status(200).send(apiGatewayApi.Events.parse(events));
       } catch (error) {
@@ -365,11 +292,12 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const events = await notifierEventsService.getEservicesEventsFromId(
-          ctx,
-          req.query.lastEventId,
-          req.query.limit
-        );
+        const events =
+          await services.notifierEventsService.getEservicesEventsFromId(
+            ctx,
+            req.query.lastEventId,
+            req.query.limit
+          );
 
         return res.status(200).send(apiGatewayApi.Events.parse(events));
       } catch (error) {
@@ -383,7 +311,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const events = await notifierEventsService.getKeysEventsFromId(
+        const events = await services.notifierEventsService.getKeysEventsFromId(
           ctx,
           req.query.lastEventId,
           req.query.limit
@@ -401,11 +329,12 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const events = await notifierEventsService.getProducerKeysEventsFromId(
-          ctx,
-          req.query.lastEventId,
-          req.query.limit
-        );
+        const events =
+          await services.notifierEventsService.getProducerKeysEventsFromId(
+            ctx,
+            req.query.lastEventId,
+            req.query.limit
+          );
 
         return res.status(200).send(apiGatewayApi.Events.parse(events));
       } catch (error) {
@@ -419,7 +348,10 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const jwk = await authorizationService.getJWK(ctx, req.params.kid);
+        const jwk = await services.authorizationService.getJWK(
+          ctx,
+          req.params.kid
+        );
 
         return res.status(200).send(apiGatewayApi.JWK.parse(jwk));
       } catch (error) {
@@ -433,7 +365,10 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const purposes = await purposeService.getPurposes(ctx, req.query);
+        const purposes = await services.purposeService.getPurposes(
+          ctx,
+          req.query
+        );
 
         return res.status(200).send(apiGatewayApi.Purposes.parse(purposes));
       } catch (error) {
@@ -447,7 +382,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const purpose = await purposeService.getPurpose(
+        const purpose = await services.purposeService.getPurpose(
           ctx,
           req.params.purposeId
         );
@@ -467,7 +402,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
         try {
           validateAuthorization(ctx, [M2M_ROLE]);
 
-          const agreement = await purposeService.getAgreementByPurpose(
+          const agreement = await services.purposeService.getAgreementByPurpose(
             ctx,
             req.params.purposeId
           );
@@ -488,7 +423,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
       try {
         validateAuthorization(ctx, [M2M_ROLE]);
 
-        const organization = await tenantService.getOrganization(
+        const organization = await services.tenantService.getOrganization(
           ctx,
           req.params.organizationId
         );
@@ -509,7 +444,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
         try {
           validateAuthorization(ctx, [M2M_ROLE]);
 
-          await tenantService.upsertTenant(ctx, {
+          await services.tenantService.upsertTenant(ctx, {
             origin: req.params.origin,
             externalId: req.params.externalId,
             attributeCode: req.params.code,
@@ -530,7 +465,7 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
         try {
           validateAuthorization(ctx, [M2M_ROLE]);
 
-          await tenantService.revokeTenantAttribute(ctx, {
+          await services.tenantService.revokeTenantAttribute(ctx, {
             origin: req.params.origin,
             externalId: req.params.externalId,
             attributeCode: req.params.code,
@@ -555,12 +490,13 @@ ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
         try {
           validateAuthorization(ctx, [M2M_ROLE]);
 
-          const eservices = await tenantService.getOrganizationEservices(ctx, {
-            origin: req.params.origin,
-            externalId: req.params.externalId,
-            attributeOrigin: req.query.attributeOrigin,
-            attributeCode: req.query.attributeCode,
-          });
+          const eservices =
+            await services.tenantService.getOrganizationEservices(ctx, {
+              origin: req.params.origin,
+              externalId: req.params.externalId,
+              attributeOrigin: req.query.attributeOrigin,
+              attributeCode: req.query.attributeCode,
+            });
 
           return res.status(200).send(apiGatewayApi.EServices.parse(eservices));
         } catch (error) {

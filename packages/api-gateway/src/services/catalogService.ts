@@ -16,6 +16,7 @@ import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
   AttributeProcessClient,
   CatalogProcessClient,
+  PagoPAInteropBeClients,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import {
@@ -69,24 +70,21 @@ const retrieveEservice = async (
     });
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function catalogServiceBuilder(
-  catalogProcessClient: CatalogProcessClient,
-  tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient
-) {
+export function catalogServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getEservices: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
       { offset, limit }: apiGatewayApi.GetEServicesQueryParams
     ): Promise<apiGatewayApi.CatalogEServices> => {
       logger.info("Retrieving EServices");
-      const paginatedEservices = await catalogProcessClient.getEServices({
-        headers,
-        queries: {
-          offset,
-          limit,
-        },
-      });
+      const paginatedEservices =
+        await clients.catalogProcessClient.getEServices({
+          headers,
+          queries: {
+            offset,
+            limit,
+          },
+        });
 
       return {
         results: paginatedEservices.results.map(toApiGatewayCatalogEservice),
@@ -103,14 +101,14 @@ export function catalogServiceBuilder(
     ): Promise<apiGatewayApi.EService> => {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEservice(
-        catalogProcessClient,
+        clients.catalogProcessClient,
         headers,
         eserviceId
       );
 
       return enhanceEservice(
-        tenantProcessClient,
-        attributeProcessClient,
+        clients.tenantProcessClient,
+        clients.attributeProcessClient,
         headers,
         eservice,
         logger
@@ -126,7 +124,7 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEservice(
-        catalogProcessClient,
+        clients.catalogProcessClient,
         headers,
         eserviceId
       );
@@ -142,7 +140,7 @@ export function catalogServiceBuilder(
       logger.info(`Retrieving Descriptors of EService ${eserviceId}`);
 
       const eservice = await retrieveEservice(
-        catalogProcessClient,
+        clients.catalogProcessClient,
         headers,
         eserviceId
       );
@@ -155,6 +153,8 @@ export function catalogServiceBuilder(
     },
   };
 }
+
+export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
 
 const isValidDescriptorState = (d: catalogApi.EServiceDescriptor): boolean =>
   match(d.state)

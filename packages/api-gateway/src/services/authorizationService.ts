@@ -6,22 +6,20 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import {
-  AuthorizationProcessClient,
   CatalogProcessClient,
+  PagoPAInteropBeClients,
   PurposeProcessClient,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayClient } from "../api/authorizationApiConverter.js";
 import { clientNotFound, keyNotFound } from "../models/errors.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
-import { readModelServiceBuilder } from "./readModelService.js";
+import { ReadModelService } from "./readModelService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function authorizationServiceBuilder(
-  authorizationProcessClient: AuthorizationProcessClient,
-  purposeProcessClient: PurposeProcessClient,
-  catalogProcessClient: CatalogProcessClient,
-  readModelService: ReturnType<typeof readModelServiceBuilder>
+  clients: PagoPAInteropBeClients,
+  readModelService: ReadModelService
 ) {
   return {
     getClient: async (
@@ -34,7 +32,7 @@ export function authorizationServiceBuilder(
     ): Promise<apiGatewayApi.Client> => {
       logger.info(`Retrieving Client ${clientId}`);
 
-      const client = await authorizationProcessClient.client
+      const client = await clients.authorizationProcessClient.client
         .getClient({
           headers,
           params: {
@@ -48,8 +46,8 @@ export function authorizationServiceBuilder(
         });
 
       const isAllowed = await isAllowedToGetClient(
-        purposeProcessClient,
-        catalogProcessClient,
+        clients.purposeProcessClient,
+        clients.catalogProcessClient,
         headers,
         organizationId,
         client
@@ -76,6 +74,10 @@ export function authorizationServiceBuilder(
     },
   };
 }
+
+export type AuthorizationService = ReturnType<
+  typeof authorizationServiceBuilder
+>;
 
 async function isAllowedToGetClient(
   purposeProcessClient: PurposeProcessClient,

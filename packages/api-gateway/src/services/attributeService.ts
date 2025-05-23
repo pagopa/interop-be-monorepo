@@ -3,7 +3,10 @@ import {
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { AttributeProcessClient } from "../clients/clientsProvider.js";
+import {
+  AttributeProcessClient,
+  PagoPAInteropBeClients,
+} from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
 import { toApiGatewayAttribute } from "../api/attributeApiConverter.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
@@ -27,9 +30,7 @@ export async function getAllBulkAttributes(
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function attributeServiceBuilder(
-  attributeProcessClient: AttributeProcessClient
-) {
+export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     getAttribute: async (
       { logger, headers }: WithLogger<ApiGatewayAppContext>,
@@ -37,7 +38,7 @@ export function attributeServiceBuilder(
     ): Promise<apiGatewayApi.Attribute> => {
       logger.info(`Retrieving attribute ${attributeId}`);
 
-      const attribute = await attributeProcessClient
+      const attribute = await clients.attributeProcessClient
         .getAttributeById({
           headers,
           params: {
@@ -60,7 +61,7 @@ export function attributeServiceBuilder(
         `Creating certified attribute with code ${attributeSeed.code}`
       );
 
-      const attribute = await attributeProcessClient
+      const attribute = await clients.attributeProcessClient
         .createCertifiedAttribute(
           {
             code: attributeSeed.code,
@@ -81,3 +82,5 @@ export function attributeServiceBuilder(
     },
   };
 }
+
+export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
