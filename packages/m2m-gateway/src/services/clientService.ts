@@ -9,6 +9,7 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResource,
 } from "../utils/polling.js";
+import { toM2MGatewayApiClient } from "../api/clientApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -53,14 +54,16 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       clientId: ClientId,
       seed: m2mGatewayApi.ClientAddPurpose,
       { headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.Client> {
       const response =
         await clients.authorizationClient.client.addClientPurpose(seed, {
           params: { clientId },
           headers,
         });
 
-      await pollClient(response, headers);
+      const polledResource = await pollClient(response, headers);
+
+      return toM2MGatewayApiClient(polledResource.data);
     },
   };
 }
