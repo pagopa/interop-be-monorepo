@@ -3,8 +3,6 @@ import { AuthData, userRole } from "pagopa-interop-commons";
 import {
   getMockAuthData,
   getMockContext,
-  getMockContextM2M,
-  getMockContextM2MAdmin,
   getMockEServiceTemplate,
   getMockTenant,
   sortEServices,
@@ -37,6 +35,7 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
+import { getContextsAllowedToSeeInactiveDescriptors } from "../mockUtils.js";
 
 describe("get eservices", () => {
   const organizationId1: TenantId = generateId();
@@ -179,36 +178,6 @@ describe("get eservices", () => {
     };
     await addOneAgreement(agreement3);
   });
-
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const getContextsAllowedToSeeInactiveDescriptors = (
-    producerOrDelegateId: TenantId
-  ) => [
-    getMockContext({
-      authData: {
-        ...getMockAuthData(producerOrDelegateId),
-        userRoles: [userRole.ADMIN_ROLE],
-      },
-    }),
-    getMockContext({
-      authData: {
-        ...getMockAuthData(producerOrDelegateId),
-        userRoles: [userRole.API_ROLE],
-      },
-    }),
-    getMockContext({
-      authData: {
-        ...getMockAuthData(producerOrDelegateId),
-        userRoles: [userRole.SUPPORT_ROLE],
-      },
-    }),
-    getMockContextM2M({
-      organizationId: producerOrDelegateId,
-    }),
-    getMockContextM2MAdmin({
-      organizationId: producerOrDelegateId,
-    }),
-  ];
 
   it("should get the eServices if they exist (parameters: eservicesIds)", async () => {
     const result = await catalogService.getEServices(

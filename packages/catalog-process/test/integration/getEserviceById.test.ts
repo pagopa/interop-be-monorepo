@@ -160,196 +160,195 @@ describe("get eservice by id", () => {
       catalogService.getEServiceById(eservice.id, getMockContext({ authData }))
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
-  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
-    "should filter out the %s descriptors if the eservice has both of that state and not (requester is not the producer)",
-    async (state) => {
-      const descriptorA: Descriptor = {
-        ...getMockDescriptor(),
-        version: "1",
-        state,
-      };
-      const descriptorB: Descriptor = {
-        ...getMockDescriptor(),
-        version: "2",
-        state: descriptorState.published,
-        interface: mockDocument,
-        publishedAt: new Date(),
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [descriptorA, descriptorB],
-      };
-      const authData: AuthData = {
-        ...getMockAuthData(),
-        userRoles: [userRole.ADMIN_ROLE],
-      };
-      await addOneEService(eservice);
-      const result = await catalogService.getEServiceById(
-        eservice.id,
-        getMockContext({ authData })
-      );
-      expect(result.descriptors).toEqual([descriptorB]);
-    }
-  );
-  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
-    "should filter out the %s descriptors if the eservice has both of that state and not (requester is the producer but not admin nor api, nor support)",
-    async (state) => {
-      const descriptorA: Descriptor = {
-        ...getMockDescriptor(),
-        version: "1",
-        state,
-      };
-      const descriptorB: Descriptor = {
-        ...getMockDescriptor(),
-        version: "2",
-        state: descriptorState.published,
-        interface: mockDocument,
-        publishedAt: new Date(),
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [descriptorA, descriptorB],
-      };
-      const authData: AuthData = {
-        ...getMockAuthData(eservice.producerId),
-        userRoles: [userRole.SECURITY_ROLE],
-      };
-      await addOneEService(eservice);
-      const result = await catalogService.getEServiceById(
-        eservice.id,
-        getMockContext({ authData })
-      );
-      expect(result.descriptors).toEqual([descriptorB]);
-    }
-  );
-  it.each([descriptorState.draft, descriptorState.waitingForApproval])(
-    "should not filter out the %s descriptors if the eservice has both of that state and not (requester is delegate)",
-    async (state) => {
-      const descriptorA: Descriptor = {
-        ...getMockDescriptor(),
-        version: "1",
-        state,
-      };
-      const descriptorB: Descriptor = {
-        ...getMockDescriptor(),
-        version: "2",
-        state: descriptorState.published,
-        interface: mockDocument,
-        publishedAt: new Date(),
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [descriptorA, descriptorB],
-      };
-      const authData: AuthData = {
-        ...getMockAuthData(),
-        userRoles: [userRole.ADMIN_ROLE],
-      };
-      const delegation = getMockDelegation({
-        kind: delegationKind.delegatedProducer,
-        delegateId: authData.organizationId,
-        eserviceId: eservice.id,
-        state: delegationState.active,
+  describe.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should filter out the %s descriptors",
+    (state) => {
+      it("if the eservice has both of that state and not (requester is not the producer)", async () => {
+        const descriptorA: Descriptor = {
+          ...getMockDescriptor(),
+          version: "1",
+          state,
+        };
+        const descriptorB: Descriptor = {
+          ...getMockDescriptor(),
+          version: "2",
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptorA, descriptorB],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRole.ADMIN_ROLE],
+        };
+        await addOneEService(eservice);
+        const result = await catalogService.getEServiceById(
+          eservice.id,
+          getMockContext({ authData })
+        );
+        expect(result.descriptors).toEqual([descriptorB]);
       });
 
-      await addOneEService(eservice);
-      await addOneDelegation(delegation);
-      const result = await catalogService.getEServiceById(
-        eservice.id,
-        getMockContext({ authData })
-      );
-      expect(result.descriptors).toEqual([descriptorA, descriptorB]);
+      it("if the eservice has both of that state and not (requester is the producer but not admin nor api, nor support)", async () => {
+        const descriptorA: Descriptor = {
+          ...getMockDescriptor(),
+          version: "1",
+          state,
+        };
+        const descriptorB: Descriptor = {
+          ...getMockDescriptor(),
+          version: "2",
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptorA, descriptorB],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(eservice.producerId),
+          userRoles: [userRole.SECURITY_ROLE],
+        };
+        await addOneEService(eservice);
+        const result = await catalogService.getEServiceById(
+          eservice.id,
+          getMockContext({ authData })
+        );
+        expect(result.descriptors).toEqual([descriptorB]);
+      });
+
+      it("if the eservice has both draft and non-draft ones (requester is not the producer)", async () => {
+        const descriptorA: Descriptor = {
+          ...getMockDescriptor(),
+          version: "1",
+          state,
+        };
+        const descriptorB: Descriptor = {
+          ...getMockDescriptor(),
+          version: "2",
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptorA, descriptorB],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRole.ADMIN_ROLE],
+        };
+        await addOneEService(eservice);
+        const result = await catalogService.getEServiceById(
+          eservice.id,
+          getMockContext({ authData })
+        );
+        expect(result.descriptors).toEqual([descriptorB]);
+      });
+
+      it("if the eservice has both draft and non-draft ones (requester is the producer but not admin nor api, nor support)", async () => {
+        const descriptorA: Descriptor = {
+          ...getMockDescriptor(),
+          version: "1",
+          state,
+        };
+        const descriptorB: Descriptor = {
+          ...getMockDescriptor(),
+          version: "2",
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptorA, descriptorB],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(eservice.producerId),
+          userRoles: [userRole.SECURITY_ROLE],
+        };
+        await addOneEService(eservice);
+        const result = await catalogService.getEServiceById(
+          eservice.id,
+          getMockContext({ authData })
+        );
+        expect(result.descriptors).toEqual([descriptorB]);
+      });
     }
   );
-  it("should filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is not the producer)", async () => {
-    const descriptorA: Descriptor = {
-      ...getMockDescriptor(),
-      version: "1",
-      state: descriptorState.draft,
-    };
-    const descriptorB: Descriptor = {
-      ...getMockDescriptor(),
-      version: "2",
-      state: descriptorState.published,
-      interface: mockDocument,
-      publishedAt: new Date(),
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptorA, descriptorB],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      userRoles: [userRole.ADMIN_ROLE],
-    };
-    await addOneEService(eservice);
-    const result = await catalogService.getEServiceById(
-      eservice.id,
-      getMockContext({ authData })
-    );
-    expect(result.descriptors).toEqual([descriptorB]);
-  });
-  it("should filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is the producer but not admin nor api, nor support)", async () => {
-    const descriptorA: Descriptor = {
-      ...getMockDescriptor(),
-      version: "1",
-      state: descriptorState.draft,
-    };
-    const descriptorB: Descriptor = {
-      ...getMockDescriptor(),
-      version: "2",
-      state: descriptorState.published,
-      interface: mockDocument,
-      publishedAt: new Date(),
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptorA, descriptorB],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(eservice.producerId),
-      userRoles: [userRole.SECURITY_ROLE],
-    };
-    await addOneEService(eservice);
-    const result = await catalogService.getEServiceById(
-      eservice.id,
-      getMockContext({ authData })
-    );
-    expect(result.descriptors).toEqual([descriptorB]);
-  });
-  it("should not filter out the draft descriptors if the eservice has both draft and non-draft ones (requester is delegate)", async () => {
-    const descriptorA: Descriptor = {
-      ...getMockDescriptor(),
-      version: "1",
-      state: descriptorState.draft,
-    };
-    const descriptorB: Descriptor = {
-      ...getMockDescriptor(),
-      version: "2",
-      state: descriptorState.published,
-      interface: mockDocument,
-      publishedAt: new Date(),
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptorA, descriptorB],
-    };
-    const authData: AuthData = {
-      ...getMockAuthData(),
-      userRoles: [userRole.ADMIN_ROLE],
-    };
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      delegateId: authData.organizationId,
-      eserviceId: eservice.id,
-      state: delegationState.active,
-    });
-    await addOneEService(eservice);
-    await addOneDelegation(delegation);
-    const result = await catalogService.getEServiceById(
-      eservice.id,
-      getMockContext({ authData })
-    );
-    expect(result.descriptors).toEqual([descriptorA, descriptorB]);
-  });
+
+  describe.each([descriptorState.draft, descriptorState.waitingForApproval])(
+    "should not filter out the %s descriptors",
+    (state) => {
+      it("if the eservice has both of that state and not (requester is producer)", async () => {
+        const descriptorA: Descriptor = {
+          ...getMockDescriptor(),
+          version: "1",
+          state,
+        };
+        const descriptorB: Descriptor = {
+          ...getMockDescriptor(),
+          version: "2",
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptorA, descriptorB],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(eservice.producerId),
+          userRoles: [userRole.ADMIN_ROLE],
+        };
+
+        await addOneEService(eservice);
+        const result = await catalogService.getEServiceById(
+          eservice.id,
+          getMockContext({ authData })
+        );
+        expect(result.descriptors).toEqual([descriptorA, descriptorB]);
+      });
+
+      it("if the eservice has both of that state and not (requester is delegate)", async () => {
+        const descriptorA: Descriptor = {
+          ...getMockDescriptor(),
+          version: "1",
+          state,
+        };
+        const descriptorB: Descriptor = {
+          ...getMockDescriptor(),
+          version: "2",
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptorA, descriptorB],
+        };
+        const authData: AuthData = {
+          ...getMockAuthData(),
+          userRoles: [userRole.ADMIN_ROLE],
+        };
+        const delegation = getMockDelegation({
+          kind: delegationKind.delegatedProducer,
+          delegateId: authData.organizationId,
+          eserviceId: eservice.id,
+          state: delegationState.active,
+        });
+        await addOneEService(eservice);
+        await addOneDelegation(delegation);
+        const result = await catalogService.getEServiceById(
+          eservice.id,
+          getMockContext({ authData })
+        );
+        expect(result.descriptors).toEqual([descriptorA, descriptorB]);
+      });
+    }
+  );
 });
