@@ -6,6 +6,7 @@ import {
   FileManager,
   InternalAuthData,
   Logger,
+  M2MAdminAuthData,
   M2MAuthData,
   PDFGenerator,
   UIAuthData,
@@ -54,7 +55,7 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   noNewerDescriptor,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -234,7 +235,10 @@ export function agreementServiceBuilder(
       filters: AgreementQueryFilters,
       limit: number,
       offset: number,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Agreement>> {
       logger.info(
         `Getting agreements with filters: ${JSON.stringify(
@@ -252,8 +256,11 @@ export function agreementServiceBuilder(
     },
     async getAgreementById(
       agreementId: AgreementId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Retrieving agreement by id ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -262,7 +269,7 @@ export function agreementServiceBuilder(
         authData,
         readModelService
       );
-      return agreement.data;
+      return agreement;
     },
     async createAgreement(
       {
@@ -274,8 +281,12 @@ export function agreementServiceBuilder(
         descriptorId: DescriptorId;
         delegationId?: DelegationId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(
         `Creating agreement for EService ${eserviceId} and Descriptor ${descriptorId}${
           delegationId ? ` with delegation ${delegationId}` : ""
@@ -318,11 +329,11 @@ export function agreementServiceBuilder(
         stamps: {},
       };
 
-      await repository.createEvent(
+      const { newVersion } = await repository.createEvent(
         toCreateEventAgreementAdded(agreement, correlationId)
       );
 
-      return agreement;
+      return { data: agreement, metadata: { version: newVersion } };
     },
     async getAgreementsProducers(
       producerName: string | undefined,
@@ -472,8 +483,12 @@ export function agreementServiceBuilder(
     async submitAgreement(
       agreementId: AgreementId,
       payload: agreementApi.AgreementSubmissionPayload,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Submitting agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -641,17 +656,31 @@ export function agreementServiceBuilder(
             )
           : [];
 
-      await repository.createEvents([
+      const createdEvents = await repository.createEvents([
         agreementEvent,
         ...archivedAgreementsUpdates,
       ]);
 
-      return submittedAgreement;
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
+      );
+
+      return {
+        data: submittedAgreement,
+        metadata: {
+          version: newVersion,
+        },
+      };
     },
     async upgradeAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Upgrading agreement ${agreementId}`);
 
       const agreementToBeUpgraded = await retrieveAgreement(
@@ -762,9 +791,21 @@ export function agreementServiceBuilder(
         logger,
       });
 
-      await repository.createEvents(events);
+      const createdEvents = await repository.createEvents(events);
 
-      return agreement;
+      const newVersion = Math.max(
+        0,
+        ...createdEvents
+          .filter((e) => e.streamId === agreement.id)
+          .map((event) => event.newVersion)
+      );
+
+      return {
+        data: agreement,
+        metadata: {
+          version: newVersion,
+        },
+      };
     },
     async cloneAgreement(
       agreementId: AgreementId,
@@ -917,8 +958,12 @@ export function agreementServiceBuilder(
     },
     async suspendAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Suspending agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -962,7 +1007,7 @@ export function agreementServiceBuilder(
         activeDelegations,
       });
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         createAgreementSuspendedEvent(
           authData,
           correlationId,
@@ -972,7 +1017,10 @@ export function agreementServiceBuilder(
         )
       );
 
-      return updatedAgreement;
+      return {
+        data: updatedAgreement,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async getAgreementsEServices(
       filters: AgreementEServicesQueryFilters,
@@ -1045,8 +1093,12 @@ export function agreementServiceBuilder(
     async rejectAgreement(
       agreementId: AgreementId,
       rejectionReason: string,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Rejecting agreement ${agreementId}`);
 
       const agreementToBeRejected = await retrieveAgreement(
@@ -1108,19 +1160,23 @@ export function agreementServiceBuilder(
         },
       };
 
-      await repository.createEvent(
+      const { newVersion } = await repository.createEvent(
         toCreateEventAgreementRejected(
           rejectedAgreement,
           agreementToBeRejected.metadata.version,
           correlationId
         )
       );
-      return rejectedAgreement;
+      return { data: rejectedAgreement, metadata: { version: newVersion } };
     },
     async activateAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Activating agreement ${agreementId}`);
 
       const contractBuilderInstance = contractBuilder(
@@ -1285,9 +1341,20 @@ export function agreementServiceBuilder(
         correlationId
       );
 
-      await repository.createEvents([...activationEvents, ...archiveEvents]);
+      const createdEvents = await repository.createEvents([
+        ...activationEvents,
+        ...archiveEvents,
+      ]);
 
-      return updatedAgreement;
+      const newVersion = Math.max(
+        0,
+        ...createdEvents.map((event) => event.newVersion)
+      );
+
+      return {
+        data: updatedAgreement,
+        metadata: { version: newVersion },
+      };
     },
     async archiveAgreement(
       agreementId: AgreementId,
@@ -1469,7 +1536,7 @@ export async function createAndCopyDocumentsForClonedAgreement(
 
 export function createAgreementArchivedByUpgradeEvent(
   agreement: WithMetadata<Agreement>,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeDelegations: ActiveDelegations,
   correlationId: CorrelationId
 ): CreateEvent<AgreementEvent> {
@@ -1551,7 +1618,7 @@ async function addContractOnFirstActivation(
 async function getConsumerFromDelegationOrRequester(
   eserviceId: EServiceId,
   delegationId: DelegationId | undefined,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<Tenant> {
   const delegations =
@@ -1580,7 +1647,7 @@ async function getConsumerFromDelegationOrRequester(
 
     if (delegation) {
       // If a delegation exists, the delegator cannot create the agreement
-      throw organizationIsNotTheDelegateConsumer(
+      throw tenantIsNotTheDelegateConsumer(
         authData.organizationId,
         delegation.id
       );

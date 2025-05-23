@@ -66,6 +66,9 @@ paths:
         description: payload for agreement submission
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Draft agreement submitted.
           content:
@@ -110,6 +113,9 @@ paths:
       summary: Agreement Activation
       operationId: activateAgreement
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Pending agreement activated.
           content:
@@ -271,6 +277,9 @@ paths:
       summary: Suspend Agreement
       operationId: suspendAgreement
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Active agreement suspended.
           content:
@@ -318,6 +327,9 @@ paths:
               $ref: "#/components/schemas/AgreementRejectionPayload"
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement rejected.
           content:
@@ -393,6 +405,9 @@ paths:
       summary: Agreement Creation
       operationId: createAgreement
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement created.
           content:
@@ -617,6 +632,9 @@ paths:
       description: returns an agreement for a given agreementId
       operationId: getAgreementById
       responses:
+        headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement found
           content:
@@ -663,7 +681,7 @@ paths:
         - agreement
       summary: update an agreement in draft state.
       description: update agreement fields.
-      operationId: updateAgreementById
+      operationId: updateAgreement
       parameters:
         - name: agreementId
           in: path
@@ -711,7 +729,7 @@ paths:
         - agreement
       summary: upgrades an agreement.
       description: upgrades an agreement with a newer eservice version, if any.
-      operationId: upgradeAgreementById
+      operationId: upgradeAgreement
       parameters:
         - name: agreementId
           in: path
@@ -721,6 +739,9 @@ paths:
             type: string
             format: uuid
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement updated.
           content:
@@ -1026,6 +1047,11 @@ paths:
                 $ref: "#/components/schemas/Problem"
 
 components:
+  headers:
+    MetadataVersionHeader:
+      description: The version number of the resource in the read model
+      schema:
+        type: integer
   parameters:
     CorrelationIdHeader:
       in: header
