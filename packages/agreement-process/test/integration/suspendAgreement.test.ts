@@ -20,6 +20,7 @@ import {
   randomBoolean,
   sortAgreementV2,
   getMockDescriptorPublished,
+  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -195,8 +196,8 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(suspendAgreementResponse).toEqual({
-      data: expectedAgreementSuspended,
+    expect(sortAgreement(suspendAgreementResponse)).toEqual({
+      data: sortAgreement(expectedAgreementSuspended),
       metadata: {
         version: 1,
       },
@@ -311,8 +312,8 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(suspendAgreementResponse).toEqual({
-      data: expectedAgreementSuspended,
+    expect(sortAgreement(suspendAgreementResponse)).toEqual({
+      data: sortAgreement(expectedAgreementSuspended),
       metadata: {
         version: 1,
       },
@@ -417,8 +418,8 @@ describe("suspend agreement", () => {
     expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
       sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
     );
-    expect(suspendAgreementResponse).toEqual({
-      data: expectedAgreementSuspended,
+    expect(sortAgreement(suspendAgreementResponse)).toEqual({
+      data: sortAgreement(expectedAgreementSuspended),
       metadata: {
         version: 1,
       },
@@ -532,8 +533,8 @@ describe("suspend agreement", () => {
             getMockContext({ authData })
           );
 
-        expect(suspendAgreementResponse).toEqual({
-          data: expectedAgreement,
+        expect(sortAgreement(suspendAgreementResponse)).toEqual({
+          data: sortAgreement(expectedAgreement),
           metadata: {
             version: 1,
           },
