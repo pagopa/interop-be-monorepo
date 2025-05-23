@@ -42,7 +42,7 @@ export const errorCodes = {
   activeAgreementByEserviceAndConsumerNotFound: "0037",
   purposeIdNotFoundInClientAssertion: "0038",
   delegationNotFound: "0039",
-  organizationNotAllowed: "0040",
+  tenantNotAllowed: "0040",
   cannotGetKeyWithClient: "0041",
   clientAssertionPublicKeyNotFound: "0042",
   eserviceDelegated: "0043",
@@ -356,11 +356,11 @@ export function clientAssertionPublicKeyNotFound(
   });
 }
 
-export function organizationNotAllowed(clientId: string): ApiError<ErrorCodes> {
+export function tenantNotAllowed(clientId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization not allowed for client ${clientId}`,
-    code: "organizationNotAllowed",
-    title: "Organization not allowed",
+    detail: `Tenant not allowed for client ${clientId}`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
   });
 }
 

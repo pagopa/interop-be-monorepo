@@ -9,7 +9,7 @@ import {
   clientAdminIdNotFound,
   clientKindNotAllowed,
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId}/admin/{adminId} authorization test", () => {
@@ -56,7 +56,7 @@ describe("API /clients/{clientId}/admin/{adminId} authorization test", () => {
       expectedStatus: 403,
     },
     {
-      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {

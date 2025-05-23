@@ -11,7 +11,7 @@ import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId} authorization test", () => {
@@ -19,9 +19,10 @@ describe("API /clients/{clientId} authorization test", () => {
 
   const apiClient = clientToApiClient(mockClient, { showUsers: true });
 
-  authorizationService.getClientById = vi
-    .fn()
-    .mockResolvedValue({ client: mockClient, showUsers: true });
+  authorizationService.getClientById = vi.fn().mockResolvedValue({
+    data: { client: mockClient, showUsers: true },
+    metadata: { version: 1 },
+  });
 
   const makeRequest = async (token: string, clientId: ClientId) =>
     request(api)
@@ -44,6 +45,7 @@ describe("API /clients/{clientId} authorization test", () => {
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiClient);
+      expect(res.headers["x-metadata-version"]).toBe("1");
     }
   );
 
@@ -62,7 +64,7 @@ describe("API /clients/{clientId} authorization test", () => {
       expectedStatus: 404,
     },
     {
-      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
   ])(

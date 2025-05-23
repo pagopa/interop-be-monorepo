@@ -19,7 +19,7 @@ import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import { keyToApiKey } from "../../src/model/domain/apiConverter.js";
 import {
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
   tooManyKeysPerProducerKeychain,
 } from "../../src/model/domain/errors.js";
@@ -98,7 +98,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
       expectedStatus: 400,
     },
     {
-      error: organizationNotAllowedOnProducerKeychain(
+      error: tenantNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
       ),

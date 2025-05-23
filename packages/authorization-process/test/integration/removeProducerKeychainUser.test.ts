@@ -17,7 +17,7 @@ import {
 import {
   producerKeychainNotFound,
   producerKeychainUserIdNotFound,
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
 } from "../../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
@@ -120,7 +120,7 @@ describe("remove producer keychain user", () => {
       producerKeychainUserIdNotFound(notExistingUserId, mockProducerKeychain.id)
     );
   });
-  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
+  it("should throw tenantNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     const mockProducer1 = getMockTenant();
     const mockProducer2 = getMockTenant();
     const userIdToRemove: UserId = generateId();
@@ -141,7 +141,7 @@ describe("remove producer keychain user", () => {
         getMockContext({ authData: getMockAuthData(mockProducer2.id) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnProducerKeychain(
+      tenantNotAllowedOnProducerKeychain(
         mockProducer2.id,
         mockProducerKeychain.id
       )

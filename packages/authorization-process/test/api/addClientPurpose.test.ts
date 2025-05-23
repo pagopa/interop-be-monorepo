@@ -22,19 +22,21 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientKindNotAllowed,
   clientNotFound,
   eserviceNotDelegableForClientAccess,
-  noAgreementFoundInRequiredState,
-  noPurposeVersionsFoundInRequiredState,
-  organizationNotAllowedOnClient,
-  organizationNotAllowedOnPurpose,
+  noActiveOrSuspendedAgreementFound,
+  noActiveOrSuspendedPurposeVersionFound,
+  tenantNotAllowedOnClient,
+  tenantNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
   purposeDelegationNotFound,
   purposeNotFound,
 } from "../../src/model/domain/errors.js";
+import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 
 describe("API /clients/{clientId}/purposes authorization test", () => {
   const mockDescriptor: Descriptor = {
@@ -62,7 +64,17 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     consumerId: mockConsumerId,
   };
 
-  authorizationService.addClientPurpose = vi.fn().mockResolvedValue({});
+  authorizationService.addClientPurpose = vi.fn().mockResolvedValue({
+    data: {
+      client: mockClient,
+      showUsers: true,
+    },
+    metadata: { version: 1 },
+  });
+
+  const apiClient = authorizationApi.Client.parse(
+    clientToApiClient(mockClient, { showUsers: true })
+  );
 
   const makeRequest = async (
     token: string,
@@ -75,13 +87,18 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send({ purposeId });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiClient);
+      expect(res.headers["x-metadata-version"]).toBe("1");
     }
   );
 
@@ -103,11 +120,11 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
       expectedStatus: 404,
     },
     {
-      error: noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId),
+      error: noActiveOrSuspendedAgreementFound(mockEservice.id, mockConsumerId),
       expectedStatus: 400,
     },
     {
-      error: noPurposeVersionsFoundInRequiredState(mockPurpose.id),
+      error: noActiveOrSuspendedPurposeVersionFound(mockPurpose.id),
       expectedStatus: 400,
     },
     {
@@ -123,11 +140,11 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
       expectedStatus: 403,
     },
     {
-      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {
-      error: organizationNotAllowedOnPurpose(generateId(), mockPurpose.id),
+      error: tenantNotAllowedOnPurpose(generateId(), mockPurpose.id),
       expectedStatus: 403,
     },
     {

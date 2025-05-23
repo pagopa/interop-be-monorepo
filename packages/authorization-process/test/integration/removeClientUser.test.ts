@@ -16,7 +16,7 @@ import {
 } from "pagopa-interop-models";
 import {
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   clientUserIdNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -113,7 +113,7 @@ describe("remove client user", () => {
       clientUserIdNotFound(notExistingUserId, mockClient.id)
     );
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     const mockConsumer1 = getMockTenant();
     const mockConsumer2 = getMockTenant();
     const userIdToRemove: UserId = generateId();
@@ -134,7 +134,7 @@ describe("remove client user", () => {
         getMockContext({ authData: getMockAuthData(mockConsumer2.id) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
+      tenantNotAllowedOnClient(mockConsumer2.id, mockClient.id)
     );
   });
 });

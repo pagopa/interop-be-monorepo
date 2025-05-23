@@ -20,7 +20,7 @@ import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   producerKeychainNotFound,
   producerKeyNotFound,
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
   userNotAllowedOnProducerKeychain,
   userNotAllowedToDeleteProducerKeychainKey,
 } from "../../src/model/domain/errors.js";
@@ -184,7 +184,7 @@ describe("remove producer keychain key", () => {
       producerKeyNotFound(notExistingKeyId, mockProducerKeychain.id)
     );
   });
-  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
+  it("should throw tenantNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     const mockProducer1 = getMockTenant();
     const mockProducer2 = getMockTenant();
     const keyToRemove = getMockKey();
@@ -209,7 +209,7 @@ describe("remove producer keychain key", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnProducerKeychain(
+      tenantNotAllowedOnProducerKeychain(
         mockProducer2.id,
         mockProducerKeychain.id
       )

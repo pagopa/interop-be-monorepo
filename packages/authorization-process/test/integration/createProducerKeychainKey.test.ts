@@ -35,7 +35,7 @@ import {
   keyAlreadyExists,
   userNotFound,
   userWithoutSecurityPrivileges,
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
   tooManyKeysPerProducerKeychain,
 } from "../../src/model/domain/errors.js";
 import {
@@ -164,7 +164,7 @@ describe("createProducerKeychainKey", () => {
       )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
-  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnProducerKeychain if the requester is not the consumer", async () => {
     const notProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
       producerId: generateId(),
@@ -182,10 +182,7 @@ describe("createProducerKeychainKey", () => {
         getMockContext({ authData: mockAuthData })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnProducerKeychain(
-        producerId,
-        notProducerKeychain.id
-      )
+      tenantNotAllowedOnProducerKeychain(producerId, notProducerKeychain.id)
     );
   });
   it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {

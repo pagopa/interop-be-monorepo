@@ -19,8 +19,8 @@ import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   eserviceAlreadyLinkedToProducerKeychain,
   eserviceNotFound,
-  organizationNotAllowedOnEService,
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnEService,
+  tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
 } from "../../src/model/domain/errors.js";
 
@@ -89,14 +89,14 @@ describe("API /producerKeychains/{producerKeychainId}/eservices authorization te
       expectedStatus: 409,
     },
     {
-      error: organizationNotAllowedOnProducerKeychain(
+      error: tenantNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
       ),
       expectedStatus: 403,
     },
     {
-      error: organizationNotAllowedOnEService(generateId(), mockEService.id),
+      error: tenantNotAllowedOnEService(generateId(), mockEService.id),
       expectedStatus: 403,
     },
   ])(

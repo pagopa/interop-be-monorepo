@@ -1,13 +1,33 @@
 import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
+import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { clientAdminIdNotFound } from "../model/errors.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResource,
+} from "../utils/polling.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const pollClient = (
+    response: WithMaybeMetadata<authorizationApi.Client>,
+    headers: M2MGatewayAppContext["headers"]
+  ) =>
+    pollResource(() =>
+      clients.authorizationClient.client.getClient({
+        params: { clientId: response.data.id },
+        headers,
+      })
+    )({
+      checkFn: isPolledVersionAtLeastResponseVersion(response),
+    });
+
   return {
     async getClientAdminId(
       clientId: ClientId,
@@ -28,6 +48,23 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       }
 
       return unsafeBrandId<UserId>(client.data.adminId);
+    },
+    async addClientPurpose(
+      clientId: ClientId,
+      seed: m2mGatewayApi.ClientAddPurpose,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Adding purpose ${seed.purposeId} to client with id ${clientId}`
+      );
+
+      const response =
+        await clients.authorizationClient.client.addClientPurpose(seed, {
+          params: { clientId },
+          headers,
+        });
+
+      await pollClient(response, headers);
     },
   };
 }

@@ -19,7 +19,7 @@ import { AuthData } from "pagopa-interop-commons";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   userWithoutSecurityPrivileges,
   clientUserAlreadyAssigned,
 } from "../../src/model/domain/errors.js";
@@ -146,7 +146,7 @@ describe("addClientUsers", () => {
       clientUserAlreadyAssigned(mockClient.id, alreadyInClientUserId)
     );
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     const userIdsToAdd: UserId[] = [generateId()];
     const organizationId: TenantId = generateId();
     const mockClient: Client = {
@@ -167,7 +167,7 @@ describe("addClientUsers", () => {
         getMockContext({ authData: getMockAuthData(organizationId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(organizationId, mockClient.id)
+      tenantNotAllowedOnClient(organizationId, mockClient.id)
     );
   });
   it("should throw userWithoutSecurityPrivileges if one of the Security user is not found", async () => {

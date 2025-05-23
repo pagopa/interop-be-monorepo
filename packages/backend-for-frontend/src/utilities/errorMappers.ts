@@ -138,7 +138,7 @@ export const getProducerKeychainUsersErrorMapper = (
 
 export const toolsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createEServiceDocumentErrorMapper = (

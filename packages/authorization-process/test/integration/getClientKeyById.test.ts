@@ -16,7 +16,7 @@ import {
 import {
   clientNotFound,
   clientKeyNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   securityUserNotMember,
 } from "../../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "../integrationUtils.js";
@@ -48,7 +48,7 @@ describe("getClientKeyById", async () => {
     );
     expect(retrievedKey).toEqual(mockKey1);
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     const organizationId: TenantId = generateId();
     const mockKey = getMockKey();
     const mockClient: Client = {
@@ -72,7 +72,7 @@ describe("getClientKeyById", async () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(organizationId, mockClient.id)
+      tenantNotAllowedOnClient(organizationId, mockClient.id)
     );
   });
   it("should throw clientNotFound if the client doesn't exist", async () => {

@@ -20,7 +20,7 @@ import {
   clientAdminAlreadyAssignedToUser,
   clientKindNotAllowed,
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
 import {
@@ -104,7 +104,7 @@ describe("setAdminToClient", () => {
       )
     ).rejects.toThrowError(clientNotFound(notFoundClientId));
   });
-  it("should throw organizationNotAllowedOnClient when user is not allowed to perform operations on Client", async () => {
+  it("should throw tenantNotAllowedOnClient when user is not allowed to perform operations on Client", async () => {
     await addOneClient(mockClient);
     const authData = getMockAuthData(generateId<TenantId>());
 
@@ -117,7 +117,7 @@ describe("setAdminToClient", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(authData.organizationId, mockClient.id)
+      tenantNotAllowedOnClient(authData.organizationId, mockClient.id)
     );
   });
   it("should throw clientKindNotAllowed when client kind is not allowed", async () => {

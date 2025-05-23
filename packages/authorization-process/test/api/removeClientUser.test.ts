@@ -8,7 +8,7 @@ import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientNotFound,
   clientUserIdNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId}/users/{userId} authorization test", () => {
@@ -61,7 +61,7 @@ describe("API /clients/{clientId}/users/{userId} authorization test", () => {
       expectedStatus: 404,
     },
     {
-      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
   ])(

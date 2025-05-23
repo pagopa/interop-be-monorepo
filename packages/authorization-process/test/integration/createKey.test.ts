@@ -33,7 +33,7 @@ import {
 import {
   clientNotFound,
   keyAlreadyExists,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   tooManyKeysPerClient,
   userNotFound,
   userWithoutSecurityPrivileges,
@@ -162,7 +162,7 @@ describe("createKey", () => {
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     const notConsumerClient: Client = {
       ...getMockClient(),
       consumerId: generateId(),
@@ -180,7 +180,7 @@ describe("createKey", () => {
         getMockContext({ authData: mockAuthData })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(consumerId, notConsumerClient.id)
+      tenantNotAllowedOnClient(consumerId, notConsumerClient.id)
     );
   });
   it("should throw userWithoutSecurityPrivileges if the Security user is not found", async () => {

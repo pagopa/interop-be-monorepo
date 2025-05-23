@@ -15,7 +15,7 @@ import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 import {
   clientNotFound,
   clientUserAlreadyAssigned,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
 
@@ -72,7 +72,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
       expectedStatus: 404,
     },
     {
-      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {
