@@ -29,7 +29,7 @@
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "adm-zip": "0.5.15",
-    "axios": "1.7.4",
+    "axios": "1.8.2",
     "connection-string": "4.4.0",
     "date-fns": "3.6.0",
     "date-fns-tz": "3.1.3",
