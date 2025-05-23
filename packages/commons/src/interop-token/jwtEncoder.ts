@@ -31,8 +31,8 @@ export type SerializedAuthTokenPayload =
   Serialize the payload of the Interop UI JWT, the "aud"
   is serialized in comma-separated string.
 */
-export function toJwtSerializedAudience(input: string | string[]): string {
-  return Array.isArray(input) ? input.join(",") : input;
+function toCommaSeparatedString<T extends string>(input: T[]): string {
+  return input.join(",");
 }
 
 /*
@@ -45,7 +45,7 @@ export function toSerializedJwtUIPayload(
   return {
     ...tokenPayload,
     "user-roles": tokenPayload["user-roles"].join(","),
-    aud: toJwtSerializedAudience(tokenPayload.aud),
+    aud: toCommaSeparatedString(tokenPayload.aud),
   };
 }
 
@@ -63,7 +63,7 @@ export function toSerializedInteropJwtPayload(
 ): Exclude<SerializedAuthTokenPayload, SerializedInteropJwtUIPayload> {
   return {
     ...tokenPayload,
-    aud: toJwtSerializedAudience(tokenPayload.aud),
+    aud: toCommaSeparatedString(tokenPayload.aud),
   };
 }
 
