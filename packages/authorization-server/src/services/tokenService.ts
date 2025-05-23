@@ -111,7 +111,7 @@ export function tokenServiceBuilder({
 
       // DPoP proof validation
       const { data, errors: dPoPProofErrors } = request.headers.DPoP
-        ? await verifyDPoPProof({
+        ? verifyDPoPProof({
             dPoPProof: request.headers.DPoP,
             expectedDPoPProofHtu: config.dPoPHtu,
           })
