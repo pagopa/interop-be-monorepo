@@ -216,7 +216,7 @@ export function notValidVersionState(
   versionState: PurposeVersionState
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose version ${purposeVersionId} is in an invalid state for this operation: ${versionState}`,
+    detail: `Purpose version ${purposeVersionId} is in an invalid state ${versionState} for this operation`,
     code: "notValidVersionState",
     title: "Not valid purpose version state",
   });
