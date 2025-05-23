@@ -8,6 +8,7 @@ import {
   clientKeyInReadmodelClient,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  purposeInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
@@ -18,12 +19,14 @@ import { ClientDeletingSchema } from "../authorization/client.js";
 import { ClientUserDeletingSchema } from "../authorization/clientUser.js";
 import { ClientPurposeDeletingSchema } from "../authorization/clientPurpose.js";
 import { ClientKeyDeletingSchema } from "../authorization/clientKey.js";
+import { PurposeDeletingSchema } from "../purpose/purpose.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
   catalog_deleting_table: EserviceDeletingSchema,
   catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
   agreement_deleting_table: AgreementDeletingSchema,
+  purpose_deleting_table: PurposeDeletingSchema,
   client_deleting_table: ClientDeletingSchema,
   client_user_deleting_table: ClientUserDeletingSchema,
   client_purpose_deleting_table: ClientPurposeDeletingSchema,
@@ -36,6 +39,7 @@ export const DeletingDbTableReadModel = {
   catalog_deleting_table: eserviceInReadmodelCatalog,
   catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
   agreement_deleting_table: agreementInReadmodelAgreement,
+  purpose_deleting_table: purposeInReadmodelPurpose,
   client_deleting_table: clientInReadmodelClient,
   client_user_deleting_table: clientUserInReadmodelClient,
   client_purpose_deleting_table: clientPurposeInReadmodelClient,

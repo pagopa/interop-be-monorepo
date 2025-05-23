@@ -11,12 +11,14 @@ import {
   ClientDbTableReadModel,
 } from "./authorization.js";
 import { CatalogDbTableConfig, CatalogDbTableReadModel } from "./catalog.js";
+import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
 import { DeletingDbTableConfig, DeletingDbTableReadModel } from "./deleting.js";
 
 export const DomainDbTable = {
   ...AttributeDbTableConfig,
   ...CatalogDbTableConfig,
   ...AgreementDbTableConfig,
+  ...PurposeDbTableConfig,
   ...ClientDbTableConfig,
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
@@ -33,6 +35,7 @@ export const DomainDbTableReadModels = {
   ...AttributeDbTableReadModel,
   ...CatalogDbTableReadModel,
   ...AgreementDbTableReadModel,
+  ...PurposeDbTableReadModel,
   ...ClientDbTableReadModel,
 } as const;
 export type DomainDbTableReadModels = typeof DomainDbTableReadModels;
@@ -48,3 +51,4 @@ export * from "./catalog.js";
 export * from "./agreement.js";
 export * from "./authorization.js";
 export * from "./deleting.js";
+export * from "./purpose.js";
