@@ -28,7 +28,7 @@ describe("getEServiceTemplateById", () => {
   const mockDocument = getMockDocument();
 
   it.each(getContextsAllowedToSeeDraftVersions(mockEServiceTemplate.creatorId))(
-    "should get the eservice template including draft versions (requester is the creator, user roles: $authData.userRoles, system role: $authData.systemRole)",
+    "should get the eservice templateq including draft versions (requester is the creator, user roles: $authData.userRoles, system role: $authData.systemRole)",
     async (context) => {
       const eserviceTemplateVersion: EServiceTemplateVersion = {
         ...mockEServiceTemplateVersion,
