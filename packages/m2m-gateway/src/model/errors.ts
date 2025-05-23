@@ -6,6 +6,8 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   makeApiProblemBuilder,
   PurposeId,
 } from "pagopa-interop-models";
@@ -27,6 +29,7 @@ export const errorCodes = {
   agreementNotInPendingState: "0014",
   missingPurposeVersionWithState: "0015",
   missingPurposeCurrentVersion: "0016",
+  eserviceTemplateVersionNotFound: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -101,6 +104,17 @@ export function clientAdminIdNotFound(
     detail: `Admin id not found for client with id ${client.id}`,
     code: "clientAdminIdNotFound",
     title: "Client admin id not found",
+  });
+}
+
+export function eserviceTemplateVersionNotFound(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${versionId} not found in eservice template ${templateId}`,
+    code: "eserviceTemplateVersionNotFound",
+    title: "EService template version not found",
   });
 }
 
