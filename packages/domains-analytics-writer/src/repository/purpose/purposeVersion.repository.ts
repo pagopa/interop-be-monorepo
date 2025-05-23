@@ -1,41 +1,40 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
 import {
-  generateMergeDeleteQuery,
   generateMergeQuery,
+  generateMergeDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
 import {
-  EserviceRiskAnalysisDeletingSchema,
-  EserviceRiskAnalysisSchema,
-} from "../../model/catalog/eserviceRiskAnalysis.js";
-import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
+  PurposeVersionDeletingSchema,
+  PurposeVersionSchema,
+} from "../../model/purpose/purposeVersion.js";
+import { DeletingDbTable, PurposeDbTable } from "../../model/db/index.js";
 
-export function eserviceRiskAnalysisRepository(conn: DBConnection) {
+export function purposeVersionRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = CatalogDbTable.eservice_risk_analysis;
+  const tableName = PurposeDbTable.purpose_version;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName = DeletingDbTable.catalog_risk_deleting_table;
+  const deletingTableName = DeletingDbTable.purpose_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EserviceRiskAnalysisSchema[]
+      records: PurposeVersionSchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(pgp, tableName, EserviceRiskAnalysisSchema);
+        const cs = buildColumnSet(pgp, tableName, PurposeVersionSchema);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(`
           DELETE FROM ${stagingTableName} a
           USING ${stagingTableName} b
-          WHERE a.id = b.id
-            AND a.eservice_id = b.eservice_id
-            AND a.metadata_version < b.metadata_version;
+          WHERE a.id = b.id AND a.metadata_version < b.metadata_version;
         `);
       } catch (error: unknown) {
         throw genericInternalError(
@@ -47,10 +46,10 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          EserviceRiskAnalysisSchema,
+          PurposeVersionSchema,
           schemaName,
           tableName,
-          ["id", "eserviceId"]
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -73,13 +72,13 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EserviceRiskAnalysisDeletingSchema[]
+      records: PurposeVersionDeletingSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           deletingTableName,
-          EserviceRiskAnalysisDeletingSchema
+          PurposeVersionDeletingSchema
         );
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
@@ -97,13 +96,12 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id", "eserviceId"],
-          false
+          ["id"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging deleting table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -120,6 +118,4 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
   };
 }
 
-export type EserviceRiskAnalysisRepository = ReturnType<
-  typeof eserviceRiskAnalysisRepository
->;
+export type PurposeVersionRepo = ReturnType<typeof purposeVersionRepo>;
