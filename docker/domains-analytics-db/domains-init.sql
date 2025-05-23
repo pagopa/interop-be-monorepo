@@ -254,8 +254,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
   value VARCHAR(65535),
   deleted BOOLEAN,
   PRIMARY KEY (id, purpose_id),
-  FOREIGN KEY (risk_analysis_form_id, purpose_id)
-  REFERENCES domains.purpose_risk_analysis_form (id, purpose_id)
+  FOREIGN KEY (risk_analysis_form_id, purpose_id) REFERENCES domains.purpose_risk_analysis_form (id, purpose_id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version (
@@ -283,4 +282,48 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
   created_at TIMESTAMP NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id, purpose_version_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  consumer_id VARCHAR(36) NOT NULL,
+  admin_id VARCHAR(36),
+  name VARCHAR NOT NULL,
+  description VARCHAR,
+  kind VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_user (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  user_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (client_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_purpose (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  purpose_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (client_id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_key (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  user_id VARCHAR(36),
+  kid VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
+  encoded_pem VARCHAR NOT NULL,
+  "algorithm" VARCHAR NOT NULL,
+  "use" VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
+  PRIMARY KEY (client_id, kid)
 );

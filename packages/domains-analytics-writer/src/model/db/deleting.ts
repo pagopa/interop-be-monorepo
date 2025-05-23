@@ -2,6 +2,10 @@ import { z } from "zod";
 import {
   agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
+  clientInReadmodelClient,
+  clientUserInReadmodelClient,
+  clientPurposeInReadmodelClient,
+  clientKeyInReadmodelClient,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   purposeInReadmodelPurpose,
@@ -11,6 +15,10 @@ import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
 import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
 import { AgreementDeletingSchema } from "../agreement/agreement.js";
+import { ClientDeletingSchema } from "../authorization/client.js";
+import { ClientUserDeletingSchema } from "../authorization/clientUser.js";
+import { ClientPurposeDeletingSchema } from "../authorization/clientPurpose.js";
+import { ClientKeyDeletingSchema } from "../authorization/clientKey.js";
 import { PurposeDeletingSchema } from "../purpose/purpose.js";
 
 export const DeletingDbTableConfig = {
@@ -19,6 +27,10 @@ export const DeletingDbTableConfig = {
   catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
   agreement_deleting_table: AgreementDeletingSchema,
   purpose_deleting_table: PurposeDeletingSchema,
+  client_deleting_table: ClientDeletingSchema,
+  client_user_deleting_table: ClientUserDeletingSchema,
+  client_purpose_deleting_table: ClientPurposeDeletingSchema,
+  client_key_deleting_table: ClientKeyDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
 
@@ -28,6 +40,10 @@ export const DeletingDbTableReadModel = {
   catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
   agreement_deleting_table: agreementInReadmodelAgreement,
   purpose_deleting_table: purposeInReadmodelPurpose,
+  client_deleting_table: clientInReadmodelClient,
+  client_user_deleting_table: clientUserInReadmodelClient,
+  client_purpose_deleting_table: clientPurposeInReadmodelClient,
+  client_key_deleting_table: clientKeyInReadmodelClient,
 } as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
 

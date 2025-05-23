@@ -15,6 +15,7 @@ import {
   AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
+  ClientDbTable,
   DeletingDbTable,
   PurposeDbTable,
 } from "./model/db/index.js";
@@ -63,6 +64,10 @@ await retryConnection(
       PurposeDbTable.purpose_version_document,
       PurposeDbTable.purpose_risk_analysis_form,
       PurposeDbTable.purpose_risk_analysis_answer,
+      ClientDbTable.client,
+      ClientDbTable.client_purpose,
+      ClientDbTable.client_user,
+      ClientDbTable.client_key,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
@@ -73,6 +78,19 @@ await retryConnection(
       },
       { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.client_user_deleting_table,
+        columns: ["clientId", "userId"],
+      },
+      {
+        name: DeletingDbTable.client_purpose_deleting_table,
+        columns: ["clientId", "purposeId"],
+      },
+      {
+        name: DeletingDbTable.client_key_deleting_table,
+        columns: ["clientId", "kid"],
+      },
     ]);
   },
   logger({ serviceName: config.serviceName })
