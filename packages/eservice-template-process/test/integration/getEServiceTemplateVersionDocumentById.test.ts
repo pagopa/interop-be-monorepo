@@ -7,7 +7,6 @@ import {
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
-  getMockAuthData,
   getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
