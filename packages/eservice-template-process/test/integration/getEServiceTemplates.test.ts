@@ -3,6 +3,8 @@ import { UIAuthData, userRole } from "pagopa-interop-commons";
 import {
   getMockAuthData,
   getMockContext,
+  getMockContextM2M,
+  getMockContextM2MAdmin,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
@@ -25,9 +27,9 @@ import {
 } from "../integrationUtils.js";
 
 describe("get eservices", () => {
-  let organizationId1: TenantId;
-  let organizationId2: TenantId;
-  let organizationId3: TenantId;
+  const organizationId1: TenantId = generateId();
+  const organizationId2: TenantId = generateId();
+  const organizationId3: TenantId = generateId();
   let eserviceTemplate1: EServiceTemplate;
   let eserviceTemplate2: EServiceTemplate;
   let eserviceTemplate3: EServiceTemplate;
@@ -35,10 +37,6 @@ describe("get eservices", () => {
   let eserviceTemplate5: EServiceTemplate;
 
   beforeEach(async () => {
-    organizationId1 = generateId();
-    organizationId2 = generateId();
-    organizationId3 = generateId();
-
     const eserviceTemplateVersion1: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       interface: getMockDocument(),
@@ -112,6 +110,35 @@ describe("get eservices", () => {
     };
     await addOneTenant(tenant);
   });
+
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const getContextsAllowedToSeeDraftVersions = (creatorId: TenantId) => [
+    getMockContext({
+      authData: {
+        ...getMockAuthData(creatorId),
+        userRoles: [userRole.ADMIN_ROLE],
+      },
+    }),
+    getMockContext({
+      authData: {
+        ...getMockAuthData(creatorId),
+        userRoles: [userRole.API_ROLE],
+      },
+    }),
+    getMockContext({
+      authData: {
+        ...getMockAuthData(creatorId),
+        userRoles: [userRole.SUPPORT_ROLE],
+      },
+    }),
+    getMockContextM2M({
+      organizationId: creatorId,
+    }),
+    getMockContextM2MAdmin({
+      organizationId: creatorId,
+    }),
+  ];
+
   it("should get the eService templates if they exist (parameters: eserviceTemplatesIds)", async () => {
     const result = await eserviceTemplateService.getEServiceTemplates(
       {
@@ -280,35 +307,39 @@ describe("get eservices", () => {
     expect(result.totalCount).toBe(5);
     expect(result.results.length).toBe(1);
   });
-  it("should include eservice templates with no versions (requester is the creator, admin)", async () => {
-    const eserviceTemplate6: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      name: "eservice template 006",
-      creatorId: organizationId1,
-      versions: [],
-    };
-    const authData: UIAuthData = getMockAuthData(organizationId1);
-    await addOneEServiceTemplate(eserviceTemplate6);
-    const result = await eserviceTemplateService.getEServiceTemplates(
-      {
-        eserviceTemplatesIds: [],
-        creatorsIds: [],
-        states: [],
-      },
-      0,
-      50,
-      getMockContext({ authData })
-    );
-    expect(result.totalCount).toBe(6);
-    expect(result.results).toEqual([
-      eserviceTemplate1,
-      eserviceTemplate2,
-      eserviceTemplate3,
-      eserviceTemplate4,
-      eserviceTemplate5,
-      eserviceTemplate6,
-    ]);
-  });
+
+  it.each(getContextsAllowedToSeeDraftVersions(organizationId1))(
+    "should include eservice templates with no versions (requester is the creator, user roles: $authData.userRoles, system role: $authData.systemRole)",
+    async (context) => {
+      const eserviceTemplate6: EServiceTemplate = {
+        ...getMockEServiceTemplate(),
+        name: "eservice template 006",
+        creatorId: organizationId1,
+        versions: [],
+      };
+
+      await addOneEServiceTemplate(eserviceTemplate6);
+      const result = await eserviceTemplateService.getEServiceTemplates(
+        {
+          eserviceTemplatesIds: [],
+          creatorsIds: [],
+          states: [],
+        },
+        0,
+        50,
+        context
+      );
+      expect(result.totalCount).toBe(6);
+      expect(result.results).toEqual([
+        eserviceTemplate1,
+        eserviceTemplate2,
+        eserviceTemplate3,
+        eserviceTemplate4,
+        eserviceTemplate5,
+        eserviceTemplate6,
+      ]);
+    }
+  );
   it("should include eservice templates whose only version is draft (requester is the creator, admin)", async () => {
     const eserviceTemplateVersion6: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
