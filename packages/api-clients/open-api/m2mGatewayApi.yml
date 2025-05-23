@@ -1449,12 +1449,8 @@ paths:
               $ref: "#/components/schemas/ClientAddPurpose"
         required: true
       responses:
-        "200":
+        "204":
           description: Purpose added
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Client"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3931,55 +3927,6 @@ components:
         - description
         - name
         - code
-    Client:
-      description: Models Client details
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        consumerId:
-          type: string
-          format: uuid
-        adminId:
-          type: string
-          format: uuid
-        createdAt:
-          type: string
-          format: date-time
-        purposes:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-        description:
-          type: string
-        users:
-          type: array
-          items:
-            type: string
-            format: uuid
-          uniqueItems: true
-        kind:
-          $ref: "#/components/schemas/ClientKind"
-      required:
-        - id
-        - name
-        - consumerId
-        - purposes
-        - users
-        - kind
-        - createdAt
-    ClientKind:
-      type: string
-      description: kind of client
-      enum:
-        - CONSUMER
-        - API
     ClientAddPurpose:
       type: object
       additionalProperties: false

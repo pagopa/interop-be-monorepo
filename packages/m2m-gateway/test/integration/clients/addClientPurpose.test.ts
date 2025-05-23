@@ -48,25 +48,13 @@ describe("addClientPurpose", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mClientResponse: m2mGatewayApi.Client = {
-      id: mockAuthorizationProcessResponse.data.id,
-      name: mockAuthorizationProcessResponse.data.name,
-      consumerId: mockAuthorizationProcessResponse.data.consumerId,
-      adminId: mockAuthorizationProcessResponse.data.adminId,
-      createdAt: mockAuthorizationProcessResponse.data.createdAt,
-      purposes: mockAuthorizationProcessResponse.data.purposes,
-      description: mockAuthorizationProcessResponse.data.description,
-      users: mockAuthorizationProcessResponse.data.users,
-      kind: mockAuthorizationProcessResponse.data.kind,
-    };
-
     const result = await clientService.addClientPurpose(
       unsafeBrandId(mockAuthorizationProcessResponse.data.id),
       mockSeed,
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientResponse);
+    expect(result).toEqual(undefined);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.authorizationClient.client.addClientPurpose,

@@ -29,12 +29,12 @@ const clientRouter = (
     try {
       validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-      const client = await clientService.addClientPurpose(
+      await clientService.addClientPurpose(
         unsafeBrandId(req.params.clientId),
         req.body,
         ctx
       );
-      return res.status(200).send(m2mGatewayApi.Client.parse(client));
+      return res.status(204).send();
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
