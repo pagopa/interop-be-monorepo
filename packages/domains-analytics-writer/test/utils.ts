@@ -17,6 +17,7 @@ import {
   DeletingDbTableConfigMap,
   DomainDbTable,
   DomainDbTableSchemas,
+  EserviceTemplateDbTable,
   PurposeDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
@@ -70,12 +71,23 @@ export const purposeTables: PurposeDbTable[] = [
   PurposeDbTable.purpose_risk_analysis_answer,
 ];
 
+export const eserviceTemplateTables: EserviceTemplateDbTable[] = [
+  EserviceTemplateDbTable.eservice_template,
+  EserviceTemplateDbTable.eservice_template_version,
+  EserviceTemplateDbTable.eservice_template_version_attribute,
+  EserviceTemplateDbTable.eservice_template_version_document,
+  EserviceTemplateDbTable.eservice_template_version_interface,
+  EserviceTemplateDbTable.eservice_template_risk_analysis,
+  EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+];
+
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
   DeletingDbTable.catalog_risk_deleting_table,
   DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.purpose_deleting_table,
+  DeletingDbTable.eservice_template_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
@@ -83,6 +95,7 @@ export const domainTables: DomainDbTable[] = [
   ...catalogTables,
   ...agreementTables,
   ...purposeTables,
+  ...eserviceTemplateTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
@@ -98,6 +111,10 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   },
   {
     name: DeletingDbTable.purpose_deleting_table,
+    columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.eservice_template_deleting_table,
     columns: ["id"],
   },
 ];

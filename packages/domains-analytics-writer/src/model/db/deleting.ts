@@ -4,12 +4,14 @@ import {
   attributeInReadmodelAttribute,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
 import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
+import { EserviceTemplateDeletingSchema } from "../eserviceTemplate/eserviceTemplate.js";
 import { AgreementDeletingSchema } from "../agreement/agreement.js";
 import { PurposeDeletingSchema } from "../purpose/purpose.js";
 
@@ -19,6 +21,7 @@ export const DeletingDbTableConfig = {
   catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
   agreement_deleting_table: AgreementDeletingSchema,
   purpose_deleting_table: PurposeDeletingSchema,
+  eservice_template_deleting_table: EserviceTemplateDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
 
@@ -28,6 +31,7 @@ export const DeletingDbTableReadModel = {
   catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
   agreement_deleting_table: agreementInReadmodelAgreement,
   purpose_deleting_table: purposeInReadmodelPurpose,
+  eservice_template_deleting_table: eserviceTemplateInReadmodelEserviceTemplate,
 } as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
 
