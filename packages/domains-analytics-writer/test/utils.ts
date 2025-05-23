@@ -18,6 +18,7 @@ import {
   DomainDbTable,
   DomainDbTableSchemas,
   TenantDbPartialTable,
+  PurposeDbTable,
   TenantDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
@@ -63,6 +64,14 @@ export const agreementTables: AgreementDbTable[] = [
   AgreementDbTable.agreement_stamp,
 ];
 
+export const purposeTables: PurposeDbTable[] = [
+  PurposeDbTable.purpose,
+  PurposeDbTable.purpose_version,
+  PurposeDbTable.purpose_version_document,
+  PurposeDbTable.purpose_risk_analysis_form,
+  PurposeDbTable.purpose_risk_analysis_answer,
+];
+
 export const tenantTables: TenantDbTable[] = [
   TenantDbTable.tenant,
   TenantDbTable.tenant_certified_attribute,
@@ -77,20 +86,22 @@ export const tenantTables: TenantDbTable[] = [
 export const partialTables = [TenantDbPartialTable.tenant_self_care_id];
 
 export const deletingTables: DeletingDbTable[] = [
-  DeletingDbTable.tenant_deleting_table,
-  DeletingDbTable.tenant_mail_deleting_table,
-  DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table,
-  DeletingDbTable.tenant_feature_deleting_table,
   DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
   DeletingDbTable.catalog_risk_deleting_table,
+  DeletingDbTable.purpose_deleting_table,
+  DeletingDbTable.tenant_deleting_table,
+  DeletingDbTable.tenant_mail_deleting_table,
+  DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table,
+  DeletingDbTable.tenant_feature_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
   ...attributeTables,
   ...catalogTables,
   ...agreementTables,
+  ...purposeTables,
   ...tenantTables,
 ];
 
@@ -103,6 +114,10 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   },
   {
     name: DeletingDbTable.agreement_deleting_table,
+    columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.purpose_deleting_table,
     columns: ["id"],
   },
   {

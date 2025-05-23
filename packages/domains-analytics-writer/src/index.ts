@@ -16,6 +16,7 @@ import {
   AttributeDbTable,
   CatalogDbTable,
   DeletingDbTable,
+  PurposeDbTable,
   TenantDbPartialTable,
   TenantDbTable,
 } from "./model/db/index.js";
@@ -59,6 +60,11 @@ await retryConnection(
       AgreementDbTable.agreement_attribute,
       AgreementDbTable.agreement_consumer_document,
       AgreementDbTable.agreement_contract,
+      PurposeDbTable.purpose,
+      PurposeDbTable.purpose_version,
+      PurposeDbTable.purpose_version_document,
+      PurposeDbTable.purpose_risk_analysis_form,
+      PurposeDbTable.purpose_risk_analysis_answer,
       TenantDbTable.tenant,
       TenantDbTable.tenant_mail,
       TenantDbTable.tenant_certified_attribute,
@@ -79,6 +85,8 @@ await retryConnection(
         name: DeletingDbTable.catalog_risk_deleting_table,
         columns: ["id", "eserviceId"],
       },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.tenant_deleting_table,
         columns: ["id"],

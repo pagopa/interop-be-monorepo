@@ -18,7 +18,7 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   agreementNotFound,
-  organizationNotAllowed,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -76,39 +76,43 @@ describe("get agreement", () => {
         agreement.id,
         getMockContext({ authData: getMockAuthData(consumer.id) })
       );
-    expect(sortAgreement(retrievedAgreementByConsumer)).toEqual(
-      sortAgreement(agreement)
-    );
+    expect(sortAgreement(retrievedAgreementByConsumer)).toEqual({
+      data: sortAgreement(agreement),
+      metadata: { version: 0 },
+    });
 
     const retrievedAgreementByProducer =
       await agreementService.getAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(producer.id) })
       );
-    expect(sortAgreement(retrievedAgreementByProducer)).toEqual(
-      sortAgreement(agreement)
-    );
+    expect(sortAgreement(retrievedAgreementByProducer)).toEqual({
+      data: sortAgreement(agreement),
+      metadata: { version: 0 },
+    });
 
     const retrievedAgreementByProducerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(producerDelegate.id) })
       );
-    expect(sortAgreement(retrievedAgreementByProducerDelegate)).toEqual(
-      sortAgreement(agreement)
-    );
+    expect(sortAgreement(retrievedAgreementByProducerDelegate)).toEqual({
+      data: sortAgreement(agreement),
+      metadata: { version: 0 },
+    });
 
     const retrievedAgreementByConsumerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
         getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
       );
-    expect(sortAgreement(retrievedAgreementByConsumerDelegate)).toEqual(
-      sortAgreement(agreement)
-    );
+    expect(sortAgreement(retrievedAgreementByConsumerDelegate)).toEqual({
+      data: sortAgreement(agreement),
+      metadata: { version: 0 },
+    });
   });
 
-  it(`should throw an organizationNotAllowed error when the requester is
+  it(`should throw an tenantNotAllowed error when the requester is
     not the consumer, producer, consumer delegate, or producer delegate`, async () => {
     const agreement = getMockAgreement();
 
@@ -120,7 +124,7 @@ describe("get agreement", () => {
         agreement.id,
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
   });
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {

@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
+  purposeInReadmodelPurpose,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   tenantFeatureInReadmodelTenant,
@@ -19,12 +20,14 @@ import {
 } from "../tenant/tenantMail.js";
 import { TenantFeatureDeletingSchema } from "../tenant/tenantFeature.js";
 import { AgreementDeletingSchema } from "../agreement/agreement.js";
+import { PurposeDeletingSchema } from "../purpose/purpose.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
   catalog_deleting_table: EserviceDeletingSchema,
   catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
   agreement_deleting_table: AgreementDeletingSchema,
+  purpose_deleting_table: PurposeDeletingSchema,
   tenant_deleting_table: TenantDeletingSchema,
   tenant_mail_deleting_table: TenantMailDeletingSchema,
   tenant_mail_deleting_by_id_and_tenant_table:
@@ -38,6 +41,7 @@ export const DeletingDbTableReadModel = {
   catalog_deleting_table: eserviceInReadmodelCatalog,
   catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
   agreement_deleting_table: agreementInReadmodelAgreement,
+  purpose_deleting_table: purposeInReadmodelPurpose,
   tenant_deleting_table: tenantInReadmodelTenant,
   tenant_mail_deleting_table: tenantMailInReadmodelTenant,
   tenant_mail_deleting_by_id_and_tenant_table: tenantMailInReadmodelTenant,

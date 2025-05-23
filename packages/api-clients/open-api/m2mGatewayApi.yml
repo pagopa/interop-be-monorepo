@@ -178,6 +178,7 @@ paths:
       tags:
         - agreements
       description: Creates an agreement
+      operationId: createAgreement
       requestBody:
         content:
           application/json:
@@ -435,6 +436,19 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "429":
           description: Too Many Requests
           content:
@@ -623,6 +637,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
@@ -2710,6 +2737,19 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
         "429":
           description: Too Many Requests
           content:
@@ -3239,6 +3279,19 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
