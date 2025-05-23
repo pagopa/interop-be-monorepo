@@ -74,6 +74,12 @@ const main = async () => {
       templatePath:
         fileName === "bffApi" ? "./template-bff.hbs" : "./template.hbs",
       options: {
+        isMediaTypeAllowed(mediaType) {
+          return (
+            mediaType === "application/json" ||
+            mediaType === "application/problem+json"
+          );
+        },
         withAlias: true,
         shouldExportAllTypes: true,
         groupStrategy: "tag",
