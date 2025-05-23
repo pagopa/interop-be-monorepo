@@ -1,6 +1,20 @@
 import { catalogApi } from "pagopa-interop-api-clients";
-import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
-import { Descriptor, generateId, RiskAnalysis } from "pagopa-interop-models";
+import {
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  userRole,
+} from "pagopa-interop-commons";
+import {
+  getMockContext,
+  getMockAuthData,
+  getMockContextM2M,
+  getMockContextM2MAdmin,
+} from "pagopa-interop-commons-test/index.js";
+import {
+  Descriptor,
+  generateId,
+  RiskAnalysis,
+  TenantId,
+} from "pagopa-interop-models";
 
 export const buildDescriptorSeedForEserviceCreation = (
   descriptor: Descriptor
@@ -85,3 +99,33 @@ export const buildDocumentSeed =
     fileName: "fileName",
     checksum: "checksum",
   });
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const getContextsAllowedToSeeInactiveDescriptors = (
+  producerOrDelegateId: TenantId
+) => [
+  getMockContext({
+    authData: {
+      ...getMockAuthData(producerOrDelegateId),
+      userRoles: [userRole.ADMIN_ROLE],
+    },
+  }),
+  getMockContext({
+    authData: {
+      ...getMockAuthData(producerOrDelegateId),
+      userRoles: [userRole.API_ROLE],
+    },
+  }),
+  getMockContext({
+    authData: {
+      ...getMockAuthData(producerOrDelegateId),
+      userRoles: [userRole.SUPPORT_ROLE],
+    },
+  }),
+  getMockContextM2M({
+    organizationId: producerOrDelegateId,
+  }),
+  getMockContextM2MAdmin({
+    organizationId: producerOrDelegateId,
+  }),
+];

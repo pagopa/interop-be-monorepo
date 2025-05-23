@@ -488,7 +488,7 @@ const eserviceTemplatesRouter = (
               {
                 eServiceTemplateId: unsafeBrandId(templateId),
                 eServiceTemplateVersionId: unsafeBrandId(templateVersionId),
-                eServiceDocumentId: unsafeBrandId(documentId),
+                documentId: unsafeBrandId(documentId),
               },
               ctx
             );
