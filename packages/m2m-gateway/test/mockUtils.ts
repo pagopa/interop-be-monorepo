@@ -17,6 +17,7 @@ import {
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
+import { getMockValidRiskAnalysis } from "pagopa-interop-commons-test/index.js";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
 
 export function getMockedApiPurposeVersion({
@@ -283,28 +284,13 @@ export function getMockedApiEServiceTemplate({
 }
 
 export function getMockedApiRiskAnalysis(): catalogApi.EServiceRiskAnalysis {
+  const riskAnalysis = getMockValidRiskAnalysis(
+    generateMock(tenantApi.TenantKind)
+  );
+
   return {
-    id: generateId(),
-    createdAt: new Date().toISOString(),
-    name: generateMock(z.string().length(10)),
-    riskAnalysisForm: {
-      id: generateId(),
-      multiAnswers: [
-        {
-          id: generateId(),
-          key: generateMock(z.string()),
-          values: generateMock(z.array(z.string())),
-        },
-      ],
-      singleAnswers: [
-        {
-          id: generateId(),
-          key: generateMock(z.string()),
-          value: generateMock(z.string()),
-        },
-      ],
-      version: "0",
-    },
+    ...riskAnalysis,
+    createdAt: riskAnalysis.createdAt.toISOString(),
   };
 }
 
