@@ -330,7 +330,6 @@ export function tokenServiceBuilder({
             limitReached: false as const,
             token,
             rateLimiterStatus,
-            isDPoP: dPoPProofJWT !== undefined,
           };
         })
         .exhaustive();
