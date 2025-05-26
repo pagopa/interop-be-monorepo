@@ -21,8 +21,8 @@ import {
 import { expect, describe, it } from "vitest";
 import {
   eserviceTemplateDocumentNotFound,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
   documentPrettyNameDuplicate,
 } from "../../src/model/domain/errors.js";
@@ -108,7 +108,7 @@ describe("update Document", () => {
     }
   );
 
-  it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
+  it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
     expect(
       eserviceTemplateService.updateDocument(
         mockEServiceTemplate.id,
@@ -117,7 +117,7 @@ describe("update Document", () => {
         { prettyName: "updated prettyName" },
         getMockContext({})
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
   it("should throw operationForbidden if the requester is not the creator", async () => {
@@ -142,7 +142,7 @@ describe("update Document", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceTemplateVersionNotFound if the version doesn't exist", async () => {
+  it("should throw eserviceTemplateVersionNotFound if the version doesn't exist", async () => {
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [],
@@ -159,7 +159,7 @@ describe("update Document", () => {
         })
       )
     ).rejects.toThrowError(
-      eServiceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
+      eserviceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
     );
   });
 

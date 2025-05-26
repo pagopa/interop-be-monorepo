@@ -27,8 +27,8 @@ import { agreementArchivableStates } from "../../src/model/domain/agreement-vali
 import {
   agreementNotFound,
   agreementNotInExpectedState,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -176,7 +176,7 @@ describe("archive agreement", () => {
     vi.useRealTimers();
   });
 
-  it("should throw organizationIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
+  it("should throw tenantIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
     const authData = getMockAuthData();
 
     const agreement = {
@@ -202,10 +202,7 @@ describe("archive agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
     );
   });
 
@@ -231,7 +228,7 @@ describe("archive agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementToArchiveId));
   });
 
-  it("should throw a organizationIsNotTheConsumer error when the requester is not the Agreement consumer", async () => {
+  it("should throw a tenantIsNotTheConsumer error when the requester is not the Agreement consumer", async () => {
     const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
 
@@ -248,9 +245,7 @@ describe("archive agreement", () => {
         agreement.id,
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(authData.organizationId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
   });
 
   it("should throw a agreementNotInExpectedState error when the Agreement is not in a archivable states", async () => {

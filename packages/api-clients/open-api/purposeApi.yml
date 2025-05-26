@@ -456,12 +456,15 @@ paths:
       operationId: createPurposeVersion
       description: Creates a draft Purpose Version
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
-          description: Purpose created
+          description: Purpose version created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/PurposeVersion"
+                $ref: "#/components/schemas/CreatedPurposeVersion"
         "400":
           description: Bad Request
           content:
@@ -664,6 +667,9 @@ paths:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Activated
           content:
@@ -756,6 +762,9 @@ paths:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Suspended
           content:
@@ -802,6 +811,9 @@ paths:
       summary: Archive Purpose Version
       operationId: archivePurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Archived
           content:
@@ -898,7 +910,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-components:  
+components:
   headers:
     MetadataVersionHeader:
       description: The version number of the resource in the read model
@@ -1366,6 +1378,18 @@ components:
       required:
         - version
         - answers
+    CreatedPurposeVersion:
+      type: object
+      additionalProperties: false
+      required:
+        - purpose
+        - createdVersionId
+      properties:
+        purpose:
+          $ref: "#/components/schemas/Purpose"
+        createdVersionId:
+          type: string
+          format: uuid
     Problem:
       properties:
         type:

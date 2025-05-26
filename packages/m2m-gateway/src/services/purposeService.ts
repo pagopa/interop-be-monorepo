@@ -1,9 +1,15 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { PurposeId } from "pagopa-interop-models";
+import {
+  PurposeId,
+  PurposeVersionId,
+  unsafeBrandId,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
+  toM2mGatewayApiPurposeVersion,
 } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -11,25 +17,89 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   pollResource,
   isPolledVersionAtLeastResponseVersion,
+  isPolledVersionAtLeastMetadataTargetVersion,
 } from "../utils/polling.js";
+import { purposeVersionNotFound } from "../model/errors.js";
+import {
+  assertPurposeCurrentVersionExists,
+  assertPurposeVersionExistsWithState,
+} from "../utils/validators/purposeValidator.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
+export const sortPurposeVersionsByDate = (
+  versions: purposeApi.PurposeVersion[]
+): purposeApi.PurposeVersion[] =>
+  [...versions].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+  );
+
+export const getPurposeCurrentVersion = (
+  purpose: purposeApi.Purpose
+): purposeApi.PurposeVersion | undefined => {
+  const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
+    m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
+    m2mGatewayApi.PurposeVersionState.Values.REJECTED,
+  ];
+  return sortPurposeVersionsByDate(purpose.versions)
+    .filter((v) => !statesToExclude.includes(v.state))
+    .at(-1);
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const retrievePurposeById = async (
+    purposeId: PurposeId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<purposeApi.Purpose>> =>
+    await clients.purposeProcessClient.getPurpose({
+      params: {
+        id: purposeId,
+      },
+      headers,
+    });
+
   const pollPurpose = (
     response: WithMaybeMetadata<purposeApi.Purpose>,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
+  ): Promise<WithMetadata<purposeApi.Purpose>> =>
     pollResource(() =>
-      clients.purposeProcessClient.getPurpose({
-        params: { id: response.data.id },
-        headers,
-      })
+      retrievePurposeById(unsafeBrandId(response.data.id), headers)
     )({
       checkFn: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollPurposeById = (
+    purposeId: PurposeId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMetadata<purposeApi.Purpose>> =>
+    pollResource(() => retrievePurposeById(purposeId, headers))({
+      checkFn: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+    });
+
+  const retrieveLatestPurposeVersionByState = (
+    purpose: purposeApi.Purpose,
+    state: purposeApi.PurposeVersionState
+  ): purposeApi.PurposeVersion => {
+    const latestVersion = sortPurposeVersionsByDate(purpose.versions)
+      .filter((v) => v.state === state)
+      .at(-1);
+
+    assertPurposeVersionExistsWithState(latestVersion, purpose.id, state);
+
+    return latestVersion;
+  };
+
+  const retrievePurposeCurrentVersion = (
+    purpose: purposeApi.Purpose
+  ): purposeApi.PurposeVersion => {
+    const currentVersion = getPurposeCurrentVersion(purpose);
+
+    assertPurposeCurrentVersionExists(currentVersion, purpose.id);
+
+    return currentVersion;
+  };
 
   return {
     async getPurposes(
@@ -63,12 +133,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(`Retrieving purpose with id ${purposeId}`);
 
-      const { data } = await clients.purposeProcessClient.getPurpose({
-        params: {
-          id: purposeId,
-        },
-        headers,
-      });
+      const { data } = await retrievePurposeById(purposeId, headers);
 
       return toM2MGatewayApiPurpose(data);
     },
@@ -91,6 +156,208 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       const polledResource = await pollPurpose(purposeResponse, headers);
 
       return toM2MGatewayApiPurpose(polledResource.data);
+    },
+    async getPurposeVersions(
+      purposeId: PurposeId,
+      { limit, offset, state }: m2mGatewayApi.GetPurposeVersionsQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeVersions> {
+      logger.info(
+        `Retrieving versions for purpose with id ${purposeId} state ${state} offset ${offset} limit ${limit}`
+      );
+
+      const { data } = await retrievePurposeById(purposeId, headers);
+
+      const filteredVersions = state
+        ? data.versions.filter((version) => version.state === state)
+        : data.versions;
+
+      const paginatedVersions = filteredVersions.slice(offset, offset + limit);
+
+      return {
+        results: paginatedVersions.map(toM2mGatewayApiPurposeVersion),
+        pagination: {
+          limit,
+          offset,
+          totalCount: filteredVersions.length,
+        },
+      };
+    },
+    async getPurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeVersion> {
+      logger.info(`Retrieving version ${versionId} of purpose ${purposeId}`);
+
+      const { data } = await retrievePurposeById(purposeId, headers);
+
+      const version = data.versions.find((version) => version.id === versionId);
+
+      if (!version) {
+        throw purposeVersionNotFound(purposeId, versionId);
+      }
+
+      return toM2mGatewayApiPurposeVersion(version);
+    },
+    async createPurposeVersion(
+      purposeId: PurposeId,
+      versionSeed: m2mGatewayApi.PurposeVersionSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.PurposeVersion> {
+      logger.info(
+        `Creating version for purpose ${purposeId} with dailyCalls ${versionSeed.dailyCalls}`
+      );
+
+      const {
+        data: { createdVersionId, purpose },
+        metadata,
+      } = await clients.purposeProcessClient.createPurposeVersion(versionSeed, {
+        params: { purposeId },
+        headers,
+      });
+
+      await pollPurpose(
+        {
+          data: purpose,
+          metadata,
+        },
+        headers
+      );
+
+      const createdVersion = purpose.versions.find(
+        (v) => v.id === createdVersionId
+      );
+
+      if (!createdVersion) {
+        throw purposeVersionNotFound(purposeId, createdVersionId);
+      }
+
+      return toM2mGatewayApiPurposeVersion(createdVersion);
+    },
+    async activateDraftPurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieving latest draft version for purpose ${purposeId} activation`
+      );
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const versionToActivate = retrieveLatestPurposeVersionByState(
+        purpose,
+        purposeApi.PurposeVersionState.Values.DRAFT
+      );
+
+      logger.info(
+        `Activating version ${versionToActivate.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToActivate.id },
+          headers,
+        });
+
+      await pollPurposeById(purposeId, metadata, headers);
+    },
+    async archivePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieving current version for purpose ${purposeId} archiving`
+      );
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const versionToArchive = retrievePurposeCurrentVersion(purpose);
+
+      logger.info(
+        `Archiving version ${versionToArchive.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.archivePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToArchive.id },
+          headers,
+        });
+
+      await pollPurposeById(purposeId, metadata, headers);
+    },
+    async suspendPurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieving current version for purpose ${purposeId} suspension`
+      );
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const versionToSuspend = retrievePurposeCurrentVersion(purpose);
+
+      logger.info(
+        `Suspending version ${versionToSuspend.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.suspendPurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToSuspend.id },
+          headers,
+        });
+
+      await pollPurposeById(purposeId, metadata, headers);
+    },
+    async approvePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieving latest waiting for approval version for purpose ${purposeId} approval`
+      );
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const versionToApprove = retrieveLatestPurposeVersionByState(
+        purpose,
+        purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL
+      );
+
+      logger.info(
+        `Approving (activating) version ${versionToApprove.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToApprove.id },
+          headers,
+        });
+
+      await pollPurposeById(purposeId, metadata, headers);
+    },
+    async unsuspendPurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Retrieving latest suspended version for purpose ${purposeId} unsuspension`
+      );
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const versionToApprove = retrieveLatestPurposeVersionByState(
+        purpose,
+        purposeApi.PurposeVersionState.Values.SUSPENDED
+      );
+
+      logger.info(
+        `Unsuspending (activating) version ${versionToApprove.id} of purpose ${purposeId}`
+      );
+
+      const { metadata } =
+        await clients.purposeProcessClient.activatePurposeVersion(undefined, {
+          params: { purposeId, versionId: versionToApprove.id },
+          headers,
+        });
+
+      await pollPurposeById(purposeId, metadata, headers);
     },
   };
 }
