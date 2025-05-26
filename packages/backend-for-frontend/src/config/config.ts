@@ -6,7 +6,7 @@ import {
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
-  SelfCareConfig,
+  SelfCareClientConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
@@ -232,7 +232,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
   .and(AttributeRegistryProcessServerConfig)
-  .and(SelfCareConfig)
+  .and(SelfCareClientConfig)
   .and(PurposeProcessServerConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
