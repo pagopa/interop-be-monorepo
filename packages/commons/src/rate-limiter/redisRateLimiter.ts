@@ -1,5 +1,8 @@
 /* eslint-disable functional/no-let */
-import { ConnectionTimeoutError, createClient } from "redis";
+import {
+  ConnectionTimeoutError,
+  createClient as createRedisClient,
+} from "redis";
 import { TenantId } from "pagopa-interop-models";
 import {
   BurstyRateLimiter,
@@ -23,7 +26,7 @@ export async function initRedisRateLimiter(config: {
   redisPort: number;
   timeout: number;
 }): Promise<RateLimiter> {
-  let redisClient: ReturnType<typeof createClient> | null = null;
+  let redisClient: ReturnType<typeof createRedisClient> | null = null;
   let rateLimiter: BurstyRateLimiter | null = null;
   let redisConnected = false;
   let connecting = false;
@@ -34,7 +37,7 @@ export async function initRedisRateLimiter(config: {
     }
     connecting = true;
     try {
-      const client = createClient({
+      const client = createRedisClient({
         socket: {
           host: config.redisHost,
           port: config.redisPort,
@@ -82,9 +85,12 @@ export async function initRedisRateLimiter(config: {
 
   // Start connection attempts in background, but don't await
   void connectRedis();
-  setInterval(() => {
-    if (!redisConnected) {
+
+  const intervalId = setInterval(() => {
+    if (!redisClient || !rateLimiter) {
       void connectRedis();
+    } else {
+      clearInterval(intervalId);
     }
   }, RECONNECT_INTERVAL_MS);
 
@@ -92,7 +98,7 @@ export async function initRedisRateLimiter(config: {
     organizationId: TenantId,
     logger: Logger
   ): Promise<RateLimiterStatus> {
-    if (!redisConnected || !rateLimiter) {
+    if (!rateLimiter) {
       logger.warn(
         `Redis unavailable: bypassing rate limit for organization ${organizationId}`
       );
@@ -152,7 +158,7 @@ export async function initRedisRateLimiter(config: {
   async function getCountByOrganization(
     organizationId: TenantId
   ): Promise<number> {
-    if (!redisConnected || !redisClient) {
+    if (!redisClient) {
       return config.maxRequests;
     }
     return redisClient
@@ -164,7 +170,7 @@ export async function initRedisRateLimiter(config: {
   async function getBurstCountByOrganization(
     organizationId: TenantId
   ): Promise<number> {
-    if (!redisConnected || !redisClient) {
+    if (!redisClient) {
       return config.maxRequests;
     }
     return redisClient
