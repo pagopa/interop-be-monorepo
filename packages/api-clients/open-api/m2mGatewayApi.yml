@@ -1560,7 +1560,7 @@ paths:
         description: Payload for delegation rejection
       responses:
         "200":
-          description: Delegation updated
+          description: Delegation rejected
           content:
             application/json:
               schema:
@@ -3627,7 +3627,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Updated Tenant
+          description: Certified attribute added
           content:
             application/json:
               schema:
@@ -3740,7 +3740,7 @@ paths:
       description: Revoke a certified attribute from a Tenant
       responses:
         "200":
-          description: Certified Attribute revoked
+          description: Certified attribute revoked
           content:
             application/json:
               schema:
