@@ -291,6 +291,7 @@ export function tokenServiceBuilder({
               key,
               clientAssertion: jwt,
               clientAssertion: clientAssertionJWT,
+              dPoP: dPoPProofJWT,
               correlationId,
               fileManager,
               logger,
