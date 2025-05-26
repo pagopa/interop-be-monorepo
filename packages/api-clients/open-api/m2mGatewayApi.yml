@@ -1450,9 +1450,6 @@ paths:
         required: true
       responses:
         "204":
-          # Here we use 204 No Content because because
-          # this operation does not create or update a client or a purpose,
-          # but rather adds an association between the two.
           description: Purpose added
           headers:
             X-Rate-Limit-Limit:
