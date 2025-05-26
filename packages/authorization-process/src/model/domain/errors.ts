@@ -96,10 +96,14 @@ export function clientAdminIdNotFound(
 
 export function clientKeyNotFound(
   keyId: string,
-  clientId: ClientId
+  clientId: ClientId | undefined
 ): ApiError<ErrorCodes> {
+  const detail = clientId
+    ? `Key ${keyId} not found in client ${clientId}`
+    : `Key ${keyId} not found`;
+
   return new ApiError({
-    detail: `Key ${keyId} not found in client ${clientId}`,
+    detail,
     code: "clientKeyNotFound",
     title: "Key not found",
   });
@@ -323,10 +327,14 @@ export function userNotAllowedToDeleteProducerKeychainKey(
 
 export function producerKeyNotFound(
   keyId: string,
-  producerKeychainId: ProducerKeychainId
+  producerKeychainId: ProducerKeychainId | undefined
 ): ApiError<ErrorCodes> {
+  const detail = producerKeychainId
+    ? `Key ${keyId} not found in producer keychain ${producerKeychainId}`
+    : `Key ${keyId} not found`;
+
   return new ApiError({
-    detail: `Key ${keyId} not found in producer keychain ${producerKeychainId}`,
+    detail,
     code: "producerKeyNotFound",
     title: "Key not found",
   });

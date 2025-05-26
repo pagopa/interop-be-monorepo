@@ -1,4 +1,5 @@
 import { and, eq, ilike, inArray } from "drizzle-orm";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { ascLower, escapeRegExp, withTotalCount } from "pagopa-interop-commons";
 import {
   Client,
@@ -25,14 +26,18 @@ import {
   KeyUse,
   stringToDate,
   genericInternalError,
+  ClientJWKKey,
+  ProducerJWKKey,
 } from "pagopa-interop-models";
 import {
   aggregateClientArray,
   aggregateProducerKeychainArray,
   AgreementReadModelService,
   CatalogReadModelService,
+  ClientJWKKeyReadModelService,
   ClientReadModelService,
   DelegationReadModelService,
+  ProducerJWKKeyReadModelService,
   ProducerKeychainReadModelService,
   PurposeReadModelService,
   toClientAggregatorArray,
@@ -41,6 +46,7 @@ import {
 import {
   agreementInReadmodelAgreement,
   clientInReadmodelClient,
+  clientJwkKeyInReadmodelClientJwkKey,
   clientKeyInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientUserInReadmodelClient,
@@ -76,6 +82,8 @@ export function readModelServiceBuilderSQL({
   producerKeychainReadModelServiceSQL,
   delegationReadModelServiceSQL,
   agreementReadModelServiceSQL,
+  clientJWKKeyReadModelServiceSQL,
+  producerJWKKeyReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   clientReadModelServiceSQL: ClientReadModelService;
@@ -84,6 +92,8 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL: AgreementReadModelService;
   producerKeychainReadModelServiceSQL: ProducerKeychainReadModelService;
   delegationReadModelServiceSQL: DelegationReadModelService;
+  clientJWKKeyReadModelServiceSQL: ClientJWKKeyReadModelService;
+  producerJWKKeyReadModelServiceSQL: ProducerJWKKeyReadModelService;
 }) {
   return {
     async getClientById(
@@ -422,6 +432,65 @@ export function readModelServiceBuilderSQL({
           )
         )
       )?.data;
+    },
+    async getClientKeyByKeyId(
+      kId: ClientJWKKey["kid"]
+    ): Promise<authorizationApi.ClientKey | undefined> {
+      const key = await clientJWKKeyReadModelServiceSQL.getClientJWKKeyByFilter(
+        eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
+      );
+
+      if (!key?.data) {
+        return undefined;
+      }
+
+      const { clientId, ...jwkData } = key.data;
+
+      const clientKey: authorizationApi.ClientKey = {
+        clientId,
+        jwk: jwkData,
+      };
+
+      const parseResult = authorizationApi.ClientKey.safeParse(clientKey);
+      if (!parseResult.success) {
+        throw genericInternalError(
+          `Unable to parse client key: result ${JSON.stringify(
+            parseResult
+          )} - data ${JSON.stringify(jwkData)}`
+        );
+      }
+
+      return parseResult.data;
+    },
+    async getProducerKeyByKeyId(
+      kId: ProducerJWKKey["kid"]
+    ): Promise<authorizationApi.ProducerKey | undefined> {
+      const key =
+        await producerJWKKeyReadModelServiceSQL.getProducerJWKKeyByFilter(
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
+        );
+
+      if (!key?.data) {
+        return undefined;
+      }
+
+      const { producerKeychainId, ...jwkData } = key.data;
+
+      const producerKey: authorizationApi.ProducerKey = {
+        producerKeychainId,
+        jwk: jwkData,
+      };
+
+      const parseResult = authorizationApi.ProducerKey.safeParse(producerKey);
+      if (!parseResult.success) {
+        throw genericInternalError(
+          `Unable to parse producer key: result ${JSON.stringify(
+            parseResult
+          )} - data ${JSON.stringify(jwkData)}`
+        );
+      }
+
+      return parseResult.data;
     },
   };
 }
