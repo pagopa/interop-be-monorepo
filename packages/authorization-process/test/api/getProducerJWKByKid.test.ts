@@ -46,13 +46,13 @@ describe("API /producerKeys/{keyId} authorization test", () => {
     authorizationService.getClientKeyById = vi
       .fn()
       .mockRejectedValue(clientKeyNotFound(mockKey.kid, undefined));
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockKey.kid);
     expect(res.status).toBe(404);
   });
 
   it("Should return 400 if passed an invalid uuid", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "invalidUuid");
     expect(res.status).toBe(400);
   });
