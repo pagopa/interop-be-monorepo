@@ -204,6 +204,10 @@ export function tokenServiceBuilder({
         logger,
       });
 
+      if (key.clientKind === clientKindTokenGenStates.api && dPoPProofJWS) {
+        throw genericInternalError(`API tokens do not support DPoP proofs`);
+      }
+
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
           request.body.client_assertion,
