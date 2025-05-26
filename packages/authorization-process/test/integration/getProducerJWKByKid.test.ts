@@ -20,7 +20,7 @@ describe("getProducerJWKByKid", async () => {
   await addOneProducerKey(mockKey2);
 
   it("should get the client key if it exists", async () => {
-    const expectedKey: authorizationApi.ProducerJWk = {
+    const expectedKey: authorizationApi.ProducerJWK = {
       producerKeychainId: mockKey1.producerKeychainId,
       jwk: {
         kid: mockKey1.kid,
