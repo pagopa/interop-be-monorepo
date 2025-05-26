@@ -43,7 +43,7 @@ describe("getProducerJWKByKid", async () => {
     const randomKid = generateId();
 
     expect(
-      authorizationService.getJWKByKid(randomKid, getMockContext({}))
+      authorizationService.getProducerJWKByKid(randomKid, getMockContext({}))
     ).rejects.toThrowError(producerKeyNotFound(randomKid, undefined));
   });
 });
