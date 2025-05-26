@@ -23,6 +23,16 @@ export type ClientAssertionAuditDetails = z.infer<
   typeof ClientAssertionAuditDetails
 >;
 
+export const DPoPAuditDetails = z.object({
+  typ: z.string(),
+  alg: z.string(),
+  htm: z.string(),
+  htu: z.string(),
+  iat: z.number().int().min(0),
+  jti: z.string(),
+});
+export type DPoPAuditDetails = z.infer<typeof DPoPAuditDetails>;
+
 export const GeneratedTokenAuditDetails = z.object({
   jwtId: z.string(),
   correlationId: z.string(),
@@ -42,6 +52,7 @@ export const GeneratedTokenAuditDetails = z.object({
   expirationTime: z.number(),
   issuer: z.string(),
   clientAssertion: ClientAssertionAuditDetails,
+  dPoP: DPoPAuditDetails.optional(),
 });
 export type GeneratedTokenAuditDetails = z.infer<
   typeof GeneratedTokenAuditDetails

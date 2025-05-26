@@ -389,6 +389,7 @@ export const publishAudit = async ({
   generatedToken,
   key,
   clientAssertion,
+  dPoP,
   correlationId,
   fileManager,
   logger,
@@ -397,6 +398,7 @@ export const publishAudit = async ({
   generatedToken: InteropConsumerToken;
   key: FullTokenGenerationStatesConsumerClient;
   clientAssertion: ClientAssertion;
+  dPoP: DPoPProof | undefined;
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
@@ -432,6 +434,18 @@ export const publishAudit = async ({
       keyId: clientAssertion.header.kid,
       subject: clientAssertion.payload.sub,
     },
+    ...(dPoP
+      ? {
+          dPoP: {
+            typ: dPoP.header.typ,
+            alg: dPoP.header.alg,
+            htm: dPoP.payload.htm,
+            htu: dPoP.payload.htu,
+            iat: secondsToMilliseconds(dPoP.payload.iat),
+            jti: dPoP.payload.jti,
+          },
+        }
+      : {}),
   };
 
   try {
