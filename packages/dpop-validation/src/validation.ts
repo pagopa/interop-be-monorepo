@@ -194,6 +194,6 @@ export const checkDPoPCache = async (
   if (dPoPCache) {
     return failedValidation([dpopJTIAlreadyCached(dPoPProofJti)]);
   }
-  // TODO: double check return value
+
   return successfulValidation(dPoPProofJti);
 };

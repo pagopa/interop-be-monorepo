@@ -285,8 +285,6 @@ export function tokenServiceBuilder({
               dPoPJWK: dPoPProofJWT?.header.jwk,
             });
 
-            // TODO: Add DPoP audit
-
             await publishAudit({
               producer,
               generatedToken: token,
