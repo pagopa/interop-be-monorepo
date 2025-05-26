@@ -133,10 +133,14 @@ export const writeClientInEventstore = async (
 
 export const addOneKey = async (key: ClientJWKKey): Promise<void> => {
   await writeInReadmodel(key, keys);
+
+  await clientJWKKeyReadModelServiceSQL.upsertClientJWKKey(key, 0);
 };
 
 export const addOneProducerKey = async (key: ProducerJWKKey): Promise<void> => {
   await writeInReadmodel(key, producerKeys);
+
+  await producerJWKKeyReadModelServiceSQL.upsertProducerJWKKey(key, 0);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {
