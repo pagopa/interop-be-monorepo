@@ -63,11 +63,12 @@ export const verifyDPoPProof = ({
     const { errors: typErrors, data: validatedTyp } = validateTyp(
       decodedHeader.typ
     );
-    const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
-      decodedHeader.alg
-    );
     const { errors: jwkErrors, data: validatedJwk } = validateJWK(
       decodedHeader.jwk
+    );
+    const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
+      decodedHeader.alg,
+      validatedJwk?.alg
     );
 
     // JWT payload

@@ -1,12 +1,19 @@
-import { ApiError, JWKKey } from "pagopa-interop-models";
+import {
+  ApiError,
+  DPoPAlgorithm,
+  JWKKey,
+  JWKKeyES,
+} from "pagopa-interop-models";
 import * as jose from "jose";
 import { dateToSeconds } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
   FailedValidation,
   ValidationResult,
   SuccessfulValidation,
 } from "../types.js";
 import {
+  dpopAlgorithmsMismatch,
   dpopAlgorithmNotAllowed,
   dpopAlgorithmNotFound,
   ErrorCodes,
@@ -24,7 +31,7 @@ import {
 
 const EXPECTED_TYP = "dpop+jwt";
 const EXPECTED_HTM = "POST";
-export const ALLOWED_ALGORITHM = "RS256";
+const ALLOWED_ALGORITHMS: string[] = DPoPAlgorithm.options;
 
 export const validateTyp = (
   typ: string | undefined
@@ -41,13 +48,18 @@ export const validateTyp = (
 };
 
 export const validateAlgorithm = (
-  alg: string | undefined
+  alg: string | undefined,
+  jwkAlg: string | undefined
 ): ValidationResult<string> => {
-  if (!alg) {
+  if (!alg || !jwkAlg) {
     return failedValidation([dpopAlgorithmNotFound()]);
   }
 
-  if (alg === ALLOWED_ALGORITHM) {
+  if (alg !== jwkAlg) {
+    return failedValidation([dpopAlgorithmsMismatch(alg, jwkAlg)]);
+  }
+
+  if (ALLOWED_ALGORITHMS.includes(alg) && ALLOWED_ALGORITHMS.includes(jwkAlg)) {
     return successfulValidation(alg);
   }
 
@@ -56,11 +68,16 @@ export const validateAlgorithm = (
 
 export const validateJWK = (
   jwk: jose.JWK | undefined
-): ValidationResult<JWKKey> => {
+): ValidationResult<JWKKey | JWKKeyES> => {
   if (!jwk) {
     return failedValidation([dpopJWKNotFound()]);
   }
-  return successfulValidation(JWKKey.parse(jwk));
+
+  return match(jwk.alg)
+    .with("ES256", () => successfulValidation(JWKKeyES.parse(jwk)))
+    .with("RS256", () => successfulValidation(JWKKey.parse(jwk)))
+    .with(undefined, () => failedValidation([dpopAlgorithmNotFound()]))
+    .otherwise((alg) => failedValidation([dpopAlgorithmNotAllowed(alg)]));
 };
 
 export const validateHtm = (

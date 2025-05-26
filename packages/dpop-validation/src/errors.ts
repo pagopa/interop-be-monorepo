@@ -20,9 +20,10 @@ export const errorCodes = {
   notBeforeError: "0017",
   dpopAlgorithmNotFound: "0018",
   dpopAlgorithmNotAllowed: "0019",
-  dPoPProofInvalidClaims: "0020",
-  invalidDPoPSignature: "0021",
-  expiredDPoPProof: "0022",
+  dpopAlgorithmsMismatch: "0020",
+  dPoPProofInvalidClaims: "0021",
+  invalidDPoPSignature: "0022",
+  expiredDPoPProof: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -185,6 +186,17 @@ export function dpopAlgorithmNotAllowed(
     detail: `Algorithm ${algorithm} is not allowed for the DPoP proof`,
     code: "dpopAlgorithmNotAllowed",
     title: "DPoP ALG not allowed",
+  });
+}
+
+export function dpopAlgorithmsMismatch(
+  alg: string,
+  jwkAlg: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP algorithms mismatch. ALG: ${alg}. JWK.ALG: ${jwkAlg}`,
+    code: "dpopAlgorithmsMismatch",
+    title: "DPoP algorithms mismatch",
   });
 }
 
