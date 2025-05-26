@@ -1,4 +1,3 @@
-import { authorizationApi } from "pagopa-interop-api-clients";
 import { ReadModelFilter, ReadModelRepository } from "pagopa-interop-commons";
 import {
   Client,
@@ -444,23 +443,17 @@ export function readModelServiceBuilder(
     },
     async getClientKeyByKeyId(
       kId: ClientJWKKey["kid"]
-    ): Promise<authorizationApi.ClientKey | undefined> {
-      const keyData = await keys.findOne(
+    ): Promise<ClientJWKKey | undefined> {
+      const clientKey = await keys.findOne(
         { "data.kid": kId },
         { projection: { data: true } }
       );
 
-      if (!keyData?.data) {
+      if (!clientKey?.data) {
         return undefined;
       }
 
-      const { clientId, ...jwkData } = keyData.data;
-      const clientKey: authorizationApi.ClientKey = {
-        clientId,
-        jwk: jwkData,
-      };
-
-      const parseResult = authorizationApi.ClientKey.safeParse(clientKey);
+      const parseResult = ClientJWKKey.safeParse(clientKey.data);
       if (!parseResult.success) {
         throw genericInternalError(
           `Unable to parse client key: result ${JSON.stringify(
@@ -473,23 +466,17 @@ export function readModelServiceBuilder(
     },
     async getProducerKeyByKeyId(
       kId: ProducerJWKKey["kid"]
-    ): Promise<authorizationApi.ProducerKey | undefined> {
-      const producerKeyData = await producerKeys.findOne(
+    ): Promise<ProducerJWKKey | undefined> {
+      const producerKey = await producerKeys.findOne(
         { "data.kid": kId },
         { projection: { data: true } }
       );
 
-      if (!producerKeyData?.data) {
+      if (!producerKey?.data) {
         return undefined;
       }
 
-      const { producerKeychainId, ...jwkData } = producerKeyData.data;
-      const producerKey: authorizationApi.ProducerKey = {
-        producerKeychainId,
-        jwk: jwkData,
-      };
-
-      const parseResult = authorizationApi.ProducerKey.safeParse(producerKey);
+      const parseResult = ProducerJWKKey.safeParse(producerKey.data);
       if (!parseResult.success) {
         throw genericInternalError(
           `Unable to parse producer key: result ${JSON.stringify(

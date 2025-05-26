@@ -91,7 +91,9 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   ApiKeyUseToKeyUse,
+  clientJWKToApiClientJWK,
   clientToApiClient,
+  producerJWKToApiProducerJWK,
 } from "../model/domain/apiConverter.js";
 import { config } from "../config/config.js";
 import {
@@ -1432,7 +1434,7 @@ export function authorizationServiceBuilder(
     async getJWKByKid(
       kid: string,
       { logger }: WithLogger<AppContext<M2MAdminAuthData>>
-    ): Promise<authorizationApi.ClientKey> {
+    ): Promise<authorizationApi.ClientJWK> {
       logger.info(`Retrieving key with id ${kid}`);
 
       const clientKey = await readModelService.getClientKeyByKeyId(kid);
@@ -1441,12 +1443,12 @@ export function authorizationServiceBuilder(
         throw clientKeyNotFound(kid, undefined);
       }
 
-      return clientKey;
+      return clientJWKToApiClientJWK(clientKey);
     },
     async getProducerJWKByKid(
       kid: string,
       { logger }: WithLogger<AppContext<M2MAdminAuthData>>
-    ): Promise<authorizationApi.ProducerKey> {
+    ): Promise<authorizationApi.ProducerJWK> {
       logger.info(`Retrieving key with id ${kid}`);
 
       const producerKey = await readModelService.getProducerKeyByKeyId(kid);
@@ -1455,7 +1457,7 @@ export function authorizationServiceBuilder(
         throw producerKeyNotFound(kid, undefined);
       }
 
-      return producerKey;
+      return producerJWKToApiProducerJWK(producerKey);
     },
   };
 }

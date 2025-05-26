@@ -1049,7 +1049,7 @@ const authorizationRouter = (
         );
         return res
           .status(200)
-          .send(authorizationApi.ClientKey.parse(keyWithClientId));
+          .send(authorizationApi.ClientJWK.parse(keyWithClientId));
       } catch (error) {
         const errorRes = makeApiProblem(error, getJWKByKidErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
@@ -1068,7 +1068,7 @@ const authorizationRouter = (
           );
         return res
           .status(200)
-          .send(authorizationApi.ProducerKey.parse(keyWithProducerKeychainId));
+          .send(authorizationApi.ProducerJWK.parse(keyWithProducerKeychainId));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

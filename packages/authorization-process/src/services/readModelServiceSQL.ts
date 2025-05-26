@@ -1,5 +1,4 @@
 import { and, eq, ilike, inArray } from "drizzle-orm";
-import { authorizationApi } from "pagopa-interop-api-clients";
 import { ascLower, escapeRegExp, withTotalCount } from "pagopa-interop-commons";
 import {
   Client,
@@ -435,28 +434,22 @@ export function readModelServiceBuilderSQL({
     },
     async getClientKeyByKeyId(
       kId: ClientJWKKey["kid"]
-    ): Promise<authorizationApi.ClientKey | undefined> {
-      const key = await clientJWKKeyReadModelServiceSQL.getClientJWKKeyByFilter(
-        eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
-      );
+    ): Promise<ClientJWKKey | undefined> {
+      const clientKey =
+        await clientJWKKeyReadModelServiceSQL.getClientJWKKeyByFilter(
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
+        );
 
-      if (!key?.data) {
+      if (!clientKey?.data) {
         return undefined;
       }
 
-      const { clientId, ...jwkData } = key.data;
-
-      const clientKey: authorizationApi.ClientKey = {
-        clientId,
-        jwk: jwkData,
-      };
-
-      const parseResult = authorizationApi.ClientKey.safeParse(clientKey);
+      const parseResult = ClientJWKKey.safeParse(clientKey.data);
       if (!parseResult.success) {
         throw genericInternalError(
           `Unable to parse client key: result ${JSON.stringify(
             parseResult
-          )} - data ${JSON.stringify(jwkData)}`
+          )} - data ${JSON.stringify(clientKey)}`
         );
       }
 
@@ -464,29 +457,22 @@ export function readModelServiceBuilderSQL({
     },
     async getProducerKeyByKeyId(
       kId: ProducerJWKKey["kid"]
-    ): Promise<authorizationApi.ProducerKey | undefined> {
-      const key =
+    ): Promise<ProducerJWKKey | undefined> {
+      const producerKey =
         await producerJWKKeyReadModelServiceSQL.getProducerJWKKeyByFilter(
           eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
         );
 
-      if (!key?.data) {
+      if (!producerKey?.data) {
         return undefined;
       }
 
-      const { producerKeychainId, ...jwkData } = key.data;
-
-      const producerKey: authorizationApi.ProducerKey = {
-        producerKeychainId,
-        jwk: jwkData,
-      };
-
-      const parseResult = authorizationApi.ProducerKey.safeParse(producerKey);
+      const parseResult = ProducerJWKKey.safeParse(producerKey.data);
       if (!parseResult.success) {
         throw genericInternalError(
           `Unable to parse producer key: result ${JSON.stringify(
             parseResult
-          )} - data ${JSON.stringify(jwkData)}`
+          )} - data ${JSON.stringify(producerKey)}`
         );
       }
 

@@ -30,7 +30,7 @@ export function toM2MJWK(key: authorizationApi.JWKKey): m2mGatewayApi.JWK {
 export function toM2MKey({
   clientId,
   jwk,
-}: authorizationApi.ClientKey): m2mGatewayApi.Key {
+}: authorizationApi.ClientJWK): m2mGatewayApi.Key {
   return {
     clientId,
     jwk: toM2MJWK(jwk),
@@ -40,7 +40,7 @@ export function toM2MKey({
 export function toM2MProducerKey({
   jwk,
   producerKeychainId,
-}: authorizationApi.ProducerKey): m2mGatewayApi.ProducerKey {
+}: authorizationApi.ProducerJWK): m2mGatewayApi.ProducerKey {
   return {
     producerKeychainId,
     jwk: toM2MJWK(jwk),

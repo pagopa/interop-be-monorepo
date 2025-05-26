@@ -17,7 +17,7 @@ describe("getJWKByKid", async () => {
   await addOneKey(mockKey2);
 
   it("should get the client key if it exists", async () => {
-    const expectedKey: authorizationApi.ClientKey = {
+    const expectedKey: authorizationApi.ClientJWK = {
       clientId: mockKey1.clientId,
       jwk: {
         kid: mockKey1.kid,
