@@ -69,6 +69,7 @@ import {
   platformStateValidationFailed,
   dPoPProofValidationFailed,
   dPoPProofSignatureValidationFailed,
+  unexpectedDPoPProofForAPIToken,
 } from "../model/domain/errors.js";
 import { TokenRequest } from "../model/domain/models.js";
 
@@ -206,7 +207,7 @@ export function tokenServiceBuilder({
       });
 
       if (key.clientKind === clientKindTokenGenStates.api && dPoPProofJWS) {
-        throw genericInternalError(`API tokens do not support DPoP proofs`);
+        throw unexpectedDPoPProofForAPIToken(key.GSIPK_clientId);
       }
 
       const { errors: clientAssertionSignatureErrors } =
