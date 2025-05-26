@@ -14,7 +14,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
 } from "pagopa-interop-commons-test";
-import { eServiceTemplateNotFound } from "../../src/model/domain/errors.js";
+import { eserviceTemplateNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
@@ -87,7 +87,7 @@ describe("getEServiceTemplateById", () => {
     });
   });
 
-  it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
+  it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
     await addOneEServiceTemplate(mockEServiceTemplate);
     const notExistingId: EServiceTemplateId = generateId();
     expect(
@@ -95,10 +95,10 @@ describe("getEServiceTemplateById", () => {
         notExistingId,
         getMockContext({})
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(notExistingId));
+    ).rejects.toThrowError(eserviceTemplateNotFound(notExistingId));
   });
 
-  it("should throw eServiceTemplateNotFound if there is only a draft version (requester is not the creator)", async () => {
+  it("should throw eserviceTemplateNotFound if there is only a draft version (requester is not the creator)", async () => {
     const eserviceTemplateVersion = {
       ...mockEServiceTemplateVersion,
       state: eserviceTemplateVersionState.draft,
@@ -113,10 +113,10 @@ describe("getEServiceTemplateById", () => {
         eserviceTemplate.id,
         getMockContext({})
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
   });
 
-  it("should throw eServiceTemplateNotFound if there are no versions (requester is not the creator)", async () => {
+  it("should throw eserviceTemplateNotFound if there are no versions (requester is not the creator)", async () => {
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [],
@@ -127,7 +127,7 @@ describe("getEServiceTemplateById", () => {
         eserviceTemplate.id,
         getMockContext({})
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
   });
 
   it("should filter out the draft versions if the eservice template has both of that state and not (requester is not the creator)", async () => {

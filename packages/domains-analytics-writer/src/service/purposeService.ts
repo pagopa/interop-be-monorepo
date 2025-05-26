@@ -29,60 +29,69 @@ export function purposeServiceBuilder(db: DBContext) {
   const answerRepository = purposeRiskAnalysisAnswerRepo(db.conn);
 
   return {
-    async upsertBatchPurpose(ctx: DBContext, items: PurposeItemsSchema[]) {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        const batchItems = {
-          purposeSQL: batch.map((item) => item.purposeSQL),
-          versionsSQL: batch.flatMap((item) => item.versionsSQL),
-          versionDocumentsSQL: batch.flatMap(
-            (item) => item.versionDocumentsSQL
-          ),
-          riskAnalysisFormSQL: batch.flatMap(
-            (item) => item.riskAnalysisFormSQL ?? []
-          ),
-          riskAnalysisAnswersSQL: batch.flatMap(
-            (item) => item.riskAnalysisAnswersSQL ?? []
-          ),
-        };
+    async upsertBatchPurpose(
+      dbContext: DBContext,
+      items: PurposeItemsSchema[]
+    ) {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          const batchItems = {
+            purposeSQL: batch.map((item) => item.purposeSQL),
+            versionsSQL: batch.flatMap((item) => item.versionsSQL),
+            versionDocumentsSQL: batch.flatMap(
+              (item) => item.versionDocumentsSQL
+            ),
+            riskAnalysisFormSQL: batch.flatMap(
+              (item) => item.riskAnalysisFormSQL ?? []
+            ),
+            riskAnalysisAnswersSQL: batch.flatMap(
+              (item) => item.riskAnalysisAnswersSQL ?? []
+            ),
+          };
 
-        await ctx.conn.tx(async (t) => {
           if (batchItems.purposeSQL.length) {
-            await purposeRepository.insert(t, ctx.pgp, batchItems.purposeSQL);
+            await purposeRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.purposeSQL
+            );
           }
           if (batchItems.versionsSQL.length) {
-            await versionRepository.insert(t, ctx.pgp, batchItems.versionsSQL);
+            await versionRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.versionsSQL
+            );
           }
           if (batchItems.versionDocumentsSQL.length) {
             await versionDocumentRepository.insert(
               t,
-              ctx.pgp,
+              dbContext.pgp,
               batchItems.versionDocumentsSQL
             );
           }
           if (batchItems.riskAnalysisFormSQL.length) {
             await formRepository.insert(
               t,
-              ctx.pgp,
+              dbContext.pgp,
               batchItems.riskAnalysisFormSQL
             );
           }
           if (batchItems.riskAnalysisAnswersSQL.length) {
             await answerRepository.insert(
               t,
-              ctx.pgp,
+              dbContext.pgp,
               batchItems.riskAnalysisAnswersSQL
             );
           }
-        });
-        genericLogger.info(
-          `Staging data inserted for batch of ${batchItems.purposeSQL.length} purposes`
-        );
-      }
+          genericLogger.info(
+            `Staging data inserted for batch of ${batchItems.purposeSQL.length} purposes`
+          );
+        }
 
-      await ctx.conn.tx(async (t) => {
         await purposeRepository.merge(t);
         await versionRepository.merge(t);
         await versionDocumentRepository.merge(t);
@@ -102,42 +111,40 @@ export function purposeServiceBuilder(db: DBContext) {
     },
 
     async upsertBatchPurposeVersion(
-      ctx: DBContext,
+      dbContext: DBContext,
       items: PurposeVersionItemsSchema[]
     ) {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        const batchItems = {
-          purposeVersion: batch.map((item) => item.versionSQL),
-          versionDocument: batch.flatMap((item) =>
-            item.versionDocumentSQL ? [item.versionDocumentSQL] : []
-          ),
-        };
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          const batchItems = {
+            purposeVersion: batch.map((item) => item.versionSQL),
+            versionDocument: batch.flatMap((item) =>
+              item.versionDocumentSQL ? [item.versionDocumentSQL] : []
+            ),
+          };
 
-        await ctx.conn.tx(async (t) => {
           if (batchItems.purposeVersion.length) {
             await versionRepository.insert(
               t,
-              ctx.pgp,
+              dbContext.pgp,
               batchItems.purposeVersion
             );
           }
           if (batchItems.versionDocument.length) {
             await versionDocumentRepository.insert(
               t,
-              ctx.pgp,
+              dbContext.pgp,
               batchItems.versionDocument
             );
           }
-        });
-        genericLogger.info(
-          `Staging data inserted for batch of ${batchItems.purposeVersion.length} purpose versions`
-        );
-      }
+          genericLogger.info(
+            `Staging data inserted for batch of ${batchItems.purposeVersion.length} purpose versions`
+          );
+        }
 
-      await ctx.conn.tx(async (t) => {
         await versionRepository.merge(t);
         await versionDocumentRepository.merge(t);
       });
@@ -150,20 +157,20 @@ export function purposeServiceBuilder(db: DBContext) {
       genericLogger.info(`Staging data cleaned for purpose versions`);
     },
 
-    async deleteBatchPurpose(ctx: DBContext, records: PurposeDeletingSchema[]) {
-      await ctx.conn.tx(async (t) => {
+    async deleteBatchPurpose(
+      dbContext: DBContext,
+      records: PurposeDeletingSchema[]
+    ) {
+      await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(
           records,
           config.dbMessagesToInsertPerBatch
         )) {
-          await purposeRepository.insertDeleting(t, ctx.pgp, batch);
+          await purposeRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for purposeIds: ${batch.join(", ")}`
           );
         }
-      });
-
-      await ctx.conn.tx(async (t) => {
         await purposeRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
@@ -186,24 +193,21 @@ export function purposeServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchPurposeVersion(
-      ctx: DBContext,
+      dbContext: DBContext,
       records: PurposeVersionDeletingSchema[]
     ) {
-      await ctx.conn.tx(async (t) => {
+      await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(
           records,
           config.dbMessagesToInsertPerBatch
         )) {
-          await versionRepository.insertDeleting(t, ctx.pgp, batch);
+          await versionRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for purposeVersionIds: ${batch.join(
               ", "
             )}`
           );
         }
-      });
-
-      await ctx.conn.tx(async (t) => {
         await versionRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
