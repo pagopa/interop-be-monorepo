@@ -60,14 +60,18 @@ describe("GET /agreements/:agreementId route test", () => {
     expect(res.status).toBe(400);
   });
 
-  it("Should return 500 when API model parsing fails for response", async () => {
-    mockAgreementService.getAgreement = vi.fn().mockResolvedValue({
-      ...mockM2MAgreementResponse,
-      state: "INVALID_STATE",
-    });
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
+  it.each([
+    { ...mockM2MAgreementResponse, state: "INVALID_STATE" },
+    { ...mockM2MAgreementResponse, invalidParam: "invalidValue" },
+    { ...mockM2MAgreementResponse, createdAt: undefined },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockAgreementService.getAgreement = vi.fn().mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token);
 
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });
