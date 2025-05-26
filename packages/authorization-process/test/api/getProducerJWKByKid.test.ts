@@ -22,7 +22,10 @@ describe("API /producerKeys/{keyId} authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send();
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.M2M_ADMIN_ROLE,
+    authRole.ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {

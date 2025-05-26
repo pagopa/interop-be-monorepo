@@ -1433,7 +1433,7 @@ export function authorizationServiceBuilder(
     },
     async getJWKByKid(
       kid: string,
-      { logger }: WithLogger<AppContext<M2MAdminAuthData>>
+      { logger }: WithLogger<AppContext<M2MAdminAuthData | UIAuthData>>
     ): Promise<authorizationApi.ClientJWK> {
       logger.info(`Retrieving key with id ${kid}`);
 
@@ -1447,7 +1447,7 @@ export function authorizationServiceBuilder(
     },
     async getProducerJWKByKid(
       kid: string,
-      { logger }: WithLogger<AppContext<M2MAdminAuthData>>
+      { logger }: WithLogger<AppContext<M2MAdminAuthData | UIAuthData>>
     ): Promise<authorizationApi.ProducerJWK> {
       logger.info(`Retrieving key with id ${kid}`);
 

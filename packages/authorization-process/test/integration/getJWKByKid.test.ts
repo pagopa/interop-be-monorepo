@@ -3,7 +3,7 @@ import { generateId } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
   getMockClientJWKKey,
-  getMockM2MAdminAppContext,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { clientKeyNotFound } from "../../src/model/domain/errors.js";
@@ -31,7 +31,7 @@ describe("getJWKByKid", async () => {
 
     const retrievedKey = await authorizationService.getJWKByKid(
       mockKey1.kid,
-      getMockM2MAdminAppContext()
+      getMockContext({})
     );
     expect(retrievedKey).toEqual(expectedKey);
   });
@@ -40,7 +40,7 @@ describe("getJWKByKid", async () => {
     const randomKid = generateId();
 
     expect(
-      authorizationService.getJWKByKid(randomKid, getMockM2MAdminAppContext())
+      authorizationService.getJWKByKid(randomKid, getMockContext({}))
     ).rejects.toThrowError(clientKeyNotFound(randomKid, undefined));
   });
 });

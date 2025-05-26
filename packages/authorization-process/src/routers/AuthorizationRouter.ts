@@ -1041,7 +1041,7 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE, ADMIN_ROLE]);
 
         const keyWithClientId = await authorizationService.getJWKByKid(
           unsafeBrandId(req.params.kid),
@@ -1059,7 +1059,7 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE, ADMIN_ROLE]);
 
         const keyWithProducerKeychainId =
           await authorizationService.getProducerJWKByKid(
