@@ -37,9 +37,9 @@ export const sortPurposeVersionsByDate = (
 export const getPurposeCurrentVersion = (
   purpose: purposeApi.Purpose
 ): purposeApi.PurposeVersion | undefined => {
-  const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
-    m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
-    m2mGatewayApi.PurposeVersionState.Values.REJECTED,
+  const statesToExclude: purposeApi.PurposeVersionState[] = [
+    purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
+    purposeApi.PurposeVersionState.Values.REJECTED,
   ];
   return sortPurposeVersionsByDate(purpose.versions)
     .filter((v) => !statesToExclude.includes(v.state))
