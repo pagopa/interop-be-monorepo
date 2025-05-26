@@ -1,5 +1,10 @@
-import { and, eq, lte } from "drizzle-orm";
-import { Client, ClientId, WithMetadata } from "pagopa-interop-models";
+import { and, eq, lte, SQL } from "drizzle-orm";
+import {
+  Client,
+  ClientId,
+  genericInternalError,
+  WithMetadata,
+} from "pagopa-interop-models";
 import {
   clientInReadmodelClient,
   clientKeyInReadmodelClient,
@@ -10,7 +15,9 @@ import {
 import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 import {
   aggregateClient,
+  aggregateClientArray,
   toClientAggregator,
+  toClientAggregatorArray,
 } from "./authorization/clientAggregators.js";
 import { checkMetadataVersion } from "./utils.js";
 
@@ -109,6 +116,40 @@ export function clientReadModelServiceBuilder(db: DrizzleReturnType) {
             lte(clientInReadmodelClient.metadataVersion, metadataVersion)
           )
         );
+    },
+    async getClients(
+      filter: SQL | undefined
+    ): Promise<Array<WithMetadata<Client>>> {
+      if (filter === undefined) {
+        throw genericInternalError("Filter cannot be undefined");
+      }
+
+      const queryResult = await db
+        .select({
+          client: clientInReadmodelClient,
+          clientUser: clientUserInReadmodelClient,
+          clientPurpose: clientPurposeInReadmodelClient,
+          clientKey: clientKeyInReadmodelClient,
+        })
+        .from(clientInReadmodelClient)
+        .where(filter)
+        .leftJoin(
+          clientUserInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
+        )
+        .leftJoin(
+          clientPurposeInReadmodelClient,
+          eq(
+            clientInReadmodelClient.id,
+            clientPurposeInReadmodelClient.clientId
+          )
+        )
+        .leftJoin(
+          clientKeyInReadmodelClient,
+          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
+        );
+
+      return aggregateClientArray(toClientAggregatorArray(queryResult));
     },
   };
 }
