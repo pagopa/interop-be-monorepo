@@ -12,7 +12,14 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { getPurposeVersionErrorMapper } from "../utils/errorMappers.js";
+import {
+  getPurposeVersionErrorMapper,
+  suspendPurposeErrorMapper,
+  archivePurposeErrorMapper,
+  approvePurposeErrorMapper,
+  activatePurposeErrorMapper,
+  unsuspendPurposeErrorMapper,
+} from "../utils/errorMappers.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -157,11 +164,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/activate", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.activateDraftPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          activatePurposeErrorMapper,
           ctx,
           `Error activating purpose ${req.params.purposeId}`
         );
@@ -171,11 +185,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/approve", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.approvePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          approvePurposeErrorMapper,
           ctx,
           `Error approving purpose ${req.params.purposeId}`
         );
@@ -185,11 +206,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/archive", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.archivePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          archivePurposeErrorMapper,
           ctx,
           `Error archiving purpose ${req.params.purposeId}`
         );
@@ -199,11 +227,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/suspend", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.suspendPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          suspendPurposeErrorMapper,
           ctx,
           `Error suspending purpose ${req.params.purposeId} version`
         );
@@ -213,11 +248,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/unsuspend", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.unsuspendPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.sendStatus(204);
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          unsuspendPurposeErrorMapper,
           ctx,
           `Error unsuspending purpose ${req.params.purposeId}`
         );

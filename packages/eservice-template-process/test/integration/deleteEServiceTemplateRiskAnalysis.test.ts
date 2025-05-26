@@ -27,7 +27,7 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
 import {
-  eServiceTemplateNotFound,
+  eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
 } from "../../src/model/domain/errors.js";
@@ -135,7 +135,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
   });
   it("should throw operationForbidden if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
