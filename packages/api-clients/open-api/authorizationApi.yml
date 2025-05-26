@@ -865,7 +865,7 @@ paths:
           X-Metadata-Version:
             $ref: "#/components/headers/MetadataVersionHeader"
         "200":
-          description: Request succeeded
+          description: Client with added purpose
           content:
             application/json:
               schema:
