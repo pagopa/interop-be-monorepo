@@ -6,7 +6,7 @@ import { generateId } from "pagopa-interop-models";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
-import { fileManager, getBffMockContext } from "./integrationUtils.js";
+import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("addAgreementConsumerDocument", () => {
   const agreementId = generateId();
