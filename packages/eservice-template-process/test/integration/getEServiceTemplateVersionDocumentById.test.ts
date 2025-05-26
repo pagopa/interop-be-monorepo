@@ -2,6 +2,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  eserviceTemplateVersionState,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -116,7 +117,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
     const documentId = generateId();
     const versionDraft: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
-      state: "Draft",
+      state: eserviceTemplateVersionState.draft,
       interface: {
         ...mockDocument,
         id: unsafeBrandId(documentId),

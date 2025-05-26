@@ -421,7 +421,7 @@ describe("get eservices", () => {
   );
 
   it.each(getContextsAllowedToSeeDraftVersions(organizationId1))(
-    "should not filter out draft versions if the eservice template has both of draft and published versions (requester is the creator, , user roles: $authData.userRoles, system role: $authData.systemRole)",
+    "should not filter out draft versions if the eservice template has both of draft and published versions (requester is the creator, user roles: $authData.userRoles, system role: $authData.systemRole)",
     async (context) => {
       const eserviceTemplateVersion6a: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(),
@@ -516,7 +516,7 @@ describe("get eservices", () => {
   });
 
   it.each(getContextsAllowedToSeeDraftVersions(generateId()))(
-    "should filter out draft versions if the eservice template has both of draft and published versions (requester is not the creator, , user roles: $authData.userRoles, system role: $authData.systemRole)",
+    "should filter out draft versions if the eservice template has both of draft and published versions (requester is not the creator, user roles: $authData.userRoles, system role: $authData.systemRole)",
     async (context) => {
       const eserviceTemplateVersion6a: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(),
