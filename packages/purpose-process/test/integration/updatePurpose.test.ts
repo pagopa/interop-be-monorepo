@@ -15,6 +15,7 @@ import {
   addSomeRandomDelegations,
   getMockAgreement,
   getMockContext,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   tenantKind,
@@ -61,11 +62,7 @@ import {
   addOneEService,
   addOneAgreement,
 } from "../integrationUtils.js";
-import {
-  getMockEService,
-  buildRiskAnalysisSeed,
-  createUpdatedPurpose,
-} from "../mockUtils.js";
+import { buildRiskAnalysisSeed, createUpdatedPurpose } from "../mockUtils.js";
 
 describe("updatePurpose and updateReversePurpose", () => {
   const tenantType = randomArrayItem(Object.values(tenantKind));

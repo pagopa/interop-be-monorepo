@@ -15,6 +15,7 @@ import {
   AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
+  DelegationDbTable,
   DeletingDbTable,
   PurposeDbTable,
 } from "./model/db/index.js";
@@ -63,6 +64,9 @@ await retryConnection(
       PurposeDbTable.purpose_version_document,
       PurposeDbTable.purpose_risk_analysis_form,
       PurposeDbTable.purpose_risk_analysis_answer,
+      DelegationDbTable.delegation,
+      DelegationDbTable.delegation_stamp,
+      DelegationDbTable.delegation_contract_document,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
