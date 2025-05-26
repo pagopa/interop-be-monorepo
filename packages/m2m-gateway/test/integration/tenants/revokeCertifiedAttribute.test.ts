@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -14,7 +13,11 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiAttribute, getMockedApiTenant } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  getMockedApiAttribute,
+  getMockedApiTenant,
+} from "../../mockUtils.js";
 
 describe("revokeCertifiedAttribute", () => {
   const mockCertifiedAttribute = getMockedApiAttribute();

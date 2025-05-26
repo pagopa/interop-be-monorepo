@@ -1,13 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, agreementApi } from "pagopa-interop-api-clients";
-import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   agreementService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockedApiAgreement } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  getMockedApiAgreement,
+} from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getAgreements", () => {

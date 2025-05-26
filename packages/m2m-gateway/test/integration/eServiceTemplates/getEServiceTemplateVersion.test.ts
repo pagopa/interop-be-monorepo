@@ -5,7 +5,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -13,6 +12,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
+  getMockM2MAdminAppContext,
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
 } from "../../mockUtils.js";

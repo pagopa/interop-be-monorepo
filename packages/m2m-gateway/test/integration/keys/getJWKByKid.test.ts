@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unsafeBrandId } from "pagopa-interop-models";
-import {
-  getMockClientJWKKey,
-  getMockM2MAdminAppContext,
-} from "pagopa-interop-commons-test/index.js";
+import { getMockClientJWKKey } from "pagopa-interop-commons-test/index.js";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
@@ -11,6 +8,7 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getJWKByKid", () => {
   const mockKey = getMockClientJWKKey();

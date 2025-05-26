@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -9,6 +8,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
+  getMockM2MAdminAppContext,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
 } from "../../mockUtils.js";

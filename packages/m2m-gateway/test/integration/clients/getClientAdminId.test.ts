@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
-import { getMockedApiClient } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  getMockedApiClient,
+} from "../../mockUtils.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,

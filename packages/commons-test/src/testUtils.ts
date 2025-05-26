@@ -112,7 +112,6 @@ import {
   WithLogger,
   SessionClaims,
   CustomClaims,
-  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -833,44 +832,6 @@ export const getMockContext = ({
   logger: genericLogger,
   requestTimestamp: Date.now(),
 });
-
-export const m2mTestToken = generateMock(z.string().base64());
-
-export const getMockM2MAdminAppContext = ({
-  organizationId,
-  serviceName,
-}: {
-  organizationId?: TenantId;
-  serviceName?: string;
-} = {}): WithLogger<
-  AppContext<M2MAdminAuthData> & {
-    headers: {
-      "X-Correlation-Id": CorrelationId;
-      Authorization: string | undefined;
-      "X-Forwarded-For": string | undefined;
-    };
-  }
-> => {
-  const correlationId = generateId<CorrelationId>();
-  return {
-    authData: {
-      systemRole: systemRole.M2M_ADMIN_ROLE,
-      organizationId: organizationId || generateId(),
-      userId: generateId(),
-      clientId: generateId(),
-    },
-    serviceName: serviceName || generateMock(z.string()),
-    spanId: generateId(),
-    logger: genericLogger,
-    requestTimestamp: Date.now(),
-    correlationId,
-    headers: {
-      "X-Correlation-Id": correlationId,
-      Authorization: `Bearer ${m2mTestToken}`,
-      "X-Forwarded-For": undefined,
-    },
-  };
-};
 
 export const sortBy =
   <T>(getKey: (item: T) => string) =>

@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   delegationService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -16,7 +15,10 @@ import {
   resourcePollingTimeout,
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
-import { getMockedApiDelegation } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  getMockedApiDelegation,
+} from "../../mockUtils.js";
 
 describe("createConsumerDelegation", () => {
   const mockDelegationSeed: m2mGatewayApi.DelegationSeed = {

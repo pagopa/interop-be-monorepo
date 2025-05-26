@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { AxiosError, AxiosResponse } from "axios";
 import { expect } from "vitest";
-import { m2mTestToken } from "pagopa-interop-commons-test/src/testUtils.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
@@ -13,6 +12,7 @@ import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplate
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { eserviceServiceBuilder } from "../src/services/eserviceService.js";
 import { keysServiceBuilder } from "../src/services/keysService.js";
+import { m2mTestToken } from "./mockUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function mockPollingResponse<T>(

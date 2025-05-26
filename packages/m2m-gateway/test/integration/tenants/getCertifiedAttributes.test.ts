@@ -5,7 +5,6 @@ import {
   tenantApi,
 } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -13,7 +12,11 @@ import {
   tenantService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockedApiAttribute, getMockedApiTenant } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  getMockedApiAttribute,
+  getMockedApiTenant,
+} from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import {
   unexpectedAttributeKind,
