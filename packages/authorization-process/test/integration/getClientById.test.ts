@@ -28,13 +28,13 @@ describe("getClientById", async () => {
     };
     await addOneClient(expectedClient);
 
-    const getClientResult = await authorizationService.getClientById(
+    const clientResult = await authorizationService.getClientById(
       {
         clientId: expectedClient.id,
       },
       getMockContext({ authData: getMockAuthData(organizationId) })
     );
-    expect(getClientResult).toEqual({
+    expect(clientResult).toEqual({
       data: { client: expectedClient, showUsers: true },
       metadata: { version: 0 },
     });
