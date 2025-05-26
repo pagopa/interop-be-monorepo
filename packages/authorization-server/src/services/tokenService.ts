@@ -155,7 +155,7 @@ export function tokenServiceBuilder({
       }
 
       // Client assertion validation
-      const { data: jwt, errors: clientAssertionErrors } =
+      const { data: clientAssertionJWT, errors: clientAssertionErrors } =
         verifyClientAssertion(
           request.body.client_assertion,
           request.body.client_id,
@@ -170,14 +170,14 @@ export function tokenServiceBuilder({
         );
       }
 
-      const clientId = jwt.payload.sub;
-      const kid = jwt.header.kid;
-      const purposeId = jwt.payload.purposeId;
+      const clientId = clientAssertionJWT.payload.sub;
+      const kid = clientAssertionJWT.header.kid;
+      const purposeId = clientAssertionJWT.payload.purposeId;
 
       setCtxClientId(clientId);
 
       logTokenGenerationInfo({
-        validatedJwt: jwt,
+        validatedJwt: clientAssertionJWT,
         clientKind: undefined,
         tokenJti: undefined,
         message: "Client assertion validated",
@@ -197,7 +197,7 @@ export function tokenServiceBuilder({
       setCtxOrganizationId(key.consumerId);
 
       logTokenGenerationInfo({
-        validatedJwt: jwt,
+        validatedJwt: clientAssertionJWT,
         clientKind: key.clientKind,
         tokenJti: undefined,
         message: "Key retrieved",
@@ -208,7 +208,7 @@ export function tokenServiceBuilder({
         await verifyClientAssertionSignature(
           request.body.client_assertion,
           key,
-          jwt.header.alg
+          clientAssertionJWT.header.alg
         );
 
       if (clientAssertionSignatureErrors) {
@@ -220,7 +220,7 @@ export function tokenServiceBuilder({
 
       // Platform states validation
       const { errors: platformStateErrors } =
-        validateClientKindAndPlatformState(key, jwt);
+        validateClientKindAndPlatformState(key, clientAssertionJWT);
       if (platformStateErrors) {
         throw platformStateValidationFailed(
           platformStateErrors.map((error) => error.detail).join(", ")
@@ -264,11 +264,11 @@ export function tokenServiceBuilder({
             // TODO: Add DPoP token
 
             const token = await tokenGenerator.generateInteropConsumerToken({
-              sub: jwt.payload.sub,
+              sub: clientAssertionJWT.payload.sub,
               audience: key.descriptorAudience,
               purposeId: key.GSIPK_purposeId,
               tokenDurationInSeconds: key.descriptorVoucherLifespan,
-              digest: jwt.payload.digest || undefined,
+              digest: clientAssertionJWT.payload.digest || undefined,
               producerId: key.producerId,
               consumerId: key.consumerId,
               eserviceId,
@@ -290,13 +290,14 @@ export function tokenServiceBuilder({
               generatedToken: token,
               key,
               clientAssertion: jwt,
+              clientAssertion: clientAssertionJWT,
               correlationId,
               fileManager,
               logger,
             });
 
             logTokenGenerationInfo({
-              validatedJwt: jwt,
+              validatedJwt: clientAssertionJWT,
               clientKind: key.clientKind,
               tokenJti: token.payload.jti,
               message: "Token generated",
@@ -313,13 +314,13 @@ export function tokenServiceBuilder({
         )
         .with({ clientKind: clientKindTokenGenStates.api }, async (key) => {
           const token = await tokenGenerator.generateInteropApiToken({
-            sub: jwt.payload.sub,
+            sub: clientAssertionJWT.payload.sub,
             consumerId: key.consumerId,
             clientAdminId: key.adminId,
           });
 
           logTokenGenerationInfo({
-            validatedJwt: jwt,
+            validatedJwt: clientAssertionJWT,
             clientKind: key.clientKind,
             tokenJti: token.payload.jti,
             message: "Token generated",
