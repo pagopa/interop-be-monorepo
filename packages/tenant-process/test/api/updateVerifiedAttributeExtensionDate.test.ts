@@ -44,8 +44,8 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
       },
     ],
   };
-  const attributeId = tenant.attributes.map((a) => a.id)[0];
-  const verifierId = mockVerifiedBy.id;
+  const mockAttributeId = tenant.attributes.map((a) => a.id)[0];
+  const mockVerifierId = mockVerifiedBy.id;
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
 
@@ -58,12 +58,12 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
   const makeRequest = async (
     token: string,
     tenantId: TenantId = tenant.id,
-    _attributeId: AttributeId = attributeId,
-    _verifierId: string = verifierId
+    attributeId: AttributeId = mockAttributeId,
+    verifierId: string = mockVerifierId
   ) =>
     request(api)
       .post(
-        `/tenants/${tenantId}/attributes/verified/${_attributeId}/verifier/${_verifierId}`
+        `/tenants/${tenantId}/attributes/verified/${attributeId}/verifier/${verifierId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
@@ -85,17 +85,21 @@ describe("API POST /tenants/{tenantId}/attributes/verified/{attributeId}/verifie
 
   it.each([
     {
-      error: verifiedAttributeNotFoundInTenant(tenant.id, attributeId),
+      error: verifiedAttributeNotFoundInTenant(tenant.id, mockAttributeId),
       expectedStatus: 404,
     },
     {
-      error: tenantNotFoundInVerifiers("requesterId", tenant.id, attributeId),
+      error: tenantNotFoundInVerifiers(
+        "requesterId",
+        tenant.id,
+        mockAttributeId
+      ),
       expectedStatus: 403,
     },
     {
       error: expirationDateNotFoundInVerifier(
-        verifierId,
-        attributeId,
+        mockVerifierId,
+        mockAttributeId,
         tenant.id
       ),
       expectedStatus: 400,
