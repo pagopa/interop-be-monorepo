@@ -94,6 +94,7 @@ import {
   CertifiedAttributeV2,
   AgreementDocumentV2,
   PurposeV2,
+  EserviceAttributes,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -193,8 +194,11 @@ export const getMockAgreementAttribute = (
   id: attributeId,
 });
 
-export const getMockEServiceAttributes = (num: number): EServiceAttribute[] =>
-  new Array(num).map(() => getMockEServiceAttribute());
+export const getMockEServiceAttributes = (): EserviceAttributes => ({
+  certified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  declared: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+});
 
 export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
@@ -345,7 +349,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   version: "1",
   docs: [],
   state: state || descriptorState.draft,
-  audience: [],
+  audience: ["pagopa.it"],
   voucherLifespan: 60,
   dailyCallsPerConsumer: 10,
   dailyCallsTotal: 1000,

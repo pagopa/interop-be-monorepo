@@ -23,8 +23,8 @@ import {
 import { expect, describe, it } from "vitest";
 import {
   attributeNotFound,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
@@ -114,7 +114,7 @@ describe("update draft version", () => {
     );
   });
 
-  it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", () => {
+  it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", () => {
     const version: EServiceTemplateVersion = {
       ...mockVersion,
       interface: mockDocument,
@@ -129,7 +129,7 @@ describe("update draft version", () => {
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
   it("should throw eServiceVersionNotFound if the version doesn't exist", async () => {
@@ -149,7 +149,7 @@ describe("update draft version", () => {
         })
       )
     ).rejects.toThrowError(
-      eServiceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
+      eserviceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
     );
   });
 
