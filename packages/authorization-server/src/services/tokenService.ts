@@ -25,6 +25,7 @@ import {
   CorrelationId,
   ClientKindTokenGenStates,
   ClientId,
+  DPoPProof,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -36,7 +37,6 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import {
   AuthServerAppContext,
-  calculateKid,
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
@@ -246,7 +246,7 @@ export function tokenServiceBuilder({
 
       // Check if the DPoP proof is in the cache
       if (dPoPProofJWT) {
-        const dPoPCacheTTL = dPoPProofJWT.payload.iat + 60;
+        const dPoPCacheTTL = Number(dPoPProofJWT.payload.iat) + 60;
         await writeDPoPCache({
           dynamoDBClient,
           dPoPCacheTable: config.dPoPCacheTable,
@@ -264,8 +264,6 @@ export function tokenServiceBuilder({
               deconstructGSIPK_eserviceId_descriptorId(
                 key.GSIPK_eserviceId_descriptorId
               );
-
-            // TODO: Add DPoP token
 
             const token = await tokenGenerator.generateInteropConsumerToken({
               sub: clientAssertionJWT.payload.sub,
@@ -291,7 +289,6 @@ export function tokenServiceBuilder({
               producer,
               generatedToken: token,
               key,
-              clientAssertion: jwt,
               clientAssertion: clientAssertionJWT,
               dPoP: dPoPProofJWT,
               correlationId,
