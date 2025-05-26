@@ -9,6 +9,7 @@ import {
   getMockPurposeVersion,
   getMockAuthData,
   getMockContext,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   tenantKind,
@@ -44,7 +45,6 @@ import {
   addOneEService,
   addOneTenant,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
 
 describe("getPurposeById", () => {
   it("should get the purpose if the requester is the active e-service producer", async () => {

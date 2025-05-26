@@ -121,7 +121,26 @@ export function readModelServiceBuilder(readModel: ReadModelRepository) {
             )} - data ${JSON.stringify(data)} `
           );
         }
-        return results.data;
+        return results.data.map((eservice) => ({
+          data: {
+            ...eservice.data,
+            descriptors: eservice.data.descriptors.map((descriptor) => ({
+              ...descriptor,
+              attributes: {
+                certified: descriptor.attributes.certified.filter(
+                  (attrGroup) => attrGroup.length > 0
+                ),
+                declared: descriptor.attributes.declared.filter(
+                  (attrGroup) => attrGroup.length > 0
+                ),
+                verified: descriptor.attributes.verified.filter(
+                  (attrGroup) => attrGroup.length > 0
+                ),
+              },
+            })),
+          },
+          metadata: eservice.metadata,
+        }));
       }
     },
 
