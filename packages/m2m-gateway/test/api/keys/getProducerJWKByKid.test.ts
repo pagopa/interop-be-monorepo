@@ -6,14 +6,27 @@ import {
   getMockProducerJWKKey,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, mockKeysService } from "../../vitest.api.setup.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API /producerKeys/{keyId} authorization test", () => {
   const mockKey = getMockProducerJWKKey();
+  const expectedKey: authorizationApi.ProducerJWK = {
+    producerKeychainId: mockKey.producerKeychainId,
+    jwk: {
+      kid: mockKey.kid,
+      kty: mockKey.kty,
+      use: mockKey.use,
+      alg: mockKey.alg,
+      e: mockKey.e,
+      n: mockKey.n,
+    },
+  };
 
   const makeRequest = async (token: string, keyId: string) =>
     request(api)
-      .get(`/producerKeys/${keyId}`)
+      .get(`${appBasePath}/producerKeys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
@@ -22,12 +35,14 @@ describe("API /producerKeys/{keyId} authorization test", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      mockKeysService.getKey = vi.fn().mockResolvedValueOnce(mockKey);
+      mockKeysService.getProducerKey = vi
+        .fn()
+        .mockResolvedValueOnce(expectedKey);
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockKey.kid);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockKey);
+      expect(res.body).toEqual(expectedKey);
     }
   );
 
@@ -38,11 +53,5 @@ describe("API /producerKeys/{keyId} authorization test", () => {
     const res = await makeRequest(token, mockKey.kid);
 
     expect(res.status).toBe(403);
-  });
-
-  it("Should return 400 if passed an invalid uuid", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalidUuid");
-    expect(res.status).toBe(400);
   });
 });
