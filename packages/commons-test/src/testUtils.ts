@@ -705,7 +705,10 @@ export const getMockClientAssertion = async (props?: {
   };
 };
 
-export const getMockDPoPProof = async (): Promise<{
+export const getMockDPoPProof = async (props?: {
+  customPayload?: Partial<DPoPProofPayload>;
+  customHeader?: Partial<DPoPProofHeader>;
+}): Promise<{
   dPoPJWS: string;
   dPoPProof: DPoPProof;
 }> => {
@@ -716,6 +719,7 @@ export const getMockDPoPProof = async (): Promise<{
     htu: "test/authorization-server/token.oauth2",
     iat: dateToSeconds(new Date()),
     jti: generateId(),
+    ...props?.customPayload,
   };
 
   const cryptoJWK = createJWK({ pemKeyBase64: publicKeyEncodedPem });
@@ -736,6 +740,7 @@ export const getMockDPoPProof = async (): Promise<{
     typ: "dpop+jwt",
     alg: "RS256",
     jwk,
+    ...props?.customHeader,
   };
 
   const dPoPJWS = await signJWT({
