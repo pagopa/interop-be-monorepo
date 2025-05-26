@@ -1,3 +1,4 @@
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { ReadModelFilter, ReadModelRepository } from "pagopa-interop-commons";
 import {
   Client,
@@ -21,6 +22,8 @@ import {
   delegationState,
   delegationKind,
   Delegation,
+  ClientJWKKey,
+  ProducerJWKKey,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -50,6 +53,8 @@ export function readModelServiceBuilder(
     purposes,
     producerKeychains,
     delegations,
+    keys,
+    producerKeys,
   } = readModelRepository;
 
   return {
@@ -436,6 +441,64 @@ export function readModelServiceBuilder(
         return result.data;
       }
       return undefined;
+    },
+    async getClientKeyByKeyId(
+      kId: ClientJWKKey["kid"]
+    ): Promise<authorizationApi.ClientKey | undefined> {
+      const keyData = await keys.findOne(
+        { "data.kid": kId },
+        { projection: { data: true } }
+      );
+
+      if (!keyData?.data) {
+        return undefined;
+      }
+
+      const { clientId, ...jwkData } = keyData.data;
+      const clientKey: authorizationApi.ClientKey = {
+        clientId,
+        jwk: jwkData,
+      };
+
+      const parseResult = authorizationApi.ClientKey.safeParse(clientKey);
+      if (!parseResult.success) {
+        throw genericInternalError(
+          `Unable to parse client key: result ${JSON.stringify(
+            parseResult
+          )} - data ${JSON.stringify(clientKey)}`
+        );
+      }
+
+      return parseResult.data;
+    },
+    async getProducerKeyByKeyId(
+      kId: ProducerJWKKey["kid"]
+    ): Promise<authorizationApi.ProducerKey | undefined> {
+      const producerKeyData = await producerKeys.findOne(
+        { "data.kid": kId },
+        { projection: { data: true } }
+      );
+
+      if (!producerKeyData?.data) {
+        return undefined;
+      }
+
+      const { producerKeychainId, ...jwkData } = producerKeyData.data;
+      const producerKey: authorizationApi.ProducerKey = {
+        producerKeychainId,
+        jwk: jwkData,
+      };
+
+      const parseResult = authorizationApi.ProducerKey.safeParse(producerKey);
+      if (!parseResult.success) {
+        throw genericInternalError(
+          `Unable to parse producer key: result ${JSON.stringify(
+            parseResult
+          )} - data ${JSON.stringify(producerKey)}`
+        );
+      }
+
+      return parseResult.data;
     },
   };
 }

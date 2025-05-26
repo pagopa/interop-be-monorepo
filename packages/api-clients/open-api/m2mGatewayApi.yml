@@ -2270,7 +2270,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  "/keys/{kid}":
+  /keys/{kid}:
     get:
       tags:
         - keys
@@ -2311,7 +2311,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  "/producerKeys/{kid}":
+  /producerKeys/{kid}:
     get:
       tags:
         - keys

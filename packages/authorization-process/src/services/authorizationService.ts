@@ -1429,6 +1429,34 @@ export function authorizationServiceBuilder(
         )
       );
     },
+    async getJWKByKid(
+      kid: string,
+      { logger }: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<authorizationApi.ClientKey> {
+      logger.info(`Retrieving key with id ${kid}`);
+
+      const clientKey = await readModelService.getClientKeyByKeyId(kid);
+
+      if (!clientKey) {
+        throw clientKeyNotFound(kid, undefined);
+      }
+
+      return clientKey;
+    },
+    async getProducerJWKByKid(
+      kid: string,
+      { logger }: WithLogger<AppContext<M2MAdminAuthData>>
+    ): Promise<authorizationApi.ProducerKey> {
+      logger.info(`Retrieving key with id ${kid}`);
+
+      const producerKey = await readModelService.getProducerKeyByKeyId(kid);
+
+      if (!producerKey) {
+        throw producerKeyNotFound(kid, undefined);
+      }
+
+      return producerKey;
+    },
   };
 }
 

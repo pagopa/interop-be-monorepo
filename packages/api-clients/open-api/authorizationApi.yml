@@ -397,7 +397,7 @@ paths:
                   minItems: 1
                   items:
                     type: string
-                    format: uuid    
+                    format: uuid
       responses:
         "200":
           description: Users added
@@ -1254,7 +1254,7 @@ paths:
         - producerKeychain
       summary: List Producer Keychain users
       description: List Producer Keychain users
-      operationId: getProducerKeychainUsers      
+      operationId: getProducerKeychainUsers
       responses:
         "200":
           description: Request succeed
@@ -1667,6 +1667,88 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /keys/{kid}:
+    get:
+      tags:
+        - keys
+      summary: Retrieve key in JWK format
+      description: Retrieve the JWK by kid
+      operationId: getJWKByKid
+      parameters:
+        - name: kid
+          in: path
+          description: the unique identifier of the key (kid)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: returns the client with the key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientKey"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /producerKeys/{kid}:
+    get:
+      tags:
+        - keys
+      summary: Retrieve a producer key in JWK format
+      description: Retrieve the producer JWK by kid
+      operationId: getProducerJWKByKid
+      parameters:
+        - name: kid
+          in: path
+          description: the unique identifier of the key (kid)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: returns the Key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKey"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Producer Key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /status:
     get:
       security: []
@@ -1761,6 +1843,32 @@ components:
       enum:
         - CONSUMER
         - API
+    ClientKey:
+      description: Key
+      type: object
+      additionalProperties: false
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        jwk:
+          $ref: "#/components/schemas/JWKKey"
+      required:
+        - clientId
+        - jwk
+    ProducerKey:
+      description: Key
+      type: object
+      additionalProperties: false
+      properties:
+        producerKeychainId:
+          type: string
+          format: uuid
+        jwk:
+          $ref: "#/components/schemas/JWKKey"
+      required:
+        - producerKeychainId
+        - jwk
     ClientWithKeys:
       type: object
       additionalProperties: false
@@ -2051,7 +2159,7 @@ components:
       required:
         - name
         - description
-        - members 
+        - members
     EServiceAdditionDetails:
       type: object
       properties:
