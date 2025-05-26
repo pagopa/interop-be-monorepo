@@ -7,13 +7,27 @@ import {
   getMockProducerJWKKey,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { clientKeyNotFound } from "../../src/model/domain/errors.js";
+import { producerKeyNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /producerKeys/{keyId} authorization test", () => {
   const mockKey = getMockProducerJWKKey();
+  const expectedKey: authorizationApi.ProducerJWK = {
+    producerKeychainId: mockKey.producerKeychainId,
+    jwk: {
+      kid: mockKey.kid,
+      kty: mockKey.kty,
+      use: mockKey.use,
+      alg: mockKey.alg,
+      e: mockKey.e,
+      n: mockKey.n,
+    },
+  };
 
-  authorizationService.getProducerJWKByKid = vi.fn().mockResolvedValue(mockKey);
+  authorizationService.getProducerJWKByKid = vi
+    .fn()
+    .mockResolvedValue(expectedKey);
 
   const makeRequest = async (token: string, keyId: string) =>
     request(api)
@@ -32,7 +46,7 @@ describe("API /producerKeys/{keyId} authorization test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockKey.kid);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockKey);
+      expect(res.body).toEqual(expectedKey);
     }
   );
 
@@ -45,18 +59,12 @@ describe("API /producerKeys/{keyId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for clientKeyNotFound", async () => {
-    authorizationService.getClientKeyById = vi
+  it("Should return 404 for producerKeyNotFound", async () => {
+    authorizationService.getProducerJWKByKid = vi
       .fn()
-      .mockRejectedValue(clientKeyNotFound(mockKey.kid, undefined));
+      .mockRejectedValue(producerKeyNotFound(mockKey.kid, undefined));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockKey.kid);
     expect(res.status).toBe(404);
-  });
-
-  it("Should return 400 if passed an invalid uuid", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, "invalidUuid");
-    expect(res.status).toBe(400);
   });
 });

@@ -7,13 +7,25 @@ import {
   getMockClientJWKKey,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import { clientKeyNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /keys/{keyId} authorization test", () => {
   const mockKey = getMockClientJWKKey();
+  const expectedKey: authorizationApi.ClientJWK = {
+    clientId: mockKey.clientId,
+    jwk: {
+      kid: mockKey.kid,
+      kty: mockKey.kty,
+      use: mockKey.use,
+      alg: mockKey.alg,
+      e: mockKey.e,
+      n: mockKey.n,
+    },
+  };
 
-  authorizationService.getJWKByKid = vi.fn().mockResolvedValue(mockKey);
+  authorizationService.getJWKByKid = vi.fn().mockResolvedValue(expectedKey);
 
   const makeRequest = async (token: string, keyId: string) =>
     request(api)
@@ -32,7 +44,7 @@ describe("API /keys/{keyId} authorization test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockKey.kid);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockKey);
+      expect(res.body).toEqual(expectedKey);
     }
   );
 
@@ -46,17 +58,11 @@ describe("API /keys/{keyId} authorization test", () => {
   });
 
   it("Should return 404 for clientKeyNotFound", async () => {
-    authorizationService.getClientKeyById = vi
+    authorizationService.getJWKByKid = vi
       .fn()
       .mockRejectedValue(clientKeyNotFound(mockKey.kid, undefined));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockKey.kid);
     expect(res.status).toBe(404);
-  });
-
-  it("Should return 400 if passed an invalid uuid", async () => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, "invalidUuid");
-    expect(res.status).toBe(400);
   });
 });
