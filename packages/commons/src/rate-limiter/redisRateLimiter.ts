@@ -14,7 +14,7 @@ import { RateLimiter, RateLimiterStatus } from "./rateLimiterModel.js";
 const burstKeyPrefix = "BURST_";
 const RECONNECT_INTERVAL_MS = 10000; // 10 seconds
 
-export function initRedisRateLimiter(config: {
+export async function initRedisRateLimiter(config: {
   limiterGroup: string;
   maxRequests: number;
   rateInterval: number;
@@ -22,7 +22,7 @@ export function initRedisRateLimiter(config: {
   redisHost: string;
   redisPort: number;
   timeout: number;
-}): RateLimiter {
+}): Promise<RateLimiter> {
   let redisClient: ReturnType<typeof createClient> | null = null;
   let rateLimiter: BurstyRateLimiter | null = null;
   let redisConnected = false;
@@ -66,6 +66,8 @@ export function initRedisRateLimiter(config: {
         new RateLimiterRedis(options),
         new RateLimiterRedis(burstOptions)
       );
+      // ^ The BurstyRateLimiter is a RateLimiter that allows traffic bursts that exceed the rate limit.
+      // See: https://github.com/animir/node-rate-limiter-flexible/wiki/BurstyRateLimiter
 
       redisClient = client;
       redisConnected = true;
