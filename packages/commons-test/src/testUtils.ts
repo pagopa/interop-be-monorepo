@@ -98,6 +98,7 @@ import {
   DPoPProofPayload,
   DPoPProofHeader,
   JWKKey,
+  JWKKeyES,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -705,14 +706,17 @@ export const getMockClientAssertion = async (props?: {
   };
 };
 
-export const getMockDPoPProof = async (props?: {
-  customPayload?: Partial<DPoPProofPayload>;
-  customHeader?: Partial<DPoPProofHeader>;
-}): Promise<{
+export const getMockDPoPProof = async (
+  props?: {
+    customPayload?: Partial<DPoPProofPayload>;
+    customHeader?: Partial<DPoPProofHeader>;
+  },
+  alg: "RS256" | "ES256" = "ES256"
+): Promise<{
   dPoPJWS: string;
   dPoPProof: DPoPProof;
 }> => {
-  const { keySet, publicKeyEncodedPem } = generateKeySet();
+  const { keySet, publicKeyEncodedPem } = generateKeySet(alg);
 
   const payload: DPoPProofPayload = {
     htm: "POST",
@@ -722,23 +726,29 @@ export const getMockDPoPProof = async (props?: {
     ...props?.customPayload,
   };
 
-  const cryptoJWK = createJWK({ pemKeyBase64: publicKeyEncodedPem });
-  const jwk: JWKKey = {
-    ...cryptoJWK,
-    kid: calculateKid(cryptoJWK),
-    use: "sig",
-    alg: "RS256",
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    kty: cryptoJWK.kty!,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    e: cryptoJWK.e!,
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    n: cryptoJWK.n!,
-  };
+  const cryptoJWK = createJWK({
+    pemKeyBase64: publicKeyEncodedPem,
+    strictCheck: alg === "RS256",
+  });
+
+  const jwk: JWKKey | JWKKeyES =
+    alg === "ES256"
+      ? JWKKeyES.parse({
+          ...cryptoJWK,
+          kid: calculateKid(cryptoJWK),
+          use: "sig",
+          alg,
+        })
+      : JWKKey.parse({
+          ...cryptoJWK,
+          kid: calculateKid(cryptoJWK),
+          use: "sig",
+          alg,
+        });
 
   const header: DPoPProofHeader = {
     typ: "dpop+jwt",
-    alg: "RS256",
+    alg,
     jwk,
     ...props?.customHeader,
   };
@@ -764,16 +774,20 @@ export const getMockDescriptorRejectionReason =
     rejectedAt: new Date(),
   });
 
-export const generateKeySet = (): {
+export const generateKeySet = (
+  alg: "RS256" | "ES256" = "RS256"
+): {
   keySet: crypto.KeyPairKeyObjectResult;
   publicKeyEncodedPem: string;
 } => {
-  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
-    "rsa",
-    {
-      modulusLength: 2048,
-    }
-  );
+  const keySet: crypto.KeyPairKeyObjectResult =
+    alg === "RS256"
+      ? crypto.generateKeyPairSync("rsa", {
+          modulusLength: 2048,
+        })
+      : crypto.generateKeyPairSync("ec", {
+          namedCurve: "P-256", // This is the curve for ES256
+        });
 
   const pemPublicKey = keySet.publicKey
     .export({
