@@ -108,7 +108,7 @@ export async function handleTenantMessageV1(
   }
 
   if (deleteTenantMailBatch.length > 0) {
-    await tenantService.deleteBatchTenantMailsByTenantId(
+    await tenantService.deleteBatchByMailIdAndTenantId(
       deleteTenantMailBatch,
       dbContext
     );

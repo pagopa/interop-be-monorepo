@@ -224,7 +224,7 @@ export function tenantServiceBuilder(db: DBContext) {
       genericLogger.info(`Staging deletion table cleaned for Tenant`);
     },
 
-    async deleteBatchTenantMailsByTenantId(
+    async deleteBatchByMailIdAndTenantId(
       records: TenantMailDeletingByIdAndTenantSchema[],
       dbContext: DBContext
     ) {
