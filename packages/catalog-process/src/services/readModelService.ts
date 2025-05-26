@@ -43,7 +43,7 @@ import {
   consumer,
 } from "../model/domain/models.js";
 import {
-  hasRoleToAccessToInactiveDescriptors,
+  hasRoleToAccessInactiveDescriptors,
   notActiveDescriptorState,
 } from "./validators.js";
 
@@ -245,7 +245,7 @@ export function readModelServiceBuilder(
         });
 
       const visibilityFilter: ReadModelFilter<EService> =
-        hasRoleToAccessToInactiveDescriptors(authData)
+        hasRoleToAccessInactiveDescriptors(authData)
           ? {
               $nor: [
                 {

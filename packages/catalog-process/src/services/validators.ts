@@ -341,7 +341,7 @@ export function assertEServiceUpdatable(eservice: EService): void {
  * NOT sufficient to access them; the request must also originate
  * from the producer tenant or the delegate producer tenant.
  */
-export function hasRoleToAccessToInactiveDescriptors(
+export function hasRoleToAccessInactiveDescriptors(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): boolean {
   return (

@@ -162,7 +162,7 @@ import {
   assertIsDraftDescriptor,
   assertDescriptorUpdatable,
   assertEServiceUpdatable,
-  hasRoleToAccessToInactiveDescriptors,
+  hasRoleToAccessInactiveDescriptors,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -3313,7 +3313,7 @@ async function applyVisibilityToEService(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
-  if (hasRoleToAccessToInactiveDescriptors(authData)) {
+  if (hasRoleToAccessInactiveDescriptors(authData)) {
     /* Inactive descriptors are visible only if both conditions are met:
        1) The request is made with a role that can access inactive descriptors.
           (see the condition above)
