@@ -29,8 +29,10 @@ import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  clientJWKKeyReadModelServiceBuilder,
   clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
+  producerJWKKeyReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -75,6 +77,10 @@ export const producerKeychainReadModelServiceSQL =
   producerKeychainReadModelServiceBuilder(readModelDB);
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
+export const clientJWKKeyReadModelServiceSQL =
+  clientJWKKeyReadModelServiceBuilder(readModelDB);
+export const producerJWKKeyReadModelServiceSQL =
+  producerJWKKeyReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL({
@@ -85,6 +91,8 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   producerKeychainReadModelServiceSQL,
   delegationReadModelServiceSQL,
+  clientJWKKeyReadModelServiceSQL,
+  producerJWKKeyReadModelServiceSQL,
 });
 export const readModelService =
   config.featureFlagSQL &&

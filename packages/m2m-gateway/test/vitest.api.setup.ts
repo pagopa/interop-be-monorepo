@@ -63,6 +63,7 @@ import { EserviceService } from "../src/services/eserviceService.js";
 import { EserviceTemplateService } from "../src/services/eserviceTemplateService.js";
 import { PurposeService } from "../src/services/purposeService.js";
 import { TenantService } from "../src/services/tenantService.js";
+import { KeysService } from "../src/services/keysService.js";
 
 export const mockGetClientAdminId = vi
   .fn()
@@ -85,6 +86,7 @@ export const mockAttributeService = {} as AttributeService;
 export const mockEServiceTemplateService = {} as EserviceTemplateService;
 export const mockAgreementService = {} as AgreementService;
 export const mockEserviceService = {} as EserviceService;
+export const mockKeysService = {} as KeysService;
 
 export const api = await createApp(
   {
@@ -96,6 +98,7 @@ export const api = await createApp(
     eserviceService: mockEserviceService,
     purposeService: mockPurposeService,
     tenantService: mockTenantService,
+    keysService: mockKeysService,
   },
   (_req, _res, next): void => next()
 );
