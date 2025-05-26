@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
@@ -14,10 +15,7 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-} from "../../mockUtils.js";
+import { getMockedApiPurpose } from "../../mockUtils.js";
 
 describe("createPurpose", () => {
   const mockPurposeProcessGetResponse = getMockedApiPurpose();

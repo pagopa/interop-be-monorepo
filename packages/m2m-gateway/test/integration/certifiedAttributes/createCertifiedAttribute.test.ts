@@ -4,6 +4,7 @@ import {
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
+import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   attributeService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -19,10 +20,7 @@ import {
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiAttribute,
-} from "../../mockUtils.js";
+import { getMockedApiAttribute } from "../../mockUtils.js";
 
 describe("createCertifiedAttribute", () => {
   const mockCertifiedAttributeSeed: m2mGatewayApi.CertifiedAttributeSeed =

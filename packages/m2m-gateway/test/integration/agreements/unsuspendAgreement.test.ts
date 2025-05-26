@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
+import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -15,10 +16,7 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import {
-  getMockedApiAgreement,
-  getMockM2MAdminAppContext,
-} from "../../mockUtils.js";
+import { getMockedApiAgreement } from "../../mockUtils.js";
 
 describe("unsuspendAgreement", () => {
   const mockAgreementProcessResponse = getMockedApiAgreement({

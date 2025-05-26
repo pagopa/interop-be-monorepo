@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unsafeBrandId, WithMetadata } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
+import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -16,7 +17,6 @@ import {
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
-  getMockM2MAdminAppContext,
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
 } from "../../mockUtils.js";

@@ -5,6 +5,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -12,7 +13,6 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
-  getMockM2MAdminAppContext,
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
 } from "../../mockUtils.js";

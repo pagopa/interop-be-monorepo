@@ -1,15 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-} from "../../mockUtils.js";
+import { getMockedApiPurpose } from "../../mockUtils.js";
 import { toGetPurposesApiQueryParams } from "../../../src/api/purposeApiConverter.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 

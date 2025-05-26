@@ -3,6 +3,7 @@ import {
   attributeRegistryApi,
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
+import { getMockM2MAdminAppContext } from "pagopa-interop-commons-test/src/testUtils.js";
 import {
   attributeService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,10 +11,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { attributeNotFound } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiAttribute,
-} from "../../mockUtils.js";
+import { getMockedApiAttribute } from "../../mockUtils.js";
 
 describe("getCertifiedAttribute", () => {
   const mockAttributeProcessResponse = getMockedApiAttribute({

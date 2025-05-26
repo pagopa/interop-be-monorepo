@@ -12,8 +12,10 @@ import {
   AuthorizationEvent,
   Client,
   ClientId,
+  ClientJWKKey,
   Delegation,
   EService,
+  ProducerJWKKey,
   ProducerKeychain,
   ProducerKeychainId,
   Purpose,
@@ -63,6 +65,7 @@ export const {
   tenants,
   producerKeychains,
   delegations,
+  producerKeys,
 } = readModelRepository;
 
 export const clientReadModelServiceSQL =
@@ -126,6 +129,14 @@ export const writeClientInEventstore = async (
   };
 
   await writeInEventstore(eventToWrite, '"authorization"', postgresDB);
+};
+
+export const addOneKey = async (key: ClientJWKKey): Promise<void> => {
+  await writeInReadmodel(key, keys);
+};
+
+export const addOneProducerKey = async (key: ProducerJWKKey): Promise<void> => {
+  await writeInReadmodel(key, producerKeys);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {
