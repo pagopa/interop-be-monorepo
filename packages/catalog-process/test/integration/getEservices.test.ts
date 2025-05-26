@@ -826,22 +826,13 @@ describe("get eservices", () => {
   });
 
   it("should get the eServices if they exist (parameters: producersIds, mode, delegated = true)", async () => {
-    const delegation1 = getMockDelegation({
+    const delegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
       eserviceId: eservice4.id,
       delegateId: organizationId3,
       state: delegationState.active,
     });
-    await addOneDelegation(delegation1);
-
-    const delegation2 = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      eserviceId: eservice4.id,
-      delegateId: organizationId3,
-      state: delegationState.active,
-    });
-
-    await addOneDelegation(delegation2);
+    await addOneDelegation(delegation);
 
     const result = await catalogService.getEServices(
       {
