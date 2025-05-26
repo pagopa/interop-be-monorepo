@@ -78,7 +78,7 @@ describe("API POST /purposes/{purposeId}/clone test", () => {
   it.each([
     { purposeId: "invalid" as PurposeId },
     { body: {} },
-    { body: { eserviceId: "invalid" } },
+    { body: { ...mockPurposeCloneSeed, eserviceId: "invalid" } },
     { body: { ...mockPurposeCloneSeed, extraField: 1 } },
   ])(
     "Should return 400 if passed invalid data: %s",

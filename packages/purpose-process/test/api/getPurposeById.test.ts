@@ -84,12 +84,9 @@ describe("API GET /purposes/{purposeId} test", () => {
     }
   );
 
-  it.each([{ purposeId: "invalid" as PurposeId }])(
-    "Should return 400 if passed invalid data: %s",
-    async ({ purposeId }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeId);
-      expect(res.status).toBe(400);
-    }
-  );
+  it("Should return 400 if passed an invalid purpose id", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid" as PurposeId);
+    expect(res.status).toBe(400);
+  });
 });

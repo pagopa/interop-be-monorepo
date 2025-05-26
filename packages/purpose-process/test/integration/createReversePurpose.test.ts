@@ -7,6 +7,7 @@ import {
   getMockDelegation,
   getMockDescriptor,
   getMockDocument,
+  getMockEService,
   getMockPurpose,
   getMockTenant,
   getMockValidRiskAnalysis,
@@ -55,7 +56,7 @@ import {
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
-import { getMockEService, getMockReversePurposeSeed } from "../mockUtils.js";
+import { getMockReversePurposeSeed } from "../mockUtils.js";
 
 describe("createReversePurpose", () => {
   it("should write in event-store for the creation of a reverse purpose", async () => {

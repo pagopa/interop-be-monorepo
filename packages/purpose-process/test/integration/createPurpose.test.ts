@@ -27,6 +27,7 @@ import {
   getMockValidRiskAnalysisForm,
   decodeProtobufPayload,
   getMockAgreement,
+  getMockEService,
   getMockTenant,
   getMockPurpose,
   getMockDescriptor,
@@ -53,11 +54,7 @@ import {
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
-import {
-  buildRiskAnalysisFormSeed,
-  getMockEService,
-  getMockPurposeSeed,
-} from "../mockUtils.js";
+import { buildRiskAnalysisFormSeed, getMockPurposeSeed } from "../mockUtils.js";
 
 describe("createPurpose", () => {
   const tenant: Tenant = {

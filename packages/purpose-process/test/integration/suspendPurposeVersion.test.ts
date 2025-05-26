@@ -11,6 +11,7 @@ import {
   getMockTenant,
   randomArrayItem,
   getMockContext,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   PurposeVersion,
@@ -48,7 +49,6 @@ import {
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
 
 describe("suspendPurposeVersion", () => {
   const isSuspendable = [

@@ -88,12 +88,11 @@ describe("API GET /purposes/riskAnalysis/latest test", () => {
     }
   );
 
-  it.each([{ query: { tenantKind: "invalid" as TenantKind } }])(
-    "Should return 400 if passed invalid data: %s",
-    async ({ query }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, query);
-      expect(res.status).toBe(400);
-    }
-  );
+  it("Should return 400 if passed an invalid tenant kind", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      tenantKind: "invalid" as TenantKind,
+    });
+    expect(res.status).toBe(400);
+  });
 });

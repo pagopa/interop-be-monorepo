@@ -9,6 +9,7 @@ import {
   getMockAgreement,
   getMockAuthData,
   getMockContext,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -42,7 +43,6 @@ import {
   addOneTenant,
   addOneAgreement,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
 
 describe("getRiskAnalysisDocument", () => {
   it("should get the purpose version document (consumer)", async () => {

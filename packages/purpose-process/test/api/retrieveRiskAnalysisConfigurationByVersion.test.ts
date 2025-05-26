@@ -87,12 +87,11 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
     }
   );
 
-  it.each([{ query: { eserviceId: "invalid" as EServiceId } }])(
-    "Should return 400 if passed invalid data: %s",
-    async ({ query }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, undefined, query);
-      expect(res.status).toBe(400);
-    }
-  );
+  it("Should return 400 if passed invalid data: %s", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, undefined, {
+      eserviceId: "invalid" as EServiceId,
+    });
+    expect(res.status).toBe(400);
+  });
 });

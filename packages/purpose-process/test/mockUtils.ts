@@ -1,31 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import {
-  EService,
   Purpose,
   RiskAnalysis,
   RiskAnalysisForm,
   generateId,
-  technology,
   tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { getMockValidRiskAnalysisForm } from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
-
-export const getMockEService = (): EService => ({
-  id: generateId(),
-  name: "eService name",
-  description: "eService description",
-  createdAt: new Date(),
-  producerId: generateId(),
-  technology: technology.rest,
-  descriptors: [],
-  attributes: undefined,
-  riskAnalysis: [],
-  mode: "Deliver",
-});
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
