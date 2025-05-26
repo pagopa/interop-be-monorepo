@@ -19,7 +19,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   draftEServiceTemplateVersionAlreadyExists,
-  eServiceTemplateNotFound,
+  eserviceTemplateNotFound,
   eserviceTemplateWithoutPublishedVersion,
 } from "../../src/model/domain/errors.js";
 import {
@@ -148,7 +148,7 @@ describe("createEServiceTemplateVersion", async () => {
     );
   });
 
-  it("should throw eServiceTemplateNotFound if the eservice doesn't exist", async () => {
+  it("should throw eserviceTemplateNotFound if the eservice doesn't exist", async () => {
     const mockEServiceTemplate = {
       ...getMockEServiceTemplate(),
       versions: [publishedTemplateVersion],
@@ -160,7 +160,7 @@ describe("createEServiceTemplateVersion", async () => {
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
   it("should throw operationForbidden if the requester is not the template creator", async () => {
