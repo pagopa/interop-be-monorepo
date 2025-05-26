@@ -6,6 +6,7 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
+  JWKKey,
   PurposeId,
   TenantId,
   UserId,
@@ -15,6 +16,7 @@ import { AuthorizationServerTokenGenerationConfig } from "../config/authorizatio
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
 import { dateToSeconds } from "../utils/date.js";
+import { calculateKid } from "../auth/jwk.js";
 import {
   CustomClaims,
   InteropApiToken,
@@ -221,7 +223,7 @@ export class InteropTokenGenerator {
     eserviceId,
     descriptorId,
     featureFlagImprovedProducerVerificationClaims = false,
-    dPoPThumbprint,
+    dPoPJWK,
   }: {
     sub: ClientId;
     audience: string[];
@@ -233,7 +235,7 @@ export class InteropTokenGenerator {
     eserviceId: EServiceId;
     descriptorId: DescriptorId;
     featureFlagImprovedProducerVerificationClaims: boolean;
-    dPoPThumbprint?: string;
+    dPoPJWK?: JWKKey;
   }): Promise<InteropConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -274,10 +276,10 @@ export class InteropTokenGenerator {
             descriptorId,
           }
         : {}),
-      ...(dPoPThumbprint
+      ...(dPoPJWK
         ? {
-            cnk: {
-              jkt: dPoPThumbprint,
+            cnf: {
+              jkt: calculateKid(dPoPJWK),
             },
           }
         : {}),

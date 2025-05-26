@@ -83,7 +83,7 @@ export type GenerateTokenReturnType =
       limitReached: false;
       token: InteropConsumerToken | InteropApiToken;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
-      isDPoP: boolean;
+      isDPoP?: boolean;
     };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -278,9 +278,7 @@ export function tokenServiceBuilder({
                   config,
                   "featureFlagImprovedProducerVerificationClaims"
                 ),
-              dPoPThumbprint: dPoPProofJWT
-                ? calculateKid(dPoPProofJWT.header.jwk)
-                : undefined,
+              dPoPJWK: dPoPProofJWT?.header.jwk,
             });
 
             // TODO: Add DPoP audit
