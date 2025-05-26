@@ -4,24 +4,24 @@ export const errorCodes = {
   unexpectedDPoPProofSignatureVerificationError: "0001",
   invalidDPoPProofFormat: "0002",
   unexpectedDPoPProofError: "0003",
-  jtiNotFound: "0004",
-  jtiAlreadyCached: "0005",
-  iatNotFound: "0006",
-  typNotFound: "0007",
-  invalidTyp: "0008",
-  jwkNotFound: "0009",
-  htmNotFound: "0010",
-  invalidHtm: "0011",
-  htuNotFound: "0012",
-  invalidHtu: "0013",
+  dpopJTINotFound: "0004",
+  dpopJTIAlreadyCached: "0005",
+  dpopIATNotFound: "0006",
+  dpopTYPNotFound: "0007",
+  invalidDPoPTyp: "0008",
+  dpopJWKNotFound: "0009",
+  dpopHTMNotFound: "0010",
+  invalidDPoPHtm: "0011",
+  dpopHTUNotFound: "0012",
+  invalidDPoPHtu: "0013",
   dPoPProofSignatureVerificationError: "0014",
   tokenExpiredError: "0015",
   jsonWebTokenError: "0016",
   notBeforeError: "0017",
-  algorithmNotFound: "0018",
-  algorithmNotAllowed: "0019",
+  dpopAlgorithmNotFound: "0018",
+  dpopAlgorithmNotAllowed: "0019",
   dPoPProofInvalidClaims: "0020",
-  invalidSignature: "0021",
+  invalidDPoPSignature: "0021",
   expiredDPoPProof: "0022",
 };
 
@@ -65,82 +65,82 @@ export function unexpectedDPoPProofError(
   });
 }
 
-export function jtiNotFound(): ApiError<ErrorCodes> {
+export function dpopJTINotFound(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `JTI not found in DPoP proof`,
-    code: "jtiNotFound",
-    title: "JTI not found",
+    code: "dpopJTINotFound",
+    title: "DPoP JTI not found",
   });
 }
 
-export function jtiAlreadyCached(jti: string): ApiError<ErrorCodes> {
+export function dpopJTIAlreadyCached(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `JTI ${jti} already present in the DPoP proof cache table`,
-    code: "jtiAlreadyCached",
+    code: "dpopJTIAlreadyCached",
     title: "JTI already present in the DPoP proof cache table",
   });
 }
 
-export function iatNotFound(): ApiError<ErrorCodes> {
+export function dpopIATNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `IAT not found in DPoP proof`,
-    code: "iatNotFound",
-    title: "IAT not found",
+    code: "dpopIATNotFound",
+    title: "DPoP IAT not found",
   });
 }
 
-export function typNotFound(): ApiError<ErrorCodes> {
+export function dpopTYPNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `TYP not found in DPoP proof`,
-    code: "typNotFound",
-    title: "TYP not found",
+    code: "dpopTYPNotFound",
+    title: "DPoP TYP not found",
   });
 }
 
-export function invalidTyp(typ: string): ApiError<ErrorCodes> {
+export function invalidDPoPTyp(typ: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid TYP ${typ} in DPoP proof header`,
-    code: "invalidTyp",
+    code: "invalidDPoPTyp",
     title: "Invalid TYP in DPoP proof",
   });
 }
 
-export function jwkNotFound(): ApiError<ErrorCodes> {
+export function dpopJWKNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `JWK not found in DPoP proof header`,
-    code: "jwkNotFound",
-    title: "JWK not found",
+    code: "dpopJWKNotFound",
+    title: "DPoP JWK not found",
   });
 }
 
-export function htmNotFound(): ApiError<ErrorCodes> {
+export function dpopHTMNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `HTM not found in DPoP proof payload`,
-    code: "htmNotFound",
-    title: "HTM not found",
+    code: "dpopHTMNotFound",
+    title: "DPoP HTM not found",
   });
 }
 
-export function invalidHtm(htm: unknown): ApiError<ErrorCodes> {
+export function invalidDPoPHtm(htm: unknown): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid HTM ${htm} in DPoP proof payload`,
-    code: "invalidHtm",
+    code: "invalidDPoPHtm",
     title: "Invalid HTM in DPoP proof",
   });
 }
 
-export function htuNotFound(): ApiError<ErrorCodes> {
+export function dpopHTUNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `HTU not found in DPoP proof payload`,
-    code: "htuNotFound",
-    title: "HTU not found",
+    code: "dpopHTUNotFound",
+    title: "DPoP HTU not found",
   });
 }
 
-export function invalidHtu(htu: unknown): ApiError<ErrorCodes> {
+export function invalidDPoPHtu(htu: unknown): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid HTU ${htu} in DPoP proof payload`,
-    code: "invalidHtu",
+    code: "invalidDPoPHtu",
     title: "Invalid HTU in DPoP proof",
   });
 }
@@ -170,19 +170,21 @@ export function notBeforeError(): ApiError<ErrorCodes> {
   });
 }
 
-export function algorithmNotFound(): ApiError<ErrorCodes> {
+export function dpopAlgorithmNotFound(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: "ALG not found in DPoP proof",
-    code: "algorithmNotFound",
-    title: "ALG not found",
+    code: "dpopAlgorithmNotFound",
+    title: "DPoP ALG not found",
   });
 }
 
-export function algorithmNotAllowed(algorithm: string): ApiError<ErrorCodes> {
+export function dpopAlgorithmNotAllowed(
+  algorithm: string
+): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Algorithm ${algorithm} is not allowed for the DPoP proof`,
-    code: "algorithmNotAllowed",
-    title: "ALG not allowed",
+    code: "dpopAlgorithmNotAllowed",
+    title: "DPoP ALG not allowed",
   });
 }
 
@@ -194,11 +196,11 @@ export function dPoPProofInvalidClaims(details: string): ApiError<ErrorCodes> {
   });
 }
 
-export function invalidSignature(): ApiError<ErrorCodes> {
+export function invalidDPoPSignature(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: "DPoP proof signature is invalid",
-    code: "invalidSignature",
-    title: "Invalid signature",
+    code: "invalidDPoPSignature",
+    title: "Invalid DPoP signature",
   });
 }
 

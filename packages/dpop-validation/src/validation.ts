@@ -33,10 +33,10 @@ import {
   jsonWebTokenError,
   notBeforeError,
   tokenExpiredError,
-  invalidSignature,
+  invalidDPoPSignature,
   unexpectedDPoPProofError,
   unexpectedDPoPProofSignatureVerificationError,
-  jtiAlreadyCached,
+  dpopJTIAlreadyCached,
 } from "./errors.js";
 import { readDPoPCache } from "./utilities/dPoPCacheUtils.js";
 
@@ -158,7 +158,7 @@ export const verifyDPoPProofSignature = async (
     if (error instanceof JWTExpired) {
       return failedValidation([tokenExpiredError()]);
     } else if (error instanceof JWSSignatureVerificationFailed) {
-      return failedValidation([invalidSignature()]);
+      return failedValidation([invalidDPoPSignature()]);
     } else if (error instanceof JWTClaimValidationFailed) {
       if (error.claim === "nbf") {
         return failedValidation([notBeforeError()]);
@@ -190,7 +190,7 @@ export const checkDPoPCache = async (
     dPoPCacheTable
   );
   if (dPoPCache) {
-    return failedValidation([jtiAlreadyCached(dPoPProofJti)]);
+    return failedValidation([dpopJTIAlreadyCached(dPoPProofJti)]);
   }
   // TODO: double check return value
   return successfulValidation(dPoPProofJti);

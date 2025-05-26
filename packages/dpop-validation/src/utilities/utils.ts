@@ -7,19 +7,19 @@ import {
   SuccessfulValidation,
 } from "../types.js";
 import {
-  algorithmNotAllowed,
-  algorithmNotFound,
+  dpopAlgorithmNotAllowed,
+  dpopAlgorithmNotFound,
   ErrorCodes,
   expiredDPoPProof,
-  htmNotFound,
-  htuNotFound,
-  iatNotFound,
-  invalidHtm,
-  invalidHtu,
-  invalidTyp,
-  jtiNotFound,
-  jwkNotFound,
-  typNotFound,
+  dpopHTMNotFound,
+  dpopHTUNotFound,
+  invalidDPoPHtm,
+  invalidDPoPHtu,
+  dpopJTINotFound,
+  dpopJWKNotFound,
+  dpopTYPNotFound,
+  invalidDPoPTyp,
+  dpopIATNotFound,
 } from "../errors.js";
 
 const EXPECTED_TYP = "dpop+jwt";
@@ -30,11 +30,11 @@ export const validateTyp = (
   typ: string | undefined
 ): ValidationResult<string> => {
   if (!typ) {
-    return failedValidation([typNotFound()]);
+    return failedValidation([dpopTYPNotFound()]);
   }
 
   if (typ !== EXPECTED_TYP) {
-    return failedValidation([invalidTyp(typ)]);
+    return failedValidation([invalidDPoPTyp(typ)]);
   }
 
   return successfulValidation(typ);
@@ -44,21 +44,21 @@ export const validateAlgorithm = (
   alg: string | undefined
 ): ValidationResult<string> => {
   if (!alg) {
-    return failedValidation([algorithmNotFound()]);
+    return failedValidation([dpopAlgorithmNotFound()]);
   }
 
   if (alg === ALLOWED_ALGORITHM) {
     return successfulValidation(alg);
   }
 
-  return failedValidation([algorithmNotAllowed(alg)]);
+  return failedValidation([dpopAlgorithmNotAllowed(alg)]);
 };
 
 export const validateJWK = (
   jwk: jose.JWK | undefined
 ): ValidationResult<JWKKey> => {
   if (!jwk) {
-    return failedValidation([jwkNotFound()]);
+    return failedValidation([dpopJWKNotFound()]);
   }
   return successfulValidation(JWKKey.parse(jwk));
 };
@@ -67,11 +67,11 @@ export const validateHtm = (
   htm: unknown | undefined
 ): ValidationResult<string> => {
   if (!htm) {
-    return failedValidation([htmNotFound()]);
+    return failedValidation([dpopHTMNotFound()]);
   }
 
   if (htm !== EXPECTED_HTM) {
-    return failedValidation([invalidHtm(htm)]);
+    return failedValidation([invalidDPoPHtm(htm)]);
   }
 
   return successfulValidation(htm);
@@ -82,11 +82,11 @@ export const validateHtu = (
   expectedDPoPProofHtu: string
 ): ValidationResult<string> => {
   if (!htu) {
-    return failedValidation([htuNotFound()]);
+    return failedValidation([dpopHTUNotFound()]);
   }
 
   if (htu !== expectedDPoPProofHtu) {
-    return failedValidation([invalidHtu(htu)]);
+    return failedValidation([invalidDPoPHtu(htu)]);
   }
 
   return successfulValidation(htu);
@@ -96,7 +96,7 @@ export const validateIat = (
   iat: number | undefined
 ): ValidationResult<number> => {
   if (!iat) {
-    return failedValidation([iatNotFound()]);
+    return failedValidation([dpopIATNotFound()]);
   }
 
   const currentTime = dateToSeconds(new Date());
@@ -111,7 +111,7 @@ export const validateJti = (
   jti: string | undefined
 ): ValidationResult<string> => {
   if (!jti) {
-    return failedValidation([jtiNotFound()]);
+    return failedValidation([dpopJTINotFound()]);
   }
   return successfulValidation(jti);
 };
