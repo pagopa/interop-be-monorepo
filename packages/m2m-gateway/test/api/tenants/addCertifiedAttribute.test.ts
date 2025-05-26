@@ -74,4 +74,20 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
       expect(res.status).toBe(500);
     }
   );
+
+  it.each([
+    { ...mockResponse, createdAt: undefined },
+    { ...mockResponse, kind: "INVALID_KIND" },
+    { ...mockResponse, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockTenantService.addCertifiedAttribute = vi.fn().mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, { id: generateId() });
+
+      expect(res.status).toBe(500);
+    }
+  );
 });
