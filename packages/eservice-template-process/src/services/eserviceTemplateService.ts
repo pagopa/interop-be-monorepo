@@ -107,7 +107,7 @@ import {
   versionStatesNotAllowingDocumentOperations,
   assertConsistentDailyCalls,
   assertPublishedEServiceTemplate,
-  hasAccessToDraftTemplateVersions,
+  hasRoleToAccessDraftTemplateVersions,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -1796,7 +1796,7 @@ function applyVisibilityToEServiceTemplate(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): EServiceTemplate {
   if (
-    hasAccessToDraftTemplateVersions(authData) &&
+    hasRoleToAccessDraftTemplateVersions(authData) &&
     authData.organizationId === eserviceTemplate.creatorId
   ) {
     return eserviceTemplate;

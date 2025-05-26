@@ -118,11 +118,15 @@ export function assertPublishedEServiceTemplate(
   }
 }
 
-export function hasAccessToDraftTemplateVersions(
+/**
+ * Checks if the user has the roles required to access draft
+ * template versions.
+ * NOT sufficient to access them; the request must also originate
+ * from the template creator tenant.
+ */
+export function hasRoleToAccessDraftTemplateVersions(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): boolean {
-  // NOTE: this is not sufficient to access draft versions.
-  // The request must also originate from the template creator tenant.
   return (
     hasAtLeastOneUserRole(authData, [
       userRole.ADMIN_ROLE,

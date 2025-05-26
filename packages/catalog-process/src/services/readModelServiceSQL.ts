@@ -79,7 +79,7 @@ import { match } from "ts-pattern";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   activeDescriptorStates,
-  hasAccessToInactiveDescriptors,
+  hasRoleToAccessToInactiveDescriptors,
 } from "./validators.js";
 
 const existsValidDescriptor = (
@@ -220,7 +220,7 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // visibility filter
-            hasAccessToInactiveDescriptors(authData)
+            hasRoleToAccessToInactiveDescriptors(authData)
               ? or(
                   existsValidDescriptor(readmodelDB),
                   // the requester is the producer

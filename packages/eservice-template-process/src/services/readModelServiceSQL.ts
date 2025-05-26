@@ -42,7 +42,7 @@ import {
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
 import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
-import { hasAccessToDraftTemplateVersions } from "./validators.js";
+import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -153,7 +153,7 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             // VISIBILITY FILTER
-            hasAccessToDraftTemplateVersions(authData)
+            hasRoleToAccessDraftTemplateVersions(authData)
               ? or(
                   eq(
                     eserviceTemplateInReadmodelEserviceTemplate.creatorId,

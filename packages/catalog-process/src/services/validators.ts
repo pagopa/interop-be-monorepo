@@ -335,11 +335,15 @@ export function assertEServiceUpdatable(eservice: EService): void {
   }
 }
 
-export function hasAccessToInactiveDescriptors(
+/**
+ * Checks if the user has the roles required to access inactive
+ * descriptors (i.e., DRAFT or WAITING_FOR_APPROVAL).
+ * NOT sufficient to access them; the request must also originate
+ * from the producer tenant or the delegate producer tenant.
+ */
+export function hasRoleToAccessToInactiveDescriptors(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): boolean {
-  // NOTE: this is not sufficient to access inactive descriptors.
-  // The request must also originate from the producer tenant or the delegate producer tenant.
   return (
     hasAtLeastOneUserRole(authData, [
       userRole.ADMIN_ROLE,

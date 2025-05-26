@@ -24,7 +24,7 @@ import {
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { hasAccessToDraftTemplateVersions } from "./validators.js";
+import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -174,7 +174,7 @@ export function readModelServiceBuilder({
         });
 
       const visibilityFilter: ReadModelFilter<EServiceTemplate> =
-        hasAccessToDraftTemplateVersions(authData)
+        hasRoleToAccessDraftTemplateVersions(authData)
           ? {
               $or: [
                 { "data.creatorId": authData.organizationId },
