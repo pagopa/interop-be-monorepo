@@ -110,8 +110,9 @@ import {
   UserRole,
   userRole,
   WithLogger,
-  SessionClaims,
+  M2MAdminAuthData,
   CustomClaims,
+  SessionClaims,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -1098,6 +1099,26 @@ export const getMockContextM2M = ({
   authData: {
     systemRole: systemRole.M2M_ROLE,
     organizationId: organizationId || generateId(),
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  spanId: generateId(),
+  logger: genericLogger,
+  requestTimestamp: Date.now(),
+});
+
+export const getMockContextM2MAdmin = ({
+  organizationId,
+  serviceName,
+}: {
+  organizationId?: TenantId;
+  serviceName?: string;
+}): WithLogger<AppContext<M2MAdminAuthData>> => ({
+  authData: {
+    systemRole: systemRole.M2M_ADMIN_ROLE,
+    organizationId: organizationId || generateId(),
+    clientId: generateId(),
+    userId: generateId(),
   },
   serviceName: serviceName || "test",
   correlationId: generateId(),

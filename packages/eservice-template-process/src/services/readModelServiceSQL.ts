@@ -2,10 +2,8 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  hasAtLeastOneUserRole,
   M2MAuthData,
   UIAuthData,
-  userRole,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -44,6 +42,7 @@ import {
   toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
 import { and, count, eq, ilike, inArray, isNotNull, ne, or } from "drizzle-orm";
+import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -154,11 +153,7 @@ export function readModelServiceBuilderSQL({
                 )
               : undefined,
             // VISIBILITY FILTER
-            hasAtLeastOneUserRole(authData, [
-              userRole.ADMIN_ROLE,
-              userRole.API_ROLE,
-              userRole.SUPPORT_ROLE,
-            ])
+            hasRoleToAccessDraftTemplateVersions(authData)
               ? or(
                   eq(
                     eserviceTemplateInReadmodelEserviceTemplate.creatorId,
