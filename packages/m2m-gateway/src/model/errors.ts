@@ -2,9 +2,12 @@ import {
   attributeRegistryApi,
   delegationApi,
   authorizationApi,
+  purposeApi,
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   makeApiProblemBuilder,
   PurposeId,
 } from "pagopa-interop-models";
@@ -19,9 +22,14 @@ export const errorCodes = {
   attributeNotFound: "0007",
   purposeNotFound: "0008",
   missingActivePurposeVersion: "0009",
-  taxCodeAndIPACodeConflict: "0010",
-  eserviceDescriptorNotFound: "0011",
+  eserviceDescriptorNotFound: "0010",
+  taxCodeAndIPACodeConflict: "0011",
   purposeVersionNotFound: "0012",
+  agreementNotInSuspendedState: "0013",
+  agreementNotInPendingState: "0014",
+  missingPurposeVersionWithState: "0015",
+  missingPurposeCurrentVersion: "0016",
+  eserviceTemplateVersionNotFound: "0017",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -99,6 +107,17 @@ export function clientAdminIdNotFound(
   });
 }
 
+export function eserviceTemplateVersionNotFound(
+  templateId: EServiceTemplateId,
+  versionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version ${versionId} not found in eservice template ${templateId}`,
+    code: "eserviceTemplateVersionNotFound",
+    title: "EService template version not found",
+  });
+}
+
 export function purposeVersionNotFound(
   purposeId: PurposeId,
   versionId: string
@@ -107,6 +126,47 @@ export function purposeVersionNotFound(
     detail: `Version ${versionId} not found in purpose ${purposeId}`,
     code: "purposeVersionNotFound",
     title: "Purpose version not found",
+  });
+}
+
+export function missingPurposeVersionWithState(
+  purposeId: string,
+  state: purposeApi.PurposeVersionState
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `There is no ${state} version for purpose ${purposeId}`,
+    code: "missingPurposeVersionWithState",
+    title: `Missing ${state} purpose version`,
+  });
+}
+
+export function missingPurposeCurrentVersion(
+  purposeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `There is no current valid version for purpose ${purposeId}`,
+    code: "missingPurposeCurrentVersion",
+    title: "Missing current purpose version",
+  });
+}
+
+export function agreementNotInPendingState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in pending state`,
+    code: "agreementNotInPendingState",
+    title: "Agreement not in pending state",
+  });
+}
+
+export function agreementNotInSuspendedState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in suspended state`,
+    code: "agreementNotInSuspendedState",
+    title: "Agreement not in suspended state",
   });
 }
 
