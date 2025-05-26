@@ -1450,6 +1450,9 @@ paths:
         required: true
       responses:
         "204":
+          # Here we use 204 No Content because because
+          # this operation does not create or update a client or a purpose,
+          # but rather adds an association between the two.
           description: Purpose added
           headers:
             X-Rate-Limit-Limit:
@@ -2875,8 +2878,12 @@ paths:
       operationId: activateDraftPurpose
       description: Activate Draft Purpose
       responses:
-        "204":
+        "200":
           description: Purpose activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2976,8 +2983,12 @@ paths:
       operationId: archivePurpose
       description: Archive Purpose
       responses:
-        "204":
+        "200":
           description: Purpose archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3077,8 +3088,12 @@ paths:
       operationId: approvePurpose
       description: Approve Waiting for approval Purpose
       responses:
-        "204":
+        "200":
           description: Purpose approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3178,8 +3193,12 @@ paths:
       operationId: suspendPurpose
       description: Suspend Purpose
       responses:
-        "204":
+        "200":
           description: Purpose suspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3279,8 +3298,12 @@ paths:
       operationId: unsuspendPurpose
       description: Unsuspend Purpose
       responses:
-        "204":
+        "200":
           description: Purpose unsuspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3606,8 +3629,12 @@ paths:
               $ref: "#/components/schemas/TenantCertifiedAttributeSeed"
         required: true
       responses:
-        "204":
+        "200":
           description: Updated Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3713,10 +3740,14 @@ paths:
       tags:
         - tenants
       operationId: revokeCertifiedAttributeById
-      description: Revoke a certified attribute to a Tenant
+      description: Revoke a certified attribute from a Tenant
       responses:
-        "204":
+        "200":
           description: Certified Attribute revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
