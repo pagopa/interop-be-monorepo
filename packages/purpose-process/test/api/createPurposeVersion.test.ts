@@ -11,12 +11,13 @@ import {
   generateToken,
   getMockPurpose,
   getMockPurposeVersion,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
-import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
+import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
@@ -26,22 +27,25 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/versions test", () => {
-  const mockPurpose: Purpose = getMockPurpose();
   const mockPurposeVersion = getMockPurposeVersion();
+  const mockPurpose: Purpose = getMockPurpose([mockPurposeVersion]);
   const defaultBody: purposeApi.PurposeVersionSeed = { dailyCalls: 10 };
+  const isRiskAnalysisValid = true;
+  const serviceResponse = getMockWithMetadata({
+    purpose: mockPurpose,
+    isRiskAnalysisValid,
+    createdVersionId: mockPurposeVersion.id,
+  });
 
-  const apiResponse = purposeApi.PurposeVersion.parse(
-    purposeVersionToApiPurposeVersion(mockPurposeVersion)
-  );
-
-  purposeService.createPurposeVersion = vi
-    .fn()
-    .mockResolvedValue(mockPurposeVersion);
+  const apiResponse = purposeApi.CreatedPurposeVersion.parse({
+    purpose: purposeToApiPurpose(mockPurpose, isRiskAnalysisValid),
+    createdVersionId: mockPurposeVersion.id,
+  });
 
   beforeEach(() => {
-    purposeService.createPurpose = vi
+    purposeService.createPurposeVersion = vi
       .fn()
-      .mockResolvedValue(mockPurposeVersion);
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -55,15 +59,26 @@ describe("API POST /purposes/{purposeId}/versions test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(apiResponse);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
