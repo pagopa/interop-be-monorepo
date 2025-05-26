@@ -15,7 +15,9 @@ describe("API POST /purposes/{purposeId}/versions test", () => {
   beforeEach(() => {
     clients.purposeProcessClient.createPurposeVersion = vi
       .fn()
-      .mockResolvedValue({ id: mockPurposeVersionResource.versionId });
+      .mockResolvedValue({
+        createdVersionId: mockPurposeVersionResource.versionId,
+      });
   });
 
   const makeRequest = async (
