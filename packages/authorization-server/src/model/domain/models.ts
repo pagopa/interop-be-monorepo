@@ -9,7 +9,7 @@ export interface InteropTokenResponse {
 }
 
 export type TokenRequest = {
-  headers: IncomingHttpHeaders & { DPoP?: string | unknown[] };
+  headers: IncomingHttpHeaders & { DPoP?: string };
   body: authorizationServerApi.AccessTokenRequest;
 };
 

@@ -45,16 +45,9 @@ export const verifyDPoPProof = ({
   dPoPProof,
   expectedDPoPProofHtu,
 }: {
-  dPoPProof: string | unknown[];
+  dPoPProof: string;
   expectedDPoPProofHtu: string;
 }): ValidationResult<{ dPoPProofJWT: DPoPProof; dPoPProofJWS: string }> => {
-  if (Array.isArray(dPoPProof)) {
-    // TODO: double check if this works
-    return failedValidation([
-      invalidDPoPProofFormat("multiple DPoP proof headers"),
-    ]);
-  }
-
   try {
     const decodedPayload = jose.decodeJwt(dPoPProof);
     const decodedHeader = jose.decodeProtectedHeader(dPoPProof);
