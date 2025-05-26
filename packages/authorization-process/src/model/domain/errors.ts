@@ -233,7 +233,7 @@ export function tooManyKeysPerClient(
   size: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Keys count (${size}) for the client ${clientId} exceed maximum allowed value`,
+    detail: `Keys count (${size}) for the client ${clientId} exceeds maximum allowed value`,
     code: "tooManyKeysPerClient",
     title: "Too many Keys per client",
   });
@@ -263,7 +263,7 @@ export function userNotFound(
 
 export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Key with kid ${kid} already exists `,
+    detail: `Key with kid ${kid} already exists`,
     code: "keyAlreadyExists",
     title: "Key already exists",
   });
@@ -390,7 +390,7 @@ export function purposeDelegationNotFound(
   return new ApiError({
     detail: `Delegation ${delegationId} not found`,
     code: "purposeDelegationNotFound",
-    title: "Deleagtion not found",
+    title: "Delegation not found",
   });
 }
 
