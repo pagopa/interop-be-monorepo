@@ -2301,7 +2301,7 @@ paths:
         "404":
           description: Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2342,7 +2342,7 @@ paths:
         "404":
           description: Producer Key not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
