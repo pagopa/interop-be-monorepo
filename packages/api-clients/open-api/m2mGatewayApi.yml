@@ -4412,6 +4412,7 @@ components:
     JWK:
       description: JSON Web Key
       type: object
+      additionalProperties: false
       properties:
         kty:
           type: string
@@ -4472,6 +4473,7 @@ components:
     OtherPrimeInfo:
       title: OtherPrimeInfo
       type: object
+      additionalProperties: false
       properties:
         r:
           type: string
@@ -4486,6 +4488,7 @@ components:
     Key:
       description: Key
       type: object
+      additionalProperties: false
       properties:
         clientId:
           type: string
@@ -4498,6 +4501,7 @@ components:
     ProducerKey:
       description: Key
       type: object
+      additionalProperties: false
       properties:
         producerKeychainId:
           type: string

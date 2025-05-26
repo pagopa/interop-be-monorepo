@@ -39,6 +39,7 @@ describe("API /producerKeys/{keyId} authorization test", () => {
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ADMIN_ROLE,
     authRole.ADMIN_ROLE,
+    authRole.M2M_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -67,4 +68,34 @@ describe("API /producerKeys/{keyId} authorization test", () => {
     const res = await makeRequest(token, mockKey.kid);
     expect(res.status).toBe(404);
   });
+
+  it.each([
+    {},
+    {
+      ...expectedKey,
+      producerKeychainId: "invalidUuid",
+    },
+    {
+      ...expectedKey,
+      invalidParam: "invalidValue",
+    },
+    {
+      ...expectedKey,
+      kid: undefined,
+    },
+    {
+      extraParam: "extraValue",
+    },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      authorizationService.getProducerJWKByKid = vi
+        .fn()
+        .mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockKey.kid);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });

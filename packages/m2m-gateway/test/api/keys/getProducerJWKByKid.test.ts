@@ -1,37 +1,33 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockProducerJWKKey,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, mockKeysService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { toM2MProducerKey } from "../../../src/api/keysApiConverter.js";
 
 describe("API /producerKeys/{keyId} authorization test", () => {
   const mockKey = getMockProducerJWKKey();
-  const expectedKey: authorizationApi.ProducerJWK = {
-    producerKeychainId: mockKey.producerKeychainId,
-    jwk: {
-      kid: mockKey.kid,
-      kty: mockKey.kty,
-      use: mockKey.use,
-      alg: mockKey.alg,
-      e: mockKey.e,
-      n: mockKey.n,
-    },
-  };
+  const { producerKeychainId, ...jwk } = mockKey;
+
+  const expectedKey = toM2MProducerKey({
+    producerKeychainId,
+    jwk,
+  });
 
   const makeRequest = async (token: string, keyId: string) =>
     request(api)
       .get(`${appBasePath}/producerKeys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
       .send();
 
-  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.M2M_ADMIN_ROLE,
+    authRole.M2M_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -54,4 +50,32 @@ describe("API /producerKeys/{keyId} authorization test", () => {
 
     expect(res.status).toBe(403);
   });
+
+  it.each([
+    {},
+    {
+      ...expectedKey,
+      producerKeychainId: "invalidUuid",
+    },
+    {
+      ...expectedKey,
+      invalidParam: "invalidValue",
+    },
+    {
+      ...expectedKey,
+      kid: undefined,
+    },
+    {
+      extraParam: "extraValue",
+    },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockKeysService.getKey = vi.fn().mockResolvedValueOnce(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockKey.kid);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });

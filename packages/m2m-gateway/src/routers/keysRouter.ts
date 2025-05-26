@@ -15,21 +15,21 @@ import { KeysService } from "../services/keysService.js";
 
 const keysRouter = (
   ctx: ZodiosContext,
-  authorizationService: KeysService
+  keysService: KeysService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const keysRouter = ctx.router(m2mGatewayApi.keysApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  const { M2M_ADMIN_ROLE } = authRole;
+  const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
   keysRouter
     .get("/keys/:kid", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const key = await authorizationService.getKey(req.params.kid, ctx);
+        const key = await keysService.getKey(req.params.kid, ctx);
 
         return res.status(200).send(m2mGatewayApi.Key.parse(key));
       } catch (error) {
@@ -45,12 +45,9 @@ const keysRouter = (
     .get("/producerKeys/:kid", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const key = await authorizationService.getProducerKey(
-          req.params.kid,
-          ctx
-        );
+        const key = await keysService.getProducerKey(req.params.kid, ctx);
 
         return res.status(200).send(m2mGatewayApi.ProducerKey.parse(key));
       } catch (error) {
