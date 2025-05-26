@@ -51,6 +51,7 @@ import {
   clientUserInReadmodelClient,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
+  producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
   producerKeychainKeyInReadmodelProducerKeychain,
@@ -460,7 +461,7 @@ export function readModelServiceBuilderSQL({
     ): Promise<ProducerJWKKey | undefined> {
       const producerKey =
         await producerJWKKeyReadModelServiceSQL.getProducerJWKKeyByFilter(
-          eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kId)
         );
 
       if (!producerKey?.data) {
