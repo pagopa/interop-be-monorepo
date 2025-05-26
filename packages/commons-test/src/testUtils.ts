@@ -1147,3 +1147,8 @@ export const getMockSessionClaims = (
     value: generateId(),
   },
 });
+
+export const getMockWithMetadata = <T>(data: T): WithMetadata<T> => ({
+  data,
+  metadata: { version: generateMock(z.number().int()) },
+});
