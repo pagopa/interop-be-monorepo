@@ -20,7 +20,6 @@ export const Key = z.object({
   use: KeyUse,
   createdAt: z.coerce.date(),
 });
-
 export type Key = z.infer<typeof Key>;
 
 export const JWKKey = z.object({
@@ -31,17 +30,25 @@ export const JWKKey = z.object({
   n: z.string(),
   use: z.string(),
 });
-
 export type JWKKey = z.infer<typeof JWKKey>;
 
 export const ClientJWKKey = JWKKey.extend({
   clientId: ClientId,
 });
-
 export type ClientJWKKey = z.infer<typeof ClientJWKKey>;
 
 export const ProducerJWKKey = JWKKey.extend({
   producerKeychainId: ProducerKeychainId,
 });
-
 export type ProducerJWKKey = z.infer<typeof ProducerJWKKey>;
+
+export const JWKKeyES = z.object({
+  alg: z.string(),
+  crv: z.string(),
+  kid: z.string(),
+  kty: z.string(),
+  use: z.string(),
+  x: z.string(),
+  y: z.string(),
+});
+export type JWKKeyES = z.infer<typeof JWKKeyES>;

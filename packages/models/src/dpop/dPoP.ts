@@ -1,11 +1,21 @@
 import { z } from "zod";
-import { JWKKey } from "../authorization/key.js";
+import { JWKKey, JWKKeyES } from "../authorization/key.js";
+
+export const dPoPAlgorithm = {
+  RS256: "RS256",
+  ES256: "ES256",
+} as const;
+export const DPoPAlgorithm = z.enum([
+  Object.values(dPoPAlgorithm)[0],
+  ...Object.values(dPoPAlgorithm).slice(1),
+]);
+export type DPoPAlgorithm = z.infer<typeof DPoPAlgorithm>;
 
 export const DPoPProofHeader = z
   .object({
     typ: z.string(),
     alg: z.string(),
-    jwk: JWKKey,
+    jwk: JWKKey.or(JWKKeyES),
   })
   .strict();
 export type DPoPProofHeader = z.infer<typeof DPoPProofHeader>;
