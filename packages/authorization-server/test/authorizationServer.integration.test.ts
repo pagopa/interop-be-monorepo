@@ -16,6 +16,8 @@ import {
   getMockClientAssertion,
   getMockContext,
   getMockDPoPProof,
+  generateKeySet,
+  signJWT,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
@@ -38,6 +40,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import {
+  dateToSeconds,
   formatDateyyyyMMdd,
   genericLogger,
   secondsToMilliseconds,
@@ -64,6 +67,7 @@ import {
 } from "../src/model/domain/errors.js";
 import { TokenRequest } from "../src/model/domain/models.js";
 import {
+  expiredDPoPProof,
   invalidDPoPSignature,
   invalidDPoPTyp,
 } from "../../dpop-validation/dist/errors.js";
@@ -626,7 +630,7 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(fallbackAuditFailed(clientId));
   });
 
-  it("should throw dPoPProofValidationFailed", async () => {
+  it("should throw dPoPProofValidationFailed - wrong typ", async () => {
     const clientId = generateId<ClientId>();
     const wrongTyp = "wrong-typ";
     const { dPoPJWS } = await getMockDPoPProof({
@@ -659,13 +663,60 @@ describe("authorization server tests", () => {
     );
   });
 
+  it("should throw dPoPProofValidationFailed - iat is more than 60 seconds ago", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const clientId = generateId<ClientId>();
+    const expiredIat = Math.floor(Date.now() / 1000) - 61;
+
+    const { dPoPJWS } = await getMockDPoPProof({
+      customPayload: {
+        iat: expiredIat,
+      },
+    });
+
+    const { headers, body } = await getMockTokenRequest();
+    const request: TokenRequest = {
+      headers: {
+        ...headers,
+        DPoP: dPoPJWS,
+      },
+      body: {
+        ...body,
+        client_id: clientId,
+      },
+    };
+
+    expect(
+      tokenService.generateToken(
+        request,
+        getMockContext({}),
+        () => {},
+        () => {}
+      )
+    ).rejects.toThrowError(
+      dPoPProofValidationFailed(
+        request.body.client_id,
+        expiredDPoPProof(expiredIat, dateToSeconds(new Date())).detail
+      )
+    );
+
+    vi.useRealTimers();
+  });
+
   it("should throw dPoPProofSignatureValidationFailed", async () => {
     const clientId = generateId<ClientId>();
 
-    const { dPoPJWS } = await getMockDPoPProof();
+    const { dPoPProof } = await getMockDPoPProof();
 
-    const splitJws = dPoPJWS.split(".");
-    const jwsWithWrongSignature = `${splitJws[0]}.${splitJws[1]}.wrong-signature`;
+    const { keySet: wrongKeySet } = generateKeySet("ES256");
+
+    const jwsWithWrongSignature = await signJWT({
+      payload: dPoPProof.payload,
+      headers: dPoPProof.header,
+      keySet: wrongKeySet,
+    });
 
     const { headers, body } = await getMockTokenRequest();
     const request: TokenRequest = {
