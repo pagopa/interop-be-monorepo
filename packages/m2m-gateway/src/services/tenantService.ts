@@ -132,7 +132,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       tenantId: TenantId,
       seed: m2mGatewayApi.TenantCertifiedAttributeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.Tenant> {
       logger.info(
         `Assigning certified attribute ${seed.id} to tenant ${tenantId}`
       );
@@ -146,13 +146,14 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           }
         );
 
-      await pollTenant(response, headers);
+      const polledResource = await pollTenant(response, headers);
+      return toM2MGatewayApiTenant(polledResource.data);
     },
     async revokeCertifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.Tenant> {
       logger.info(
         `Revoking certified attribute ${attributeId} from tenant ${tenantId}`
       );
@@ -166,7 +167,8 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           }
         );
 
-      await pollTenant(response, headers);
+      const polledResource = await pollTenant(response, headers);
+      return toM2MGatewayApiTenant(polledResource.data);
     },
   };
 }
