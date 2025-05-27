@@ -3,6 +3,7 @@ import {
   delegationApi,
   authorizationApi,
   purposeApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
@@ -191,11 +192,11 @@ export function eserviceDescriptorNotFound(
 }
 
 export function tenantCertifiedAttributeNotFound(
-  tenantId: string,
+  tenant: tenantApi.Tenant,
   attributeId: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Certified attribute ${attributeId} not found for tenant ${tenantId}`,
+    detail: `Certified attribute ${attributeId} not found for tenant ${tenant.id}`,
     code: "tenantCertifiedAttributeNotFound",
     title: "Tenant certified attribute not found",
   });

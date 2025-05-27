@@ -12,7 +12,10 @@ import {
   tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
-import { getMockedApiCertifiedTenantAttribute } from "../../mockUtils.js";
+import {
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+} from "../../mockUtils.js";
 
 describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test", () => {
   const mockApiResponse = getMockedApiCertifiedTenantAttribute();
@@ -50,7 +53,7 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
   });
 
   it.each([
-    tenantCertifiedAttributeNotFound(generateId(), generateId()),
+    tenantCertifiedAttributeNotFound(getMockedApiTenant().data, generateId()),
     missingMetadata(),
     resourcePollingTimeout(3),
   ])("Should return 500 in case of $code error", async (error) => {

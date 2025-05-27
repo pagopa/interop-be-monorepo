@@ -30,7 +30,7 @@ function retrieveCertifiedAttribute(
   );
 
   if (!certifiedAttribute) {
-    throw tenantCertifiedAttributeNotFound(tenant.id, attributeId);
+    throw tenantCertifiedAttributeNotFound(tenant, attributeId);
   }
 
   return certifiedAttribute;
