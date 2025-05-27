@@ -96,7 +96,9 @@ const tenantRouter = (
           ctx
         );
 
-        return res.status(200).send(m2mGatewayApi.Tenant.parse(tenant));
+        return res
+          .status(200)
+          .send(m2mGatewayApi.TenantCertifiedAttribute.parse(tenant));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -119,7 +121,9 @@ const tenantRouter = (
             ctx
           );
 
-          return res.status(200).send(m2mGatewayApi.Tenant.parse(tenant));
+          return res
+            .status(200)
+            .send(m2mGatewayApi.TenantCertifiedAttribute.parse(tenant));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
