@@ -28,7 +28,8 @@ export async function initRedisRateLimiter(config: {
 }): Promise<RateLimiter> {
   const redisClient = createRedisClient({
     // legacyMode: true, // Use legacy mode for compatibility with rate-limiter-flexible
-    disableOfflineQueue: true, // ❗ disabilita la coda offline per evitare di accumulare richieste quando Redis è giù
+    disableOfflineQueue: true, // disable the offline queue to make requests fail immediately if Redis is down
+    // so that the rate limiter fallbacks to the insurance limiter
     socket: {
       host: config.redisHost,
       port: config.redisPort,
@@ -45,7 +46,13 @@ export async function initRedisRateLimiter(config: {
   // Kick‑off the first connection attempt, but do **not** await it.
   // If Redis is down at start‑up, the promise rejects, we log, and the
   // client keeps retrying in the background without crashing the service.
-  redisClient.connect();
+  redisClient
+    .connect()
+    .catch((err) =>
+      genericLogger.warn(
+        `Initial Redis connect failed, will keep retrying automatically: ${err}`
+      )
+    );
 
   const insuranceLimiter = new RateLimiterMemory({
     keyPrefix: `${config.limiterGroup}_MEM`,
