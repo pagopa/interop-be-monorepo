@@ -7,9 +7,5 @@
 	"typescript.tsdk": "packages/commons/node_modules/typescript/lib",
 	"files.watcherExclude": {
 		"**/target": true
-	},
-	"editor.formatOnSaveMode": "file",
-	"[typescript]": {
-		"editor.defaultFormatter": "dbaeumer.vscode-eslint"
 	}
 }
