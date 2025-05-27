@@ -9,7 +9,7 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { producerKeyNotFound } from "../../src/model/domain/errors.js";
+import { producerJwkNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /producerKeys/{keyId} authorization test", () => {
   const mockKey = getMockProducerJWKKey();
@@ -38,7 +38,6 @@ describe("API /producerKeys/{keyId} authorization test", () => {
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ADMIN_ROLE,
-    authRole.ADMIN_ROLE,
     authRole.M2M_ROLE,
   ];
   it.each(authorizedRoles)(
@@ -60,10 +59,10 @@ describe("API /producerKeys/{keyId} authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 for producerKeyNotFound", async () => {
+  it("Should return 404 for producerJwkNotFound", async () => {
     authorizationService.getProducerJWKByKid = vi
       .fn()
-      .mockRejectedValue(producerKeyNotFound(mockKey.kid, undefined));
+      .mockRejectedValue(producerJwkNotFound(mockKey.kid));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockKey.kid);
     expect(res.status).toBe(404);

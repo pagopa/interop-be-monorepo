@@ -53,8 +53,10 @@ import {
   eserviceAlreadyLinkedToProducerKeychain,
   eserviceNotDelegableForClientAccess,
   eserviceNotFound,
+  jwkNotFound,
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
+  producerJwkNotFound,
   producerKeychainNotFound,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
@@ -1442,7 +1444,7 @@ export function authorizationServiceBuilder(
       const clientKey = await readModelService.getClientJWKByKId(kid);
 
       if (!clientKey) {
-        throw clientKeyNotFound(kid, undefined);
+        throw jwkNotFound(kid);
       }
 
       return clientJWKToApiClientJWK(clientKey);
@@ -1458,7 +1460,7 @@ export function authorizationServiceBuilder(
       const producerKey = await readModelService.getProducerJWKByKId(kid);
 
       if (!producerKey) {
-        throw producerKeyNotFound(kid, undefined);
+        throw producerJwkNotFound(kid);
       }
 
       return producerJWKToApiProducerJWK(producerKey);

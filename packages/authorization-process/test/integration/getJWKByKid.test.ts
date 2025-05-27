@@ -6,7 +6,7 @@ import {
   getMockContext,
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
-import { clientKeyNotFound } from "../../src/model/domain/errors.js";
+import { jwkNotFound } from "../../src/model/domain/errors.js";
 import { addOneKey, authorizationService } from "../integrationUtils.js";
 
 describe("getJWKByKid", async () => {
@@ -36,11 +36,11 @@ describe("getJWKByKid", async () => {
     expect(retrievedKey).toEqual(expectedKey);
   });
 
-  it("should throw clientKeyNotFound if the key doesn't exist", async () => {
+  it("should throw jwkNotFound if the key doesn't exist", async () => {
     const randomKid = generateId();
 
     expect(
       authorizationService.getJWKByKid(randomKid, getMockContext({}))
-    ).rejects.toThrowError(clientKeyNotFound(randomKid, undefined));
+    ).rejects.toThrowError(jwkNotFound(randomKid));
   });
 });

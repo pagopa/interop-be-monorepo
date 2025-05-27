@@ -6,7 +6,7 @@ import {
   getMockProducerJWKKey,
 } from "pagopa-interop-commons-test";
 import { authorizationApi } from "pagopa-interop-api-clients";
-import { producerKeyNotFound } from "../../src/model/domain/errors.js";
+import { producerJwkNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneProducerKey,
   authorizationService,
@@ -39,11 +39,11 @@ describe("getProducerJWKByKid", async () => {
     expect(retrievedKey).toEqual(expectedKey);
   });
 
-  it("should throw producerKeyNotFound if the key doesn't exist", async () => {
+  it("should throw producerJwkNotFound if the key doesn't exist", async () => {
     const randomKid = generateId();
 
     expect(
       authorizationService.getProducerJWKByKid(randomKid, getMockContext({}))
-    ).rejects.toThrowError(producerKeyNotFound(randomKid, undefined));
+    ).rejects.toThrowError(producerJwkNotFound(randomKid));
   });
 });

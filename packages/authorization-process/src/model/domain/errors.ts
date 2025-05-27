@@ -47,6 +47,8 @@ export const errorCodes = {
   securityUserNotMember: "0032",
   clientAdminIdNotFound: "0033",
   userAlreadyAssignedAsAdmin: "0034",
+  jwkNotFound: "0035",
+  producerJwkNotFound: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -96,14 +98,10 @@ export function clientAdminIdNotFound(
 
 export function clientKeyNotFound(
   keyId: string,
-  clientId: ClientId | undefined
+  clientId: ClientId
 ): ApiError<ErrorCodes> {
-  const detail = clientId
-    ? `Key ${keyId} not found in client ${clientId}`
-    : `Key ${keyId} not found`;
-
   return new ApiError({
-    detail,
+    detail: `Key ${keyId} not found in client ${clientId}`,
     code: "clientKeyNotFound",
     title: "Key not found",
   });
@@ -327,14 +325,10 @@ export function userNotAllowedToDeleteProducerKeychainKey(
 
 export function producerKeyNotFound(
   keyId: string,
-  producerKeychainId: ProducerKeychainId | undefined
+  producerKeychainId: ProducerKeychainId
 ): ApiError<ErrorCodes> {
-  const detail = producerKeychainId
-    ? `Key ${keyId} not found in producer keychain ${producerKeychainId}`
-    : `Key ${keyId} not found`;
-
   return new ApiError({
-    detail,
+    detail: `Key ${keyId} not found in producer keychain ${producerKeychainId}`,
     code: "producerKeyNotFound",
     title: "Key not found",
   });
@@ -417,5 +411,21 @@ export function securityUserNotMember(userId: UserId): ApiError<ErrorCodes> {
     detail: `User ${userId} with user role "security" is not a member of the client`,
     code: "securityUserNotMember",
     title: "Security user not member",
+  });
+}
+
+export function jwkNotFound(kid: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `JWK with kid ${kid} not found`,
+    code: "jwkNotFound",
+    title: "JWK not found",
+  });
+}
+
+export function producerJwkNotFound(kid: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Producer JWK with kid ${kid} not found`,
+    code: "producerJwkNotFound",
+    title: "Producer JWK not found",
   });
 }
