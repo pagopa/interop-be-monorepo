@@ -19,14 +19,14 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   tenantInReadmodelTenant,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregateEserviceArray,
   TenantReadModelService,
   toEServiceAggregatorArray,
+  AttributeReadModelService,
 } from "pagopa-interop-readmodel";
-import { DrizzleReturnType } from "../../../readmodel-models/dist/types.js";
-import { AttributeReadModelService } from "../../../readmodel/dist/attributeReadModelService.js";
 
 export function readModelServiceBuilderSQL(
   readModelDB: DrizzleReturnType,

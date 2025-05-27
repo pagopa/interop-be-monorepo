@@ -10,7 +10,7 @@ import {
 } from "pagopa-interop-models";
 import { getMockValidRiskAnalysisForm } from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
+import { PurposeRiskAnalysisFormV2 } from "pagopa-interop-models";
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
