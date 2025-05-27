@@ -54,8 +54,6 @@ import {
   eserviceNotDelegableForClientAccess,
   eserviceNotFound,
   jwkNotFound,
-  noAgreementFoundInRequiredState,
-  noPurposeVersionsFoundInRequiredState,
   producerJwkNotFound,
   noActiveOrSuspendedAgreementFound,
   noActiveOrSuspendedPurposeVersionFound,
