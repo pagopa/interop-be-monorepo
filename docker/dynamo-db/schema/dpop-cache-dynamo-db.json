@@ -1,5 +1,5 @@
 {
-  "TableName": "interop-dpop-cache",
+  "TableName": "dpop-cache",
   "AttributeDefinitions": [
     {
       "AttributeName": "jti",

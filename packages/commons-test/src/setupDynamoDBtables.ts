@@ -127,7 +127,7 @@ export const buildDynamoDBTables = async (
   await dynamoDBClient.send(tokenGenStatesCreationCommand);
 
   const dPoPCacheTableDefinition: CreateTableInput = {
-    TableName: "interop-dpop-cache",
+    TableName: "dpop-cache",
     AttributeDefinitions: [
       {
         AttributeName: "jti",
@@ -165,7 +165,7 @@ export const deleteDynamoDBTables = async (
   };
   const dPoPCacheDeleteInput: DeleteTableInput = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    TableName: "interop-dpop-cache",
+    TableName: "dpop-cache",
   };
 
   const platformStatesDeleteCommand = new DeleteTableCommand(
