@@ -3605,6 +3605,9 @@ importers:
       pagopa-interop-readmodel:
         specifier: workspace:*
         version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -3730,6 +3733,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
       zod:
         specifier: 3.23.8
         version: 3.23.8
