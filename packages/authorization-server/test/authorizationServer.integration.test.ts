@@ -52,6 +52,11 @@ import {
   invalidSignature,
   issuedAtNotFound,
 } from "pagopa-interop-client-assertion-validation";
+import {
+  expiredDPoPProof,
+  invalidDPoPSignature,
+  invalidDPoPTyp,
+} from "pagopa-interop-dpop-validation";
 import { config } from "../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -66,11 +71,6 @@ import {
   unexpectedDPoPProofForAPIToken,
 } from "../src/model/domain/errors.js";
 import { TokenRequest } from "../src/model/domain/models.js";
-import {
-  expiredDPoPProof,
-  invalidDPoPSignature,
-  invalidDPoPTyp,
-} from "../../dpop-validation/dist/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
