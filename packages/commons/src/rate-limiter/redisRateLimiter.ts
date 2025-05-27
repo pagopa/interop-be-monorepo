@@ -83,8 +83,7 @@ export async function initRedisRateLimiter(config: {
     }
   }
 
-  // Start connection attempts in background, but don't await
-  void connectRedis();
+  await connectRedis();
 
   const intervalId = setInterval(() => {
     if (!redisClient || !rateLimiter) {
