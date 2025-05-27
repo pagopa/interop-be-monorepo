@@ -141,13 +141,7 @@ export function tokenServiceBuilder({
           );
         }
 
-        logTokenGenerationInfo({
-          validatedJwt: dPoPProofJWT,
-          clientKind: undefined,
-          tokenJti: undefined,
-          message: "DPoP proof validated",
-          logger,
-        });
+        logger.info(`[JTI=${dPoPProofJWT.payload.jti}] - DPoP proof validated`);
       }
 
       // Request body parameters validation
