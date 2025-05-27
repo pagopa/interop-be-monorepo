@@ -15175,6 +15175,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     delete:
       description: Revokes a producer delegation
       tags:

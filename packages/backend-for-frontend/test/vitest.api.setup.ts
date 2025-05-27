@@ -86,7 +86,11 @@ export const clients = {
   authorizationClient: {} as AuthorizationProcessClient,
   selfcareV2InstitutionClient: {} as SelfcareV2InstitutionClient,
   selfcareV2UserClient: {} as SelfcareV2UserClient,
-  delegationProcessClient: {} as DelegationProcessClient,
+  delegationProcessClient: {
+    producer: {},
+    consumer: {},
+    delegation: {},
+  } as DelegationProcessClient,
   eserviceTemplateProcessClient: {} as EServiceTemplateProcessClient,
 };
 
