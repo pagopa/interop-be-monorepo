@@ -15,14 +15,19 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { tenantCertifiedAttributeNotFound } from "../model/errors.js";
 
-function retrieveCertifiedAttributeFromTenant(
+function retrieveCertifiedAttributes(
+  tenant: tenantApi.Tenant
+): tenantApi.CertifiedTenantAttribute[] {
+  return tenant.attributes.map((v) => v.certified).filter(isDefined);
+}
+
+function retrieveCertifiedAttribute(
   tenant: tenantApi.Tenant,
   attributeId: tenantApi.CertifiedTenantAttribute["id"]
 ): tenantApi.CertifiedTenantAttribute {
-  const certifiedAttribute = tenant.attributes
-    .map((v) => v.certified)
-    .filter(isDefined)
-    .find((certifiedAttribute) => certifiedAttribute.id === attributeId);
+  const certifiedAttribute = retrieveCertifiedAttributes(tenant).find(
+    (certifiedAttribute) => certifiedAttribute.id === attributeId
+  );
 
   if (!certifiedAttribute) {
     throw tenantCertifiedAttributeNotFound(tenant.id, attributeId);
@@ -102,9 +107,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      const tenantCertifiedAttributes = tenant.attributes
-        .map((v) => v.certified)
-        .filter(isDefined);
+      const tenantCertifiedAttributes = retrieveCertifiedAttributes(tenant);
 
       return {
         results: tenantCertifiedAttributes.map(
@@ -136,7 +139,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         );
 
       const { data: polledTenant } = await pollTenant(response, headers);
-      const certifiedAttribute = retrieveCertifiedAttributeFromTenant(
+      const certifiedAttribute = retrieveCertifiedAttribute(
         polledTenant,
         seed.id
       );
@@ -162,7 +165,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         );
 
       const { data: polledTenant } = await pollTenant(response, headers);
-      const certifiedAttribute = retrieveCertifiedAttributeFromTenant(
+      const certifiedAttribute = retrieveCertifiedAttribute(
         polledTenant,
         attributeId
       );
