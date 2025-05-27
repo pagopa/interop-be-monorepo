@@ -29,9 +29,6 @@ export function attributeServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
-      });
-
-      await dbContext.conn.tx(async (t) => {
         await repo.merge(t);
       });
 
@@ -57,9 +54,7 @@ export function attributeServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
-      });
 
-      await dbContext.conn.tx(async (t) => {
         await repo.mergeDeleting(t);
       });
 
