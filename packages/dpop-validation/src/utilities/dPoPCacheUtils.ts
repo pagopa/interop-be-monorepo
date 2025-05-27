@@ -32,7 +32,7 @@ export const writeDPoPCache = async ({
       iat: {
         N: iat.toString(),
       },
-      version: {
+      ttl: {
         N: ttl.toString(),
       },
     },
