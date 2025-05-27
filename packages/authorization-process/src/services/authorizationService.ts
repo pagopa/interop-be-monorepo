@@ -1439,7 +1439,7 @@ export function authorizationServiceBuilder(
     ): Promise<authorizationApi.ClientJWK> {
       logger.info(`Retrieving key with id ${kid}`);
 
-      const clientKey = await readModelService.getClientKeyByKeyId(kid);
+      const clientKey = await readModelService.getClientJWKByKId(kid);
 
       if (!clientKey) {
         throw clientKeyNotFound(kid, undefined);
@@ -1455,7 +1455,7 @@ export function authorizationServiceBuilder(
     ): Promise<authorizationApi.ProducerJWK> {
       logger.info(`Retrieving key with id ${kid}`);
 
-      const producerKey = await readModelService.getProducerKeyByKeyId(kid);
+      const producerKey = await readModelService.getProducerJWKByKId(kid);
 
       if (!producerKey) {
         throw producerKeyNotFound(kid, undefined);

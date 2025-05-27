@@ -441,7 +441,7 @@ export function readModelServiceBuilder(
       }
       return undefined;
     },
-    async getClientKeyByKeyId(
+    async getClientJWKByKId(
       kId: ClientJWKKey["kid"]
     ): Promise<ClientJWKKey | undefined> {
       const clientKey = await keys.findOne(
@@ -464,7 +464,7 @@ export function readModelServiceBuilder(
 
       return parseResult.data;
     },
-    async getProducerKeyByKeyId(
+    async getProducerJWKByKId(
       kId: ProducerJWKKey["kid"]
     ): Promise<ProducerJWKKey | undefined> {
       const producerKey = await producerKeys.findOne(

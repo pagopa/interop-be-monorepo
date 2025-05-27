@@ -433,7 +433,7 @@ export function readModelServiceBuilderSQL({
         )
       )?.data;
     },
-    async getClientKeyByKeyId(
+    async getClientJWKByKId(
       kId: ClientJWKKey["kid"]
     ): Promise<ClientJWKKey | undefined> {
       const clientKey =
@@ -456,7 +456,7 @@ export function readModelServiceBuilderSQL({
 
       return parseResult.data;
     },
-    async getProducerKeyByKeyId(
+    async getProducerJWKByKId(
       kId: ProducerJWKKey["kid"]
     ): Promise<ProducerJWKKey | undefined> {
       const producerKey =
