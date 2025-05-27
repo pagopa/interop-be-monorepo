@@ -255,9 +255,6 @@ export function tokenServiceBuilder({
           dPoPProofJti: dPoPProofJWT.payload.jti,
           dPoPProofIat: dPoPProofJWT.payload.iat,
           dPoPCacheTable: config.dPoPCacheTable,
-          jti: dPoPProofJWT.payload.jti,
-          iat: dPoPProofJWT.payload.iat,
-          ttl: dPoPCacheTTL,
         });
         if (dPoPCacheErrors) {
           throw dPoPAlreadyUsed(dPoPProofJWT.payload.jti);
