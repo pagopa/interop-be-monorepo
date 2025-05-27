@@ -1,52 +1,43 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import request from "supertest";
-import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
+import { describe, it, expect, vi } from "vitest";
+import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
-import {
-  generateId,
-  Agreement,
-  agreementState,
-  EServiceId,
-  TenantId,
-  DescriptorId,
-} from "pagopa-interop-models";
-import { describe, vi, it, expect } from "vitest";
+import request from "supertest";
+import { apiGatewayApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
 import { api, mockAgreementService } from "../vitest.api.setup.js";
-import { Agreements } from "../../../api-clients/dist/apiGatewayApi.js";
-import { agreementToApiAgreement } from "../../src/api/agreementApiConverter.js";
+import { appBasePath } from "../../src/config/appBasePath.js";
+import { producerAndConsumerParamMissing } from "../../src/models/errors.js";
 
-describe("API /agreements authorization test", () => {
-  const consumerId = generateId<TenantId>();
-  const eserviceId = generateId<EServiceId>();
-  const producerId = generateId<TenantId>();
-  const descriptorId = generateId<DescriptorId>();
+describe("GET /agreements route test", () => {
+  const consumerId = generateId();
+  const eserviceId = generateId();
+  const producerId = generateId();
+  const descriptorId = generateId();
 
-  const agreement1: Agreement = {
-    ...getMockAgreement(eserviceId, consumerId, agreementState.suspended),
-    producerId,
+  const agreement1: apiGatewayApi.Agreement = {
+    id: generateId(),
+    eserviceId,
     descriptorId,
-  };
-
-  const agreement2: Agreement = {
-    ...getMockAgreement(eserviceId, consumerId, agreementState.suspended),
     producerId,
+    consumerId,
+    state: apiGatewayApi.AgreementState.Values.ACTIVE,
+  };
+
+  const agreement2: apiGatewayApi.Agreement = {
+    id: generateId(),
+    eserviceId,
     descriptorId,
+    producerId,
+    consumerId,
+    state: apiGatewayApi.AgreementState.Values.SUSPENDED,
   };
 
-  const apiAgreement1 = agreementApi.Agreement.parse(
-    agreementToApiAgreement(agreement1)
-  );
-
-  const apiAgreement2 = agreementApi.Agreement.parse(
-    agreementToApiAgreement(agreement2)
-  );
-
-  const agreementsResponse: Agreements = {
-    agreements: [apiAgreement1, apiAgreement2],
+  const agreementsResponse: apiGatewayApi.Agreements = {
+    agreements: [agreement1, agreement2],
   };
 
-  const queryParams = {
+  const mockQueryParams: apiGatewayApi.GetAgreementsQueryParams = {
     producerId,
     consumerId,
     eserviceId,
@@ -56,28 +47,28 @@ describe("API /agreements authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    query: typeof queryParams = queryParams
+    query: apiGatewayApi.GetAgreementsQueryParams = mockQueryParams
   ) =>
     request(api)
-      .get(`/agreements`)
+      .get(`${appBasePath}/agreements`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query(query);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ROLE];
 
-  it.only.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+  it.each(authorizedRoles)(
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
+      // eslint-disable-next-line functional/immutable-data
+      mockAgreementService.getAgreements = vi
+        .fn()
+        .mockResolvedValue(agreementsResponse);
+
       const token = generateToken(role);
       const res = await makeRequest(token);
-
-      console.log(res.text);
-
       expect(res.status).toBe(200);
-      // expect(res.body).toEqual(
-      //   apiGatewayApi.Agreements.parse(agreementsResponse)
-      // );
+      expect(res.body).toEqual(agreementsResponse);
     }
   );
 
@@ -89,16 +80,46 @@ describe("API /agreements authorization test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([
-    {},
-    { ...queryParams, producerId: "invalid" },
-    { ...queryParams, consumerId: "invalid" },
-    { ...queryParams, eserviceId: "invalid-uuid" },
-    { ...queryParams, descriptorId: "invalid-uuid" },
-    { ...queryParams, states: ["INVALID_STATE"] },
-  ])("Should return 400 if passed invalid params: %s", async (query) => {
+  it("Should throw producerAndConsumerParamMissing", async () => {
+    // eslint-disable-next-line functional/immutable-data
+    mockAgreementService.getAgreements = vi
+      .fn()
+      .mockRejectedValue(producerAndConsumerParamMissing());
     const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token, query as typeof queryParams);
+    const res = await makeRequest(token);
     expect(res.status).toBe(400);
   });
+
+  it.each([
+    { ...mockQueryParams, producerId: "invalid" },
+    { ...mockQueryParams, consumerId: "invalid" },
+    { ...mockQueryParams, eserviceId: "invalid-uuid" },
+    { ...mockQueryParams, descriptorId: "invalid-uuid" },
+    { ...mockQueryParams, states: ["INVALID_STATE"] },
+  ])("Should return 400 if passed invalid params: %s", async (query) => {
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(
+      token,
+      query as apiGatewayApi.GetAgreementsQueryParams
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it.each([
+    {
+      agreements: [
+        { ...agreementsResponse.agreements[0], state: "INVALID_STATE" },
+      ],
+    },
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      // eslint-disable-next-line functional/immutable-data
+      mockAgreementService.getAgreements = vi.fn().mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ROLE);
+      const res = await makeRequest(token);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });

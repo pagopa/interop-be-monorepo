@@ -21,6 +21,7 @@ import { NotifierEventsService } from "./services/notifierEventsService.js";
 import { PurposeService } from "./services/purposeService.js";
 import { ReadModelService } from "./services/readModelService.js";
 import { TenantService } from "./services/tenantService.js";
+import { appBasePath } from "./config/appBasePath.js";
 
 export type ApiGatewayServices = {
   agreementService: AgreementService;
@@ -53,7 +54,7 @@ export async function createApp(
   app.use(loggerMiddleware(serviceName));
 
   app.use(
-    `/api-gateway/${config.apiGatewayInterfaceVersion}`,
+    appBasePath,
     healthRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),

@@ -24,18 +24,6 @@ import { tenantServiceBuilder } from "./services/tenantService.js";
 
 const clients = getInteropBeClients();
 
-const catalogService = catalogServiceBuilder(clients);
-
-const agreementService = agreementServiceBuilder(clients);
-
-const purposeService = purposeServiceBuilder(clients);
-
-const tenantService = tenantServiceBuilder(clients);
-
-const notifierEventsService = notifierEventsServiceBuilder(clients);
-
-const attributeService = attributeServiceBuilder(clients);
-
 const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
@@ -57,10 +45,16 @@ const readModelService =
     ? readModelServiceSQL
     : oldReadModelService;
 
-const authorizationService = authorizationServiceBuilder(
-  clients,
-  readModelService
-);
+const services: ApiGatewayServices = {
+  catalogService: catalogServiceBuilder(clients),
+  agreementService: agreementServiceBuilder(clients),
+  purposeService: purposeServiceBuilder(clients),
+  tenantService: tenantServiceBuilder(clients),
+  notifierEventsService: notifierEventsServiceBuilder(clients),
+  attributeService: attributeServiceBuilder(clients),
+  authorizationService: authorizationServiceBuilder(clients, readModelService),
+  readModelService,
+};
 
 const redisRateLimiter = await initRedisRateLimiter({
   limiterGroup: "API_GW",
@@ -74,17 +68,6 @@ const redisRateLimiter = await initRedisRateLimiter({
 
 const rateLimiterMiddleware: RateLimiterMiddleware =
   rateLimiterMiddlewareBuilder(redisRateLimiter);
-
-const services: ApiGatewayServices = {
-  catalogService,
-  agreementService,
-  purposeService,
-  tenantService,
-  notifierEventsService,
-  attributeService,
-  authorizationService,
-  readModelService,
-};
 
 const app = await createApp(services, rateLimiterMiddleware);
 
