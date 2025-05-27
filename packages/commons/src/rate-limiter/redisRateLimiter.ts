@@ -6,6 +6,7 @@ import { TenantId } from "pagopa-interop-models";
 import {
   BurstyRateLimiter,
   IRateLimiterRedisOptions,
+  RateLimiterMemory,
   RateLimiterRedis,
   RateLimiterRes,
 } from "rate-limiter-flexible";
@@ -25,21 +26,39 @@ export async function initRedisRateLimiter(config: {
   redisPort: number;
   timeout: number;
 }): Promise<RateLimiter> {
-  const redisClient = await createRedisClient({
+  const redisClient = createRedisClient({
+    // legacyMode: true, // Use legacy mode for compatibility with rate-limiter-flexible
+    disableOfflineQueue: true, // ❗ disabilita la coda offline per evitare di accumulare richieste quando Redis è giù
     socket: {
       host: config.redisHost,
       port: config.redisPort,
       connectTimeout: config.timeout,
+      /**
+       * Reconnect indefinitely using a simple exponential back‑off.
+       * `retries` starts at 1 and increases by 1 for every failed attempt.
+       * We cap the delay at 30.000 ms to avoid very long waits.
+       */
+      reconnectStrategy: (retries: number) => Math.min(retries * 1_000, 30_000),
     },
-  })
-    .on("error", (err) => genericLogger.warn(`Redis Client Error: ${err}`))
-    .connect();
+  }).on("error", (err) => genericLogger.warn(`Redis Client Error: ${err}`));
+
+  // Kick‑off the first connection attempt, but do **not** await it.
+  // If Redis is down at start‑up, the promise rejects, we log, and the
+  // client keeps retrying in the background without crashing the service.
+  redisClient.connect();
+
+  const insuranceLimiter = new RateLimiterMemory({
+    keyPrefix: `${config.limiterGroup}_MEM`,
+    points: config.maxRequests, // stesso budget
+    duration: config.rateInterval / 1000,
+  });
 
   const options: IRateLimiterRedisOptions = {
     storeClient: redisClient,
     keyPrefix: config.limiterGroup,
     points: config.maxRequests,
     duration: config.rateInterval / 1000, // seconds
+    insuranceLimiter,
   };
 
   const burstOptions: IRateLimiterRedisOptions = {
