@@ -2465,6 +2465,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
@@ -2483,6 +2486,9 @@ importers:
       puppeteer:
         specifier: 22.11.2
         version: 22.11.2(typescript@5.4.5)
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
