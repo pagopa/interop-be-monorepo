@@ -11,7 +11,7 @@ import { clientServiceBuilder } from "../src/services/clientService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
 import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { eserviceServiceBuilder } from "../src/services/eserviceService.js";
-import { keysServiceBuilder } from "../src/services/keysService.js";
+import { keyServiceBuilder } from "../src/services/keyService.js";
 import { m2mTestToken } from "./mockUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -111,4 +111,4 @@ export const eserviceTemplateService =
 export const clientService = clientServiceBuilder(mockInteropBeClients);
 export const agreementService = agreementServiceBuilder(mockInteropBeClients);
 export const eserviceService = eserviceServiceBuilder(mockInteropBeClients);
-export const keysService = keysServiceBuilder(mockInteropBeClients);
+export const keyService = keyServiceBuilder(mockInteropBeClients);

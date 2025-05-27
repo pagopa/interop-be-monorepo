@@ -37,7 +37,7 @@ tags:
     externalDocs:
       description: Find out more
       url: http://swagger.io
-  - name: keys
+  - name: key
     description: Keys routes
     externalDocs:
       description: Find out more
@@ -1673,9 +1673,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
   /keys/{kid}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
-        - keys
+        - key
       summary: Retrieve key in JWK format
       description: Retrieve the JWK by kid
       operationId: getJWKByKid
@@ -1686,7 +1688,6 @@ paths:
           required: true
           schema:
             type: string
-        - $ref: "#/components/parameters/CorrelationIdHeader"
       responses:
         "200":
           description: returns the client with the key
@@ -1700,17 +1701,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
   /producerKeys/{kid}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
     get:
       tags:
-        - keys
+        - key
       summary: Retrieve a producer key in JWK format
       description: Retrieve the producer JWK by kid
       operationId: getProducerJWKByKid
@@ -1721,7 +1717,6 @@ paths:
           required: true
           schema:
             type: string
-        - $ref: "#/components/parameters/CorrelationIdHeader"
       responses:
         "200":
           description: returns the Key
@@ -1735,13 +1730,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
   /status:
     get:
       security: []

@@ -11,25 +11,25 @@ import {
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { KeysService } from "../services/keysService.js";
+import { KeyService } from "../services/keyService.js";
 
-const keysRouter = (
+const keyRouter = (
   ctx: ZodiosContext,
-  keysService: KeysService
+  keyService: KeyService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const keysRouter = ctx.router(m2mGatewayApi.keysApi.api, {
+  const keyRouter = ctx.router(m2mGatewayApi.keysApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
   const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
-  keysRouter
+  keyRouter
     .get("/keys/:kid", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const key = await keysService.getKey(req.params.kid, ctx);
+        const key = await keyService.getKey(req.params.kid, ctx);
 
         return res.status(200).send(m2mGatewayApi.Key.parse(key));
       } catch (error) {
@@ -47,7 +47,7 @@ const keysRouter = (
       try {
         validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-        const key = await keysService.getProducerKey(req.params.kid, ctx);
+        const key = await keyService.getProducerKey(req.params.kid, ctx);
 
         return res.status(200).send(m2mGatewayApi.ProducerKey.parse(key));
       } catch (error) {
@@ -61,7 +61,7 @@ const keysRouter = (
       }
     });
 
-  return keysRouter;
+  return keyRouter;
 };
 
-export default keysRouter;
+export default keyRouter;

@@ -65,8 +65,8 @@ export type AuthorizationProcessClient = {
   token: ZodiosClientWithMetadata<
     ReturnType<typeof authorizationApi.createTokenGenerationApiClient>
   >;
-  keys: ZodiosClientWithMetadata<
-    ReturnType<typeof authorizationApi.createKeysApiClient>
+  key: ZodiosClientWithMetadata<
+    ReturnType<typeof authorizationApi.createKeyApiClient>
   >;
 };
 
@@ -134,8 +134,8 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
         authorizationApi.createTokenGenerationApiClient,
         config.authorizationUrl
       ),
-      keys: createZodiosClientEnhancedWithMetadata(
-        authorizationApi.createKeysApiClient,
+      key: createZodiosClientEnhancedWithMetadata(
+        authorizationApi.createKeyApiClient,
         config.authorizationUrl
       ),
     },

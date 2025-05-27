@@ -4,7 +4,7 @@ import { getMockClientJWKKey } from "pagopa-interop-commons-test/index.js";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
-  keysService,
+  keyService,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -32,7 +32,7 @@ describe("getJWKByKid", () => {
   const mockGetJWKByKid = vi.fn().mockResolvedValue(authProcessResponse);
 
   mockInteropBeClients.authorizationClient = {
-    keys: {
+    key: {
       getJWKByKid: mockGetJWKByKid,
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
@@ -42,14 +42,14 @@ describe("getJWKByKid", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const result = await keysService.getKey(
+    const result = await keyService.getKey(
       unsafeBrandId(mockKey.kid),
       getMockM2MAdminAppContext()
     );
 
     expect(result).toEqual(expectedKey);
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.authorizationClient.keys.getJWKByKid,
+      mockGet: mockInteropBeClients.authorizationClient.key.getJWKByKid,
       params: {
         kid: mockKey.kid,
       },

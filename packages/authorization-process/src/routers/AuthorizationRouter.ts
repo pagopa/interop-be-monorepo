@@ -1032,11 +1032,11 @@ const authorizationRouter = (
     }
   );
 
-  const keysRouter = ctx.router(authorizationApi.keysApi.api, {
+  const keyRouter = ctx.router(authorizationApi.keyApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  keysRouter
+  keyRouter
     .get("/keys/:kid", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
@@ -1084,7 +1084,7 @@ const authorizationRouter = (
     authorizationUserRouter,
     authorizationProducerKeychainRouter,
     tokenGenerationRouter,
-    keysRouter,
+    keyRouter,
   ];
 };
 export default authorizationRouter;

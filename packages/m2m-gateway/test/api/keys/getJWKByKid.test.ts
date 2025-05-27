@@ -5,7 +5,7 @@ import {
   getMockClientJWKKey,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, mockKeysService } from "../../vitest.api.setup.js";
+import { api, mockKeyService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MKey } from "../../../src/api/keysApiConverter.js";
 
@@ -28,7 +28,7 @@ describe("API /keys/{keyId} authorization test", () => {
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
-      mockKeysService.getKey = vi.fn().mockResolvedValueOnce(expectedKey);
+      mockKeyService.getKey = vi.fn().mockResolvedValueOnce(expectedKey);
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockKey.kid);
@@ -66,7 +66,7 @@ describe("API /keys/{keyId} authorization test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockKeysService.getKey = vi.fn().mockResolvedValueOnce(resp);
+      mockKeyService.getKey = vi.fn().mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockKey.kid);
 

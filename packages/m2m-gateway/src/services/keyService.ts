@@ -4,10 +4,10 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { toM2MKey, toM2MProducerKey } from "../api/keysApiConverter.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 
-export type KeysService = ReturnType<typeof keysServiceBuilder>;
+export type KeyService = ReturnType<typeof keyServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function keysServiceBuilder(clients: PagoPAInteropBeClients) {
+export function keyServiceBuilder(clients: PagoPAInteropBeClients) {
   return {
     async getKey(
       kid: string,
@@ -15,7 +15,7 @@ export function keysServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Key> {
       logger.info(`Retrieving key with id ${kid}`);
 
-      const key = await clients.authorizationClient.keys.getJWKByKid({
+      const key = await clients.authorizationClient.key.getJWKByKid({
         headers,
         params: { kid },
       });
@@ -27,7 +27,7 @@ export function keysServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.ProducerKey> {
       logger.info(`Retrieving producer key with id ${kid}`);
 
-      const key = await clients.authorizationClient.keys.getProducerJWKByKid({
+      const key = await clients.authorizationClient.key.getProducerJWKByKid({
         headers,
         params: { kid },
       });

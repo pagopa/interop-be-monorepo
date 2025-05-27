@@ -30,8 +30,8 @@ import { EserviceTemplateService } from "./services/eserviceTemplateService.js";
 import { PurposeService } from "./services/purposeService.js";
 import { TenantService } from "./services/tenantService.js";
 import { m2mAuthDataValidationMiddleware } from "./utils/middlewares.js";
-import { KeysService } from "./services/keysService.js";
-import keysRouter from "./routers/keysRouter.js";
+import { KeyService } from "./services/keyService.js";
+import keyRouter from "./routers/keyRouter.js";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;
@@ -42,7 +42,7 @@ export type M2MGatewayServices = {
   eserviceTemplateService: EserviceTemplateService;
   purposeService: PurposeService;
   tenantService: TenantService;
-  keysService: KeysService;
+  keyService: KeyService;
 };
 
 export type RateLimiterMiddleware = ReturnType<
@@ -64,7 +64,7 @@ export async function createApp(
     eserviceTemplateService,
     purposeService,
     tenantService,
-    keysService,
+    keyService,
   } = services;
 
   const app = zodiosCtx.app();
@@ -95,7 +95,7 @@ export async function createApp(
     delegationRouter(zodiosCtx, delegationService),
     eserviceTemplateRouter(zodiosCtx, eserviceTemplateService),
     clientRouter(zodiosCtx, clientService),
-    keysRouter(zodiosCtx, keysService)
+    keyRouter(zodiosCtx, keyService)
   );
 
   return app;
