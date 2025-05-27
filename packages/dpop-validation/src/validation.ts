@@ -39,7 +39,7 @@ import {
   unexpectedDPoPProofSignatureVerificationError,
   dpopJTIAlreadyCached,
 } from "./errors.js";
-import { readDPoPCache } from "./utilities/dPoPCacheUtils.js";
+import { readDPoPCache, writeDPoPCache } from "./utilities/dPoPCacheUtils.js";
 
 export const verifyDPoPProof = ({
   dPoPProof,
@@ -174,11 +174,17 @@ export const verifyDPoPProofSignature = async (
   }
 };
 
-export const checkDPoPCache = async (
-  dynamoDBClient: DynamoDBClient,
-  dPoPProofJti: string,
-  dPoPCacheTable: string
-): Promise<ValidationResult<string>> => {
+export const checkDPoPCache = async ({
+  dynamoDBClient,
+  dPoPProofJti,
+  dPoPProofIat,
+  dPoPCacheTable,
+}: {
+  dynamoDBClient: DynamoDBClient;
+  dPoPProofJti: string;
+  dPoPProofIat: number;
+  dPoPCacheTable: string;
+}): Promise<ValidationResult<string>> => {
   const dPoPCache = await readDPoPCache(
     dynamoDBClient,
     dPoPProofJti,
@@ -187,6 +193,14 @@ export const checkDPoPCache = async (
   if (dPoPCache) {
     return failedValidation([dpopJTIAlreadyCached(dPoPProofJti)]);
   }
+
+  await writeDPoPCache({
+    dynamoDBClient,
+    dPoPCacheTable,
+    jti: dPoPProofJti,
+    iat: dPoPProofIat,
+    ttl: dPoPProofIat + 60,
+  });
 
   return successfulValidation(dPoPProofJti);
 };

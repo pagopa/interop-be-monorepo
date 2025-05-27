@@ -53,6 +53,7 @@ import {
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import {
+  checkDPoPCache,
   verifyDPoPProof,
   verifyDPoPProofSignature,
   writeDPoPCache,
@@ -70,6 +71,7 @@ import {
   dPoPProofValidationFailed,
   dPoPProofSignatureValidationFailed,
   unexpectedDPoPProofForAPIToken,
+  dPoPAlreadyUsed,
 } from "../model/domain/errors.js";
 import { TokenRequest } from "../model/domain/models.js";
 
@@ -248,14 +250,19 @@ export function tokenServiceBuilder({
 
       // Check if the DPoP proof is in the cache
       if (dPoPProofJWT) {
-        const dPoPCacheTTL = Number(dPoPProofJWT.payload.iat) + 60;
-        await writeDPoPCache({
+        const { errors: dPoPCacheErrors } = await checkDPoPCache({
           dynamoDBClient,
+          dPoPProofJti: dPoPProofJWT.payload.jti,
+          dPoPProofIat: dPoPProofJWT.payload.iat,
           dPoPCacheTable: config.dPoPCacheTable,
           jti: dPoPProofJWT.payload.jti,
           iat: dPoPProofJWT.payload.iat,
           ttl: dPoPCacheTTL,
         });
+        if (dPoPCacheErrors) {
+          throw dPoPAlreadyUsed(dPoPProofJWT.payload.jti);
+        }
+        console.log(9);
       }
 
       return await match(key)
