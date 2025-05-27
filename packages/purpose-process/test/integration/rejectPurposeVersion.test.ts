@@ -6,6 +6,7 @@ import {
   getMockDelegation,
   getMockAuthData,
   getMockContext,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -36,7 +37,6 @@ import {
   addOneDelegation,
   addOneEService,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
 
 describe("rejectPurposeVersion", () => {
   it("should write on event-store for the rejection of a purpose version ", async () => {

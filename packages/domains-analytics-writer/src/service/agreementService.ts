@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+/* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
 import { DBContext } from "../db/db.js";
 import { AgreementDbTable, DeletingDbTable } from "../model/db/index.js";
@@ -29,47 +30,60 @@ export function agreementServiceBuilder(db: DBContext) {
   const contractRepository = agreementContractRepo(db.conn);
 
   return {
-    async upsertBatchAgreement(ctx: DBContext, items: AgreementItemsSchema[]) {
-      for (const batch of batchMessages(
-        items,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        const batchItems = {
-          agreements: batch.map((item) => item.agreementSQL),
-          stamps: batch.flatMap((item) => item.stampsSQL),
-          attrs: batch.flatMap((item) => item.attributesSQL),
-          docs: batch.flatMap((item) => item.consumerDocumentsSQL),
-          contracts: batch.flatMap((item) =>
-            item.contractSQL ? [item.contractSQL] : []
-          ),
-        };
+    async upsertBatchAgreement(
+      dbContext: DBContext,
+      items: AgreementItemsSchema[]
+    ) {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          const batchItems = {
+            agreements: batch.map((item) => item.agreementSQL),
+            stamps: batch.flatMap((item) => item.stampsSQL),
+            attrs: batch.flatMap((item) => item.attributesSQL),
+            docs: batch.flatMap((item) => item.consumerDocumentsSQL),
+            contracts: batch.flatMap((item) =>
+              item.contractSQL ? [item.contractSQL] : []
+            ),
+          };
 
-        await ctx.conn.tx(async (t) => {
           if (batchItems.agreements.length) {
-            await agreementRepository.insert(t, ctx.pgp, batchItems.agreements);
+            await agreementRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.agreements
+            );
           }
           if (batchItems.stamps.length) {
-            await stampRepository.insert(t, ctx.pgp, batchItems.stamps);
+            await stampRepository.insert(t, dbContext.pgp, batchItems.stamps);
           }
           if (batchItems.attrs.length) {
-            await attributeRepository.insert(t, ctx.pgp, batchItems.attrs);
+            await attributeRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.attrs
+            );
           }
           if (batchItems.docs.length) {
-            await docRepository.insert(t, ctx.pgp, batchItems.docs);
+            await docRepository.insert(t, dbContext.pgp, batchItems.docs);
           }
           if (batchItems.contracts.length) {
-            await contractRepository.insert(t, ctx.pgp, batchItems.contracts);
+            await contractRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.contracts
+            );
           }
-        });
 
-        genericLogger.info(
-          `Staging data inserted for agreement batch: ${batchItems.agreements
-            .map((a) => a.id)
-            .join(", ")}`
-        );
-      }
+          genericLogger.info(
+            `Staging data inserted for agreement batch: ${batchItems.agreements
+              .map((a) => a.id)
+              .join(", ")}`
+          );
+        }
 
-      await ctx.conn.tx(async (t) => {
         await agreementRepository.merge(t);
         await stampRepository.merge(t);
         await attributeRepository.merge(t);
@@ -91,24 +105,22 @@ export function agreementServiceBuilder(db: DBContext) {
     },
 
     async upsertBatchAgreementDocument(
-      ctx: DBContext,
+      dbContext: DBContext,
       docs: AgreementConsumerDocumentSchema[]
     ) {
-      for (const batch of batchMessages(
-        docs,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
-          await docRepository.insert(t, ctx.pgp, batch);
-        });
-        genericLogger.info(
-          `Staging data inserted for agreement document batch: ${batch
-            .map((doc) => doc.id)
-            .join(", ")}`
-        );
-      }
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          docs,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await docRepository.insert(t, dbContext.pgp, batch);
+          genericLogger.info(
+            `Staging data inserted for agreement document batch: ${batch
+              .map((doc) => doc.id)
+              .join(", ")}`
+          );
+        }
 
-      await ctx.conn.tx(async (t) => {
         await docRepository.merge(t);
       });
 
@@ -122,24 +134,23 @@ export function agreementServiceBuilder(db: DBContext) {
     },
 
     async upsertBatchAgreementContract(
-      ctx: DBContext,
+      dbContext: DBContext,
       contracts: AgreementContractSchema[]
     ) {
-      for (const batch of batchMessages(
-        contracts,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
-          await contractRepository.insert(t, ctx.pgp, batch);
-        });
-        genericLogger.info(
-          `Staging data inserted for agreement contract batch: ${batch
-            .map((c) => c.id)
-            .join(", ")}`
-        );
-      }
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          contracts,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await contractRepository.insert(t, dbContext.pgp, batch);
 
-      await ctx.conn.tx(async (t) => {
+          genericLogger.info(
+            `Staging data inserted for agreement contract batch: ${batch
+              .map((c) => c.id)
+              .join(", ")}`
+          );
+        }
+
         await contractRepository.merge(t);
       });
 
@@ -153,22 +164,20 @@ export function agreementServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchAgreement(
-      ctx: DBContext,
+      dbContext: DBContext,
       records: AgreementDeletingSchema[]
     ) {
-      for (const batch of batchMessages(
-        records,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
-          await agreementRepository.insertDeleting(t, ctx.pgp, batch);
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          records,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await agreementRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for agreement ids: ${batch.join(", ")}`
           );
-        });
-      }
+        }
 
-      await ctx.conn.tx(async (t) => {
         await agreementRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
@@ -193,24 +202,22 @@ export function agreementServiceBuilder(db: DBContext) {
     },
 
     async deleteBatchAgreementDocument(
-      ctx: DBContext,
+      dbContext: DBContext,
       records: AgreementConsumerDocumentDeletingSchema[]
     ) {
-      for (const batch of batchMessages(
-        records,
-        config.dbMessagesToInsertPerBatch
-      )) {
-        await ctx.conn.tx(async (t) => {
-          await docRepository.insertDeleting(t, ctx.pgp, batch);
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          records,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await docRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging deletion inserted for agreement document ids: ${batch.join(
               ", "
             )}`
           );
-        });
-      }
+        }
 
-      await ctx.conn.tx(async (t) => {
         await docRepository.mergeDeleting(t);
       });
 
