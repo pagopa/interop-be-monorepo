@@ -4636,10 +4636,11 @@ components:
         waitingForApprovalVersion:
           $ref: "#/components/schemas/PurposeVersion"
         rejectedVersion:
-          $ref: "#/components/schemas/PurposeVersion"
-          description: >
-            Represents the latest version of the purpose when it has been rejected.
-            This property is present only if the most recent version is in a rejected status.
+          allOf:
+            - $ref: "#/components/schemas/PurposeVersion"
+            - description: >
+                Represents the latest version of the purpose when it has been rejected.
+                This property is present only if the most recent version is in a rejected status.
       required:
         - id
         - eserviceId
