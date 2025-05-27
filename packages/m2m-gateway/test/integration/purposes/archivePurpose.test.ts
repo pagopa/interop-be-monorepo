@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unsafeBrandId, WithMetadata } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -59,11 +59,28 @@ describe("archivePurposeVersion", () => {
     // The archive will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
-    await purposeService.archivePurpose(
+    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
+      consumerId: mockApiPurpose.data.consumerId,
+      createdAt: mockApiPurpose.data.createdAt,
+      description: mockApiPurpose.data.description,
+      eserviceId: mockApiPurpose.data.eserviceId,
+      id: mockApiPurpose.data.id,
+      isFreeOfCharge: mockApiPurpose.data.isFreeOfCharge,
+      isRiskAnalysisValid: mockApiPurpose.data.isRiskAnalysisValid,
+      title: mockApiPurpose.data.title,
+      delegationId: mockApiPurpose.data.delegationId,
+      freeOfChargeReason: mockApiPurpose.data.freeOfChargeReason,
+      updatedAt: mockApiPurpose.data.updatedAt,
+      currentVersion: mockApiPurposeVersion1,
+      rejectedVersion: mockApiPurposeVersion2,
+    };
+
+    const purpose = await purposeService.archivePurpose(
       unsafeBrandId(mockApiPurpose.data.id),
       getMockM2MAdminAppContext()
     );
 
+    expect(purpose).toEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.archivePurposeVersion,
       params: {
