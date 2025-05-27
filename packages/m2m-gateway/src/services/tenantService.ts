@@ -107,16 +107,21 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      const tenantCertifiedAttributes = retrieveCertifiedAttributes(tenant);
+      const certifiedAttributes = retrieveCertifiedAttributes(tenant);
+
+      const paginatedCertifiedAttributes = certifiedAttributes.slice(
+        offset,
+        offset + limit
+      );
 
       return {
-        results: tenantCertifiedAttributes.map(
+        results: paginatedCertifiedAttributes.map(
           toM2MGatewayApiTenantCertifiedAttribute
         ),
         pagination: {
           limit,
           offset,
-          totalCount: tenantCertifiedAttributes.length,
+          totalCount: certifiedAttributes.length,
         },
       };
     },
