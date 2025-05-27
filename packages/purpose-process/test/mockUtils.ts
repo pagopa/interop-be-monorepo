@@ -7,10 +7,10 @@ import {
   generateId,
   tenantKind,
   unsafeBrandId,
+  PurposeRiskAnalysisFormV2,
 } from "pagopa-interop-models";
 import { getMockValidRiskAnalysisForm } from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { PurposeRiskAnalysisFormV2 } from "pagopa-interop-models";
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
