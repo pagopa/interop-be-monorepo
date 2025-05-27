@@ -4823,6 +4823,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4832,6 +4835,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
