@@ -57,6 +57,8 @@ import {
   noAgreementFoundInRequiredState,
   noPurposeVersionsFoundInRequiredState,
   producerJwkNotFound,
+  noActiveOrSuspendedAgreementFound,
+  noActiveOrSuspendedPurposeVersionFound,
   producerKeychainNotFound,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
@@ -220,13 +222,19 @@ export function authorizationServiceBuilder(
         logger,
         authData,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    ): Promise<WithMetadata<{ client: Client; showUsers: boolean }>> {
       logger.info(`Retrieving Client ${clientId}`);
-      const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(authData, client.data);
+      const { data: client, metadata } = await retrieveClient(
+        clientId,
+        readModelService
+      );
+      assertOrganizationIsClientConsumer(authData, client);
       return {
-        client: client.data,
-        showUsers: authData.organizationId === client.data.consumerId,
+        data: {
+          client,
+          showUsers: true, // caller is client consumer, see assertOrganizationIsClientConsumer
+        },
+        metadata,
       };
     },
 
@@ -669,8 +677,17 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         seed: authorizationApi.PurposeAdditionDetails;
       },
-      { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        logger,
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        client: Client;
+        showUsers: boolean;
+      }>
+    > {
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
       );
@@ -716,7 +733,10 @@ export function authorizationServiceBuilder(
       );
 
       if (agreement === undefined) {
-        throw noAgreementFoundInRequiredState(eservice.id, purpose.consumerId);
+        throw noActiveOrSuspendedAgreementFound(
+          eservice.id,
+          purpose.consumerId
+        );
       }
 
       retrieveDescriptor(agreement.descriptorId, eservice);
@@ -730,7 +750,7 @@ export function authorizationServiceBuilder(
       );
 
       if (purposeVersion === undefined) {
-        throw noPurposeVersionsFoundInRequiredState(purpose.id);
+        throw noActiveOrSuspendedPurposeVersionFound(purpose.id);
       }
 
       const updatedClient: Client = {
@@ -738,7 +758,7 @@ export function authorizationServiceBuilder(
         purposes: [...client.data.purposes, purposeId],
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventClientPurposeAdded(
           purposeId,
           updatedClient,
@@ -746,6 +766,16 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+
+      return {
+        data: {
+          client: updatedClient,
+          showUsers: true,
+        },
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
     async createKey(

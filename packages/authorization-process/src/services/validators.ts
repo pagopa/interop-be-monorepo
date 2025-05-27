@@ -25,12 +25,12 @@ import {
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   userWithoutSecurityPrivileges,
-  organizationNotAllowedOnPurpose,
-  organizationNotAllowedOnClient,
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnPurpose,
+  tenantNotAllowedOnClient,
+  tenantNotAllowedOnProducerKeychain,
   tooManyKeysPerClient,
   tooManyKeysPerProducerKeychain,
-  organizationNotAllowedOnEService,
+  tenantNotAllowedOnEService,
   keyAlreadyExists,
   securityUserNotMember,
   clientKindNotAllowed,
@@ -77,21 +77,21 @@ export const assertOrganizationIsClientConsumer = (
   client: Client
 ): void => {
   if (client.consumerId !== authData.organizationId) {
-    throw organizationNotAllowedOnClient(authData.organizationId, client.id);
+    throw tenantNotAllowedOnClient(authData.organizationId, client.id);
   }
 };
 
 export const assertOrganizationIsPurposeConsumer = (
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   purpose: Purpose
 ): void => {
   if (authData.organizationId !== purpose.consumerId) {
-    throw organizationNotAllowedOnPurpose(authData.organizationId, purpose.id);
+    throw tenantNotAllowedOnPurpose(authData.organizationId, purpose.id);
   }
 };
 
 export const assertRequesterIsDelegateConsumer = (
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   purpose: Purpose,
   delegation: Delegation
 ): void => {
@@ -102,7 +102,7 @@ export const assertRequesterIsDelegateConsumer = (
     delegation.kind !== delegationKind.delegatedConsumer ||
     delegation.state !== delegationState.active
   ) {
-    throw organizationNotAllowedOnPurpose(
+    throw tenantNotAllowedOnPurpose(
       authData.organizationId,
       purpose.id,
       delegation.id
@@ -115,7 +115,7 @@ export const assertOrganizationIsProducerKeychainProducer = (
   producerKeychain: ProducerKeychain
 ): void => {
   if (producerKeychain.producerId !== authData.organizationId) {
-    throw organizationNotAllowedOnProducerKeychain(
+    throw tenantNotAllowedOnProducerKeychain(
       authData.organizationId,
       producerKeychain.id
     );
@@ -145,10 +145,7 @@ export const assertOrganizationIsEServiceProducer = (
   eservice: EService
 ): void => {
   if (authData.organizationId !== eservice.producerId) {
-    throw organizationNotAllowedOnEService(
-      authData.organizationId,
-      eservice.id
-    );
+    throw tenantNotAllowedOnEService(authData.organizationId, eservice.id);
   }
 };
 

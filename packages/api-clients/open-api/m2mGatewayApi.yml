@@ -1565,7 +1565,7 @@ paths:
         description: Payload for delegation rejection
       responses:
         "200":
-          description: Delegation updated
+          description: Delegation rejected
           content:
             application/json:
               schema:
@@ -2962,8 +2962,12 @@ paths:
       operationId: activateDraftPurpose
       description: Activate Draft Purpose
       responses:
-        "204":
+        "200":
           description: Purpose activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3063,8 +3067,12 @@ paths:
       operationId: archivePurpose
       description: Archive Purpose
       responses:
-        "204":
+        "200":
           description: Purpose archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3164,8 +3172,12 @@ paths:
       operationId: approvePurpose
       description: Approve Waiting for approval Purpose
       responses:
-        "204":
+        "200":
           description: Purpose approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3265,8 +3277,12 @@ paths:
       operationId: suspendPurpose
       description: Suspend Purpose
       responses:
-        "204":
+        "200":
           description: Purpose suspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3366,8 +3382,12 @@ paths:
       operationId: unsuspendPurpose
       description: Unsuspend Purpose
       responses:
-        "204":
+        "200":
           description: Purpose unsuspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3693,8 +3713,12 @@ paths:
               $ref: "#/components/schemas/TenantCertifiedAttributeSeed"
         required: true
       responses:
-        "204":
-          description: Updated Tenant
+        "200":
+          description: Certified attribute added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3800,10 +3824,14 @@ paths:
       tags:
         - tenants
       operationId: revokeCertifiedAttributeById
-      description: Revoke a certified attribute to a Tenant
+      description: Revoke a certified attribute from a Tenant
       responses:
-        "204":
-          description: Certified Attribute revoked
+        "200":
+          description: Certified attribute revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
