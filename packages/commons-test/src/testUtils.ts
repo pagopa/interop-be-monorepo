@@ -713,6 +713,7 @@ export const getMockDPoPProof = async (
   },
   alg: "RS256" | "ES256" = "ES256"
 ): Promise<{
+  // TODO: rename
   dPoPJWS: string;
   dPoPProof: DPoPProof;
 }> => {
@@ -803,7 +804,7 @@ export const generateKeySet = (
   };
 };
 
-const signJWT = async ({
+export const signJWT = async ({
   payload,
   headers,
   keySet,
