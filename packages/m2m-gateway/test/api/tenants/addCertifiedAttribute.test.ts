@@ -10,15 +10,14 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingMetadata,
   resourcePollingTimeout,
+  tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
-import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
-import { getMockedApiTenant } from "../../mockUtils.js";
+import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
+import { getMockedApiCertifiedTenantAttribute } from "../../mockUtils.js";
 
 describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
-  const mockApiResponse = getMockedApiTenant();
-  const mockResponse: m2mGatewayApi.Tenant = toM2MGatewayApiTenant(
-    mockApiResponse.data
-  );
+  const mockApiResponse = getMockedApiCertifiedTenantAttribute();
+  const mockResponse = toM2MGatewayApiTenantCertifiedAttribute(mockApiResponse);
 
   const makeRequest = async (
     token: string,
@@ -62,22 +61,21 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockTenantService.addCertifiedAttribute = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, { id: generateId() });
+  it.each([
+    tenantCertifiedAttributeNotFound(generateId(), generateId()),
+    missingMetadata(),
+    resourcePollingTimeout(3),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockTenantService.addCertifiedAttribute = vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, { id: generateId() });
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it.each([
-    { ...mockResponse, createdAt: undefined },
-    { ...mockResponse, kind: "INVALID_KIND" },
+    { ...mockResponse, id: undefined },
+    { ...mockResponse, assignedAt: "INVALID_DATE" },
     { ...mockResponse, extraParam: "extraValue" },
     {},
   ])(

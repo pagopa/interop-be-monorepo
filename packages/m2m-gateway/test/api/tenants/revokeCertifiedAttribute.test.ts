@@ -4,21 +4,19 @@ import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingMetadata,
   resourcePollingTimeout,
+  tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
-import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
-import { getMockedApiTenant } from "../../mockUtils.js";
+import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
+import { getMockedApiCertifiedTenantAttribute } from "../../mockUtils.js";
 
 describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test", () => {
-  const mockApiResponse = getMockedApiTenant();
-  const mockResponse: m2mGatewayApi.Tenant = toM2MGatewayApiTenant(
-    mockApiResponse.data
-  );
+  const mockApiResponse = getMockedApiCertifiedTenantAttribute();
+  const mockResponse = toM2MGatewayApiTenantCertifiedAttribute(mockApiResponse);
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -51,22 +49,23 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
     expect(res.status).toBe(403);
   });
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
-      mockTenantService.revokeCertifiedAttribute = vi
-        .fn()
-        .mockRejectedValue(error);
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token);
+  it.each([
+    tenantCertifiedAttributeNotFound(generateId(), generateId()),
+    missingMetadata(),
+    resourcePollingTimeout(3),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockTenantService.revokeCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
 
-      expect(res.status).toBe(500);
-    }
-  );
+    expect(res.status).toBe(500);
+  });
 
   it.each([
-    { ...mockResponse, createdAt: undefined },
-    { ...mockResponse, kind: "INVALID_KIND" },
+    { ...mockResponse, id: undefined },
+    { ...mockResponse, assignedAt: "INVALID_DATE" },
     { ...mockResponse, extraParam: "extraValue" },
     {},
   ])(
