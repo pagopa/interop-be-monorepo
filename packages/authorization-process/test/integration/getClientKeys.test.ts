@@ -15,7 +15,7 @@ import { describe, expect, it } from "vitest";
 import { AuthData } from "pagopa-interop-commons";
 import {
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   securityUserNotMember,
 } from "../../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "../integrationUtils.js";
@@ -153,7 +153,7 @@ describe("getClientKeys", async () => {
       securityUserNotMember(unsafeBrandId(authData.userId))
     );
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     await addOneClient(mockClient);
     const organizationId = generateId();
 
@@ -173,7 +173,7 @@ describe("getClientKeys", async () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(
+      tenantNotAllowedOnClient(
         unsafeBrandId(organizationId),
         unsafeBrandId(mockClient.id)
       )

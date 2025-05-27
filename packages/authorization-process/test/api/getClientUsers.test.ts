@@ -8,7 +8,7 @@ import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId}/users authorization test", () => {
@@ -64,7 +64,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
       clientId: mockClient.id,
     },
     {
-      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
       clientId: mockClient.id,
     },

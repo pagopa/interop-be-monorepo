@@ -16,7 +16,7 @@ import request from "supertest";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import { producerKeychainToApiProducerKeychain } from "../../src/model/domain/apiConverter.js";
 import {
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
   producerKeychainUserAlreadyAssigned,
   userWithoutSecurityPrivileges,
@@ -81,7 +81,7 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
       expectedStatus: 404,
     },
     {
-      error: organizationNotAllowedOnProducerKeychain(
+      error: tenantNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
       ),
