@@ -18,8 +18,9 @@ export const errorCodes = {
   dPoPProofValidationFailed: "0009",
   dPoPProofSignatureValidationFailed: "0010",
   unexpectedDPoPProofForAPIToken: "0011",
+  dPoPAlreadyUsed: "0012",
   // TODO: remove if unused
-  invalidDPoPProof: "0012",
+  invalidDPoPProof: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -134,6 +135,14 @@ export function unexpectedDPoPProofForAPIToken(
     detail: `Unexpected DPoP proof for API token with client ${clientId}`,
     code: "unexpectedDPoPProofForAPIToken",
     title: "Unexpected DPoP proof for API token",
+  });
+}
+
+export function dPoPAlreadyUsed(jti: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP JTI ${jti} already in cache`,
+    code: "dPoPAlreadyUsed",
+    title: "DPoP JTI already in cache",
   });
 }
 
