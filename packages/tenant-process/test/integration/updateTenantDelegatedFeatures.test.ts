@@ -13,7 +13,7 @@ import {
   TenantDelegatedConsumerFeatureAddedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { readLastEventByStreamId } from "pagopa-interop-commons-test/dist/eventStoreTestUtils.js";
+import { readLastEventByStreamId } from "pagopa-interop-commons-test";
 import {
   getMockAuthData,
   getMockContext,
