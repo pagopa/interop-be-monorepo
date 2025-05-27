@@ -11,7 +11,6 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
 } from "../../mockUtils.js";
-import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("getPurpose", () => {
   const mockApiPurposeResponse = getMockedApiPurpose();
@@ -27,20 +26,35 @@ describe("getPurpose", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mPurposeResponse: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
-      mockApiPurposeResponse.data
-    );
+    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
+      consumerId: mockApiPurposeResponse.data.consumerId,
+      createdAt: mockApiPurposeResponse.data.createdAt,
+      description: mockApiPurposeResponse.data.description,
+      eserviceId: mockApiPurposeResponse.data.eserviceId,
+      id: mockApiPurposeResponse.data.id,
+      isFreeOfCharge: mockApiPurposeResponse.data.isFreeOfCharge,
+      isRiskAnalysisValid: mockApiPurposeResponse.data.isRiskAnalysisValid,
+      title: mockApiPurposeResponse.data.title,
+      currentVersion: mockApiPurposeResponse.data.versions.at(0),
+      delegationId: mockApiPurposeResponse.data.delegationId,
+      freeOfChargeReason: mockApiPurposeResponse.data.freeOfChargeReason,
+      rejectedVersion: undefined,
+      suspendedByConsumer: undefined,
+      suspendedByProducer: undefined,
+      updatedAt: mockApiPurposeResponse.data.updatedAt,
+      waitingForApprovalVersion: undefined,
+    };
 
     const result = await purposeService.getPurpose(
-      unsafeBrandId(m2mPurposeResponse.id),
+      unsafeBrandId(expectedM2MPurpose.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mPurposeResponse);
+    expect(result).toEqual(expectedM2MPurpose);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
       params: {
-        id: m2mPurposeResponse.id,
+        id: expectedM2MPurpose.id,
       },
     });
   });

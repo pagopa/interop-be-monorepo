@@ -19,8 +19,8 @@ import {
   randomArrayItem,
   randomBoolean,
   sortAgreementV2,
-  sortAgreement,
   getMockDescriptorPublished,
+  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -47,7 +47,7 @@ import {
   agreementNotInExpectedState,
   descriptorNotFound,
   eServiceNotFound,
-  organizationNotAllowed,
+  tenantNotAllowed,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -138,7 +138,7 @@ describe("suspend agreement", () => {
     ]);
     const authData = getMockAuthData(requesterId);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
+    const suspendAgreementResponse = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -196,7 +196,12 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
+    expect(sortAgreement(suspendAgreementResponse)).toEqual({
+      data: sortAgreement(expectedAgreementSuspended),
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   it("should succeed when requester is Consumer or Producer, Agreement producer and consumer are the same, and the Agreement is in an suspendable state", async () => {
@@ -265,7 +270,7 @@ describe("suspend agreement", () => {
 
     const authData = getMockAuthData(producerAndConsumerId);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
+    const suspendAgreementResponse = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -307,7 +312,12 @@ describe("suspend agreement", () => {
     expect(actualAgreementSuspended).toEqual(
       toAgreementV2(expectedAgreementSuspended)
     );
-    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
+    expect(sortAgreement(suspendAgreementResponse)).toEqual({
+      data: sortAgreement(expectedAgreementSuspended),
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   it("should preserve the suspension flags and the stamps that it does not update", async () => {
@@ -349,7 +359,7 @@ describe("suspend agreement", () => {
     await addOneEService(eservice);
     await addOneAgreement(agreement);
 
-    const returnedAgreement = await agreementService.suspendAgreement(
+    const suspendAgreementResponse = await agreementService.suspendAgreement(
       agreement.id,
       getMockContext({ authData })
     );
@@ -408,7 +418,12 @@ describe("suspend agreement", () => {
     expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
       sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
     );
-    expect(actualAgreementSuspended).toEqual(toAgreementV2(returnedAgreement));
+    expect(sortAgreement(suspendAgreementResponse)).toEqual({
+      data: sortAgreement(expectedAgreementSuspended),
+      metadata: {
+        version: 1,
+      },
+    });
   });
 
   describe.each(agreementSuspendableStates)(
@@ -512,13 +527,18 @@ describe("suspend agreement", () => {
           },
         };
 
-        const actualAgreement = await agreementService.suspendAgreement(
-          agreement.id,
-          getMockContext({ authData })
-        );
-        expect(sortAgreement(actualAgreement)).toEqual(
-          sortAgreement(expectedAgreement)
-        );
+        const suspendAgreementResponse =
+          await agreementService.suspendAgreement(
+            agreement.id,
+            getMockContext({ authData })
+          );
+
+        expect(sortAgreement(suspendAgreementResponse)).toEqual({
+          data: sortAgreement(expectedAgreement),
+          metadata: {
+            version: 1,
+          },
+        });
       });
     }
   );
@@ -535,7 +555,7 @@ describe("suspend agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw organizationNotAllowed when the requester is not the Consumer or the Producer", async () => {
+  it("should throw tenantNotAllowed when the requester is not the Consumer or the Producer", async () => {
     const authData = getMockAuthData();
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -548,7 +568,7 @@ describe("suspend agreement", () => {
         agreement.id,
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+    ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in a rejectable state", async () => {
@@ -649,7 +669,7 @@ describe("suspend agreement", () => {
     { kind: delegationKind.delegatedConsumer, desc: "consumer" },
     { kind: delegationKind.delegatedProducer, desc: "producer" },
   ])(
-    "should throw organizationNotAllowed a error when the requester is the $desc but not the $kind",
+    "should throw tenantNotAllowed a error when the requester is the $desc but not the $kind",
     async ({ kind }) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -693,12 +713,12 @@ describe("suspend agreement", () => {
           agreement.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     }
   );
 
   it.each([delegationKind.delegatedProducer, delegationKind.delegatedConsumer])(
-    "should throw a organizationNotAllowed error when the requester is the %s but the delegation in not active",
+    "should throw a tenantNotAllowed error when the requester is the %s but the delegation in not active",
     async (kind) => {
       const eservice: EService = {
         ...getMockEService(),
@@ -735,7 +755,7 @@ describe("suspend agreement", () => {
           agreement.id,
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(organizationNotAllowed(authData.organizationId));
+      ).rejects.toThrowError(tenantNotAllowed(authData.organizationId));
     }
   );
 });

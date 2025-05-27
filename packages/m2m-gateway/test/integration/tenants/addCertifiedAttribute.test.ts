@@ -50,13 +50,27 @@ describe("addCertifiedAttribute", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
+    const m2mTenantResponse: m2mGatewayApi.Tenant = {
+      id: mockTenantProcessResponse.data.id,
+      createdAt: mockTenantProcessResponse.data.createdAt,
+      externalId: {
+        origin: mockTenantProcessResponse.data.externalId.origin,
+        value: mockTenantProcessResponse.data.externalId.value,
+      },
+      name: mockTenantProcessResponse.data.name,
+      kind: mockTenantProcessResponse.data.kind,
+      onboardedAt: mockTenantProcessResponse.data.onboardedAt,
+      subUnitType: mockTenantProcessResponse.data.subUnitType,
+      updatedAt: mockTenantProcessResponse.data.updatedAt,
+    };
+
     const result = await tenantService.addCertifiedAttribute(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       mockTenantCertifiedAttributeSeed,
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(undefined);
+    expect(result).toEqual(m2mTenantResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.tenantProcessClient.tenantAttribute

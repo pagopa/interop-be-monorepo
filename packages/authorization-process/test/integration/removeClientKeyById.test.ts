@@ -20,7 +20,7 @@ import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   clientNotFound,
   clientKeyNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   userNotAllowedOnClient,
   userNotAllowedToDeleteClientKey,
 } from "../../src/model/domain/errors.js";
@@ -158,7 +158,7 @@ describe("remove client key", () => {
       )
     ).rejects.toThrowError(clientKeyNotFound(notExistingKeyId, mockClient.id));
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     const mockConsumer1 = getMockTenant();
     const mockConsumer2 = getMockTenant();
     const keyToRemove = getMockKey();
@@ -179,7 +179,7 @@ describe("remove client key", () => {
         getMockContext({ authData: getMockAuthData(mockConsumer2.id) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(mockConsumer2.id, mockClient.id)
+      tenantNotAllowedOnClient(mockConsumer2.id, mockClient.id)
     );
   });
   it("should throw userNotAllowedOnClient if a security user tries to delete a key without being member of the client", async () => {

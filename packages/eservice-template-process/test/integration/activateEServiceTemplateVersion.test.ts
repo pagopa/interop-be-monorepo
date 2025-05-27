@@ -19,8 +19,8 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
 import {
@@ -83,7 +83,7 @@ describe("activateEServiceTemplateVersion", () => {
     expect(writtenPayload.eserviceTemplate).toEqual(expectedEServiceTemplate);
   });
 
-  it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", () => {
+  it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", () => {
     expect(
       eserviceTemplateService.activateEServiceTemplateVersion(
         mockEServiceTemplate.id,
@@ -92,7 +92,7 @@ describe("activateEServiceTemplateVersion", () => {
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
   it("should throw operationForbidden if the requester is not the eservice template creator", async () => {
@@ -115,7 +115,7 @@ describe("activateEServiceTemplateVersion", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceTemplateVersionNotFound if the eservice template version doesn't exist", async () => {
+  it("should throw eserviceTemplateVersionNotFound if the eservice template version doesn't exist", async () => {
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [],
@@ -131,7 +131,7 @@ describe("activateEServiceTemplateVersion", () => {
         })
       )
     ).rejects.toThrowError(
-      eServiceTemplateVersionNotFound(
+      eserviceTemplateVersionNotFound(
         eserviceTemplate.id,
         mockEServiceTemplateVersion.id
       )
