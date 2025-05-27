@@ -1,11 +1,11 @@
 {
-	"editor.formatOnSave": true,
-	"prettier.requireConfig": false,
-	"editor.codeActionsOnSave": {
-		"source.fixAll": "explicit"
-	},
-	"typescript.tsdk": "packages/commons/node_modules/typescript/lib",
-	"files.watcherExclude": {
-		"**/target": true
-	}
+  "editor.formatOnSave": true,
+  "prettier.requireConfig": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "typescript.tsdk": "packages/commons/node_modules/typescript/lib",
+  "files.watcherExclude": {
+    "**/target": true
+  }
 }
