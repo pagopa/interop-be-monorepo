@@ -1328,7 +1328,6 @@ components:
           format: uuid
       required:
         - id
-        - kind
         - assignmentTimestamp
     CertifiedTenantAttribute:
       type: object
@@ -1345,7 +1344,6 @@ components:
           format: date-time
       required:
         - id
-        - kind
         - assignmentTimestamp
     VerifiedTenantAttribute:
       type: object
@@ -1367,7 +1365,6 @@ components:
             $ref: "#/components/schemas/TenantRevoker"
       required:
         - id
-        - kind
         - assignmentTimestamp
         - verifiedBy
         - revokedBy
