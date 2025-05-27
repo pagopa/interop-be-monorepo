@@ -301,7 +301,7 @@ export const getMockAttribute = (
   id: AttributeId = generateId()
 ): Attribute => ({
   id,
-  name: "attribute name",
+  name: generateMock(z.string()),
   kind,
   description: "attribute description",
   creationTime: new Date(),

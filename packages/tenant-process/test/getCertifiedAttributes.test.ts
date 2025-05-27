@@ -40,6 +40,7 @@ describe("getCertifiedAttributes", () => {
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
       name: "attribute 1",
+      code: "CODE1",
       kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute1.id,
@@ -48,6 +49,7 @@ describe("getCertifiedAttributes", () => {
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
       name: "attribute 2",
+      code: "CODE2",
       kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute2.id,
@@ -111,6 +113,7 @@ describe("getCertifiedAttributes", () => {
       ...getMockAttribute(),
       kind: attributeKind.certified,
       origin: certifierId,
+      code: "CODE",
       id: tenantCertifiedAttribute.id,
     };
 
@@ -118,6 +121,7 @@ describe("getCertifiedAttributes", () => {
       ...getMockAttribute(),
       kind: attributeKind.certified,
       origin: certifierId,
+      code: "CODE2",
       id: revokedTenantCertifiedAttribute.id,
     };
 
@@ -173,6 +177,7 @@ describe("getCertifiedAttributes", () => {
       ...getMockAttribute(),
       kind: attributeKind.certified,
       origin: certifierId,
+      code: "CODE",
       id: tenantCertifiedAttribute1.id,
     };
 
@@ -180,6 +185,7 @@ describe("getCertifiedAttributes", () => {
       ...getMockAttribute(),
       kind: attributeKind.certified,
       origin: certifierId,
+      code: "CODE2",
       id: tenantCertifiedAttribute2.id,
     };
 
@@ -225,6 +231,7 @@ describe("getCertifiedAttributes", () => {
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.certified,
+      code: "CODE",
       origin: certifierId,
       id: tenantCertifiedAttribute1.id,
     };
@@ -232,6 +239,7 @@ describe("getCertifiedAttributes", () => {
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
       kind: attributeKind.certified,
+      code: "CODE2",
       origin: certifierId,
       id: tenantCertifiedAttribute2.id,
     };
