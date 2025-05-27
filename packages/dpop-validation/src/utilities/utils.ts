@@ -117,7 +117,7 @@ export const validateIat = (
   }
 
   const currentTime = dateToSeconds(new Date());
-  if (currentTime < iat && currentTime > iat + 60) {
+  if (currentTime < iat || currentTime > iat + 60) {
     return failedValidation([expiredDPoPProof(iat, currentTime)]);
   }
 
