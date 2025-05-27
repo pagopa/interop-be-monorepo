@@ -111,8 +111,31 @@ describe("GET /agreements route test", () => {
         { ...agreementsResponse.agreements[0], state: "INVALID_STATE" },
       ],
     },
+    {
+      agreements: [
+        { ...agreementsResponse.agreements[0], producerId: "invalid-uuid" },
+      ],
+    },
+    {
+      agreements: [
+        { ...agreementsResponse.agreements[0], consumerId: "invalid-uuid" },
+      ],
+    },
+    {
+      agreements: [
+        { ...agreementsResponse.agreements[0], eserviceId: "invalid-uuid" },
+      ],
+    },
+    {
+      agreements: [
+        { ...agreementsResponse.agreements[0], descriptorId: "invalid-uuid" },
+      ],
+    },
+    {
+      agreements: [{ ...agreementsResponse.agreements[0], id: "invalid-uuid" }],
+    },
   ])(
-    "Should return 500 when API model parsing fails for response",
+    "Should return 500 when API model parsing fails for response %s",
     async (resp) => {
       // eslint-disable-next-line functional/immutable-data
       mockAgreementService.getAgreements = vi.fn().mockResolvedValue(resp);

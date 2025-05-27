@@ -13,14 +13,14 @@ import { agreementNotFound } from "../../src/models/errors.js";
 describe("GET /agreements/:agreementId/purposes route test", () => {
   const agreementId: agreementApi.Agreement["id"] = generateId();
 
+  const purpose: apiGatewayApi.Purpose = {
+    id: generateId(),
+    throughput: 10,
+    state: "ACTIVE",
+  };
+
   const purposes: apiGatewayApi.Purposes = {
-    purposes: [
-      {
-        id: generateId(),
-        throughput: 10,
-        state: "ACTIVE",
-      },
-    ],
+    purposes: [purpose],
   };
 
   const makeRequest = async (
@@ -74,20 +74,42 @@ describe("GET /agreements/:agreementId/purposes route test", () => {
     expect(res.status).toBe(404);
   });
 
-  it("Should return 500 if response parsing fails", async () => {
-    mockAgreementService.getAgreementPurposes = vi.fn().mockResolvedValue({
+  it.each([
+    {
       purposes: [
         {
+          ...purpose,
           id: "not-a-uuid",
-          throughput: 10,
-          state: "ACTIVE",
         },
       ],
-    });
+    },
+    {
+      purposes: [
+        {
+          ...purpose,
+          throughput: "not-a-number",
+        },
+      ],
+    },
+    {
+      purposes: [
+        {
+          ...purpose,
+          state: "INVALID-STATE",
+        },
+      ],
+    },
+  ])(
+    "Should return 500 when API model parsing fails for response %s",
+    async (resp) => {
+      // eslint-disable-next-line functional/immutable-data
+      mockAgreementService.getAgreementPurposes = vi
+        .fn()
+        .mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ROLE);
+      const res = await makeRequest(token);
 
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });

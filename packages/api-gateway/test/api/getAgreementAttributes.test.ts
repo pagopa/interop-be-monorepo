@@ -70,15 +70,48 @@ describe("GET /agreements/:agreementId/attributes route test", () => {
     expect(res.status).toBe(404);
   });
 
-  it("Should return 500 if response parsing fails", async () => {
-    mockAgreementService.getAgreementAttributes = vi.fn().mockResolvedValue({
+  it.each([
+    {
       ...attributes,
-      verified: [{ id: "invalid", explicitAttributeVerification: {} }],
-    });
+      verified: [{ id: "invalid", explicitAttributeVerification: true }],
+    },
+    {
+      ...attributes,
+      declared: [{ id: "invalid", explicitAttributeVerification: true }],
+    },
+    {
+      ...attributes,
+      certified: [{ id: "invalid", explicitAttributeVerification: true }],
+    },
+    {
+      ...attributes,
+      verified: [
+        { id: generateId(), explicitAttributeVerification: "not-a-boolean" },
+      ],
+    },
+    {
+      ...attributes,
+      declared: [
+        { id: generateId(), explicitAttributeVerification: "not-a-boolean" },
+      ],
+    },
+    {
+      ...attributes,
+      certified: [
+        { id: generateId(), explicitAttributeVerification: "not-a-boolean" },
+      ],
+    },
+  ])(
+    "Should return 500 when API model parsing fails for response %s",
+    async (resp) => {
+      // eslint-disable-next-line functional/immutable-data
+      mockAgreementService.getAgreementAttributes = vi
+        .fn()
+        .mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ROLE);
+      const res = await makeRequest(token);
 
-    const token = generateToken(authRole.M2M_ROLE);
-    const res = await makeRequest(token);
-
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });
