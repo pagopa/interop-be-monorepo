@@ -10,6 +10,7 @@ import {
   getMockTenant,
   getMockAgreement,
   getMockContext,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   purposeVersionState,
@@ -32,10 +33,10 @@ import {
 import {
   purposeNotFound,
   purposeVersionNotFound,
-  organizationIsNotTheConsumer,
+  tenantIsNotTheConsumer,
   purposeVersionCannotBeDeleted,
-  organizationIsNotTheDelegatedConsumer,
-  puroposeDelegationNotFound,
+  tenantIsNotTheDelegatedConsumer,
+  purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -46,7 +47,6 @@ import {
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
 
 describe("deletePurposeVersion", () => {
   it("should write in event-store for the deletion of a purpose version", async () => {
@@ -327,7 +327,7 @@ describe("deletePurposeVersion", () => {
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
     );
   });
-  it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion = getMockPurposeVersion();
     const mockPurpose: Purpose = {
@@ -350,9 +350,7 @@ describe("deletePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(mockEService.producerId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheConsumer(mockEService.producerId));
   });
   it.each(
     Object.values(purposeVersionState).filter(
@@ -417,7 +415,7 @@ describe("deletePurposeVersion", () => {
     );
   });
   it.each([purposeVersionState.active, purposeVersionState.waitingForApproval])(
-    "should throw organizationIsNotTheDelegatedConsumer when the requester is the Consumer and is deleting a purpose version created by the delegate in deletePurposeVersion",
+    "should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is deleting a purpose version created by the delegate in deletePurposeVersion",
     async (s) => {
       const authData = getMockAuthData();
       const mockPurposeVersion: PurposeVersion = {
@@ -452,14 +450,11 @@ describe("deletePurposeVersion", () => {
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
-        organizationIsNotTheDelegatedConsumer(
-          authData.organizationId,
-          delegation.id
-        )
+        tenantIsNotTheDelegatedConsumer(authData.organizationId, delegation.id)
       );
     }
   );
-  it("should throw puroposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
+  it("should throw purposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
@@ -486,10 +481,10 @@ describe("deletePurposeVersion", () => {
       )
     ).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      puroposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
+      purposeDelegationNotFound(mockPurpose.id, mockPurpose.delegationId!)
     );
   });
-  it("should throw organizationIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
+  it("should throw tenantIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const authData = getMockAuthData();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -520,9 +515,9 @@ describe("deletePurposeVersion", () => {
         },
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(delegation.delegateId));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
-  it("should throw organizationIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
+  it("should throw tenantIsNotTheDelegatedConsumer if the the requester is a delegate for the eservice and there is a delegationId in purpose but for a different delegationId (a different delegate)", async () => {
     const mockEService = getMockEService();
 
     const mockPurposeVersion: PurposeVersion = {
@@ -567,7 +562,7 @@ describe("deletePurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(delegation.delegateId) })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegatedConsumer(
+      tenantIsNotTheDelegatedConsumer(
         delegation.delegateId,
         mockPurpose.delegationId
       )

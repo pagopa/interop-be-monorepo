@@ -1,9 +1,14 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisValidatedForm,
   UIAuthData,
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  systemRole,
+  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -64,7 +69,7 @@ export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.waitingForApproval,
 ];
 
-export const validDescriptorStates: DescriptorState[] = [
+export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.published,
   descriptorState.suspended,
   descriptorState.deprecated,
@@ -332,4 +337,26 @@ export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
   if (!hasValidDescriptor) {
     throw eserviceWithoutValidDescriptors(eservice.id);
   }
+}
+
+/**
+ * Checks if the user has the roles required to access inactive
+ * descriptors (i.e., DRAFT or WAITING_FOR_APPROVAL).
+ * NOT sufficient to access them; the request must also originate
+ * from the producer tenant or the delegate producer tenant.
+ */
+export function hasRoleToAccessInactiveDescriptors(
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): boolean {
+  return (
+    hasAtLeastOneUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
+  );
 }

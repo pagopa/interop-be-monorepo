@@ -44,6 +44,7 @@ import {
 } from "pagopa-interop-api-clients";
 
 import {
+  clientAdminAlreadyAssignedToUser,
   clientKeyNotFound,
   clientNotFound,
   clientUserAlreadyAssigned,
@@ -52,8 +53,8 @@ import {
   eserviceAlreadyLinkedToProducerKeychain,
   eserviceNotDelegableForClientAccess,
   eserviceNotFound,
-  noAgreementFoundInRequiredState,
-  noPurposeVersionsFoundInRequiredState,
+  noActiveOrSuspendedAgreementFound,
+  noActiveOrSuspendedPurposeVersionFound,
   producerKeychainNotFound,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
@@ -69,6 +70,7 @@ import {
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
+  toCreateEventClientAdminSet,
   toCreateEventClientAdminRemoved,
   toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
@@ -214,13 +216,19 @@ export function authorizationServiceBuilder(
         logger,
         authData,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    ): Promise<WithMetadata<{ client: Client; showUsers: boolean }>> {
       logger.info(`Retrieving Client ${clientId}`);
-      const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(authData, client.data);
+      const { data: client, metadata } = await retrieveClient(
+        clientId,
+        readModelService
+      );
+      assertOrganizationIsClientConsumer(authData, client);
       return {
-        client: client.data,
-        showUsers: authData.organizationId === client.data.consumerId,
+        data: {
+          client,
+          showUsers: true, // caller is client consumer, see assertOrganizationIsClientConsumer
+        },
+        metadata,
       };
     },
 
@@ -538,6 +546,7 @@ export function authorizationServiceBuilder(
             selfcareV2InstitutionClient,
             userIdToCheck: userId,
             correlationId,
+            userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
           })
         )
       );
@@ -570,6 +579,55 @@ export function authorizationServiceBuilder(
         client: updatedClient,
         showUsers: true,
       };
+    },
+    async setAdminToClient(
+      {
+        clientId,
+        adminId,
+      }: {
+        clientId: ClientId;
+        adminId: UserId;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<{ client: Client; showUsers: boolean }> {
+      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
+
+      logger.info(`Set user ${adminId} in client ${clientId} as admin`);
+
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        userIdToCheck: adminId,
+        selfcareV2InstitutionClient,
+        correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE],
+      });
+
+      const client = await retrieveClient(clientId, readModelService);
+      assertClientIsAPI(client.data);
+      assertOrganizationIsClientConsumer(authData, client.data);
+
+      const oldAdminId = client.data.adminId;
+      if (oldAdminId && oldAdminId === adminId) {
+        throw clientAdminAlreadyAssignedToUser(clientId, adminId);
+      }
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminSet(
+          adminId,
+          updatedClient,
+          client.metadata.version,
+          correlationId,
+          oldAdminId
+        )
+      );
+      return { client: updatedClient, showUsers: true };
     },
     async getClientKeys(
       {
@@ -613,8 +671,17 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         seed: authorizationApi.PurposeAdditionDetails;
       },
-      { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        logger,
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        client: Client;
+        showUsers: boolean;
+      }>
+    > {
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
       );
@@ -660,7 +727,10 @@ export function authorizationServiceBuilder(
       );
 
       if (agreement === undefined) {
-        throw noAgreementFoundInRequiredState(eservice.id, purpose.consumerId);
+        throw noActiveOrSuspendedAgreementFound(
+          eservice.id,
+          purpose.consumerId
+        );
       }
 
       retrieveDescriptor(agreement.descriptorId, eservice);
@@ -674,7 +744,7 @@ export function authorizationServiceBuilder(
       );
 
       if (purposeVersion === undefined) {
-        throw noPurposeVersionsFoundInRequiredState(purpose.id);
+        throw noActiveOrSuspendedPurposeVersionFound(purpose.id);
       }
 
       const updatedClient: Client = {
@@ -682,7 +752,7 @@ export function authorizationServiceBuilder(
         purposes: [...client.data.purposes, purposeId],
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventClientPurposeAdded(
           purposeId,
           updatedClient,
@@ -690,6 +760,16 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+
+      return {
+        data: {
+          client: updatedClient,
+          showUsers: true,
+        },
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
     async createKey(
@@ -720,6 +800,7 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
       const jwk = createJWK({ pemKeyBase64: keySeed.key });
@@ -964,6 +1045,7 @@ export function authorizationServiceBuilder(
             userIdToCheck: userId,
             selfcareV2InstitutionClient,
             correlationId,
+            userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
           })
         )
       );
@@ -1078,6 +1160,7 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
       const jwk = createJWK({ pemKeyBase64: keySeed.key });

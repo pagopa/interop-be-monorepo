@@ -74,23 +74,28 @@ beforeEach(() => {
 
 export const mockClientService = {
   getClientAdminId: mockGetClientAdminId,
-} as ClientService;
+} as unknown as ClientService;
 // ^ Mocking getClientAdminId here to make the m2m auth data validation middleware
 // pass in all the api tests
 
 export const mockDelegationService = {} as DelegationService;
+export const mockPurposeService = {} as PurposeService;
+export const mockTenantService = {} as TenantService;
 export const mockAttributeService = {} as AttributeService;
+export const mockEServiceTemplateService = {} as EserviceTemplateService;
+export const mockAgreementService = {} as AgreementService;
+export const mockEserviceService = {} as EserviceService;
 
 export const api = await createApp(
   {
-    agreementService: {} as AgreementService,
+    agreementService: mockAgreementService,
     attributeService: mockAttributeService,
     clientService: mockClientService,
     delegationService: mockDelegationService,
-    eserviceService: {} as EserviceService,
-    eserviceTemplateService: {} as EserviceTemplateService,
-    purposeService: {} as PurposeService,
-    tenantService: {} as TenantService,
+    eserviceTemplateService: mockEServiceTemplateService,
+    eserviceService: mockEserviceService,
+    purposeService: mockPurposeService,
+    tenantService: mockTenantService,
   },
   (_req, _res, next): void => next()
 );

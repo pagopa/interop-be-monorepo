@@ -15,7 +15,7 @@ import { describe, expect, it } from "vitest";
 import { AuthData } from "pagopa-interop-commons";
 import {
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   securityUserNotMember,
 } from "../../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "../integrationUtils.js";
@@ -41,14 +41,17 @@ describe("getClientKeys", async () => {
 
     const keyWithUser1: Key = {
       ...getMockKey(),
+      name: "key 1",
       userId: keyUserId1,
     };
     const keyWithUser2: Key = {
       ...getMockKey(),
+      name: "key 2",
       userId: keyUserId2,
     };
     const keyWithUser3: Key = {
       ...getMockKey(),
+      name: "key 3",
       userId: keyUserId3,
     };
     const clientWithKeyUser: Client = {
@@ -150,7 +153,7 @@ describe("getClientKeys", async () => {
       securityUserNotMember(unsafeBrandId(authData.userId))
     );
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     await addOneClient(mockClient);
     const organizationId = generateId();
 
@@ -170,7 +173,7 @@ describe("getClientKeys", async () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(
+      tenantNotAllowedOnClient(
         unsafeBrandId(organizationId),
         unsafeBrandId(mockClient.id)
       )
@@ -186,26 +189,32 @@ describe("getClientKeys", async () => {
 
     const keyWithUser1: Key = {
       ...getMockKey(),
+      name: "key 1",
       userId: keyUserId1,
     };
     const keyWithUser2: Key = {
       ...getMockKey(),
+      name: "key 2",
       userId: keyUserId2,
     };
     const keyWithUser3: Key = {
       ...getMockKey(),
+      name: "key 3",
       userId: keyUserId3,
     };
     const keyWithUser4: Key = {
       ...getMockKey(),
+      name: "key 4",
       userId: keyUserId4,
     };
     const keyWithUser5: Key = {
       ...getMockKey(),
+      name: "key 5",
       userId: keyUserId5,
     };
     const keyWithUser6: Key = {
       ...getMockKey(),
+      name: "key 6",
       userId: keyUserId6,
     };
 
