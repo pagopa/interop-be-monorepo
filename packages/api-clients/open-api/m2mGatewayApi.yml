@@ -2301,7 +2301,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
