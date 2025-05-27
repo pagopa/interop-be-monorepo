@@ -19,7 +19,7 @@ import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   securityUserNotMember,
 } from "../../src/model/domain/errors.js";
 import { keyToApiKey } from "../../src/model/domain/apiConverter.js";
@@ -113,7 +113,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
       expectedStatus: 404,
     },
     {
-      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {
