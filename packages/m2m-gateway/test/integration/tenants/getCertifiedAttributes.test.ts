@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -12,34 +14,68 @@ import {
   getMockedApiCertifiedTenantAttribute,
   getMockedApiTenant,
 } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getCertifiedAttributes", () => {
-  const mockParams: m2mGatewayApi.GetCertifiedAttributesQueryParams = {
-    offset: 0,
-    limit: 10,
-  };
-
-  const mockTenantAttribute1 = getMockedApiCertifiedTenantAttribute();
-
-  const mockTenantAttribute2 = getMockedApiCertifiedTenantAttribute({
+  const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({
     revoked: true,
   });
+  const mockCertifiedAttribute2 = getMockedApiCertifiedTenantAttribute();
+  const mockCertifiedAttribute3 = getMockedApiCertifiedTenantAttribute();
+  const mockCertifiedAttribute4 = getMockedApiCertifiedTenantAttribute();
+  const mockCertifiedAttribute5 = getMockedApiCertifiedTenantAttribute();
+  const otherMockedAttributes = generateMock(
+    z.array(tenantApi.TenantAttribute)
+  ).filter((attr) => attr.certified === undefined);
 
-  const mockApiTenant: tenantApi.Tenant = {
-    ...getMockedApiTenant().data,
+  const mockTenantProcessResponse = getMockedApiTenant({
     attributes: [
-      { certified: mockTenantAttribute1 },
-      { certified: mockTenantAttribute2 },
+      {
+        certified: mockCertifiedAttribute1,
+      },
+      {
+        certified: mockCertifiedAttribute2,
+      },
+      {
+        certified: mockCertifiedAttribute3,
+      },
+      {
+        certified: mockCertifiedAttribute4,
+      },
+      {
+        certified: mockCertifiedAttribute5,
+      },
+      ...otherMockedAttributes,
     ],
-  };
+  });
 
-  const mockGetTenantResponse: WithMaybeMetadata<tenantApi.Tenant> = {
-    data: mockApiTenant,
-    metadata: undefined,
-  };
+  const testToM2MGatewayApiCertifiedAttribute = (
+    attribute: tenantApi.CertifiedTenantAttribute
+  ): m2mGatewayApi.TenantCertifiedAttribute => ({
+    id: attribute.id,
+    assignedAt: attribute.assignmentTimestamp,
+    revokedAt: attribute.revocationTimestamp,
+  });
 
-  const mockGetTenant = vi.fn().mockResolvedValue(mockGetTenantResponse);
+  const m2mCertifiedAttributeResponse1 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute1
+  );
+
+  const m2mCertifiedAttributeResponse2 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute2
+  );
+
+  const m2mCertifiedAttributeResponse3 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute3
+  );
+
+  const m2mCertifiedAttributeResponse4 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute4
+  );
+  const m2mCertifiedAttributeResponse5 = testToM2MGatewayApiCertifiedAttribute(
+    mockCertifiedAttribute5
+  );
+
+  const mockGetTenant = vi.fn().mockResolvedValue(mockTenantProcessResponse);
 
   mockInteropBeClients.tenantProcessClient = {
     tenant: {
@@ -53,32 +89,27 @@ describe("getCertifiedAttributes", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const m2mCertifiedAttributeResponse1: m2mGatewayApi.TenantCertifiedAttribute =
-      {
-        id: mockTenantAttribute1.id,
-        assignedAt: mockTenantAttribute1.assignmentTimestamp,
-        revokedAt: undefined,
-      };
-
-    const m2mCertifiedAttributeResponse2: m2mGatewayApi.TenantCertifiedAttribute =
-      {
-        id: mockTenantAttribute2.id,
-        assignedAt: mockTenantAttribute2.assignmentTimestamp,
-        revokedAt: mockTenantAttribute2.revocationTimestamp,
-      };
-
     const m2mTenantsResponse: m2mGatewayApi.TenantCertifiedAttributes = {
       pagination: {
-        limit: mockParams.limit,
-        offset: mockParams.offset,
-        totalCount: 2,
+        limit: 10,
+        offset: 0,
+        totalCount: mockTenantProcessResponse.data.attributes.length,
       },
-      results: [m2mCertifiedAttributeResponse1, m2mCertifiedAttributeResponse2],
+      results: [
+        m2mCertifiedAttributeResponse1,
+        m2mCertifiedAttributeResponse2,
+        m2mCertifiedAttributeResponse3,
+        m2mCertifiedAttributeResponse4,
+        m2mCertifiedAttributeResponse5,
+      ],
     };
 
     const result = await tenantService.getCertifiedAttributes(
-      unsafeBrandId(mockApiTenant.id),
-      mockParams,
+      unsafeBrandId(mockTenantProcessResponse.data.id),
+      {
+        offset: 0,
+        limit: 10,
+      },
       getMockM2MAdminAppContext()
     );
 
@@ -86,8 +117,74 @@ describe("getCertifiedAttributes", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
       params: {
-        id: mockApiTenant.id,
+        id: mockTenantProcessResponse.data.id,
       },
     });
+  });
+
+  it("Should apply filters (offset, limit)", async () => {
+    const m2mCertifiedAttributesResponse1: m2mGatewayApi.TenantCertifiedAttributes =
+      {
+        pagination: {
+          offset: 0,
+          limit: 2,
+          totalCount: mockTenantProcessResponse.data.attributes.length,
+        },
+        results: [
+          m2mCertifiedAttributeResponse1,
+          m2mCertifiedAttributeResponse2,
+        ],
+      };
+
+    const result1 = await tenantService.getCertifiedAttributes(
+      unsafeBrandId(mockTenantProcessResponse.data.id),
+      {
+        offset: 0,
+        limit: 2,
+      },
+      getMockM2MAdminAppContext()
+    );
+    expect(result1).toEqual(m2mCertifiedAttributesResponse1);
+
+    const m2mCertifiedAttributesResponse2: m2mGatewayApi.TenantCertifiedAttributes =
+      {
+        pagination: {
+          offset: 2,
+          limit: 2,
+          totalCount: mockTenantProcessResponse.data.attributes.length,
+        },
+        results: [
+          m2mCertifiedAttributeResponse3,
+          m2mCertifiedAttributeResponse4,
+        ],
+      };
+    const result2 = await tenantService.getCertifiedAttributes(
+      unsafeBrandId(mockTenantProcessResponse.data.id),
+      {
+        offset: 2,
+        limit: 2,
+      },
+      getMockM2MAdminAppContext()
+    );
+    expect(result2).toEqual(m2mCertifiedAttributesResponse2);
+
+    const m2mCertifiedAttributesResponse3: m2mGatewayApi.TenantCertifiedAttributes =
+      {
+        pagination: {
+          offset: 4,
+          limit: 2,
+          totalCount: mockTenantProcessResponse.data.attributes.length,
+        },
+        results: [m2mCertifiedAttributeResponse5],
+      };
+    const result3 = await tenantService.getCertifiedAttributes(
+      unsafeBrandId(mockTenantProcessResponse.data.id),
+      {
+        offset: 4,
+        limit: 2,
+      },
+      getMockM2MAdminAppContext()
+    );
+    expect(result3).toEqual(m2mCertifiedAttributesResponse3);
   });
 });
