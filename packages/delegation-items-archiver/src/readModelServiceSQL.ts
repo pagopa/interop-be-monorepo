@@ -15,8 +15,8 @@ import {
   agreementInReadmodelAgreement,
   purposeInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { DrizzleReturnType } from "../../readmodel-models/dist/types.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
