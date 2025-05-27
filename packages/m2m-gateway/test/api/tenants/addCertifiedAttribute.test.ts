@@ -11,8 +11,15 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
+import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
+import { getMockedApiTenant } from "../../mockUtils.js";
 
 describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
+  const mockApiResponse = getMockedApiTenant();
+  const mockResponse: m2mGatewayApi.Tenant = toM2MGatewayApiTenant(
+    mockApiResponse.data
+  );
+
   const makeRequest = async (
     token: string,
     body: m2mGatewayApi.TenantCertifiedAttributeSeed
@@ -24,14 +31,17 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockTenantService.addCertifiedAttribute = vi.fn();
+      mockTenantService.addCertifiedAttribute = vi
+        .fn()
+        .mockResolvedValue(mockResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token, { id: generateId() });
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockResponse);
     }
   );
 
@@ -58,6 +68,22 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
       mockTenantService.addCertifiedAttribute = vi
         .fn()
         .mockRejectedValue(error);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, { id: generateId() });
+
+      expect(res.status).toBe(500);
+    }
+  );
+
+  it.each([
+    { ...mockResponse, createdAt: undefined },
+    { ...mockResponse, kind: "INVALID_KIND" },
+    { ...mockResponse, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockTenantService.addCertifiedAttribute = vi.fn().mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, { id: generateId() });
 
