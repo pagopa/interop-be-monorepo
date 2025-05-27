@@ -1717,6 +1717,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ClientJWK"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Key not found
           content:
@@ -1746,6 +1758,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProducerJWK"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Producer Key not found
           content:
