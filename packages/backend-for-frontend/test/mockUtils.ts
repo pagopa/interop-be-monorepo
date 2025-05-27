@@ -71,3 +71,12 @@ export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
   freeOfChargeReason: generateMock(z.string().optional()),
   dailyCalls: generateMock(z.number().int().min(0)),
 });
+
+export const getMockBffApiPrivacyNotice = (): bffApi.PrivacyNotice => ({
+  id: generateId(),
+  userId: generateId(),
+  consentType: generateMock(bffApi.ConsentType),
+  firstAccept: generateMock(z.boolean()),
+  isUpdated: generateMock(z.boolean()),
+  latestVersionId: generateId(),
+});
