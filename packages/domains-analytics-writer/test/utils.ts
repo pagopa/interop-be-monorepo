@@ -13,6 +13,7 @@ import {
   AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
+  DelegationDbTable,
   DeletingDbTable,
   DeletingDbTableConfigMap,
   DomainDbTable,
@@ -70,6 +71,12 @@ export const purposeTables: PurposeDbTable[] = [
   PurposeDbTable.purpose_risk_analysis_answer,
 ];
 
+export const delegationTables: DelegationDbTable[] = [
+  DelegationDbTable.delegation,
+  DelegationDbTable.delegation_stamp,
+  DelegationDbTable.delegation_contract_document,
+];
+
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
@@ -83,6 +90,7 @@ export const domainTables: DomainDbTable[] = [
   ...catalogTables,
   ...agreementTables,
   ...purposeTables,
+  ...delegationTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
