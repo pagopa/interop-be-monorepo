@@ -3631,7 +3631,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Tenant"
+                $ref: "#/components/schemas/TenantCertifiedAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3744,7 +3744,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Tenant"
+                $ref: "#/components/schemas/TenantCertifiedAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4635,16 +4635,6 @@ components:
         id:
           type: string
           format: uuid
-        code:
-          type: string
-          description: identifies the unique code of this attribute on the origin registry
-        description:
-          type: string
-        origin:
-          type: string
-          description: "represents the origin of this attribute (e.g.: IPA)"
-        name:
-          type: string
         assignedAt:
           type: string
           format: date-time
@@ -4653,10 +4643,6 @@ components:
           format: date-time
       required:
         - id
-        - name
-        - description
-        - code
-        - origin
         - assignedAt
     TenantCertifiedAttributes:
       type: object
