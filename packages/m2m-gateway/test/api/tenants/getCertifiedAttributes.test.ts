@@ -89,7 +89,11 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
   it.each([
     {
       ...mockResponse,
-      results: [{ ...mockResponse.results[0], name: 0 }],
+      results: [{ ...mockResponse.results[0], id: "invalidId" }],
+    },
+    {
+      ...mockResponse,
+      results: [{ ...mockResponse.results[0], assignedAt: "invalidDate" }],
     },
     {
       ...mockResponse,
