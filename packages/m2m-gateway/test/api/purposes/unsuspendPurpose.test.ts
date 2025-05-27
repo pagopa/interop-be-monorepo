@@ -11,8 +11,13 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
+import { getMockedApiPurpose } from "../../mockUtils.js";
+import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("POST /purposes/:purposeId/unsuspend router test", () => {
+  const mockApiPurpose = getMockedApiPurpose();
+  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose.data);
+
   const makeRequest = async (token: string, purposeId: string) =>
     request(api)
       .post(`${appBasePath}/purposes/${purposeId}/unsuspend`)
@@ -20,14 +25,17 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockPurposeService.unsuspendPurpose = vi.fn();
+      mockPurposeService.unsuspendPurpose = vi
+        .fn()
+        .mockResolvedValue(mockM2MPurposeResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId());
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockM2MPurposeResponse);
     }
   );
 
@@ -66,6 +74,22 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
       mockPurposeService.unsuspendPurpose = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, generateId());
+
+      expect(res.status).toBe(500);
+    }
+  );
+
+  it.each([
+    { ...mockM2MPurposeResponse, createdAt: undefined },
+    { ...mockM2MPurposeResponse, eserviceId: "invalidId" },
+    { ...mockM2MPurposeResponse, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockPurposeService.unsuspendPurpose = vi.fn().mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockM2MPurposeResponse.id);
 
       expect(res.status).toBe(500);
     }
