@@ -56,7 +56,6 @@ import {
   checkDPoPCache,
   verifyDPoPProof,
   verifyDPoPProofSignature,
-  writeDPoPCache,
 } from "pagopa-interop-dpop-validation";
 import { config } from "../config/config.js";
 import {
@@ -141,6 +140,14 @@ export function tokenServiceBuilder({
             dPoPProofSignatureErrors.map((error) => error.detail).join(", ")
           );
         }
+
+        logTokenGenerationInfo({
+          validatedJwt: dPoPProofJWT,
+          clientKind: undefined,
+          tokenJti: undefined,
+          message: "DPoP proof validated",
+          logger,
+        });
       }
 
       // Request body parameters validation
@@ -259,7 +266,6 @@ export function tokenServiceBuilder({
         if (dPoPCacheErrors) {
           throw dPoPAlreadyUsed(dPoPProofJWT.payload.jti);
         }
-        console.log(9);
       }
 
       return await match(key)
