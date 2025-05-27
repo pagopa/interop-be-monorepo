@@ -27,15 +27,6 @@ import {
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
-} from "pagopa-interop-readmodel-models";
-import {
-  aggregateEserviceArray,
-  TenantReadModelService,
-  toEServiceAggregatorArray,
-  aggregateTenantArray,
-} from "pagopa-interop-readmodel";
-import { ascLower } from "pagopa-interop-commons";
-import {
   DrizzleReturnType,
   TenantCertifiedAttributeSQL,
   TenantDeclaredAttributeSQL,
@@ -46,7 +37,14 @@ import {
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
-import { AttributeReadModelService } from "pagopa-interop-readmodel";
+import {
+  aggregateEserviceArray,
+  TenantReadModelService,
+  toEServiceAggregatorArray,
+  aggregateTenantArray,
+  AttributeReadModelService,
+} from "pagopa-interop-readmodel";
+import { ascLower } from "pagopa-interop-commons";
 
 export function readModelServiceBuilderSQL(
   readModelDB: DrizzleReturnType,
