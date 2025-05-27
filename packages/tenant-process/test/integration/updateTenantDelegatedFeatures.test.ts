@@ -13,12 +13,12 @@ import {
   TenantDelegatedConsumerFeatureAddedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { readLastEventByStreamId } from "pagopa-interop-commons-test";
 import {
   getMockAuthData,
   getMockContext,
   getMockTenant,
   readEventByStreamIdAndVersion,
+  readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
