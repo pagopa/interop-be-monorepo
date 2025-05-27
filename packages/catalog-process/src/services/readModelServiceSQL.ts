@@ -2,10 +2,8 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  hasAtLeastOneUserRole,
   M2MAuthData,
   UIAuthData,
-  userRole,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -79,7 +77,10 @@ import {
 } from "drizzle-orm";
 import { match } from "ts-pattern";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
-import { validDescriptorStates } from "./validators.js";
+import {
+  activeDescriptorStates,
+  hasRoleToAccessInactiveDescriptors,
+} from "./validators.js";
 
 const existsValidDescriptor = (
   readmodelDB: DrizzleReturnType
@@ -96,7 +97,7 @@ const existsValidDescriptor = (
           ),
           inArray(
             eserviceDescriptorInReadmodelCatalog.state,
-            validDescriptorStates
+            activeDescriptorStates
           )
         )
       )
@@ -219,11 +220,7 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // visibility filter
-            hasAtLeastOneUserRole(authData, [
-              userRole.ADMIN_ROLE,
-              userRole.API_ROLE,
-              userRole.SUPPORT_ROLE,
-            ])
+            hasRoleToAccessInactiveDescriptors(authData)
               ? or(
                   existsValidDescriptor(readmodelDB),
                   // the requester is the producer
