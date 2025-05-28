@@ -15,9 +15,9 @@ import {
 } from "pagopa-interop-models";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:documentId", () => {
@@ -55,12 +55,10 @@ describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      const expected = {
+      expect(res.body).toEqual({
         ...doc,
         uploadDate: doc.uploadDate.toISOString(),
-      };
-
-      expect(res.body).toEqual(expected);
+      });
       expect(res.status).toBe(200);
     }
   );
@@ -75,11 +73,11 @@ describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:
 
   it.each([
     {
-      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      error: eserviceTemplateNotFound(mockEserviceTemplate.id),
       expectedStatus: 404,
     },
     {
-      error: eServiceTemplateVersionNotFound(
+      error: eserviceTemplateVersionNotFound(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),

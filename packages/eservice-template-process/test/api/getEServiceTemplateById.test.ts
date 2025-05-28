@@ -9,7 +9,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
-import { eServiceTemplateNotFound } from "../../src/model/domain/errors.js";
+import { eserviceTemplateNotFound } from "../../src/model/domain/errors.js";
 
 describe("API GET /templates/:templateId", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
@@ -68,7 +68,7 @@ describe("API GET /templates/:templateId", () => {
     const notFoundEserviceTemplateId = generateId<EServiceTemplateId>();
     eserviceTemplateService.getEServiceTemplateById = vi
       .fn()
-      .mockRejectedValue(eServiceTemplateNotFound(notFoundEserviceTemplateId));
+      .mockRejectedValue(eserviceTemplateNotFound(notFoundEserviceTemplateId));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.body.detail).toBe(

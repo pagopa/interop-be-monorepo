@@ -18,8 +18,8 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   attributeNotFound,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
@@ -70,18 +70,18 @@ describe("API POST /templates/:templateId/versions/:templateVersionId", () => {
 
   it.each([
     {
-      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      error: eserviceTemplateNotFound(mockEserviceTemplate.id),
       expectedStatus: 404,
     },
     {
-      error: eServiceTemplateVersionNotFound(
+      error: eserviceTemplateVersionNotFound(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),
       expectedStatus: 404,
     },
     {
-      error: eServiceTemplateVersionNotFound(
+      error: eserviceTemplateVersionNotFound(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),

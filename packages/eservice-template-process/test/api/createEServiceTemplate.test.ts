@@ -12,7 +12,7 @@ import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import { eserviceTemplateToApiEServiceTemplateSeed } from "../mockUtils.js";
 import {
-  eServiceTemplateDuplicate,
+  eserviceTemplateDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
@@ -119,7 +119,7 @@ describe("API POST /templates", () => {
       expectedStatus: 403,
     },
     {
-      error: eServiceTemplateDuplicate(eserviceTemplateName),
+      error: eserviceTemplateDuplicate(eserviceTemplateName),
       expectedStatus: 409,
     },
     {

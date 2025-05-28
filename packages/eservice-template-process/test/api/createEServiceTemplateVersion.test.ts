@@ -15,7 +15,7 @@ import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateVersionToApiEServiceTemplateVersion } from "../../src/model/domain/apiConverter.js";
 import {
   draftEServiceTemplateVersionAlreadyExists,
-  eServiceTemplateNotFound,
+  eserviceTemplateNotFound,
   eserviceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
 } from "../../src/model/domain/errors.js";
@@ -66,7 +66,7 @@ describe("API POST /templates/:templateId/versions", () => {
 
   it.each([
     {
-      error: eServiceTemplateNotFound(notFoundEserviceTemplateId),
+      error: eserviceTemplateNotFound(notFoundEserviceTemplateId),
       expectedStatus: 404,
     },
     {

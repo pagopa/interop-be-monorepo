@@ -20,8 +20,8 @@ import {
 import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
@@ -71,11 +71,11 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
 
   it.each([
     {
-      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      error: eserviceTemplateNotFound(mockEserviceTemplate.id),
       expectedStatus: 404,
     },
     {
-      error: eServiceTemplateVersionNotFound(
+      error: eserviceTemplateVersionNotFound(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),
@@ -89,7 +89,7 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
       expectedStatus: 404,
     },
     {
-      error: eServiceTemplateVersionNotFound(
+      error: eserviceTemplateVersionNotFound(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),

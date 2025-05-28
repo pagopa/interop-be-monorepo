@@ -16,8 +16,8 @@ import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import { eserviceTemplateToApiUpdateEServiceTemplateSeed } from "../mockUtils.js";
 import {
-  eServiceTemplateDuplicate,
-  eServiceTemplateNotFound,
+  eserviceTemplateDuplicate,
+  eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
 } from "../../src/model/domain/errors.js";
 
@@ -92,11 +92,11 @@ describe("API POST /templates/:templateId", () => {
 
   it.each([
     {
-      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      error: eserviceTemplateNotFound(mockEserviceTemplate.id),
       expectedStatus: 404,
     },
     {
-      error: eServiceTemplateDuplicate(eserviceTemplateName),
+      error: eserviceTemplateDuplicate(eserviceTemplateName),
       expectedStatus: 409,
     },
     {

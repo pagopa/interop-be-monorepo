@@ -22,7 +22,7 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 import {
-  eServiceTemplateNotFound,
+  eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
   riskAnalysisValidationFailed,
   templateNotInReceiveMode,
@@ -107,7 +107,7 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
 
   it.each([
     {
-      error: eServiceTemplateNotFound(eserviceTemplateId),
+      error: eserviceTemplateNotFound(eserviceTemplateId),
       expectedStatus: 404,
     },
     {

@@ -16,8 +16,8 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   documentPrettyNameDuplicate,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   interfaceAlreadyExists,
 } from "../../src/model/domain/errors.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
@@ -72,11 +72,11 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents"
 
   it.each([
     {
-      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      error: eserviceTemplateNotFound(mockEserviceTemplate.id),
       expectedStatus: 404,
     },
     {
-      error: eServiceTemplateVersionNotFound(
+      error: eserviceTemplateVersionNotFound(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),

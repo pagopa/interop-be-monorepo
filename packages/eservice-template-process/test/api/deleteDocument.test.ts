@@ -13,9 +13,9 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
 
@@ -64,11 +64,11 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
 
   it.each([
     {
-      error: eServiceTemplateNotFound(templateId),
+      error: eserviceTemplateNotFound(templateId),
       expectedStatus: 404,
     },
     {
-      error: eServiceTemplateVersionNotFound(templateId, templateVersionId),
+      error: eserviceTemplateVersionNotFound(templateId, templateVersionId),
       expectedStatus: 404,
     },
     {

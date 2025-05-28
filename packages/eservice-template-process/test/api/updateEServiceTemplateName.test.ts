@@ -13,8 +13,8 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
-  eServiceTemplateDuplicate,
-  eServiceTemplateNotFound,
+  eserviceTemplateDuplicate,
+  eserviceTemplateNotFound,
   eserviceTemplateWithoutPublishedVersion,
 } from "../../src/model/domain/errors.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
@@ -89,7 +89,7 @@ describe("API POST /templates/:templateId/name/update", () => {
 
   it.each([
     {
-      error: eServiceTemplateNotFound(mockEserviceTemplate.id),
+      error: eserviceTemplateNotFound(mockEserviceTemplate.id),
       expectedStatus: 404,
     },
     {
@@ -101,7 +101,7 @@ describe("API POST /templates/:templateId/name/update", () => {
       expectedStatus: 403,
     },
     {
-      error: eServiceTemplateDuplicate(mockEserviceTemplate.id),
+      error: eserviceTemplateDuplicate(mockEserviceTemplate.id),
       expectedStatus: 409,
     },
   ])(
