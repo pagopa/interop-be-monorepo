@@ -21,6 +21,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
+  algorithm,
   ClientId,
   clientKindTokenGenStates,
   CorrelationId,
@@ -710,7 +711,7 @@ describe("authorization server tests", () => {
 
     const { dPoPProof } = await getMockDPoPProof();
 
-    const { keySet: wrongKeySet } = generateKeySet("ES256");
+    const { keySet: wrongKeySet } = generateKeySet(algorithm.ES256);
 
     const jwsWithWrongSignature = await signJWT({
       payload: dPoPProof.payload,
@@ -841,7 +842,7 @@ describe("authorization server tests", () => {
       ),
       purposeId: tokenClientKidPurposeEntry.GSIPK_purposeId!,
       purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
-      algorithm: "RS256",
+      algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
@@ -983,7 +984,7 @@ describe("authorization server tests", () => {
       ),
       purposeId: tokenClientPurposeEntry.GSIPK_purposeId!,
       purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
-      algorithm: "RS256",
+      algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
@@ -1106,7 +1107,7 @@ describe("authorization server tests", () => {
       ),
       purposeId: tokenClientKidPurposeEntry.GSIPK_purposeId!,
       purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
-      algorithm: "RS256",
+      algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
@@ -1265,7 +1266,7 @@ describe("authorization server tests", () => {
       ),
       purposeId: tokenClientPurposeEntry.GSIPK_purposeId!,
       purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
-      algorithm: "RS256",
+      algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
