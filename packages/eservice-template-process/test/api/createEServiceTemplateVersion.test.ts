@@ -98,7 +98,7 @@ describe("API POST /templates/:templateId/versions", () => {
     }
   );
 
-  it("Should return 400 if passed a not compliat query param", async () => {
+  it("Should return 400 if passed invalid query param", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "111" as EServiceTemplateId);
     expect(res.status).toBe(400);

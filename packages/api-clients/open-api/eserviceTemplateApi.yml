@@ -582,12 +582,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: templateVersionId
           in: path
           description: the template version Id
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: E-Service template document
         required: true

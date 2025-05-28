@@ -22,8 +22,6 @@ describe("API POST /templates", () => {
 
   const mockEserviceTemplateSeed: eserviceTemplateApi.EServiceTemplateSeed =
     eserviceTemplateToApiEServiceTemplateSeed(mockEserviceTemplate);
-  const notCompliantOrigin = "https://not-allowed-origin.com";
-  const eserviceTemplateName = "duplicate";
 
   const makeRequest = async (
     token: string,
@@ -115,11 +113,11 @@ describe("API POST /templates", () => {
 
   it.each([
     {
-      error: originNotCompliant(notCompliantOrigin),
+      error: originNotCompliant("https://not-allowed-origin.com"),
       expectedStatus: 403,
     },
     {
-      error: eserviceTemplateDuplicate(eserviceTemplateName),
+      error: eserviceTemplateDuplicate("duplicate"),
       expectedStatus: 409,
     },
     {

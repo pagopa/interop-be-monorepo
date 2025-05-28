@@ -24,7 +24,10 @@ describe("API GET /templates", () => {
     offset: 0,
   };
 
-  const makeRequest = async (token: string, query = queryParams) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof queryParams = queryParams
+  ) =>
     request(api)
       .get("/templates")
       .set("Authorization", `Bearer ${token}`)
@@ -70,9 +73,19 @@ describe("API GET /templates", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed no query params", async () => {
+  it.each([
+    {},
+    { limit: "not-a-number" },
+    { offset: "not-a-number" },
+    { limit: -1 },
+    { offset: -1 },
+    { limit: 51 },
+  ])("Should return 400 if passed invalid params: %s", async (query) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {} as typeof queryParams);
+    const res = await makeRequest(
+      token,
+      query as unknown as typeof queryParams
+    );
     expect(res.status).toBe(400);
   });
 

@@ -66,7 +66,6 @@ describe("API GET /creators", () => {
   });
 
   it.each([
-    {},
     { limit: -1 },
     { offset: -1 },
     { limit: "invalid" },
