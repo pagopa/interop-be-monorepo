@@ -13029,6 +13029,7 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: Producer keychain retrieved
@@ -13119,6 +13120,7 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "204":
           description: Producer keychain deleted
