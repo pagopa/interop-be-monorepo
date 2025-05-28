@@ -23,11 +23,11 @@ describe("API DELETE /templates/:templateId/riskAnalysis/:riskAnalysisId", () =>
 
   const makeRequest = async (
     token: string,
-    templateId: string = eserviceTemplateId,
-    riskAnlysisId: string = mockValidRiskAnalysisId
+    templateId: EServiceTemplateId = eserviceTemplateId,
+    riskAnalysisId: RiskAnalysisId = mockValidRiskAnalysisId
   ) =>
     request(api)
-      .delete(`/templates/${templateId}/riskAnalysis/${riskAnlysisId}`)
+      .delete(`/templates/${templateId}/riskAnalysis/${riskAnalysisId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
@@ -99,7 +99,11 @@ describe("API DELETE /templates/:templateId/riskAnalysis/:riskAnalysisId", () =>
     "Should return 400 if passed invalid params: %s",
     async ({ templateId, riskAnalysisId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, templateId, riskAnalysisId);
+      const res = await makeRequest(
+        token,
+        templateId as EServiceTemplateId,
+        riskAnalysisId as RiskAnalysisId
+      );
 
       expect(res.status).toBe(400);
     }

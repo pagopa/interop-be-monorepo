@@ -19,18 +19,17 @@ describe("API GET /templates", () => {
     totalCount: 1,
   };
 
-  const makeRequest = async (
-    token: string,
-    queryParams: Record<string, unknown> = {
-      limit: 10,
-      offset: 0,
-    }
-  ) =>
+  const queryParams = {
+    limit: 10,
+    offset: 0,
+  };
+
+  const makeRequest = async (token: string, query = queryParams) =>
     request(api)
       .get("/templates")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query(queryParams)
+      .query(query)
       .send();
 
   beforeEach(() => {
@@ -51,12 +50,14 @@ describe("API GET /templates", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.body).toEqual({
+      const expected = {
         results: mockEserviceTemplateListResult.results.map((t) =>
           eserviceTemplateToApiEServiceTemplate(t)
         ),
         totalCount: mockEserviceTemplateListResult.totalCount,
-      });
+      };
+
+      expect(res.body).toEqual(expected);
       expect(res.status).toBe(200);
     }
   );
@@ -71,7 +72,7 @@ describe("API GET /templates", () => {
 
   it("Should return 400 if passed no query params", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {});
+    const res = await makeRequest(token, {} as typeof queryParams);
     expect(res.status).toBe(400);
   });
 

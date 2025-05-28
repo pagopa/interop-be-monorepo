@@ -17,18 +17,20 @@ describe("API GET /creators", () => {
     totalCount: 1,
   };
 
+  const queryParams = {
+    limit: 10,
+    offset: 0,
+  };
+
   const makeRequest = async (
     token: string,
-    queryParams: Record<string, unknown> = {
-      limit: 10,
-      offset: 0,
-    }
+    query: typeof queryParams = queryParams
   ) =>
     request(api)
       .get("/creators")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query(queryParams)
+      .query(query)
       .send();
 
   beforeEach(() => {
@@ -48,7 +50,9 @@ describe("API GET /creators", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.body).toEqual(mockEserviceTemplateCreatorsResult);
+      const expected = mockEserviceTemplateCreatorsResult;
+
+      expect(res.body).toEqual(expected);
       expect(res.status).toBe(200);
     }
   );
@@ -61,9 +65,19 @@ describe("API GET /creators", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed no query params", async () => {
+  it.each([
+    {},
+    { limit: -1 },
+    { offset: -1 },
+    { limit: "invalid" },
+    { offset: "invalid" },
+    { limit: 51 },
+  ])("Should return 400 if passed invalid params: %s", async (query) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {});
+    const res = await makeRequest(
+      token,
+      query as unknown as typeof queryParams
+    );
     expect(res.status).toBe(400);
   });
 });

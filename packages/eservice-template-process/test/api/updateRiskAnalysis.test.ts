@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   EServiceTemplateId,
+  RiskAnalysisId,
   TenantId,
   generateId,
   operationForbidden,
@@ -40,11 +41,11 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
   const makeRequest = async (
     token: string,
     body: eserviceTemplateApi.EServiceRiskAnalysisSeed = riskAnalysisSeed,
-    templateId: string = eserviceTemplateId,
-    riskAnlysisId: string = mockValidRiskAnalysis.id
+    templateId: EServiceTemplateId = eserviceTemplateId,
+    riskAnalysisId: RiskAnalysisId = mockValidRiskAnalysis.id
   ) =>
     request(api)
-      .post(`/templates/${templateId}/riskAnalysis/${riskAnlysisId}`)
+      .post(`/templates/${templateId}/riskAnalysis/${riskAnalysisId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -97,7 +98,7 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
         token,
         seed as eserviceTemplateApi.EServiceRiskAnalysisSeed,
         templateId,
-        riskAnalysisId
+        riskAnalysisId as RiskAnalysisId
       );
 
       expect(res.status).toBe(400);

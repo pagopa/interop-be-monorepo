@@ -26,9 +26,9 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
 
   const makeRequest = async (
     token: string,
-    tempId: string = templateId,
-    tempVersionId: string = templateVersionId,
-    docId: string = documentId
+    tempId: EServiceTemplateId = templateId,
+    tempVersionId: EServiceTemplateVersionId = templateVersionId,
+    docId: EServiceDocumentId = documentId
   ) =>
     request(api)
       .delete(
@@ -114,7 +114,11 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId/document
     "Should return 400 if passed invalid params: %s",
     async ({ templateId, templateVersionId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, templateId, templateVersionId);
+      const res = await makeRequest(
+        token,
+        templateId as EServiceTemplateId,
+        templateVersionId as EServiceTemplateVersionId
+      );
 
       expect(res.status).toBe(400);
     }

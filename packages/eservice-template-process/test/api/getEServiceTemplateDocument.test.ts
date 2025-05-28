@@ -8,6 +8,11 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import {
+  EServiceDocumentId,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
+} from "pagopa-interop-models";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   eServiceTemplateNotFound,
@@ -21,9 +26,10 @@ describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:
 
   const makeRequest = async (
     token: string,
-    templateId: string = mockEserviceTemplate.id,
-    templateVersionId: string = mockEserviceTemplate.versions[0].id,
-    documentId: string = doc.id
+    templateId: EServiceTemplateId = mockEserviceTemplate.id,
+    templateVersionId: EServiceTemplateVersionId = mockEserviceTemplate
+      .versions[0].id,
+    documentId: EServiceDocumentId = doc.id
   ) =>
     request(api)
       .get(
@@ -49,10 +55,12 @@ describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.body).toEqual({
+      const expected = {
         ...doc,
         uploadDate: doc.uploadDate.toISOString(),
-      });
+      };
+
+      expect(res.body).toEqual(expected);
       expect(res.status).toBe(200);
     }
   );
@@ -113,15 +121,20 @@ describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:
       templateVersionId: "invalidId",
       documentId: doc.id,
     },
+    {
+      templateId: mockEserviceTemplate.id,
+      templateVersionId: mockEserviceTemplate.versions[0].id,
+      documentId: "invalidId",
+    },
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ templateId, templateVersionId, documentId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        templateId,
-        templateVersionId,
-        documentId
+        templateId as EServiceTemplateId,
+        templateVersionId as EServiceTemplateVersionId,
+        documentId as EServiceDocumentId
       );
 
       expect(res.status).toBe(400);

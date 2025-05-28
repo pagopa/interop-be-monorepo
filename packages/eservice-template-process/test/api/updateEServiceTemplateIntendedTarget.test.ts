@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, operationForbidden } from "pagopa-interop-models";
+import {
+  EServiceTemplateId,
+  generateId,
+  operationForbidden,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockEServiceTemplate,
@@ -23,8 +27,8 @@ describe("API POST /templates/:templateId/intendedTarget/update", () => {
 
   const makeRequest = async (
     token: string,
-    seed: { intendedTarget: string } = intendedTarget,
-    templateId: string = mockEserviceTemplate.id
+    seed: typeof intendedTarget = intendedTarget,
+    templateId: EServiceTemplateId = mockEserviceTemplate.id
   ) =>
     request(api)
       .post(`/templates/${templateId}/intendedTarget/update`)

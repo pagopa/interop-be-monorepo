@@ -20,7 +20,7 @@ import {
 describe("API POST /templates", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
 
-  const mockEserviceTemplateSeed =
+  const mockEserviceTemplateSeed: eserviceTemplateApi.EServiceTemplateSeed =
     eserviceTemplateToApiEServiceTemplateSeed(mockEserviceTemplate);
   const notCompliantOrigin = "https://not-allowed-origin.com";
   const eserviceTemplateName = "duplicate";

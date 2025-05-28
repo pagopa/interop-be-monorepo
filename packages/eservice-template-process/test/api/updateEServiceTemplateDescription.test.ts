@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, operationForbidden } from "pagopa-interop-models";
+import {
+  EServiceTemplateId,
+  generateId,
+  operationForbidden,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockEServiceTemplate,
@@ -23,8 +27,8 @@ describe("API POST /templates/:templateId/description/update", () => {
 
   const makeRequest = async (
     token: string,
-    seed: { description: string } = description,
-    templateId: string = mockEserviceTemplate.id
+    seed: typeof description = description,
+    templateId: EServiceTemplateId = mockEserviceTemplate.id
   ) =>
     request(api)
       .post(`/templates/${templateId}/description/update`)
@@ -74,7 +78,7 @@ describe("API POST /templates/:templateId/description/update", () => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        seed as { description: string },
+        seed as typeof description,
         templateId
       );
 

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
   operationForbidden,
@@ -23,8 +25,9 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId", () => 
 
   const makeRequest = async (
     token: string,
-    templateId: string = mockEserviceTemplate.id,
-    templateVersionId: string = mockEserviceTemplate.versions[0].id
+    templateId: EServiceTemplateId = mockEserviceTemplate.id,
+    templateVersionId: EServiceTemplateVersionId = mockEserviceTemplate
+      .versions[0].id
   ) =>
     request(api)
       .delete(`/templates/${templateId}/versions/${templateVersionId}`)
@@ -105,7 +108,11 @@ describe("API DELETE /templates/:templateId/versions/:templateVersionId", () => 
     "Should return 400 if passed invalid params: %s",
     async ({ templateId, templateVersionId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, templateId, templateVersionId);
+      const res = await makeRequest(
+        token,
+        templateId as EServiceTemplateId,
+        templateVersionId as EServiceTemplateVersionId
+      );
 
       expect(res.status).toBe(400);
     }

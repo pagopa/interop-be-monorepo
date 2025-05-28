@@ -25,7 +25,10 @@ describe("API POST /templates/:templateId/versions", () => {
   const mockEserviceTemplateVersion = getMockEServiceTemplateVersion();
   const notFoundEserviceTemplateId = generateId<EServiceTemplateId>();
 
-  const makeRequest = async (token: string, id: string = eserviceTemplateId) =>
+  const makeRequest = async (
+    token: string,
+    id: EServiceTemplateId = eserviceTemplateId
+  ) =>
     request(api)
       .post(`/templates/${id}/versions`)
       .set("Authorization", `Bearer ${token}`)
@@ -97,7 +100,7 @@ describe("API POST /templates/:templateId/versions", () => {
 
   it("Should return 400 if passed a not compliat query param", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "111");
+    const res = await makeRequest(token, "111" as EServiceTemplateId);
     expect(res.status).toBe(400);
   });
 });

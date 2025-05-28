@@ -2,6 +2,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   EServiceDocumentId,
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
   operationForbidden,
@@ -32,9 +34,10 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents/
   const makeRequest = async (
     token: string,
     seed: eserviceTemplateApi.UpdateEServiceTemplateVersionDocumentSeed = mockSeed,
-    templateId: string = mockEserviceTemplate.id,
-    templateVersionId: string = mockEserviceTemplate.versions[0].id,
-    documentId: string = docId
+    templateId: EServiceTemplateId = mockEserviceTemplate.id,
+    templateVersionId: EServiceTemplateVersionId = mockEserviceTemplate
+      .versions[0].id,
+    documentId: EServiceDocumentId = docId
   ) =>
     request(api)
       .post(
@@ -162,9 +165,9 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents/
       const res = await makeRequest(
         token,
         seed as eserviceTemplateApi.UpdateEServiceTemplateVersionDocumentSeed,
-        templateId,
-        templateVersionId,
-        documentId
+        templateId as EServiceTemplateId,
+        templateVersionId as EServiceTemplateVersionId,
+        documentId as EServiceDocumentId
       );
 
       expect(res.status).toBe(400);

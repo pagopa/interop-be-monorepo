@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   TenantId,
   eserviceTemplateVersionState,
   generateId,
@@ -33,8 +35,9 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
 
   const makeRequest = async (
     token: string,
-    templateId: string = mockEserviceTemplate.id,
-    templateVersionId: string = mockEserviceTemplate.versions[0].id
+    templateId: EServiceTemplateId = mockEserviceTemplate.id,
+    templateVersionId: EServiceTemplateVersionId = mockEserviceTemplate
+      .versions[0].id
   ) =>
     request(api)
       .post(`/templates/${templateId}/versions/${templateVersionId}/publish`)
@@ -146,7 +149,11 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
     "Should return 400 if passed invalid params: %s",
     async ({ templateId, templateVersionId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, templateId, templateVersionId);
+      const res = await makeRequest(
+        token,
+        templateId as EServiceTemplateId,
+        templateVersionId as EServiceTemplateVersionId
+      );
 
       expect(res.status).toBe(400);
     }

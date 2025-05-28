@@ -41,7 +41,7 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
   const makeRequest = async (
     token: string,
     body: eserviceTemplateApi.EServiceRiskAnalysisSeed = riskAnalysisSeed,
-    templateId: string = eserviceTemplateId
+    templateId: EServiceTemplateId = eserviceTemplateId
   ) =>
     request(api)
       .post(`/templates/${templateId}/riskAnalysis`)

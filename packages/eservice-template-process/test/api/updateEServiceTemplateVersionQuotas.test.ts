@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
   operationForbidden,
@@ -29,8 +31,9 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/quotas/upd
   const makeRequest = async (
     token: string,
     seed: eserviceTemplateApi.UpdateEServiceTemplateVersionQuotasSeed = mockSeed,
-    templateId: string = mockEserviceTemplate.id,
-    templateVersionId: string = mockEserviceTemplate.versions[0].id
+    templateId: EServiceTemplateId = mockEserviceTemplate.id,
+    templateVersionId: EServiceTemplateVersionId = mockEserviceTemplate
+      .versions[0].id
   ) =>
     request(api)
       .post(
@@ -131,7 +134,7 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/quotas/upd
         token,
         seed as eserviceTemplateApi.UpdateEServiceTemplateVersionQuotasSeed,
         templateId,
-        templateVersionId
+        templateVersionId as EServiceTemplateVersionId
       );
 
       expect(res.status).toBe(400);

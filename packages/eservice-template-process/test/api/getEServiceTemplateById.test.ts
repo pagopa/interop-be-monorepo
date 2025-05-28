@@ -16,7 +16,7 @@ describe("API GET /templates/:templateId", () => {
 
   const makeRequest = async (
     token: string,
-    id: string = mockEserviceTemplate.id
+    id: EServiceTemplateId = mockEserviceTemplate.id
   ) =>
     request(api)
       .get(`/templates/${id}`)
@@ -42,9 +42,10 @@ describe("API GET /templates/:templateId", () => {
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.body).toEqual(
-        eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate)
-      );
+      const expected =
+        eserviceTemplateToApiEServiceTemplate(mockEserviceTemplate);
+
+      expect(res.body).toEqual(expected);
       expect(res.status).toBe(200);
     }
   );
@@ -59,7 +60,7 @@ describe("API GET /templates/:templateId", () => {
 
   it("Should return 400 if passed a non uuid path param", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "11");
+    const res = await makeRequest(token, "11" as EServiceTemplateId);
     expect(res.status).toBe(400);
   });
 

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  EServiceTemplateId,
+  EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
   operationForbidden,
@@ -35,8 +37,9 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/attributes
   const makeRequest = async (
     token: string,
     seedParam = seed,
-    templateId: string = mockEserviceTemplate.id,
-    templateVersionId: string = mockEserviceTemplate.versions[0].id
+    templateId: EServiceTemplateId = mockEserviceTemplate.id,
+    templateVersionId: EServiceTemplateVersionId = mockEserviceTemplate
+      .versions[0].id
   ) =>
     request(api)
       .post(
