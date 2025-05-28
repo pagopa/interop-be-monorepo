@@ -28,8 +28,8 @@ import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("getCatalogEServiceDescriptor", () => {
   const eServiceId: EServiceId = generateId<EServiceId>();
-  const mockDescriptorId: DescriptorId = generateId();
-  const tenantId: TenantId = generateId();
+  const mockDescriptorId: DescriptorId = generateId<DescriptorId>();
+  const tenantId: TenantId = generateId<TenantId>();
   const tenantName = "mockTenant";
 
   const declaredAttributeId = generateId<AttributeId>();
@@ -287,7 +287,7 @@ describe("getCatalogEServiceDescriptor", () => {
         descriptors: [
           {
             ...eServiceDescriptor,
-            id: "invalid-descriptorId",
+            id: generateId<DescriptorId>(),
           },
         ],
       }
