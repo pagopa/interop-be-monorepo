@@ -1,7 +1,7 @@
 lockfileVersion: '9.0'
 
 settings:
-  autoInstallPeers: true
+  autoInstallPeers: false
   excludeLinksFromLockfile: false
 
 importers:
@@ -178,7 +178,7 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: 0.39.3
-        version: 0.39.3(@types/pg@8.11.11)(pg@8.11.5)
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
@@ -13727,11 +13727,6 @@ snapshots:
       esbuild-register: 3.6.0(esbuild@0.19.12)
     transitivePeerDependencies:
       - supports-color
-
-  drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.11.5):
-    optionalDependencies:
-      '@types/pg': 8.11.11
-      pg: 8.11.5
 
   drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1):
     optionalDependencies:
