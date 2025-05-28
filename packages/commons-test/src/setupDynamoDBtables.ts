@@ -126,7 +126,7 @@ export const buildDynamoDBTables = async (
   );
   await dynamoDBClient.send(tokenGenStatesCreationCommand);
 
-  const dPoPCacheTableDefinition: CreateTableInput = {
+  const dpopCacheTableDefinition: CreateTableInput = {
     TableName: "dpop-cache",
     AttributeDefinitions: [
       {
@@ -146,10 +146,10 @@ export const buildDynamoDBTables = async (
     },
     BillingMode: "PAY_PER_REQUEST",
   };
-  const dPoPCacheCreationCommand = new CreateTableCommand(
-    dPoPCacheTableDefinition
+  const dpopCacheCreationCommand = new CreateTableCommand(
+    dpopCacheTableDefinition
   );
-  await dynamoDBClient.send(dPoPCacheCreationCommand);
+  await dynamoDBClient.send(dpopCacheCreationCommand);
 };
 
 export const deleteDynamoDBTables = async (
@@ -163,7 +163,7 @@ export const deleteDynamoDBTables = async (
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "token-generation-states",
   };
-  const dPoPCacheDeleteInput: DeleteTableInput = {
+  const dpopCacheDeleteInput: DeleteTableInput = {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "dpop-cache",
   };
@@ -176,6 +176,6 @@ export const deleteDynamoDBTables = async (
     tokenGenStatesDeleteInput
   );
   await dynamoDBClient.send(tokenGenStatesDeleteCommand);
-  const dPoPCacheDeleteCommand = new DeleteTableCommand(dPoPCacheDeleteInput);
-  await dynamoDBClient.send(dPoPCacheDeleteCommand);
+  const dpopCacheDeleteCommand = new DeleteTableCommand(dpopCacheDeleteInput);
+  await dynamoDBClient.send(dpopCacheDeleteCommand);
 };
