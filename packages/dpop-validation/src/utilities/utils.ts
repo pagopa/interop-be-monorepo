@@ -1,6 +1,7 @@
 import {
+  algorithm,
+  Algorithm,
   ApiError,
-  DPoPAlgorithm,
   JWKKey,
   JWKKeyES,
 } from "pagopa-interop-models";
@@ -31,7 +32,7 @@ import {
 
 const EXPECTED_TYP = "dpop+jwt";
 const EXPECTED_HTM = "POST";
-const ALLOWED_ALGORITHMS: string[] = DPoPAlgorithm.options;
+const ALLOWED_ALGORITHMS: string[] = Algorithm.options;
 
 export const validateTyp = (
   typ: string | undefined
@@ -74,8 +75,8 @@ export const validateJWK = (
   }
 
   return match(jwk.alg)
-    .with("ES256", () => successfulValidation(JWKKeyES.parse(jwk)))
-    .with("RS256", () => successfulValidation(JWKKey.parse(jwk)))
+    .with(algorithm.ES256, () => successfulValidation(JWKKeyES.parse(jwk)))
+    .with(algorithm.RS256, () => successfulValidation(JWKKey.parse(jwk)))
     .with(undefined, () => failedValidation([dpopAlgorithmNotFound()]))
     .otherwise((alg) => failedValidation([dpopAlgorithmNotAllowed(alg)]));
 };

@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
+  algorithm,
   ClientId,
   DescriptorId,
   EServiceId,
@@ -114,7 +115,7 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
     subject: clientId,
     audience: "pagopa.it",
     purposeId,
-    algorithm: "RS256",
+    algorithm: algorithm.RS256,
     clientId,
     keyId: kid,
     purposeVersionId,
@@ -127,7 +128,7 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
     clientAssertion: {
       subject: clientId,
       audience: "pagopa.it",
-      algorithm: "RS256",
+      algorithm: algorithm.RS256,
       keyId: kid,
       jwtId: clientAssertionJti,
       issuedAt: dateToSeconds(new Date()),

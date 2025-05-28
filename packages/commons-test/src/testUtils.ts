@@ -99,6 +99,8 @@ import {
   DPoPProofHeader,
   JWKKey,
   JWKKeyES,
+  Algorithm,
+  algorithm,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -711,7 +713,7 @@ export const getMockDPoPProof = async (
     customPayload?: Partial<DPoPProofPayload>;
     customHeader?: Partial<DPoPProofHeader>;
   },
-  alg: "RS256" | "ES256" = "ES256"
+  alg: Algorithm = algorithm.ES256
 ): Promise<{
   // TODO: rename
   dPoPJWS: string;
@@ -729,23 +731,27 @@ export const getMockDPoPProof = async (
 
   const cryptoJWK = createJWK({
     pemKeyBase64: publicKeyEncodedPem,
-    strictCheck: alg === "RS256",
+    strictCheck: alg === algorithm.RS256,
   });
 
-  const jwk: JWKKey | JWKKeyES =
-    alg === "ES256"
-      ? JWKKeyES.parse({
-          ...cryptoJWK,
-          kid: calculateKid(cryptoJWK),
-          use: "sig",
-          alg,
-        })
-      : JWKKey.parse({
-          ...cryptoJWK,
-          kid: calculateKid(cryptoJWK),
-          use: "sig",
-          alg,
-        });
+  const jwk = match(alg)
+    .with(algorithm.ES256, () =>
+      JWKKeyES.parse({
+        ...cryptoJWK,
+        kid: calculateKid(cryptoJWK),
+        use: "sig",
+        alg,
+      })
+    )
+    .with(algorithm.RS256, () =>
+      JWKKey.parse({
+        ...cryptoJWK,
+        kid: calculateKid(cryptoJWK),
+        use: "sig",
+        alg,
+      })
+    )
+    .exhaustive();
 
   const header: DPoPProofHeader = {
     typ: "dpop+jwt",
@@ -776,19 +782,23 @@ export const getMockDescriptorRejectionReason =
   });
 
 export const generateKeySet = (
-  alg: "RS256" | "ES256" = "RS256"
+  alg: Algorithm = algorithm.RS256
 ): {
   keySet: crypto.KeyPairKeyObjectResult;
   publicKeyEncodedPem: string;
 } => {
-  const keySet: crypto.KeyPairKeyObjectResult =
-    alg === "RS256"
-      ? crypto.generateKeyPairSync("rsa", {
-          modulusLength: 2048,
-        })
-      : crypto.generateKeyPairSync("ec", {
-          namedCurve: "P-256", // This is the curve for ES256
-        });
+  const keySet: crypto.KeyPairKeyObjectResult = match(alg)
+    .with(algorithm.RS256, () =>
+      crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      })
+    )
+    .with(algorithm.ES256, () =>
+      crypto.generateKeyPairSync("ec", {
+        namedCurve: "P-256", // This is the curve for ES256
+      })
+    )
+    .exhaustive();
 
   const pemPublicKey = keySet.publicKey
     .export({
