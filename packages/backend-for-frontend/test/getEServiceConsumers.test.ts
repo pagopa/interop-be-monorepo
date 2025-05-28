@@ -3,7 +3,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { EServiceId, generateId, TenantId } from "pagopa-interop-models";
 import { AuthData, formatDateyyyyMMddThhmmss } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
-import * as getAll from "pagopa-interop-commons";
+import * as commons from "pagopa-interop-commons";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -30,11 +30,13 @@ describe("getEServiceConsumers", () => {
     riskAnalysis: [],
   };
 
-  const expectedDescriptorVersion = 1;
-  const expectedDescriptorState = "DRAFT";
-  const expectedAgreementState = "DRAFT";
-  const expectedConsumerName = "mockConsumerName";
-  const expectedConsumerExternalId = "mockConsumerExternalId";
+  const expectedEServiceConsumer: catalogApi.EServiceConsumer = {
+    agreementState: "DRAFT",
+    consumerExternalId: "mockConsumerExternalId",
+    consumerName: "mockConsumerName",
+    descriptorState: "DRAFT",
+    descriptorVersion: 1,
+  };
 
   const mockCatalogProcessClient = {
     getEServiceById: vi.fn().mockResolvedValue(eService),
@@ -64,14 +66,8 @@ describe("getEServiceConsumers", () => {
 
   const bffMockContext = getBffMockContext(getMockContext({ authData }));
 
-  vi.spyOn(getAll, "getAllFromPaginated").mockResolvedValue([
-    {
-      descriptorVersion: expectedDescriptorVersion,
-      descriptorState: expectedAgreementState,
-      agreementState: expectedDescriptorState,
-      consumerName: expectedConsumerName,
-      consumerExternalId: expectedConsumerExternalId,
-    },
+  vi.spyOn(commons, "getAllFromPaginated").mockResolvedValue([
+    expectedEServiceConsumer,
   ]);
 
   beforeEach(() => {
@@ -99,12 +95,12 @@ describe("getEServiceConsumers", () => {
 
     const expectedContent =
       "versione,stato_versione,stato_richiesta_fruizione,fruitore,codice_ipa_fruitore\n" +
-      `${expectedDescriptorVersion},${expectedDescriptorState},${expectedAgreementState},${expectedConsumerName},${expectedConsumerExternalId}`;
+      `${expectedEServiceConsumer.descriptorVersion},${expectedEServiceConsumer.descriptorState},${expectedEServiceConsumer.agreementState},${expectedEServiceConsumer.consumerName},${expectedEServiceConsumer.consumerExternalId}`;
 
     expect(result.file.toString()).toBe(expectedContent);
   });
   it("should handle empty consumers list", async () => {
-    vi.spyOn(getAll, "getAllFromPaginated").mockResolvedValue([]);
+    vi.spyOn(commons, "getAllFromPaginated").mockResolvedValue([]);
 
     const result = await catalogService.getEServiceConsumers(
       eServiceId,
