@@ -28,8 +28,8 @@ import {
 } from "./utilities/utils.js";
 import { ValidationResult } from "./types.js";
 import {
-  dPoPProofInvalidClaims,
-  dPoPProofSignatureVerificationError,
+  dpopProofInvalidClaims,
+  dpopProofSignatureVerificationError,
   invalidDPoPProofFormat,
   jsonWebTokenError,
   notBeforeError,
@@ -39,18 +39,18 @@ import {
   unexpectedDPoPProofSignatureVerificationError,
   dpopJTIAlreadyCached,
 } from "./errors.js";
-import { readDPoPCache, writeDPoPCache } from "./utilities/dPoPCacheUtils.js";
+import { readDPoPCache, writeDPoPCache } from "./utilities/dpopCacheUtils.js";
 
 export const verifyDPoPProof = ({
-  dPoPProof,
+  dpopProof,
   expectedDPoPProofHtu,
 }: {
-  dPoPProof: string;
+  dpopProof: string;
   expectedDPoPProofHtu: string;
-}): ValidationResult<{ dPoPProofJWT: DPoPProof; dPoPProofJWS: string }> => {
+}): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
   try {
-    const decodedPayload = jose.decodeJwt(dPoPProof);
-    const decodedHeader = jose.decodeProtectedHeader(dPoPProof);
+    const decodedPayload = jose.decodeJwt(dpopProof);
+    const decodedHeader = jose.decodeProtectedHeader(dpopProof);
 
     // JWT header
     const { errors: typErrors, data: validatedTyp } = validateTyp(
@@ -91,14 +91,14 @@ export const verifyDPoPProof = ({
       const payloadParseResult = DPoPProofPayload.safeParse(decodedPayload);
       if (!payloadParseResult.success) {
         return failedValidation([
-          dPoPProofInvalidClaims(payloadParseResult.error.message),
+          dpopProofInvalidClaims(payloadParseResult.error.message),
         ]);
       }
 
       const headerParseResult = DPoPProofHeader.safeParse(decodedHeader);
       if (!headerParseResult.success) {
         return failedValidation([
-          dPoPProofInvalidClaims(headerParseResult.error.message),
+          dpopProofInvalidClaims(headerParseResult.error.message),
         ]);
       }
 
@@ -116,8 +116,8 @@ export const verifyDPoPProof = ({
         },
       };
       return successfulValidation({
-        dPoPProofJWT: result,
-        dPoPProofJWS: dPoPProof,
+        dpopProofJWT: result,
+        dpopProofJWS: dpopProof,
       });
     }
     return failedValidation([
@@ -139,12 +139,12 @@ export const verifyDPoPProof = ({
 };
 
 export const verifyDPoPProofSignature = async (
-  dPoPProofJWS: string,
+  dpopProofJWS: string,
   jwk: JWKKey | JWKKeyES256
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
     const publicKey = await jose.importJWK(jwk, jwk.alg);
-    const result = await jose.jwtVerify(dPoPProofJWS, publicKey, {
+    const result = await jose.jwtVerify(dpopProofJWS, publicKey, {
       algorithms: [jwk.alg],
     });
 
@@ -163,7 +163,7 @@ export const verifyDPoPProofSignature = async (
       return failedValidation([jsonWebTokenError(error.message)]);
     } else if (error instanceof JOSEError) {
       return failedValidation([
-        dPoPProofSignatureVerificationError(error.message),
+        dpopProofSignatureVerificationError(error.message),
       ]);
     } else {
       const message = error instanceof Error ? error.message : "generic error";
@@ -176,31 +176,31 @@ export const verifyDPoPProofSignature = async (
 
 export const checkDPoPCache = async ({
   dynamoDBClient,
-  dPoPProofJti,
-  dPoPProofIat,
-  dPoPCacheTable,
+  dpopProofJti,
+  dpopProofIat,
+  dpopCacheTable,
 }: {
   dynamoDBClient: DynamoDBClient;
-  dPoPProofJti: string;
-  dPoPProofIat: number;
-  dPoPCacheTable: string;
+  dpopProofJti: string;
+  dpopProofIat: number;
+  dpopCacheTable: string;
 }): Promise<ValidationResult<string>> => {
-  const dPoPCache = await readDPoPCache(
+  const dpopCache = await readDPoPCache(
     dynamoDBClient,
-    dPoPProofJti,
-    dPoPCacheTable
+    dpopProofJti,
+    dpopCacheTable
   );
-  if (dPoPCache) {
-    return failedValidation([dpopJTIAlreadyCached(dPoPProofJti)]);
+  if (dpopCache) {
+    return failedValidation([dpopJTIAlreadyCached(dpopProofJti)]);
   }
 
   await writeDPoPCache({
     dynamoDBClient,
-    dPoPCacheTable,
-    jti: dPoPProofJti,
-    iat: dPoPProofIat,
-    ttl: dPoPProofIat + 60,
+    dpopCacheTable,
+    jti: dpopProofJti,
+    iat: dpopProofIat,
+    ttl: dpopProofIat + 60,
   });
 
-  return successfulValidation(dPoPProofJti);
+  return successfulValidation(dpopProofJti);
 };

@@ -716,8 +716,8 @@ export const getMockDPoPProof = async (
   alg: Algorithm = algorithm.ES256
 ): Promise<{
   // TODO: rename
-  dPoPJWS: string;
-  dPoPProof: DPoPProof;
+  dpopJWS: string;
+  dpopProof: DPoPProof;
 }> => {
   const { keySet, publicKeyEncodedPem } = generateKeySet(alg);
 
@@ -760,15 +760,15 @@ export const getMockDPoPProof = async (
     ...props?.customHeader,
   };
 
-  const dPoPJWS = await signJWT({
+  const dpopJWS = await signJWT({
     payload,
     headers: header,
     keySet,
   });
 
   return {
-    dPoPJWS,
-    dPoPProof: {
+    dpopJWS,
+    dpopProof: {
       payload,
       header,
     },

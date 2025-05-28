@@ -114,7 +114,7 @@ const authorizationServerRouter = (
 
         return res.status(200).send({
           access_token: tokenResult.token.serialized,
-          token_type: tokenResult.isDPoP ? tokenType.dPoP : tokenType.bearer,
+          token_type: tokenResult.isDPoP ? tokenType.dpop : tokenType.bearer,
           expires_in:
             tokenResult.token.payload.exp - tokenResult.token.payload.iat,
         });

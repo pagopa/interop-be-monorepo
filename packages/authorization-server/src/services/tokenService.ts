@@ -67,10 +67,10 @@ import {
   kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
   platformStateValidationFailed,
-  dPoPProofValidationFailed,
-  dPoPProofSignatureValidationFailed,
+  dpopProofValidationFailed,
+  dpopProofSignatureValidationFailed,
   unexpectedDPoPProofForAPIToken,
-  dPoPAlreadyUsed,
+  dpopAlreadyUsed,
 } from "../model/domain/errors.js";
 import { TokenRequest } from "../model/domain/models.js";
 
@@ -113,35 +113,35 @@ export function tokenServiceBuilder({
       logger.info(`[CLIENTID=${request.body.client_id}] Token requested`);
 
       // DPoP proof validation
-      const { data, errors: dPoPProofErrors } = request.headers.DPoP
+      const { data, errors: dpopProofErrors } = request.headers.DPoP
         ? verifyDPoPProof({
-            dPoPProof: request.headers.DPoP,
-            expectedDPoPProofHtu: config.dPoPHtu,
+            dpopProof: request.headers.DPoP,
+            expectedDPoPProofHtu: config.dpopHtu,
           })
         : { data: undefined, errors: undefined };
 
-      const dPoPProofJWT = data?.dPoPProofJWT;
-      const dPoPProofJWS = data?.dPoPProofJWS;
+      const dpopProofJWT = data?.dpopProofJWT;
+      const dpopProofJWS = data?.dpopProofJWS;
 
-      if (dPoPProofErrors) {
-        throw dPoPProofValidationFailed(
+      if (dpopProofErrors) {
+        throw dpopProofValidationFailed(
           request.body.client_id,
-          dPoPProofErrors.map((error) => error.detail).join(", ")
+          dpopProofErrors.map((error) => error.detail).join(", ")
         );
       }
 
-      if (dPoPProofJWT && dPoPProofJWS) {
-        const { errors: dPoPProofSignatureErrors } =
-          await verifyDPoPProofSignature(dPoPProofJWS, dPoPProofJWT.header.jwk);
+      if (dpopProofJWT && dpopProofJWS) {
+        const { errors: dpopProofSignatureErrors } =
+          await verifyDPoPProofSignature(dpopProofJWS, dpopProofJWT.header.jwk);
 
-        if (dPoPProofSignatureErrors) {
-          throw dPoPProofSignatureValidationFailed(
+        if (dpopProofSignatureErrors) {
+          throw dpopProofSignatureValidationFailed(
             request.body.client_id,
-            dPoPProofSignatureErrors.map((error) => error.detail).join(", ")
+            dpopProofSignatureErrors.map((error) => error.detail).join(", ")
           );
         }
 
-        logger.info(`[JTI=${dPoPProofJWT.payload.jti}] - DPoP proof validated`);
+        logger.info(`[JTI=${dpopProofJWT.payload.jti}] - DPoP proof validated`);
       }
 
       // Request body parameters validation
@@ -209,7 +209,7 @@ export function tokenServiceBuilder({
         logger,
       });
 
-      if (key.clientKind === clientKindTokenGenStates.api && dPoPProofJWS) {
+      if (key.clientKind === clientKindTokenGenStates.api && dpopProofJWS) {
         throw unexpectedDPoPProofForAPIToken(key.GSIPK_clientId);
       }
 
@@ -245,20 +245,20 @@ export function tokenServiceBuilder({
           token: undefined,
           rateLimitedTenantId: key.consumerId,
           rateLimiterStatus,
-          isDPoP: dPoPProofJWT !== undefined,
+          isDPoP: dpopProofJWT !== undefined,
         };
       }
 
       // Check if the DPoP proof is in the cache
-      if (dPoPProofJWT) {
-        const { errors: dPoPCacheErrors } = await checkDPoPCache({
+      if (dpopProofJWT) {
+        const { errors: dpopCacheErrors } = await checkDPoPCache({
           dynamoDBClient,
-          dPoPProofJti: dPoPProofJWT.payload.jti,
-          dPoPProofIat: dPoPProofJWT.payload.iat,
-          dPoPCacheTable: config.dPoPCacheTable,
+          dpopProofJti: dpopProofJWT.payload.jti,
+          dpopProofIat: dpopProofJWT.payload.iat,
+          dpopCacheTable: config.dpopCacheTable,
         });
-        if (dPoPCacheErrors) {
-          throw dPoPAlreadyUsed(dPoPProofJWT.payload.jti);
+        if (dpopCacheErrors) {
+          throw dpopAlreadyUsed(dpopProofJWT.payload.jti);
         }
       }
 
@@ -286,7 +286,7 @@ export function tokenServiceBuilder({
                   config,
                   "featureFlagImprovedProducerVerificationClaims"
                 ),
-              dPoPJWK: dPoPProofJWT?.header.jwk,
+              dpopJWK: dpopProofJWT?.header.jwk,
             });
 
             await publishAudit({
@@ -294,7 +294,7 @@ export function tokenServiceBuilder({
               generatedToken: token,
               key,
               clientAssertion: clientAssertionJWT,
-              dPoP: dPoPProofJWT,
+              dpop: dpopProofJWT,
               correlationId,
               fileManager,
               logger,
@@ -312,7 +312,7 @@ export function tokenServiceBuilder({
               limitReached: false as const,
               token,
               rateLimiterStatus,
-              isDPoP: dPoPProofJWT !== undefined,
+              isDPoP: dpopProofJWT !== undefined,
             };
           }
         )
@@ -393,7 +393,7 @@ export const publishAudit = async ({
   generatedToken,
   key,
   clientAssertion,
-  dPoP,
+  dpop,
   correlationId,
   fileManager,
   logger,
@@ -402,7 +402,7 @@ export const publishAudit = async ({
   generatedToken: InteropConsumerToken;
   key: FullTokenGenerationStatesConsumerClient;
   clientAssertion: ClientAssertion;
-  dPoP: DPoPProof | undefined;
+  dpop: DPoPProof | undefined;
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
@@ -438,16 +438,16 @@ export const publishAudit = async ({
       keyId: clientAssertion.header.kid,
       subject: clientAssertion.payload.sub,
     },
-    ...(dPoP
+    ...(dpop
       ? {
-          dPoP: {
-            typ: dPoP.header.typ,
-            alg: dPoP.header.alg,
-            jwk: dPoP.header.jwk,
-            htm: dPoP.payload.htm,
-            htu: dPoP.payload.htu,
-            iat: secondsToMilliseconds(dPoP.payload.iat),
-            jti: dPoP.payload.jti,
+          dpop: {
+            typ: dpop.header.typ,
+            alg: dpop.header.alg,
+            jwk: dpop.header.jwk,
+            htm: dpop.payload.htm,
+            htu: dpop.payload.htu,
+            iat: secondsToMilliseconds(dpop.payload.iat),
+            jti: dpop.payload.jti,
           } satisfies DPoPAuditDetails,
         }
       : {}),

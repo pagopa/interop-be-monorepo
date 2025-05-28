@@ -6,7 +6,7 @@ export const DPoPConfig = z
     DPOP_HTU: z.string(),
   })
   .transform((c) => ({
-    dPoPCacheTable: c.DPOP_CACHE_TABLE,
-    dPoPHtu: c.DPOP_HTU,
+    dpopCacheTable: c.DPOP_CACHE_TABLE,
+    dpopHtu: c.DPOP_HTU,
   }));
 export type DPoPConfig = z.infer<typeof DPoPConfig>;

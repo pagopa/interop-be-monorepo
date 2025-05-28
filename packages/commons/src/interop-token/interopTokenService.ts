@@ -224,7 +224,7 @@ export class InteropTokenGenerator {
     eserviceId,
     descriptorId,
     featureFlagImprovedProducerVerificationClaims = false,
-    dPoPJWK,
+    dpopJWK,
   }: {
     sub: ClientId;
     audience: string[];
@@ -236,7 +236,7 @@ export class InteropTokenGenerator {
     eserviceId: EServiceId;
     descriptorId: DescriptorId;
     featureFlagImprovedProducerVerificationClaims: boolean;
-    dPoPJWK?: JWKKey | JWKKeyES256;
+    dpopJWK?: JWKKey | JWKKeyES256;
   }): Promise<InteropConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||
@@ -277,10 +277,10 @@ export class InteropTokenGenerator {
             descriptorId,
           }
         : {}),
-      ...(dPoPJWK
+      ...(dpopJWK
         ? {
             cnf: {
-              jkt: calculateKid(dPoPJWK),
+              jkt: calculateKid(dpopJWK),
             },
           }
         : {}),

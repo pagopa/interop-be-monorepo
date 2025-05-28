@@ -14,14 +14,14 @@ export const errorCodes = {
   invalidDPoPHtm: "0011",
   dpopHTUNotFound: "0012",
   invalidDPoPHtu: "0013",
-  dPoPProofSignatureVerificationError: "0014",
+  dpopProofSignatureVerificationError: "0014",
   tokenExpiredError: "0015",
   jsonWebTokenError: "0016",
   notBeforeError: "0017",
   dpopAlgorithmNotFound: "0018",
   dpopAlgorithmNotAllowed: "0019",
   dpopAlgorithmsMismatch: "0020",
-  dPoPProofInvalidClaims: "0021",
+  dpopProofInvalidClaims: "0021",
   invalidDPoPSignature: "0022",
   expiredDPoPProof: "0023",
 };
@@ -38,12 +38,12 @@ export function unexpectedDPoPProofSignatureVerificationError(
   });
 }
 
-export function dPoPProofSignatureVerificationError(
+export function dpopProofSignatureVerificationError(
   errorMessage: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Error verifying DPoP proof signature: Reason: ${errorMessage}`,
-    code: "dPoPProofSignatureVerificationError",
+    code: "dpopProofSignatureVerificationError",
     title: "DPoP proof signature verification error",
   });
 }
@@ -200,10 +200,10 @@ export function dpopAlgorithmsMismatch(
   });
 }
 
-export function dPoPProofInvalidClaims(details: string): ApiError<ErrorCodes> {
+export function dpopProofInvalidClaims(details: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `DPoP proof validation failure. Reason: ${details}`,
-    code: "dPoPProofInvalidClaims",
+    code: "dpopProofInvalidClaims",
     title: "Invalid claims in header or payload",
   });
 }

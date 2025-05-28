@@ -63,8 +63,8 @@ import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
-  dPoPProofSignatureValidationFailed,
-  dPoPProofValidationFailed,
+  dpopProofSignatureValidationFailed,
+  dpopProofValidationFailed,
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
   platformStateValidationFailed,
@@ -631,10 +631,10 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(fallbackAuditFailed(clientId));
   });
 
-  it("should throw dPoPProofValidationFailed - wrong typ", async () => {
+  it("should throw dpopProofValidationFailed - wrong typ", async () => {
     const clientId = generateId<ClientId>();
     const wrongTyp = "wrong-typ";
-    const { dPoPJWS } = await getMockDPoPProof({
+    const { dpopJWS } = await getMockDPoPProof({
       customHeader: {
         typ: wrongTyp,
       },
@@ -644,7 +644,7 @@ describe("authorization server tests", () => {
     const request: TokenRequest = {
       headers: {
         ...headers,
-        DPoP: dPoPJWS,
+        DPoP: dpopJWS,
       },
       body: {
         ...body,
@@ -660,18 +660,18 @@ describe("authorization server tests", () => {
         () => {}
       )
     ).rejects.toThrowError(
-      dPoPProofValidationFailed(clientId, invalidDPoPTyp(wrongTyp).detail)
+      dpopProofValidationFailed(clientId, invalidDPoPTyp(wrongTyp).detail)
     );
   });
 
-  it("should throw dPoPProofValidationFailed - iat is more than 60 seconds ago", async () => {
+  it("should throw dpopProofValidationFailed - iat is more than 60 seconds ago", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
     const clientId = generateId<ClientId>();
     const expiredIat = Math.floor(Date.now() / 1000) - 61;
 
-    const { dPoPJWS } = await getMockDPoPProof({
+    const { dpopJWS } = await getMockDPoPProof({
       customPayload: {
         iat: expiredIat,
       },
@@ -681,7 +681,7 @@ describe("authorization server tests", () => {
     const request: TokenRequest = {
       headers: {
         ...headers,
-        DPoP: dPoPJWS,
+        DPoP: dpopJWS,
       },
       body: {
         ...body,
@@ -697,7 +697,7 @@ describe("authorization server tests", () => {
         () => {}
       )
     ).rejects.toThrowError(
-      dPoPProofValidationFailed(
+      dpopProofValidationFailed(
         request.body.client_id,
         expiredDPoPProof(expiredIat, dateToSeconds(new Date())).detail
       )
@@ -706,16 +706,16 @@ describe("authorization server tests", () => {
     vi.useRealTimers();
   });
 
-  it("should throw dPoPProofSignatureValidationFailed", async () => {
+  it("should throw dpopProofSignatureValidationFailed", async () => {
     const clientId = generateId<ClientId>();
 
-    const { dPoPProof } = await getMockDPoPProof();
+    const { dpopProof } = await getMockDPoPProof();
 
     const { keySet: wrongKeySet } = generateKeySet(algorithm.ES256);
 
     const jwsWithWrongSignature = await signJWT({
-      payload: dPoPProof.payload,
-      headers: dPoPProof.header,
+      payload: dpopProof.payload,
+      headers: dpopProof.header,
       keySet: wrongKeySet,
     });
 
@@ -739,7 +739,7 @@ describe("authorization server tests", () => {
         () => {}
       )
     ).rejects.toThrowError(
-      dPoPProofSignatureValidationFailed(
+      dpopProofSignatureValidationFailed(
         request.body.client_id,
         invalidDPoPSignature().detail
       )
@@ -1018,13 +1018,13 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { dPoPJWS, dPoPProof } = await getMockDPoPProof();
+    const { dpopJWS, dpopProof } = await getMockDPoPProof();
 
     const { headers, body } = await getMockTokenRequest();
     const request: TokenRequest = {
       headers: {
         ...headers,
-        DPoP: dPoPJWS,
+        DPoP: dpopJWS,
       },
       body: {
         ...body,
@@ -1126,14 +1126,14 @@ describe("authorization server tests", () => {
         keyId: clientAssertion.header.kid!,
         subject: unsafeBrandId(clientAssertion.payload.sub!),
       },
-      dPoP: {
-        typ: dPoPProof.header.typ,
-        alg: dPoPProof.header.alg,
-        jwk: dPoPProof.header.jwk,
-        htm: dPoPProof.payload.htm,
-        htu: dPoPProof.payload.htu,
-        iat: secondsToMilliseconds(dPoPProof.payload.iat),
-        jti: dPoPProof.payload.jti,
+      dpop: {
+        typ: dpopProof.header.typ,
+        alg: dpopProof.header.alg,
+        jwk: dpopProof.header.jwk,
+        htm: dpopProof.payload.htm,
+        htu: dpopProof.payload.htu,
+        iat: secondsToMilliseconds(dpopProof.payload.iat),
+        jti: dpopProof.payload.jti,
       },
     };
     expect(parsedDecodedFileContent).toEqual(expectedMessageBody);
@@ -1202,13 +1202,13 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    const { dPoPJWS, dPoPProof } = await getMockDPoPProof();
+    const { dpopJWS, dpopProof } = await getMockDPoPProof();
 
     const { headers, body } = await getMockTokenRequest(true);
     const request: TokenRequest = {
       headers: {
         ...headers,
-        DPoP: dPoPJWS,
+        DPoP: dpopJWS,
       },
       body: {
         ...body,
@@ -1283,14 +1283,14 @@ describe("authorization server tests", () => {
         keyId: clientAssertion.header.kid!,
         subject: unsafeBrandId(clientAssertion.payload.sub!),
       },
-      dPoP: {
-        typ: dPoPProof.header.typ,
-        alg: dPoPProof.header.alg,
-        jwk: dPoPProof.header.jwk,
-        htm: dPoPProof.payload.htm,
-        htu: dPoPProof.payload.htu,
-        iat: secondsToMilliseconds(dPoPProof.payload.iat),
-        jti: dPoPProof.payload.jti,
+      dpop: {
+        typ: dpopProof.header.typ,
+        alg: dpopProof.header.alg,
+        jwk: dpopProof.header.jwk,
+        htm: dpopProof.payload.htm,
+        htu: dpopProof.payload.htu,
+        iat: secondsToMilliseconds(dpopProof.payload.iat),
+        jti: dpopProof.payload.jti,
       },
     };
 

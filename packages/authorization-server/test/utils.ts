@@ -90,7 +90,7 @@ export const getMockTokenRequest = async (
   withDPoPProof: boolean = false
 ): Promise<TokenRequest> => ({
   headers: {
-    ...(withDPoPProof ? { DPoP: (await getMockDPoPProof()).dPoPJWS } : {}),
+    ...(withDPoPProof ? { DPoP: (await getMockDPoPProof()).dpopJWS } : {}),
   },
   body: await getMockAccessTokenRequest(),
 });

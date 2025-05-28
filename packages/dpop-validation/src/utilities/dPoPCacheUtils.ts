@@ -12,13 +12,13 @@ import { DPoPCache } from "pagopa-interop-models";
 
 export const writeDPoPCache = async ({
   dynamoDBClient,
-  dPoPCacheTable,
+  dpopCacheTable,
   jti,
   iat,
   ttl,
 }: {
   dynamoDBClient: DynamoDBClient;
-  dPoPCacheTable: string;
+  dpopCacheTable: string;
   jti: string;
   iat: number;
   ttl: number;
@@ -36,7 +36,7 @@ export const writeDPoPCache = async ({
         N: ttl.toString(),
       },
     },
-    TableName: dPoPCacheTable,
+    TableName: dpopCacheTable,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -45,13 +45,13 @@ export const writeDPoPCache = async ({
 export const readDPoPCache = async (
   dynamoDBClient: DynamoDBClient,
   jti: string,
-  dPoPCacheTable: string
+  dpopCacheTable: string
 ): Promise<DPoPCache | undefined> => {
   const input: GetItemInput = {
     Key: {
       jti: { S: jti },
     },
-    TableName: dPoPCacheTable,
+    TableName: dpopCacheTable,
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
@@ -61,15 +61,15 @@ export const readDPoPCache = async (
     return undefined;
   } else {
     const unmarshalled = unmarshall(data.Item);
-    const dPoPCache = DPoPCache.safeParse(unmarshalled);
+    const dpopCache = DPoPCache.safeParse(unmarshalled);
 
-    if (!dPoPCache.success) {
+    if (!dpopCache.success) {
       throw genericInternalError(
         `Unable to parse DPoP cache entry: result ${JSON.stringify(
-          dPoPCache
+          dpopCache
         )} - data ${JSON.stringify(data)} `
       );
     }
-    return dPoPCache.data;
+    return dpopCache.data;
   }
 };

@@ -15,10 +15,10 @@ export const errorCodes = {
   tokenGenerationStatesEntryNotFound: "0006",
   incompleteTokenGenerationStatesConsumerClient: "0007",
   platformStateValidationFailed: "0008",
-  dPoPProofValidationFailed: "0009",
-  dPoPProofSignatureValidationFailed: "0010",
+  dpopProofValidationFailed: "0009",
+  dpopProofSignatureValidationFailed: "0010",
   unexpectedDPoPProofForAPIToken: "0011",
-  dPoPAlreadyUsed: "0012",
+  dpopAlreadyUsed: "0012",
   // TODO: remove if unused
   invalidDPoPProof: "0013",
 };
@@ -106,24 +106,24 @@ export function platformStateValidationFailed(
   });
 }
 
-export function dPoPProofValidationFailed(
+export function dpopProofValidationFailed(
   clientId: string | undefined,
   details: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `DPoP proof validation failed for clientId: ${clientId} - ${details}`,
-    code: "dPoPProofValidationFailed",
+    code: "dpopProofValidationFailed",
     title: "DPoP proof validation failed",
   });
 }
 
-export function dPoPProofSignatureValidationFailed(
+export function dpopProofSignatureValidationFailed(
   clientId: string | undefined,
   details: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `DPoP proof signature validation failed for client ${clientId} - ${details}`,
-    code: "dPoPProofSignatureValidationFailed",
+    code: "dpopProofSignatureValidationFailed",
     title: "DPoP proof signature validation failed",
   });
 }
@@ -138,10 +138,10 @@ export function unexpectedDPoPProofForAPIToken(
   });
 }
 
-export function dPoPAlreadyUsed(jti: string): ApiError<ErrorCodes> {
+export function dpopAlreadyUsed(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `DPoP JTI ${jti} already in cache`,
-    code: "dPoPAlreadyUsed",
+    code: "dpopAlreadyUsed",
     title: "DPoP JTI already in cache",
   });
 }
