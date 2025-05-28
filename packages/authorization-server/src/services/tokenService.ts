@@ -165,7 +165,11 @@ export function tokenServiceBuilder({
           request.body.client_assertion,
           request.body.client_id,
           config.clientAssertionAudience,
-          logger
+          logger,
+          isFeatureFlagEnabled(
+            config,
+            "featureFlagClientAssertionStrictClaimsValidation"
+          )
         );
 
       if (clientAssertionErrors) {

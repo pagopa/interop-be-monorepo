@@ -358,13 +358,10 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Updating agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.updateAgreementById(
-        payload,
-        {
-          params: { agreementId },
-          headers: ctx.headers,
-        }
-      );
+      const agreement = await agreementProcessClient.updateAgreement(payload, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
 
       return enrichAgreement(agreement, clients, ctx);
     },
@@ -374,7 +371,7 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Upgrading agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.upgradeAgreementById(
+      const agreement = await agreementProcessClient.upgradeAgreement(
         undefined,
         {
           params: { agreementId },
