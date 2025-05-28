@@ -24,21 +24,21 @@ export const RelationshipStatus = z.enum([
 export type RelationshipStatus = z.infer<typeof RelationshipStatus>;
 
 const SCUser = z.object({
-  userId: z.string().uuid().optional(),
+  userId: z.string().uuid().nullish(),
   name: z.string(),
   familyName: z.string(),
   email: z.string(),
   role: z.string(),
   productRole: UserRole,
   relationshipStatus: RelationshipStatus,
-  mobilePhone: z.string().optional(),
+  mobilePhone: z.string().nullish(),
 });
 
 export const UsersEventPayload = z.object({
   id: z.string(),
   institutionId: z.string().trim().min(1), // Selfcare ID
   productId: z.string().trim().min(1),
-  onboardingTokenId: z.string().optional(),
+  onboardingTokenId: z.string().nullish(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   eventType: SelfcareUserEventType,
