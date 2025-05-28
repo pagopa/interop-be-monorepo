@@ -35,9 +35,12 @@ describe("API POST /consumers/delegations/:delegationId/approve", () => {
     expect(res.status).toBe(204);
   });
 
-  it("Should return 400 if passed invalid data", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ delegationId: "invalid" }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ delegationId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, delegationId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

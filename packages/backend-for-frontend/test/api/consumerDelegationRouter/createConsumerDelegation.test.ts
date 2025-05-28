@@ -15,7 +15,9 @@ import {
 describe("API POST /consumers/delegations", () => {
   const mockDelegationSeed = getMockDelegationSeed();
   const mockClientResponse = { id: generateId() };
-  const mockCreatedResource = getMockBffApiCreatedResource(mockClientResponse.id);
+  const mockCreatedResource = getMockBffApiCreatedResource(
+    mockClientResponse.id
+  );
 
   beforeEach(() => {
     clients.delegationProcessClient.consumer = {} as ReturnType<
@@ -41,6 +43,16 @@ describe("API POST /consumers/delegations", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockCreatedResource);
+  });
+
+  it.each([
+    { body: {} },
+    { body: { ...mockDelegationSeed, delegateId: "invalid" } },
+    { body: { ...mockDelegationSeed, eserviceId: "invalid" } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, body);
+    expect(res.status).toBe(400);
   });
 
   it("Should return 400 if passed invalid data", async () => {

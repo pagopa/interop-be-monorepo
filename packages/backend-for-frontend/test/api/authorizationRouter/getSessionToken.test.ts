@@ -50,9 +50,12 @@ describe("API POST /session/tokens", () => {
     expect(res.status).toBe(500);
   });
 
-  it("Should return 400 if passed a invalid data", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {});
-    expect(res.status).toBe(400);
-  });
+  it.each([{ body: {} }])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, body);
+      expect(res.status).toBe(400);
+    }
+  );
 });
