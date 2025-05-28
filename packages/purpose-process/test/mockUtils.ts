@@ -7,7 +7,7 @@ import {
   generateId,
   tenantKind,
   unsafeBrandId,
-  PurposeRiskAnalysisForm,
+  PurposeRiskAnalysisFormV2,
 } from "pagopa-interop-models";
 import { getMockValidRiskAnalysisForm } from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
@@ -28,7 +28,7 @@ export const createUpdatedPurpose = (
     | purposeApi.PurposeUpdateContent
     | purposeApi.ReversePurposeUpdateContent,
   mockValidRiskAnalysis: RiskAnalysis,
-  writtenRiskAnalysisForm: PurposeRiskAnalysisForm
+  writtenRiskAnalysisForm: PurposeRiskAnalysisFormV2
 ): Purpose => ({
   ...mockPurpose,
   title: purposeUpdateContent.title,
