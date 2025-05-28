@@ -23,7 +23,7 @@ import {
 } from "../integrationUtils.js";
 
 describe("verified attribute creation", () => {
-  const mockAttribute = getMockAttribute();
+  const mockAttribute = getMockAttribute(attributeKind.verified);
   it("should write on event-store for the creation of a verified attribute", async () => {
     const attribute = await attributeRegistryService.createVerifiedAttribute(
       {

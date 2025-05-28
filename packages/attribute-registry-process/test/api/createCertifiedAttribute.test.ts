@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { Attribute, generateId } from "pagopa-interop-models";
+import { attributeKind, generateId } from "pagopa-interop-models";
 import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -16,13 +16,7 @@ describe("API /certifiedAttributes authorization test", () => {
       description: "This is a certified attribute",
       code: "001",
     };
-
-  const mockAttribute: Attribute = {
-    ...getMockAttribute(),
-    id: generateId(),
-    kind: "Certified",
-    creationTime: new Date(),
-  };
+  const mockAttribute = getMockAttribute(attributeKind.certified);
 
   const apiAttribute = attributeRegistryApi.Attribute.parse(
     toApiAttribute(mockAttribute)

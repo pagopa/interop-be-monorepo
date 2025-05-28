@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { Attribute, generateId } from "pagopa-interop-models";
+import { attributeKind, generateId } from "pagopa-interop-models";
 import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -15,12 +15,7 @@ describe("API /declaredAttributes authorization test", () => {
     description: "This is a declared attribute",
   };
 
-  const mockAttribute: Attribute = {
-    ...getMockAttribute(),
-    id: generateId(),
-    kind: "Declared",
-    creationTime: new Date(),
-  };
+  const mockAttribute = getMockAttribute(attributeKind.declared);
 
   const apiAttribute = attributeRegistryApi.Attribute.parse(
     toApiAttribute(mockAttribute)

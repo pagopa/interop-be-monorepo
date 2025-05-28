@@ -39,7 +39,6 @@ import {
   AgreementUnsuspendedByConsumerV2,
   AgreementUnsuspendedByPlatformV2,
   AgreementUnsuspendedByProducerV2,
-  Attribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
@@ -50,6 +49,7 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
+  attributeKind,
   delegationKind,
   delegationState,
   descriptorState,
@@ -203,20 +203,9 @@ describe("activate agreement", () => {
         const producer: Tenant = getMockTenant();
         const consumerId: TenantId = generateId();
 
-        const certifiedAttribute: Attribute = {
-          ...getMockAttribute(),
-          kind: "Certified",
-        };
-
-        const declaredAttribute: Attribute = {
-          ...getMockAttribute(),
-          kind: "Declared",
-        };
-
-        const verifiedAttribute: Attribute = {
-          ...getMockAttribute(),
-          kind: "Verified",
-        };
+        const certifiedAttribute = getMockAttribute(attributeKind.certified);
+        const declaredAttribute = getMockAttribute(attributeKind.declared);
+        const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),

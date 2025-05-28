@@ -299,9 +299,27 @@ export const getMockAgreement = (
 export const getMockAttribute = (
   kind: AttributeKind = attributeKind.certified,
   id: AttributeId = generateId()
+): Attribute => {
+  if (kind === attributeKind.certified) {
+    return getMockCertifiedAttribute(kind, id);
+  }
+  return {
+    id,
+    name: generateMock(z.string()),
+    kind,
+    description: "attribute description",
+    creationTime: new Date(),
+  };
+};
+
+export const getMockCertifiedAttribute = (
+  kind: AttributeKind = attributeKind.certified,
+  id: AttributeId = generateId()
 ): Attribute => ({
   id,
   name: generateMock(z.string()),
+  code: generateId(),
+  origin: generateId(),
   kind,
   description: "attribute description",
   creationTime: new Date(),

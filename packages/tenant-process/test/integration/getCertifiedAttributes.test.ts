@@ -1,9 +1,4 @@
-import {
-  Attribute,
-  attributeKind,
-  Tenant,
-  TenantAttribute,
-} from "pagopa-interop-models";
+import { Attribute, Tenant, TenantAttribute } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
   getMockAttribute,
@@ -43,18 +38,12 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
-      name: "attribute 1",
-      code: "CODE1",
-      kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute1.id,
     };
 
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
-      name: "attribute 2",
-      code: "CODE2",
-      kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute2.id,
     };
@@ -115,17 +104,13 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
-      code: "CODE",
       id: tenantCertifiedAttribute.id,
     };
 
     const revokedCertifiedAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
-      code: "CODE2",
       id: revokedTenantCertifiedAttribute.id,
     };
 
@@ -179,17 +164,13 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
-      code: "CODE",
       id: tenantCertifiedAttribute1.id,
     };
 
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
-      code: "CODE2",
       id: tenantCertifiedAttribute2.id,
     };
 
@@ -234,16 +215,12 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
-      code: "CODE",
       origin: certifierId,
       id: tenantCertifiedAttribute1.id,
     };
 
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
-      code: "CODE2",
       origin: certifierId,
       id: tenantCertifiedAttribute2.id,
     };
