@@ -19,15 +19,15 @@ import {
   dpopAlgorithmNotFound,
   ErrorCodes,
   expiredDPoPProof,
-  dpopHTMNotFound,
-  dpopHTUNotFound,
+  dpopHtmNotFound,
+  dpopHtuNotFound,
   invalidDPoPHtm,
   invalidDPoPHtu,
-  dpopJTINotFound,
-  dpopJWKNotFound,
-  dpopTYPNotFound,
+  dpopJtiNotFound,
+  dpopJwkNotFound,
+  dpopTypNotFound,
   invalidDPoPTyp,
-  dpopIATNotFound,
+  dpopIatNotFound,
 } from "../errors.js";
 
 const EXPECTED_TYP = "dpop+jwt";
@@ -38,7 +38,7 @@ export const validateTyp = (
   typ: string | undefined
 ): ValidationResult<string> => {
   if (!typ) {
-    return failedValidation([dpopTYPNotFound()]);
+    return failedValidation([dpopTypNotFound()]);
   }
 
   if (typ !== EXPECTED_TYP) {
@@ -71,7 +71,7 @@ export const validateJWK = (
   jwk: jose.JWK | undefined
 ): ValidationResult<JWKKey | JWKKeyES256> => {
   if (!jwk) {
-    return failedValidation([dpopJWKNotFound()]);
+    return failedValidation([dpopJwkNotFound()]);
   }
 
   return match(jwk.alg)
@@ -85,7 +85,7 @@ export const validateHtm = (
   htm: unknown | undefined
 ): ValidationResult<string> => {
   if (!htm) {
-    return failedValidation([dpopHTMNotFound()]);
+    return failedValidation([dpopHtmNotFound()]);
   }
 
   if (htm !== EXPECTED_HTM) {
@@ -100,7 +100,7 @@ export const validateHtu = (
   expectedDPoPProofHtu: string
 ): ValidationResult<string> => {
   if (!htu) {
-    return failedValidation([dpopHTUNotFound()]);
+    return failedValidation([dpopHtuNotFound()]);
   }
 
   if (htu !== expectedDPoPProofHtu) {
@@ -114,7 +114,7 @@ export const validateIat = (
   iat: number | undefined
 ): ValidationResult<number> => {
   if (!iat) {
-    return failedValidation([dpopIATNotFound()]);
+    return failedValidation([dpopIatNotFound()]);
   }
 
   const currentTime = dateToSeconds(new Date());
@@ -129,7 +129,7 @@ export const validateJti = (
   jti: string | undefined
 ): ValidationResult<string> => {
   if (!jti) {
-    return failedValidation([dpopJTINotFound()]);
+    return failedValidation([dpopJtiNotFound()]);
   }
   return successfulValidation(jti);
 };

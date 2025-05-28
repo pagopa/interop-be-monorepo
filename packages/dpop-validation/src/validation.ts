@@ -37,7 +37,7 @@ import {
   invalidDPoPSignature,
   unexpectedDPoPProofError,
   unexpectedDPoPProofSignatureVerificationError,
-  dpopJTIAlreadyCached,
+  dpopJtiAlreadyCached,
 } from "./errors.js";
 import { readDPoPCache, writeDPoPCache } from "./utilities/dpopCacheUtils.js";
 
@@ -191,7 +191,7 @@ export const checkDPoPCache = async ({
     dpopCacheTable
   );
   if (dpopCache) {
-    return failedValidation([dpopJTIAlreadyCached(dpopProofJti)]);
+    return failedValidation([dpopJtiAlreadyCached(dpopProofJti)]);
   }
 
   await writeDPoPCache({
