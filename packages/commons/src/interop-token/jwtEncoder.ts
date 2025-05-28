@@ -44,7 +44,7 @@ export function toSerializedJwtUIPayload(
 ): SerializedInteropJwtUIPayload {
   return {
     ...tokenPayload,
-    "user-roles": tokenPayload["user-roles"].join(","),
+    "user-roles": toCommaSeparatedString(tokenPayload["user-roles"]),
     aud: toCommaSeparatedString(tokenPayload.aud),
   };
 }
@@ -69,7 +69,7 @@ export function toSerializedInteropJwtPayload(
 
 type SerializedAudience = {
   aud: string;
-  // ^ aud is serialized as a string that can be a single string or a
+  // ^ aud is serialized as a comma-separated string
 };
 
 export type SerializedInteropJwtUIPayload = Omit<
