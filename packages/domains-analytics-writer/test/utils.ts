@@ -73,6 +73,12 @@ export const purposeTables: PurposeDbTable[] = [
   PurposeDbTable.purpose_risk_analysis_answer,
 ];
 
+export const delegationTables: DelegationDbTable[] = [
+  DelegationDbTable.delegation,
+  DelegationDbTable.delegation_stamp,
+  DelegationDbTable.delegation_contract_document,
+];
+
 export const tenantTables: TenantDbTable[] = [
   TenantDbTable.tenant,
   TenantDbTable.tenant_certified_attribute,
@@ -86,12 +92,6 @@ export const tenantTables: TenantDbTable[] = [
 
 export const partialTables = [TenantDbPartialTable.tenant_self_care_id];
 
-export const delegationTables: DelegationDbTable[] = [
-  DelegationDbTable.delegation,
-  DelegationDbTable.delegation_stamp,
-  DelegationDbTable.delegation_contract_document,
-];
-
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.attribute_deleting_table,
@@ -100,7 +100,6 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.purpose_deleting_table,
   DeletingDbTable.tenant_deleting_table,
   DeletingDbTable.tenant_mail_deleting_table,
-  DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table,
   DeletingDbTable.tenant_feature_deleting_table,
 ];
 
@@ -110,6 +109,7 @@ export const domainTables: DomainDbTable[] = [
   ...agreementTables,
   ...purposeTables,
   ...delegationTables,
+  ...tenantTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
@@ -133,10 +133,6 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   },
   {
     name: DeletingDbTable.tenant_mail_deleting_table,
-    columns: ["id"],
-  },
-  {
-    name: DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table,
     columns: ["id", "tenantId"],
   },
   {

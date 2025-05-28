@@ -97,10 +97,6 @@ await retryConnection(
       },
       {
         name: DeletingDbTable.tenant_mail_deleting_table,
-        columns: ["id"],
-      },
-      {
-        name: DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table,
         columns: ["id", "tenantId"],
       },
       {

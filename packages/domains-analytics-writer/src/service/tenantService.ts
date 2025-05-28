@@ -19,10 +19,7 @@ import {
   TenantSelfcareIdSchema,
   TenantDeletingSchema,
 } from "../model/tenant/tenant.js";
-import {
-  TenantMailDeletingSchema,
-  TenantMailDeletingByIdAndTenantSchema,
-} from "../model/tenant/tenantMail.js";
+import { TenantMailDeletingSchema } from "../model/tenant/tenantMail.js";
 import { TenantFeatureDeletingSchema } from "../model/tenant/tenantFeature.js";
 
 export function tenantServiceBuilder(db: DBContext) {
@@ -222,40 +219,6 @@ export function tenantServiceBuilder(db: DBContext) {
 
       await tenantRepo.cleanDeleting();
       genericLogger.info(`Staging deletion table cleaned for Tenant`);
-    },
-
-    async deleteBatchByMailIdAndTenantId(
-      records: TenantMailDeletingByIdAndTenantSchema[],
-      dbContext: DBContext
-    ) {
-      await dbContext.conn.tx(async (t) => {
-        for (const batch of batchMessages(
-          records,
-          config.dbMessagesToInsertPerBatch
-        )) {
-          await tenantMailRepo.insertDeletingByMailIdAndTenantId(
-            t,
-            dbContext.pgp,
-            batch
-          );
-          genericLogger.info(
-            `Staging deletion inserted for TenantMailByTenantId batch: ${batch
-              .map((r) => r.id)
-              .join(", ")}`
-          );
-        }
-
-        await tenantMailRepo.mergeDeletingByMailIdAndTenantId(t);
-      });
-
-      genericLogger.info(
-        `Staging deletion merged into target tables for TenantMailByTenantId`
-      );
-
-      await tenantRepo.cleanDeleting();
-      genericLogger.info(
-        `Staging deletion table cleaned for TenantMailByTenantId`
-      );
     },
 
     async deleteBatchTenantMails(

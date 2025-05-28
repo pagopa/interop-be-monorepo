@@ -11,7 +11,6 @@ import { config } from "../../config/config.js";
 import {
   TenantMailSchema,
   TenantMailDeletingSchema,
-  TenantMailDeletingByIdAndTenantSchema,
 } from "../../model/tenant/tenantMail.js";
 import { TenantDbTable, DeletingDbTable } from "../../model/db/index.js";
 
@@ -21,9 +20,6 @@ export function tenantMailRepository(conn: DBConnection) {
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTableName = DeletingDbTable.tenant_mail_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
-  const deletingTableByIdAndTenantName =
-    DeletingDbTable.tenant_mail_deleting_by_id_and_tenant_table;
-  const stagingDeletingTablByIdAndTenantName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -102,7 +98,8 @@ export function tenantMailRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["id", "tenantId"],
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -112,50 +109,12 @@ export function tenantMailRepository(conn: DBConnection) {
       }
     },
 
-    async insertDeletingByMailIdAndTenantId(
-      t: ITask<unknown>,
-      pgp: IMain,
-      records: TenantMailDeletingByIdAndTenantSchema[]
-    ): Promise<void> {
-      try {
-        const cs = buildColumnSet(
-          pgp,
-          deletingTableByIdAndTenantName,
-          TenantMailDeletingByIdAndTenantSchema
-        );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error inserting into deleting table ${stagingDeletingTablByIdAndTenantName}: ${error}`
-        );
-      }
-    },
-
-    async mergeDeletingByMailIdAndTenantId(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeQuery = generateMergeDeleteQuery(
-          schemaName,
-          tableName,
-          deletingTableByIdAndTenantName,
-          ["id", "tenantId"],
-          false
-        );
-        await t.none(mergeQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging deleting table ${stagingDeletingTablByIdAndTenantName} into ${schemaName}.${tableName}: ${error}`
-        );
-      }
-    },
-
     async cleanDeleting(): Promise<void> {
       try {
-        await conn.none(`TRUNCATE TABLE ${deletingTableByIdAndTenantName};`);
+        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error cleaning deleting staging table ${stagingDeletingTablByIdAndTenantName}: ${error}`
+          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
         );
       }
     },

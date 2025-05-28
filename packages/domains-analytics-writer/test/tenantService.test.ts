@@ -518,7 +518,10 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
           version: 2,
           type: "TenantMailDeleted",
           event_version: 2,
-          data: { mailId: mockTenantMail.id } as TenantMailDeletedV2,
+          data: {
+            tenant: toTenantV2(mockTenant),
+            mailId: mockTenantMail.id,
+          } as TenantMailDeletedV2,
           log_date: new Date(),
         },
       ],

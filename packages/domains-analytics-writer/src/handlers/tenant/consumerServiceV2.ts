@@ -38,9 +38,16 @@ export async function handleTenantMessageV2(
         );
       })
       .with({ type: "TenantMailDeleted" }, (msg) => {
+        if (!msg.data.tenant) {
+          throw genericInternalError(
+            "Tenant can't be missing in the event message"
+          );
+        }
+
         deleteTenantMailBatch.push(
           TenantMailDeletingSchema.parse({
             id: msg.data.mailId,
+            tenantId: msg.data.tenant?.id,
             deleted: true,
           } satisfies z.input<typeof TenantMailDeletingSchema>)
         );

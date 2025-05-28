@@ -14,7 +14,7 @@ import {
   TenantDeletingSchema,
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";
-import { TenantMailDeletingByIdAndTenantSchema } from "../../model/tenant/tenantMail.js";
+import { TenantMailDeletingSchema } from "../../model/tenant/tenantMail.js";
 
 export async function handleTenantMessageV1(
   messages: TenantEventEnvelopeV1[],
@@ -24,7 +24,7 @@ export async function handleTenantMessageV1(
 
   const upsertTenantBatch: TenantItemsSchema[] = [];
   const deleteTenantBatch: TenantDeletingSchema[] = [];
-  const deleteTenantMailBatch: TenantMailDeletingByIdAndTenantSchema[] = [];
+  const deleteTenantMailBatch: TenantMailDeletingSchema[] = [];
   const upsertTenantSelfcareIdBatch: TenantSelfcareIdSchema[] = [];
 
   for (const message of messages) {
@@ -71,11 +71,11 @@ export async function handleTenantMessageV1(
       })
       .with({ type: "TenantMailDeleted" }, (msg) => {
         deleteTenantMailBatch.push(
-          TenantMailDeletingByIdAndTenantSchema.parse({
+          TenantMailDeletingSchema.parse({
             id: msg.data.mailId,
             tenantId: msg.data.tenantId,
             deleted: true,
-          } satisfies z.input<typeof TenantMailDeletingByIdAndTenantSchema>)
+          } satisfies z.input<typeof TenantMailDeletingSchema>)
         );
       })
       .with({ type: "SelfcareMappingCreated" }, (msg) => {
@@ -108,7 +108,7 @@ export async function handleTenantMessageV1(
   }
 
   if (deleteTenantMailBatch.length > 0) {
-    await tenantService.deleteBatchByMailIdAndTenantId(
+    await tenantService.deleteBatchTenantMails(
       deleteTenantMailBatch,
       dbContext
     );
