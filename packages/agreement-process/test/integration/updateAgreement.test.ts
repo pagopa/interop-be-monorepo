@@ -23,8 +23,8 @@ import { describe, expect, it } from "vitest";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
 import { agreementUpdatableStates } from "../../src/model/domain/agreement-validators.js";
 import {
@@ -87,7 +87,7 @@ describe("update agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw organizationIsNotTheConsumer when the requester is not the Consumer", async () => {
+  it("should throw tenantIsNotTheConsumer when the requester is not the Consumer", async () => {
     const authData = getMockAuthData();
     const agreement = getMockAgreement();
     await addOneAgreement(agreement);
@@ -97,9 +97,7 @@ describe("update agreement", () => {
         { consumerNotes: "Updated consumer notes" },
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(authData.organizationId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
   });
 
   it("should throw agreementNotInExpectedState when the agreement is not in an updatable state", async () => {
@@ -172,7 +170,7 @@ describe("update agreement", () => {
     );
   });
 
-  it("should throw organizationIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw tenantIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getMockAuthData();
     const agreement = {
       ...getMockAgreement(),
@@ -194,10 +192,7 @@ describe("update agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
     );
   });
 });

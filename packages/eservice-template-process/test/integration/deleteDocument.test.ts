@@ -21,8 +21,8 @@ import { vi, expect, describe, it } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
   eserviceTemplateDocumentNotFound,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
 import {
@@ -202,7 +202,7 @@ describe("delete Document", () => {
     ).not.toContain(interfaceDocument.path);
   });
 
-  it("should throw eServiceTemplateNotFound if the eservice doesn't exist", async () => {
+  it("should throw eserviceTemplateNotFound if the eservice doesn't exist", async () => {
     expect(
       eserviceTemplateService.deleteDocument(
         mockEServiceTemplate.id,
@@ -210,7 +210,7 @@ describe("delete Document", () => {
         mockDocument.id,
         getMockContext({})
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
   it("should throw operationForbidden if the requester is not the creator", async () => {
@@ -234,7 +234,7 @@ describe("delete Document", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceTemplateVersionNotFound if the version doesn't exist", async () => {
+  it("should throw eserviceTemplateVersionNotFound if the version doesn't exist", async () => {
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [],
@@ -251,7 +251,7 @@ describe("delete Document", () => {
         })
       )
     ).rejects.toThrowError(
-      eServiceTemplateVersionNotFound(
+      eserviceTemplateVersionNotFound(
         eserviceTemplate.id,
         mockEServiceTemplateVersion.id
       )

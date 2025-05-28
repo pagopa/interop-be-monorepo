@@ -13,7 +13,7 @@ import {
 import { describe, expect, it } from "vitest";
 import {
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "../integrationUtils.js";
 
@@ -50,7 +50,7 @@ describe("getClientUsers", async () => {
       )
     ).rejects.toThrowError(clientNotFound(clientId));
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     await addOneClient(mockClient);
     const organizationIdNotMatchWithConsumer: TenantId = generateId();
     await expect(
@@ -63,7 +63,7 @@ describe("getClientUsers", async () => {
         })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(
+      tenantNotAllowedOnClient(
         organizationIdNotMatchWithConsumer,
         mockClient.id
       )

@@ -33,7 +33,7 @@ import {
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
-  eServiceTemplateNotFound,
+  eserviceTemplateNotFound,
   riskAnalysisValidationFailed,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
@@ -224,7 +224,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
   });
   it("should throw operationForbidden if the requester is not the creator", async () => {
     const creatorTenantKind: TenantKind = randomArrayItem(
