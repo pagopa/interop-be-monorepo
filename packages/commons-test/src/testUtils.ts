@@ -98,7 +98,7 @@ import {
   DPoPProofPayload,
   DPoPProofHeader,
   JWKKey,
-  JWKKeyES,
+  JWKKeyES256,
   Algorithm,
   algorithm,
 } from "pagopa-interop-models";
@@ -736,7 +736,7 @@ export const getMockDPoPProof = async (
 
   const jwk = match(alg)
     .with(algorithm.ES256, () =>
-      JWKKeyES.parse({
+      JWKKeyES256.parse({
         ...cryptoJWK,
         kid: calculateKid(cryptoJWK),
         use: "sig",

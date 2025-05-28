@@ -54,14 +54,3 @@ export const ProducerJWKKey = JWKKey.extend({
   producerKeychainId: ProducerKeychainId,
 });
 export type ProducerJWKKey = z.infer<typeof ProducerJWKKey>;
-
-export const JWKKeyES = z.object({
-  alg: z.string(),
-  crv: z.string(),
-  kid: z.string(),
-  kty: z.string(),
-  use: z.string(),
-  x: z.string(),
-  y: z.string(),
-});
-export type JWKKeyES = z.infer<typeof JWKKeyES>;

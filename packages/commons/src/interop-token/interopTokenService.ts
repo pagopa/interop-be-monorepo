@@ -7,7 +7,7 @@ import {
   EServiceId,
   generateId,
   JWKKey,
-  JWKKeyES,
+  JWKKeyES256,
   PurposeId,
   TenantId,
   UserId,
@@ -236,7 +236,7 @@ export class InteropTokenGenerator {
     eserviceId: EServiceId;
     descriptorId: DescriptorId;
     featureFlagImprovedProducerVerificationClaims: boolean;
-    dPoPJWK?: JWKKey | JWKKeyES;
+    dPoPJWK?: JWKKey | JWKKeyES256;
   }): Promise<InteropConsumerToken> {
     if (
       !this.config.generatedInteropTokenKid ||
