@@ -46,14 +46,19 @@ describe("GET /tenants/:tenantId route test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 500 when API model parsing fails for response", async () => {
-    mockTenantService.getTenant = vi.fn().mockResolvedValue({
-      ...mockResponse,
-      kind: "INVALID_KIND",
-    });
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
+  it.each([
+    { ...mockResponse, createdAt: undefined },
+    { ...mockResponse, kind: "INVALID_KIND" },
+    { ...mockResponse, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockTenantService.getTenant = vi.fn().mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token);
 
-    expect(res.status).toBe(500);
-  });
+      expect(res.status).toBe(500);
+    }
+  );
 });

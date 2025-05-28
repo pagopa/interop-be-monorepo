@@ -97,15 +97,18 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
         ? descriptors.filter((descriptor) => descriptor.state === state)
         : descriptors;
 
+      const paginatedDescriptors = filteredDescriptors.slice(
+        offset,
+        offset + limit
+      );
+
       return {
         pagination: {
           limit,
           offset,
           totalCount: filteredDescriptors.length,
         },
-        results: filteredDescriptors
-          .slice(offset, offset + limit)
-          .map(toM2MGatewayApiEServiceDescriptor),
+        results: paginatedDescriptors.map(toM2MGatewayApiEServiceDescriptor),
       };
     },
   };

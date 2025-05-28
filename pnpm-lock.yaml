@@ -2456,6 +2456,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
@@ -2474,6 +2477,9 @@ importers:
       puppeteer:
         specifier: 22.11.2
         version: 22.11.2(typescript@5.4.5)
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -4271,6 +4277,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
@@ -4283,6 +4292,9 @@ importers:
       puppeteer:
         specifier: 22.11.2
         version: 22.11.2(typescript@5.4.5)
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -4808,6 +4820,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4817,6 +4832,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -5055,6 +5073,49 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/token-generation-readmodel-producer-id-updater:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.693.0
+        version: 3.693.0
+      '@aws-sdk/util-dynamodb':
+        specifier: 3.693.0
+        version: 3.693.0(@aws-sdk/client-dynamodb@3.693.0)
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
       tsx:
         specifier: 4.19.1
         version: 4.19.1

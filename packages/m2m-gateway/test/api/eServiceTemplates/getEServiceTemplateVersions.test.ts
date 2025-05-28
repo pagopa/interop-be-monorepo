@@ -99,25 +99,26 @@ describe("GET /eserviceTemplates/:templateId/versions router test", () => {
 
   it.each([
     {
-      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      ...mockM2MVersionsResponse,
       results: [
+        ...mockM2MVersionsResponse.results,
         { ...mockApiTemplateVersion1, createdAt: undefined },
-        mockApiTemplateVersion2,
       ],
     },
     {
-      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      ...mockM2MVersionsResponse,
       results: [
+        ...mockM2MVersionsResponse.results,
         { ...mockApiTemplateVersion1, invalidParam: "invalidValue" },
-        mockApiTemplateVersion2,
       ],
     },
     {
-      pagination: { offset: 0, limit: 10, totalCount: 2 },
-      results: [
-        { ...mockApiTemplateVersion1, state: "invalidState" },
-        mockApiTemplateVersion2,
-      ],
+      ...mockM2MVersionsResponse,
+      pagination: {
+        offset: "invalidOffset",
+        limit: "invalidLimit",
+        totalCount: 0,
+      },
     },
   ])(
     "Should return 500 when API model parsing fails for response",

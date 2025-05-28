@@ -15,6 +15,7 @@ import {
   AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
+  DelegationDbTable,
   DeletingDbTable,
   PurposeDbTable,
   TenantDbPartialTable,
@@ -65,6 +66,9 @@ await retryConnection(
       PurposeDbTable.purpose_version_document,
       PurposeDbTable.purpose_risk_analysis_form,
       PurposeDbTable.purpose_risk_analysis_answer,
+      DelegationDbTable.delegation,
+      DelegationDbTable.delegation_stamp,
+      DelegationDbTable.delegation_contract_document,
       TenantDbTable.tenant,
       TenantDbTable.tenant_mail,
       TenantDbTable.tenant_certified_attribute,
@@ -105,7 +109,7 @@ await retryConnection(
       },
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -116,7 +120,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -133,5 +137,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch
+  processBatch,
 );

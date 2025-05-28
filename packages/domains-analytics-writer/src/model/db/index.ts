@@ -7,6 +7,10 @@ import {
   AttributeDbTableReadModel,
 } from "./attribute.js";
 import { CatalogDbTableConfig, CatalogDbTableReadModel } from "./catalog.js";
+import {
+  DelegationDbTableConfig,
+  DelegationDbTableReadModel,
+} from "./delegation.js";
 import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
 import { DeletingDbTableConfig, DeletingDbTableReadModel } from "./deleting.js";
 import {
@@ -27,6 +31,7 @@ export const DomainDbTable = {
   ...CatalogDbTableConfig,
   ...AgreementDbTableConfig,
   ...PurposeDbTableConfig,
+  ...DelegationDbTableConfig,
   ...TenantDbTableConfig,
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
@@ -44,6 +49,7 @@ export const DomainDbTableReadModels = {
   ...AttributeDbTableReadModel,
   ...CatalogDbTableReadModel,
   ...AgreementDbTableReadModel,
+  ...DelegationDbTableReadModel,
   ...PurposeDbTableReadModel,
   ...TenantDbTableReadModel,
 } as const;
@@ -65,5 +71,6 @@ export * from "./attribute.js";
 export * from "./catalog.js";
 export * from "./agreement.js";
 export * from "./tenant.js";
+export * from "./delegation.js";
 export * from "./deleting.js";
 export * from "./purpose.js";
