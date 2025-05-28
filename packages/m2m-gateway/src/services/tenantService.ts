@@ -1,4 +1,4 @@
-import { WithLogger, isDefined, zipBy } from "pagopa-interop-commons";
+import { WithLogger, isDefined } from "pagopa-interop-commons";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { AttributeId, TenantId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -13,6 +13,28 @@ import {
   pollResource,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { tenantCertifiedAttributeNotFound } from "../model/errors.js";
+
+function retrieveCertifiedAttributes(
+  tenant: tenantApi.Tenant
+): tenantApi.CertifiedTenantAttribute[] {
+  return tenant.attributes.map((v) => v.certified).filter(isDefined);
+}
+
+function retrieveCertifiedAttribute(
+  tenant: tenantApi.Tenant,
+  attributeId: tenantApi.CertifiedTenantAttribute["id"]
+): tenantApi.CertifiedTenantAttribute {
+  const certifiedAttribute = retrieveCertifiedAttributes(tenant).find(
+    (certifiedAttribute) => certifiedAttribute.id === attributeId
+  );
+
+  if (!certifiedAttribute) {
+    throw tenantCertifiedAttributeNotFound(tenant, attributeId);
+  }
+
+  return certifiedAttribute;
+}
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
@@ -85,46 +107,21 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      const tenantCertifiedAttributes = tenant.attributes
-        .map((v) => v.certified)
-        .filter(isDefined);
+      const certifiedAttributes = retrieveCertifiedAttributes(tenant);
 
-      const tenantCertifiedAttributeIds = tenantCertifiedAttributes.map(
-        (att) => att.id
-      );
-
-      const {
-        data: { results: certifiedAttributes, totalCount },
-      } = await clients.attributeProcessClient.getBulkedAttributes(
-        tenantCertifiedAttributeIds,
-        {
-          headers,
-          queries: {
-            offset,
-            limit,
-          },
-        }
-      );
-
-      const combinedAttributes = zipBy(
-        tenantCertifiedAttributes,
-        certifiedAttributes,
-        ({ id }) => id,
-        ({ id }) => id
+      const paginatedCertifiedAttributes = certifiedAttributes.slice(
+        offset,
+        offset + limit
       );
 
       return {
-        results: combinedAttributes.map(
-          ([tenantCertifiedAttribute, certifiedAttribute]) =>
-            toM2MGatewayApiTenantCertifiedAttribute(
-              tenantCertifiedAttribute,
-              certifiedAttribute
-            )
+        results: paginatedCertifiedAttributes.map(
+          toM2MGatewayApiTenantCertifiedAttribute
         ),
         pagination: {
           limit,
           offset,
-          totalCount,
+          totalCount: certifiedAttributes.length,
         },
       };
     },
@@ -132,7 +129,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       tenantId: TenantId,
       seed: m2mGatewayApi.TenantCertifiedAttributeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.TenantCertifiedAttribute> {
       logger.info(
         `Assigning certified attribute ${seed.id} to tenant ${tenantId}`
       );
@@ -146,13 +143,19 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           }
         );
 
-      await pollTenant(response, headers);
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const certifiedAttribute = retrieveCertifiedAttribute(
+        polledTenant,
+        seed.id
+      );
+
+      return toM2MGatewayApiTenantCertifiedAttribute(certifiedAttribute);
     },
     async revokeCertifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.TenantCertifiedAttribute> {
       logger.info(
         `Revoking certified attribute ${attributeId} from tenant ${tenantId}`
       );
@@ -166,7 +169,13 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           }
         );
 
-      await pollTenant(response, headers);
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const certifiedAttribute = retrieveCertifiedAttribute(
+        polledTenant,
+        attributeId
+      );
+
+      return toM2MGatewayApiTenantCertifiedAttribute(certifiedAttribute);
     },
   };
 }

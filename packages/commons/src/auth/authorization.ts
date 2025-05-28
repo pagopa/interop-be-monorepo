@@ -136,6 +136,15 @@ export function hasAtLeastOneUserRole(
   );
 }
 
+export function hasAtLeastOneSystemRole(
+  authData: AuthData,
+  admittedSystemRoles: ReadonlyArray<SystemRole>
+): boolean {
+  return (
+    !isUiAuthData(authData) && admittedSystemRoles.includes(authData.systemRole)
+  );
+}
+
 export function isUiAuthData(authData: AuthData): authData is UIAuthData {
   return match(authData)
     .with({ systemRole: undefined }, () => true)
