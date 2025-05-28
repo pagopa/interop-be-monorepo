@@ -85,24 +85,24 @@ export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
 // Problema: questo tipo non è esportato
 export const getMockGetSessionTokenReturnType = ():
   | {
-    limitReached: true;
-    sessionToken: undefined;
-    rateLimitedTenantId: TenantId;
-    rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
-  }
+      limitReached: true;
+      sessionToken: undefined;
+      rateLimitedTenantId: TenantId;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+    }
   | {
-    limitReached: false;
-    sessionToken: bffApi.SessionToken;
-    rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
-  } => ({
-    limitReached: false,
-    sessionToken: generateMock(bffApi.SessionToken),
-    rateLimiterStatus: {
-      maxRequests: 10,
-      rateInterval: 10,
-      remainingRequests: 10,
-    },
-  });
+      limitReached: false;
+      sessionToken: bffApi.SessionToken;
+      rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+    } => ({
+  limitReached: false,
+  sessionToken: generateMock(bffApi.SessionToken),
+  rateLimiterStatus: {
+    maxRequests: 10,
+    rateInterval: 10,
+    remainingRequests: 10,
+  },
+});
 
 export const getMockIdentityToken = (): bffApi.IdentityToken => ({
   identity_token: generateMock(z.string()),

@@ -33,7 +33,6 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis", () =>
   it("Should return 204 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
-    console.log(res.body);
     expect(res.status).toBe(204);
   });
 
