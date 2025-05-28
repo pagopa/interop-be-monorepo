@@ -59,6 +59,8 @@ import {
   internalRemoveClientAdminErrorMapper,
   removeClientAdminErrorMapper,
   addClientAdminErrorMapper,
+  getJWKByKidErrorMapper,
+  getProducerJWKByKidErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const authorizationRouter = (
@@ -1046,11 +1048,60 @@ const authorizationRouter = (
       }
     }
   );
+
+  const keyRouter = ctx.router(authorizationApi.keyApi.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
+
+  keyRouter
+    .get("/keys/:kid", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const keyWithClientId = await authorizationService.getJWKByKid(
+          unsafeBrandId(req.params.kid),
+          ctx
+        );
+        return res
+          .status(200)
+          .send(authorizationApi.ClientJWK.parse(keyWithClientId));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getJWKByKidErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/producerKeys/:kid", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const keyWithProducerKeychainId =
+          await authorizationService.getProducerJWKByKid(
+            unsafeBrandId(req.params.kid),
+            ctx
+          );
+        return res
+          .status(200)
+          .send(authorizationApi.ProducerJWK.parse(keyWithProducerKeychainId));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getProducerJWKByKidErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
+
   return [
     authorizationClientRouter,
     authorizationUserRouter,
     authorizationProducerKeychainRouter,
     tokenGenerationRouter,
+    keyRouter,
   ];
 };
 export default authorizationRouter;
