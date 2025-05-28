@@ -22,6 +22,7 @@ export const Key = z.object({
 });
 export type Key = z.infer<typeof Key>;
 
+// RS256 key
 export const JWKKey = z.object({
   alg: z.string(),
   e: z.string(),
@@ -31,6 +32,18 @@ export const JWKKey = z.object({
   use: z.string(),
 });
 export type JWKKey = z.infer<typeof JWKKey>;
+
+// ES256 key
+export const JWKKeyES256 = z.object({
+  alg: z.string(),
+  crv: z.string(),
+  kid: z.string(),
+  kty: z.string(),
+  use: z.string(),
+  x: z.string(),
+  y: z.string(),
+});
+export type JWKKeyES256 = z.infer<typeof JWKKeyES256>;
 
 export const ClientJWKKey = JWKKey.extend({
   clientId: ClientId,
