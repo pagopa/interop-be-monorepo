@@ -6,8 +6,12 @@ import {
   agreementState,
   generateId,
 } from "pagopa-interop-models";
-import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { api, agreementService } from "../vitest.api.setup.js";
@@ -22,19 +26,22 @@ import {
   descriptorNotInExpectedState,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /agreements/{agreementId}/submit test", () => {
   const mockAgreement = getMockAgreement();
+  const serviceResponse = getMockWithMetadata(mockAgreement);
 
   const apiResponse = agreementApi.Agreement.parse(
     agreementToApiAgreement(mockAgreement)
   );
 
   beforeEach(() => {
-    agreementService.submitAgreement = vi.fn().mockResolvedValue(mockAgreement);
+    agreementService.submitAgreement = vi
+      .fn()
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -46,15 +53,26 @@ describe("API POST /agreements/{agreementId}/submit test", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  it("Should return 200 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(apiResponse);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -84,9 +102,9 @@ describe("API POST /agreements/{agreementId}/submit test", () => {
       expectedStatus: 400,
     },
     { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegateConsumer(
+      error: tenantIsNotTheDelegateConsumer(
         generateId(),
         generateId<DelegationId>()
       ),

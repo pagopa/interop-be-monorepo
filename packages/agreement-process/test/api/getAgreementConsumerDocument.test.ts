@@ -13,7 +13,7 @@ import { api, agreementService } from "../vitest.api.setup.js";
 import { agreementDocumentToApiAgreementDocument } from "../../src/model/domain/apiConverter.js";
 import {
   agreementDocumentNotFound,
-  organizationNotAllowed,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { getMockConsumerDocument } from "../mockUtils.js";
 
@@ -65,7 +65,7 @@ describe("API GET /agreements/{agreementId}/consumer-documents/{documentId} test
   });
 
   it.each([
-    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
       error: agreementDocumentNotFound(
         mockConsumerDocument.id,

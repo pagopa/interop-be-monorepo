@@ -13,8 +13,8 @@ import { api, agreementService } from "../vitest.api.setup.js";
 import {
   agreementDocumentNotFound,
   documentsChangeNotAllowed,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
 import { getMockConsumerDocument } from "../mockUtils.js";
 
@@ -60,9 +60,9 @@ describe("API DELETE /agreements/{agreementId}/consumer-documents/{documentId} t
       ),
       expectedStatus: 404,
     },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      error: tenantIsNotTheDelegateConsumer(generateId(), undefined),
       expectedStatus: 403,
     },
     {

@@ -10,9 +10,9 @@ import {
   agreementDocumentAlreadyExists,
   agreementNotFound,
   documentsChangeNotAllowed,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
-  organizationNotAllowed,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { agreementDocumentToApiAgreementDocument } from "../../src/model/domain/apiConverter.js";
 import { getMockConsumerDocument, getMockDocumentSeed } from "../mockUtils.js";
@@ -60,12 +60,12 @@ describe("API POST /agreements/{agreementId}/consumer-documents test", () => {
 
   it.each([
     { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      error: tenantIsNotTheDelegateConsumer(generateId(), undefined),
       expectedStatus: 403,
     },
-    { error: organizationNotAllowed(generateId()), expectedStatus: 403 },
+    { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
     {
       error: documentsChangeNotAllowed(agreementState.active),
       expectedStatus: 403,

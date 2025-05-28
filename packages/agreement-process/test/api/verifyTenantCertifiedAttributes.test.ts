@@ -13,8 +13,8 @@ import { api, agreementService } from "../vitest.api.setup.js";
 import {
   descriptorNotFound,
   eServiceNotFound,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
@@ -71,9 +71,9 @@ describe("API GET /tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descri
       error: descriptorNotFound(generateId(), generateId()),
       expectedStatus: 400,
     },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      error: tenantIsNotTheDelegateConsumer(generateId(), undefined),
       expectedStatus: 403,
     },
   ])(

@@ -13,8 +13,8 @@ import { api, agreementService } from "../vitest.api.setup.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /internal/delegations/{delegationId}/agreements/{agreementId}/archive test", () => {
@@ -61,9 +61,9 @@ describe("API POST /internal/delegations/{delegationId}/agreements/{agreementId}
       ),
       expectedStatus: 400,
     },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegateConsumer(
+      error: tenantIsNotTheDelegateConsumer(
         generateId(),
         generateId<DelegationId>()
       ),

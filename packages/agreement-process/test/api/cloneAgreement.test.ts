@@ -12,8 +12,8 @@ import {
   agreementNotInExpectedState,
   eServiceNotFound,
   missingCertifiedAttributesError,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
 import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js";
 
@@ -76,9 +76,9 @@ describe("API POST /agreements/{agreementId}/clone test", () => {
       ),
       expectedStatus: 409,
     },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegateConsumer(generateId(), undefined),
+      error: tenantIsNotTheDelegateConsumer(generateId(), undefined),
       expectedStatus: 403,
     },
   ])(

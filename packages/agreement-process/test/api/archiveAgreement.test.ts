@@ -15,8 +15,8 @@ import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js"
 import {
   agreementNotFound,
   agreementNotInExpectedState,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /agreements/{agreementId}/archive test", () => {
@@ -65,9 +65,9 @@ describe("API POST /agreements/{agreementId}/archive test", () => {
       ),
       expectedStatus: 400,
     },
-    { error: organizationIsNotTheConsumer(generateId()), expectedStatus: 403 },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
-      error: organizationIsNotTheDelegateConsumer(
+      error: tenantIsNotTheDelegateConsumer(
         generateId(),
         generateId<DelegationId>()
       ),
