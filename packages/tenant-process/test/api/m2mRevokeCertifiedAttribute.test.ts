@@ -24,7 +24,7 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API DELETE /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} test", () => {
-  const mockAttribute = getMockAttribute();
+  const mockAttribute = { ...getMockAttribute(), code: generateId() };
   const targetTenant: Tenant = {
     ...getMockTenant(),
     kind: tenantKind.PA,
