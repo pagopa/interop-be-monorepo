@@ -47,7 +47,7 @@ export async function handleTenantMessageV2(
         deleteTenantMailBatch.push(
           TenantMailDeletingSchema.parse({
             id: msg.data.mailId,
-            tenantId: msg.data.tenant?.id,
+            tenantId: msg.data.tenant.id,
             deleted: true,
           } satisfies z.input<typeof TenantMailDeletingSchema>)
         );
