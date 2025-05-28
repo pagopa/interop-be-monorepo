@@ -187,3 +187,35 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
     table: { table: `${tableName}_${config.mergeTableSuffix}` },
   });
 };
+
+export async function cleaningTargetTables<
+  TargetTable extends ReadonlyArray<DomainDbTable>,
+  StagingTable extends DomainDbTable,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>
+>(
+  t: ITask<unknown>,
+  id: DeleteKey,
+  targetTablesName: TargetTable,
+  stagingTableName: StagingTable
+) {
+  const quoteColumn = (c: string) => `"${c}"`;
+  for (const targetTableName of targetTablesName) {
+    const snakeCaseMapper = getColumnNameMapper(targetTableName);
+
+    const onCondition = `${
+      config.dbSchemaName
+    }.${targetTableName}.${quoteColumn(
+      snakeCaseMapper(String(id))
+    )} = source.id`;
+
+    const deleteQuery = `
+        MERGE INTO ${config.dbSchemaName}.${targetTableName}
+        USING ${stagingTableName}_${config.mergeTableSuffix} AS source
+          ON ${onCondition} AND ${config.dbSchemaName}.${targetTableName}.metadata_version < source.metadata_version
+        WHEN MATCHED THEN
+         DELETE;
+      `.trim();
+
+    await t.none(deleteQuery);
+  }
+}

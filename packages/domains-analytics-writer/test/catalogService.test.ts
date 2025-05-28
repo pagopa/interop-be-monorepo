@@ -843,4 +843,63 @@ describe("Check on metadata_version merge", () => {
     expect(stored.name).toBe("Name v2");
     expect(stored.metadataVersion).toBe(2);
   });
+  it("deletes old descriptors when new ones with higher metadataVersion are added (v2)", async () => {
+    const mock = getMockEService();
+
+    const oldDescriptors = Array.from({ length: 3 }, () => {
+      const d = getMockDescriptor();
+      return { ...d, metadataVersion: 1 };
+    });
+
+    const oldEserviceV2: EServiceAddedV2 = {
+      eservice: toEServiceV2({
+        ...mock,
+        descriptors: oldDescriptors,
+        riskAnalysis: [],
+      }),
+    };
+
+    const msg1: EServiceEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      type: "EServiceAdded",
+      event_version: 2,
+      data: oldEserviceV2,
+      log_date: new Date(),
+    };
+
+    const newDescriptors = [getMockDescriptor()] as any;
+
+    const newEserviceV2: EServiceAddedV2 = {
+      eservice: toEServiceV2({
+        ...mock,
+        descriptors: newDescriptors,
+        riskAnalysis: [],
+      }),
+    };
+
+    const msg2: EServiceEventEnvelopeV2 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      type: "EServiceAdded",
+      event_version: 2,
+      data: newEserviceV2,
+      log_date: new Date(),
+    };
+
+    await handleCatalogMessageV2([msg1, msg2], dbContext);
+
+    const storedDescriptors = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor,
+      { eserviceId: mock.id }
+    );
+
+    expect(storedDescriptors.length).toBe(1);
+    storedDescriptors.forEach((d) => {
+      expect(d.metadataVersion).toBe(2);
+    });
+  });
 });

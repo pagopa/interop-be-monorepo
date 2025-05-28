@@ -14,7 +14,10 @@ import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDesc
 import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
 import { CatalogDbTable, DeletingDbTable } from "../model/db/index.js";
 import { batchMessages } from "../utils/batchHelper.js";
-import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
 import {
   EserviceDeletingSchema,
@@ -147,6 +150,22 @@ export function catalogServiceBuilder(db: DBContext) {
         await riskAnalysisAnswerRepo.merge(t);
         await rejectionRepo.merge(t);
         await templateVersionRefRepo.merge(t);
+
+        await cleaningTargetTables(
+          t,
+          "eserviceId",
+          [
+            CatalogDbTable.eservice_descriptor_template_version_ref,
+            CatalogDbTable.eservice_descriptor_rejection_reason,
+            CatalogDbTable.eservice_descriptor_interface,
+            CatalogDbTable.eservice_descriptor_document,
+            CatalogDbTable.eservice_descriptor_attribute,
+            CatalogDbTable.eservice_risk_analysis_answer,
+            CatalogDbTable.eservice_risk_analysis,
+            CatalogDbTable.eservice_descriptor,
+          ],
+          CatalogDbTable.eservice
+        );
       });
 
       genericLogger.info(
