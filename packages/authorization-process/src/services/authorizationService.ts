@@ -53,6 +53,8 @@ import {
   eserviceAlreadyLinkedToProducerKeychain,
   eserviceNotDelegableForClientAccess,
   eserviceNotFound,
+  jwkNotFound,
+  producerJwkNotFound,
   noActiveOrSuspendedAgreementFound,
   noActiveOrSuspendedPurposeVersionFound,
   producerKeychainNotFound,
@@ -91,7 +93,9 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   ApiKeyUseToKeyUse,
+  clientJWKToApiClientJWK,
   clientToApiClient,
+  producerJWKToApiProducerJWK,
 } from "../model/domain/apiConverter.js";
 import { config } from "../config/config.js";
 import {
@@ -1456,6 +1460,38 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+    },
+    async getJWKByKid(
+      kid: string,
+      {
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData | UIAuthData | M2MAuthData>>
+    ): Promise<authorizationApi.ClientJWK> {
+      logger.info(`Retrieving key with id ${kid}`);
+
+      const clientKey = await readModelService.getClientJWKByKId(kid);
+
+      if (!clientKey) {
+        throw jwkNotFound(kid);
+      }
+
+      return clientJWKToApiClientJWK(clientKey);
+    },
+    async getProducerJWKByKid(
+      kid: string,
+      {
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData | UIAuthData | M2MAuthData>>
+    ): Promise<authorizationApi.ProducerJWK> {
+      logger.info(`Retrieving key with id ${kid}`);
+
+      const producerKey = await readModelService.getProducerJWKByKId(kid);
+
+      if (!producerKey) {
+        throw producerJwkNotFound(kid);
+      }
+
+      return producerJWKToApiProducerJWK(producerKey);
     },
   };
 }

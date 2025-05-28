@@ -47,6 +47,8 @@ export const errorCodes = {
   securityUserNotMember: "0032",
   clientAdminIdNotFound: "0033",
   userAlreadyAssignedAsAdmin: "0034",
+  jwkNotFound: "0035",
+  producerJwkNotFound: "0036",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -229,7 +231,7 @@ export function tooManyKeysPerClient(
   size: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Keys count (${size}) for the client ${clientId} exceed maximum allowed value`,
+    detail: `Keys count (${size}) for the client ${clientId} exceeds maximum allowed value`,
     code: "tooManyKeysPerClient",
     title: "Too many Keys per client",
   });
@@ -259,7 +261,7 @@ export function userNotFound(
 
 export function keyAlreadyExists(kid: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Key with kid ${kid} already exists `,
+    detail: `Key with kid ${kid} already exists`,
     code: "keyAlreadyExists",
     title: "Key already exists",
   });
@@ -382,7 +384,7 @@ export function purposeDelegationNotFound(
   return new ApiError({
     detail: `Delegation ${delegationId} not found`,
     code: "purposeDelegationNotFound",
-    title: "Deleagtion not found",
+    title: "Delegation not found",
   });
 }
 
@@ -409,5 +411,21 @@ export function securityUserNotMember(userId: UserId): ApiError<ErrorCodes> {
     detail: `User ${userId} with user role "security" is not a member of the client`,
     code: "securityUserNotMember",
     title: "Security user not member",
+  });
+}
+
+export function jwkNotFound(kid: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `JWK with kid ${kid} not found`,
+    code: "jwkNotFound",
+    title: "JWK not found",
+  });
+}
+
+export function producerJwkNotFound(kid: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Producer JWK with kid ${kid} not found`,
+    code: "producerJwkNotFound",
+    title: "Producer JWK not found",
   });
 }
