@@ -15,7 +15,7 @@ export type TokenRequest = {
 
 export const tokenType = {
   bearer: "Bearer",
-  dPoP: "DPoP",
+  dpop: "DPoP",
 } as const;
 export const TokenType = z.enum([
   Object.values(tokenType)[0],

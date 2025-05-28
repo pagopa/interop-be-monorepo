@@ -72,8 +72,8 @@ export * from "./token-generation-audit/audit.js";
 export * from "./client-assertion/clientAssertionValidation.js";
 
 // DPoP
-export * from "./dpop/dPoP.js";
-export * from "./dpop/dPoPCache.js";
+export * from "./dpop/dpop.js";
+export * from "./dpop/dpopCache.js";
 
 // Protobuf
 export * from "./protobuf/protobuf.js";

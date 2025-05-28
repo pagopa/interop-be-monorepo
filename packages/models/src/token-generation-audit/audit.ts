@@ -54,7 +54,7 @@ export const GeneratedTokenAuditDetails = z.object({
   expirationTime: z.number(),
   issuer: z.string(),
   clientAssertion: ClientAssertionAuditDetails,
-  dPoP: DPoPAuditDetails.optional(),
+  dpop: DPoPAuditDetails.optional(),
 });
 export type GeneratedTokenAuditDetails = z.infer<
   typeof GeneratedTokenAuditDetails
