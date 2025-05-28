@@ -1,29 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
 import {
-  EService,
   Purpose,
   RiskAnalysis,
   RiskAnalysisForm,
   generateId,
-  technology,
+  tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { getMockValidRiskAnalysisForm } from "pagopa-interop-commons-test";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { PurposeRiskAnalysisFormV2 } from "../../models/dist/gen/v2/purpose/riskAnalysis.js";
-
-export const getMockEService = (): EService => ({
-  id: generateId(),
-  name: "eService name",
-  description: "eService description",
-  createdAt: new Date(),
-  producerId: generateId(),
-  technology: technology.rest,
-  descriptors: [],
-  attributes: undefined,
-  riskAnalysis: [],
-  mode: "Deliver",
-});
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
@@ -80,4 +67,36 @@ export const createUpdatedPurpose = (
       })
     ),
   },
+});
+
+export const getMockPurposeSeed = (
+  eserviceId: string = generateId(),
+  consumerId: string = generateId(),
+  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed = buildRiskAnalysisFormSeed(
+    getMockValidRiskAnalysisForm(tenantKind.PA)
+  )
+): purposeApi.PurposeSeed => ({
+  eserviceId,
+  consumerId,
+  title: "Mock title",
+  dailyCalls: 10,
+  description: "Mock description",
+  isFreeOfCharge: true,
+  freeOfChargeReason: "reason",
+  riskAnalysisForm,
+});
+
+export const getMockReversePurposeSeed = (
+  eServiceId: string = generateId(),
+  consumerId: string = generateId(),
+  riskAnalysisId: string = generateId()
+): purposeApi.EServicePurposeSeed => ({
+  eServiceId,
+  consumerId,
+  riskAnalysisId,
+  title: "test purpose title",
+  description: "test purpose description",
+  isFreeOfCharge: true,
+  freeOfChargeReason: "test",
+  dailyCalls: 1,
 });

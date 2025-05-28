@@ -146,13 +146,15 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(mockProducer.id) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -171,7 +173,7 @@ describe("activatePurposeVersion", () => {
       ...mockPurpose,
       suspendedByConsumer: false,
       suspendedByProducer: false,
-      versions: [purposeVersion],
+      versions: [updatedVersion],
       updatedAt: new Date(),
     };
 
@@ -212,15 +214,19 @@ describe("activatePurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(purposeVersion.riskAnalysis!.path);
+    ).toContain(updatedVersion.riskAnalysis!.path);
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the activation of a purpose version in the waiting for approval state (With producer delegation)", async () => {
     vi.spyOn(pdfGenerator, "generate");
 
-    const delegate = getMockTenant();
+    const delegate: Tenant = { ...getMockTenant(), kind: "PA" };
 
     const producerDelegation = getMockDelegation({
       kind: delegationKind.delegatedProducer,
@@ -238,13 +244,15 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(delegate.id) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -263,7 +271,7 @@ describe("activatePurposeVersion", () => {
       ...mockPurpose,
       suspendedByConsumer: false,
       suspendedByProducer: false,
-      versions: [purposeVersion],
+      versions: [updatedVersion],
       updatedAt: new Date(),
     };
 
@@ -304,9 +312,13 @@ describe("activatePurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(purposeVersion.riskAnalysis!.path);
+    ).toContain(updatedVersion.riskAnalysis!.path);
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the activation of a purpose version in suspended from consumer state", async () => {
@@ -328,13 +340,15 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(mockConsumer.id) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -351,7 +365,7 @@ describe("activatePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      versions: [purposeVersion],
+      versions: [updatedVersion],
       suspendedByConsumer: false,
       suspendedByProducer: false,
       updatedAt: new Date(),
@@ -363,6 +377,10 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the activation of a purpose version in suspended from producer state", async () => {
@@ -384,13 +402,15 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(mockProducer.id) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -407,7 +427,7 @@ describe("activatePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      versions: [purposeVersion],
+      versions: [updatedVersion],
       suspendedByConsumer: false,
       suspendedByProducer: false,
       updatedAt: new Date(),
@@ -419,6 +439,10 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the activation of a purpose version in suspended from consumer state while the version daily calls are beyond the descriptor limits ", async () => {
@@ -441,13 +465,15 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(mockConsumer.id) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -463,13 +489,13 @@ describe("activatePurposeVersion", () => {
     });
 
     const expectedPurposeVersion: PurposeVersion = {
-      id: purposeVersion.id,
+      id: updatedVersion.id,
       createdAt: new Date(),
       state: purposeVersionState.waitingForApproval,
       dailyCalls: 9999,
     };
 
-    expect(purposeVersion).toEqual(expectedPurposeVersion);
+    expect(updatedVersion).toEqual(expectedPurposeVersion);
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
@@ -485,6 +511,10 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: expectedPurposeVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the activation of a purpose version in suspended from consumer and producer state while the version daily calls are beyond the descriptor limits ", async () => {
@@ -507,13 +537,15 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(mockConsumer.id) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -530,7 +562,7 @@ describe("activatePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      versions: [purposeVersion],
+      versions: [updatedVersion],
       suspendedByConsumer: false,
       suspendedByProducer: true,
       updatedAt: new Date(),
@@ -542,6 +574,10 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the activation of a purpose version in draft while the version daily calls are beyond the descriptor limits ", async () => {
@@ -562,13 +598,15 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(mockConsumer.id) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -585,7 +623,7 @@ describe("activatePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      versions: [purposeVersion],
+      versions: [updatedVersion],
       updatedAt: new Date(),
     };
 
@@ -595,6 +633,10 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should write on event-store for the activation of a purpose version in draft", async () => {
@@ -615,13 +657,15 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(mockConsumer.id) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: purposeVersionMock.dailyCalls.toString(),
@@ -655,7 +699,7 @@ describe("activatePurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(purposeVersion.riskAnalysis!.path);
+    ).toContain(updatedVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       mockPurpose.id,
@@ -672,7 +716,7 @@ describe("activatePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      versions: [purposeVersion],
+      versions: [updatedVersion],
       updatedAt: new Date(),
     };
 
@@ -682,6 +726,10 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should succeed when requester is Consumer Delegate and the purpose version in draft state is activated correctly", async () => {
@@ -720,13 +768,15 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockProducer);
     await addOneTenant(consumerDelegate);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: purpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: purposeVersionMock.dailyCalls.toString(),
@@ -760,7 +810,7 @@ describe("activatePurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(purposeVersion.riskAnalysis!.path);
+    ).toContain(updatedVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       purpose.id,
@@ -777,7 +827,7 @@ describe("activatePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...purpose,
-      versions: [purposeVersion],
+      versions: [updatedVersion],
       updatedAt: new Date(),
     };
 
@@ -787,6 +837,10 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the purpose version in draft state is activated correctly", async () => {
@@ -869,13 +923,15 @@ describe("activatePurposeVersion", () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const purposeVersion = await purposeService.activatePurposeVersion(
+    const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion.id,
       },
       getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
     );
+
+    const updatedVersion = activateResponse.data;
 
     const expectedPdfPayload: RiskAnalysisDocumentPDFPayload = {
       dailyCalls: purposeVersionMock.dailyCalls.toString(),
@@ -909,7 +965,7 @@ describe("activatePurposeVersion", () => {
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
-    ).toContain(purposeVersion.riskAnalysis!.path);
+    ).toContain(updatedVersion.riskAnalysis!.path);
 
     const writtenEvent = await readLastEventByStreamId(
       delegatePurpose.id,
@@ -926,7 +982,7 @@ describe("activatePurposeVersion", () => {
 
     const expectedPurpose: Purpose = {
       ...delegatePurpose,
-      versions: [purposeVersion],
+      versions: [updatedVersion],
       updatedAt: new Date(),
     };
 
@@ -936,6 +992,10 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw tenantIsNotTheProducer if the caller is the consumer trying to activate a waiting for approval purpose version", async () => {

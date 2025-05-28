@@ -7,6 +7,7 @@ import {
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import {
   EServiceId,
@@ -58,6 +59,8 @@ import {
   internalRemoveClientAdminErrorMapper,
   removeClientAdminErrorMapper,
   addClientAdminErrorMapper,
+  getJWKByKidErrorMapper,
+  getProducerJWKByKidErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const authorizationRouter = (
@@ -238,12 +241,17 @@ const authorizationRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { client, showUsers } = await authorizationService.getClientById(
+        const {
+          data: { client, showUsers },
+          metadata,
+        } = await authorizationService.getClientById(
           {
             clientId: unsafeBrandId(req.params.clientId),
           },
           ctx
         );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -479,16 +487,27 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await authorizationService.addClientPurpose(
+        const {
+          data: { client, showUsers },
+          metadata,
+        } = await authorizationService.addClientPurpose(
           {
             clientId: unsafeBrandId(req.params.clientId),
             seed: req.body,
           },
           ctx
         );
-        return res.status(204).send();
+
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            authorizationApi.Client.parse(
+              clientToApiClient(client, { showUsers })
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -1029,11 +1048,60 @@ const authorizationRouter = (
       }
     }
   );
+
+  const keyRouter = ctx.router(authorizationApi.keyApi.api, {
+    validationErrorHandler: zodiosValidationErrorToApiProblem,
+  });
+
+  keyRouter
+    .get("/keys/:kid", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const keyWithClientId = await authorizationService.getJWKByKid(
+          unsafeBrandId(req.params.kid),
+          ctx
+        );
+        return res
+          .status(200)
+          .send(authorizationApi.ClientJWK.parse(keyWithClientId));
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getJWKByKidErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/producerKeys/:kid", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const keyWithProducerKeychainId =
+          await authorizationService.getProducerJWKByKid(
+            unsafeBrandId(req.params.kid),
+            ctx
+          );
+        return res
+          .status(200)
+          .send(authorizationApi.ProducerJWK.parse(keyWithProducerKeychainId));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getProducerJWKByKidErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
+
   return [
     authorizationClientRouter,
     authorizationUserRouter,
     authorizationProducerKeychainRouter,
     tokenGenerationRouter,
+    keyRouter,
   ];
 };
 export default authorizationRouter;

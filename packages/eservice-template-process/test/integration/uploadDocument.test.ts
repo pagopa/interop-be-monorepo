@@ -18,11 +18,10 @@ import {
   getMockContext,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
-
 import {
   checksumDuplicate,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
 } from "../../src/model/domain/errors.js";
@@ -107,7 +106,7 @@ describe("upload Document", () => {
     }
   );
 
-  it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
+  it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
     await expect(
       eserviceTemplateService.createEServiceTemplateDocument(
         mockEServiceTemplate.id,
@@ -115,7 +114,7 @@ describe("upload Document", () => {
         buildInterfaceSeed(),
         getMockContext({})
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
   it("should throw operationForbidden if the requester is not the creator", async () => {
@@ -139,7 +138,7 @@ describe("upload Document", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceTemplateVersionNotFound if the version doesn't exist", async () => {
+  it("should throw eserviceTemplateVersionNotFound if the version doesn't exist", async () => {
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [],
@@ -155,7 +154,7 @@ describe("upload Document", () => {
         })
       )
     ).rejects.toThrowError(
-      eServiceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
+      eserviceTemplateVersionNotFound(eserviceTemplate.id, mockVersion.id)
     );
   });
 
