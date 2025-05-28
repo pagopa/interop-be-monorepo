@@ -62,7 +62,6 @@ describe("m2mUpsertTenant", async () => {
     vi.useRealTimers();
   });
   it("Should add the certified attribute if the Tenant doesn't have it", async () => {
-    // eslint-disable-next-line functional/immutable-data
     const tenantSeed2 = {
       ...tenantSeed,
       certifiedAttributes: [{ code: "CODE" }, { code: "CODE2" }],
