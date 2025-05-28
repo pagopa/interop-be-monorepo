@@ -149,3 +149,178 @@ CREATE TABLE domains.eservice_risk_analysis_answer (
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id),
   FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)
 );
+
+CREATE TABLE domains.agreement (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  eservice_id VARCHAR(36) NOT NULL,
+  descriptor_id VARCHAR(36) NOT NULL,
+  producer_id VARCHAR(36) NOT NULL,
+  consumer_id VARCHAR(36) NOT NULL,
+  state VARCHAR NOT NULL,
+  suspended_by_consumer BOOLEAN,
+  suspended_by_producer BOOLEAN,
+  suspended_by_platform BOOLEAN,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE,
+  consumer_notes VARCHAR,
+  rejection_reason VARCHAR,
+  suspended_at TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE domains.agreement_stamp (
+  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement(id),
+  metadata_version INTEGER NOT NULL,
+  who VARCHAR(36) NOT NULL,
+  delegation_id VARCHAR(36),
+  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (agreement_id, kind)
+);
+
+CREATE TABLE domains.agreement_attribute (
+  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement(id),
+  metadata_version INTEGER NOT NULL,
+  attribute_id VARCHAR(36) NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (agreement_id, attribute_id)
+);
+
+CREATE TABLE domains.agreement_consumer_document (
+  id VARCHAR(36),
+  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement(id),
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE domains.agreement_contract (
+  id VARCHAR(36),
+  agreement_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.agreement(id),
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (agreement_id, id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  eservice_id VARCHAR(36) NOT NULL,
+  consumer_id VARCHAR(36) NOT NULL,
+  delegation_id VARCHAR(36),
+  suspended_by_consumer BOOLEAN,
+  suspended_by_producer BOOLEAN,
+  title VARCHAR NOT NULL,
+  description VARCHAR NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP,
+  is_free_of_charge BOOLEAN NOT NULL,
+  free_of_charge_reason VARCHAR,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_form (
+  id VARCHAR(36),
+  purpose_id VARCHAR(36) NOT NULL,
+  metadata_version INTEGER NOT NULL,
+  version VARCHAR NOT NULL,
+  risk_analysis_id VARCHAR(36),
+  deleted BOOLEAN,
+  PRIMARY KEY (id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
+  id VARCHAR(36),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  risk_analysis_form_id VARCHAR(36),
+  kind VARCHAR NOT NULL,
+  key VARCHAR NOT NULL,
+  value VARCHAR(65535),
+  deleted BOOLEAN,
+  PRIMARY KEY (id, purpose_id),
+  FOREIGN KEY (risk_analysis_form_id, purpose_id)
+  REFERENCES domains.purpose_risk_analysis_form (id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_version (
+  id VARCHAR(36),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  state VARCHAR NOT NULL,
+  daily_calls INTEGER NOT NULL,
+  rejection_reason VARCHAR,
+  created_at TIMESTAMP NOT NULL,
+  updated_at TIMESTAMP,
+  first_activation_at TIMESTAMP,
+  suspended_at TIMESTAMP,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
+  id VARCHAR(36),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
+  content_type VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id, purpose_version_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.delegation (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  delegator_id VARCHAR(36) NOT NULL,
+  delegate_id VARCHAR(36) NOT NULL,
+  eservice_id VARCHAR(36) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE,
+  rejection_reason VARCHAR,
+  state VARCHAR NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.delegation_stamp (
+  delegation_id VARCHAR(36) NOT NULL REFERENCES domains.delegation (id),
+  metadata_version INTEGER NOT NULL,
+  who VARCHAR(36) NOT NULL,
+  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (delegation_id, kind)
+);
+
+CREATE TABLE IF NOT EXISTS domains.delegation_contract_document (
+  id VARCHAR(36),
+  delegation_id VARCHAR(36) NOT NULL REFERENCES domains.delegation (id),
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id),
+  CONSTRAINT delegation_contract_document_delegation_id_kind_unique UNIQUE (delegation_id, kind)
+);

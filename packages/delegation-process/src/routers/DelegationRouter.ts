@@ -2,10 +2,7 @@ import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
-  DB,
   ExpressContext,
-  FileManager,
-  PDFGenerator,
   ZodiosContext,
   authRole,
   fromAppContext,
@@ -14,7 +11,6 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
-import { ReadModelService } from "../services/readModelService.js";
 import {
   apiDelegationKindToDelegationKind,
   apiDelegationStateToDelegationState,
@@ -35,7 +31,7 @@ import {
   getConsumerEservicesErrorMapper,
   getConsumerDelegatorsWithAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
-import { delegationServiceBuilder } from "../services/delegationService.js";
+import { DelegationService } from "../services/delegationService.js";
 
 const {
   ADMIN_ROLE,
@@ -48,21 +44,11 @@ const {
 
 const delegationRouter = (
   ctx: ZodiosContext,
-  readModelService: ReadModelService,
-  eventStore: DB,
-  pdfGenerator: PDFGenerator,
-  fileManager: FileManager
+  delegationService: DelegationService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const delegationRouter = ctx.router(delegationApi.delegationApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const delegationService = delegationServiceBuilder(
-    readModelService,
-    eventStore,
-    pdfGenerator,
-    fileManager
-  );
 
   delegationRouter
     .get("/delegations", async (req, res) => {

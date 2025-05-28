@@ -7,6 +7,7 @@ import {
   fromAppContext,
   authRole,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import {
   TenantId,
@@ -49,6 +50,7 @@ const {
   SECURITY_ROLE,
   API_ROLE,
   M2M_ROLE,
+  M2M_ADMIN_ROLE,
   INTERNAL_ROLE,
   SUPPORT_ROLE,
 } = authRole;
@@ -66,13 +68,17 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.submitAgreement(
-          unsafeBrandId(req.params.agreementId),
-          req.body,
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.submitAgreement(
+            unsafeBrandId(req.params.agreementId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -88,12 +94,15 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.activateAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.activateAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
@@ -199,12 +208,16 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.suspendAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.suspendAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -224,13 +237,17 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.rejectAgreement(
-          unsafeBrandId(req.params.agreementId),
-          req.body.reason,
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.rejectAgreement(
+            unsafeBrandId(req.params.agreementId),
+            req.body.reason,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -271,18 +288,22 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.createAgreement(
-          {
-            eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
-            descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
-            delegationId: req.body.delegationId
-              ? unsafeBrandId<DelegationId>(req.body.delegationId)
-              : undefined,
-          },
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.createAgreement(
+            {
+              eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+              descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -303,6 +324,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
@@ -405,13 +427,18 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
-        const agreement = await agreementService.getAgreementById(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.getAgreementById(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -517,12 +544,15 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.upgradeAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.upgradeAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
