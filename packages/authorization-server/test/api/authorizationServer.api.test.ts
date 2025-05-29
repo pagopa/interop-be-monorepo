@@ -5,6 +5,7 @@ import {
   generateId,
   makeTokenGenerationStatesClientKidPK,
   PurposeId,
+  TenantId,
 } from "pagopa-interop-models";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
@@ -12,7 +13,7 @@ import {
   InteropJwtConsumerPayload,
   InteropJwtHeader,
 } from "pagopa-interop-commons";
-import { getMockClient } from "pagopa-interop-commons-test/index.js";
+import { getMockClient } from "pagopa-interop-commons-test";
 import { api, tokenService } from "../vitest.api.setup.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -134,7 +135,7 @@ describe("POST /authorization-server/token.oauth2", () => {
       token,
       rateLimiterStatus: {},
       limitReached: true,
-      rateLimitedTenantId: "tenant-id",
+      rateLimitedTenantId: generateId<TenantId>(),
     });
 
     const res = await makeRequest();

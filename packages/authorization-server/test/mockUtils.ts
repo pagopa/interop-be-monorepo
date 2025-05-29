@@ -1,6 +1,6 @@
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { dateToSeconds } from "pagopa-interop-commons";
-import { getMockClientAssertion } from "pagopa-interop-commons-test/index.js";
+import { getMockClientAssertion } from "pagopa-interop-commons-test";
 import {
   generateId,
   ClientId,
