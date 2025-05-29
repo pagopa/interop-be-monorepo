@@ -6,8 +6,8 @@ import {
   tokenVerificationFailed,
 } from "pagopa-interop-models";
 import { Logger } from "../logging/index.js";
-import { JWTConfig } from "../config/index.js";
-import { buildJwksClients } from "../auth/index.js";
+import { JWTConfig } from "../config/httpServiceConfig.js";
+import { buildJwksClients } from "./jwk.js";
 import {
   AuthData,
   AuthDataUserInfo,

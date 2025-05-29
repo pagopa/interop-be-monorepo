@@ -21,7 +21,7 @@ import {
 import { match, P } from "ts-pattern";
 import { z, ZodError } from "zod";
 import { calculateChecksum } from "../utils/fileUtils.js";
-import { FileManager } from "../file-manager/index.js";
+import { FileManager } from "../file-manager/fileManager.js";
 import { Logger } from "../logging/index.js";
 import {
   parseOpenApi,

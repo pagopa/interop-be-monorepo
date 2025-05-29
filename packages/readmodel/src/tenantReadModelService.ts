@@ -30,7 +30,7 @@ import {
   aggregateTenantArray,
   toTenantAggregatorArray,
 } from "./tenant/aggregators.js";
-import { checkMetadataVersion } from "./index.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
