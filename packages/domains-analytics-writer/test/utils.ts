@@ -18,7 +18,9 @@ import {
   DeletingDbTableConfigMap,
   DomainDbTable,
   DomainDbTableSchemas,
+  TenantDbPartialTable,
   PurposeDbTable,
+  TenantDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
@@ -77,12 +79,28 @@ export const delegationTables: DelegationDbTable[] = [
   DelegationDbTable.delegation_contract_document,
 ];
 
+export const tenantTables: TenantDbTable[] = [
+  TenantDbTable.tenant,
+  TenantDbTable.tenant_certified_attribute,
+  TenantDbTable.tenant_declared_attribute,
+  TenantDbTable.tenant_feature,
+  TenantDbTable.tenant_mail,
+  TenantDbTable.tenant_verified_attribute,
+  TenantDbTable.tenant_verified_attribute_revoker,
+  TenantDbTable.tenant_verified_attribute_verifier,
+];
+
+export const partialTables = [TenantDbPartialTable.tenant_self_care_id];
+
 export const deletingTables: DeletingDbTable[] = [
+  DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
   DeletingDbTable.catalog_risk_deleting_table,
-  DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.purpose_deleting_table,
+  DeletingDbTable.tenant_deleting_table,
+  DeletingDbTable.tenant_mail_deleting_table,
+  DeletingDbTable.tenant_feature_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
@@ -91,6 +109,7 @@ export const domainTables: DomainDbTable[] = [
   ...agreementTables,
   ...purposeTables,
   ...delegationTables,
+  ...tenantTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
@@ -108,6 +127,18 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
     name: DeletingDbTable.purpose_deleting_table,
     columns: ["id"],
   },
+  {
+    name: DeletingDbTable.tenant_deleting_table,
+    columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.tenant_mail_deleting_table,
+    columns: ["id", "tenantId"],
+  },
+  {
+    name: DeletingDbTable.tenant_feature_deleting_table,
+    columns: ["tenantId", "kind"],
+  },
 ];
 
 await retryConnection(
@@ -117,6 +148,7 @@ await retryConnection(
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables(domainTables);
+    await setupDbService.setupPartialStagingTables(partialTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
   },
   genericLogger
