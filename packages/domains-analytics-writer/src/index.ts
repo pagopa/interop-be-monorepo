@@ -99,10 +99,6 @@ await retryConnection(
         name: DeletingDbTable.tenant_mail_deleting_table,
         columns: ["id", "tenantId"],
       },
-      {
-        name: DeletingDbTable.tenant_feature_deleting_table,
-        columns: ["tenantId", "kind"],
-      },
     ]);
   },
   logger({ serviceName: config.serviceName })

@@ -48,7 +48,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   tableName: DomainDbTable,
   keysOn: Array<keyof T>,
   stagingPartialTableName?: PartialDbTable
-): string {
+): { mergeQuery: string; deleteQuery: string } {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCaseMapper = getColumnNameMapper(tableName);
   const keys = Object.keys(tableSchema.shape).map(snakeCaseMapper);
@@ -65,6 +65,13 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
     })
     .join(" AND ");
 
+  const joinCondition = keysOn
+    .map((k) => {
+      const key = quoteColumn(snakeCaseMapper(String(k)));
+      return `target.${key} = source.${key}`;
+    })
+    .join(" AND ");
+
   const updateSet = keys
     .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
     .join(",\n      ");
@@ -73,19 +80,28 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
     config.mergeTableSuffix
   }`;
 
-  return `
-      MERGE INTO ${schemaName}.${tableName}
-      USING ${stagingTableName} AS source
-      ON ${onCondition}
-      WHEN MATCHED
-        AND source.metadata_version > ${schemaName}.${tableName}.metadata_version
-      THEN
-        UPDATE SET
-          ${updateSet}
-      WHEN NOT MATCHED THEN
-        INSERT (${colList})
-        VALUES (${valList});
-    `;
+  const mergeQuery = `
+    MERGE INTO ${schemaName}.${tableName}
+    USING ${stagingTableName} AS source
+    ON ${onCondition}
+    WHEN MATCHED
+      AND source.metadata_version > ${schemaName}.${tableName}.metadata_version
+    THEN
+      UPDATE SET
+        ${updateSet}
+    WHEN NOT MATCHED THEN
+      INSERT (${colList})
+      VALUES (${valList});
+  `;
+
+  const deleteQuery = `
+    DELETE FROM ${schemaName}.${tableName} target
+    USING ${stagingTableName} source
+    WHERE ${joinCondition}
+      AND target.metadata_version < source.metadata_version;
+  `;
+
+  return { mergeQuery, deleteQuery };
 }
 
 /**

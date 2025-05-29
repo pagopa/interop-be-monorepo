@@ -20,7 +20,6 @@ import {
   TenantDeletingSchema,
 } from "../model/tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../model/tenant/tenantMail.js";
-import { TenantFeatureDeletingSchema } from "../model/tenant/tenantFeature.js";
 
 export function tenantServiceBuilder(db: DBContext) {
   const tenantRepo = tenantRepository(db.conn);
@@ -75,6 +74,7 @@ export function tenantServiceBuilder(db: DBContext) {
             await tenantRepo.insert(t, dbContext.pgp, batchItems.tenantSQL);
           }
           if (batchItems.mailsSQL.length) {
+            console.log("batchItems.mailsSQL", batchItems.mailsSQL);
             await tenantMailRepo.insert(t, dbContext.pgp, batchItems.mailsSQL);
           }
           if (batchItems.certifiedAttributesSQL.length) {
@@ -189,7 +189,7 @@ export function tenantServiceBuilder(db: DBContext) {
           config.dbMessagesToInsertPerBatch
         )) {
           await tenantRepo.insertDeleting(t, dbContext.pgp, batch);
-          genericLogger.info(
+          console.log(
             `Staging deletion inserted for Tenant batch: ${batch
               .map((r) => r.id)
               .join(", ")}`
@@ -213,9 +213,14 @@ export function tenantServiceBuilder(db: DBContext) {
         );
       });
 
-      genericLogger.info(
-        `Staging deletion merged into target tables for Tenant`
+      console.log(
+        "STAGING PRE DELETING? ---------->",
+        await dbContext.conn.query(
+          `SELECT * FROM ${DeletingDbTable.tenant_deleting_table}_${config.mergeTableSuffix}`
+        )
       );
+
+      console.log(`Staging deletion merged into target tables for Tenant`);
 
       await tenantRepo.cleanDeleting();
       genericLogger.info(`Staging deletion table cleaned for Tenant`);
@@ -247,34 +252,6 @@ export function tenantServiceBuilder(db: DBContext) {
 
       await tenantRepo.cleanDeleting();
       genericLogger.info(`Staging deletion table cleaned for TenantMail`);
-    },
-
-    async deleteBatchTenantFeatures(
-      features: TenantFeatureDeletingSchema[],
-      dbContext: DBContext
-    ) {
-      await dbContext.conn.tx(async (t) => {
-        for (const batch of batchMessages(
-          features,
-          config.dbMessagesToInsertPerBatch
-        )) {
-          await tenantFeatureRepo.insertDeleting(t, dbContext.pgp, batch);
-          genericLogger.info(
-            `Staging deletion inserted for TenantFeature batch: ${batch
-              .map((r) => `(${r.tenantId}-${r.kind})`)
-              .join(", ")}`
-          );
-        }
-
-        await tenantFeatureRepo.mergeDeleting(t);
-      });
-
-      genericLogger.info(
-        `Staging deletion merged into target tables for TenantFeature`
-      );
-
-      await tenantFeatureRepo.cleanDeleting();
-      genericLogger.info(`Staging deletion table cleaned for TenantFeature`);
     },
   };
 }

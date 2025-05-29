@@ -496,22 +496,32 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     expect(stored.metadataVersion).toBe(2);
   });
 
-  it("TenantMailDeleted: deletes tenant mail", async () => {
+  it("TenantMailDeleted: delete first mail, update second mail, add a third mail", async () => {
     const mockTenant = getMockTenant();
-    const mockTenantMail = getMockTenantMail();
-    mockTenant.mails = [mockTenantMail];
+    const mockTenantMailToDelete = getMockTenantMail();
+    const mockTenantMailToUpdate = getMockTenantMail();
+    const mockTenantMailNew = getMockTenantMail();
+
+    const tenantMailDeleted = {
+      ...mockTenant,
+      mails: [
+        {
+          ...mockTenantMailToUpdate,
+          description: "Updated mail description",
+        },
+        mockTenantMailNew,
+      ],
+    };
+
+    const tenantOnboarded = {
+      ...mockTenant,
+      mails: [mockTenantMailToDelete, mockTenantMailToUpdate],
+    };
+
+    console.log("tenantMailDeleted", tenantMailDeleted);
 
     await handleTenantMessageV2(
       [
-        {
-          sequence_num: 1,
-          stream_id: mockTenant.id,
-          version: 1,
-          type: "TenantOnboarded",
-          event_version: 2,
-          data: { tenant: toTenantV2(mockTenant) },
-          log_date: new Date(),
-        },
         {
           sequence_num: 2,
           stream_id: mockTenant.id,
@@ -519,9 +529,19 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
           type: "TenantMailDeleted",
           event_version: 2,
           data: {
-            tenant: toTenantV2(mockTenant),
-            mailId: mockTenantMail.id,
+            tenant: toTenantV2(tenantMailDeleted),
           } as TenantMailDeletedV2,
+          log_date: new Date(),
+        },
+        {
+          sequence_num: 1,
+          stream_id: mockTenant.id,
+          version: 1,
+          type: "TenantOnboarded",
+          event_version: 2,
+          data: {
+            tenant: toTenantV2(tenantOnboarded),
+          },
           log_date: new Date(),
         },
       ],
@@ -529,9 +549,22 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     );
 
     const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
-      id: mockTenantMail.id,
+      tenantId: mockTenant.id,
     });
-    expect(mails[0].deleted).toBe(true);
+
+    console.log(mails);
+    const deletedRecord = mails.find((m) => m.id === mockTenantMailToDelete.id);
+    expect(deletedRecord).toBeDefined();
+    expect(deletedRecord?.deleted).toBe(true);
+
+    const updatedRecord = mails.find((m) => m.id === mockTenantMailToUpdate.id);
+    expect(updatedRecord).toBeDefined();
+    expect(deletedRecord?.deleted).toBe(false);
+    expect(updatedRecord?.description).toBe("Updated mail description");
+
+    const newRecord = mails.find((m) => m.id === mockTenantMailNew.id);
+    expect(newRecord).toBeDefined();
+    expect(newRecord?.deleted).toBe(false);
   });
 
   it("TenantDelegatedProducerFeatureRemoved: deletes feature", async () => {

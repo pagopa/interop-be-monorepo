@@ -135,10 +135,6 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
     name: DeletingDbTable.tenant_mail_deleting_table,
     columns: ["id", "tenantId"],
   },
-  {
-    name: DeletingDbTable.tenant_feature_deleting_table,
-    columns: ["tenantId", "kind"],
-  },
 ];
 
 await retryConnection(
