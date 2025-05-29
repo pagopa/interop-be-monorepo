@@ -634,7 +634,7 @@ describe("authorization server tests", () => {
   it("should throw dpopProofValidationFailed - wrong typ", async () => {
     const clientId = generateId<ClientId>();
     const wrongTyp = "wrong-typ";
-    const { dpopJWS } = await getMockDPoPProof({
+    const { dpopProofJWS } = await getMockDPoPProof({
       customHeader: {
         typ: wrongTyp,
       },
@@ -644,7 +644,7 @@ describe("authorization server tests", () => {
     const request: TokenRequest = {
       headers: {
         ...headers,
-        DPoP: dpopJWS,
+        DPoP: dpopProofJWS,
       },
       body: {
         ...body,
@@ -671,7 +671,7 @@ describe("authorization server tests", () => {
     const clientId = generateId<ClientId>();
     const expiredIat = Math.floor(Date.now() / 1000) - 61;
 
-    const { dpopJWS } = await getMockDPoPProof({
+    const { dpopProofJWS } = await getMockDPoPProof({
       customPayload: {
         iat: expiredIat,
       },
@@ -681,7 +681,7 @@ describe("authorization server tests", () => {
     const request: TokenRequest = {
       headers: {
         ...headers,
-        DPoP: dpopJWS,
+        DPoP: dpopProofJWS,
       },
       body: {
         ...body,
@@ -709,13 +709,13 @@ describe("authorization server tests", () => {
   it("should throw dpopProofSignatureValidationFailed", async () => {
     const clientId = generateId<ClientId>();
 
-    const { dpopProof } = await getMockDPoPProof();
+    const { dpopProofJWT } = await getMockDPoPProof();
 
     const { keySet: wrongKeySet } = generateKeySet(algorithm.ES256);
 
     const jwsWithWrongSignature = await signJWT({
-      payload: dpopProof.payload,
-      headers: dpopProof.header,
+      payload: dpopProofJWT.payload,
+      headers: dpopProofJWT.header,
       keySet: wrongKeySet,
     });
 
@@ -1018,13 +1018,13 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { dpopJWS, dpopProof } = await getMockDPoPProof();
+    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
 
     const { headers, body } = await getMockTokenRequest();
     const request: TokenRequest = {
       headers: {
         ...headers,
-        DPoP: dpopJWS,
+        DPoP: dpopProofJWS,
       },
       body: {
         ...body,
@@ -1127,13 +1127,13 @@ describe("authorization server tests", () => {
         subject: unsafeBrandId(clientAssertion.payload.sub!),
       },
       dpop: {
-        typ: dpopProof.header.typ,
-        alg: dpopProof.header.alg,
-        jwk: dpopProof.header.jwk,
-        htm: dpopProof.payload.htm,
-        htu: dpopProof.payload.htu,
-        iat: secondsToMilliseconds(dpopProof.payload.iat),
-        jti: dpopProof.payload.jti,
+        typ: dpopProofJWT.header.typ,
+        alg: dpopProofJWT.header.alg,
+        jwk: dpopProofJWT.header.jwk,
+        htm: dpopProofJWT.payload.htm,
+        htu: dpopProofJWT.payload.htu,
+        iat: secondsToMilliseconds(dpopProofJWT.payload.iat),
+        jti: dpopProofJWT.payload.jti,
       },
     };
     expect(parsedDecodedFileContent).toEqual(expectedMessageBody);
@@ -1202,13 +1202,13 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    const { dpopJWS, dpopProof } = await getMockDPoPProof();
+    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
 
     const { headers, body } = await getMockTokenRequest(true);
     const request: TokenRequest = {
       headers: {
         ...headers,
-        DPoP: dpopJWS,
+        DPoP: dpopProofJWS,
       },
       body: {
         ...body,
@@ -1284,13 +1284,13 @@ describe("authorization server tests", () => {
         subject: unsafeBrandId(clientAssertion.payload.sub!),
       },
       dpop: {
-        typ: dpopProof.header.typ,
-        alg: dpopProof.header.alg,
-        jwk: dpopProof.header.jwk,
-        htm: dpopProof.payload.htm,
-        htu: dpopProof.payload.htu,
-        iat: secondsToMilliseconds(dpopProof.payload.iat),
-        jti: dpopProof.payload.jti,
+        typ: dpopProofJWT.header.typ,
+        alg: dpopProofJWT.header.alg,
+        jwk: dpopProofJWT.header.jwk,
+        htm: dpopProofJWT.payload.htm,
+        htu: dpopProofJWT.payload.htu,
+        iat: secondsToMilliseconds(dpopProofJWT.payload.iat),
+        jti: dpopProofJWT.payload.jti,
       },
     };
 

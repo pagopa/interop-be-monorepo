@@ -720,9 +720,8 @@ export const getMockDPoPProof = async (
   },
   alg: Algorithm = algorithm.ES256
 ): Promise<{
-  // TODO: rename
-  dpopJWS: string;
-  dpopProof: DPoPProof;
+  dpopProofJWS: string;
+  dpopProofJWT: DPoPProof;
 }> => {
   const { keySet, publicKeyEncodedPem } = generateKeySet(alg);
 
@@ -772,8 +771,8 @@ export const getMockDPoPProof = async (
   });
 
   return {
-    dpopJWS,
-    dpopProof: {
+    dpopProofJWS: dpopJWS,
+    dpopProofJWT: {
       payload,
       header,
     },
