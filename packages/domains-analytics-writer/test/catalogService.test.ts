@@ -662,7 +662,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
       CatalogDbTable.eservice_risk_analysis,
       { id: risk.id }
     );
-    stored.forEach((r) => expect(r.deleted).toBe(true));
+    expect(stored.length).toBe(0);
   });
 
   it("EServiceDeleted: marks eService and all subobjects deleted", async () => {
