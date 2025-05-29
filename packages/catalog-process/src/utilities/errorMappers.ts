@@ -243,6 +243,19 @@ export const updateDescriptorErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateAgreementApprovalPolicyErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const publishDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -448,8 +461,11 @@ export const approveDelegatedEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("eServiceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -457,8 +473,11 @@ export const rejectDelegatedEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("eServiceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -498,8 +517,11 @@ export const updateTemplateInstanceDescriptorVoucherLifespanErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("eServiceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateTemplateInstanceDescriptorAttributesErrorMapper = (

@@ -31,6 +31,7 @@ import getAllowList from "./utilities/getAllowList.js";
 import {
   fromFilesToBodyMiddleware,
   multerMiddleware,
+  uiAuthDataValidationMiddleware,
 } from "./utilities/middlewares.js";
 import clientRouter from "./routers/clientRouter.js";
 import producerKeychainRouter from "./routers/producerKeychainRouter.js";
@@ -82,7 +83,8 @@ app.use(
   await applicationAuditEndSessionTokenExchangeMiddleware(serviceName, config),
   authorizationRouter(zodiosCtx, clients, allowList, redisRateLimiter),
   authenticationMiddleware(config),
-  // Authenticated routes - rate limiter relies on auth data to work
+  // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
+  uiAuthDataValidationMiddleware(),
   rateLimiterMiddleware(redisRateLimiter),
   catalogRouter(zodiosCtx, clients, fileManager),
   attributeRouter(zodiosCtx, clients),

@@ -1,5 +1,11 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
+import {
+  AppContext,
+  genericLogger,
+  UIAuthData,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   Descriptor,
@@ -7,6 +13,7 @@ import {
   EServiceTemplate,
   EServiceTemplateVersion,
 } from "pagopa-interop-models";
+import { BffAppContext } from "../src/utilities/context.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
@@ -45,7 +52,7 @@ export const toEserviceCatalogProcessMock = (
   mode: "DELIVER" as const,
   technology: "REST" as const,
   riskAnalysis: [],
-  templateRef: eservice.templateRef,
+  templateId: eservice.templateId,
   descriptors: [
     {
       ...descriptor,
@@ -60,4 +67,16 @@ export const toEserviceCatalogProcessMock = (
       templateVersionRef: descriptor.templateVersionRef,
     },
   ],
+});
+
+export const getBffMockContext = (
+  ctx: AppContext<UIAuthData>
+): WithLogger<BffAppContext> => ({
+  ...ctx,
+  headers: {
+    "X-Correlation-Id": ctx.correlationId,
+    Authorization: "authorization",
+    "X-Forwarded-For": "x-forwarded-for",
+  },
+  logger: genericLogger,
 });

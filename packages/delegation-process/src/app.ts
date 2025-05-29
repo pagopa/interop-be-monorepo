@@ -3,10 +3,6 @@ import {
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
-  initDB,
-  initFileManager,
-  initPDFGenerator,
-  ReadModelRepository,
 } from "pagopa-interop-commons";
 import {
   applicationAuditBeginMiddleware,
@@ -16,47 +12,27 @@ import { serviceName as modelsServiceName } from "pagopa-interop-models";
 import healthRouter from "./routers/HealthRouter.js";
 import delegationRouter from "./routers/DelegationRouter.js";
 import { config } from "./config/config.js";
-import { readModelServiceBuilder } from "./services/readModelService.js";
+import { DelegationService } from "./services/delegationService.js";
 
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export async function createApp(service: DelegationService) {
+  const serviceName = modelsServiceName.DELEGATION_PROCESS;
 
-const pdfGenerator = await initPDFGenerator();
-const fileManager = initFileManager(config);
+  const router = delegationRouter(zodiosCtx, service);
 
-const eventStore = initDB({
-  username: config.eventStoreDbUsername,
-  password: config.eventStoreDbPassword,
-  host: config.eventStoreDbHost,
-  port: config.eventStoreDbPort,
-  database: config.eventStoreDbName,
-  schema: config.eventStoreDbSchema,
-  useSSL: config.eventStoreDbUseSSL,
-});
+  const app = zodiosCtx.app();
 
-const serviceName = modelsServiceName.DELEGATION_PROCESS;
+  // Disable the "X-Powered-By: Express" HTTP header for security reasons.
+  // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
+  app.disable("x-powered-by");
 
-const app = zodiosCtx.app();
+  app.use(healthRouter);
+  app.use(contextMiddleware(serviceName));
+  app.use(await applicationAuditBeginMiddleware(serviceName, config));
+  app.use(await applicationAuditEndMiddleware(serviceName, config));
+  app.use(authenticationMiddleware(config));
+  app.use(loggerMiddleware(serviceName));
+  app.use(router);
 
-// Disable the "X-Powered-By: Express" HTTP header for security reasons.
-// See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
-app.disable("x-powered-by");
-
-app.use(healthRouter);
-app.use(contextMiddleware(serviceName));
-app.use(await applicationAuditBeginMiddleware(serviceName, config));
-app.use(await applicationAuditEndMiddleware(serviceName, config));
-app.use(authenticationMiddleware(config));
-app.use(loggerMiddleware(serviceName));
-app.use(
-  delegationRouter(
-    zodiosCtx,
-    readModelService,
-    eventStore,
-    pdfGenerator,
-    fileManager
-  )
-);
-
-export default app;
+  return app;
+}

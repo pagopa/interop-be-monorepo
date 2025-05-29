@@ -1,10 +1,14 @@
 import {
   ClientAssertionDigest,
   ClientId,
+  DescriptorId,
+  EServiceId,
   PurposeId,
   TenantId,
+  UserId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { SystemRole } from "../auth/authData.js";
 
 export const ORGANIZATION = "organization";
 export const UID = "uid";
@@ -18,7 +22,6 @@ export const ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM = "origin";
 export const ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM = "value";
 export const USER_ROLES = "user-roles";
 const PURPOSE_ID_CLAIM = "purposeId";
-export const GENERATED_INTEROP_TOKEN_M2M_ROLE = "m2m";
 export const ROLE_CLAIM = "role";
 
 export interface InteropJwtHeader {
@@ -37,29 +40,19 @@ export type InteropJwtCommonPayload = {
   exp: number;
 };
 
+/* ========================================== 
+    Interop CONSUMER Token 
+  ========================================== */
 export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
   client_id: ClientId;
   sub: ClientId;
   [PURPOSE_ID_CLAIM]: PurposeId;
   digest?: ClientAssertionDigest;
-};
-
-export type InteropJwtApiPayload = InteropJwtCommonPayload & {
-  client_id: ClientId;
-  sub: ClientId;
-  [ORGANIZATION_ID_CLAIM]: TenantId;
-  [ROLE_CLAIM]: string;
-};
-
-export type InteropJwtPayload = InteropJwtCommonPayload & {
-  sub: string;
-  role: string;
-};
-
-export type InteropToken = {
-  header: InteropJwtHeader;
-  payload: InteropJwtPayload;
-  serialized: string;
+  // TODO: the new claims are behind the feature flag FEATURE_FLAG_IMPROVED_PRODUCER_VERIFICATION_CLAIMS. They should become required after the feature flag disappears.
+  producerId?: TenantId;
+  consumerId?: TenantId;
+  eserviceId?: EServiceId;
+  descriptorId?: DescriptorId;
 };
 
 export type InteropConsumerToken = {
@@ -68,12 +61,52 @@ export type InteropConsumerToken = {
   serialized: string;
 };
 
+/* ========================================== 
+    Interop API Token 
+  ========================================== */
+export type InteropJwtApiCommonPayload = InteropJwtCommonPayload & {
+  client_id: ClientId;
+  sub: ClientId;
+  [ORGANIZATION_ID_CLAIM]: TenantId;
+};
+
+export type InteropJwtApiM2MPayload = InteropJwtApiCommonPayload & {
+  [ROLE_CLAIM]: Extract<SystemRole, "m2m">;
+};
+
+export type InteropJwtApiM2MAdminPayload = InteropJwtApiCommonPayload & {
+  [ROLE_CLAIM]: Extract<SystemRole, "m2m-admin">;
+  adminId: UserId;
+  // ^ ID of the admin user associated with the client
+};
+
+export type InteropJwtApiPayload =
+  | InteropJwtApiM2MAdminPayload
+  | InteropJwtApiM2MPayload;
+
 export type InteropApiToken = {
   header: InteropJwtHeader;
   payload: InteropJwtApiPayload;
   serialized: string;
 };
 
+/* ========================================== 
+    Interop INTERNAL Token 
+  ========================================== */
+export type InteropJwtInternalPayload = InteropJwtCommonPayload & {
+  sub: string;
+  role: Extract<SystemRole, "internal">;
+};
+
+export type InteropInternalToken = {
+  header: InteropJwtHeader;
+  payload: InteropJwtInternalPayload;
+  serialized: string;
+};
+
+/* ========================================== 
+    Interop SESSION Token 
+  ========================================== */
 const Organization = z.object({
   id: z.string(),
   name: z.string(),

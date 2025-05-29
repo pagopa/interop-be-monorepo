@@ -14,8 +14,12 @@ import {
   EServiceDocumentId,
   EServiceId,
   unsafeBrandId,
+  emptyErrorMapper,
 } from "pagopa-interop-models";
-import { toEserviceCatalogProcessQueryParams } from "../api/catalogApiConverter.js";
+import {
+  toBffCatalogApiDescriptorDoc,
+  toEserviceCatalogProcessQueryParams,
+} from "../api/catalogApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/errors.js";
@@ -25,7 +29,6 @@ import {
   addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
   createEServiceDocumentErrorMapper,
-  emptyErrorMapper,
   exportEServiceDescriptorErrorMapper,
   importEServiceErrorMapper,
   getEServiceTemplateInstancesErrorMapper,
@@ -366,6 +369,33 @@ const catalogRouter = (
       }
     )
     .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.updateAgreementApprovalPolicy(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error updating agreementApprovalPolicy of descriptor ${
+              req.params.descriptorId
+            } on service ${req.params.eServiceId} with seed: ${JSON.stringify(
+              req.body
+            )}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/publish",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
@@ -531,7 +561,9 @@ const catalogRouter = (
             ctx
           );
 
-          return res.status(200).send(bffApi.EServiceDoc.parse(doc));
+          return res
+            .status(200)
+            .send(bffApi.EServiceDoc.parse(toBffCatalogApiDescriptorDoc(doc)));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

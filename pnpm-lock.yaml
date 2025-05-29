@@ -40,8 +40,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -176,6 +176,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
@@ -197,6 +200,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -219,15 +228,15 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -240,6 +249,9 @@ importers:
       puppeteer:
         specifier: 22.11.2
         version: 22.11.2(typescript@5.4.5)
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -392,6 +404,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -401,6 +416,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ssh2-sftp-client:
         specifier: 9.1.0
         version: 9.1.0
@@ -482,8 +503,8 @@ importers:
         specifier: 12.1.3
         version: 12.1.3
       openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
+        specifier: 1.18.3
+        version: 1.18.3
       openapi3-ts:
         specifier: 3.1.0
         version: 3.1.0
@@ -511,6 +532,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
@@ -526,6 +550,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -592,6 +622,58 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
 
+  packages/application-audit-fallback:
+    dependencies:
+      '@aws-sdk/client-sqs':
+        specifier: 3.693.0
+        version: 3.693.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
   packages/attribute-registry-process:
     dependencies:
       '@zodios/core':
@@ -609,15 +691,15 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -630,6 +712,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0
@@ -655,15 +743,27 @@ importers:
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
+      '@types/jsonwebtoken':
+        specifier: ^9.0.2
+        version: 9.0.6
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
+      jsonwebtoken:
+        specifier: 9.0.2
+        version: 9.0.2
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -865,15 +965,15 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -886,6 +986,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0
@@ -905,15 +1011,27 @@ importers:
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
+      '@types/jsonwebtoken':
+        specifier: ^9.0.2
+        version: 9.0.6
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
+      jsonwebtoken:
+        specifier: 9.0.2
+        version: 9.0.2
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       tsx:
         specifier: 4.19.1
         version: 4.19.1
@@ -956,12 +1074,12 @@ importers:
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
       pagopa-interop-client-assertion-validation:
         specifier: workspace:*
         version: link:../client-assertion-validation
@@ -1054,9 +1172,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -1188,8 +1303,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -1327,15 +1442,15 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -1348,6 +1463,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -1373,6 +1494,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       date-fns:
         specifier: 3.6.0
         version: 3.6.0
@@ -1385,6 +1509,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -1456,6 +1583,73 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
+  packages/catalog-readmodel-writer-sql:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
   packages/certified-email-sender:
     dependencies:
       '@protobuf-ts/runtime':
@@ -1479,6 +1673,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -1742,6 +1939,9 @@ importers:
       '@aws-sdk/client-sesv2':
         specifier: 3.693.0
         version: 3.693.0
+      '@aws-sdk/client-sqs':
+        specifier: 3.693.0
+        version: 3.693.0
       '@aws-sdk/s3-request-presigner':
         specifier: 3.693.0
         version: 3.693.0
@@ -1769,6 +1969,9 @@ importers:
       date-fns-tz:
         specifier: 3.1.3
         version: 3.1.3(date-fns@3.6.0)
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
@@ -1815,8 +2018,8 @@ importers:
         specifier: 5.2.0
         version: 5.2.0
       winston:
-        specifier: 3.13.0
-        version: 3.13.0
+        specifier: 3.16.0
+        version: 3.16.0
       yaml:
         specifier: 2.4.5
         version: 2.4.5
@@ -1858,6 +2061,9 @@ importers:
         specifier: 3.13.4
         version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
       '@aws-sdk/client-dynamodb':
+        specifier: 3.693.0
+        version: 3.693.0
+      '@aws-sdk/client-kms':
         specifier: 3.693.0
         version: 3.693.0
       '@aws-sdk/client-sesv2':
@@ -1987,6 +2193,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
@@ -1996,6 +2205,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -2129,8 +2344,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2195,15 +2410,15 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -2216,6 +2431,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -2241,6 +2462,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
@@ -2259,6 +2483,9 @@ importers:
       puppeteer:
         specifier: 22.11.2
         version: 22.11.2(typescript@5.4.5)
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -2324,7 +2551,7 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
-  packages/domains-analytics-writer:
+  packages/delegation-readmodel-writer-sql:
     dependencies:
       '@protobuf-ts/runtime':
         specifier: 2.9.4
@@ -2332,6 +2559,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2344,6 +2574,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -2357,6 +2590,85 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/domains-analytics-writer:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      drizzle-zod:
+        specifier: 0.7.1
+        version: 0.7.1(drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      p-retry:
+        specifier: 6.2.1
+        version: 6.2.1
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pg-promise:
+        specifier: 11.8.0
+        version: 11.8.0
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      camelcase-keys:
+        specifier: 9.1.3
+        version: 9.1.3
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2378,6 +2690,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
@@ -2393,6 +2708,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -2430,6 +2751,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2448,6 +2772,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -2461,9 +2791,6 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       prettier:
         specifier: 2.8.8
         version: 2.8.8
@@ -2538,8 +2865,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2607,15 +2934,15 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -2628,6 +2955,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -2733,6 +3066,70 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
+  packages/eservice-template-readmodel-writer-sql:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      date-fns:
+        specifier: 3.6.0
+        version: 3.6.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
   packages/event-migration:
     dependencies:
       connection-string:
@@ -2802,6 +3199,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -2814,6 +3214,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -2857,6 +3263,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -2866,6 +3275,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -3045,6 +3460,88 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
+  packages/m2m-gateway:
+    dependencies:
+      '@zodios/core':
+        specifier: 10.9.6
+        version: 10.9.6(axios@1.7.4)(zod@3.23.8)
+      '@zodios/express':
+        specifier: 10.6.1
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.7.4)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+      axios:
+        specifier: 1.7.4
+        version: 1.7.4
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      express:
+        specifier: 4.20.0
+        version: 4.20.0
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-application-audit:
+        specifier: workspace:*
+        version: link:../application-audit
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      qs:
+        specifier: 6.12.3
+        version: 6.12.3
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@anatine/zod-mock':
+        specifier: 3.13.4
+        version: 3.13.4(@faker-js/faker@8.4.1)(zod@3.23.8)
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/adm-zip':
+        specifier: 0.5.5
+        version: 0.5.5
+      '@types/express':
+        specifier: 4.17.21
+        version: 4.17.21
+      '@types/multer':
+        specifier: 1.4.11
+        version: 1.4.11
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/qs':
+        specifier: 6.9.15
+        version: 6.9.15
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
   packages/models:
     dependencies:
       '@protobuf-ts/plugin':
@@ -3093,6 +3590,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -3108,6 +3608,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -3270,6 +3773,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       nodemailer:
         specifier: 6.9.9
         version: 6.9.9
@@ -3279,6 +3785,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       zod:
         specifier: 3.23.8
         version: 3.23.8
@@ -3586,8 +4098,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -3722,6 +4234,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
@@ -3731,9 +4246,6 @@ importers:
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -3746,6 +4258,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       pg-promise:
         specifier: 11.8.0
         version: 11.8.0
@@ -3765,6 +4283,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       cpx2:
         specifier: 7.0.1
         version: 7.0.1
@@ -3777,6 +4298,9 @@ importers:
       puppeteer:
         specifier: 22.11.2
         version: 22.11.2(typescript@5.4.5)
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -3964,6 +4488,76 @@ importers:
         specifier: 1.6.0
         version: 1.6.0(@types/node@20.14.6)
 
+  packages/readmodel-checker:
+    dependencies:
+      '@types/lodash.isequal':
+        specifier: 4.5.8
+        version: 4.5.8
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      json-diff:
+        specifier: 1.0.6
+        version: 1.0.6
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pg:
+        specifier: 8.13.1
+        version: 8.13.1
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/json-diff':
+        specifier: 1.0.3
+        version: 1.0.3
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
+      lodash.isequal:
+        specifier: 4.5.0
+        version: 4.5.0
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      testcontainers:
+        specifier: 10.9.0
+        version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
   packages/readmodel-models:
     dependencies:
       dotenv:
@@ -4003,6 +4597,64 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
+
+  packages/selfcare-client-users-updater:
+    dependencies:
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
 
   packages/selfcare-onboarding-consumer:
     dependencies:
@@ -4056,8 +4708,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.5.4
-        version: 1.5.4
+        specifier: 1.6.1
+        version: 1.6.1
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -4131,15 +4783,15 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       express:
         specifier: 4.20.0
         version: 4.20.0
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
-      openapi-zod-client:
-        specifier: 1.18.1
-        version: 1.18.1
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -4152,6 +4804,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -4168,6 +4826,9 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      '@types/supertest':
+        specifier: 6.0.2
+        version: 6.0.2
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4177,6 +4838,9 @@ importers:
       prettier:
         specifier: 2.8.8
         version: 2.8.8
+      supertest:
+        specifier: 7.0.0
+        version: 7.0.0
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
@@ -4226,6 +4890,73 @@ importers:
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/tenant-readmodel-writer-sql:
+    dependencies:
+      '@protobuf-ts/runtime':
+        specifier: 2.9.4
+        version: 2.9.4
+      connection-string:
+        specifier: 4.4.0
+        version: 4.4.0
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 2.2.4
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pg:
+        specifier: 8.13.1
+        version: 8.13.1
+      ts-pattern:
+        specifier: 5.2.0
+        version: 5.2.0
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -4305,6 +5036,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       json-diff:
         specifier: 1.0.6
         version: 1.0.6
@@ -4314,6 +5048,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -4339,6 +5079,49 @@ importers:
       testcontainers:
         specifier: 10.9.0
         version: 10.9.0
+      tsx:
+        specifier: 4.19.1
+        version: 4.19.1
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
+      vitest:
+        specifier: 1.6.0
+        version: 1.6.0(@types/node@20.14.6)
+
+  packages/token-generation-readmodel-producer-id-updater:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.693.0
+        version: 3.693.0
+      '@aws-sdk/util-dynamodb':
+        specifier: 3.693.0
+        version: 3.693.0(@aws-sdk/client-dynamodb@3.693.0)
+      dotenv-flow:
+        specifier: 4.1.0
+        version: 4.1.0
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      zod:
+        specifier: 3.23.8
+        version: 3.23.8
+    devDependencies:
+      '@pagopa/eslint-config':
+        specifier: 3.0.0
+        version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      prettier:
+        specifier: 2.8.8
+        version: 2.8.8
       tsx:
         specifier: 4.19.1
         version: 4.19.1
@@ -5568,8 +6351,8 @@ packages:
   '@pagopa/eslint-config@3.0.0':
     resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
 
-  '@pagopa/interop-outbound-models@1.5.4':
-    resolution: {integrity: sha512-d1OyacycQWA6B9hTumig5AH8eJbo9NRu5B3fdjt7RRl+dFGa28FVdaR97nEDDvSJX5SX5LoTALhbp8dcwtZqaw==}
+  '@pagopa/interop-outbound-models@1.6.1':
+    resolution: {integrity: sha512-bNd8hggBqRynW9zzKqx0dMsFvdTTuZyk05JXQJxlc6rkoWQuucypoNkH5ygSvhu0cQwGEDNHWojdbGubJQApMQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -5782,19 +6565,12 @@ packages:
     resolution: {integrity: sha512-3zWGWCHI+FlJ5WJwx73Mw2llYR8aflVyZN5JhoqLxbdPZi6UyKSdCeXAWJw9ja22m6S6Tzz1KZ+kAaSwvydi0g==}
     engines: {node: '>=16.0.0'}
 
-  '@smithy/hash-node@3.0.3':
-    resolution: {integrity: sha512-2ctBXpPMG+B3BtWSGNnKELJ7SH9e4TNefJS0cd2eSkOOROeBnnVBnAy9LtJ8tY4vUEoe55N4CNPxzbWvR39iBw==}
-    engines: {node: '>=16.0.0'}
-
   '@smithy/hash-stream-node@3.1.9':
     resolution: {integrity: sha512-3XfHBjSP3oDWxLmlxnt+F+FqXpL3WlXs+XXaB6bV9Wo8BBu87fK1dSEsyH7Z4ZHRmwZ4g9lFMdf08m9hoX1iRA==}
     engines: {node: '>=16.0.0'}
 
   '@smithy/invalid-dependency@3.0.10':
     resolution: {integrity: sha512-Lp2L65vFi+cj0vFMu2obpPW69DU+6O5g3086lmI4XcnRCG8PxvpWC7XyaVwJCxsZFzueHjXnrOH/E0pl0zikfA==}
-
-  '@smithy/invalid-dependency@3.0.3':
-    resolution: {integrity: sha512-ID1eL/zpDULmHJbflb864k72/SNOZCADRc9i7Exq3RUNJw6raWUSlFEQ+3PX3EYs++bTxZB2dE9mEHTQLv61tw==}
 
   '@smithy/is-array-buffer@2.2.0':
     resolution: {integrity: sha512-GGP3O9QFD24uGeAXYUjwSTXARoqpZykHadOmA8G5vfJPK0/DC67qa//0qvqrJzL1xc8WQWX7/yc7fwudjPHPhA==}
@@ -6012,6 +6788,9 @@ packages:
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
 
+  '@types/cookiejar@2.1.5':
+    resolution: {integrity: sha512-he+DHOWReW0nghN24E1WUqM0efK4kI9oTqDm6XmK8ZPe2djZ90BSNdGnIyCLzCPw7/pogPlGbzI2wHGGmi4O/Q==}
+
   '@types/docker-modem@3.0.6':
     resolution: {integrity: sha512-yKpAGEuKRSS8wwx0joknWxsmLha78wNMe9R2S3UNsVOkZded8UqOrV8KoeDXoXsjndxwyF3eIhyClGbO1SEhEg==}
 
@@ -6057,6 +6836,9 @@ packages:
   '@types/lodash@4.17.6':
     resolution: {integrity: sha512-OpXEVoCKSS3lQqjx9GGGOapBeuW5eUboYHRlHP9urXPX25IKZ6AnP5ZRxtVf63iieUbsHxLn8NQ5Nlftc6yzAA==}
 
+  '@types/methods@1.1.4':
+    resolution: {integrity: sha512-ymXWVrDiCxTBE3+RIrrP533E70eA+9qu7zdWoHuOmGujkYtzf4HQF96b8nwHLqhuf4ykX61IGRIB38CC6/sImQ==}
+
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
 
@@ -6084,6 +6866,9 @@ packages:
   '@types/range-parser@1.2.7':
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
 
+  '@types/retry@0.12.2':
+    resolution: {integrity: sha512-XISRgDJ2Tc5q4TRqvgJtzsRkFYNJzZrhTdtMoGVBttwzzQJkPnS3WWTFc7kuDRoPtPakl+T+OfdEUjYJj7Jbow==}
+
   '@types/semver@7.5.8':
     resolution: {integrity: sha512-I8EUhyrgfLrcTkzV3TSsGyl1tSuPrEDzr0yd5m90UgNxQkyDXULk3b6MlQqTCpZpNtWe1K0hzclnZkTcLBe2UQ==}
 
@@ -6110,6 +6895,12 @@ packages:
 
   '@types/ssh2@1.15.0':
     resolution: {integrity: sha512-YcT8jP5F8NzWeevWvcyrrLB3zcneVjzYY9ZDSMAMboI+2zR1qYWFhwsyOFVzT7Jorn67vqxC0FRiw8YyG9P1ww==}
+
+  '@types/superagent@8.1.9':
+    resolution: {integrity: sha512-pTVjI73witn+9ILmoJdajHGW2jkSaOzhiFYF1Rd3EQ94kymLqB9PjD9ISg7WaALC7+dCHT0FGe9T2LktLq/3GQ==}
+
+  '@types/supertest@6.0.2':
+    resolution: {integrity: sha512-137ypx2lk/wTQbW6An6safu9hXmajAifU/s7szAHLN/FeIm5w7yR0Wkl9fdJMRSHwOn4HLAI0DaB2TOORuhPDg==}
 
   '@types/triple-beam@1.3.5':
     resolution: {integrity: sha512-6WaYesThRMCl19iryMYP7/x2OVgCtbIVflDGFpWnb9irXI3UjYE4AzmYuiUKY1AJstGijoY+MgUszMgRxIYTYw==}
@@ -6365,6 +7156,9 @@ packages:
     resolution: {integrity: sha512-bMxMKAjg13EBSVscxTaYA4mRc5t1UAXa2kXiGTNfZ079HIWXEkKmkgFrh/nJqamaLSrXO5H4WFFkPEaLJWbs3A==}
     engines: {node: '>= 0.4'}
 
+  asap@2.0.6:
+    resolution: {integrity: sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==}
+
   asn1@0.2.6:
     resolution: {integrity: sha512-ix/FxPn0MDjeyJ7i/yoHGFt/EX6LyNbxSEhPPXODPL+KB0VPk86UYfL0lMdy+KCnv+fmvIzySwaK5COwqVbWTQ==}
 
@@ -6470,6 +7264,7 @@ packages:
   bson@6.8.0:
     resolution: {integrity: sha512-iOJg8pr7wq2tg/zSlCCHMi3hMm5JTOxLTagf3zxhcenHsFp+c6uOs6K7W5UE7A4QIJGtqh/ZovFNMP4mOPJynQ==}
     engines: {node: '>=16.20.1'}
+    deprecated: a critical bug affecting only useBigInt64=true deserialization usage is fixed in bson@6.10.3
 
   buffer-crc32@0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
@@ -6513,6 +7308,14 @@ packages:
   callsites@3.1.0:
     resolution: {integrity: sha512-P8BjAsXvZS+VIDUI11hHCQEv74YT67YUi5JJFNWIqL235sBmjX4+qx9Muvls5ivyNENctx46xQLQ3aTuE7ssaQ==}
     engines: {node: '>=6'}
+
+  camelcase-keys@9.1.3:
+    resolution: {integrity: sha512-Rircqi9ch8AnZscQcsA1C47NFdaO3wukpmIRzYcDOrmvgt78hM/sj5pZhZNec2NM12uk5vTwRHZ4anGcrC4ZTg==}
+    engines: {node: '>=16'}
+
+  camelcase@8.0.0:
+    resolution: {integrity: sha512-8WB3Jcas3swSvjIeA2yvCJ+Miyz5l1ZmB6HFb9R1317dt9LCQoswg/BGrmAmkWVEszSrrg4RwmO46qIm2OEnSA==}
+    engines: {node: '>=16'}
 
   caniuse-lite@1.0.30001640:
     resolution: {integrity: sha512-lA4VMpW0PSUrFnkmVuEKBUovSWKhj7puyCg8StBChgu298N1AtuF1sKWEvfDuimSEDbhlb/KqPKC3fs1HbuQUA==}
@@ -6582,6 +7385,9 @@ packages:
     resolution: {integrity: sha512-B52sN2VNghyq5ofvUsqZjmk6YkihBX5vMSChmSK9v4ShjKf3Vk5Xcmgpw4o+iIgtrnM/u5FiMpz9VKb8lpBveA==}
     engines: {node: '>= 12.0.0'}
 
+  component-emitter@1.3.1:
+    resolution: {integrity: sha512-T0+barUSQRTUQASh8bx02dl+DhF54GtIDY13Y3m9oWTklKbb3Wv974meRpeZ3lp1JpLVECWWNHC4vaG2XHXouQ==}
+
   compress-commons@4.1.2:
     resolution: {integrity: sha512-D3uMHtGc/fcO1Gt1/L7i1e33VOvD4A9hfQLP+6ewd+BvG/gQ84Yh4oftEhAdjSMgBgwGL+jsppT7JYNpo6MHHg==}
     engines: {node: '>= 10'}
@@ -6624,6 +7430,9 @@ packages:
   cookie@0.6.0:
     resolution: {integrity: sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==}
     engines: {node: '>= 0.6'}
+
+  cookiejar@2.1.4:
+    resolution: {integrity: sha512-LDx6oHrK+PhzLKJU9j5S7/Y3jM/mUHvD/DeI1WQmJn652iPC5Y4TBzC9l+5OMOXlyTTA+SmVUPm0HQUwpD5Jqw==}
 
   core-util-is@1.0.3:
     resolution: {integrity: sha512-ZQBvi1DcpJ4GDqanjucZ2Hj3wEO5pZDS89BWbkcrvdxksJorwUDDZamX9ldFkp9aw2lmBDLgkObEA4DWNJ9FYQ==}
@@ -6785,6 +7594,9 @@ packages:
   devtools-protocol@0.0.1299070:
     resolution: {integrity: sha512-+qtL3eX50qsJ7c+qVyagqi7AWMoQCBGNfoyJZMwm/NSXVqLYbuitrWEEIzxfUmTNy7//Xe8yhMmQ+elj3uAqSg==}
 
+  dezalgo@1.0.4:
+    resolution: {integrity: sha512-rXSP0bf+5n0Qonsb+SVVfNfIsimO4HEtmnIpPHY8Q1UCzKlQrDMfdobr8nJOOsRgWCyMRqeSBQzmWUMq7zvVig==}
+
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -6926,6 +7738,12 @@ packages:
         optional: true
       sqlite3:
         optional: true
+
+  drizzle-zod@0.7.1:
+    resolution: {integrity: sha512-nZzALOdz44/AL2U005UlmMqaQ1qe5JfanvLujiTHiiT8+vZJTBFhj3pY4Vk+L6UWyKFfNmLhk602Hn4kCTynKQ==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
+      zod: '>=3.0.0'
 
   duplexer@0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
@@ -7246,6 +8064,9 @@ packages:
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
 
+  fast-safe-stringify@2.1.1:
+    resolution: {integrity: sha512-W+KJc2dmILlPplD/H4K9l9LcAHAfPtP6BY84uVLXQ6Evcz9Lcg33Y2z1IVblT6xdY54PXYVHEv+0Wpq8Io6zkA==}
+
   fast-xml-parser@4.2.5:
     resolution: {integrity: sha512-B9/wizE4WngqQftFPmdaMYlXoJlJOYxGQOanC77fq9k8+Z0v5dDSVh+3glErdIROP//s/jgb7ZuxKfB8nVyo0g==}
     hasBin: true
@@ -7311,6 +8132,9 @@ packages:
   form-data@4.0.0:
     resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
     engines: {node: '>= 6'}
+
+  formidable@3.5.2:
+    resolution: {integrity: sha512-Jqc1btCy3QzRbJaICGwKcBfGWuLADRerLzDqi2NwSt/UkXLsHJw2TVResiaoBufHVHy9aSgClOHCeJsSsFLTbg==}
 
   forwarded@0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
@@ -7484,6 +8308,10 @@ packages:
   heap@0.2.7:
     resolution: {integrity: sha512-2bsegYkkHO+h/9MGbn6KWcE45cHZgPANo5LXF7EvWdT0yT2EguSVO1nDgU5c8+ZOPwp2vMNa7YFsJhVcDR9Sdg==}
 
+  hexoid@2.0.0:
+    resolution: {integrity: sha512-qlspKUK7IlSQv2o+5I7yhUd7TxlOG2Vr5LTa3ve2XSNVKAL/n/u/7KLvKmFNimomDIKvZFXWHv0T12mv7rT8Aw==}
+    engines: {node: '>=8'}
+
   html2json@1.0.2:
     resolution: {integrity: sha512-tCdVt82U+/D1GCXFIoN5VfCzx767065EZJ5B8nStQUGSXU9PQ4L/0kFvF2of3Qsoe9HGaJni+lxOkqakfw0zpA==}
 
@@ -7604,6 +8432,10 @@ packages:
   is-negative-zero@2.0.3:
     resolution: {integrity: sha512-5KoIu2Ngpyek75jXodFvnafB6DJgr3u8uuK0LEZJjrU19DrMD3EVERaR8sjz8CCGgpZvxPl9SuE1GMVPFHx1mw==}
     engines: {node: '>= 0.4'}
+
+  is-network-error@1.1.0:
+    resolution: {integrity: sha512-tUdRRAnhT+OtCZR/LxZelH/C7QtjtFrTu5tXCA8pl55eTUElUHT+GPYV8MBMBvea/j+NxQqVt3LbWMRir7Gx9g==}
+    engines: {node: '>=16'}
 
   is-number-object@1.0.7:
     resolution: {integrity: sha512-k1U0IRzLMo7ZlYIfzRu23Oh6MiIFasgpb9X76eqfFZAqwH44UI4KTBvBYIZ1dSL9ZzChTB9ShHfLkR4pdW5krQ==}
@@ -7883,6 +8715,10 @@ packages:
   make-error@1.3.6:
     resolution: {integrity: sha512-s8UhlNe7vPKomQhC1qFelMokr/Sc3AgNbso3n74mVPA5LTZwkB9NlXf4XPamLxJE8h0gh73rM94xvwRT2CVInw==}
 
+  map-obj@5.0.0:
+    resolution: {integrity: sha512-2L3MIgJynYrZ3TYMriLDLWocz15okFakV6J12HXvMXDHui2x/zgChzg1u9mFFGbbGWE+GsLpQByt4POb9Or+uA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
   media-typer@0.3.0:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
     engines: {node: '>= 0.6'}
@@ -7923,6 +8759,11 @@ packages:
   mime@1.6.0:
     resolution: {integrity: sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==}
     engines: {node: '>=4'}
+    hasBin: true
+
+  mime@2.6.0:
+    resolution: {integrity: sha512-USPkMeET31rOMiarsBNIHZKLGgvKc/LrjofAnBlOttf5ajRvqiRA8QsenbcooctK6d6Ts6aqZXBA+XbkKthiQg==}
+    engines: {node: '>=4.0.0'}
     hasBin: true
 
   mime@4.0.4:
@@ -8140,8 +8981,8 @@ packages:
   openapi-types@12.1.3:
     resolution: {integrity: sha512-N4YtSYJqghVu4iek2ZUvcN/0aqH1kRDuNqzcycDxhOUpg7GdvLa2F3DgS6yBNhInhv2r/6I0Flkn7CqL8+nIcw==}
 
-  openapi-zod-client@1.18.1:
-    resolution: {integrity: sha512-L0GzU/7Sx9ugbWWoQwOJdKtyxr8ZnjxIK2RJP63//OkmKws2w7c5HSgS2bdNxPVCIp/eJuYk+CtaKfvCoJ08Yw==}
+  openapi-zod-client@1.18.3:
+    resolution: {integrity: sha512-10vYK7xo1yyZfcoRvYNGIsDeej1CG9k63u8dkjbGBlr+NHZMy2Iy2h9s11UWNKdj6XMDWbNOPp5gIy8YdpgPtQ==}
     hasBin: true
 
   openapi3-ts@3.1.0:
@@ -8166,6 +9007,10 @@ packages:
   p-map@6.0.0:
     resolution: {integrity: sha512-T8BatKGY+k5rU+Q/GTYgrEf2r4xRMevAN5mtXc2aPc4rS1j3s+vWTaO2Wag94neXuCAUAs8cxBL9EeB5EA6diw==}
     engines: {node: '>=16'}
+
+  p-retry@6.2.1:
+    resolution: {integrity: sha512-hEt02O4hUct5wtwg4H4KcWgDdm+l1bOaEy/hWzd8xtXB9BqxTWBBhb+2ImAtH4Cv4rPjV76xN3Zumqk3k3AhhQ==}
+    engines: {node: '>=16.17'}
 
   pac-proxy-agent@7.0.2:
     resolution: {integrity: sha512-BFi3vZnO9X5Qt6NRz7ZOaPja3ic0PhlsmCRYLOpN11+mWBCR6XJDqW5RF3j8jm4WGGQZtBA+bTfxYzeKW73eHg==}
@@ -8439,6 +9284,10 @@ packages:
   queue-tick@1.0.1:
     resolution: {integrity: sha512-kJt5qhMxoszgU/62PLP1CJytzd2NKetjSRnyuj31fDd3Rlcz3fzlFdFLD1SItunPwyqEOkca6GbV612BWfaBag==}
 
+  quick-lru@6.1.2:
+    resolution: {integrity: sha512-AAFUA5O1d83pIHEhJwWCq/RQcRukCkn/NSm2QsTEMle5f2hP0ChI2+3Xb051PZCkLryI/Ir1MVKviT2FIloaTQ==}
+    engines: {node: '>=12'}
+
   quote@0.4.0:
     resolution: {integrity: sha512-KHp3y3xDjuBhRx+tYKOgzPnVHMRlgpn2rU450GcU4PL24r1H6ls/hfPrxDwX2pvYMlwODHI2l8WwgoV69x5rUQ==}
 
@@ -8517,6 +9366,10 @@ packages:
 
   retry@0.12.0:
     resolution: {integrity: sha512-9LkiTwjUh6rT555DtE9rTX+BKByPfrMzEAtnlEtdEwr3Nkffwiihqe2bWADg+OQRjt9gl6ICdmB/ZFDCGAtSow==}
+    engines: {node: '>= 4'}
+
+  retry@0.13.1:
+    resolution: {integrity: sha512-XQBQ3I8W1Cge0Seh+6gjj03LbmRFWuoszgK9ooCpwYIrhhoO80pfq4cUkU5DkknwfOfFteRwlZ56PYOGYyFWdg==}
     engines: {node: '>= 4'}
 
   reusify@1.0.4:
@@ -8777,6 +9630,14 @@ packages:
   subarg@1.0.0:
     resolution: {integrity: sha512-RIrIdRY0X1xojthNcVtgT9sjpOGagEUKpZdgBUi054OEPFo282yg+zE+t1Rj3+RqKq2xStL7uUHhY+AjbC4BXg==}
 
+  superagent@9.0.2:
+    resolution: {integrity: sha512-xuW7dzkUpcJq7QnhOsnNUgtYp3xRwpt2F7abdRYIpCsAt0hhUqia0EdxyXZQQpNmGtsCzYHryaKSV3q3GJnq7w==}
+    engines: {node: '>=14.18.0'}
+
+  supertest@7.0.0:
+    resolution: {integrity: sha512-qlsr7fIC0lSddmA3tzojvzubYxvlGtzumcdHgPwbFWMISQwL22MhM2Y3LNt+6w9Yyx7559VW5ab70dgphm8qQA==}
+    engines: {node: '>=14.18.0'}
+
   supports-color@5.5.0:
     resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
     engines: {node: '>=4'}
@@ -8966,6 +9827,10 @@ packages:
   type-fest@3.13.1:
     resolution: {integrity: sha512-tLq3bSNx+xSpwvAJnzrK0Ep5CLNWjvFTOp71URMaAEWBfRb9nnJiBoUe0tF8bI4ZFO3omgBR6NvnbzVUT3Ly4g==}
     engines: {node: '>=14.16'}
+
+  type-fest@4.41.0:
+    resolution: {integrity: sha512-TeTSQ6H5YHvpqVwBRcnLDCBnDOHWYu7IvGbHT6N8AOymcr9PJGjc1GTtiWZTYg0NCgYwvnYWEkVChQAr9bjfwA==}
+    engines: {node: '>=16'}
 
   type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
@@ -9171,8 +10036,8 @@ packages:
     resolution: {integrity: sha512-ajBj65K5I7denzer2IYW6+2bNIVqLGDHqDw3Ow8Ohh+vdW+rv4MZ6eiDvHoKhfJFZ2auyN8byXieDDJ96ViONg==}
     engines: {node: '>= 12.0.0'}
 
-  winston@3.13.0:
-    resolution: {integrity: sha512-rwidmA1w3SE4j0E5MuIufFhyJPBDG7Nu71RkZor1p2+qHvJSZ9GYDA81AyleQcZbh/+V6HjeBdfnTZJm9rSeQQ==}
+  winston@3.16.0:
+    resolution: {integrity: sha512-xz7+cyGN5M+4CmmD4Npq1/4T+UZaz7HaeTlAruFUTjk79CNMq+P6H30vlE4z0qfqJ01VHYQwd7OZo03nYm/+lg==}
     engines: {node: '>= 12.0.0'}
 
   word-wrap@1.2.5:
@@ -9336,7 +10201,7 @@ snapshots:
   '@aws-crypto/sha256-js@4.0.0':
     dependencies:
       '@aws-crypto/util': 4.0.0
-      '@aws-sdk/types': 3.609.0
+      '@aws-sdk/types': 3.692.0
       tslib: 1.14.1
 
   '@aws-crypto/sha256-js@5.2.0':
@@ -9351,7 +10216,7 @@ snapshots:
 
   '@aws-crypto/util@4.0.0':
     dependencies:
-      '@aws-sdk/types': 3.609.0
+      '@aws-sdk/types': 3.692.0
       '@aws-sdk/util-utf8-browser': 3.259.0
       tslib: 1.14.1
 
@@ -9381,8 +10246,8 @@ snapshots:
       '@smithy/config-resolver': 3.0.12
       '@smithy/core': 2.5.4
       '@smithy/fetch-http-handler': 3.2.9
-      '@smithy/hash-node': 3.0.3
-      '@smithy/invalid-dependency': 3.0.3
+      '@smithy/hash-node': 3.0.10
+      '@smithy/invalid-dependency': 3.0.10
       '@smithy/middleware-content-length': 3.0.12
       '@smithy/middleware-endpoint': 3.2.4
       '@smithy/middleware-retry': 3.0.28
@@ -9679,8 +10544,8 @@ snapshots:
       '@smithy/config-resolver': 3.0.12
       '@smithy/core': 2.5.4
       '@smithy/fetch-http-handler': 3.2.9
-      '@smithy/hash-node': 3.0.3
-      '@smithy/invalid-dependency': 3.0.3
+      '@smithy/hash-node': 3.0.10
+      '@smithy/invalid-dependency': 3.0.10
       '@smithy/middleware-content-length': 3.0.12
       '@smithy/middleware-endpoint': 3.2.4
       '@smithy/middleware-retry': 3.0.28
@@ -9767,8 +10632,8 @@ snapshots:
       '@smithy/config-resolver': 3.0.12
       '@smithy/core': 2.5.4
       '@smithy/fetch-http-handler': 3.2.9
-      '@smithy/hash-node': 3.0.3
-      '@smithy/invalid-dependency': 3.0.3
+      '@smithy/hash-node': 3.0.10
+      '@smithy/invalid-dependency': 3.0.10
       '@smithy/middleware-content-length': 3.0.12
       '@smithy/middleware-endpoint': 3.2.4
       '@smithy/middleware-retry': 3.0.28
@@ -9855,8 +10720,8 @@ snapshots:
       '@smithy/config-resolver': 3.0.12
       '@smithy/core': 2.5.4
       '@smithy/fetch-http-handler': 3.2.9
-      '@smithy/hash-node': 3.0.3
-      '@smithy/invalid-dependency': 3.0.3
+      '@smithy/hash-node': 3.0.10
+      '@smithy/invalid-dependency': 3.0.10
       '@smithy/middleware-content-length': 3.0.12
       '@smithy/middleware-endpoint': 3.2.4
       '@smithy/middleware-retry': 3.0.28
@@ -11300,7 +12165,7 @@ snapshots:
       - tsutils
       - typescript
 
-  '@pagopa/interop-outbound-models@1.5.4':
+  '@pagopa/interop-outbound-models@1.6.1':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -11548,13 +12413,6 @@ snapshots:
       '@smithy/util-utf8': 3.0.0
       tslib: 2.6.3
 
-  '@smithy/hash-node@3.0.3':
-    dependencies:
-      '@smithy/types': 3.7.1
-      '@smithy/util-buffer-from': 3.0.0
-      '@smithy/util-utf8': 3.0.0
-      tslib: 2.6.3
-
   '@smithy/hash-stream-node@3.1.9':
     dependencies:
       '@smithy/types': 3.7.1
@@ -11562,11 +12420,6 @@ snapshots:
       tslib: 2.6.3
 
   '@smithy/invalid-dependency@3.0.10':
-    dependencies:
-      '@smithy/types': 3.7.1
-      tslib: 2.6.3
-
-  '@smithy/invalid-dependency@3.0.3':
     dependencies:
       '@smithy/types': 3.7.1
       tslib: 2.6.3
@@ -11886,6 +12739,8 @@ snapshots:
     dependencies:
       '@types/node': 20.14.6
 
+  '@types/cookiejar@2.1.5': {}
+
   '@types/docker-modem@3.0.6':
     dependencies:
       '@types/node': 20.14.6
@@ -11941,6 +12796,8 @@ snapshots:
 
   '@types/lodash@4.17.6': {}
 
+  '@types/methods@1.1.4': {}
+
   '@types/mime@1.3.5': {}
 
   '@types/multer@1.4.11':
@@ -11970,6 +12827,8 @@ snapshots:
   '@types/qs@6.9.15': {}
 
   '@types/range-parser@1.2.7': {}
+
+  '@types/retry@0.12.2': {}
 
   '@types/semver@7.5.8': {}
 
@@ -12006,6 +12865,18 @@ snapshots:
   '@types/ssh2@1.15.0':
     dependencies:
       '@types/node': 18.19.39
+
+  '@types/superagent@8.1.9':
+    dependencies:
+      '@types/cookiejar': 2.1.5
+      '@types/methods': 1.1.4
+      '@types/node': 20.14.6
+      form-data: 4.0.0
+
+  '@types/supertest@6.0.2':
+    dependencies:
+      '@types/methods': 1.1.4
+      '@types/superagent': 8.1.9
 
   '@types/triple-beam@1.3.5': {}
 
@@ -12339,6 +13210,8 @@ snapshots:
       is-array-buffer: 3.0.4
       is-shared-array-buffer: 1.0.3
 
+  asap@2.0.6: {}
+
   asn1@0.2.6:
     dependencies:
       safer-buffer: 2.1.2
@@ -12514,6 +13387,15 @@ snapshots:
 
   callsites@3.1.0: {}
 
+  camelcase-keys@9.1.3:
+    dependencies:
+      camelcase: 8.0.0
+      map-obj: 5.0.0
+      quick-lru: 6.1.2
+      type-fest: 4.41.0
+
+  camelcase@8.0.0: {}
+
   caniuse-lite@1.0.30001640: {}
 
   chai@4.4.1:
@@ -12524,7 +13406,7 @@ snapshots:
       get-func-name: 2.0.2
       loupe: 2.3.7
       pathval: 1.1.1
-      type-detect: 4.0.8
+      type-detect: 4.1.0
 
   chalk@2.4.2:
     dependencies:
@@ -12593,6 +13475,8 @@ snapshots:
 
   comment-parser@1.3.1: {}
 
+  component-emitter@1.3.1: {}
+
   compress-commons@4.1.2:
     dependencies:
       buffer-crc32: 0.2.13
@@ -12633,6 +13517,8 @@ snapshots:
   cookie-signature@1.0.6: {}
 
   cookie@0.6.0: {}
+
+  cookiejar@2.1.4: {}
 
   core-util-is@1.0.3: {}
 
@@ -12749,7 +13635,7 @@ snapshots:
 
   deep-eql@4.1.4:
     dependencies:
-      type-detect: 4.0.8
+      type-detect: 4.1.0
 
   deep-is@0.1.4: {}
 
@@ -12782,6 +13668,11 @@ snapshots:
   destroy@1.2.0: {}
 
   devtools-protocol@0.0.1299070: {}
+
+  dezalgo@1.0.4:
+    dependencies:
+      asap: 2.0.6
+      wrappy: 1.0.2
 
   diff-sequences@29.6.3: {}
 
@@ -12847,6 +13738,11 @@ snapshots:
     optionalDependencies:
       '@types/pg': 8.11.11
       pg: 8.13.1
+
+  drizzle-zod@0.7.1(drizzle-orm@0.39.3(@types/pg@8.11.11)(pg@8.13.1))(zod@3.23.8):
+    dependencies:
+      drizzle-orm: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
+      zod: 3.23.8
 
   duplexer@0.1.2: {}
 
@@ -13401,6 +14297,8 @@ snapshots:
 
   fast-levenshtein@2.0.6: {}
 
+  fast-safe-stringify@2.1.1: {}
+
   fast-xml-parser@4.2.5:
     dependencies:
       strnum: 1.0.5
@@ -13472,6 +14370,12 @@ snapshots:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       mime-types: 2.1.35
+
+  formidable@3.5.2:
+    dependencies:
+      dezalgo: 1.0.4
+      hexoid: 2.0.0
+      once: 1.4.0
 
   forwarded@0.2.0: {}
 
@@ -13658,6 +14562,8 @@ snapshots:
 
   heap@0.2.7: {}
 
+  hexoid@2.0.0: {}
+
   html2json@1.0.2: {}
 
   http-errors@2.0.0:
@@ -13774,6 +14680,8 @@ snapshots:
   is-map@2.0.3: {}
 
   is-negative-zero@2.0.3: {}
+
+  is-network-error@1.1.0: {}
 
   is-number-object@1.0.7:
     dependencies:
@@ -14042,6 +14950,8 @@ snapshots:
 
   make-error@1.3.6: {}
 
+  map-obj@5.0.0: {}
+
   media-typer@0.3.0: {}
 
   memory-pager@1.5.0: {}
@@ -14068,6 +14978,8 @@ snapshots:
       mime-db: 1.52.0
 
   mime@1.6.0: {}
+
+  mime@2.6.0: {}
 
   mime@4.0.4: {}
 
@@ -14260,7 +15172,7 @@ snapshots:
 
   openapi-types@12.1.3: {}
 
-  openapi-zod-client@1.18.1:
+  openapi-zod-client@1.18.3:
     dependencies:
       '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
@@ -14308,6 +15220,12 @@ snapshots:
       p-limit: 3.1.0
 
   p-map@6.0.0: {}
+
+  p-retry@6.2.1:
+    dependencies:
+      '@types/retry': 0.12.2
+      is-network-error: 1.1.0
+      retry: 0.13.1
 
   pac-proxy-agent@7.0.2:
     dependencies:
@@ -14595,6 +15513,8 @@ snapshots:
 
   queue-tick@1.0.1: {}
 
+  quick-lru@6.1.2: {}
+
   quote@0.4.0: {}
 
   randexp@0.5.3:
@@ -14688,6 +15608,8 @@ snapshots:
   ret@0.2.2: {}
 
   retry@0.12.0: {}
+
+  retry@0.13.1: {}
 
   reusify@1.0.4: {}
 
@@ -15015,6 +15937,27 @@ snapshots:
     dependencies:
       minimist: 1.2.8
 
+  superagent@9.0.2:
+    dependencies:
+      component-emitter: 1.3.1
+      cookiejar: 2.1.4
+      debug: 4.3.5
+      fast-safe-stringify: 2.1.1
+      form-data: 4.0.0
+      formidable: 3.5.2
+      methods: 1.1.2
+      mime: 2.6.0
+      qs: 6.12.3
+    transitivePeerDependencies:
+      - supports-color
+
+  supertest@7.0.0:
+    dependencies:
+      methods: 1.1.2
+      superagent: 9.0.2
+    transitivePeerDependencies:
+      - supports-color
+
   supports-color@5.5.0:
     dependencies:
       has-flag: 3.0.0
@@ -15218,6 +16161,8 @@ snapshots:
   type-fest@0.20.2: {}
 
   type-fest@3.13.1: {}
+
+  type-fest@4.41.0: {}
 
   type-is@1.6.18:
     dependencies:
@@ -15503,7 +16448,7 @@ snapshots:
       readable-stream: 3.6.2
       triple-beam: 1.4.1
 
-  winston@3.13.0:
+  winston@3.16.0:
     dependencies:
       '@colors/colors': 1.6.0
       '@dabh/diagnostics': 2.0.3

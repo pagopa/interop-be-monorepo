@@ -1,11 +1,10 @@
 import {
   AuthorizationEventEnvelopeV2,
-  ClientId,
   fromClientV2,
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { ReadModelService } from "./readModelService.js";
 
 export async function handleMessageV2(
@@ -14,13 +13,20 @@ export async function handleMessageV2(
 ): Promise<void> {
   await match(message)
     .with(
-      { type: "ClientAdded" },
-      { type: "ClientKeyAdded" },
-      { type: "ClientKeyDeleted" },
-      { type: "ClientUserAdded" },
-      { type: "ClientUserDeleted" },
-      { type: "ClientPurposeAdded" },
-      { type: "ClientPurposeRemoved" },
+      {
+        type: P.union(
+          "ClientAdded",
+          "ClientKeyAdded",
+          "ClientAdminSet",
+          "ClientKeyDeleted",
+          "ClientUserAdded",
+          "ClientUserDeleted",
+          "ClientAdminRoleRevoked",
+          "ClientAdminRemoved",
+          "ClientPurposeAdded",
+          "ClientPurposeRemoved"
+        ),
+      },
       async (message) => {
         const clientV2 = message.data.client;
 
@@ -38,19 +44,23 @@ export async function handleMessageV2(
     )
     .with({ type: "ClientDeleted" }, async (message) => {
       await readModelService.deleteClientById(
-        unsafeBrandId<ClientId>(message.data.clientId),
+        unsafeBrandId(message.data.clientId),
         message.version
       );
     })
     .with(
-      { type: "ProducerKeychainAdded" },
-      { type: "ProducerKeychainDeleted" },
-      { type: "ProducerKeychainKeyAdded" },
-      { type: "ProducerKeychainKeyDeleted" },
-      { type: "ProducerKeychainUserAdded" },
-      { type: "ProducerKeychainUserDeleted" },
-      { type: "ProducerKeychainEServiceAdded" },
-      { type: "ProducerKeychainEServiceRemoved" },
+      {
+        type: P.union(
+          "ProducerKeychainAdded",
+          "ProducerKeychainDeleted",
+          "ProducerKeychainKeyAdded",
+          "ProducerKeychainKeyDeleted",
+          "ProducerKeychainUserAdded",
+          "ProducerKeychainUserDeleted",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved"
+        ),
+      },
       () => Promise.resolve
     )
     .exhaustive();

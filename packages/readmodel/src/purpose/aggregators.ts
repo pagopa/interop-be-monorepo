@@ -2,6 +2,7 @@ import {
   DelegationId,
   genericInternalError,
   Purpose,
+  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeVersion,
   PurposeVersionDocument,
@@ -27,6 +28,7 @@ import {
   PurposeItemsSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregatePurposeArray = ({
   purposesSQL,
@@ -40,24 +42,46 @@ export const aggregatePurposeArray = ({
   riskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[];
   versionsSQL: PurposeVersionSQL[];
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
-}): Array<WithMetadata<Purpose>> =>
-  purposesSQL.map((purposeSQL) =>
-    aggregatePurpose({
-      purposeSQL,
-      riskAnalysisFormSQL: riskAnalysisFormsSQL.find(
-        (formSQL) => formSQL.purposeId === purposeSQL.id
-      ),
-      riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.filter(
-        (answerSQL) => answerSQL.purposeId === purposeSQL.id
-      ),
-      versionsSQL: versionsSQL.filter(
-        (versionSQL) => versionSQL.purposeId === purposeSQL.id
-      ),
-      versionDocumentsSQL: versionDocumentsSQL.filter(
-        (docSQL) => docSQL.purposeId === purposeSQL.id
-      ),
-    })
+}): Array<WithMetadata<Purpose>> => {
+  const riskAnalysisFormsSQLByPurposeId =
+    createPurposeSQLPropertyMap(riskAnalysisFormsSQL);
+  const riskAnalysisAnswersSQLByPurposeId = createPurposeSQLPropertyMap(
+    riskAnalysisAnswersSQL
   );
+  const versionsSQLByPurposeId = createPurposeSQLPropertyMap(versionsSQL);
+  const versionDocumentsSQLByPurposeId =
+    createPurposeSQLPropertyMap(versionDocumentsSQL);
+
+  return purposesSQL.map((purposeSQL) => {
+    const purposeId = unsafeBrandId<PurposeId>(purposeSQL.id);
+    return aggregatePurpose({
+      purposeSQL,
+      riskAnalysisFormSQL: riskAnalysisFormsSQLByPurposeId.get(purposeId)?.[0],
+      riskAnalysisAnswersSQL: riskAnalysisAnswersSQLByPurposeId.get(purposeId),
+      versionsSQL: versionsSQLByPurposeId.get(purposeId) || [],
+      versionDocumentsSQL: versionDocumentsSQLByPurposeId.get(purposeId) || [],
+    });
+  });
+};
+
+const createPurposeSQLPropertyMap = <
+  T extends
+    | PurposeRiskAnalysisFormSQL
+    | PurposeRiskAnalysisAnswerSQL
+    | PurposeVersionSQL
+    | PurposeVersionDocumentSQL
+>(
+  items: T[]
+): Map<PurposeId, T[]> =>
+  items.reduce((acc, item) => {
+    const purposeId = unsafeBrandId<PurposeId>(item.purposeId);
+    const values = acc.get(purposeId) || [];
+    // eslint-disable-next-line functional/immutable-data
+    values.push(item);
+    acc.set(purposeId, values);
+
+    return acc;
+  }, new Map<PurposeId, T[]>());
 
 export const aggregatePurpose = ({
   purposeSQL,
@@ -76,7 +100,7 @@ export const aggregatePurpose = ({
     PurposeVersionDocumentSQL
   > = versionDocumentsSQL.reduce(
     (acc: Map<PurposeVersionId, PurposeVersionDocumentSQL>, docSQL) => {
-      acc.set(unsafeBrandId<PurposeVersionId>(docSQL.purposeVersionId), docSQL);
+      acc.set(unsafeBrandId(docSQL.purposeVersionId), docSQL);
       return acc;
     },
     new Map()
@@ -249,6 +273,9 @@ export const toPurposeAggregator = (
     versionsSQL,
     versionDocumentsSQL,
   } = toPurposeAggregatorArray(queryRes);
+
+  throwIfMultiple(purposesSQL, "purpose");
+
   return {
     purposeSQL: purposesSQL[0],
     riskAnalysisFormSQL: riskAnalysisFormsSQL[0],
@@ -297,20 +324,32 @@ export const toPurposeAggregatorArray = (
     }
 
     const purposeRiskAnalysisFormSQL = row.purposeRiskAnalysisForm;
-
-    if (purposeRiskAnalysisFormSQL) {
-      if (!purposeRiskAnalysisFormIdSet.has(purposeRiskAnalysisFormSQL.id)) {
-        purposeRiskAnalysisFormIdSet.add(purposeRiskAnalysisFormSQL.id);
+    const purposeRiskAnalysisFormPK = purposeRiskAnalysisFormSQL
+      ? makeUniqueKey([
+          purposeRiskAnalysisFormSQL.id,
+          purposeRiskAnalysisFormSQL.purposeId,
+        ])
+      : undefined;
+    if (purposeRiskAnalysisFormSQL && purposeRiskAnalysisFormPK) {
+      if (!purposeRiskAnalysisFormIdSet.has(purposeRiskAnalysisFormPK)) {
+        purposeRiskAnalysisFormIdSet.add(purposeRiskAnalysisFormPK);
         // eslint-disable-next-line functional/immutable-data
         purposeRiskAnalysisFormsSQL.push(purposeRiskAnalysisFormSQL);
       }
 
       const purposeRiskAnalysisAnswerSQL = row.purposeRiskAnalysisAnswer;
+      const purposeRiskAnalysisAnswerPK = purposeRiskAnalysisAnswerSQL
+        ? makeUniqueKey([
+            purposeRiskAnalysisAnswerSQL.id,
+            purposeRiskAnalysisAnswerSQL.purposeId,
+          ])
+        : undefined;
       if (
         purposeRiskAnalysisAnswerSQL &&
-        !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerSQL.id)
+        purposeRiskAnalysisAnswerPK &&
+        !purposeRiskAnalysisAnswerIdSet.has(purposeRiskAnalysisAnswerPK)
       ) {
-        purposeRiskAnalysisAnswerIdSet.add(purposeRiskAnalysisAnswerSQL.id);
+        purposeRiskAnalysisAnswerIdSet.add(purposeRiskAnalysisAnswerPK);
         // eslint-disable-next-line functional/immutable-data
         purposeRiskAnalysisAnswersSQL.push(purposeRiskAnalysisAnswerSQL);
       }
@@ -325,11 +364,18 @@ export const toPurposeAggregatorArray = (
       }
 
       const purposeVersionDocumentSQL = row.purposeVersionDocument;
+      const purposeVersionDocumentPK = purposeVersionDocumentSQL
+        ? makeUniqueKey([
+            purposeVersionDocumentSQL.id,
+            purposeVersionDocumentSQL.purposeVersionId,
+          ])
+        : undefined;
       if (
         purposeVersionDocumentSQL &&
-        !purposeVersionDocumentIdSet.has(purposeVersionDocumentSQL.id)
+        purposeVersionDocumentPK &&
+        !purposeVersionDocumentIdSet.has(purposeVersionDocumentPK)
       ) {
-        purposeVersionDocumentIdSet.add(purposeVersionDocumentSQL.id);
+        purposeVersionDocumentIdSet.add(purposeVersionDocumentPK);
         // eslint-disable-next-line functional/immutable-data
         purposeVersionDocumentsSQL.push(purposeVersionDocumentSQL);
       }

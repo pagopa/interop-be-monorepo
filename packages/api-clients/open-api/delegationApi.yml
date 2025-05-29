@@ -282,6 +282,9 @@ paths:
         - delegation
       operationId: getDelegation
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Delegation retrieved
           content:
@@ -321,12 +324,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: contractId
           in: path
           description: The delegation contract id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: Delegation contract retrieved
@@ -369,6 +374,9 @@ paths:
         description: Payload for delegation creation
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Delegation created.
           content:
@@ -416,8 +424,15 @@ paths:
         - consumer
       operationId: approveConsumerDelegation
       responses:
-        "204":
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
           description: Delegation approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
         "400":
           description: Bad Request
           content:
@@ -472,8 +487,15 @@ paths:
         required: true
         description: Payload for delegation rejection
       responses:
-        "204":
-          description: Delegation reject
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
+          description: Delegation rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
         "400":
           description: Bad Request
           content:
@@ -494,12 +516,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Delegation not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
           content:
             application/json:
               schema:
@@ -570,6 +586,9 @@ paths:
         description: Payload for delegation creation
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Delegation created.
           content:
@@ -617,8 +636,15 @@ paths:
         - producer
       operationId: approveProducerDelegation
       responses:
-        "204":
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
           description: Delegation approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
         "400":
           description: Bad Request
           content:
@@ -673,8 +699,15 @@ paths:
         required: true
         description: Payload for delegation rejection
       responses:
-        "204":
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
           description: Delegation rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Delegation"
         "400":
           description: Bad Request
           content:
@@ -695,12 +728,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Delegation not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Conflict
           content:
             application/json:
               schema:
@@ -770,6 +797,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  headers:
+    MetadataVersionHeader:
+      description: The version number of the resource in the read model
+      schema:
+        type: integer
   parameters:
     CorrelationIdHeader:
       in: header
@@ -872,9 +904,6 @@ components:
           format: date-time
         rejectionReason:
           type: string
-        revokedAt:
-          type: string
-          format: date-time
         state:
           $ref: "#/components/schemas/DelegationState"
         kind:

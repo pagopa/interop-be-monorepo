@@ -1,4 +1,4 @@
-import { AuthData } from "pagopa-interop-commons";
+import { M2MAdminAuthData, UIAuthData } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementStamp,
@@ -10,7 +10,7 @@ import { P, match } from "ts-pattern";
 import { ActiveDelegations } from "../model/domain/models.js";
 
 export const createStamp = (
-  authData: AuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeDelegations: ActiveDelegations
 ): AgreementStamp => {
   const isProducerDelegate =

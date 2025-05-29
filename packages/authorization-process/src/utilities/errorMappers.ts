@@ -17,6 +17,7 @@ const {
 export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createConsumerClientErrorMapper = (
@@ -37,7 +38,7 @@ export const getClientsWithKeysErrorMapper = getClientsErrorMapper;
 export const deleteClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const removeClientUserErrorMapper = (
@@ -45,7 +46,7 @@ export const removeClientUserErrorMapper = (
 ): number =>
   match(error.code)
     .with("clientNotFound", "clientUserIdNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteClientKeyByIdErrorMapper = (
@@ -53,7 +54,12 @@ export const deleteClientKeyByIdErrorMapper = (
 ): number =>
   match(error.code)
     .with("clientNotFound", "clientKeyNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantNotAllowedOnClient",
+      "userNotAllowedToDeleteClientKey",
+      "userNotAllowedOnClient",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const removeClientPurposeErrorMapper = (
@@ -63,26 +69,44 @@ export const removeClientPurposeErrorMapper = (
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     // .with("purposeNotFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantNotAllowedOnClient",
+      "clientKindNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getClientUsersErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("organizationNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientUserErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
-      "organizationNotAllowedOnClient",
+      "tenantNotAllowedOnClient",
       "userWithoutSecurityPrivileges",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("clientUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const addClientAdminErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantNotAllowedOnClient",
+      "clientKindNotAllowed",
+      "userWithoutSecurityPrivileges",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("userAlreadyAssignedAsAdmin", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addClientPurposeErrorMapper = (
@@ -91,15 +115,16 @@ export const addClientPurposeErrorMapper = (
   match(error.code)
     .with("clientNotFound", "purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "noAgreementFoundInRequiredState",
-      "noPurposeVersionsFoundInRequiredState",
+      "noActiveOrSuspendedAgreementFound",
+      "noActiveOrSuspendedPurposeVersionFound",
       "eserviceNotDelegableForClientAccess",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("purposeAlreadyLinkedToClient", () => HTTP_STATUS_CONFLICT)
     .with(
-      "organizationNotAllowedOnClient",
-      "organizationNotAllowedOnPurpose",
+      "clientKindNotAllowed",
+      "tenantNotAllowedOnClient",
+      "tenantNotAllowedOnPurpose",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("purposeDelegationNotFound", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
@@ -109,7 +134,7 @@ export const getClientKeysErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "organizationNotAllowedOnClient",
+      "tenantNotAllowedOnClient",
       "securityUserNotMember",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -131,7 +156,7 @@ export const createKeyErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .with("keyAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .with(
-      "organizationNotAllowedOnClient",
+      "tenantNotAllowedOnClient",
       "userWithoutSecurityPrivileges",
       "userNotFound",
       () => HTTP_STATUS_FORBIDDEN
@@ -154,10 +179,7 @@ export const createProducerKeychainKeyErrorMapper = (
         "invalidKeyLength",
         () => HTTP_STATUS_BAD_REQUEST
       )
-      .with(
-        "organizationNotAllowedOnProducerKeychain",
-        () => HTTP_STATUS_FORBIDDEN
-      )
+      .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
       .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
   }
 
@@ -168,7 +190,7 @@ export const getClientKeyErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("clientNotFound", "clientKeyNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "organizationNotAllowedOnClient",
+      "tenantNotAllowedOnClient",
       "securityUserNotMember",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -196,10 +218,7 @@ export const deleteProducerKeychainErrorMapper = (
 ): number =>
   match(error.code)
     .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "organizationNotAllowedOnProducerKeychain",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getProducerKeychainUsersErrorMapper = (
@@ -207,10 +226,7 @@ export const getProducerKeychainUsersErrorMapper = (
 ): number =>
   match(error.code)
     .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "organizationNotAllowedOnProducerKeychain",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getProducerKeychainErrorMapper = (
@@ -225,7 +241,7 @@ export const addProducerKeychainUserErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "organizationNotAllowedOnProducerKeychain",
+      "tenantNotAllowedOnProducerKeychain",
       "userWithoutSecurityPrivileges",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -242,10 +258,7 @@ export const removeProducerKeychainUserErrorMapper = (
       "producerKeychainUserIdNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with(
-      "organizationNotAllowedOnProducerKeychain",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteProducerKeychainKeyByIdErrorMapper = (
@@ -259,7 +272,7 @@ export const deleteProducerKeychainKeyByIdErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
-      "organizationNotAllowedOnProducerKeychain",
+      "tenantNotAllowedOnProducerKeychain",
       "userWithoutSecurityPrivileges",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -270,10 +283,7 @@ export const getProducerKeychainKeysErrorMapper = (
 ): number =>
   match(error.code)
     .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "organizationNotAllowedOnProducerKeychain",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getProducerKeychainKeyErrorMapper = (
@@ -285,13 +295,10 @@ export const getProducerKeychainKeyErrorMapper = (
       "producerKeyNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with(
-      "organizationNotAllowedOnProducerKeychain",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const addPurposeKeychainEServiceErrorMapper = (
+export const addProducerKeychainEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -302,8 +309,8 @@ export const addPurposeKeychainEServiceErrorMapper = (
     )
     .with("eserviceAlreadyLinkedToProducerKeychain", () => HTTP_STATUS_CONFLICT)
     .with(
-      "organizationNotAllowedOnProducerKeychain",
-      "organizationNotAllowedOnEService",
+      "tenantNotAllowedOnProducerKeychain",
+      "tenantNotAllowedOnEService",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -314,8 +321,39 @@ export const removeProducerKeychainEServiceErrorMapper = (
   match(error.code)
     .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("eserviceNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalRemoveClientAdminErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("clientKindNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("clientAdminIdNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const removeClientAdminErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "organizationNotAllowedOnProducerKeychain",
+      "clientKindNotAllowed",
+      "tenantNotAllowedOnClient",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .with("clientAdminIdNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getJWKByKidErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("jwkNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getProducerJWKByKidErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("producerJwkNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

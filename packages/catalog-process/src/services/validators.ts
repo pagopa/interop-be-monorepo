@@ -1,8 +1,14 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  AuthData,
+  M2MAdminAuthData,
+  M2MAuthData,
   RiskAnalysisValidatedForm,
+  UIAuthData,
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  systemRole,
+  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -35,6 +41,7 @@ import {
   templateInstanceNotAllowed,
   eServiceNotAnInstance,
   inconsistentDailyCalls,
+  eserviceWithoutValidDescriptors,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -60,6 +67,13 @@ export function descriptorStatesNotAllowingDocumentOperations(
 export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.draft,
   descriptorState.waitingForApproval,
+];
+
+export const activeDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+  descriptorState.archived,
 ];
 
 export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
@@ -99,13 +113,9 @@ export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
-  authData: AuthData,
+  authData: UIAuthData | M2MAuthData,
   readModelService: ReadModelService
 ): Promise<void> {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
-
   // Search for active producer delegation
   const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
@@ -129,11 +139,8 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
 export function assertRequesterIsProducer(
   producerId: TenantId,
-  authData: AuthData
+  authData: UIAuthData | M2MAuthData
 ): void {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
   }
@@ -291,14 +298,14 @@ export function assertEServiceNotTemplateInstance(
 export function assertEServiceIsTemplateInstance(
   eservice: EService
 ): asserts eservice is EService & {
-  templateRef: NonNullable<EService["templateRef"]>;
+  templateId: EServiceTemplateId;
   descriptors: Array<
     Descriptor & {
       templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
     }
   >;
 } {
-  if (eservice.templateRef === undefined) {
+  if (eservice.templateId === undefined) {
     throw eServiceNotAnInstance(eservice.id);
   }
 }
@@ -319,4 +326,33 @@ export function assertDescriptorUpdatable(descriptor: Descriptor): void {
   if (!isDescriptorUpdatable(descriptor)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
+}
+
+export function assertEServiceUpdatable(eservice: EService): void {
+  const hasValidDescriptor = eservice.descriptors.some(isDescriptorUpdatable);
+  if (!hasValidDescriptor) {
+    throw eserviceWithoutValidDescriptors(eservice.id);
+  }
+}
+
+/**
+ * Checks if the user has the roles required to access inactive
+ * descriptors (i.e., DRAFT or WAITING_FOR_APPROVAL).
+ * NOT sufficient to access them; the request must also originate
+ * from the producer tenant or the delegate producer tenant.
+ */
+export function hasRoleToAccessInactiveDescriptors(
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): boolean {
+  return (
+    hasAtLeastOneUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
+  );
 }

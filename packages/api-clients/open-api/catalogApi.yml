@@ -137,6 +137,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServices"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -920,6 +926,69 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update agreement approval policy of published descriptor
+      operationId: updateAgreementApprovalPolicy
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceDescriptorAgreementApprovalPolicySeed"
+      responses:
+        "200":
+          description: EService descriptor updated.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -986,18 +1055,21 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
         - name: documentId
           in: path
           description: the document id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: EService document metadata retrieved
@@ -1909,12 +1981,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: E-Service document
         required: true
@@ -1960,18 +2034,21 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
         - name: documentId
           in: path
           description: the document id
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: A payload containing the possible document updatable fields
         required: true
@@ -2018,18 +2095,21 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
         - name: documentId
           in: path
           description: the document id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "204":
           description: Document deleted.
@@ -2199,10 +2279,6 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
     DescriptorSeedForEServiceCreation:
       required:
         - audience
@@ -2414,6 +2490,14 @@ components:
       required:
         - dailyCallsPerConsumer
         - dailyCallsTotal
+    UpdateEServiceDescriptorAgreementApprovalPolicySeed:
+      type: object
+      additionalProperties: false
+      properties:
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+      required:
+        - agreementApprovalPolicy
     CreateEServiceDescriptorDocumentSeed:
       required:
         - documentId
@@ -2573,20 +2657,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        templateRef:
-          $ref: "#/components/schemas/EServiceTemplateRef"
-          required: false
-    EServiceTemplateRef:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-      properties:
-        id:
+        templateId:
           type: string
           format: uuid
-        instanceLabel:
-          type: string
     EServiceTemplateVersionRef:
       type: object
       additionalProperties: false
@@ -3034,10 +3107,6 @@ components:
       type: object
       additionalProperties: false
       properties:
-        instanceLabel:
-          type: string
-          minLength: 5
-          maxLength: 60
         isSignalHubEnabled:
           type: boolean
         isConsumerDelegable:
