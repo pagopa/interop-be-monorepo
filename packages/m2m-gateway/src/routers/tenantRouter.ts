@@ -90,13 +90,17 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-        const tenant = await tenantService.addCertifiedAttribute(
+        const certifiedAttribute = await tenantService.addCertifiedAttribute(
           unsafeBrandId(req.params.tenantId),
           req.body,
           ctx
         );
 
-        return res.status(200).send(m2mGatewayApi.Tenant.parse(tenant));
+        return res
+          .status(200)
+          .send(
+            m2mGatewayApi.TenantCertifiedAttribute.parse(certifiedAttribute)
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -113,13 +117,18 @@ const tenantRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-          const tenant = await tenantService.revokeCertifiedAttribute(
-            unsafeBrandId(req.params.tenantId),
-            unsafeBrandId(req.params.attributeId),
-            ctx
-          );
+          const certifiedAttribute =
+            await tenantService.revokeCertifiedAttribute(
+              unsafeBrandId(req.params.tenantId),
+              unsafeBrandId(req.params.attributeId),
+              ctx
+            );
 
-          return res.status(200).send(m2mGatewayApi.Tenant.parse(tenant));
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApi.TenantCertifiedAttribute.parse(certifiedAttribute)
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

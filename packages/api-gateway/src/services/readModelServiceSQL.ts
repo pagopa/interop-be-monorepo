@@ -10,7 +10,10 @@ import {
   ClientJWKKeyReadModelService,
   ProducerJWKKeyReadModelService,
 } from "pagopa-interop-readmodel";
-import { clientJwkKeyInReadmodelClientJwkKey } from "pagopa-interop-readmodel-models";
+import {
+  clientJwkKeyInReadmodelClientJwkKey,
+  producerJwkKeyInReadmodelProducerJwkKey,
+} from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
@@ -26,7 +29,7 @@ export function readModelServiceBuilderSQL(
           eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
         ),
         producerJWKKeyReadModelService.getProducerJWKKeyByFilter(
-          eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kId)
         ),
       ]);
 

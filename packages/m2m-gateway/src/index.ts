@@ -4,7 +4,7 @@ import {
   startServer,
 } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
-import { RateLimiterMiddleware, createApp } from "./app.js";
+import { M2MGatewayServices, RateLimiterMiddleware, createApp } from "./app.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { agreementServiceBuilder } from "./services/agreementService.js";
 import { attributeServiceBuilder } from "./services/attributeService.js";
@@ -14,10 +14,11 @@ import { eserviceServiceBuilder } from "./services/eserviceService.js";
 import { eserviceTemplateServiceBuilder } from "./services/eserviceTemplateService.js";
 import { purposeServiceBuilder } from "./services/purposeService.js";
 import { tenantServiceBuilder } from "./services/tenantService.js";
+import { keyServiceBuilder } from "./services/keyService.js";
 
 const clients = getInteropBeClients();
 
-const services = {
+const services: M2MGatewayServices = {
   agreementService: agreementServiceBuilder(clients),
   attributeService: attributeServiceBuilder(clients),
   clientService: clientServiceBuilder(clients),
@@ -26,6 +27,7 @@ const services = {
   eserviceTemplateService: eserviceTemplateServiceBuilder(clients),
   purposeService: purposeServiceBuilder(clients),
   tenantService: tenantServiceBuilder(clients),
+  keyService: keyServiceBuilder(clients),
 };
 
 const redisRateLimiter = await initRedisRateLimiter({
