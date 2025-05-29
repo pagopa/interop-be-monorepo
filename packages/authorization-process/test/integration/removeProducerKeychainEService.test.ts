@@ -16,7 +16,7 @@ import {
 } from "pagopa-interop-models";
 import {
   producerKeychainNotFound,
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
   eserviceNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -116,7 +116,7 @@ describe("remove producer keychain e-service", () => {
       )
     ).rejects.toThrowError(eserviceNotFound(notExistingEServiceId));
   });
-  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
+  it("should throw tenantNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     const mockProducer1 = getMockTenant();
     const mockProducer2 = getMockTenant();
     const eserviceIdToRemove: EServiceId = generateId();
@@ -137,7 +137,7 @@ describe("remove producer keychain e-service", () => {
         getMockContext({ authData: getMockAuthData(mockProducer2.id) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnProducerKeychain(
+      tenantNotAllowedOnProducerKeychain(
         mockProducer2.id,
         mockProducerKeychain.id
       )

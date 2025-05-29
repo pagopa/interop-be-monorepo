@@ -11,8 +11,6 @@ import {
   RiskAnalysisValidationIssue,
   Logger,
   UIAuthData,
-  hasAtLeastOneUserRole,
-  userRole,
   M2MAuthData,
   M2MAdminAuthData,
 } from "pagopa-interop-commons";
@@ -109,6 +107,7 @@ import {
   versionStatesNotAllowingDocumentOperations,
   assertConsistentDailyCalls,
   assertPublishedEServiceTemplate,
+  hasRoleToAccessDraftTemplateVersions,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -1433,7 +1432,10 @@ export function eserviceTemplateServiceBuilder(
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EServiceTemplate>> {
       logger.info(
         `Getting EServices templates with name = ${filters.name}, ids = ${filters.eserviceTemplatesIds}, creators = ${filters.creatorsIds}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
@@ -1572,16 +1574,16 @@ export function eserviceTemplateServiceBuilder(
       {
         eServiceTemplateId,
         eServiceTemplateVersionId,
-        eServiceDocumentId,
+        documentId,
       }: {
         eServiceTemplateId: EServiceTemplateId;
         eServiceTemplateVersionId: EServiceTemplateVersionId;
-        eServiceDocumentId: EServiceDocumentId;
+        documentId: EServiceDocumentId;
       },
       { authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Document> {
       logger.info(
-        `Getting EService Document ${eServiceDocumentId.toString()} for EService Template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
+        `Getting EService Document ${documentId.toString()} for EService Template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
       );
 
       const eServiceTemplate = await retrieveEServiceTemplate(
@@ -1594,14 +1596,24 @@ export function eserviceTemplateServiceBuilder(
         eServiceTemplate.data
       );
 
-      if (version.state === eserviceTemplateVersionState.draft) {
-        assertRequesterEServiceTemplateCreator(
-          eServiceTemplate.data.creatorId,
-          authData
+      const checkedTemplate = applyVisibilityToEServiceTemplate(
+        eServiceTemplate.data,
+        authData
+      );
+
+      if (
+        !checkedTemplate.versions.find(
+          (v) => v.id === eServiceTemplateVersionId
+        )
+      ) {
+        throw eserviceTemplateDocumentNotFound(
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+          documentId
         );
       }
 
-      return retrieveDocument(eServiceTemplateId, version, eServiceDocumentId);
+      return retrieveDocument(eServiceTemplateId, version, documentId);
     },
     async updateDocument(
       eserviceTemplateId: EServiceTemplateId,
@@ -1784,30 +1796,26 @@ function applyVisibilityToEServiceTemplate(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): EServiceTemplate {
   if (
-    hasAtLeastOneUserRole(authData, [
-      userRole.ADMIN_ROLE,
-      userRole.API_ROLE,
-      userRole.SUPPORT_ROLE,
-    ]) &&
+    hasRoleToAccessDraftTemplateVersions(authData) &&
     authData.organizationId === eserviceTemplate.creatorId
   ) {
     return eserviceTemplate;
   }
 
-  const hasNoPublishedVersions = eserviceTemplate.versions.every(
-    (v) => v.state === eserviceTemplateVersionState.draft
+  const hasPublishedVersions = eserviceTemplate.versions.some(
+    (v) => v.state !== eserviceTemplateVersionState.draft
   );
 
-  if (hasNoPublishedVersions) {
-    throw eserviceTemplateNotFound(eserviceTemplate.id);
+  if (hasPublishedVersions) {
+    return {
+      ...eserviceTemplate,
+      versions: eserviceTemplate.versions.filter(
+        (v) => v.state !== eserviceTemplateVersionState.draft
+      ),
+    };
   }
 
-  return {
-    ...eserviceTemplate,
-    versions: eserviceTemplate.versions.filter(
-      (v) => v.state !== eserviceTemplateVersionState.draft
-    ),
-  };
+  throw eserviceTemplateNotFound(eserviceTemplate.id);
 }
 
 export async function cloneEServiceTemplateDocument({

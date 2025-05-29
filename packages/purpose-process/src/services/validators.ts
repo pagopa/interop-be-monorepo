@@ -334,7 +334,7 @@ const assertRequesterIsDelegateProducer = (
 
 export const assertRequesterCanActAsProducer = (
   eservice: Pick<EService, "producerId" | "id">,
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   activeProducerDelegation: Delegation | undefined
 ): void => {
   if (!activeProducerDelegation) {
