@@ -69,7 +69,7 @@ describe("POST /authorization-server/token.oauth2", () => {
     request(api)
       .post("/authorization-server/token.oauth2")
       .set("Content-Type", "application/x-www-form-urlencoded")
-      .send(new URLSearchParams(body as Record<string, string>).toString());
+      .send(body);
 
   beforeEach(() => {
     vi.restoreAllMocks();
