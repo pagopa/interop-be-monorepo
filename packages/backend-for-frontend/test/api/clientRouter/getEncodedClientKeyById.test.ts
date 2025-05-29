@@ -20,9 +20,13 @@ describe("API GET /clients/:clientId/encoded/keys/:keyId", () => {
     mockKey.encodedPem
   );
 
-  const makeRequest = async (token: string, clientId: string = mockClientId) =>
+  const makeRequest = async (
+    token: string,
+    clientId: ClientId = mockClientId,
+    keyId: string = mockKeyId
+  ) =>
     request(api)
-      .get(`${appBasePath}/clients/${clientId}/encoded/keys/${mockKeyId}`)
+      .get(`${appBasePath}/clients/${clientId}/encoded/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -44,7 +48,7 @@ describe("API GET /clients/:clientId/encoded/keys/:keyId", () => {
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as ClientId);
     expect(res.status).toBe(400);
   });
 });

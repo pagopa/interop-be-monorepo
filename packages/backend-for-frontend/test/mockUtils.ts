@@ -9,20 +9,24 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   AgreementId,
-  DelegationId,
   DescriptorId,
   EServiceId,
   EServiceTemplateId,
+  TenantId,
+  AttributeId,
+  ClientId,
+  DelegationId,
   generateId,
   PurposeId,
   PurposeVersionId,
-  TenantId,
 } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
 
-export const getMockBffApiDelegation = (): bffApi.Delegation => ({
+export const getMockBffApiDelegation = (): bffApi.Delegation & {
+  id: DelegationId;
+} => ({
   id: generateId(),
   eservice: generateMock(bffApi.DelegationEService.optional()),
   delegate: generateMock(bffApi.DelegationTenant),
@@ -50,7 +54,7 @@ export const getMockAttributeRegistryApiAttribute = (
   kind: attributeRegistryApi.AttributeKind = generateMock(
     attributeRegistryApi.AttributeKind
   )
-): attributeRegistryApi.Attribute => ({
+): attributeRegistryApi.Attribute & { id: AttributeId } => ({
   id: generateId(),
   code: generateMock(z.string().optional()),
   kind,
@@ -67,7 +71,7 @@ export const getMockBffApiCompactClient = (): bffApi.CompactClient => ({
   admin: generateMock(bffApi.CompactUser.optional()),
 });
 
-export const getMockBffApiClient = (): bffApi.Client => ({
+export const getMockBffApiClient = (): bffApi.Client & { id: ClientId } => ({
   id: generateId(),
   createdAt: new Date().toISOString(),
   consumer: generateMock(bffApi.CompactOrganization),

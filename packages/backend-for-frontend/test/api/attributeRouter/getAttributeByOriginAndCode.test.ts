@@ -18,9 +18,13 @@ describe("API GET /attributes/origin/:origin/code/:code", () => {
     mockAttributeRegistryApiAttribute
   );
 
-  const makeRequest = async (token: string, code: unknown = mockCode) =>
+  const makeRequest = async (
+    token: string,
+    origin: string = mockOrigin,
+    code: string = mockCode
+  ) =>
     request(api)
-      .get(`${appBasePath}/attributes/origin/${mockOrigin}/code/${code}`)
+      .get(`${appBasePath}/attributes/origin/${origin}/code/${code}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 

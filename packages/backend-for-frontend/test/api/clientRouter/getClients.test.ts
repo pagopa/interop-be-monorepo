@@ -10,27 +10,29 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCompactClient } from "../../mockUtils.js";
 
 describe("API GET /clients", () => {
-  const mockApiClient1 = getMockBffApiCompactClient();
-  const mockApiClient2 = getMockBffApiCompactClient();
-  const mockApiClient3 = getMockBffApiCompactClient();
+  const defaultQuery = {
+    offset: 0,
+    limit: 5,
+  };
   const mockApiClients: bffApi.CompactClients = {
-    results: [mockApiClient1, mockApiClient2, mockApiClient3],
+    results: [
+      getMockBffApiCompactClient(),
+      getMockBffApiCompactClient(),
+      getMockBffApiCompactClient(),
+    ],
     pagination: {
-      offset: 0,
-      limit: 10,
+      offset: defaultQuery.offset,
+      limit: defaultQuery.limit,
       totalCount: 3,
     },
   };
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (token: string, query: object = defaultQuery) =>
     request(api)
       .get(`${appBasePath}/clients`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit,
-      });
+      .query(query);
 
   beforeEach(() => {
     services.clientService.getClients = vi
@@ -47,7 +49,7 @@ describe("API GET /clients", () => {
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, { ...defaultQuery, limit: "invalid" });
     expect(res.status).toBe(400);
   });
 });

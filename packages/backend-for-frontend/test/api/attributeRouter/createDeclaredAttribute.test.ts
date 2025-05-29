@@ -14,17 +14,17 @@ import {
 
 describe("API POST /declaredAttributes", () => {
   const mockAttributeSeed = getMockBffApiAttributeSeed();
-  const mockAttribute: bffApi.Attribute = getMockBffApiAttribute("DECLARED");
+  const mockAttribute = getMockBffApiAttribute("DECLARED");
 
   const makeRequest = async (
     token: string,
-    payload: object = mockAttributeSeed
+    body: bffApi.AttributeSeed = mockAttributeSeed
   ) =>
     request(api)
       .post(`${appBasePath}/declaredAttributes`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(payload);
+      .send(body);
 
   beforeEach(() => {
     clients.attributeProcessClient.createDeclaredAttribute = vi
@@ -41,7 +41,10 @@ describe("API POST /declaredAttributes", () => {
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, { ...mockAttribute, kind: "invalid" });
+    const res = await makeRequest(token, {
+      ...mockAttribute,
+      kind: "invalid",
+    } as bffApi.AttributeSeed);
     expect(res.status).toBe(400);
   });
 });

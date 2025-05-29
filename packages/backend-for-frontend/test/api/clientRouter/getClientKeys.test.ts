@@ -11,24 +11,33 @@ import { getMockBffApiPublicKey } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/keys", () => {
   const mockClientId = generateId<ClientId>();
-  const mockApiPublicKey1 = getMockBffApiPublicKey();
-  const mockApiPublicKey2 = getMockBffApiPublicKey();
-  const mockApiPublicKey3 = getMockBffApiPublicKey();
+  const defaultQuery = {
+    offset: 0,
+    limit: 5,
+  };
   const mockApiPublicKeys: bffApi.PublicKeys = {
-    keys: [mockApiPublicKey1, mockApiPublicKey2, mockApiPublicKey3],
+    keys: [
+      getMockBffApiPublicKey(),
+      getMockBffApiPublicKey(),
+      getMockBffApiPublicKey(),
+    ],
     pagination: {
-      offset: 0,
-      limit: 10,
+      offset: defaultQuery.offset,
+      limit: defaultQuery.limit,
       totalCount: 3,
     },
   };
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (
+    token: string,
+    clientId: ClientId = mockClientId,
+    query: object = defaultQuery
+  ) =>
     request(api)
-      .get(`${appBasePath}/clients/${mockClientId}/keys`)
+      .get(`${appBasePath}/clients/${clientId}/keys`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit });
+      .query(query);
 
   beforeEach(() => {
     services.clientService.getClientKeys = vi
@@ -45,7 +54,7 @@ describe("API GET /clients/:clientId/keys", () => {
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as ClientId);
     expect(res.status).toBe(400);
   });
 });

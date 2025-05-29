@@ -17,6 +17,11 @@ describe("API GET /attributes", () => {
     getMockBffApiAttribute("VERIFIED");
   const mockAttribute3: attributeRegistryApi.Attribute =
     getMockBffApiAttribute("DECLARED");
+  const defaultQuery = {
+    offset: 0,
+    limit: 5,
+    kinds: ["CERTIFIED", "VERIFIED", "DECLARED"],
+  };
   const mockAttributes: attributeRegistryApi.Attributes = {
     results: [mockAttribute1, mockAttribute2, mockAttribute3],
     totalCount: 3,
@@ -24,22 +29,18 @@ describe("API GET /attributes", () => {
   const mockResponse: bffApi.Attributes = {
     results: mockAttributes.results.map(toCompactAttribute),
     pagination: {
-      offset: 0,
-      limit: 10,
+      offset: defaultQuery.offset,
+      limit: defaultQuery.limit,
       totalCount: mockAttributes.results.length,
     },
   };
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (token: string, query: object = defaultQuery) =>
     request(api)
       .get(`${appBasePath}/attributes`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit,
-        kinds: ["CERTIFIED", "VERIFIED", "DECLARED"],
-      });
+      .query(query);
 
   beforeEach(() => {
     clients.attributeProcessClient.getAttributes = vi
@@ -56,7 +57,7 @@ describe("API GET /attributes", () => {
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, { ...defaultQuery, limit: "invalid" });
     expect(res.status).toBe(400);
   });
 });

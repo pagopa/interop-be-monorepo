@@ -10,16 +10,20 @@ import { createClientApiClient } from "../../../../api-clients/dist/generated/au
 
 describe("API POST /clients/:clientId/users", () => {
   const mockClientId = generateId<ClientId>();
-  const mockPayload = {
+  const mockUserIds = {
     userIds: [generateId<UserId>()],
   };
 
-  const makeRequest = async (token: string, clientId: string = mockClientId) =>
+  const makeRequest = async (
+    token: string,
+    clientId: ClientId = mockClientId,
+    body: { userIds: UserId[] } = mockUserIds
+  ) =>
     request(api)
       .post(`${appBasePath}/clients/${clientId}/users`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(mockPayload);
+      .send(body);
 
   beforeEach(() => {
     clients.authorizationClient.client = {} as ReturnType<
@@ -38,7 +42,7 @@ describe("API POST /clients/:clientId/users", () => {
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as ClientId);
     expect(res.status).toBe(400);
   });
 });

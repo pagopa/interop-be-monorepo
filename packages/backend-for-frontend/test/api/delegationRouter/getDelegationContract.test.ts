@@ -18,12 +18,11 @@ describe("API GET /delegations/:delegationId/contracts/:contractId", () => {
 
   const makeRequest = async (
     token: string,
-    contractId: string = mockContractId
+    delegationId: DelegationId = mockDelegationId,
+    contractId: DelegationContractId = mockContractId
   ) =>
     request(api)
-      .get(
-        `${appBasePath}/delegations/${mockDelegationId}/contracts/${contractId}`
-      )
+      .get(`${appBasePath}/delegations/${delegationId}/contracts/${contractId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -42,7 +41,7 @@ describe("API GET /delegations/:delegationId/contracts/:contractId", () => {
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as DelegationId);
     expect(res.status).toBe(400);
   });
 });

@@ -12,7 +12,10 @@ describe("API DELETE /clients/:clientId/keys/:keyId", () => {
   const mockClientId = generateId<ClientId>();
   const mockKeyId = generateId();
 
-  const makeRequest = async (token: string, clientId: string = mockClientId) =>
+  const makeRequest = async (
+    token: string,
+    clientId: ClientId = mockClientId
+  ) =>
     request(api)
       .delete(`${appBasePath}/clients/${clientId}/keys/${mockKeyId}`)
       .set("Authorization", `Bearer ${token}`)
@@ -35,7 +38,7 @@ describe("API DELETE /clients/:clientId/keys/:keyId", () => {
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as ClientId);
     expect(res.status).toBe(400);
   });
 });

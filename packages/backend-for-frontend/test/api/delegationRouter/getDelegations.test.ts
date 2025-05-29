@@ -10,6 +10,10 @@ import { delegationNotFound } from "../../../src/model/errors.js";
 import { getMockBffApiCompactDelegation } from "../../mockUtils.js";
 
 describe("API GET /delegations", () => {
+  const defaultQuery = {
+    offset: 0,
+    limit: 5,
+  };
   const mockCompactDelegations = {
     results: [
       getMockBffApiCompactDelegation(),
@@ -17,18 +21,18 @@ describe("API GET /delegations", () => {
       getMockBffApiCompactDelegation(),
     ],
     pagination: {
-      offset: 0,
-      limit: 10,
+      offset: defaultQuery.offset,
+      limit: defaultQuery.limit,
       totalCount: 3,
     },
   };
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (token: string, query: object = defaultQuery) =>
     request(api)
       .get(`${appBasePath}/delegations`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit });
+      .query(query);
 
   beforeEach(() => {
     services.delegationService.getDelegations = vi
@@ -54,7 +58,7 @@ describe("API GET /delegations", () => {
 
   it("Should return 400 if passed an invalid purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, { ...defaultQuery, limit: "invalid" });
     expect(res.status).toBe(400);
   });
 });
