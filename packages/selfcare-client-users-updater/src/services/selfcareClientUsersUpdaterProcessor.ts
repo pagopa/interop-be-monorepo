@@ -11,6 +11,7 @@ import {
   genericInternalError,
   UserId,
   unsafeBrandId,
+  SelfcareId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
@@ -58,7 +59,7 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
         // Note: doing this before parsing to avoid errors on messages of other products
         if (jsonPayload.productId !== productId) {
           loggerInstance.info(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.product}`
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.productId}`
           );
           return;
         }
@@ -81,16 +82,33 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
               },
             },
             async (payload) => {
-              const eventUserId = payload.user.userId;
+              const eventUserId = unsafeBrandId<UserId>(payload.user.userId);
+              const selfcareId = unsafeBrandId<SelfcareId>(
+                payload.institutionId
+              );
               const token = (await refreshableToken.get()).serialized;
+              const tenantId = await readModelService.getTenantIdBySelfcareId(
+                selfcareId
+              );
+
+              if (!tenantId) {
+                loggerInstance.warn(
+                  `Skipping message for partition ${partition} with offset ${message.offset} - Tenant not found for selfcareId: ${selfcareId}`
+                );
+                return;
+              }
+
               const clients = await readModelService.getClients({
-                consumerId: unsafeBrandId(userEventPayload.institutionId),
-                adminId: unsafeBrandId<UserId>(eventUserId),
+                consumerId: tenantId,
+                adminId: eventUserId,
               });
 
               await Promise.all(
-                clients.map(async (client) =>
-                  authorizationProcessClient.client.internalRemoveClientAdmin(
+                clients.map(async (client) => {
+                  loggerInstance.info(
+                    `Removing admin ${eventUserId} from client ${client.id}`
+                  );
+                  return authorizationProcessClient.client.internalRemoveClientAdmin(
                     undefined,
                     {
                       params: {
@@ -102,12 +120,12 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
                         correlationId,
                       }),
                     }
-                  )
-                )
+                  );
+                })
               );
 
               loggerInstance.info(
-                `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${userEventPayload.institutionId}`
+                `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${selfcareId}`
               );
             }
           )
