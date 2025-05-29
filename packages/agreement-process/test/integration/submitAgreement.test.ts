@@ -28,6 +28,7 @@ import {
   getMockAuthData,
   randomArrayItem,
   randomBoolean,
+  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -68,7 +69,7 @@ import {
   descriptorNotInExpectedState,
   eServiceNotFound,
   notLatestEServiceDescriptor,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
@@ -208,7 +209,7 @@ describe("submit agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an organizationIsNotTheDelegateConsumer error when requester is not Consumer or Delegate Consumer", async () => {
+  it("should throw an tenantIsNotTheDelegateConsumer error when requester is not Consumer or Delegate Consumer", async () => {
     const agreement = {
       ...getMockAgreement(),
       state: agreementState.draft,
@@ -234,14 +235,14 @@ describe("submit agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
+      tenantIsNotTheDelegateConsumer(
         authData.organizationId,
         consumerDelegation.id
       )
     );
   });
 
-  it("should throw organizationIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw tenantIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const agreement = {
       ...getMockAgreement(),
       state: agreementState.draft,
@@ -267,7 +268,7 @@ describe("submit agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
+      tenantIsNotTheDelegateConsumer(
         authData.organizationId,
         consumerDelegation.id
       )
@@ -1026,7 +1027,7 @@ describe("submit agreement", () => {
         nonArchivableRelatedAgreement,
       } = await addRelatedAgreements(agreement);
 
-      const submittedAgreement = await agreementService.submitAgreement(
+      const agreementSubmitReponse = await agreementService.submitAgreement(
         agreement.id,
         {
           consumerNotes: consumerNotesText,
@@ -1040,7 +1041,7 @@ describe("submit agreement", () => {
         type: "AgreementActivated",
         event_version: 2,
         version: "1",
-        stream_id: submittedAgreement.id,
+        stream_id: agreementSubmitReponse.data.id,
       });
 
       const actualAgreement: AgreementV2 = decodeProtobufPayload({
@@ -1058,9 +1059,9 @@ describe("submit agreement", () => {
       // TODO verify if this logic is correct: we have a resulting agreement
       // in state ACTIVE but with contract undefined and no attributes.
       // https://pagopa.atlassian.net/browse/IMN-623
-      expect(submittedAgreement.contract).not.toBeDefined();
+      expect(agreementSubmitReponse.data.contract).not.toBeDefined();
 
-      const expectedAgreement = {
+      const expectedAgreement: Agreement = {
         ...agreement,
         state: agreementState.active,
         consumerNotes: consumerNotesText,
@@ -1069,19 +1070,22 @@ describe("submit agreement", () => {
           ...agreement.stamps,
           submission: {
             who: authData.userId,
-            when: submittedAgreement.stamps?.submission?.when,
+            when: agreementSubmitReponse.data.stamps?.submission?.when as Date,
             delegationId: consumerDelegation?.id,
           },
           activation: {
             who: authData.userId,
-            when: submittedAgreement.stamps?.activation?.when,
+            when: agreementSubmitReponse.data.stamps?.activation?.when as Date,
             delegationId: consumerDelegation?.id,
           },
         },
       };
 
       expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
-      expect(submittedAgreement).toEqual(expectedAgreement);
+      expect(sortAgreement(agreementSubmitReponse)).toEqual({
+        data: sortAgreement(expectedAgreement),
+        metadata: { version: 1 },
+      });
 
       await testRelatedAgreementsArchiviation({
         archivableRelatedAgreement1,
@@ -1206,20 +1210,23 @@ describe("submit agreement", () => {
             delegateConsumer,
           });
 
-          const submittedAgreement = await agreementService.submitAgreement(
-            agreement.id,
-            {
-              consumerNotes: consumerNotesText,
-            },
-            getMockContext({ authData })
-          );
+          const submitAgreementResponse =
+            await agreementService.submitAgreement(
+              agreement.id,
+              {
+                consumerNotes: consumerNotesText,
+              },
+              getMockContext({ authData })
+            );
 
           const uploadedFiles = await fileManager.listFiles(
             config.s3Bucket,
             genericLogger
           );
 
-          expect(uploadedFiles[0]).toEqual(submittedAgreement.contract?.path);
+          expect(uploadedFiles[0]).toEqual(
+            submitAgreementResponse.data.contract?.path
+          );
 
           const actualAgreementData = await readLastAgreementEvent(
             agreement.id
@@ -1229,7 +1236,7 @@ describe("submit agreement", () => {
             type: "AgreementActivated",
             event_version: 2,
             version: "1",
-            stream_id: submittedAgreement.id,
+            stream_id: submitAgreementResponse.data.id,
           });
 
           const actualAgreement: AgreementV2 | undefined =
@@ -1238,8 +1245,9 @@ describe("submit agreement", () => {
               payload: actualAgreementData.data,
             }).agreement!;
 
-          const contractDocumentId = submittedAgreement.contract!.id;
-          const contractCreatedAt = submittedAgreement.contract!.createdAt;
+          const contractDocumentId = submitAgreementResponse.data.contract!.id;
+          const contractCreatedAt =
+            submitAgreementResponse.data.contract!.createdAt;
           const contractDocumentName = `${producerAndConsumer.id}_${
             producerAndConsumer.id
           }_${formatDateyyyyMMddHHmmss(
@@ -1280,12 +1288,12 @@ describe("submit agreement", () => {
               ...agreement.stamps,
               submission: {
                 who: authData.userId,
-                when: submittedAgreement.stamps?.submission?.when,
+                when: submitAgreementResponse.data.stamps?.submission?.when,
                 delegationId: consumerDelegation?.id,
               },
               activation: {
                 who: authData.userId,
-                when: submittedAgreement.stamps?.activation?.when,
+                when: submitAgreementResponse.data.stamps?.activation?.when,
                 delegationId: consumerDelegation?.id,
               },
             },
@@ -1381,7 +1389,10 @@ describe("submit agreement", () => {
           ).toContain(expectedContract.path);
 
           expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
-          expect(submittedAgreement).toEqual(expectedAgreement);
+          expect(submitAgreementResponse).toEqual({
+            data: expectedAgreement,
+            metadata: { version: 1 },
+          });
         }
       );
     }
@@ -1459,7 +1470,7 @@ describe("submit agreement", () => {
         nonArchivableRelatedAgreement,
       } = await addRelatedAgreements(agreement);
 
-      const submittedAgreement = await agreementService.submitAgreement(
+      const submitAgreementResponse = await agreementService.submitAgreement(
         agreement.id,
         {
           consumerNotes: consumerNotesText,
@@ -1473,7 +1484,7 @@ describe("submit agreement", () => {
         type: "AgreementActivated",
         event_version: 2,
         version: "1",
-        stream_id: submittedAgreement.id,
+        stream_id: submitAgreementResponse.data.id,
       });
 
       const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
@@ -1491,7 +1502,7 @@ describe("submit agreement", () => {
       // TODO verify if this logic is correct: we have a resulting agreement
       // in state ACTIVE but with contract undefined and no attributes.
       // https://pagopa.atlassian.net/browse/IMN-623
-      expect(submittedAgreement.contract).not.toBeDefined();
+      expect(submitAgreementResponse.data.contract).not.toBeDefined();
 
       const expectedAgreement = {
         ...agreement,
@@ -1505,19 +1516,22 @@ describe("submit agreement", () => {
           ...agreement.stamps,
           submission: {
             who: authData.userId,
-            when: submittedAgreement.stamps?.submission?.when,
+            when: submitAgreementResponse.data.stamps?.submission?.when,
             delegationId: consumerDelegation?.id,
           },
           activation: {
             who: authData.userId,
-            when: submittedAgreement.stamps?.activation?.when,
+            when: submitAgreementResponse.data.stamps?.activation?.when,
             delegationId: consumerDelegation?.id,
           },
         },
       };
 
       expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
-      expect(submittedAgreement).toEqual(expectedAgreement);
+      expect(submitAgreementResponse).toEqual({
+        data: expectedAgreement,
+        metadata: { version: 1 },
+      });
 
       await testRelatedAgreementsArchiviation({
         archivableRelatedAgreement1,
@@ -1650,20 +1664,23 @@ describe("submit agreement", () => {
             delegateConsumer,
           });
 
-          const submittedAgreement = await agreementService.submitAgreement(
-            agreement.id,
-            {
-              consumerNotes: consumerNotesText,
-            },
-            getMockContext({ authData })
-          );
+          const submitAgreementResponse =
+            await agreementService.submitAgreement(
+              agreement.id,
+              {
+                consumerNotes: consumerNotesText,
+              },
+              getMockContext({ authData })
+            );
 
           const uploadedFiles = await fileManager.listFiles(
             config.s3Bucket,
             genericLogger
           );
 
-          expect(uploadedFiles[0]).toEqual(submittedAgreement.contract?.path);
+          expect(uploadedFiles[0]).toEqual(
+            submitAgreementResponse.data.contract?.path
+          );
 
           const actualAgreementData = await readLastAgreementEvent(
             agreement.id
@@ -1673,7 +1690,7 @@ describe("submit agreement", () => {
             type: "AgreementActivated",
             event_version: 2,
             version: "1",
-            stream_id: submittedAgreement.id,
+            stream_id: submitAgreementResponse.data.id,
           });
 
           const actualAgreement: AgreementV2 | undefined =
@@ -1682,8 +1699,9 @@ describe("submit agreement", () => {
               payload: actualAgreementData.data,
             }).agreement!;
 
-          const contractDocumentId = submittedAgreement.contract!.id;
-          const contractCreatedAt = submittedAgreement.contract!.createdAt;
+          const contractDocumentId = submitAgreementResponse.data.contract!.id;
+          const contractCreatedAt =
+            submitAgreementResponse.data.contract!.createdAt;
           const contractDocumentName = `${consumer.id}_${
             producer.id
           }_${formatDateyyyyMMddHHmmss(
@@ -1724,12 +1742,12 @@ describe("submit agreement", () => {
               ...agreement.stamps,
               submission: {
                 who: authData.userId,
-                when: submittedAgreement.stamps?.submission?.when,
+                when: submitAgreementResponse.data.stamps?.submission?.when,
                 delegationId: consumerDelegation?.id,
               },
               activation: {
                 who: authData.userId,
-                when: submittedAgreement.stamps?.activation?.when,
+                when: submitAgreementResponse.data.stamps?.activation?.when,
                 delegationId: consumerDelegation?.id,
               },
             },
@@ -1740,7 +1758,10 @@ describe("submit agreement", () => {
           ).toContain(expectedContract.path);
 
           expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
-          expect(submittedAgreement).toEqual(expectedAgreement);
+          expect(submitAgreementResponse).toEqual({
+            data: expectedAgreement,
+            metadata: { version: 1 },
+          });
 
           const getIpaCode = (tenant: Tenant): string | undefined =>
             tenant.externalId.origin === PUBLIC_ADMINISTRATIONS_IDENTIFIER
@@ -1928,7 +1949,7 @@ describe("submit agreement", () => {
         delegateConsumer,
       });
 
-      const submittedAgreement = await agreementService.submitAgreement(
+      const submitAgreementResponse = await agreementService.submitAgreement(
         agreement.id,
         {
           consumerNotes: consumerNotesText,
@@ -1943,7 +1964,7 @@ describe("submit agreement", () => {
         type: "AgreementSubmitted",
         event_version: 2,
         version: "1",
-        stream_id: submittedAgreement.id,
+        stream_id: submitAgreementResponse.data.id,
       });
 
       const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
@@ -1958,7 +1979,7 @@ describe("submit agreement", () => {
 
       expect(uploadedFiles.length).toEqual(0);
 
-      expect(submittedAgreement.contract).not.toBeDefined();
+      expect(submitAgreementResponse.data.contract).not.toBeDefined();
 
       const expectedAgreement = {
         ...agreement,
@@ -1972,14 +1993,17 @@ describe("submit agreement", () => {
           ...agreement.stamps,
           submission: {
             who: authData.userId,
-            when: submittedAgreement.stamps?.submission?.when,
+            when: submitAgreementResponse.data.stamps?.submission?.when,
             delegationId: consumerDelegation?.id,
           },
         },
       };
 
       expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
-      expect(submittedAgreement).toEqual(expectedAgreement);
+      expect(submitAgreementResponse).toEqual({
+        data: expectedAgreement,
+        metadata: { version: 1 },
+      });
     }
   );
 
@@ -2080,7 +2104,7 @@ describe("submit agreement", () => {
         delegateConsumer,
       });
 
-      const submittedAgreement = await agreementService.submitAgreement(
+      const submitAgreementResponse = await agreementService.submitAgreement(
         agreement.id,
         {
           consumerNotes: consumerNotesText,
@@ -2094,7 +2118,7 @@ describe("submit agreement", () => {
         type: "AgreementSubmitted",
         event_version: 2,
         version: "1",
-        stream_id: submittedAgreement.id,
+        stream_id: submitAgreementResponse.data.id,
       });
 
       const actualAgreement: AgreementV2 | undefined = decodeProtobufPayload({
@@ -2107,7 +2131,7 @@ describe("submit agreement", () => {
         genericLogger
       );
 
-      expect(submittedAgreement.contract).not.toBeDefined();
+      expect(submitAgreementResponse.data.contract).not.toBeDefined();
       expect(uploadedFiles.length).toEqual(0);
 
       const expectedAgreement = {
@@ -2122,14 +2146,17 @@ describe("submit agreement", () => {
           ...agreement.stamps,
           submission: {
             who: authData.userId,
-            when: submittedAgreement.stamps?.submission?.when,
+            when: submitAgreementResponse.data.stamps?.submission?.when,
             delegationId: consumerDelegation?.id,
           },
         },
       };
 
       expect(fromAgreementV2(actualAgreement)).toEqual(expectedAgreement);
-      expect(submittedAgreement).toEqual(expectedAgreement);
+      expect(submitAgreementResponse).toEqual({
+        data: expectedAgreement,
+        metadata: { version: 1 },
+      });
     }
   );
 });

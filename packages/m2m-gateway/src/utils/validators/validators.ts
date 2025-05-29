@@ -9,3 +9,11 @@ export function assertMetadataExists<T>(
     throw missingMetadata();
   }
 }
+
+export function assertTargetMetadataExists(
+  metadata: { version: number } | undefined
+): asserts metadata is { version: number } {
+  if (metadata === undefined) {
+    throw missingMetadata();
+  }
+}

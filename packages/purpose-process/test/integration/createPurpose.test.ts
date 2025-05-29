@@ -27,6 +27,7 @@ import {
   getMockValidRiskAnalysisForm,
   decodeProtobufPayload,
   getMockAgreement,
+  getMockEService,
   getMockTenant,
   getMockPurpose,
   getMockDescriptor,
@@ -53,7 +54,7 @@ import {
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
-import { buildRiskAnalysisFormSeed, getMockEService } from "../mockUtils.js";
+import { buildRiskAnalysisFormSeed, getMockPurposeSeed } from "../mockUtils.js";
 
 describe("createPurpose", () => {
   const tenant: Tenant = {
@@ -81,16 +82,11 @@ describe("createPurpose", () => {
 
   const mockValidRiskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
 
-  const purposeSeed: purposeApi.PurposeSeed = {
-    eserviceId: eService1.id,
-    consumerId: agreementEservice1.consumerId,
-    title: "test",
-    dailyCalls: 10,
-    description: "test",
-    isFreeOfCharge: true,
-    freeOfChargeReason: "reason",
-    riskAnalysisForm: buildRiskAnalysisFormSeed(mockValidRiskAnalysisForm),
-  };
+  const purposeSeed = getMockPurposeSeed(
+    eService1.id,
+    agreementEservice1.consumerId,
+    buildRiskAnalysisFormSeed(mockValidRiskAnalysisForm)
+  );
   it("should write on event-store for the creation of a purpose", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());

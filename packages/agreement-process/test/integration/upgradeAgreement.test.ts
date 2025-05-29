@@ -61,8 +61,8 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   noNewerDescriptor,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
@@ -228,11 +228,13 @@ describe("upgrade Agreement", () => {
         await uploadDocument(agreementId, doc.id, doc.name);
       }
 
-      const returnedAgreement = await agreementService.upgradeAgreement(
+      const upgradeAgreementResponse = await agreementService.upgradeAgreement(
         agreement.id,
         getMockContext({ authData })
       );
-      const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
+      const newAgreementId = unsafeBrandId<AgreementId>(
+        upgradeAgreementResponse.data.id
+      );
 
       const actualAgreementArchivedEvent = await readAgreementEventByVersion(
         agreement.id,
@@ -334,7 +336,10 @@ describe("upgrade Agreement", () => {
       };
 
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
-      expect(actualAgreementUpgraded).toEqual(returnedAgreement);
+      expect(upgradeAgreementResponse).toEqual({
+        data: actualAgreementUpgraded,
+        metadata: { version: 0 },
+      });
 
       for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
         const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -484,12 +489,13 @@ describe("upgrade Agreement", () => {
           }
 
           vi.spyOn(pdfGenerator, "generate");
-          const returnedAgreement = await agreementService.upgradeAgreement(
-            agreement.id,
-            getMockContext({ authData })
-          );
+          const upgradeAgreementResponse =
+            await agreementService.upgradeAgreement(
+              agreement.id,
+              getMockContext({ authData })
+            );
           const newAgreementId = unsafeBrandId<AgreementId>(
-            returnedAgreement.id
+            upgradeAgreementResponse.data.id
           );
 
           const actualAgreementArchivedEvent =
@@ -589,7 +595,10 @@ describe("upgrade Agreement", () => {
           };
 
           expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
-          expect(actualAgreementUpgraded).toEqual(returnedAgreement);
+          expect(upgradeAgreementResponse).toEqual({
+            data: actualAgreementUpgraded,
+            metadata: { version: 0 },
+          });
 
           for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
             const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -807,11 +816,13 @@ describe("upgrade Agreement", () => {
         await uploadDocument(agreementId, doc.id, doc.name);
       }
 
-      const returnedAgreement = await agreementService.upgradeAgreement(
+      const upgradeAgreementResponse = await agreementService.upgradeAgreement(
         agreement.id,
         getMockContext({ authData })
       );
-      const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
+      const newAgreementId = unsafeBrandId<AgreementId>(
+        upgradeAgreementResponse.data.id
+      );
 
       expect(newAgreementId).toBeDefined();
       const actualAgreementCreatedEvent = await readAgreementEventByVersion(
@@ -860,7 +871,10 @@ describe("upgrade Agreement", () => {
       };
 
       expect(actualCreatedAgreement).toEqual(expectedCreatedAgreement);
-      expect(actualCreatedAgreement).toEqual(returnedAgreement);
+      expect(upgradeAgreementResponse).toEqual({
+        data: actualCreatedAgreement,
+        metadata: { version: 0 },
+      });
 
       for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
         const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -886,7 +900,7 @@ describe("upgrade Agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an organizationIsNotTheConsumer error when the requester is not the consumer", async () => {
+  it("should throw an tenantIsNotTheConsumer error when the requester is not the consumer", async () => {
     const authData = getMockAuthData();
 
     const agreement: Agreement = getMockAgreement(
@@ -901,12 +915,10 @@ describe("upgrade Agreement", () => {
         agreement.id,
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(authData.organizationId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
   });
 
-  it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
+  it("should throw an tenantIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
     const authData = getMockAuthData();
     const agreement = {
       ...getMockAgreement(),
@@ -929,10 +941,7 @@ describe("upgrade Agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
     );
   });
 

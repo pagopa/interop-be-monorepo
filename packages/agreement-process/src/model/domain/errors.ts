@@ -20,7 +20,7 @@ export const errorCodes = {
   descriptorNotInExpectedState: "0004",
   eServiceNotFound: "0005",
   contractAlreadyExists: "0006",
-  organizationNotAllowed: "0007",
+  tenantNotAllowed: "0007",
   agreementActivationFailed: "0008",
   agreementNotFound: "0009",
   agreementAlreadyExists: "0010",
@@ -37,10 +37,10 @@ export const errorCodes = {
   consumerWithNotValidEmail: "0021",
   agreementDocumentAlreadyExists: "0022",
   delegationNotFound: "0023",
-  organizationIsNotTheConsumer: "0024",
-  organizationIsNotTheDelegateConsumer: "0025",
-  organizationIsNotTheProducer: "0026",
-  organizationIsNotTheDelegateProducer: "0027",
+  tenantIsNotTheConsumer: "0024",
+  tenantIsNotTheDelegateConsumer: "0025",
+  tenantIsNotTheProducer: "0026",
+  tenantIsNotTheDelegateProducer: "0027",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -92,7 +92,7 @@ export function descriptorNotInExpectedState(
   allowedStates: DescriptorState[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} of EService ${eserviceId} has not status in ${allowedStates.join(
+    detail: `Descriptor ${descriptorId} of EService ${eserviceId} shall have one of the following states ${allowedStates.join(
       ","
     )}`,
     code: "descriptorNotInExpectedState",
@@ -122,12 +122,10 @@ export function agreementAlreadyExists(
   });
 }
 
-export function organizationNotAllowed(
-  organizationId: string
-): ApiError<ErrorCodes> {
+export function tenantNotAllowed(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation`,
-    code: "organizationNotAllowed",
+    detail: `Tenant ${tenantId} is not allowed to perform the operation`,
+    code: "tenantNotAllowed",
     title: "Operation not allowed",
   });
 }
@@ -284,48 +282,48 @@ export function delegationNotFound(
   });
 }
 
-export function organizationIsNotTheConsumer(
-  organizationId: TenantId
+export function tenantIsNotTheConsumer(
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the consumer`,
-    code: "organizationIsNotTheConsumer",
-    title: "Organization not allowed",
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the consumer`,
+    code: "tenantIsNotTheConsumer",
+    title: "Tenant not allowed",
   });
 }
 
-export function organizationIsNotTheDelegateConsumer(
-  organizationId: TenantId,
+export function tenantIsNotTheDelegateConsumer(
+  tenantId: TenantId,
   delegationId: DelegationId | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the delegate consumer${
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the delegate consumer${
       delegationId ? ` of delegation ${delegationId}` : ""
     }`,
-    code: "organizationIsNotTheDelegateConsumer",
-    title: "Organization not allowed",
+    code: "tenantIsNotTheDelegateConsumer",
+    title: "Tenant not allowed",
   });
 }
 
-export function organizationIsNotTheProducer(
-  organizationId: TenantId
+export function tenantIsNotTheProducer(
+  tenantId: TenantId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the producer`,
-    code: "organizationIsNotTheProducer",
-    title: "Organization not allowed",
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the producer`,
+    code: "tenantIsNotTheProducer",
+    title: "Tenant not allowed",
   });
 }
 
-export function organizationIsNotTheDelegateProducer(
-  organizationId: TenantId,
+export function tenantIsNotTheDelegateProducer(
+  tenantId: TenantId,
   delegationId: DelegationId | undefined
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization ${organizationId} is not allowed to perform the operation because is not the delegate producer${
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the delegate producer${
       delegationId ? ` of delegation ${delegationId}` : ""
     }`,
-    code: "organizationIsNotTheDelegateProducer",
-    title: "Organization not allowed",
+    code: "tenantIsNotTheDelegateProducer",
+    title: "Tenant not allowed",
   });
 }
