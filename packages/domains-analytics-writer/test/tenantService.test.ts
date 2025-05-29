@@ -497,7 +497,7 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     expect(stored?.metadataVersion).toBe(2);
   });
 
-  it("TenantMailDeleted: delete first mail, update second mail, add a third mail", async () => {
+  it("TenantMailAdded: should delete first mail, update second mail, add a third mail", async () => {
     const mockTenant = getMockTenant();
     const mockTenantMailToDelete = getMockTenantMail();
     const mockTenantMailToUpdate = getMockTenantMail();
@@ -566,7 +566,56 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     expect(tenantMailNew).toBeDefined();
   });
 
-  it("TenantDelegatedProducerFeatureRemoved: deletes feature", async () => {
+  it("TenantMailDeleted: should remove all existing tenant mails when handling with an empty mails array", async () => {
+    const mockTenant = getMockTenant();
+    const mockTenantMailToDelete = getMockTenantMail();
+
+    const tenantMailDeleted = {
+      ...mockTenant,
+      mails: [],
+    };
+
+    const tenantOnboarded = {
+      ...mockTenant,
+      mails: [mockTenantMailToDelete],
+    };
+
+    await handleTenantMessageV2(
+      [
+        {
+          sequence_num: 1,
+          stream_id: mockTenant.id,
+          version: 1,
+          type: "TenantOnboarded",
+          event_version: 2,
+          data: {
+            tenant: toTenantV2(tenantOnboarded),
+          },
+          log_date: new Date(),
+        },
+        {
+          sequence_num: 2,
+          stream_id: mockTenant.id,
+          version: 2,
+          type: "TenantMailDeleted",
+          event_version: 2,
+          data: {
+            tenant: toTenantV2(tenantMailDeleted),
+          } as TenantMailDeletedV2,
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const mails = await getManyFromDb(dbContext, TenantDbTable.tenant_mail, {
+      tenantId: mockTenant.id,
+    });
+
+    expect(mails).toHaveLength(0);
+  });
+
+  it("TenantDelegatedProducerFeatureRemoved: should deletes feature", async () => {
     const mockTenant = getMockTenant();
 
     await handleTenantMessageV2(
@@ -605,7 +654,7 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     features.forEach((f) => expect(f.deleted).toBe(true));
   });
 
-  it("TenantDelegatedConsumerFeatureRemoved: deletes consumer feature", async () => {
+  it("TenantDelegatedConsumerFeatureRemoved: should deletes consumer feature", async () => {
     const mockTenant = getMockTenant();
 
     await handleTenantMessageV2(
