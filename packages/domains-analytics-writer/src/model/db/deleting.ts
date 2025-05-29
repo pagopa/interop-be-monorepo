@@ -2,18 +2,24 @@ import { z } from "zod";
 import {
   agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
+  purposeInReadmodelPurpose,
+  eserviceInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
+  tenantFeatureInReadmodelTenant,
+  tenantInReadmodelTenant,
+  tenantMailInReadmodelTenant,
   clientInReadmodelClient,
   clientUserInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientKeyInReadmodelClient,
-  eserviceInReadmodelCatalog,
-  eserviceRiskAnalysisInReadmodelCatalog,
-  purposeInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
 import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
+import { TenantDeletingSchema } from "../tenant/tenant.js";
+import { TenantMailDeletingSchema } from "../tenant/tenantMail.js";
+import { TenantFeatureDeletingSchema } from "../tenant/tenantFeature.js";
 import { AgreementDeletingSchema } from "../agreement/agreement.js";
 import { ClientDeletingSchema } from "../authorization/client.js";
 import { ClientUserDeletingSchema } from "../authorization/clientUser.js";
@@ -27,6 +33,9 @@ export const DeletingDbTableConfig = {
   catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
   agreement_deleting_table: AgreementDeletingSchema,
   purpose_deleting_table: PurposeDeletingSchema,
+  tenant_deleting_table: TenantDeletingSchema,
+  tenant_mail_deleting_table: TenantMailDeletingSchema,
+  tenant_feature_deleting_table: TenantFeatureDeletingSchema,
   client_deleting_table: ClientDeletingSchema,
   client_user_deleting_table: ClientUserDeletingSchema,
   client_purpose_deleting_table: ClientPurposeDeletingSchema,
@@ -40,6 +49,9 @@ export const DeletingDbTableReadModel = {
   catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
   agreement_deleting_table: agreementInReadmodelAgreement,
   purpose_deleting_table: purposeInReadmodelPurpose,
+  tenant_deleting_table: tenantInReadmodelTenant,
+  tenant_mail_deleting_table: tenantMailInReadmodelTenant,
+  tenant_feature_deleting_table: tenantFeatureInReadmodelTenant,
   client_deleting_table: clientInReadmodelClient,
   client_user_deleting_table: clientUserInReadmodelClient,
   client_purpose_deleting_table: clientPurposeInReadmodelClient,

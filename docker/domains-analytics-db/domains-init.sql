@@ -284,6 +284,143 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
   PRIMARY KEY (id, purpose_version_id)
 );
 
+CREATE TABLE IF NOT EXISTS domains.delegation (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  delegator_id VARCHAR(36) NOT NULL,
+  delegate_id VARCHAR(36) NOT NULL,
+  eservice_id VARCHAR(36) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE,
+  rejection_reason VARCHAR,
+  state VARCHAR NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.delegation_stamp (
+  delegation_id VARCHAR(36) NOT NULL REFERENCES domains.delegation (id),
+  metadata_version INTEGER NOT NULL,
+  who VARCHAR(36) NOT NULL,
+  "when" TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (delegation_id, kind)
+);
+
+CREATE TABLE IF NOT EXISTS domains.delegation_contract_document (
+  id VARCHAR(36),
+  delegation_id VARCHAR(36) NOT NULL REFERENCES domains.delegation (id),
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  kind VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id),
+  CONSTRAINT delegation_contract_document_delegation_id_kind_unique UNIQUE (delegation_id, kind)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  kind VARCHAR,
+  selfcare_id VARCHAR,
+  external_id_origin VARCHAR NOT NULL,
+  external_id_value VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE,
+  name VARCHAR NOT NULL,
+  onboarded_at TIMESTAMP WITH TIME ZONE,
+  sub_unit_type VARCHAR,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_mail (
+  id VARCHAR,
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  kind VARCHAR NOT NULL,
+  address VARCHAR NOT NULL,
+  description VARCHAR NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id, tenant_id, created_at)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_certified_attribute (
+  attribute_id VARCHAR(36) NOT NULL,
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  revocation_timestamp TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
+  PRIMARY KEY (attribute_id, tenant_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_declared_attribute (
+  attribute_id VARCHAR(36),
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  revocation_timestamp TIMESTAMP WITH TIME ZONE,
+  delegation_id VARCHAR(36),
+  deleted BOOLEAN,
+  PRIMARY KEY (attribute_id, tenant_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute (
+  attribute_id VARCHAR(36),
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (attribute_id, tenant_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_verifier (
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  tenant_verifier_id VARCHAR(36) NOT NULL,
+  tenant_verified_attribute_id VARCHAR(36) NOT NULL,
+  verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  expiration_date TIMESTAMP WITH TIME ZONE,
+  extension_date TIMESTAMP WITH TIME ZONE,
+  delegation_id VARCHAR(36),
+  deleted BOOLEAN,
+  FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES domains.tenant_verified_attribute (tenant_id, attribute_id),
+  FOREIGN KEY (tenant_verifier_id) REFERENCES domains.tenant (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute_revoker (
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  tenant_revoker_id VARCHAR(36) NOT NULL,
+  tenant_verified_attribute_id VARCHAR(36) NOT NULL,
+  verification_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  expiration_date TIMESTAMP WITH TIME ZONE,
+  extension_date TIMESTAMP WITH TIME ZONE,
+  revocation_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  delegation_id VARCHAR(36),
+  deleted BOOLEAN,
+  FOREIGN KEY (tenant_id, tenant_verified_attribute_id) REFERENCES domains.tenant_verified_attribute (tenant_id, attribute_id),
+  FOREIGN KEY (tenant_revoker_id) REFERENCES domains.tenant (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_feature (
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  kind VARCHAR NOT NULL,
+  certifier_id VARCHAR,
+  availability_timestamp TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
+  PRIMARY KEY (tenant_id, kind)
+);
+
 CREATE TABLE IF NOT EXISTS domains.client (
   id VARCHAR(36),
   metadata_version INTEGER NOT NULL,

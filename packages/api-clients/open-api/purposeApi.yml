@@ -554,18 +554,21 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: versionId
           in: path
           description: the version Id
           required: true
           schema:
             type: string
+            format: uuid
         - name: documentId
           in: path
           description: the document id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: Risk Analysis document retrieved
@@ -667,6 +670,9 @@ paths:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Activated
           content:
@@ -759,6 +765,9 @@ paths:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Suspended
           content:
@@ -805,6 +814,9 @@ paths:
       summary: Archive Purpose Version
       operationId: archivePurposeVersion
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Archived
           content:

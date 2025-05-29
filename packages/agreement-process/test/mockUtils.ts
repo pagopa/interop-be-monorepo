@@ -43,6 +43,18 @@ export function getMockConsumerDocument(
   };
 }
 
+export function getMockDocumentSeed(
+  document: AgreementDocument
+): agreementApi.DocumentSeed {
+  return {
+    id: document.id,
+    name: document.name,
+    prettyName: document.prettyName,
+    contentType: document.contentType,
+    path: document.path,
+  };
+}
+
 export function getMockContract(
   agreementId: AgreementId,
   consumerId: TenantId,

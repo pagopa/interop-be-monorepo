@@ -1,11 +1,13 @@
 import {
   attributeRegistryApi,
-  authorizationApi,
   catalogApi,
   delegationApi,
   agreementApi,
   purposeApi,
   tenantApi,
+  authorizationApi,
+  m2mGatewayApi,
+  eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
 import {
@@ -288,3 +290,109 @@ export const getMockM2MAdminAppContext = ({
     },
   };
 };
+
+export function getMockedApiEServiceTemplate({
+  versions,
+}: {
+  versions?: eserviceTemplateApi.EServiceTemplateVersion[];
+} = {}): WithMetadata<eserviceTemplateApi.EServiceTemplate> {
+  return {
+    data: {
+      id: generateId(),
+      creatorId: generateId(),
+      description: generateMock(z.string().length(10)),
+      intendedTarget: generateMock(z.string().length(10)),
+      mode: generateMock(m2mGatewayApi.EServiceMode),
+      name: generateMock(z.string().length(10)),
+      technology: generateMock(m2mGatewayApi.EServiceTechnology),
+      versions: versions ?? [getMockedApiEserviceTemplateVersion()],
+      isSignalHubEnabled: generateMock(z.boolean().optional()),
+      riskAnalysis: [getMockedApiRiskAnalysis()],
+    },
+    metadata: {
+      version: 0,
+    },
+  };
+}
+
+export function getMockedApiRiskAnalysis(): catalogApi.EServiceRiskAnalysis {
+  return {
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    name: generateMock(z.string().length(10)),
+    riskAnalysisForm: {
+      id: generateId(),
+      multiAnswers: [
+        {
+          id: generateId(),
+          key: generateMock(z.string()),
+          values: generateMock(z.array(z.string())),
+        },
+      ],
+      singleAnswers: [
+        {
+          id: generateId(),
+          key: generateMock(z.string()),
+          value: generateMock(z.string()),
+        },
+      ],
+      version: "0",
+    },
+  };
+}
+
+export function getMockedApiEserviceTemplateVersion({
+  state,
+}: {
+  state?: eserviceTemplateApi.EServiceTemplateVersionState;
+} = {}): eserviceTemplateApi.EServiceTemplateVersion {
+  return {
+    id: generateId(),
+    state: state ?? generateMock(m2mGatewayApi.EServiceTemplateVersionState),
+    voucherLifespan: generateMock(z.number().positive()),
+    version: 0,
+    attributes: {
+      certified: [[getMockedApiEServiceAttribute()]],
+      declared: [[getMockedApiEServiceAttribute()]],
+      verified: [[getMockedApiEServiceAttribute()]],
+    },
+    docs: [],
+  };
+}
+
+export function getMockedApiEServiceAttribute(): catalogApi.Attribute {
+  return {
+    id: generateId(),
+    explicitAttributeVerification: generateMock(z.boolean()),
+  };
+}
+
+export function getMockedApiEServiceDocument(): catalogApi.EServiceDoc {
+  return {
+    id: generateId(),
+    checksum: generateMock(z.string()),
+    contentType: generateMock(z.string()),
+    name: generateMock(z.string()),
+    path: generateMock(z.string()),
+    prettyName: generateMock(z.string()),
+    contacts: {
+      name: generateMock(z.string()),
+      email: generateMock(z.string().email()),
+      serverUrls: generateMock(z.array(z.string().url())),
+      termsAndConditionsUrl: generateMock(z.string().url()),
+      url: generateMock(z.string().url()),
+    },
+  };
+}
+
+export function getMockedApiCertifiedTenantAttribute({
+  revoked = false,
+}: {
+  revoked?: boolean;
+} = {}): tenantApi.CertifiedTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    revocationTimestamp: revoked ? new Date().toISOString() : undefined,
+  };
+}
