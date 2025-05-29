@@ -42,15 +42,15 @@ import {
 import { readDPoPCache, writeDPoPCache } from "./utilities/dpopCacheUtils.js";
 
 export const verifyDPoPProof = ({
-  dpopProof,
+  dpopProofJWS,
   expectedDPoPProofHtu,
 }: {
-  dpopProof: string;
+  dpopProofJWS: string;
   expectedDPoPProofHtu: string;
 }): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
   try {
-    const decodedPayload = jose.decodeJwt(dpopProof);
-    const decodedHeader = jose.decodeProtectedHeader(dpopProof);
+    const decodedPayload = jose.decodeJwt(dpopProofJWS);
+    const decodedHeader = jose.decodeProtectedHeader(dpopProofJWS);
 
     // JWT header
     const { errors: typErrors, data: validatedTyp } = validateTyp(
@@ -117,7 +117,7 @@ export const verifyDPoPProof = ({
       };
       return successfulValidation({
         dpopProofJWT: result,
-        dpopProofJWS: dpopProof,
+        dpopProofJWS,
       });
     }
     return failedValidation([
