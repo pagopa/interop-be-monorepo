@@ -254,7 +254,7 @@ export function readModelServiceBuilderSQL(
               consumerName
                 ? ilike(
                     tenantInReadmodelTenant.name,
-                    escapeRegExp(consumerName)
+                    `%${escapeRegExp(consumerName)}%`
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)
@@ -305,7 +305,7 @@ export function readModelServiceBuilderSQL(
               producerName
                 ? ilike(
                     tenantInReadmodelTenant.name,
-                    escapeRegExp(producerName)
+                    `%${escapeRegExp(producerName)}%`
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)
