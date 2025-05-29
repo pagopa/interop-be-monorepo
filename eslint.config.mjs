@@ -4,18 +4,34 @@ import { dirname } from "node:path";
 import functional from "eslint-plugin-functional";
 import sonarjs from "eslint-plugin-sonarjs";
 import fp from "eslint-plugin-fp";
+import perfectionist from "eslint-plugin-perfectionist";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+// turn every perfectionist rule off in one go
+const offPerfectionist = Object.fromEntries(
+  Object.keys(perfectionist.rules).map((r) => [`perfectionist/${r}`, "off"])
+);
 
 export default [
-  ...pagopa,
   {
+    ignores: [
+      "vitest.config.ts",
+      "**/src/model/generated/**/*.ts",
+      "**/src/generated/**/*.ts",
+      "**/dist",
+      "**/patchZodios.ts",
+      "**/paged.polyfill.js",
+    ],
+  },
+  {
+    // TODO these don't seem to be working, consider removing them...
     plugins: {
       functional,
       sonarjs,
       fp,
     },
   },
+  ...pagopa,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -43,23 +59,14 @@ export default [
       "@typescript-eslint/consistent-indexed-object-style": "off",
       "@typescript-eslint/no-inferrable-types": "off",
 
-      "perfectionist/sort-objects": "off",
-      "perfectionist/sort-imports": "off",
-      "perfectionist/sort-named-imports": "off",
-      "perfectionist/sort-object-types": "off",
-      "perfectionist/sort-intersection-types": "off",
-      "perfectionist/sort-interfaces": "off",
-      "perfectionist/sort-exports": "off",
-      "perfectionist/sort-union-types": "off",
+      "prettier/prettier": ["off"],
     },
-    ignores: [
-      ".eslintrc.cjs",
-      "vitest.config.ts",
-      "**/src/model/generated/**/*.ts",
-      "**/src/generated/**/*.ts",
-      "**/dist",
-      "**/patchZodios.ts",
-      "**/paged.polyfill.js",
-    ],
+  },
+  {
+    // globally disable eslint-plugin-prettier and all perfectionist rules
+    rules: {
+      "prettier/prettier": "off",
+      ...offPerfectionist,
+    },
   },
 ];

@@ -28,7 +28,7 @@
     "@types/supertest": "6.0.2",
     "@types/jsonwebtoken": "^9.0.2",
     "pagopa-interop-commons-test": "workspace:*",
-    "prettier": "3.5.3",
+    "prettier": "2.8.8",
     "supertest": "7.0.0",
     "testcontainers": "10.9.0",
     "jsonwebtoken": "9.0.2",
