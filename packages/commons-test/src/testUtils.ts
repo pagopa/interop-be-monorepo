@@ -715,8 +715,8 @@ export const getMockClientAssertion = async (props?: {
 
 export const getMockDPoPProof = async (
   props?: {
-    customPayload?: Partial<DPoPProofPayload>;
-    customHeader?: Partial<DPoPProofHeader>;
+    customPayload?: { [k: string]: unknown };
+    customHeader?: { [k: string]: unknown };
   },
   alg: Algorithm = algorithm.ES256
 ): Promise<{
