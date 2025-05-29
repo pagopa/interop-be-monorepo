@@ -48,9 +48,17 @@ export async function initRedisRateLimiter(config: {
   // client keeps retrying in the background without crashing the service.
   redisClient
     .connect()
+    .then(() =>
+      genericLogger.info(
+        "Redis client connected successfully to host " +
+          config.redisHost +
+          ":" +
+          String(config.redisPort)
+      )
+    )
     .catch((err) =>
       genericLogger.warn(
-        `Initial Redis connect failed, will keep retrying automatically: ${err}`
+        `Initial Redis connect failed for host ${config.redisHost}:${config.redisPort}, will keep retrying automatically: ${err}`
       )
     );
 
@@ -98,7 +106,7 @@ export async function initRedisRateLimiter(config: {
       return match(error)
         .with(P.instanceOf(RateLimiterRes), (rejRes) => {
           logger.warn(
-            `Rate Limit triggered for organization ${organizationId}`
+            `Rate limit triggered for organization ${organizationId}: maximum of ${config.maxRequests} requests in ${config.rateInterval}ms exceeded.`
           );
           return {
             limitReached: true,
@@ -109,7 +117,7 @@ export async function initRedisRateLimiter(config: {
         })
         .with(P.intersection(P.instanceOf(ConnectionTimeoutError)), () => {
           logger.warn(
-            `Redis command timed out, making request pass for organization ${organizationId}`
+            `Redis command timed out for organization ${organizationId}, allowing request to proceed as fallback.`
           );
           return {
             limitReached: false,
@@ -120,7 +128,7 @@ export async function initRedisRateLimiter(config: {
         })
         .otherwise((error) => {
           logger.warn(
-            `Unexpected error during rate limiting for organization ${organizationId} - ${error}`
+            `Unexpected error during rate limiting for organization ${organizationId}: ${error}`
           );
           return {
             limitReached: false,
@@ -137,7 +145,8 @@ export async function initRedisRateLimiter(config: {
   ): Promise<number> {
     return redisClient
       .get(`${config.limiterGroup}:${organizationId}`)
-      .then(Number);
+      .then(Number)
+      .catch(() => 0);
   }
 
   async function getBurstCountByOrganization(
@@ -145,7 +154,8 @@ export async function initRedisRateLimiter(config: {
   ): Promise<number> {
     return redisClient
       .get(`${burstKeyPrefix}${config.limiterGroup}:${organizationId}`)
-      .then(Number);
+      .then(Number)
+      .catch(() => 0);
   }
 
   return {
