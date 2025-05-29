@@ -2,15 +2,19 @@
 import jwt from "jsonwebtoken";
 import {
   InternalAuthData,
+  InteropJwtCommonPayload,
+  InteropJwtMaintenancePayload,
   M2MAdminAuthData,
   M2MAuthData,
   MaintenanceAuthData,
-  UIAuthData,
   readAuthDataFromJwtToken,
+  systemRole,
+  UIAuthData,
+  userRole,
 } from "pagopa-interop-commons";
 import { invalidClaim, unsafeBrandId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { randomArrayItem } from "../src/testUtils.js";
+import { randomSubArray } from "../src/testUtils.js";
 
 const mockUiToken = {
   iss: "dev.interop.pagopa.it",
@@ -20,7 +24,7 @@ const mockUiToken = {
   },
   "user-roles": "security,api",
   selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
-  organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
+  organizationId: unsafeBrandId("69e2865e-65ab-4e48-a638-2037a9ee2ee7"),
   aud: "dev.interop.pagopa.it/ui,interop.pagopa.it/ui",
   uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
   nbf: 1710841859,
@@ -30,7 +34,7 @@ const mockUiToken = {
     roles: [
       {
         partyRole: "MANAGER",
-        role: "admin",
+        role: userRole.ADMIN_ROLE,
       },
     ],
     fiscal_code: "15376371009",
@@ -57,10 +61,10 @@ const mockExpectedUiAuthData: UIAuthData = {
 };
 
 const mockM2MToken = {
-  organizationId: "89804b2c-f62e-4867-87a4-3a82f2b03485",
+  organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
   aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
-  role: "m2m",
+  role: systemRole.M2M_ROLE,
   nbf: 1710511524,
   iss: "dev.interop.pagopa.it",
   exp: 1810511523,
@@ -77,7 +81,7 @@ const mockM2MExpectedAuthData: M2MAuthData = {
 const mockInternalToken = {
   aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
-  role: "internal",
+  role: systemRole.INTERNAL_ROLE,
   nbf: 1710511524,
   iss: "dev.interop.pagopa.it",
   exp: 1810511523,
@@ -89,10 +93,10 @@ const mockInternalExpectedAuthData: InternalAuthData = {
   systemRole: "internal",
 };
 
-const mockMaintenanceToken = {
-  aud: "dev.interop.pagopa.it/maintenance,interop.pagopa.it/maintenance",
+const mockMaintenanceToken: InteropJwtMaintenancePayload = {
+  aud: ["dev.interop.pagopa.it/maintenance", "interop.pagopa.it/maintenance"],
   sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
-  role: "maintenance",
+  role: systemRole.MAINTENANCE_ROLE,
   nbf: 1710511524,
   iss: "dev.interop.pagopa.it",
   exp: 1810511523,
@@ -119,7 +123,7 @@ const mockSupportToken = {
   organization: {
     roles: [
       {
-        role: "support",
+        role: userRole.SUPPORT_ROLE,
       },
     ],
     id: "1962d21c-c701-4805-93f6-53a877898756",
@@ -158,6 +162,16 @@ const mockM2MAdminExpectedAuthData: M2MAdminAuthData = {
 const getMockSignedToken = (token: object): string =>
   jwt.sign(token, "test-secret");
 
+const getClaimsName = (token: object): string[] => {
+  const commonClaims = InteropJwtCommonPayload.safeParse(token);
+  if (!commonClaims.success) {
+    expect.fail(`Invalid token provided for test: ${commonClaims.error}`);
+  }
+  // Exclude 'iat' claim as it causes jwt.sign and jwt.decode functions
+  // to fail with null values in the test execution context
+  return Object.keys(commonClaims.data).filter((c) => c !== "iat");
+};
+
 describe("JWT tests", () => {
   describe("readAuthDataFromJwtToken", () => {
     it("should successfully read data from a UI token with a single user role", async () => {
@@ -177,16 +191,18 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a UI token with multiple comma separated user roles", async () => {
+      // constant contains a randomically number of user roles picked from the enum UserRole
+      const userRoles = randomSubArray(Object.values(userRole));
       const token = jwt.decode(
         getMockSignedToken({
           ...mockUiToken,
-          "user-roles": "security,api",
+          "user-roles": userRoles.join(","),
         })
       );
 
       const expectedUIAuthData: UIAuthData = {
         ...mockExpectedUiAuthData,
-        userRoles: ["security", "api"],
+        userRoles,
       };
 
       expect(readAuthDataFromJwtToken(token!)).toEqual(expectedUIAuthData);
@@ -236,40 +252,91 @@ describe("JWT tests", () => {
       );
     });
 
-    it("should fail if some required fields are missing", async () => {
-      const mockToken = randomArrayItem([
-        mockUiToken,
-        mockM2MToken,
-        mockInternalToken,
-        mockMaintenanceToken,
-      ]);
-      const token = jwt.decode(
-        getMockSignedToken({
-          ...mockToken,
-          jti: undefined,
-        })
-      );
+    describe("Missing claims in M2M Token", () => {
+      it.each(getClaimsName(mockM2MToken))(
+        "should fails if missing common claim %s",
+        (claim) => {
+          const invalidToken = { ...mockM2MToken };
+          // eslint-disable-next-line fp/no-delete, functional/immutable-data
+          delete invalidToken[claim as keyof typeof invalidToken];
 
-      expect(() => {
-        readAuthDataFromJwtToken(token!);
-      }).toThrowError(invalidClaim(`Validation error: Required at "jti"`));
+          expect(() => {
+            readAuthDataFromJwtToken(
+              jwt.decode(getMockSignedToken(invalidToken))!
+            );
+          }).toThrowError(`Validation error: Required at "${claim}"`);
+        }
+      );
     });
 
-    it("should fail if the aud field is an empty string", async () => {
-      const mockToken = randomArrayItem([
-        mockUiToken,
-        mockM2MToken,
-        mockInternalToken,
-        mockMaintenanceToken,
-      ]);
-      const token = jwt.decode(
+    describe("Missing claims in Internal Token", () => {
+      it.each(getClaimsName(mockInternalToken))(
+        "should fails if missing common claim %s",
+        (claim) => {
+          const invalidToken = { ...mockInternalToken };
+          // eslint-disable-next-line fp/no-delete, functional/immutable-data
+          delete invalidToken[claim as keyof typeof invalidToken];
+
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          expect(() => {
+            readAuthDataFromJwtToken(
+              jwt.decode(getMockSignedToken(invalidToken))!
+            );
+          }).toThrowError(`Validation error: Required at "${claim}"`);
+        }
+      );
+    });
+
+    describe("Missing claims in Maintenance Token", () => {
+      it.each(getClaimsName(mockMaintenanceToken))(
+        "should fails if missing common claim %s",
+        (claim) => {
+          const invalidToken = { ...mockMaintenanceToken };
+          // eslint-disable-next-line fp/no-delete, functional/immutable-data
+          delete invalidToken[claim as keyof typeof invalidToken];
+
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          expect(() => {
+            readAuthDataFromJwtToken(
+              jwt.decode(getMockSignedToken(invalidToken))!
+            );
+          }).toThrowError(`Validation error: Required at "${claim}"`);
+        }
+      );
+    });
+
+    describe("Missing claims in UI Token", () => {
+      it.each(getClaimsName(mockUiToken))(
+        "should fails if missing common claim %s",
+        (claim) => {
+          const invalidToken = { ...mockUiToken };
+          // eslint-disable-next-line fp/no-delete, functional/immutable-data
+          delete invalidToken[claim as keyof typeof invalidToken];
+
+          // eslint-disable-next-line sonarjs/no-identical-functions
+          expect(() => {
+            readAuthDataFromJwtToken(
+              jwt.decode(getMockSignedToken(invalidToken))!
+            );
+          }).toThrowError(`Validation error: Required at "${claim}"`);
+        }
+      );
+    });
+
+    it.each([
+      mockM2MToken,
+      mockInternalToken,
+      mockMaintenanceToken,
+      mockUiToken,
+    ])("should fail if the 'aud' claim is an empty string", (token) => {
+      const invalidToken = jwt.decode(
         getMockSignedToken({
-          ...mockToken,
+          ...token,
           aud: "",
         })
       );
 
-      expect(() => readAuthDataFromJwtToken(token!)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(invalidToken!)).toThrowError(
         invalidClaim(
           'Validation error: String must contain at least 1 character(s) at "aud"'
         )

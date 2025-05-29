@@ -123,6 +123,12 @@ export function expectPastTimestamp(timestamp: bigint): boolean {
   );
 }
 
+export function randomSubArray<T>(array: T[]): T[] {
+  const count = Math.floor(Math.random() * array.length) + 1;
+  const start = Math.floor(Math.random() * (array.length - count + 1));
+  return array.slice(start, start + count);
+}
+
 export function randomArrayItem<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
