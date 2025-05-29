@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ClientId, generateId, PurposeId } from "pagopa-interop-models";
+import {
+  ApiError,
+  ClientId,
+  generateId,
+  PurposeId,
+} from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { bffApi } from "pagopa-interop-api-clients";
@@ -134,8 +139,8 @@ describe("validateTokenGeneration", () => {
 
   describe("Failure cases", () => {
     it("should handle parameters validation errors", async () => {
-      const parameterValidationError = {
-        code: "invalidAssertionType" as const,
+      const parameterValidationError: ApiError<"invalidAssertionType"> = {
+        code: "invalidAssertionType",
         title: "Invalid assertion type",
         detail: `Assertion type ${MOCK_CLIENT_ASSERTION_TYPE} is invalid. Expected: urn:ietf:params:oauth:client-assertion-type:jwt-bearer`,
         name: "Error",
@@ -143,8 +148,8 @@ describe("validateTokenGeneration", () => {
         errors: [],
       };
 
-      const formatValidationError = {
-        code: "invalidClientAssertionFormat" as const,
+      const formatValidationError: ApiError<"invalidClientAssertionFormat"> = {
+        code: "invalidClientAssertionFormat",
         title: "Invalid Client Assertion Format",
         detail: "Invalid format for Client assertion: Invalid JWT",
         name: "Error",
@@ -219,8 +224,8 @@ describe("validateTokenGeneration", () => {
     });
 
     it("should handle only parameters validation errors", async () => {
-      const parameterValidationError = {
-        code: "invalidAssertionType" as const,
+      const parameterValidationError: ApiError<"invalidAssertionType"> = {
+        code: "invalidAssertionType",
         title: "Invalid assertion type",
         detail: `Assertion type ${MOCK_CLIENT_ASSERTION_TYPE} is invalid. Expected: urn:ietf:params:oauth:client-assertion-type:jwt-bearer`,
         name: "Error",
@@ -285,8 +290,8 @@ describe("validateTokenGeneration", () => {
     });
 
     it("should handle only client assertion validation errors", async () => {
-      const formatValidationError = {
-        code: "invalidClientAssertionFormat" as const,
+      const formatValidationError: ApiError<"invalidClientAssertionFormat"> = {
+        code: "invalidClientAssertionFormat",
         title: "Invalid Client Assertion Format",
         detail: "Invalid format for Client assertion: Invalid JWT",
         name: "Error",
@@ -409,8 +414,8 @@ describe("validateTokenGeneration", () => {
     });
 
     it("should handle client assertion signature verification errors", async () => {
-      const signatureVerificationError = {
-        code: "invalidSignature" as const,
+      const signatureVerificationError: ApiError<"invalidSignature"> = {
+        code: "invalidSignature",
         title: "Invalid Signature",
         detail: "Client assertion signature is invalid",
         message: "Client assertion signature is invalid",
