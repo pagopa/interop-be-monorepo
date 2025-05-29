@@ -89,25 +89,26 @@ describe("GET /purposes/:purposeId/versions router test", () => {
 
   it.each([
     {
-      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      ...mockM2MPurposesResponse,
       results: [
+        ...mockM2MPurposesResponse.results,
         { ...mockApiPurposeVersion1, createdAt: undefined },
-        mockApiPurposeVersion2,
       ],
     },
     {
-      pagination: { offset: 0, limit: 10, totalCount: 2 },
+      ...mockM2MPurposesResponse,
       results: [
+        ...mockM2MPurposesResponse.results,
         { ...mockApiPurposeVersion1, invalidParam: "invalidValue" },
-        mockApiPurposeVersion2,
       ],
     },
     {
-      pagination: { offset: 0, limit: 10, totalCount: 2 },
-      results: [
-        { ...mockApiPurposeVersion1, state: "INVALID_STATE" },
-        mockApiPurposeVersion2,
-      ],
+      ...mockM2MPurposesResponse,
+      pagination: {
+        offset: "invalidOffset",
+        limit: "invalidLimit",
+        totalCount: 0,
+      },
     },
   ])(
     "Should return 500 when API model parsing fails for response",

@@ -324,12 +324,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: contractId
           in: path
           description: The delegation contract id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: Delegation contract retrieved

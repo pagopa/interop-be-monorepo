@@ -3,9 +3,6 @@ import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
   ZodiosContext,
-  ReadModelRepository,
-  initDB,
-  initFileManager,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   authRole,
@@ -18,15 +15,7 @@ import {
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  attributeReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
-  makeDrizzleConnection,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
-import { config } from "../config/config.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
+import { EServiceTemplateService } from "../services/eserviceTemplateService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activateEServiceTemplateVersionErrorMapper,
@@ -57,47 +46,10 @@ import {
   eserviceTemplateVersionToApiEServiceTemplateVersion,
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
 } from "../model/domain/apiConverter.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
-
-const readModelDB = makeDrizzleConnection(config);
-const eserviceTemplateReadModelServiceSQL =
-  eserviceTemplateReadModelServiceBuilder(readModelDB);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-const attributeReadModelServiceSQL =
-  attributeReadModelServiceBuilder(readModelDB);
-
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const readModelServiceSQL = readModelServiceBuilderSQL({
-  readModelDB,
-  eserviceTemplateReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-  attributeReadModelServiceSQL,
-});
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
-const eserviceTemplateService = eserviceTemplateServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  initFileManager(config)
-);
 
 const eserviceTemplatesRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  eserviceTemplateService: EServiceTemplateService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const {
     ADMIN_ROLE,
@@ -488,7 +440,7 @@ const eserviceTemplatesRouter = (
               {
                 eServiceTemplateId: unsafeBrandId(templateId),
                 eServiceTemplateVersionId: unsafeBrandId(templateVersionId),
-                eServiceDocumentId: unsafeBrandId(documentId),
+                documentId: unsafeBrandId(documentId),
               },
               ctx
             );

@@ -3,6 +3,7 @@ import {
   delegationApi,
   authorizationApi,
   purposeApi,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import {
   ApiError,
@@ -30,6 +31,7 @@ export const errorCodes = {
   missingPurposeVersionWithState: "0015",
   missingPurposeCurrentVersion: "0016",
   eserviceTemplateVersionNotFound: "0017",
+  tenantCertifiedAttributeNotFound: "0018",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -186,5 +188,16 @@ export function eserviceDescriptorNotFound(
     detail: `Descriptor ${descriptorId} not found for eservice ${eserviceId}`,
     code: "eserviceDescriptorNotFound",
     title: "Eservice descriptor not found",
+  });
+}
+
+export function tenantCertifiedAttributeNotFound(
+  tenant: tenantApi.Tenant,
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified attribute ${attributeId} not found for tenant ${tenant.id}`,
+    code: "tenantCertifiedAttributeNotFound",
+    title: "Tenant certified attribute not found",
   });
 }

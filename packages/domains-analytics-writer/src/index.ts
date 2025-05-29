@@ -15,8 +15,11 @@ import {
   AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
+  DelegationDbTable,
   DeletingDbTable,
   PurposeDbTable,
+  TenantDbPartialTable,
+  TenantDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 
@@ -63,16 +66,43 @@ await retryConnection(
       PurposeDbTable.purpose_version_document,
       PurposeDbTable.purpose_risk_analysis_form,
       PurposeDbTable.purpose_risk_analysis_answer,
+      DelegationDbTable.delegation,
+      DelegationDbTable.delegation_stamp,
+      DelegationDbTable.delegation_contract_document,
+      TenantDbTable.tenant,
+      TenantDbTable.tenant_mail,
+      TenantDbTable.tenant_certified_attribute,
+      TenantDbTable.tenant_declared_attribute,
+      TenantDbTable.tenant_verified_attribute,
+      TenantDbTable.tenant_verified_attribute_verifier,
+      TenantDbTable.tenant_verified_attribute_revoker,
+      TenantDbTable.tenant_feature,
+    ]);
+    await setupDbService.setupPartialStagingTables([
+      TenantDbPartialTable.tenant_self_care_id,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.catalog_risk_deleting_table,
         columns: ["id", "eserviceId"],
       },
       { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.tenant_deleting_table,
+        columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.tenant_mail_deleting_table,
+        columns: ["id", "tenantId"],
+      },
+      {
+        name: DeletingDbTable.tenant_feature_deleting_table,
+        columns: ["tenantId", "kind"],
+      },
     ]);
   },
   logger({ serviceName: config.serviceName })

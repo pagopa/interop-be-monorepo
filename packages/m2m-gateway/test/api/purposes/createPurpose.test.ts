@@ -79,4 +79,20 @@ describe("POST /purposes router test", () => {
       expect(res.status).toBe(500);
     }
   );
+
+  it.each([
+    { ...mockM2MPurpose, createdAt: undefined },
+    { ...mockM2MPurpose, eserviceId: "invalidId" },
+    { ...mockM2MPurpose, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
+      mockPurposeService.createPurpose = vi.fn().mockResolvedValue(resp);
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(token, mockPurposeSeed);
+
+      expect(res.status).toBe(500);
+    }
+  );
 });
