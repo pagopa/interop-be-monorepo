@@ -192,7 +192,6 @@ export const checkDPoPCache = async ({
     dpopCacheTable,
     jti: dpopProofJti,
     iat: dpopProofIat,
-    ttl: dpopProofIat + 60,
   });
 
   return successfulValidation(dpopProofJti);
