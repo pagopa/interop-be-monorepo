@@ -1,11 +1,21 @@
 import pagopa from "@pagopa/eslint-config";
-import { fileURLToPath } from 'node:url';
-import { dirname } from 'node:path';
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
+import functional from "eslint-plugin-functional";
+import sonarjs from "eslint-plugin-sonarjs";
+import fp from "eslint-plugin-fp";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default [
   ...pagopa,
+  {
+    plugins: {
+      functional,
+      sonarjs,
+      fp,
+    },
+  },
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -15,7 +25,7 @@ export default [
       },
     },
     rules: {
-          // Any project level custom rule
+      // Any project level custom rule
       "@typescript-eslint/switch-exhaustiveness-check": "error",
       "default-case": "off",
       "prefer-arrow/prefer-arrow-functions": "off",
@@ -29,6 +39,18 @@ export default [
       "max-lines-per-function": "off",
       "@typescript-eslint/naming-convention": "off",
       "@typescript-eslint/no-use-before-define": "off",
+
+      "@typescript-eslint/consistent-indexed-object-style": "off",
+      "@typescript-eslint/no-inferrable-types": "off",
+
+      "perfectionist/sort-objects": "off",
+      "perfectionist/sort-imports": "off",
+      "perfectionist/sort-named-imports": "off",
+      "perfectionist/sort-object-types": "off",
+      "perfectionist/sort-intersection-types": "off",
+      "perfectionist/sort-interfaces": "off",
+      "perfectionist/sort-exports": "off",
+      "perfectionist/sort-union-types": "off",
     },
     ignores: [
       ".eslintrc.cjs",
