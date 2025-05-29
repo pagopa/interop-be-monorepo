@@ -65,7 +65,6 @@ describe("createPurpose", () => {
   const descriptor1: Descriptor = {
     ...getMockDescriptor(),
     state: descriptorState.published,
-    version: 0,
   };
 
   const eService1: EService = {
