@@ -97,6 +97,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
  * @param stagingTableName - The temporary staging table used as a source.
  * @param deleteKeysOn - Keys used to match records between the tables.
  * @param useIdAsSourceDeleteKey - Whether to always use "id" as the source key (default: true).
+ * @param physicalDelete - If true, executes a physical DELETE; otherwise, updates the `deleted` flag (default: true).
  * @param additionalsKeyToUpdate - Additional column keys to include in the UPDATE aside from `deleted`. Defaults to none.
  * @returns A MERGE SQL query string to perform a logical delete.
  */
