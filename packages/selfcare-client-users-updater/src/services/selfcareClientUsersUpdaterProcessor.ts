@@ -11,6 +11,7 @@ import {
   genericInternalError,
   UserId,
   unsafeBrandId,
+  SelfcareId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import {
@@ -52,17 +53,20 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
           return;
         }
 
-        const stringPayload = message.value.toString();
-        const userEventPayload = UsersEventPayload.parse(
-          JSON.parse(stringPayload)
-        );
+        const jsonPayload = JSON.parse(message.value.toString());
+
+        // Process only messages of our product
+        // Note: doing this before parsing to avoid errors on messages of other products
+        if (jsonPayload.productId !== productId) {
+          loggerInstance.info(
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.productId}`
+          );
+          return;
+        }
+
+        const userEventPayload = UsersEventPayload.parse(jsonPayload);
 
         return match(userEventPayload)
-          .with({ productId: P.not(productId) }, () => {
-            loggerInstance.info(
-              `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${userEventPayload.productId}`
-            );
-          })
           .with({ user: { userId: P.nullish } }, () => {
             loggerInstance.warn(
               `Skipping message for partition ${partition} with offset ${message.offset} - Missing userId.`
@@ -78,16 +82,33 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
               },
             },
             async (payload) => {
-              const eventUserId = payload.user.userId;
+              const eventUserId = unsafeBrandId<UserId>(payload.user.userId);
+              const selfcareId = unsafeBrandId<SelfcareId>(
+                payload.institutionId
+              );
               const token = (await refreshableToken.get()).serialized;
+              const tenantId = await readModelService.getTenantIdBySelfcareId(
+                selfcareId
+              );
+
+              if (!tenantId) {
+                loggerInstance.warn(
+                  `Skipping message for partition ${partition} with offset ${message.offset} - Tenant not found for selfcareId: ${selfcareId}`
+                );
+                return;
+              }
+
               const clients = await readModelService.getClients({
-                consumerId: unsafeBrandId(userEventPayload.institutionId),
-                adminId: unsafeBrandId<UserId>(eventUserId),
+                consumerId: tenantId,
+                adminId: eventUserId,
               });
 
               await Promise.all(
-                clients.map(async (client) =>
-                  authorizationProcessClient.client.internalRemoveClientAdmin(
+                clients.map(async (client) => {
+                  loggerInstance.info(
+                    `Removing admin ${eventUserId} from client ${client.id}`
+                  );
+                  return authorizationProcessClient.client.internalRemoveClientAdmin(
                     undefined,
                     {
                       params: {
@@ -99,12 +120,12 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
                         correlationId,
                       }),
                     }
-                  )
-                )
+                  );
+                })
               );
 
               loggerInstance.info(
-                `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${userEventPayload.institutionId}`
+                `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${selfcareId}`
               );
             }
           )
