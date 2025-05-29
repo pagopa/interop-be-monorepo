@@ -100,7 +100,6 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.purpose_deleting_table,
   DeletingDbTable.tenant_deleting_table,
   DeletingDbTable.tenant_mail_deleting_table,
-  DeletingDbTable.tenant_feature_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
@@ -176,7 +175,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
   where: Partial<z.infer<DomainDbTableSchemas[T]>>
-): Promise<z.infer<DomainDbTableSchemas[T]>> {
+): Promise<z.infer<DomainDbTableSchemas[T]> | undefined> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
   const entries = Object.entries(where) as Array<[string, unknown]>;
@@ -185,12 +184,12 @@ export async function getOneFromDb<T extends DomainDbTable>(
     .join(" AND ");
   const values = entries.map(([, v]) => v);
 
-  const row = await db.conn.one(
+  const row = await db.conn.oneOrNone(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
     values
   );
 
-  return camelcaseKeys(row);
+  return row ? camelcaseKeys(row) : undefined;
 }
 
 export async function getManyFromDb<T extends DomainDbTable>(

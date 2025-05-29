@@ -4,7 +4,10 @@ import { genericLogger } from "pagopa-interop-commons";
 import { DBContext } from "../db/db.js";
 import { config } from "../config/config.js";
 import { batchMessages } from "../utils/batchHelper.js";
-import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 import { tenantRepository } from "../repository/tenant/tenant.repository.js";
 import { DeletingDbTable, TenantDbTable } from "../model/db/index.js";
 import { tenantMailRepository } from "../repository/tenant/tenantMail.repository.js";
@@ -74,7 +77,6 @@ export function tenantServiceBuilder(db: DBContext) {
             await tenantRepo.insert(t, dbContext.pgp, batchItems.tenantSQL);
           }
           if (batchItems.mailsSQL.length) {
-            console.log("batchItems.mailsSQL", batchItems.mailsSQL);
             await tenantMailRepo.insert(t, dbContext.pgp, batchItems.mailsSQL);
           }
           if (batchItems.certifiedAttributesSQL.length) {
@@ -137,6 +139,23 @@ export function tenantServiceBuilder(db: DBContext) {
         await tenantFeatureRepo.merge(t);
       });
 
+      await dbContext.conn.tx(async (t) => {
+        await cleaningTargetTables(
+          t,
+          "tenantId",
+          [
+            TenantDbTable.tenant_mail,
+            TenantDbTable.tenant_certified_attribute,
+            TenantDbTable.tenant_declared_attribute,
+            TenantDbTable.tenant_verified_attribute,
+            TenantDbTable.tenant_verified_attribute_verifier,
+            TenantDbTable.tenant_verified_attribute_revoker,
+            TenantDbTable.tenant_feature,
+          ],
+          TenantDbTable.tenant
+        );
+      });
+
       genericLogger.info(`Staging data merged into target tables for Tenant`);
 
       await tenantRepo.clean();
@@ -189,7 +208,7 @@ export function tenantServiceBuilder(db: DBContext) {
           config.dbMessagesToInsertPerBatch
         )) {
           await tenantRepo.insertDeleting(t, dbContext.pgp, batch);
-          console.log(
+          genericLogger.info(
             `Staging deletion inserted for Tenant batch: ${batch
               .map((r) => r.id)
               .join(", ")}`
@@ -212,15 +231,6 @@ export function tenantServiceBuilder(db: DBContext) {
           DeletingDbTable.tenant_deleting_table
         );
       });
-
-      console.log(
-        "STAGING PRE DELETING? ---------->",
-        await dbContext.conn.query(
-          `SELECT * FROM ${DeletingDbTable.tenant_deleting_table}_${config.mergeTableSuffix}`
-        )
-      );
-
-      console.log(`Staging deletion merged into target tables for Tenant`);
 
       await tenantRepo.cleanDeleting();
       genericLogger.info(`Staging deletion table cleaned for Tenant`);

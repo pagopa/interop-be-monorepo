@@ -13,7 +13,6 @@ import {
   TenantItemsSchema,
   TenantDeletingSchema,
 } from "../../model/tenant/tenant.js";
-import { TenantDbTable } from "../../model/db/tenant.js";
 
 export async function handleTenantMessageV2(
   messages: TenantEventEnvelopeV2[],
@@ -90,26 +89,7 @@ export async function handleTenantMessageV2(
   }
 
   if (upsertTenantBatch.length > 0) {
-    console.log(
-      "TARGET POST PRE DELETING?  ---------->",
-      await dbContext.conn.query(
-        `SELECT * FROM domains.${TenantDbTable.tenant_mail};`
-      )
-    );
-
     await tenantService.upsertBatchTenantItems(upsertTenantBatch, dbContext);
-
-    const clenatDeletingTenantBatch: TenantDeletingSchema[] =
-      upsertTenantBatch.map((batch) => ({
-        id: batch.tenantSQL.id,
-        deleted: true,
-      }));
-
-    console.log("preUpsertDeleteTenantBatch", preUpsertDeleteTenantBatch);
-    await tenantService.deleteBatchTenants(
-      preUpsertDeleteTenantBatch,
-      dbContext
-    );
   }
 
   if (deleteTenantBatch.length > 0) {
