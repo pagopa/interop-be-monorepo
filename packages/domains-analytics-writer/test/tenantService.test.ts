@@ -522,17 +522,6 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
     await handleTenantMessageV2(
       [
         {
-          sequence_num: 2,
-          stream_id: mockTenant.id,
-          version: 2,
-          type: "TenantMailDeleted",
-          event_version: 2,
-          data: {
-            tenant: toTenantV2(tenantMailDeleted),
-          } as TenantMailDeletedV2,
-          log_date: new Date(),
-        },
-        {
           sequence_num: 1,
           stream_id: mockTenant.id,
           version: 1,
@@ -541,6 +530,17 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
           data: {
             tenant: toTenantV2(tenantOnboarded),
           },
+          log_date: new Date(),
+        },
+        {
+          sequence_num: 2,
+          stream_id: mockTenant.id,
+          version: 2,
+          type: "TenantMailDeleted",
+          event_version: 2,
+          data: {
+            tenant: toTenantV2(tenantMailDeleted),
+          } as TenantMailDeletedV2,
           log_date: new Date(),
         },
       ],
