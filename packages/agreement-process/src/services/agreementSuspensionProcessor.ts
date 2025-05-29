@@ -1,4 +1,8 @@
-import { CreateEvent, UIAuthData } from "pagopa-interop-commons";
+import {
+  CreateEvent,
+  M2MAdminAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEventV2,
@@ -37,7 +41,7 @@ export function createSuspensionUpdatedAgreement({
   activeDelegations,
 }: {
   agreement: Agreement;
-  authData: UIAuthData;
+  authData: UIAuthData | M2MAdminAuthData;
   descriptor: Descriptor;
   consumer: Tenant;
   activeDelegations: ActiveDelegations;
@@ -111,7 +115,7 @@ export function createSuspensionUpdatedAgreement({
 
 // eslint-disable-next-line max-params
 export function createAgreementSuspendedEvent(
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   correlationId: CorrelationId,
   updatedAgreement: Agreement,
   agreement: WithMetadata<Agreement>,

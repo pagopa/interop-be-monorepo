@@ -26,7 +26,7 @@ export const createAgreementErrorMapper = (
       "tenantNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("organizationIsNotTheDelegateConsumer", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantIsNotTheDelegateConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -37,8 +37,8 @@ export const deleteAgreementErrorMapper = (
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegateConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -50,8 +50,8 @@ export const updateAgreementErrorMapper = (
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegateConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -71,8 +71,8 @@ export const submitAgreementErrorMapper = (
     )
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegateConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
@@ -88,9 +88,9 @@ export const addConsumerDocumentErrorMapper = (
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegateConsumer",
-      "organizationNotAllowed",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
+      "tenantNotAllowed",
       "documentsChangeNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -110,8 +110,8 @@ export const upgradeAgreementErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegateConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -129,8 +129,8 @@ export const cloneAgreementErrorMapper = (
     )
     .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegateConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -139,7 +139,7 @@ export const getConsumerDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("documentNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -148,7 +148,7 @@ export const suspendAgreementErrorMapper = (
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -158,8 +158,8 @@ export const removeConsumerDocumentErrorMapper = (
   match(error.code)
     .with("documentNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegateConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
       "documentsChangeNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
@@ -172,8 +172,8 @@ export const rejectAgreementErrorMapper = (
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "organizationIsNotTheProducer",
-      "organizationIsNotTheDelegateProducer",
+      "tenantIsNotTheProducer",
+      "tenantIsNotTheDelegateProducer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -191,9 +191,9 @@ export const activateAgreementErrorMapper = (
     )
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "organizationIsNotTheDelegateProducer",
-      "organizationIsNotTheProducer",
-      "organizationNotAllowed",
+      "tenantIsNotTheDelegateProducer",
+      "tenantIsNotTheProducer",
+      "tenantNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
@@ -206,8 +206,8 @@ export const archiveAgreementErrorMapper = (
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegateConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -215,7 +215,7 @@ export const archiveAgreementErrorMapper = (
 export const getAgreementErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("organizationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const computeAgreementsStateErrorMapper = (
@@ -236,8 +236,8 @@ export const verifyTenantCertifiedAttributesErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "organizationIsNotTheConsumer",
-      "organizationIsNotTheDelegateConsumer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
