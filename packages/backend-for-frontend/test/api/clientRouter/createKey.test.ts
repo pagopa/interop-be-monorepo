@@ -4,19 +4,14 @@ import { ClientId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { createClientApiClient } from "../../../../api-clients/dist/generated/authorizationApi.js";
+import { getMockBffApiKeySeed } from "../../mockUtils.js";
 
 describe("API POST /clients/:clientId/keys", () => {
   const mockClientId = generateId<ClientId>();
-  const mockKeySeed: bffApi.KeySeed = {
-    key: "key",
-    use: "SIG",
-    alg: "algorithm",
-    name: "name min 5 chars",
-  };
+  const mockKeySeed = getMockBffApiKeySeed();
 
   const makeRequest = async (token: string, clientId: string = mockClientId) =>
     request(api)

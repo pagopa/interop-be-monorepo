@@ -6,12 +6,12 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiPublicKey } from "../../mockUtils.js";
+import { getMockBffApiPublicKey } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/keys/:keyId", () => {
   const mockClientId = generateId<ClientId>();
   const mockKeyId = generateId();
-  const mockApiPublicKey = getMockApiPublicKey();
+  const mockApiPublicKey = getMockBffApiPublicKey();
 
   const makeRequest = async (token: string, clientId: string = mockClientId) =>
     request(api)

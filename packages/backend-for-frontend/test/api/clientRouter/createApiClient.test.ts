@@ -4,19 +4,21 @@ import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { createClientApiClient } from "../../../../api-clients/dist/generated/authorizationApi.js";
-import { getMockApiCreatedResource } from "../../mockUtils.js";
+import {
+  getMockAuthorizationApiClient,
+  getMockBffApiClientSeed,
+  getMockBffApiCreatedResource,
+} from "../../mockUtils.js";
 
 describe("API POST /clientsApi", () => {
-  const mockClientSeed: bffApi.ClientSeed = {
-    name: "name",
-    members: [],
-  };
-  const mockApiCreatedResource = getMockApiCreatedResource();
-  const mockClientResponse = { id: mockApiCreatedResource.id };
+  const mockClientSeed = getMockBffApiClientSeed();
+  const mockClientResponse = getMockAuthorizationApiClient();
+  const mockApiCreatedResource = getMockBffApiCreatedResource(
+    mockClientResponse.id
+  );
 
   const makeRequest = async (token: string, payload: object = mockClientSeed) =>
     request(api)

@@ -8,16 +8,13 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  getMockApiAttribute,
-  getMockApiAttributeSeed,
+  getMockBffApiAttribute,
+  getMockBffApiAttributeSeed,
 } from "../../mockUtils.js";
 
 describe("API POST /certifiedAttributes", () => {
-  const mockAttributeSeed = getMockApiAttributeSeed();
-  const mockAttribute: bffApi.Attribute = {
-    ...getMockApiAttribute(),
-    kind: "CERTIFIED",
-  };
+  const mockAttributeSeed = getMockBffApiAttributeSeed();
+  const mockAttribute: bffApi.Attribute = getMockBffApiAttribute("CERTIFIED");
 
   const makeRequest = async (
     token: string,

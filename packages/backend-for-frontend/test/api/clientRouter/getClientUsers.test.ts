@@ -7,14 +7,14 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiCompactUser } from "../../mockUtils.js";
+import { getMockBffApiCompactUser } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/users", () => {
   const mockClientId = generateId<ClientId>();
   const mockResponse: bffApi.CompactUsers = [
-    getMockApiCompactUser(),
-    getMockApiCompactUser(),
-    getMockApiCompactUser(),
+    getMockBffApiCompactUser(),
+    getMockBffApiCompactUser(),
+    getMockBffApiCompactUser(),
   ];
 
   const makeRequest = async (token: string, clientId: string = mockClientId) =>

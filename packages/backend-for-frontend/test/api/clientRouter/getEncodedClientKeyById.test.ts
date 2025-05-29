@@ -7,13 +7,18 @@ import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { createClientApiClient } from "../../../../api-clients/dist/generated/authorizationApi.js";
-import { getMockApiEncodedClientKey } from "../../mockUtils.js";
+import {
+  getMockAuthorizationApiKey,
+  getMockBffApiEncodedClientKey,
+} from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/encoded/keys/:keyId", () => {
   const mockClientId = generateId<ClientId>();
   const mockKeyId = generateId();
-  const mockApiEncodedClientKey = getMockApiEncodedClientKey();
-  const mockKey = { encodedPem: mockApiEncodedClientKey.key };
+  const mockKey = getMockAuthorizationApiKey();
+  const mockApiEncodedClientKey = getMockBffApiEncodedClientKey(
+    mockKey.encodedPem
+  );
 
   const makeRequest = async (token: string, clientId: string = mockClientId) =>
     request(api)

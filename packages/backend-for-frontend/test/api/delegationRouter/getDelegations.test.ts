@@ -7,10 +7,15 @@ import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { delegationNotFound } from "../../../src/model/errors.js";
+import { getMockBffApiCompactDelegation } from "../../mockUtils.js";
 
 describe("API GET /delegations", () => {
   const mockCompactDelegations = {
-    results: [],
+    results: [
+      getMockBffApiCompactDelegation(),
+      getMockBffApiCompactDelegation(),
+      getMockBffApiCompactDelegation(),
+    ],
     pagination: {
       offset: 0,
       limit: 10,

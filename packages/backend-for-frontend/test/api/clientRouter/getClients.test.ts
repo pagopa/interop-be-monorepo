@@ -7,12 +7,12 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiCompactClient } from "../../mockUtils.js";
+import { getMockBffApiCompactClient } from "../../mockUtils.js";
 
 describe("API GET /clients", () => {
-  const mockApiClient1 = getMockApiCompactClient();
-  const mockApiClient2 = getMockApiCompactClient();
-  const mockApiClient3 = getMockApiCompactClient();
+  const mockApiClient1 = getMockBffApiCompactClient();
+  const mockApiClient2 = getMockBffApiCompactClient();
+  const mockApiClient3 = getMockBffApiCompactClient();
   const mockApiClients: bffApi.CompactClients = {
     results: [mockApiClient1, mockApiClient2, mockApiClient3],
     pagination: {

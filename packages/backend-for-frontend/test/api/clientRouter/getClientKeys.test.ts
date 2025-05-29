@@ -7,13 +7,13 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiPublicKey } from "../../mockUtils.js";
+import { getMockBffApiPublicKey } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/keys", () => {
   const mockClientId = generateId<ClientId>();
-  const mockApiPublicKey1 = getMockApiPublicKey();
-  const mockApiPublicKey2 = getMockApiPublicKey();
-  const mockApiPublicKey3 = getMockApiPublicKey();
+  const mockApiPublicKey1 = getMockBffApiPublicKey();
+  const mockApiPublicKey2 = getMockBffApiPublicKey();
+  const mockApiPublicKey3 = getMockBffApiPublicKey();
   const mockApiPublicKeys: bffApi.PublicKeys = {
     keys: [mockApiPublicKey1, mockApiPublicKey2, mockApiPublicKey3],
     pagination: {

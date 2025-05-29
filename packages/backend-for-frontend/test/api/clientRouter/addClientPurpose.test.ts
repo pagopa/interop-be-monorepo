@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ClientId, generateId, PurposeId } from "pagopa-interop-models";
+import { ClientId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { createClientApiClient } from "../../../../api-clients/dist/generated/authorizationApi.js";
+import { getMockBffApiPurposeAdditionDetailsSeed } from "../../mockUtils.js";
 
 describe("API POST /clients/:clientId/purposes", () => {
   const mockClientId = generateId<ClientId>();
-  const mockPurposeAdditionDetailsSeed: bffApi.PurposeAdditionDetailsSeed = {
-    purposeId: generateId<PurposeId>(),
-  };
+  const mockPurposeAdditionDetailsSeed =
+    getMockBffApiPurposeAdditionDetailsSeed();
 
   const makeRequest = async (token: string, clientId: string = mockClientId) =>
     request(api)

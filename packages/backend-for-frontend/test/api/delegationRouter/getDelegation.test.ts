@@ -7,10 +7,10 @@ import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { delegationNotFound } from "../../../src/model/errors.js";
-import { getMockApiDelegation } from "../../mockUtils.js";
+import { getMockBffApiDelegation } from "../../mockUtils.js";
 
 describe("API GET /delegations/:delegationId", () => {
-  const mockDelegation = getMockApiDelegation();
+  const mockDelegation = getMockBffApiDelegation();
 
   const makeRequest = async (
     token: string,

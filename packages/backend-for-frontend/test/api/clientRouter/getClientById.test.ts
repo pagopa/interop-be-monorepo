@@ -6,10 +6,10 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiClient } from "../../mockUtils.js";
+import { getMockBffApiClient } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId", () => {
-  const mockApiClient = getMockApiClient();
+  const mockApiClient = getMockBffApiClient();
 
   const makeRequest = async (
     token: string,

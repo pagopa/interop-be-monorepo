@@ -7,22 +7,16 @@ import request from "supertest";
 import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiAttribute } from "../../mockUtils.js";
+import { getMockBffApiAttribute } from "../../mockUtils.js";
 import { toCompactAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("API GET /attributes", () => {
-  const mockAttribute1: attributeRegistryApi.Attribute = {
-    ...getMockApiAttribute(),
-    kind: "CERTIFIED",
-  };
-  const mockAttribute2: attributeRegistryApi.Attribute = {
-    ...getMockApiAttribute(),
-    kind: "VERIFIED",
-  };
-  const mockAttribute3: attributeRegistryApi.Attribute = {
-    ...getMockApiAttribute(),
-    kind: "DECLARED",
-  };
+  const mockAttribute1: attributeRegistryApi.Attribute =
+    getMockBffApiAttribute("CERTIFIED");
+  const mockAttribute2: attributeRegistryApi.Attribute =
+    getMockBffApiAttribute("VERIFIED");
+  const mockAttribute3: attributeRegistryApi.Attribute =
+    getMockBffApiAttribute("DECLARED");
   const mockAttributes: attributeRegistryApi.Attributes = {
     results: [mockAttribute1, mockAttribute2, mockAttribute3],
     totalCount: 3,
