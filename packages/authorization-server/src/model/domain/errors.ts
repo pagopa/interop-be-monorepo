@@ -18,7 +18,7 @@ export const errorCodes = {
   dpopProofValidationFailed: "0009",
   dpopProofSignatureValidationFailed: "0010",
   unexpectedDPoPProofForAPIToken: "0011",
-  dpopAlreadyUsed: "0012",
+  dpopProofJtiAlreadyUsed: "0012",
   // TODO: remove if unused
   invalidDPoPProof: "0013",
 };
@@ -138,11 +138,11 @@ export function unexpectedDPoPProofForAPIToken(
   });
 }
 
-export function dpopAlreadyUsed(jti: string): ApiError<ErrorCodes> {
+export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `DPoP JTI ${jti} already in cache`,
-    code: "dpopAlreadyUsed",
-    title: "DPoP JTI already in cache",
+    detail: `DPoP proof JTI ${jti} already in cache`,
+    code: "dpopProofJtiAlreadyUsed",
+    title: "DPoP proof JTI already in cache",
   });
 }
 

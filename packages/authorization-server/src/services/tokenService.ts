@@ -70,7 +70,7 @@ import {
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,
   unexpectedDPoPProofForAPIToken,
-  dpopAlreadyUsed,
+  dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
 import { TokenRequest } from "../model/domain/models.js";
 
@@ -262,7 +262,7 @@ export function tokenServiceBuilder({
           dpopCacheTable: config.dpopCacheTable,
         });
         if (dpopCacheErrors) {
-          throw dpopAlreadyUsed(dpopProofJWT.payload.jti);
+          throw dpopProofJtiAlreadyUsed(dpopProofJWT.payload.jti);
         }
       }
 
