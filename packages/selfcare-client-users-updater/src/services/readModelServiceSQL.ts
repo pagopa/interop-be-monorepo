@@ -43,7 +43,7 @@ export function readModelServiceBuilderSQL({
       selfcareId: SelfcareId
     ): Promise<TenantId | undefined> => {
       const tenantSQL = await readModelDB
-        .select()
+        .select({ id: tenantInReadmodelTenant.id })
         .from(tenantInReadmodelTenant)
         .where(eq(tenantInReadmodelTenant.selfcareId, selfcareId));
 
