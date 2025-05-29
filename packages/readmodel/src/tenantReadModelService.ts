@@ -167,7 +167,6 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
     async getTenantsByIds(
       tenantIds: string[],
       tx: DrizzleTransactionType
-      // TODO: this doesn't use db passed above, but requires a tx passed directly here
     ): Promise<Array<WithMetadata<Tenant>>> {
       const [
         tenantsSQL,
