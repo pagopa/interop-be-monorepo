@@ -11,7 +11,6 @@ import {
   JWSInvalid,
   JWSSignatureVerificationFailed,
   JWTClaimValidationFailed,
-  JWTExpired,
   JWTInvalid,
 } from "jose/errors";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
@@ -31,9 +30,7 @@ import {
   dpopProofInvalidClaims,
   dpopProofSignatureVerificationError,
   invalidDPoPProofFormat,
-  jsonWebTokenError,
-  notBeforeError,
-  tokenExpiredError,
+  invalidDPoPJwt,
   invalidDPoPSignature,
   unexpectedDPoPProofError,
   unexpectedDPoPProofSignatureVerificationError,
@@ -150,17 +147,13 @@ export const verifyDPoPProofSignature = async (
 
     return successfulValidation(result.payload);
   } catch (error: unknown) {
-    if (error instanceof JWTExpired) {
-      return failedValidation([tokenExpiredError()]);
-    } else if (error instanceof JWSSignatureVerificationFailed) {
+    if (error instanceof JWSSignatureVerificationFailed) {
       return failedValidation([invalidDPoPSignature()]);
-    } else if (error instanceof JWTClaimValidationFailed) {
-      if (error.claim === "nbf") {
-        return failedValidation([notBeforeError()]);
-      }
-      return failedValidation([jsonWebTokenError(error.message)]);
-    } else if (error instanceof JWSInvalid) {
-      return failedValidation([jsonWebTokenError(error.message)]);
+    } else if (
+      error instanceof JWTClaimValidationFailed ||
+      error instanceof JWSInvalid
+    ) {
+      return failedValidation([invalidDPoPJwt(error.message)]);
     } else if (error instanceof JOSEError) {
       return failedValidation([
         dpopProofSignatureVerificationError(error.message),

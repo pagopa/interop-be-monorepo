@@ -15,15 +15,13 @@ export const errorCodes = {
   dpopHtuNotFound: "0012",
   invalidDPoPHtu: "0013",
   dpopProofSignatureVerificationError: "0014",
-  tokenExpiredError: "0015",
-  jsonWebTokenError: "0016",
-  notBeforeError: "0017",
-  dpopAlgorithmNotFound: "0018",
-  dpopAlgorithmNotAllowed: "0019",
-  dpopAlgorithmsMismatch: "0020",
-  dpopProofInvalidClaims: "0021",
-  invalidDPoPSignature: "0022",
-  expiredDPoPProof: "0023",
+  invalidDPoPJwt: "0015",
+  dpopAlgorithmNotFound: "0016",
+  dpopAlgorithmNotAllowed: "0017",
+  dpopAlgorithmsMismatch: "0018",
+  dpopProofInvalidClaims: "0019",
+  invalidDPoPSignature: "0020",
+  expiredDPoPProof: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -146,28 +144,11 @@ export function invalidDPoPHtu(htu: unknown): ApiError<ErrorCodes> {
   });
 }
 
-export function tokenExpiredError(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Token expired in DPoP proof signature validation",
-    code: "tokenExpiredError",
-    title: "Token expired",
-  });
-}
-
-export function jsonWebTokenError(errorMessage: string): ApiError<ErrorCodes> {
+export function invalidDPoPJwt(errorMessage: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid JWT format in DPoP proof signature validation. Reason: ${errorMessage}`,
-    code: "jsonWebTokenError",
+    code: "invalidDPoPJwt",
     title: "Invalid JWT format",
-  });
-}
-
-export function notBeforeError(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail:
-      "Current time is before not before time in DPoP proof signature validation",
-    code: "notBeforeError",
-    title: "Current time is before not before time",
   });
 }
 
