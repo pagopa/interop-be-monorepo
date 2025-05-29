@@ -7,8 +7,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Old readmodel\" && vitest --config vitest.config.ts && echo \"SQL readmodel\" && vitest --config vitest.sql.config.ts",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
@@ -34,8 +34,8 @@
   },
   "devDependencies": {
     "@types/node": "20.14.6",
-    "eslint": "8.57.0",
-    "prettier": "2.8.8",
+    "eslint": "8.57.1",
+    "prettier": "3.5.3",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
     "vitest": "1.6.0"

@@ -9,8 +9,8 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "build": "tsc && pnpm run copy-sql-files && cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
@@ -60,8 +60,8 @@
     "@types/node": "20.14.6",
     "@types/nodemailer": "6.4.17",
     "cpx2": "7.0.1",
-    "eslint": "8.57.0",
-    "prettier": "2.8.8",
+    "eslint": "8.57.1",
+    "prettier": "3.5.3",
     "typescript": "5.4.5"
   }
 }

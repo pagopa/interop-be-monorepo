@@ -10,8 +10,8 @@
   "license": "Apache-2.0",
   "scripts": {
     "test": "echo \"Error: no test specified\"",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
@@ -19,11 +19,11 @@
     "check": "tsc --project tsconfig.check.json"
   },
   "devDependencies": {
-    "@pagopa/eslint-config": "3.0.0",
+    "@pagopa/eslint-config": "4.0.4",
     "@types/html2json": "1.0.1",
     "@types/lodash.isempty": "4.4.9",
     "@types/node": "20.4.9",
-    "prettier": "2.8.8",
+    "prettier": "3.5.3",
     "tsx": "4.19.1",
     "typescript": "5.4.5"
   },

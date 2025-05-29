@@ -10,8 +10,8 @@
   },
   "scripts": {
     "test": "vitest",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "build": "tsc",
@@ -30,8 +30,8 @@
     "@types/node": "20.14.6",
     "@types/jsonwebtoken": "9.0.6",
     "jsonwebtoken": "9.0.2",
-    "eslint": "8.57.0",
-    "prettier": "2.8.8",
+    "eslint": "8.57.1",
+    "prettier": "3.5.3",
     "typescript": "5.4.5",
     "vitest": "1.6.0"
   }

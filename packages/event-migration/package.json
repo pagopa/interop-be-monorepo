@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
     "start:migrate": "tsx -r 'dotenv-flow/config' ./src/index.ts",
@@ -34,8 +34,8 @@
     "@types/node": "20.14.6",
     "@types/json-diff": "1.0.3",
     "@types/lodash.isequal": "4.5.8",
-    "eslint": "8.57.0",
-    "prettier": "2.8.8",
+    "eslint": "8.57.1",
+    "prettier": "3.5.3",
     "tsx": "4.19.1",
     "typescript": "5.4.5",
     "vitest": "1.6.0"
