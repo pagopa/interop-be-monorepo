@@ -8,6 +8,7 @@ import {
   deletingTables,
   domainTables,
   getTablesByName,
+  partialTables,
   setupStagingDeletingTables,
 } from "./utils.js";
 
@@ -28,6 +29,18 @@ describe("Setup DB Service tests for domain tables", async () => {
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
     expect(result.length).toBe(expectedTables.length);
+
+    const createdTableNames = result.map((row) => row.tablename);
+    expect(createdTableNames).toEqual(expect.arrayContaining(expectedTables));
+  });
+
+  it("should create partial staging tables successfully", async () => {
+    await dbService.setupPartialStagingTables(partialTables);
+
+    const expectedTables = tablesWithSuffix(partialTables);
+    const result = await getTablesByName(dbContext.conn, expectedTables);
+
+    expect(result.length).toBe(partialTables.length);
 
     const createdTableNames = result.map((row) => row.tablename);
     expect(createdTableNames).toEqual(expect.arrayContaining(expectedTables));
