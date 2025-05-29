@@ -37,6 +37,11 @@ tags:
     externalDocs:
       description: Find out more
       url: http://swagger.io
+  - name: key
+    description: Keys routes
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
 paths:
   /clientsConsumer:
     parameters:
@@ -1689,6 +1694,88 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /keys/{kid}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - key
+      summary: Retrieve key in JWK format
+      description: Retrieve the JWK by kid
+      operationId: getJWKByKid
+      parameters:
+        - name: kid
+          in: path
+          description: the unique identifier of the key (kid)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: returns the client with the key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientJWK"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /producerKeys/{kid}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - key
+      summary: Retrieve a producer key in JWK format
+      description: Retrieve the producer JWK by kid
+      operationId: getProducerJWKByKid
+      parameters:
+        - name: kid
+          in: path
+          description: the unique identifier of the key (kid)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: returns the Key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerJWK"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Producer Key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -1788,6 +1875,32 @@ components:
       enum:
         - CONSUMER
         - API
+    ClientJWK:
+      description: Key
+      type: object
+      additionalProperties: false
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        jwk:
+          $ref: "#/components/schemas/JWKKey"
+      required:
+        - clientId
+        - jwk
+    ProducerJWK:
+      description: Key
+      type: object
+      additionalProperties: false
+      properties:
+        producerKeychainId:
+          type: string
+          format: uuid
+        jwk:
+          $ref: "#/components/schemas/JWKKey"
+      required:
+        - producerKeychainId
+        - jwk
     ClientWithKeys:
       type: object
       additionalProperties: false
