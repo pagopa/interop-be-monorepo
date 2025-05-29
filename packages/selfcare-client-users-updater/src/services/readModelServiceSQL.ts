@@ -17,10 +17,10 @@ import {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   readModelDB,
-  clientReadModelService,
+  clientReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
-  clientReadModelService: ClientReadModelService;
+  clientReadModelServiceSQL: ClientReadModelService;
 }) {
   return {
     getClients: async ({
@@ -31,7 +31,7 @@ export function readModelServiceBuilderSQL({
       adminId: UserId;
     }): Promise<Client[]> =>
       (
-        await clientReadModelService.getClients(
+        await clientReadModelServiceSQL.getClients(
           and(
             eq(clientInReadmodelClient.kind, clientKind.api),
             eq(clientInReadmodelClient.consumerId, consumerId),

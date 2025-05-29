@@ -22,7 +22,7 @@ const oldReadModelService = readModelServiceBuilder(
 );
 const readModelServiceSQL = readModelServiceBuilderSQL({
   readModelDB,
-  clientReadModelService: clientReadModelServiceSQL,
+  clientReadModelServiceSQL,
 });
 const readModelService = config.featureFlagSQL
   ? readModelServiceSQL
