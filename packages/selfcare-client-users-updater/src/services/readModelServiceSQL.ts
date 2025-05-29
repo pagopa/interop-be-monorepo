@@ -1,13 +1,26 @@
-import { Client, UserId, TenantId, clientKind } from "pagopa-interop-models";
+import {
+  Client,
+  UserId,
+  TenantId,
+  clientKind,
+  SelfcareId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { ClientReadModelService } from "pagopa-interop-readmodel";
 import { and, eq } from "drizzle-orm";
-import { clientInReadmodelClient } from "pagopa-interop-readmodel-models";
+import {
+  clientInReadmodelClient,
+  DrizzleReturnType,
+  tenantInReadmodelTenant,
+} from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
-  clientReadModelServiceSQL,
+  readModelDB,
+  clientReadModelService,
 }: {
-  clientReadModelServiceSQL: ClientReadModelService;
+  readModelDB: DrizzleReturnType;
+  clientReadModelService: ClientReadModelService;
 }) {
   return {
     getClients: async ({
@@ -18,7 +31,7 @@ export function readModelServiceBuilderSQL({
       adminId: UserId;
     }): Promise<Client[]> =>
       (
-        await clientReadModelServiceSQL.getClients(
+        await clientReadModelService.getClients(
           and(
             eq(clientInReadmodelClient.kind, clientKind.api),
             eq(clientInReadmodelClient.consumerId, consumerId),
@@ -26,6 +39,18 @@ export function readModelServiceBuilderSQL({
           )
         )
       ).map((client) => client.data),
+    getTenantIdBySelfcareId: async (
+      selfcareId: SelfcareId
+    ): Promise<TenantId | undefined> => {
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantInReadmodelTenant)
+        .where(eq(tenantInReadmodelTenant.selfcareId, selfcareId));
+
+      return tenantSQL.length === 0
+        ? undefined
+        : unsafeBrandId<TenantId>(tenantSQL[0].id);
+    },
   };
 }
 
