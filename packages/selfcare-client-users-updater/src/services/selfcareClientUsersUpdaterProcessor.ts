@@ -52,17 +52,20 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
           return;
         }
 
-        const stringPayload = message.value.toString();
-        const userEventPayload = UsersEventPayload.parse(
-          JSON.parse(stringPayload)
-        );
+        const jsonPayload = JSON.parse(message.value.toString());
+
+        // Process only messages of our product
+        // Note: doing this before parsing to avoid errors on messages of other products
+        if (jsonPayload.productId !== productId) {
+          loggerInstance.info(
+            `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${jsonPayload.product}`
+          );
+          return;
+        }
+
+        const userEventPayload = UsersEventPayload.parse(jsonPayload);
 
         return match(userEventPayload)
-          .with({ productId: P.not(productId) }, () => {
-            loggerInstance.info(
-              `Skipping message for partition ${partition} with offset ${message.offset} - Not required product: ${userEventPayload.productId}`
-            );
-          })
           .with({ user: { userId: P.nullish } }, () => {
             loggerInstance.warn(
               `Skipping message for partition ${partition} with offset ${message.offset} - Missing userId.`
