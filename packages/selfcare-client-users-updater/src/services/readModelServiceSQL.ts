@@ -42,14 +42,12 @@ export function readModelServiceBuilderSQL({
     getTenantIdBySelfcareId: async (
       selfcareId: SelfcareId
     ): Promise<TenantId | undefined> => {
-      const tenantSQL = await readModelDB
+      const [tenant] = await readModelDB
         .select({ id: tenantInReadmodelTenant.id })
         .from(tenantInReadmodelTenant)
         .where(eq(tenantInReadmodelTenant.selfcareId, selfcareId));
 
-      return tenantSQL.length === 0
-        ? undefined
-        : unsafeBrandId<TenantId>(tenantSQL[0].id);
+      return tenant ? unsafeBrandId<TenantId>(tenant.id) : undefined;
     },
   };
 }
