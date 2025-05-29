@@ -2,15 +2,14 @@ import {
   ReadModelRepository,
   ReadModelFilter,
   EServiceCollection,
-  userRoles,
-  hasPermission,
-  AuthData,
   TenantCollection,
+  M2MAuthData,
+  UIAuthData,
   EServiceTemplateCollection,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
-  Document,
   EService,
   Agreement,
   AgreementState,
@@ -22,7 +21,6 @@ import {
   WithMetadata,
   Attribute,
   EServiceId,
-  EServiceDocumentId,
   TenantId,
   Tenant,
   EServiceReadModel,
@@ -44,7 +42,10 @@ import {
   Consumer,
   consumer,
 } from "../model/domain/models.js";
-import { notActiveDescriptorState } from "./validators.js";
+import {
+  hasRoleToAccessInactiveDescriptors,
+  notActiveDescriptorState,
+} from "./validators.js";
 
 async function getEService(
   eservices: EServiceCollection,
@@ -138,7 +139,7 @@ export function readModelServiceBuilder(
 
   return {
     async getEServices(
-      authData: AuthData,
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number
@@ -243,72 +244,70 @@ export function readModelServiceBuilder(
           ],
         });
 
-      const visibilityFilter: ReadModelFilter<EService> = hasPermission(
-        [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
-        authData
-      )
-        ? {
-            $nor: [
-              {
-                $and: [
-                  {
-                    $nor: [
-                      { "data.producerId": authData.organizationId },
-                      {
-                        delegations: {
-                          $elemMatch: {
-                            "data.delegateId": authData.organizationId,
-                            "data.state": delegationState.active,
-                            "data.kind": delegationKind.delegatedProducer,
+      const visibilityFilter: ReadModelFilter<EService> =
+        hasRoleToAccessInactiveDescriptors(authData)
+          ? {
+              $nor: [
+                {
+                  $and: [
+                    {
+                      $nor: [
+                        { "data.producerId": authData.organizationId },
+                        {
+                          delegations: {
+                            $elemMatch: {
+                              "data.delegateId": authData.organizationId,
+                              "data.state": delegationState.active,
+                              "data.kind": delegationKind.delegatedProducer,
+                            },
                           },
                         },
-                      },
-                    ],
-                  },
-                  { "data.descriptors": { $size: 0 } },
-                ],
-              },
-              {
-                $and: [
-                  {
-                    $nor: [
-                      { "data.producerId": authData.organizationId },
-                      {
-                        delegations: {
-                          $elemMatch: {
-                            "data.delegateId": authData.organizationId,
-                            "data.state": delegationState.active,
-                            "data.kind": delegationKind.delegatedProducer,
+                      ],
+                    },
+                    { "data.descriptors": { $size: 0 } },
+                  ],
+                },
+                {
+                  $and: [
+                    {
+                      $nor: [
+                        { "data.producerId": authData.organizationId },
+                        {
+                          delegations: {
+                            $elemMatch: {
+                              "data.delegateId": authData.organizationId,
+                              "data.state": delegationState.active,
+                              "data.kind": delegationKind.delegatedProducer,
+                            },
                           },
                         },
+                      ],
+                    },
+                    { "data.descriptors": { $size: 1 } },
+                    {
+                      "data.descriptors.state": {
+                        $in: notActiveDescriptorState,
                       },
-                    ],
-                  },
-                  { "data.descriptors": { $size: 1 } },
-                  {
-                    "data.descriptors.state": {
-                      $in: notActiveDescriptorState,
                     },
-                  },
-                ],
-              },
-            ],
-          }
-        : {
-            $nor: [
-              { "data.descriptors": { $size: 0 } },
-              {
-                $and: [
-                  { "data.descriptors": { $size: 1 } },
-                  {
-                    "data.descriptors.state": {
-                      $in: notActiveDescriptorState,
+                  ],
+                },
+              ],
+            }
+          : {
+              $nor: [
+                { "data.descriptors": { $size: 0 } },
+                {
+                  $and: [
+                    { "data.descriptors": { $size: 1 } },
+                    {
+                      "data.descriptors.state": {
+                        $in: notActiveDescriptorState,
+                      },
                     },
-                  },
-                ],
-              },
-            ],
-          };
+                  ],
+                },
+              ],
+            };
 
       const modeFilter: ReadModelFilter<EService> = mode
         ? { "data.mode": { $eq: mode } }
@@ -348,7 +347,7 @@ export function readModelServiceBuilder(
       const templatesIdsFilter =
         templatesIds.length > 0
           ? {
-              "data.templateRef.id": { $in: templatesIds },
+              "data.templateId": { $in: templatesIds },
             }
           : {};
 
@@ -527,16 +526,6 @@ export function readModelServiceBuilder(
           aggregationPipeline
         ),
       };
-    },
-    async getDocumentById(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      documentId: EServiceDocumentId
-    ): Promise<Document | undefined> {
-      const eservice = await this.getEServiceById(eserviceId);
-      return eservice?.data.descriptors
-        .find((d) => d.id === descriptorId)
-        ?.docs.find((d) => d.id === documentId);
     },
     async listAgreements({
       eservicesIds,

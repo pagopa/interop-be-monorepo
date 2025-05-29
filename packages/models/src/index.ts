@@ -62,7 +62,7 @@ export * from "./eservice-template/eserviceTemplateEvents.js";
 export * from "./eservice-template/protobufConverterFromV2.js";
 export * from "./eservice-template/protobufConverterToV2.js";
 
-export * from "./user/user.js";
+export * from "./application-audit/application-audit.js";
 
 // Token generation read model
 export * from "./token-generation-readmodel/platform-states-entry.js";
@@ -90,6 +90,7 @@ export * from "./constants.js";
 export * from "./errors.js";
 export * from "./utils.js";
 export * from "./constants.js";
+export * from "./services.js";
 
 //  Generated models
 export * from "./gen/v1/agreement/agreement.js";

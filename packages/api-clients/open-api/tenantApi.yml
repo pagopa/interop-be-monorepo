@@ -358,6 +358,14 @@ paths:
           default: []
         explode: false
       - in: query
+        name: externalIdOrigin
+        schema:
+          type: string
+      - in: query
+        name: externalIdValue
+        schema:
+          type: string
+      - in: query
         name: offset
         required: true
         schema:
@@ -434,6 +442,9 @@ paths:
       operationId: getTenant
       description: Retrieve the Tenant
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Tenant retrieved
           content:
@@ -800,6 +811,9 @@ paths:
               $ref: "#/components/schemas/CertifiedTenantAttributeSeed"
         required: true
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Updated Tenant
           content:
@@ -841,8 +855,15 @@ paths:
       operationId: revokeCertifiedAttributeById
       description: Revoke a certified attribute to a Tenant by the requester Tenant
       responses:
-        "204":
-          description: Certified Attribute revoked
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
+          description: Updated Tenant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
         "403":
           description: Forbidden
           content:
@@ -1062,6 +1083,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  headers:
+    MetadataVersionHeader:
+      description: The version number of the resource in the read model
+      schema:
+        type: integer
   parameters:
     CorrelationIdHeader:
       in: header
@@ -1302,7 +1328,6 @@ components:
           format: uuid
       required:
         - id
-        - kind
         - assignmentTimestamp
     CertifiedTenantAttribute:
       type: object
@@ -1319,7 +1344,6 @@ components:
           format: date-time
       required:
         - id
-        - kind
         - assignmentTimestamp
     VerifiedTenantAttribute:
       type: object
@@ -1341,7 +1365,6 @@ components:
             $ref: "#/components/schemas/TenantRevoker"
       required:
         - id
-        - kind
         - assignmentTimestamp
         - verifiedBy
         - revokedBy

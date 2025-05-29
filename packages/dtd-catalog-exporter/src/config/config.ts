@@ -1,7 +1,9 @@
 import {
+  FeatureFlagSQLConfig,
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
+  ReadModelSQLDbConfig,
   S3Config,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -12,6 +14,7 @@ const DtdCatalogExporterConfig = ReadModelDbConfig.and(FileManagerConfig)
   .and(
     z
       .object({
+        DTD_CATALOG_STORAGE_PATH: z.string(),
         DTD_CATALOG_JSON_FILENAME: z.string(),
         DTD_CATALOG_CSV_FILENAME: z.string(),
         DTD_TENANTS_CSV_FILENAME: z.string(),
@@ -21,6 +24,7 @@ const DtdCatalogExporterConfig = ReadModelDbConfig.and(FileManagerConfig)
         GITHUB_REPO_OWNER: z.string(),
       })
       .transform((c) => ({
+        dtdCatalogStoragePath: c.DTD_CATALOG_STORAGE_PATH,
         dtdCatalogJsonFilename: c.DTD_CATALOG_JSON_FILENAME,
         dtdCatalogCsvFilename: c.DTD_CATALOG_CSV_FILENAME,
         dtdTenantsJsonFilename: c.DTD_TENANTS_JSON_FILENAME,
@@ -29,7 +33,9 @@ const DtdCatalogExporterConfig = ReadModelDbConfig.and(FileManagerConfig)
         githubRepo: c.GITHUB_REPO,
         githubRepoOwner: c.GITHUB_REPO_OWNER,
       }))
-  );
+  )
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig);
 
 export type DtdCatalogExporterConfig = z.infer<typeof DtdCatalogExporterConfig>;
 export const config: DtdCatalogExporterConfig = DtdCatalogExporterConfig.parse(

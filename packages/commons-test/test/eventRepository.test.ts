@@ -49,7 +49,7 @@ const toCreateEventEServiceDescriptorAdded = (
 });
 
 describe("EventRepository tests", async () => {
-  it("should save events for the same streamId when using the correct version number sequence", async () => {
+  it("should save events for the same streamId when using the correct version number sequence (createEvent + createEvents)", async () => {
     const correlationId: CorrelationId = generateId();
 
     const eservice = getMockEService();
@@ -58,9 +58,10 @@ describe("EventRepository tests", async () => {
       correlationId
     );
 
-    expect(await repository.createEvent(eserviceCreationEvent)).toBe(
-      eservice.id
-    );
+    expect(await repository.createEvent(eserviceCreationEvent)).toStrictEqual({
+      streamId: eservice.id,
+      newVersion: 0,
+    });
 
     const descriptor1 = getMockDescriptor(descriptorState.draft);
     const descriptor2 = getMockDescriptor(descriptorState.draft);
@@ -83,7 +84,10 @@ describe("EventRepository tests", async () => {
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual([eservice.id, eservice.id]);
+    ).toStrictEqual([
+      { streamId: eservice.id, newVersion: 1 },
+      { streamId: eservice.id, newVersion: 2 },
+    ]);
   });
 
   it("should not save event for the same streamId with the same version number", async () => {
@@ -95,9 +99,10 @@ describe("EventRepository tests", async () => {
       correlationId
     );
 
-    expect(await repository.createEvent(eserviceCreationEvent)).toBe(
-      eservice.id
-    );
+    expect(await repository.createEvent(eserviceCreationEvent)).toStrictEqual({
+      streamId: eservice.id,
+      newVersion: 0,
+    });
 
     const descriptor1 = getMockDescriptor(descriptorState.draft);
     const descriptor2 = getMockDescriptor(descriptorState.draft);
@@ -127,7 +132,7 @@ describe("EventRepository tests", async () => {
     );
   });
 
-  it("should not save event for the same streamId with the same version number (edge case)", async () => {
+  it("should save events for the same streamId when using the correct version number sequence (createEvents only)", async () => {
     const correlationId: CorrelationId = generateId();
 
     const eservice = getMockEService();
@@ -158,6 +163,10 @@ describe("EventRepository tests", async () => {
         descriptorCreationEvent1,
         descriptorCreationEvent2,
       ])
-    ).toStrictEqual([eservice.id, eservice.id, eservice.id]);
+    ).toStrictEqual([
+      { streamId: eservice.id, newVersion: 0 },
+      { streamId: eservice.id, newVersion: 1 },
+      { streamId: eservice.id, newVersion: 2 },
+    ]);
   });
 });

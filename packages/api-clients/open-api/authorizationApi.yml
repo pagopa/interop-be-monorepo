@@ -37,6 +37,11 @@ tags:
     externalDocs:
       description: Find out more
       url: http://swagger.io
+  - name: key
+    description: Keys routes
+    externalDocs:
+      description: Find out more
+      url: "http://swagger.io"
 paths:
   /clientsConsumer:
     parameters:
@@ -277,6 +282,9 @@ paths:
           schema:
             type: string
       responses:
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Client retrieved
           content:
@@ -397,7 +405,7 @@ paths:
                   minItems: 1
                   items:
                     type: string
-                    format: uuid    
+                    format: uuid
       responses:
         "200":
           description: Users added
@@ -430,6 +438,72 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: Add users to a Client
+  "/clients/{clientId}/admin":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: clientId
+        in: path
+        description: ID of the client where to set the admin user
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - client
+      summary: Set Admin to a Client
+      operationId: setAdminToClient
+      requestBody:
+        required: true
+        description: AdminId to be set to the Client
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - adminId
+              properties:
+                adminId:
+                  type: string
+                  format: uuid
+      responses:
+        "200":
+          description: Admin set
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Missing Required Information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: User already an admin for the client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/clients/{clientId}/users/{userId}":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -792,8 +866,21 @@ paths:
             schema:
               $ref: "#/components/schemas/PurposeAdditionDetails"
       responses:
-        "204":
-          description: Request succeed
+        headers:
+          X-Metadata-Version:
+            $ref: "#/components/headers/MetadataVersionHeader"
+        "200":
+          description: Client with added purpose
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "401":
           description: Unauthorized
           content:
@@ -808,6 +895,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/json:
               schema:
@@ -891,6 +984,106 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /internal/clients/{clientId}/admin/{adminId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: clientId
+        in: path
+        description: ID of Client
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adminId
+        in: path
+        description: ID of Admin
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - client
+      summary: Removes an admin from a client
+      description: Removes an admin from a client
+      operationId: internalRemoveClientAdmin
+      responses:
+        "204":
+          description: Request succeed
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /clients/{clientId}/admin/{adminId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: clientId
+        in: path
+        description: ID of Client
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: adminId
+        in: path
+        description: ID of Admin
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags:
+        - client
+      summary: Removes an admin from a client
+      description: Removes an admin from a client
+      operationId: removeClientAdmin
+      responses:
+        "204":
+          description: Request succeed
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
           content:
             application/json:
               schema:
@@ -1088,7 +1281,7 @@ paths:
         - producerKeychain
       summary: List Producer Keychain users
       description: List Producer Keychain users
-      operationId: getProducerKeychainUsers      
+      operationId: getProducerKeychainUsers
       responses:
         "200":
           description: Request succeed
@@ -1232,7 +1425,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Keys"
+                $ref: "#/components/schemas/Key"
         "400":
           description: Bad Request
           content:
@@ -1501,6 +1694,88 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /keys/{kid}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - key
+      summary: Retrieve key in JWK format
+      description: Retrieve the JWK by kid
+      operationId: getJWKByKid
+      parameters:
+        - name: kid
+          in: path
+          description: the unique identifier of the key (kid)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: returns the client with the key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientJWK"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /producerKeys/{kid}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - key
+      summary: Retrieve a producer key in JWK format
+      description: Retrieve the producer JWK by kid
+      operationId: getProducerJWKByKid
+      parameters:
+        - name: kid
+          in: path
+          description: the unique identifier of the key (kid)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: returns the Key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerJWK"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Producer Key not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -1517,6 +1792,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  headers:
+    MetadataVersionHeader:
+      description: The version number of the resource in the read model
+      schema:
+        type: integer
   parameters:
     CorrelationIdHeader:
       in: header
@@ -1559,6 +1839,9 @@ components:
         consumerId:
           type: string
           format: uuid
+        adminId:
+          type: string
+          format: uuid
         createdAt:
           type: string
           format: date-time
@@ -1592,6 +1875,32 @@ components:
       enum:
         - CONSUMER
         - API
+    ClientJWK:
+      description: Key
+      type: object
+      additionalProperties: false
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        jwk:
+          $ref: "#/components/schemas/JWKKey"
+      required:
+        - clientId
+        - jwk
+    ProducerJWK:
+      description: Key
+      type: object
+      additionalProperties: false
+      properties:
+        producerKeychainId:
+          type: string
+          format: uuid
+        jwk:
+          $ref: "#/components/schemas/JWKKey"
+      required:
+        - producerKeychainId
+        - jwk
     ClientWithKeys:
       type: object
       additionalProperties: false
@@ -1882,7 +2191,7 @@ components:
       required:
         - name
         - description
-        - members 
+        - members
     EServiceAdditionDetails:
       type: object
       properties:
