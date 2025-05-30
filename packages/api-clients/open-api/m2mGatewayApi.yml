@@ -69,7 +69,7 @@ paths:
     get:
       tags:
         - agreements
-      summary: List agreements
+      summary: List Agreements
       description: Retrieve a list of Agreements based on filters.
       operationId: getAgreements
       parameters:
@@ -280,7 +280,7 @@ paths:
     parameters:
       - name: agreementId
         in: path
-        description: The Agreement ID to retrieve
+        description: The ID of the Agreement to retrieve
         required: true
         schema:
           type: string
@@ -376,7 +376,7 @@ paths:
           type: string
           format: uuid
         name: agreementId
-        description: The Agreement ID to approve
+        description: The ID of the Agreement to approve
         in: path
         required: true
     post:
@@ -483,7 +483,7 @@ paths:
           type: string
           format: uuid
         name: agreementId
-        description: The Agreement ID to reject
+        description: The ID of the Agreement to reject
         in: path
         required: true
     post:
@@ -583,7 +583,7 @@ paths:
           type: string
           format: uuid
         name: agreementId
-        description: The Agreement ID to submit
+        description: The ID of the Agreement to submit
         in: path
         required: true
     post:
@@ -697,7 +697,7 @@ paths:
           type: string
           format: uuid
         name: agreementId
-        description: The Agreement ID to suspend
+        description: The ID of the Agreement to suspend
         in: path
         required: true
     post:
@@ -793,7 +793,7 @@ paths:
           type: string
           format: uuid
         name: agreementId
-        description: The Agreement ID to unsuspend
+        description: The ID of the Agreement to unsuspend
         in: path
         required: true
     post:
@@ -887,7 +887,7 @@ paths:
     parameters:
       - name: agreementId
         in: path
-        description: The Agreement ID to upgrade
+        description: The ID of the Agreement to upgrade
         required: true
         schema:
           type: string
@@ -1194,7 +1194,7 @@ paths:
     parameters:
       - name: delegationId
         in: path
-        description: The delegation ID to accept
+        description: The ID of the Consumer Delegation to accept
         required: true
         schema:
           type: string
@@ -1390,7 +1390,7 @@ paths:
     parameters:
       - name: attributeId
         in: path
-        description: The Attribute ID to retrieve
+        description: The ID of the Attribute to retrieve
         required: true
         schema:
           type: string
@@ -1471,7 +1471,7 @@ paths:
     parameters:
       - name: clientId
         in: path
-        description: The client ID to link the Purpose to
+        description: The ID of the Client to link the Purpose to
         required: true
         schema:
           type: string
@@ -1582,7 +1582,7 @@ paths:
     parameters:
       - name: delegationId
         in: path
-        description: The Consumer Delegation ID to reject
+        description: The ID of the Consumer Delegation to reject
         required: true
         schema:
           type: string
@@ -1973,7 +1973,7 @@ paths:
           format: uuid
       - name: descriptorId
         in: path
-        description: The Descriptor ID to retrieve
+        description: The ID of the Descriptor to retrieve
         required: true
         schema:
           type: string
@@ -2246,7 +2246,7 @@ paths:
           format: uuid
       - name: versionId
         in: path
-        description: The Version ID to retrieve
+        description: The ID of the Version to retrieve
         required: true
         schema:
           type: string
@@ -2421,8 +2421,9 @@ paths:
     post:
       tags:
         - purposes
+      summary: Create a new Purpose
+      description: Create a new Purpose in Draft state
       operationId: createPurpose
-      description: Creates a purpose
       requestBody:
         content:
           application/json:
@@ -2524,11 +2525,13 @@ paths:
     get:
       tags:
         - purposes
+      summary: List Purposes
+      description: Retrieve a list of Purposes based on filters.
       operationId: getPurposes
-      description: List purposes
       parameters:
-        - name: eserviceIds
-          in: query
+        - in: query
+          name: eserviceIds
+          description: Filter Purposes by E-Service IDs. If not specified, return Purposes for any E-Service
           schema:
             type: array
             items:
@@ -2538,6 +2541,7 @@ paths:
           explode: false
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -2545,6 +2549,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -2608,7 +2613,7 @@ paths:
     parameters:
       - name: purposeId
         in: path
-        description: The purpose id
+        description: The ID of the Purpose to retrieve
         required: true
         schema:
           type: string
@@ -2616,8 +2621,9 @@ paths:
     get:
       tags:
         - purposes
+      summary: Retrieve a Purpose
+      description: Retrieve a Purpose
       operationId: getPurpose
-      description: Get purpose
       responses:
         "200":
           description: Purpose retrieved
@@ -2701,23 +2707,25 @@ paths:
     parameters:
       - name: purposeId
         in: path
-        description: The Purpose id
+        description: The Purpose ID of the Versions to retrieve
         required: true
         schema:
           type: string
     get:
       tags:
         - purposes
+      summary: List Purpose Versions
+      description: Retrieve a list of Purpose Versions based on filters.
       operationId: getPurposeVersions
-      description: Get purpose versions
       parameters:
         - name: state
           in: query
-          description: The version state
+          description: Filter Versions by states. If not specified, return Versions in any state
           schema:
             $ref: "#/components/schemas/PurposeVersionState"
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -2725,6 +2733,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -2733,7 +2742,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Purpose versions retrieved
+          description: Purpose Versions retrieved
           content:
             application/json:
               schema:
@@ -2813,7 +2822,10 @@ paths:
     post:
       tags:
         - purposes
-      summary: Create new version
+      summary: Create a new Purpose Version
+      description: >
+        Create a new Purpose Version to update daily calls.
+        The new Version will be created in Active state if daily calls are under the E-Service threshold, in Waiting for Approval otherwise.
       operationId: createPurposeVersion
       requestBody:
         content:
@@ -2823,7 +2835,7 @@ paths:
         required: true
       responses:
         "201":
-          description: Purpose version created
+          description: Purpose Version created
           content:
             application/json:
               schema:
@@ -2917,14 +2929,14 @@ paths:
     parameters:
       - name: purposeId
         in: path
-        description: The purpose id
+        description: The Purpose ID of the Version
         required: true
         schema:
           type: string
           format: uuid
       - name: versionId
         in: path
-        description: The version id
+        description: The ID of the Version to retrieve
         required: true
         schema:
           type: string
@@ -2932,11 +2944,12 @@ paths:
     get:
       tags:
         - purposes
+      summary: Retrieve a Purpose Version
+      description: Retrieve a Purpose Version
       operationId: getPurposeVersion
-      description: Get purpose version
       responses:
         "200":
-          description: Purpose version retrieved
+          description: Purpose Version retrieved
           content:
             application/json:
               schema:
@@ -3016,6 +3029,7 @@ paths:
   /purposes/{purposeId}/activate:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to approve
         in: path
         required: true
         schema:
@@ -3024,8 +3038,11 @@ paths:
     post:
       tags:
         - purposes
+      summary: Activate a Purpose in Draft state
+      description: > 
+        Activate a Purpose that is in Draft states.
+        The new state will be Active if daily calls are under the E-Service threshold, Waiting for Approval otherwise.
       operationId: activateDraftPurpose
-      description: Activate Draft Purpose
       responses:
         "200":
           description: Purpose activated
@@ -3121,6 +3138,7 @@ paths:
   /purposes/{purposeId}/archive:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to archive
         in: path
         required: true
         schema:
@@ -3129,8 +3147,12 @@ paths:
     post:
       tags:
         - purposes
+      summary: Archive a Purpose in Active or Suspended state
+      description: >
+        Archive a Purpose that is in Active or Suspended state, transitioning it to Archived state.
+        Existing Waiting for Approval Versions will be deleted.
+        The Archived state is not reversible.
       operationId: archivePurpose
-      description: Archive Purpose
       responses:
         "200":
           description: Purpose archived
@@ -3226,6 +3248,7 @@ paths:
   /purposes/{purposeId}/approve:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to approve
         in: path
         required: true
         schema:
@@ -3234,8 +3257,9 @@ paths:
     post:
       tags:
         - purposes
+      summary: Approve a Purpose in Waiting for Approval state
+      description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active state.
       operationId: approvePurpose
-      description: Approve Waiting for approval Purpose
       responses:
         "200":
           description: Purpose approved
@@ -3331,6 +3355,7 @@ paths:
   /purposes/{purposeId}/suspend:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to suspend
         in: path
         required: true
         schema:
@@ -3339,8 +3364,11 @@ paths:
     post:
       tags:
         - purposes
+      summary: Suspend a Purpose in Active or Suspended state
+      description: >
+        Suspend a Purpose that is in Active or Suspended state, transitioning it to Suspended state.
+        A Purpose may already be in Suspended state when previously suspended by the consumer or the producer.
       operationId: suspendPurpose
-      description: Suspend Purpose
       responses:
         "200":
           description: Purpose suspended
@@ -3436,6 +3464,7 @@ paths:
   /purposes/{purposeId}/unsuspend:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to unsuspend
         in: path
         required: true
         schema:
@@ -3444,8 +3473,11 @@ paths:
     post:
       tags:
         - purposes
+      summary: Unsuspend a Purpose in Suspended state
+      description: >
+        Unsuspend a Purpose that is in Suspended state, transitioning it to Active or Suspended state.
+        A Purpose may remain in Suspended state when suspended also by the consumer or the producer.
       operationId: unsuspendPurpose
-      description: Unsuspend Purpose
       responses:
         "200":
           description: Purpose unsuspended
