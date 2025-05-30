@@ -11,7 +11,6 @@ export function toM2MGatewayEServiceTemplate(
     mode: template.mode,
     name: template.name,
     technology: template.technology,
-    versions: template.versions.map(toM2MGatewayEServiceTemplateVersion),
     isSignalHubEnabled: template.isSignalHubEnabled,
   };
 }
