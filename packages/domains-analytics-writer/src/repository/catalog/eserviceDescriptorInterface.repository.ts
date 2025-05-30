@@ -18,7 +18,8 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor_interface;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName = DeletingDbTable.catalog_deleting_table;
+  const deletingTableName =
+    DeletingDbTable.catalog_descriptor_interface_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
@@ -84,7 +85,8 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           deletingTableName,
           EserviceDescriptorInterfaceDeletingSchema
         );
-        await t.none(
+
+        await t.result(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
@@ -100,9 +102,12 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["descriptorId"]
         );
-        await t.none(mergeQuery);
+        const result = await t.result(mergeQuery);
+        if (result.rowCount > 0) {
+          // TO DO SET SERVER URLS []
+        }
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`

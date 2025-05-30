@@ -84,6 +84,10 @@ await retryConnection(
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.catalog_descriptor_interface_deleting_table,
+        columns: ["id"],
+      },
       { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.catalog_risk_deleting_table,

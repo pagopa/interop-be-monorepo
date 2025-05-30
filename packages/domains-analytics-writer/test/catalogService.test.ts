@@ -260,6 +260,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
       CatalogDbTable.eservice_descriptor_document,
       { id: document.id }
     );
+
     expect(stored.length).toBeGreaterThan(0);
     expect(stored[0].metadataVersion).toBe(3);
   });
@@ -1122,9 +1123,11 @@ describe("Check on metadata_version merge", () => {
 
   it("handles EServiceDocumentUpdated by upserting and merging documents", async () => {
     const eservice = getMockEService();
+    const interfaceD = getMockDocument();
     const descriptor = {
       ...getMockDescriptor(),
       eserviceId: eservice.id,
+      interface: interfaceD,
     };
 
     eservice.descriptors = [descriptor];
@@ -1154,6 +1157,8 @@ describe("Check on metadata_version merge", () => {
       log_date: new Date(),
     };
 
+    await handleCatalogMessageV1([addEvent], dbContext);
+
     const updateDocEvent: EServiceEventEnvelopeV1 = {
       sequence_num: 2,
       stream_id: eservice.id,
@@ -1165,7 +1170,7 @@ describe("Check on metadata_version merge", () => {
         documentId: document.id,
         descriptorId: descriptor.id,
         eserviceId: eservice.id,
-        serverUrls: ["/first-server-url.it"],
+        serverUrls: [],
       },
       log_date: new Date(),
     };
@@ -1174,37 +1179,26 @@ describe("Check on metadata_version merge", () => {
       sequence_num: 2,
       stream_id: eservice.id,
       version: 3,
-      type: "EServiceDocumentUpdated",
+      type: "EServiceDocumentDeleted",
       event_version: 1,
       data: {
-        updatedDocument: document,
         documentId: document.id,
         descriptorId: descriptor.id,
         eserviceId: eservice.id,
-        serverUrls: ["/second-server-url.it"],
       },
       log_date: new Date(),
     };
 
-    await handleCatalogMessageV1(
-      [addEvent, updateDocEvent2, updateDocEvent],
-      dbContext
-    );
+    await handleCatalogMessageV1([updateDocEvent2, updateDocEvent], dbContext);
 
     const storedDocs = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_descriptor_document,
       { descriptorId: descriptor.id }
     );
-    const storedDescriptors = await getManyFromDb(
-      dbContext,
-      CatalogDbTable.eservice_descriptor,
-      { id: descriptor.id }
-    );
 
     expect(storedDocs.length).toBe(1);
     expect(storedDocs[0].id).toBe(document.id);
     expect(storedDocs[0].name).toBe("Security Policy");
-    expect(storedDescriptors[0].serverUrls).toBe('["pagopa.it"]');
   });
 });

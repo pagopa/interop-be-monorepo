@@ -22,6 +22,7 @@ import {
   EserviceItemsSchema,
 } from "../../model/catalog/eservice.js";
 import {
+  DescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorItemsSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
@@ -29,6 +30,11 @@ import {
   EserviceDescriptorDocumentSchema,
   EserviceDescriptorDocumentDeletingSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
+import {
+  EserviceDescriptorInterfaceDeletingSchema,
+  EserviceDescriptorInterfaceItemsSchema,
+  EserviceDescriptorInterfaceSchema,
+} from "../../model/catalog/eserviceDescriptorInterface.js";
 
 export async function handleCatalogMessageV1(
   messages: EServiceEventEnvelopeV1[],
@@ -43,6 +49,10 @@ export async function handleCatalogMessageV1(
   const deleteEServiceDocumentBatch: EserviceDescriptorDocumentDeletingSchema[] =
     [];
   const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
+  const upsertEserviceInterface: EserviceDescriptorInterfaceItemsSchema[] = [];
+  const upsertDescriptorServerUrls: DescriptorServerUrlsSchema[] = [];
+  const deleteDescriptorInterfaceBatch: EserviceDescriptorInterfaceDeletingSchema[] =
+    [];
 
   for (const message of messages) {
     match(message)
@@ -106,15 +116,35 @@ export async function handleCatalogMessageV1(
             `EService updatedDocument can't be missing in the event message`
           );
         }
+        const isInterface =
+          msg.data.serverUrls && msg.data.serverUrls.length > 0;
 
-        upsertEServiceDocumentBatch.push(
-          EserviceDescriptorDocumentSchema.parse({
-            ...msg.data.updatedDocument,
-            eserviceId: msg.data.eserviceId,
-            descriptorId: msg.data.descriptorId,
-            metadataVersion: msg.version,
-          } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
-        );
+        if (isInterface) {
+          upsertEserviceInterface.push(
+            EserviceDescriptorInterfaceSchema.parse({
+              ...msg.data.updatedDocument,
+              eserviceId: msg.data.eserviceId,
+              descriptorId: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
+          );
+          upsertDescriptorServerUrls.push(
+            DescriptorServerUrlsSchema.parse({
+              serverUrls: msg.data.serverUrls,
+              id: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof DescriptorServerUrlsSchema>)
+          );
+        } else {
+          upsertEServiceDocumentBatch.push(
+            EserviceDescriptorDocumentSchema.parse({
+              ...msg.data.updatedDocument,
+              eserviceId: msg.data.eserviceId,
+              descriptorId: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
+          );
+        }
       })
       .with({ type: "EServiceDocumentAdded" }, (msg) => {
         if (!msg.data.document) {
@@ -123,16 +153,40 @@ export async function handleCatalogMessageV1(
           );
         }
 
-        upsertEServiceDocumentBatch.push(
-          EserviceDescriptorDocumentSchema.parse({
-            ...msg.data.document,
-            eserviceId: msg.data.eserviceId,
-            descriptorId: msg.data.descriptorId,
-            metadataVersion: msg.version,
-          } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
-        );
+        if (msg.data.isInterface) {
+          upsertEserviceInterface.push(
+            EserviceDescriptorInterfaceSchema.parse({
+              ...msg.data.document,
+              eserviceId: msg.data.eserviceId,
+              descriptorId: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
+          );
+          upsertDescriptorServerUrls.push(
+            DescriptorServerUrlsSchema.parse({
+              serverUrls: msg.data.serverUrls,
+              id: msg.data.descriptorId as "asfqe",
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof DescriptorServerUrlsSchema>)
+          );
+        } else {
+          upsertEServiceDocumentBatch.push(
+            EserviceDescriptorDocumentSchema.parse({
+              ...msg.data.document,
+              eserviceId: msg.data.eserviceId,
+              descriptorId: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
+          );
+        }
       })
       .with({ type: "EServiceDocumentDeleted" }, (msg) => {
+        deleteDescriptorInterfaceBatch.push(
+          EserviceDescriptorInterfaceDeletingSchema.parse({
+            id: msg.data.descriptorId,
+          }) satisfies z.input<typeof EserviceDescriptorInterfaceDeletingSchema>
+        );
+
         deleteEServiceDocumentBatch.push(
           EserviceDescriptorDocumentDeletingSchema.parse({
             id: msg.data.documentId,
@@ -199,6 +253,26 @@ export async function handleCatalogMessageV1(
     await catalogService.upsertBatchEServiceDescriptor(
       dbContext,
       upsertDescriptorBatch
+    );
+  }
+  if (upsertEserviceInterface.length > 0) {
+    await catalogService.upsertBatchEserviceDescriptorInterface(
+      dbContext,
+      upsertEserviceInterface
+    );
+  }
+
+  if (upsertDescriptorServerUrls.length > 0) {
+    await catalogService.upsertBatchDescriptorServerUrls(
+      dbContext,
+      upsertDescriptorServerUrls
+    );
+  }
+
+  if (deleteDescriptorInterfaceBatch.length > 0) {
+    await catalogService.deleteBatchEserviceInterfaceByDescriptorId(
+      dbContext,
+      deleteDescriptorInterfaceBatch
     );
   }
 }

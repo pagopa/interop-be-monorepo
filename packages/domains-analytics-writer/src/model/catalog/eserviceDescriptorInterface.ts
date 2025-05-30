@@ -11,6 +11,13 @@ export type EserviceDescriptorInterfaceSchema = z.infer<
   typeof EserviceDescriptorInterfaceSchema
 >;
 
+export const EserviceDescriptorInterfaceItemsSchema = z.object({
+  interfaceSQL: EserviceDescriptorInterfaceSchema.optional(),
+});
+export type EserviceDescriptorInterfaceItemsSchema = z.infer<
+  typeof EserviceDescriptorInterfaceSchema
+>;
+
 export const EserviceDescriptorInterfaceDeletingSchema =
   EserviceDescriptorInterfaceSchema.pick({
     id: true,
