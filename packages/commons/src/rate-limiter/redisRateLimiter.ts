@@ -46,7 +46,7 @@ export async function initRedisRateLimiter(config: {
     genericLogger.warn(
       `Redis Client Error (host: ${config.redisHost}, port: ${
         config.redisPort
-      }): ${String(err)}. The client will keep retrying in background.`
+      }): ${String(err.errors)}. The client will keep retrying in background.`
     )
   );
   // Attempt first connection, but do NOT await: if Redis is down, log and retry in background.
