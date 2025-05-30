@@ -168,9 +168,9 @@ export async function mergeDeletingCascadeById<
   t: ITask<unknown>,
   id: DeleteKey,
   deletingTargetTableNames: [...TargetTable],
-  deletingStagingTableName: StagingTable
+  deletingStagingTableName: StagingTable,
+  isPhysicalDelete: boolean = false
 ): Promise<void> {
-  const isPhysicalDelete = false;
   const useIdAsSourceDeleteKey = true;
 
   for (const deletingTargetTableName of deletingTargetTableNames) {

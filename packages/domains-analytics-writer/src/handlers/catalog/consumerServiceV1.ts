@@ -97,7 +97,6 @@ export async function handleCatalogMessageV1(
         deleteDescriptorBatch.push(
           EserviceDescriptorDeletingSchema.parse({
             id: msg.data.descriptorId,
-            deleted: true,
           } satisfies z.input<typeof EserviceDescriptorDeletingSchema>)
         );
       })

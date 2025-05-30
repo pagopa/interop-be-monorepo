@@ -396,7 +396,6 @@ export function catalogServiceBuilder(db: DBContext) {
           );
         }
 
-        await descriptorRepo.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
           "descriptorId",
@@ -407,8 +406,10 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
           ],
-          DeletingDbTable.catalog_deleting_table
+          DeletingDbTable.catalog_deleting_table,
+          true
         );
+        await descriptorRepo.mergeDeleting(t);
       });
       genericLogger.info(
         `Staging deletion merged into target tables for EserviceDescriptor ids`

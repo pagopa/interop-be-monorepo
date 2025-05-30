@@ -18,6 +18,8 @@ import {
   toEServiceV2,
   EServiceDescriptorDocumentAddedV2,
   generateId,
+  Descriptor,
+  EService,
 } from "pagopa-interop-models";
 import {
   getMockEService,
@@ -301,6 +303,114 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
       { id: risk.id }
     );
     stored.forEach((r) => expect(r.deleted).toBe(true));
+  });
+
+  it("EServiceWithDescriptorsDeleted: removes descriptor", async () => {
+    const descriptorInterface = getMockDocument();
+    const document = getMockDocument();
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      interface: descriptorInterface,
+      attributes: {
+        certified: [[getMockEServiceAttribute()]],
+        declared: [],
+        verified: [],
+      },
+      docs: [document],
+    };
+
+    const riskAnalysis = getMockValidRiskAnalysis("PA");
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+      riskAnalysis: [riskAnalysis],
+    };
+
+    const payload: EServiceAddedV1 = {
+      eservice: toEServiceV1(eservice),
+    };
+    await handleCatalogMessageV1(
+      [
+        {
+          sequence_num: 1,
+          stream_id: eservice.id,
+          version: 1,
+          type: "EServiceAdded",
+          event_version: 1,
+          data: {
+            eservice: payload.eservice,
+          },
+          log_date: new Date(),
+        },
+      ],
+      dbContext
+    );
+
+    const storedDescriptorBefore = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor,
+      { id: eservice.descriptors[0].id }
+    );
+    const storedAttributesBefore = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_attribute,
+      { descriptorId: eservice.descriptors[0].id }
+    );
+    const storedDocsBefore = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_document,
+      { descriptorId: eservice.descriptors[0].id }
+    );
+    const storedInterfaceBefore = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_interface,
+      { descriptorId: eservice.descriptors[0].id }
+    );
+
+    expect(storedDescriptorBefore.length).toBe(1);
+    expect(storedAttributesBefore.length).toBe(1);
+    expect(storedDocsBefore.length).toBe(1);
+    expect(storedInterfaceBefore.length).toBe(1);
+    expect(storedDescriptorBefore.length).toBe(1);
+
+    const msg: EServiceEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: eservice.id,
+      version: 2,
+      type: "EServiceWithDescriptorsDeleted",
+      event_version: 1,
+      data: {
+        descriptorId: eservice.descriptors[0].id,
+      },
+      log_date: new Date(),
+    };
+    await handleCatalogMessageV1([msg], dbContext);
+
+    const storedDescriptorAfter = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor,
+      { id: eservice.descriptors[0].id }
+    );
+    const storedAttributesAfter = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_attribute,
+      { descriptorId: eservice.descriptors[0].id }
+    );
+    const storedDocsAfter = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_document,
+      { descriptorId: eservice.descriptors[0].id }
+    );
+    const storedInterfaceAfter = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_interface,
+      { descriptorId: eservice.descriptors[0].id }
+    );
+    expect(storedDescriptorAfter.length).toBe(0);
+    expect(storedAttributesAfter.length).toBe(0);
+    expect(storedDocsAfter.length).toBe(0);
+    expect(storedInterfaceAfter.length).toBe(0);
   });
 
   it("EServiceDeleted: marks eService and all subobjects deleted", async () => {
