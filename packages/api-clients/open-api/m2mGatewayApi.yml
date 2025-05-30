@@ -9,8 +9,8 @@ info:
     email: support@example.com
   termsOfService: "http://swagger.io/terms/"
 servers:
-  - url: "https://api.interop.pagopa.it/v2"
-    description: Production
+  - url: "https://api.uat.interop.pagopa.it/v2"
+    description: UAT environment
 security:
   - bearerAuth: []
 tags:
@@ -69,12 +69,13 @@ paths:
     get:
       tags:
         - agreements
-      description: List agreements
+      description: Retrieve a list of Agreements based on filters.
       summary: List agreements
       operationId: getAgreements
       parameters:
         - in: query
           name: states
+          description: Filter Agreements by states. If not specified, return Agreements in any state
           required: false
           schema:
             type: array
@@ -84,6 +85,7 @@ paths:
           explode: false
         - in: query
           name: producerIds
+          description: Filter Agreements by producer IDs. If not specified, return Agreements for any producer
           required: false
           schema:
             type: array
@@ -94,6 +96,7 @@ paths:
           explode: false
         - in: query
           name: consumerIds
+          description: Filter Agreements by consumer IDs. If not specified, return Agreements for any consumer
           required: false
           schema:
             type: array
@@ -104,6 +107,7 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
+          description: Filter Agreements by E-Service IDs. If not specified, return Agreements for any E-Service
           schema:
             type: array
             items:
@@ -113,6 +117,7 @@ paths:
           explode: false
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -120,6 +125,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -182,7 +188,7 @@ paths:
     post:
       tags:
         - agreements
-      description: Creates an agreement
+      description: Create a new Agreement in Draft state
       operationId: createAgreement
       requestBody:
         content:
@@ -273,7 +279,7 @@ paths:
     parameters:
       - name: agreementId
         in: path
-        description: The agreement id
+        description: The Agreement ID to retrieve
         required: true
         schema:
           type: string
@@ -281,7 +287,7 @@ paths:
     get:
       tags:
         - agreements
-      description: Get agreement
+      summary: Retrieve an Agreement
       operationId: getAgreement
       responses:
         "200":
@@ -368,12 +374,14 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The Agreement ID to approve
         in: path
         required: true
     post:
       tags:
         - agreements
-      summary: Approve Pending Agreement
+      summary: Approve an Agreement in Pending state
+      description: Approve an Agreement that is in Pending state, transitioning it to Active state.
       operationId: approveAgreement
       responses:
         "200":
@@ -473,13 +481,14 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The Agreement ID to reject
         in: path
         required: true
-        description: identifier of the pending agreement to be rejected
     post:
       tags:
         - agreements
-      summary: Reject Agreement
+      summary: Reject an Agreement in Pending state
+      description: Reject an Agreement that is in Pending state, transitioning it to Rejected state.
       operationId: rejectAgreement
       requestBody:
         content:
@@ -572,13 +581,14 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The Agreement ID to submit
         in: path
         required: true
-        description: identifier of the draft agreement to be submitted
     post:
       tags:
         - agreements
-      summary: Agreement Sumbission
+      summary: Submit an Agreement in Draft state
+      description: Submit an Agreement that is in Draft state, transitioning it to Active state if all requirements are satisfied, to Pending otherwise.
       operationId: submitAgreement
       requestBody:
         content:
@@ -685,13 +695,16 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The Agreement ID to suspend
         in: path
         required: true
-        description: identifier of the pending agreement to be suspended
     post:
       tags:
         - agreements
-      summary: Suspend Agreement
+      summary: Suspend an Agreement in Active or Suspended state
+      description: >
+        Suspend an Agreement that is in Active or Suspended state, transitioning it to Suspended state.
+        An Agreement may already be in Suspended state when previously suspended by the consumer or the producer.
       operationId: suspendAgreement
       responses:
         "200":
@@ -778,16 +791,20 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The Agreement ID to unsuspend
         in: path
         required: true
     post:
       tags:
         - agreements
-      summary: Agreement Unsuspended
+      summary: Unsuspend an Agreement in Suspended state
+      description: >
+        Unsuspend an Agreement that is in Suspended state, transitioning it to Active or Suspended state.
+        An Agreement may remain in Suspended state when suspended also by the consumer or the producer.
       operationId: unsuspendAgreement
       responses:
         "200":
-          description: Agreement activated
+          description: Agreement unsuspended
           content:
             application/json:
               schema:
@@ -868,7 +885,7 @@ paths:
     parameters:
       - name: agreementId
         in: path
-        description: The identifier of the agreement to update
+        description: The Agreement ID to upgrade
         required: true
         schema:
           type: string
@@ -876,8 +893,10 @@ paths:
     post:
       tags:
         - agreements
-      summary: Upgrade the agreement
-      description: Upgrades the agreement with a newer e-service version, if any
+      summary: Upgrade an Agreement
+      description: >
+        Upgrade the Agreement to a newer E-Service version, if available.
+        The current Agreement will be archived and a new Agreement will be created, in the same state.
       operationId: upgradeAgreement
       responses:
         "200":
