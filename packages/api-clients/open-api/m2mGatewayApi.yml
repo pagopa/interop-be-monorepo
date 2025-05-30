@@ -70,7 +70,7 @@ paths:
       tags:
         - agreements
       summary: List Agreements
-      description: Retrieve a list of Agreements based on filters.
+      description: Retrieve a list of Agreements based on filters
       operationId: getAgreements
       parameters:
         - in: query
@@ -383,7 +383,7 @@ paths:
       tags:
         - agreements
       summary: Approve an Agreement in Pending state
-      description: Approve an Agreement that is in Pending state, transitioning it to Active state.
+      description: Approve an Agreement that is in Pending state, transitioning it to Active state
       operationId: approveAgreement
       responses:
         "200":
@@ -490,7 +490,7 @@ paths:
       tags:
         - agreements
       summary: Reject an Agreement in Pending state
-      description: Reject an Agreement that is in Pending state, transitioning it to Rejected state.
+      description: Reject an Agreement that is in Pending state, transitioning it to Rejected state
       operationId: rejectAgreement
       requestBody:
         content:
@@ -590,7 +590,7 @@ paths:
       tags:
         - agreements
       summary: Submit an Agreement in Draft state
-      description: Submit an Agreement that is in Draft state, transitioning it to Active state if all requirements are satisfied, to Pending otherwise.
+      description: Submit an Agreement that is in Draft state, transitioning it to Active state if all requirements are satisfied, to Pending otherwise
       operationId: submitAgreement
       requestBody:
         content:
@@ -705,8 +705,8 @@ paths:
         - agreements
       summary: Suspend an Agreement in Active or Suspended state
       description: |
-        Suspend an Agreement that is in Active or Suspended state, transitioning it to Suspended state.
-        An Agreement may already be in Suspended state when previously suspended by the consumer or the producer.
+        Suspend an Agreement that is in Active or Suspended state, transitioning it to Suspended state
+        An Agreement may already be in Suspended state when previously suspended by the consumer or the producer
       operationId: suspendAgreement
       responses:
         "200":
@@ -801,8 +801,8 @@ paths:
         - agreements
       summary: Unsuspend an Agreement in Suspended state
       description: |
-        Unsuspend an Agreement that is in Suspended state, transitioning it to Active or Suspended state.
-        An Agreement may remain in Suspended state when suspended also by the consumer or the producer.
+        Unsuspend an Agreement that is in Suspended state, transitioning it to Active or Suspended state
+        An Agreement may remain in Suspended state when suspended also by the consumer or the producer
       operationId: unsuspendAgreement
       responses:
         "200":
@@ -897,8 +897,8 @@ paths:
         - agreements
       summary: Upgrade an Agreement
       description: |
-        Upgrade the Agreement to a newer E-Service version, if available.
-        The current Agreement will be archived and a new Agreement will be created, in the same state.
+        Upgrade the Agreement to a newer E-Service version, if available
+        The current Agreement will be archived and a new Agreement will be created, in the same state
       operationId: upgradeAgreement
       responses:
         "200":
@@ -984,7 +984,7 @@ paths:
       tags:
         - delegations
       summary: List Consumer Delegations
-      description: Retrieve a list of Consumer Delegations based on filters.
+      description: Retrieve a list of Consumer Delegations based on filters
       operationId: getConsumerDelegations
       parameters:
         - in: query
@@ -1203,7 +1203,7 @@ paths:
       tags:
         - delegations
       summary: Accept a Consumer Delegation in Waiting for Approval state
-      description: Accept a Consumer Delegation that is in Waiting for Approval state, transitioning it to Active state.
+      description: Accept a Consumer Delegation that is in Waiting for Approval state, transitioning it to Active state
       operationId: acceptConsumerDelegation
       responses:
         "200":
@@ -1296,7 +1296,7 @@ paths:
         - attributes
       summary: Create a certified Attribute
       description: |
-        Create a certified Attribute.
+        Create a certified Attribute
         The Attribute must
           - have a unique name across all Attributes in the Platform
           - have a unique code across certified Attributes owned by the requester
@@ -1481,8 +1481,8 @@ paths:
         - clients
       summary: Link a Client to a Purpose
       description: |
-        Link a Client to a Purpose.
-        The Purpose must be in Active or Suspended state.
+        Link a Client to a Purpose
+        The Purpose must be in Active or Suspended state
       operationId: addClientPurpose
       requestBody:
         content:
@@ -1591,7 +1591,7 @@ paths:
       tags:
         - delegations
       summary: Reject a Consumer Delegation in Waiting for Approval state
-      description: Reject an Consumer Delegation that is in Waiting for Approval state, transitioning it to Rejected state.
+      description: Reject an Consumer Delegation that is in Waiting for Approval state, transitioning it to Rejected state
       operationId: rejectConsumerDelegation
       requestBody:
         content:
@@ -1684,7 +1684,7 @@ paths:
       tags:
         - eservices
       summary: List E-Services
-      description: Retrieve a list of E-Services based on filters.
+      description: Retrieve a list of E-Services based on filters
       operationId: getEServices
       parameters:
         - in: query
@@ -1871,7 +1871,7 @@ paths:
       tags:
         - eservices
       summary: List E-Service Descriptors
-      description: Retrieve a list of E-Service Descriptors based on filters.
+      description: Retrieve a list of E-Service Descriptors based on filters
       operationId: getEServiceDescriptors
       parameters:
         - name: state
@@ -2144,7 +2144,7 @@ paths:
       tags:
         - eserviceTemplates
       summary: List E-Service Template Versions
-      description: Retrieve a list of E-Service Template Versions based on filters.
+      description: Retrieve a list of E-Service Template Versions based on filters
       operationId: getEServiceTemplateVersions
       parameters:
         - name: state
@@ -2526,7 +2526,7 @@ paths:
       tags:
         - purposes
       summary: List Purposes
-      description: Retrieve a list of Purposes based on filters.
+      description: Retrieve a list of Purposes based on filters
       operationId: getPurposes
       parameters:
         - in: query
@@ -2715,7 +2715,7 @@ paths:
       tags:
         - purposes
       summary: List Purpose Versions
-      description: Retrieve a list of Purpose Versions based on filters.
+      description: Retrieve a list of Purpose Versions based on filters
       operationId: getPurposeVersions
       parameters:
         - name: state
@@ -2824,8 +2824,8 @@ paths:
         - purposes
       summary: Create a new Purpose Version
       description: |
-        Create a new Purpose Version to update daily calls.
-        The new Version will be created in Active state if daily calls are under the E-Service threshold, in Waiting for Approval otherwise.
+        Create a new Purpose Version to update daily calls
+        The new Version will be created in Active state if daily calls are under the E-Service threshold, in Waiting for Approval otherwise
       operationId: createPurposeVersion
       requestBody:
         content:
@@ -3040,8 +3040,8 @@ paths:
         - purposes
       summary: Activate a Purpose in Draft state
       description: | 
-        Activate a Purpose that is in Draft states.
-        The new state will be Active if daily calls are under the E-Service threshold, Waiting for Approval otherwise.
+        Activate a Purpose that is in Draft states
+        The new state will be Active if daily calls are under the E-Service threshold, Waiting for Approval otherwise
       operationId: activateDraftPurpose
       responses:
         "200":
@@ -3149,9 +3149,9 @@ paths:
         - purposes
       summary: Archive a Purpose in Active or Suspended state
       description: |
-        Archive a Purpose that is in Active or Suspended state, transitioning it to Archived state.
-        Existing Waiting for Approval Versions will be deleted.
-        The Archived state is not reversible.
+        Archive a Purpose that is in Active or Suspended state, transitioning it to Archived state
+        Existing Waiting for Approval Versions will be deleted
+        The Archived state is not reversible
       operationId: archivePurpose
       responses:
         "200":
@@ -3258,7 +3258,7 @@ paths:
       tags:
         - purposes
       summary: Approve a Purpose in Waiting for Approval state
-      description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active state.
+      description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active state
       operationId: approvePurpose
       responses:
         "200":
@@ -3366,8 +3366,8 @@ paths:
         - purposes
       summary: Suspend a Purpose in Active or Suspended state
       description: |
-        Suspend a Purpose that is in Active or Suspended state, transitioning it to Suspended state.
-        A Purpose may already be in Suspended state when previously suspended by the consumer or the producer.
+        Suspend a Purpose that is in Active or Suspended state, transitioning it to Suspended state
+        A Purpose may already be in Suspended state when previously suspended by the consumer or the producer
       operationId: suspendPurpose
       responses:
         "200":
@@ -3475,8 +3475,8 @@ paths:
         - purposes
       summary: Unsuspend a Purpose in Suspended state
       description: |
-        Unsuspend a Purpose that is in Suspended state, transitioning it to Active or Suspended state.
-        A Purpose may remain in Suspended state when suspended also by the consumer or the producer.
+        Unsuspend a Purpose that is in Suspended state, transitioning it to Active or Suspended state
+        A Purpose may remain in Suspended state when suspended also by the consumer or the producer
       operationId: unsuspendPurpose
       responses:
         "200":
@@ -3575,7 +3575,7 @@ paths:
       tags:
         - tenants
       summary: List Tenants
-      description: Retrieve a list of Tenants based on filters.
+      description: Retrieve a list of Tenants based on filters
       operationId: getTenants
       parameters:
         - in: query
@@ -3583,19 +3583,19 @@ paths:
           schema:
             type: string
           description: |
-            IPA code of the Tenant.
-            If the Tenant is an AOO, it corresponds to "codice AOO" in IPA.
-            If the Tenant is an UO, it corresponds to "codice UO" in IPA.
-            Available only for Tenants listed in IPA.
-            Mutually exclusive with taxCode.
+            IPA code of the Tenant
+            If the Tenant is an AOO, it corresponds to "codice AOO" in IPA
+            If the Tenant is an UO, it corresponds to "codice UO" in IPA
+            Available only for Tenants listed in IPA
+            Mutually exclusive with taxCode
         - in: query
           name: taxCode
           schema:
             type: string
           description: |
-            Tax code of the Tenant.
-            Available only for Tenants not listed in IPA.
-            Mutually exclusive with IPACode.
+            Tax code of the Tenant
+            Available only for Tenants not listed in IPA
+            Mutually exclusive with IPACode
         - in: query
           name: offset
           description: Pagination starting position
@@ -3734,7 +3734,7 @@ paths:
       tags:
         - tenants
       summary: List Tenant Certified Attributes
-      description: Retrieve a list of Certified Attributes assigned to the Tenant.
+      description: Retrieve a list of Certified Attributes assigned to the Tenant
       operationId: getCertifiedAttributes
       parameters:
         - in: query
@@ -3811,7 +3811,7 @@ paths:
       tags:
         - tenants
       summary: Assign a Certified Attribute to a Tenant
-      description: Assign a Certified Attribute to a Tenant.
+      description: Assign a Certified Attribute to a Tenant
       operationId: addCertifiedAttribute
       requestBody:
         content:
@@ -3931,7 +3931,7 @@ paths:
       tags:
         - tenants
       summary: Revoke a Certified Attribute from a Tenant
-      description: Revoke a Certified Attribute from a Tenant.
+      description: Revoke a Certified Attribute from a Tenant
       operationId: revokeCertifiedAttributeById
       responses:
         "200":
@@ -4799,7 +4799,7 @@ components:
           type: string
           format: date-time
         dailyCalls:
-          description: Maximum number of daily calls performed using this version.
+          description: Maximum number of daily calls performed using this version
           type: integer
           format: int32
           minimum: 0
@@ -4831,7 +4831,7 @@ components:
         - dailyCalls
       properties:
         dailyCalls:
-          description: Maximum number of daily calls performed using this version.
+          description: Maximum number of daily calls performed using this version
           type: integer
           format: int32
           minimum: 0
@@ -4965,7 +4965,7 @@ components:
           description: URI reference of type definition
           type: string
         status:
-          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          description: The HTTP status code generated by the origin server for this occurrence of the problem
           example: 503
           exclusiveMaximum: true
           format: int32
@@ -4984,8 +4984,8 @@ components:
           maxLength: 64
           type: string
         detail:
-          description: A human readable explanation of the problem.
-          example: Request took too long to complete.
+          description: A human readable explanation of the problem
+          example: Request took too long to complete
           maxLength: 4096
           pattern: "^.{0,1024}$"
           type: string
@@ -5010,7 +5010,7 @@ components:
           pattern: "^[0-9]{3}-[0-9]{4}$"
           type: string
         detail:
-          description: A human readable explanation specific to this occurrence of the problem.
+          description: A human readable explanation specific to this occurrence of the problem
           example: Parameter not valid
           maxLength: 4096
           pattern: "^.{0,1024}$"
