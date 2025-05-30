@@ -43,6 +43,7 @@ try {
     ReadModelRepository.init(config)
   );
   const readModelServiceSQL = readModelServiceBuilderSQL({
+    readModelDB,
     attributeReadModelServiceSQL,
     tenantReadModelServiceSQL,
   });
