@@ -4155,16 +4155,15 @@ components:
       properties:
         id:
           type: string
-          description: uniquely identifies the attribute on the registry
           format: uuid
         code:
           type: string
-          description: identifies the unique code of this attribute on the origin registry
+          description: The identifier of the attribute on the source registry
         description:
           type: string
         origin:
           type: string
-          description: "represents the origin of this attribute (e.g.: IPA)"
+          description: Identifier of the origin of this attribute, e.g. "IPA"
         name:
           type: string
         createdAt:
@@ -4195,7 +4194,7 @@ components:
           type: string
           minLength: 1
           maxLength: 64
-          description: identifies the unique code of this attribute on the registry
+          description: The identifier of the attribute on the source registry
       required:
         - description
         - name
@@ -4421,7 +4420,7 @@ components:
         - WAITING_FOR_APPROVAL
     EServiceMode:
       type: string
-      description: Risk Analysis Mode
+      description: Indicates if the E-Service is intended for receiving or delivering data
       enum:
         - RECEIVE
         - DELIVER
@@ -4800,7 +4799,7 @@ components:
           type: string
           format: date-time
         dailyCalls:
-          description: "maximum number of daily calls that this version can perform."
+          description: Maximum number of daily calls performed using this version.
           type: integer
           format: int32
           minimum: 0
@@ -4832,7 +4831,7 @@ components:
         - dailyCalls
       properties:
         dailyCalls:
-          description: Maximum number of daily calls that this version can perform
+          description: Maximum number of daily calls performed using this version.
           type: integer
           format: int32
           minimum: 0
