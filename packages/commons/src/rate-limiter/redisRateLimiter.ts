@@ -36,10 +36,8 @@ export async function initRedisRateLimiter(config: {
       host: config.redisHost,
       port: config.redisPort,
       connectTimeout: config.timeout,
-      /**
-       * Reconnect indefinitely using a simple exponential back-off.
-       * Retries start at 1s, increase linearly, capped at 30s.
-       */
+      // Reconnect indefinitely using a simple linear back-off.
+      // Retries start at 1s, increase by 1s each time, capped at 30s.
       reconnectStrategy: (retries: number) => Math.min(retries * 1_000, 30_000),
     },
   }).on("error", (err) =>
