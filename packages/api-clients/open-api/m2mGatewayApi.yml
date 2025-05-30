@@ -2327,19 +2327,19 @@ paths:
     get:
       tags:
         - keys
-      summary: Retrieve key in JWK format
+      summary: Retrieve a Key in JWK format
       description: Retrieve the JWK by kid
       operationId: getJWKByKid
       parameters:
         - name: kid
           in: path
-          description: the unique identifier of the key (kid)
+          description: The unique identifier of the Key (kid)
           required: true
           schema:
             type: string
       responses:
         "200":
-          description: returns the Key
+          description: Key retrieved
           content:
             application/json:
               schema:
@@ -2353,12 +2353,6 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -2380,19 +2374,19 @@ paths:
     get:
       tags:
         - keys
-      summary: Retrieve a producer key in JWK format
-      description: Retrieve the producer JWK by kid
+      summary: Retrieve a Producer Key in JWK format
+      description: Retrieve the Producer JWK by kid
       operationId: getProducerJWKByKid
       parameters:
         - name: kid
           in: path
-          description: the unique identifier of the key (kid)
+          description: The unique identifier of the Producer Key (kid)
           required: true
           schema:
             type: string
       responses:
         "200":
-          description: returns the Key
+          description: Producer Key retrieved
           content:
             application/json:
               schema:
@@ -2406,12 +2400,6 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "401":
           description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
           content:
             application/problem+json:
               schema:
