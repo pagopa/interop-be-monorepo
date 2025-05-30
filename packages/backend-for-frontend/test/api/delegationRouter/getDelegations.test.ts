@@ -27,18 +27,18 @@ describe("API GET /delegations", () => {
     },
   };
 
+  beforeEach(() => {
+    services.delegationService.getDelegations = vi
+      .fn()
+      .mockResolvedValue(mockCompactDelegations);
+  });
+
   const makeRequest = async (token: string, query: object = defaultQuery) =>
     request(api)
       .get(`${appBasePath}/delegations`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query(query);
-
-  beforeEach(() => {
-    services.delegationService.getDelegations = vi
-      .fn()
-      .mockResolvedValue(mockCompactDelegations);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

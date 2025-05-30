@@ -18,6 +18,12 @@ describe("API GET /attributes/origin/:origin/code/:code", () => {
     mockAttributeRegistryApiAttribute
   );
 
+  beforeEach(() => {
+    clients.attributeProcessClient.getAttributeByOriginAndCode = vi
+      .fn()
+      .mockResolvedValue(mockAttributeRegistryApiAttribute);
+  });
+
   const makeRequest = async (
     token: string,
     origin: string = mockOrigin,
@@ -27,12 +33,6 @@ describe("API GET /attributes/origin/:origin/code/:code", () => {
       .get(`${appBasePath}/attributes/origin/${origin}/code/${code}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
-
-  beforeEach(() => {
-    clients.attributeProcessClient.getAttributeByOriginAndCode = vi
-      .fn()
-      .mockResolvedValue(mockAttributeRegistryApiAttribute);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

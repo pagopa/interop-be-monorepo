@@ -28,6 +28,12 @@ describe("API GET /clients/:clientId/keys", () => {
     },
   };
 
+  beforeEach(() => {
+    services.clientService.getClientKeys = vi
+      .fn()
+      .mockResolvedValue(mockApiPublicKeys);
+  });
+
   const makeRequest = async (
     token: string,
     clientId: ClientId = mockClientId,
@@ -38,12 +44,6 @@ describe("API GET /clients/:clientId/keys", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query(query);
-
-  beforeEach(() => {
-    services.clientService.getClientKeys = vi
-      .fn()
-      .mockResolvedValue(mockApiPublicKeys);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

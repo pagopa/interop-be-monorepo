@@ -7,7 +7,6 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { createClientApiClient } from "../../../../api-clients/dist/generated/authorizationApi.js";
 import {
   getMockAuthorizationApiClient,
   getMockBffApiClientSeed,
@@ -21,6 +20,12 @@ describe("API POST /clientsApi", () => {
     mockClientResponse.id
   );
 
+  beforeEach(() => {
+    clients.authorizationClient.client.createApiClient = vi
+      .fn()
+      .mockResolvedValue(mockClientResponse);
+  });
+
   const makeRequest = async (
     token: string,
     body: bffApi.ClientSeed = mockClientSeed
@@ -30,15 +35,6 @@ describe("API POST /clientsApi", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
-
-  beforeEach(() => {
-    clients.authorizationClient.client = {} as ReturnType<
-      typeof createClientApiClient
-    >;
-    clients.authorizationClient.client.createApiClient = vi
-      .fn()
-      .mockResolvedValue(mockClientResponse);
-  });
 
   it("Should return 204 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

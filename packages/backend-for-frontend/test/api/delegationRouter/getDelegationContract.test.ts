@@ -16,6 +16,12 @@ describe("API GET /delegations/:delegationId/contracts/:contractId", () => {
   const mockContractId = generateId<DelegationContractId>();
   const mockBuffer = Buffer.from("content");
 
+  beforeEach(() => {
+    services.delegationService.getDelegationContract = vi
+      .fn()
+      .mockResolvedValue(mockBuffer);
+  });
+
   const makeRequest = async (
     token: string,
     delegationId: DelegationId = mockDelegationId,
@@ -25,12 +31,6 @@ describe("API GET /delegations/:delegationId/contracts/:contractId", () => {
       .get(`${appBasePath}/delegations/${delegationId}/contracts/${contractId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
-
-  beforeEach(() => {
-    services.delegationService.getDelegationContract = vi
-      .fn()
-      .mockResolvedValue(mockBuffer);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

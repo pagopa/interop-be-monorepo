@@ -6,7 +6,6 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { createClientApiClient } from "../../../../api-clients/dist/generated/authorizationApi.js";
 
 type AddUsersToClientBody = { userIds: UserId[] };
 
@@ -15,6 +14,12 @@ describe("API POST /clients/:clientId/users", () => {
   const mockUserIds = {
     userIds: [generateId<UserId>()],
   };
+
+  beforeEach(() => {
+    clients.authorizationClient.client.addUsers = vi
+      .fn()
+      .mockResolvedValue(undefined);
+  });
 
   const makeRequest = async (
     token: string,
@@ -26,15 +31,6 @@ describe("API POST /clients/:clientId/users", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
-
-  beforeEach(() => {
-    clients.authorizationClient.client = {} as ReturnType<
-      typeof createClientApiClient
-    >;
-    clients.authorizationClient.client.addUsers = vi
-      .fn()
-      .mockResolvedValue(undefined);
-  });
 
   it("Should return 204 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

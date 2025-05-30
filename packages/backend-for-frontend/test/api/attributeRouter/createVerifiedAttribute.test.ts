@@ -16,6 +16,12 @@ describe("API POST /verifiedAttributes", () => {
   const mockAttributeSeed = getMockBffApiAttributeSeed();
   const mockAttribute = getMockBffApiAttribute("VERIFIED");
 
+  beforeEach(() => {
+    clients.attributeProcessClient.createVerifiedAttribute = vi
+      .fn()
+      .mockResolvedValue(mockAttribute);
+  });
+
   const makeRequest = async (
     token: string,
     body: bffApi.AttributeSeed = mockAttributeSeed
@@ -25,12 +31,6 @@ describe("API POST /verifiedAttributes", () => {
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
-
-  beforeEach(() => {
-    clients.attributeProcessClient.createVerifiedAttribute = vi
-      .fn()
-      .mockResolvedValue(mockAttribute);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

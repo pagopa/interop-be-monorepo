@@ -6,11 +6,16 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { createClientApiClient } from "../../../../api-clients/dist/generated/authorizationApi.js";
 
 describe("API DELETE /clients/:clientId/purposes/:purposeId", () => {
   const mockClientId = generateId<ClientId>();
   const mockApiPurposeId = generateId<PurposeId>();
+
+  beforeEach(() => {
+    clients.authorizationClient.client.removeClientPurpose = vi
+      .fn()
+      .mockResolvedValue(undefined);
+  });
 
   const makeRequest = async (
     token: string,
@@ -21,15 +26,6 @@ describe("API DELETE /clients/:clientId/purposes/:purposeId", () => {
       .delete(`${appBasePath}/clients/${clientId}/purposes/${purposeId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
-
-  beforeEach(() => {
-    clients.authorizationClient.client = {} as ReturnType<
-      typeof createClientApiClient
-    >;
-    clients.authorizationClient.client.removeClientPurpose = vi
-      .fn()
-      .mockResolvedValue(undefined);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

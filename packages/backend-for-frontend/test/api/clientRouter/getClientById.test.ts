@@ -11,6 +11,12 @@ import { getMockBffApiClient } from "../../mockUtils.js";
 describe("API GET /clients/:clientId", () => {
   const mockApiClient = getMockBffApiClient();
 
+  beforeEach(() => {
+    services.clientService.getClientById = vi
+      .fn()
+      .mockResolvedValue(mockApiClient);
+  });
+
   const makeRequest = async (
     token: string,
     clientId: ClientId = mockApiClient.id
@@ -19,12 +25,6 @@ describe("API GET /clients/:clientId", () => {
       .get(`${appBasePath}/clients/${clientId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
-
-  beforeEach(() => {
-    services.clientService.getClientById = vi
-      .fn()
-      .mockResolvedValue(mockApiClient);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

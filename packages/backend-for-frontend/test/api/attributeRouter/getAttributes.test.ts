@@ -33,18 +33,18 @@ describe("API GET /attributes", () => {
     },
   };
 
+  beforeEach(() => {
+    clients.attributeProcessClient.getAttributes = vi
+      .fn()
+      .mockResolvedValue(mockAttributes);
+  });
+
   const makeRequest = async (token: string, query: object = defaultQuery) =>
     request(api)
       .get(`${appBasePath}/attributes`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .query(query);
-
-  beforeEach(() => {
-    clients.attributeProcessClient.getAttributes = vi
-      .fn()
-      .mockResolvedValue(mockAttributes);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

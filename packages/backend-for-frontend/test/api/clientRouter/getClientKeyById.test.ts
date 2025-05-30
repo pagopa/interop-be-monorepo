@@ -13,6 +13,12 @@ describe("API GET /clients/:clientId/keys/:keyId", () => {
   const mockKeyId = generateId();
   const mockApiPublicKey = getMockBffApiPublicKey();
 
+  beforeEach(() => {
+    services.clientService.getClientKeyById = vi
+      .fn()
+      .mockResolvedValue(mockApiPublicKey);
+  });
+
   const makeRequest = async (
     token: string,
     clientId: ClientId = mockClientId,
@@ -22,12 +28,6 @@ describe("API GET /clients/:clientId/keys/:keyId", () => {
       .get(`${appBasePath}/clients/${clientId}/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
-
-  beforeEach(() => {
-    services.clientService.getClientKeyById = vi
-      .fn()
-      .mockResolvedValue(mockApiPublicKey);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

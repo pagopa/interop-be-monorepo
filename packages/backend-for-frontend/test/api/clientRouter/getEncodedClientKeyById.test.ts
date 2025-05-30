@@ -6,7 +6,6 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { createClientApiClient } from "../../../../api-clients/dist/generated/authorizationApi.js";
 import {
   getMockAuthorizationApiKey,
   getMockBffApiEncodedClientKey,
@@ -20,6 +19,12 @@ describe("API GET /clients/:clientId/encoded/keys/:keyId", () => {
     mockKey.encodedPem
   );
 
+  beforeEach(() => {
+    clients.authorizationClient.client.getClientKeyById = vi
+      .fn()
+      .mockResolvedValue(mockKey);
+  });
+
   const makeRequest = async (
     token: string,
     clientId: ClientId = mockClientId,
@@ -29,15 +34,6 @@ describe("API GET /clients/:clientId/encoded/keys/:keyId", () => {
       .get(`${appBasePath}/clients/${clientId}/encoded/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
-
-  beforeEach(() => {
-    clients.authorizationClient.client = {} as ReturnType<
-      typeof createClientApiClient
-    >;
-    clients.authorizationClient.client.getClientKeyById = vi
-      .fn()
-      .mockResolvedValue(mockKey);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

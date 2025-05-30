@@ -12,6 +12,12 @@ import { getMockBffApiDelegation } from "../../mockUtils.js";
 describe("API GET /delegations/:delegationId", () => {
   const mockDelegation = getMockBffApiDelegation();
 
+  beforeEach(() => {
+    services.delegationService.getDelegation = vi
+      .fn()
+      .mockResolvedValue(mockDelegation);
+  });
+
   const makeRequest = async (
     token: string,
     delegationId: DelegationId = mockDelegation.id
@@ -20,12 +26,6 @@ describe("API GET /delegations/:delegationId", () => {
       .get(`${appBasePath}/delegations/${delegationId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
-
-  beforeEach(() => {
-    services.delegationService.getDelegation = vi
-      .fn()
-      .mockResolvedValue(mockDelegation);
-  });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
