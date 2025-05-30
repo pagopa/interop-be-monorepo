@@ -28,8 +28,8 @@ import {
   invalidDPoPJwt,
   invalidDPoPSignature,
   dpopJtiAlreadyCached,
+  dpopTypNotFound,
 } from "../src/errors.js";
-import { dpopTypNotFound } from "../dist/errors.js";
 import { writeDPoPCache } from "../src/utilities/dpopCacheUtils.js";
 import { dynamoDBClient, dpopCacheTable } from "./utils.js";
 
