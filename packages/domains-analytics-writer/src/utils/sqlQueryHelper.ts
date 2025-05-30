@@ -22,7 +22,7 @@ import { config } from "../config/config.js";
  * SQL column name (e.g. "eservice_id") or falls back to the original key.
  */
 export function getColumnNameMapper<T extends DbTable>(
-  tableName: T,
+  tableName: T
 ): (columnKey: string) => string {
   const table = DbTableReadModels[tableName] as unknown as Record<
     string,
@@ -47,7 +47,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   schemaName: string,
   tableName: DomainDbTable,
   keysOn: Array<keyof T>,
-  stagingPartialTableName?: PartialDbTable,
+  stagingPartialTableName?: PartialDbTable
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCaseMapper = getColumnNameMapper(tableName);
@@ -104,7 +104,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
 export function generateMergeDeleteQuery<
   TargetTable extends DomainDbTable,
   StagingTable extends DeletingDbTable,
-  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[TargetTable]>,
+  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[TargetTable]>
 >(
   schemaName: string,
   targetTableName: TargetTable,
@@ -112,7 +112,7 @@ export function generateMergeDeleteQuery<
   deleteKeysOn: ColumnKeys[],
   useIdAsSourceDeleteKey: boolean = true,
   physicalDelete: boolean = true,
-  additionalKeysToUpdate?: ColumnKeys[],
+  additionalKeysToUpdate?: ColumnKeys[]
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCaseMapper = getColumnNameMapper(targetTableName);
@@ -163,12 +163,12 @@ export function generateMergeDeleteQuery<
 export async function mergeDeletingCascadeById<
   TargetTable extends ReadonlyArray<DomainDbTable>,
   StagingTable extends DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>
 >(
   t: ITask<unknown>,
   id: DeleteKey,
   deletingTargetTableNames: [...TargetTable],
-  deletingStagingTableName: StagingTable,
+  deletingStagingTableName: StagingTable
 ): Promise<void> {
   const isPhysicalDelete = false;
   const useIdAsSourceDeleteKey = true;
@@ -180,7 +180,7 @@ export async function mergeDeletingCascadeById<
       deletingStagingTableName,
       [id],
       useIdAsSourceDeleteKey,
-      isPhysicalDelete,
+      isPhysicalDelete
     );
     await t.none(mergeQuery);
   }
@@ -203,7 +203,7 @@ export type ColumnValue = string | number | Date | undefined | null | boolean;
 export const buildColumnSet = <T extends z.ZodRawShape>(
   pgp: IMain,
   tableName: DbTable,
-  schema: z.ZodObject<T>,
+  schema: z.ZodObject<T>
 ): ColumnSet<z.infer<typeof schema>> => {
   const snakeCaseMapper = getColumnNameMapper(tableName);
   const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
@@ -233,12 +233,12 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
 export async function cleaningTargetTables<
   TargetTable extends ReadonlyArray<DomainDbTable>,
   StagingTable extends DomainDbTable | DeletingDbTable,
-  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>
 >(
   t: ITask<unknown>,
   id: DeleteKey,
   targetTableNames: TargetTable,
-  stagingTableName: StagingTable,
+  stagingTableName: StagingTable
 ) {
   const quoteColumn = (c: string) => `"${c}"`;
   for (const targetTableName of targetTableNames) {
@@ -247,7 +247,7 @@ export async function cleaningTargetTables<
     const onCondition = `${
       config.dbSchemaName
     }.${targetTableName}.${quoteColumn(
-      snakeCaseMapper(String(id)),
+      snakeCaseMapper(String(id))
     )} = source.id`;
 
     const deleteQuery = `

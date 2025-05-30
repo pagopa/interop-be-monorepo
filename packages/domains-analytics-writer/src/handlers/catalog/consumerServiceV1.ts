@@ -29,7 +29,6 @@ import {
   EserviceDescriptorDocumentSchema,
   EserviceDescriptorDocumentDeletingSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
-import { EserviceRiskAnalysisDeletingSchema } from "../../model/catalog/eserviceRiskAnalysis.js";
 
 export async function handleCatalogMessageV1(
   messages: EServiceEventEnvelopeV1[],
@@ -43,7 +42,6 @@ export async function handleCatalogMessageV1(
   const upsertEServiceDocumentBatch: EserviceDescriptorDocumentSchema[] = [];
   const deleteEServiceDocumentBatch: EserviceDescriptorDocumentDeletingSchema[] =
     [];
-  const deleteRiskAnalysisBatch: EserviceRiskAnalysisDeletingSchema[] = [];
   const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
 
   for (const message of messages) {
@@ -56,7 +54,8 @@ export async function handleCatalogMessageV1(
             "EServiceUpdated",
             "EServiceRiskAnalysisAdded",
             "MovedAttributesFromEserviceToDescriptors",
-            "EServiceRiskAnalysisUpdated"
+            "EServiceRiskAnalysisUpdated",
+            "EServiceRiskAnalysisDeleted"
           ),
         },
         (msg) => {
@@ -138,23 +137,7 @@ export async function handleCatalogMessageV1(
         deleteEServiceDocumentBatch.push(
           EserviceDescriptorDocumentDeletingSchema.parse({
             id: msg.data.documentId,
-            deleted: true,
           } satisfies z.input<typeof EserviceDescriptorDocumentDeletingSchema>)
-        );
-      })
-      .with({ type: "EServiceRiskAnalysisDeleted" }, (msg) => {
-        if (!msg.data.eservice?.id) {
-          throw genericInternalError(
-            "eservice can't be missing in event message"
-          );
-        }
-
-        deleteRiskAnalysisBatch.push(
-          EserviceRiskAnalysisDeletingSchema.parse({
-            id: msg.data.riskAnalysisId,
-            eserviceId: msg.data.eservice.id,
-            deleted: true,
-          } satisfies z.input<typeof EserviceRiskAnalysisDeletingSchema>)
         );
       })
       .with(
@@ -212,12 +195,7 @@ export async function handleCatalogMessageV1(
       deleteEServiceDocumentBatch
     );
   }
-  if (deleteRiskAnalysisBatch.length > 0) {
-    await catalogService.deleteBatchEserviceRiskAnalysis(
-      dbContext,
-      deleteRiskAnalysisBatch
-    );
-  }
+
   if (upsertDescriptorBatch.length > 0) {
     await catalogService.upsertBatchEServiceDescriptor(
       dbContext,

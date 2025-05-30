@@ -94,7 +94,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
       { id: mock.id }
     );
     expect(storedEservice).toBeDefined();
-    expect(storedEservice.metadataVersion).toBe(1);
+    expect(storedEservice?.metadataVersion).toBe(1);
 
     const storedDescriptors = await getManyFromDb(
       dbContext,
@@ -379,7 +379,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
       CatalogDbTable.eservice,
       { id: mock.id }
     );
-    expect(storedEservice.deleted).toBe(true);
+    expect(storedEservice?.deleted).toBe(true);
 
     (
       await getManyFromDb(dbContext, CatalogDbTable.eservice_descriptor, {
@@ -456,7 +456,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
       { id: mock.id }
     );
     expect(storedEservice).toBeDefined();
-    expect(storedEservice.metadataVersion).toBe(1);
+    expect(storedEservice?.metadataVersion).toBe(1);
 
     const storedDescriptors = await getManyFromDb(
       dbContext,
@@ -746,7 +746,7 @@ describe("Catalog messages consumers - handleCatalogMessageV2", () => {
       CatalogDbTable.eservice,
       { id: mock.id }
     );
-    expect(storedEservice.deleted).toBe(true);
+    expect(storedEservice?.deleted).toBe(true);
 
     (
       await getManyFromDb(dbContext, CatalogDbTable.eservice_descriptor, {
@@ -792,8 +792,8 @@ describe("Check on metadata_version merge", () => {
     const stored1 = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
       id: mock.id,
     });
-    expect(stored1.name).toBe("Name v1");
-    expect(stored1.metadataVersion).toBe(1);
+    expect(stored1?.name).toBe("Name v1");
+    expect(stored1?.metadataVersion).toBe(1);
 
     const msgV3 = {
       ...msgV1,
@@ -806,8 +806,8 @@ describe("Check on metadata_version merge", () => {
     const stored2 = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
       id: mock.id,
     });
-    expect(stored2.name).toBe("Name v3");
-    expect(stored2.metadataVersion).toBe(3);
+    expect(stored2?.name).toBe("Name v3");
+    expect(stored2?.metadataVersion).toBe(3);
 
     const msgV2 = {
       ...msgV1,
@@ -820,8 +820,8 @@ describe("Check on metadata_version merge", () => {
     const stored3 = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
       id: mock.id,
     });
-    expect(stored3.name).toBe("Name v3");
-    expect(stored3.metadataVersion).toBe(3);
+    expect(stored3?.name).toBe("Name v3");
+    expect(stored3?.metadataVersion).toBe(3);
   });
 
   it("should apply update when incoming metadata_version is greater", async () => {
@@ -841,8 +841,8 @@ describe("Check on metadata_version merge", () => {
     const stored = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
       id: mock.id,
     });
-    expect(stored.name).toBe("Name v2");
-    expect(stored.metadataVersion).toBe(2);
+    expect(stored?.name).toBe("Name v2");
+    expect(stored?.metadataVersion).toBe(2);
   });
   it("deletes old descriptors when new ones with higher metadataVersion are added (v2)", async () => {
     const mock = getMockEService();
