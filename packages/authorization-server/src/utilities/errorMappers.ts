@@ -11,8 +11,6 @@ const {
   HTTP_STATUS_TOO_MANY_REQUESTS,
 } = constants;
 
-// TODO: invalidDPoPProof return 400?
-
 export const authorizationServerErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

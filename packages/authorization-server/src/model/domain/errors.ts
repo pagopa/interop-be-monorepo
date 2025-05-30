@@ -19,8 +19,6 @@ export const errorCodes = {
   dpopProofSignatureValidationFailed: "0010",
   unexpectedDPoPProofForAPIToken: "0011",
   dpopProofJtiAlreadyUsed: "0012",
-  // TODO: remove if unused
-  invalidDPoPProof: "0013",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -143,14 +141,5 @@ export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
     detail: `DPoP proof JTI ${jti} already in cache`,
     code: "dpopProofJtiAlreadyUsed",
     title: "DPoP proof JTI already in cache",
-  });
-}
-
-// TODO: better title and detail
-export function invalidDPoPProof(): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: "Invalid DPoP proof",
-    code: "invalidDPoPProof",
-    title: "Invalid DPoP proof",
   });
 }
