@@ -40,9 +40,47 @@ describe("API POST /clients/:clientId/keys", () => {
     expect(res.status).toEqual(204);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid" as ClientId);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { clientId: "invalid" as ClientId },
+    { body: {} },
+    {
+      body: {
+        key: mockKeySeed.key,
+        use: mockKeySeed.use,
+        alg: mockKeySeed.alg,
+      },
+    },
+    {
+      body: {
+        key: mockKeySeed.key,
+        use: mockKeySeed.use,
+        name: mockKeySeed.name,
+      },
+    },
+    {
+      body: {
+        key: mockKeySeed.key,
+        alg: mockKeySeed.alg,
+        name: mockKeySeed.name,
+      },
+    },
+    {
+      body: {
+        use: mockKeySeed.use,
+        alg: mockKeySeed.alg,
+        name: mockKeySeed.name,
+      },
+    },
+    { body: { ...mockKeySeed, extraField: 1 } },
+    { body: { ...mockKeySeed, use: "invalid" } },
+    { body: { ...mockKeySeed, name: "a".repeat(4) } },
+    { body: { ...mockKeySeed, name: "a".repeat(61) } },
+  ])(
+    "Should return 400 if passed an invalid data: %s",
+    async ({ clientId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, clientId, body as bffApi.KeySeed);
+      expect(res.status).toBe(400);
+    }
+  );
 });

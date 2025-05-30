@@ -47,9 +47,15 @@ describe("API GET /clients", () => {
     expect(res.body).toEqual(mockApiClients);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 5 } },
+    { query: { ...defaultQuery, offset: "invalid" } },
+    { query: { ...defaultQuery, limit: "invalid" } },
+  ])("Should return 400 if passed an invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, { ...defaultQuery, limit: "invalid" });
+    const res = await makeRequest(token, query);
     expect(res.status).toBe(400);
   });
 });

@@ -8,6 +8,8 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { createClientApiClient } from "../../../../api-clients/dist/generated/authorizationApi.js";
 
+type AddUsersToClientBody = { userIds: UserId[] };
+
 describe("API POST /clients/:clientId/users", () => {
   const mockClientId = generateId<ClientId>();
   const mockUserIds = {
@@ -17,7 +19,7 @@ describe("API POST /clients/:clientId/users", () => {
   const makeRequest = async (
     token: string,
     clientId: ClientId = mockClientId,
-    body: { userIds: UserId[] } = mockUserIds
+    body: AddUsersToClientBody = mockUserIds
   ) =>
     request(api)
       .post(`${appBasePath}/clients/${clientId}/users`)
@@ -40,9 +42,22 @@ describe("API POST /clients/:clientId/users", () => {
     expect(res.status).toEqual(204);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid" as ClientId);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { clientId: "invalid" as ClientId },
+    { body: {} },
+    { body: { ...mockUserIds, extraField: 1 } },
+    { body: { ...mockUserIds, userIds: "invalid" } },
+    { body: { ...mockUserIds, userIds: ["invalid"] } },
+  ])(
+    "Should return 400 if passed an invalid data: %s",
+    async ({ clientId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId,
+        body as AddUsersToClientBody
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 });

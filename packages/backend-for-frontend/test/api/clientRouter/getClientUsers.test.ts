@@ -8,6 +8,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCompactUser } from "../../mockUtils.js";
+import { userNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /clients/:clientId/users", () => {
   const mockClientId = generateId<ClientId>();
@@ -39,7 +40,16 @@ describe("API GET /clients/:clientId/users", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it("Should return 404 for userNotFound", async () => {
+    services.clientService.getClientUsers = vi
+      .fn()
+      .mockRejectedValue(userNotFound(generateId(), generateId()));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed an invalid client id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as ClientId);
     expect(res.status).toBe(400);

@@ -37,9 +37,15 @@ describe("API DELETE /clients/:clientId/users/:userId", () => {
     expect(res.status).toEqual(204);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid" as ClientId);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { clientId: "invalid" as ClientId },
+    { userId: "invalid" as UserId },
+  ])(
+    "Should return 400 if passed an invalid data: %s",
+    async ({ clientId, userId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, clientId, userId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

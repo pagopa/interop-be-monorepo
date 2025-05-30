@@ -14,10 +14,11 @@ describe("API DELETE /clients/:clientId/keys/:keyId", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId
+    clientId: ClientId = mockClientId,
+    keyId: string = mockKeyId
   ) =>
     request(api)
-      .delete(`${appBasePath}/clients/${clientId}/keys/${mockKeyId}`)
+      .delete(`${appBasePath}/clients/${clientId}/keys/${keyId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -36,7 +37,7 @@ describe("API DELETE /clients/:clientId/keys/:keyId", () => {
     expect(res.status).toEqual(204);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it("Should return 400 if passed an invalid client id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as ClientId);
     expect(res.status).toBe(400);

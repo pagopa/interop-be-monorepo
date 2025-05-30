@@ -46,7 +46,7 @@ describe("API GET /clients/:clientId/encoded/keys/:keyId", () => {
     expect(res.body).toEqual(mockApiEncodedClientKey);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it("Should return 400 if passed an invalid client id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as ClientId);
     expect(res.status).toBe(400);

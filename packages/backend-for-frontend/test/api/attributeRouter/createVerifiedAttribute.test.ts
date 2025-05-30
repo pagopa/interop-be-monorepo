@@ -39,12 +39,14 @@ describe("API POST /verifiedAttributes", () => {
     expect(res.body).toEqual(mockAttribute);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it.each([
+    { body: {} },
+    { body: { name: mockAttributeSeed.name } },
+    { body: { description: mockAttributeSeed.description } },
+    { body: { ...mockAttributeSeed, extraField: 1 } },
+  ])("Should return 400 if passed an invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      ...mockAttribute,
-      kind: "invalid",
-    } as bffApi.AttributeSeed);
+    const res = await makeRequest(token, body as bffApi.AttributeSeed);
     expect(res.status).toBe(400);
   });
 });

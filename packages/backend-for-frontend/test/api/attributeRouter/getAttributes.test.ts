@@ -11,19 +11,17 @@ import { getMockBffApiAttribute } from "../../mockUtils.js";
 import { toCompactAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("API GET /attributes", () => {
-  const mockAttribute1: attributeRegistryApi.Attribute =
-    getMockBffApiAttribute("CERTIFIED");
-  const mockAttribute2: attributeRegistryApi.Attribute =
-    getMockBffApiAttribute("VERIFIED");
-  const mockAttribute3: attributeRegistryApi.Attribute =
-    getMockBffApiAttribute("DECLARED");
   const defaultQuery = {
     offset: 0,
     limit: 5,
     kinds: ["CERTIFIED", "VERIFIED", "DECLARED"],
   };
   const mockAttributes: attributeRegistryApi.Attributes = {
-    results: [mockAttribute1, mockAttribute2, mockAttribute3],
+    results: [
+      getMockBffApiAttribute("CERTIFIED"),
+      getMockBffApiAttribute("VERIFIED"),
+      getMockBffApiAttribute("DECLARED"),
+    ],
     totalCount: 3,
   };
   const mockResponse: bffApi.Attributes = {
@@ -55,9 +53,18 @@ describe("API GET /attributes", () => {
     expect(res.body).toEqual(mockResponse);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 5 } },
+    { query: { kinds: [] } },
+    { query: { ...defaultQuery, offset: "invalid" } },
+    { query: { ...defaultQuery, limit: "invalid" } },
+    { query: { ...defaultQuery, kinds: "invalid" } },
+    { query: { ...defaultQuery, kinds: ["invalid"] } },
+  ])("Should return 400 if passed an invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, { ...defaultQuery, limit: "invalid" });
+    const res = await makeRequest(token, query);
     expect(res.status).toBe(400);
   });
 });

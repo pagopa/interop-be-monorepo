@@ -38,7 +38,7 @@ describe("API GET /attributes/:attributeId", () => {
     expect(res.body).toEqual(mockApiAttribute);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it("Should return 400 if passed an invalid attribute id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as AttributeId);
     expect(res.status).toBe(400);

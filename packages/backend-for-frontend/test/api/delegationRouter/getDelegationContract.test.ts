@@ -39,9 +39,15 @@ describe("API GET /delegations/:delegationId/contracts/:contractId", () => {
     expect(res.body).toEqual(mockBuffer);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid" as DelegationId);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { delegationId: "invalid" as DelegationId },
+    { contractId: "invalid" as DelegationContractId },
+  ])(
+    "Should return 400 if passed an invalid data: %s",
+    async ({ delegationId, contractId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, delegationId, contractId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

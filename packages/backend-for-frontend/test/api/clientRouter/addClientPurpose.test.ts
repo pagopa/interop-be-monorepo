@@ -41,9 +41,21 @@ describe("API POST /clients/:clientId/purposes", () => {
     expect(res.status).toEqual(204);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid" as ClientId);
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { clientId: "invalid" as ClientId },
+    { body: {} },
+    { body: { ...mockPurposeAdditionDetailsSeed, extraField: 1 } },
+    { body: { ...mockPurposeAdditionDetailsSeed, purposeId: "invalid" } },
+  ])(
+    "Should return 400 if passed an invalid data: %s",
+    async ({ clientId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        clientId,
+        body as bffApi.PurposeAdditionDetailsSeed
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 });

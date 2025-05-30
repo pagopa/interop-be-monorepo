@@ -47,12 +47,16 @@ describe("API POST /clientsApi", () => {
     expect(res.body).toEqual(mockApiCreatedResource);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it.each([
+    { body: {} },
+    { body: { name: mockClientSeed.name } },
+    { body: { members: mockClientSeed.members } },
+    { body: { ...mockClientSeed, extraField: 1 } },
+    { body: { ...mockClientSeed, members: "invalid" } },
+    { body: { ...mockClientSeed, members: ["invalid"] } },
+  ])("Should return 400 if passed an invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      ...mockClientSeed,
-      id: "invalid",
-    } as bffApi.ClientSeed);
+    const res = await makeRequest(token, body as bffApi.ClientSeed);
     expect(res.status).toBe(400);
   });
 });

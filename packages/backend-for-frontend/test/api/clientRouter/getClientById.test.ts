@@ -33,7 +33,7 @@ describe("API GET /clients/:clientId", () => {
     expect(res.body).toEqual(mockApiClient);
   });
 
-  it("Should return 400 if passed an invalid purpose id", async () => {
+  it("Should return 400 if passed an client purpose id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as ClientId);
     expect(res.status).toBe(400);
