@@ -317,7 +317,7 @@ export const getMockCertifiedAttribute = (
   id: AttributeId = generateId()
 ): Attribute => ({
   id,
-  name: generateMock(z.string()),
+  name: `${generateMock(z.string())}-${generateId()}`,
   code: generateId(),
   origin: generateId(),
   kind,
