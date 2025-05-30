@@ -5,6 +5,7 @@ import {
   UserId,
   TenantId,
   clientKind,
+  SelfcareId,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -12,7 +13,7 @@ import { z } from "zod";
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const clients = readModelRepository.clients;
+  const { clients, tenants } = readModelRepository;
 
   return {
     getClients: async ({
@@ -67,6 +68,18 @@ export function readModelServiceBuilder(
       }
 
       return result.data;
+    },
+    async getTenantIdBySelfcareId(
+      selfcareId: SelfcareId
+    ): Promise<TenantId | undefined> {
+      const result = await tenants.findOne(
+        { "data.selfcareId": selfcareId },
+        {
+          projection: { "data.id": true },
+        }
+      );
+
+      return result ? result.data.id : undefined;
     },
   };
 }
