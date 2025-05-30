@@ -82,8 +82,8 @@ describe("API GET /consumers/purposes test", () => {
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
     { query: { ...defaultQuery, eservicesIds: `${generateId()},invalid` } },
-    { query: { ...defaultQuery, producersIds: `invalid,${generateId()}` } },
-    { query: { ...defaultQuery, states: "ACTIVE,invalid" } },
+    { query: { ...defaultQuery, producersIds: `invalid` } },
+    { query: { ...defaultQuery, states: "INVALID-STATE" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);

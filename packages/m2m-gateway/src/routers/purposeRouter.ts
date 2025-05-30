@@ -166,12 +166,12 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        await purposeService.activateDraftPurpose(
+        const purpose = await purposeService.activateDraftPurpose(
           unsafeBrandId(req.params.purposeId),
           ctx
         );
 
-        return res.sendStatus(204);
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -187,12 +187,12 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        await purposeService.approvePurpose(
+        const purpose = await purposeService.approvePurpose(
           unsafeBrandId(req.params.purposeId),
           ctx
         );
 
-        return res.sendStatus(204);
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -208,12 +208,12 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        await purposeService.archivePurpose(
+        const purpose = await purposeService.archivePurpose(
           unsafeBrandId(req.params.purposeId),
           ctx
         );
 
-        return res.sendStatus(204);
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -229,12 +229,12 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        await purposeService.suspendPurpose(
+        const purpose = await purposeService.suspendPurpose(
           unsafeBrandId(req.params.purposeId),
           ctx
         );
 
-        return res.sendStatus(204);
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -250,12 +250,12 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-        await purposeService.unsuspendPurpose(
+        const purpose = await purposeService.unsuspendPurpose(
           unsafeBrandId(req.params.purposeId),
           ctx
         );
 
-        return res.sendStatus(204);
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

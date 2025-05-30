@@ -37,9 +37,9 @@ export const sortPurposeVersionsByDate = (
 export const getPurposeCurrentVersion = (
   purpose: purposeApi.Purpose
 ): purposeApi.PurposeVersion | undefined => {
-  const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
-    m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
-    m2mGatewayApi.PurposeVersionState.Values.REJECTED,
+  const statesToExclude: purposeApi.PurposeVersionState[] = [
+    purposeApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
+    purposeApi.PurposeVersionState.Values.REJECTED,
   ];
   return sortPurposeVersionsByDate(purpose.versions)
     .filter((v) => !statesToExclude.includes(v.state))
@@ -238,7 +238,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     async activateDraftPurpose(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
         `Retrieving latest draft version for purpose ${purposeId} activation`
       );
@@ -259,12 +259,13 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      await pollPurposeById(purposeId, metadata, headers);
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(polledPurpose.data);
     },
     async archivePurpose(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
         `Retrieving current version for purpose ${purposeId} archiving`
       );
@@ -282,12 +283,13 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      await pollPurposeById(purposeId, metadata, headers);
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(polledPurpose.data);
     },
     async suspendPurpose(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
         `Retrieving current version for purpose ${purposeId} suspension`
       );
@@ -305,12 +307,13 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      await pollPurposeById(purposeId, metadata, headers);
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(polledPurpose.data);
     },
     async approvePurpose(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
         `Retrieving latest waiting for approval version for purpose ${purposeId} approval`
       );
@@ -331,12 +334,13 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      await pollPurposeById(purposeId, metadata, headers);
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(polledPurpose.data);
     },
     async unsuspendPurpose(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.Purpose> {
       logger.info(
         `Retrieving latest suspended version for purpose ${purposeId} unsuspension`
       );
@@ -357,7 +361,8 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      await pollPurposeById(purposeId, metadata, headers);
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(polledPurpose.data);
     },
   };
 }

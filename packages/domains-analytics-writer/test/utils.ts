@@ -13,11 +13,15 @@ import {
   AgreementDbTable,
   AttributeDbTable,
   CatalogDbTable,
+  DelegationDbTable,
   DeletingDbTable,
   DeletingDbTableConfigMap,
   DomainDbTable,
   DomainDbTableSchemas,
+  TenantDbPartialTable,
   PurposeDbTable,
+  TenantDbTable,
+  ClientDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
@@ -70,12 +74,45 @@ export const purposeTables: PurposeDbTable[] = [
   PurposeDbTable.purpose_risk_analysis_answer,
 ];
 
+export const delegationTables: DelegationDbTable[] = [
+  DelegationDbTable.delegation,
+  DelegationDbTable.delegation_stamp,
+  DelegationDbTable.delegation_contract_document,
+];
+
+export const tenantTables: TenantDbTable[] = [
+  TenantDbTable.tenant,
+  TenantDbTable.tenant_certified_attribute,
+  TenantDbTable.tenant_declared_attribute,
+  TenantDbTable.tenant_feature,
+  TenantDbTable.tenant_mail,
+  TenantDbTable.tenant_verified_attribute,
+  TenantDbTable.tenant_verified_attribute_revoker,
+  TenantDbTable.tenant_verified_attribute_verifier,
+];
+
+export const clientTables: ClientDbTable[] = [
+  ClientDbTable.client,
+  ClientDbTable.client_purpose,
+  ClientDbTable.client_user,
+  ClientDbTable.client_key,
+];
+
+export const partialTables = [TenantDbPartialTable.tenant_self_care_id];
+
 export const deletingTables: DeletingDbTable[] = [
+  DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
   DeletingDbTable.catalog_risk_deleting_table,
-  DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.purpose_deleting_table,
+  DeletingDbTable.tenant_deleting_table,
+  DeletingDbTable.tenant_mail_deleting_table,
+  DeletingDbTable.tenant_feature_deleting_table,
+  DeletingDbTable.client_deleting_table,
+  DeletingDbTable.client_purpose_deleting_table,
+  DeletingDbTable.client_user_deleting_table,
+  DeletingDbTable.client_key_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
@@ -83,6 +120,9 @@ export const domainTables: DomainDbTable[] = [
   ...catalogTables,
   ...agreementTables,
   ...purposeTables,
+  ...delegationTables,
+  ...tenantTables,
+  ...clientTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
@@ -100,6 +140,31 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
     name: DeletingDbTable.purpose_deleting_table,
     columns: ["id"],
   },
+  {
+    name: DeletingDbTable.tenant_deleting_table,
+    columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.tenant_mail_deleting_table,
+    columns: ["id", "tenantId"],
+  },
+  {
+    name: DeletingDbTable.tenant_feature_deleting_table,
+    columns: ["tenantId", "kind"],
+  },
+  { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
+  {
+    name: DeletingDbTable.client_user_deleting_table,
+    columns: ["clientId", "userId"],
+  },
+  {
+    name: DeletingDbTable.client_purpose_deleting_table,
+    columns: ["clientId", "purposeId"],
+  },
+  {
+    name: DeletingDbTable.client_key_deleting_table,
+    columns: ["clientId", "kid"],
+  },
 ];
 
 await retryConnection(
@@ -109,6 +174,7 @@ await retryConnection(
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables(domainTables);
+    await setupDbService.setupPartialStagingTables(partialTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
   },
   genericLogger

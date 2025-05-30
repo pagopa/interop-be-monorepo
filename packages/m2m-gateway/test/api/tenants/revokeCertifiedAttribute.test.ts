@@ -9,9 +9,18 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingMetadata,
   resourcePollingTimeout,
+  tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
+import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
+import {
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+} from "../../mockUtils.js";
 
 describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test", () => {
+  const mockApiResponse = getMockedApiCertifiedTenantAttribute();
+  const mockResponse = toM2MGatewayApiTenantCertifiedAttribute(mockApiResponse);
+
   const makeRequest = async (token: string) =>
     request(api)
       .delete(
@@ -21,14 +30,17 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockTenantService.revokeCertifiedAttribute = vi.fn();
+      mockTenantService.revokeCertifiedAttribute = vi
+        .fn()
+        .mockResolvedValue(mockResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token);
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockResponse);
     }
   );
 
@@ -40,12 +52,31 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
     expect(res.status).toBe(403);
   });
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
-    "Should return 500 in case of $code error",
-    async (error) => {
+  it.each([
+    tenantCertifiedAttributeNotFound(getMockedApiTenant().data, generateId()),
+    missingMetadata(),
+    resourcePollingTimeout(3),
+  ])("Should return 500 in case of $code error", async (error) => {
+    mockTenantService.revokeCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(500);
+  });
+
+  it.each([
+    { ...mockResponse, id: undefined },
+    { ...mockResponse, assignedAt: "INVALID_DATE" },
+    { ...mockResponse, extraParam: "extraValue" },
+    {},
+  ])(
+    "Should return 500 when API model parsing fails for response",
+    async (resp) => {
       mockTenantService.revokeCertifiedAttribute = vi
         .fn()
-        .mockRejectedValue(error);
+        .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token);
 
