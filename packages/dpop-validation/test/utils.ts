@@ -1,13 +1,12 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { inject } from "vitest";
+import { genericInternalError } from "pagopa-interop-models";
+import { DPoPConfig } from "../src/config.js";
 
-const config = inject("tokenGenerationReadModelConfig");
-
-if (!config) {
-  throw new Error("config is not defined");
+const config = DPoPConfig.safeParse(process.env);
+if (!config.success) {
+  throw genericInternalError("Invalid config");
 }
-export const dynamoDBClient = new DynamoDBClient({
-  endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-});
 
-export const dpopCacheTable = "dpop-cache";
+export const dynamoDBClient = new DynamoDBClient();
+
+export const dpopCacheTable = config.data.dpopCacheTable;
