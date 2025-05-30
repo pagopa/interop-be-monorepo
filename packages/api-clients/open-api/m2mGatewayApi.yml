@@ -1591,7 +1591,7 @@ paths:
       tags:
         - delegations
       summary: Reject a Consumer Delegation in Waiting for Approval state
-      description: Reject an Consumer Delegation that is in Waiting for Approval state, transitioning it to Rejected state
+      description: Reject a Consumer Delegation that is in Waiting for Approval state, transitioning it to Rejected state
       operationId: rejectConsumerDelegation
       requestBody:
         content:
@@ -1889,7 +1889,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
-          description: Pagination starting position
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -2162,7 +2162,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
-          description: Pagination starting position
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -2733,7 +2733,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
-          description: Pagination starting position
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -3747,7 +3747,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
-          description: Pagination starting position
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
