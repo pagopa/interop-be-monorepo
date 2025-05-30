@@ -21,6 +21,7 @@ const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
 const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
   clientReadModelServiceSQL,
 });
 const readModelService = config.featureFlagSQL

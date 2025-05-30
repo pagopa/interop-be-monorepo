@@ -1,6 +1,4 @@
-/* eslint-disable prefer-const */
 /* eslint-disable functional/no-let */
-import { randomUUID, UUID } from "node:crypto";
 import {
   vi,
   afterEach,
@@ -17,14 +15,15 @@ import {
   userRole,
 } from "pagopa-interop-commons";
 import { EachMessagePayload } from "kafkajs";
-import { getMockClient } from "pagopa-interop-commons-test";
-import { clientKind, unsafeBrandId, UserId } from "pagopa-interop-models";
+import { getMockClient, getMockTenant } from "pagopa-interop-commons-test";
+import { clientKind, Tenant } from "pagopa-interop-models";
 import { selfcareClientUsersUpdaterProcessorBuilder } from "../src/services/selfcareClientUsersUpdaterProcessor.js";
 import { config } from "../src/config/config.js";
 import { AuthorizationProcessClient } from "../src/clients/authorizationProcessClient.js";
 import { relationshipStatus } from "../src/model/UsersEventPayload.js";
 import {
   addOneClient,
+  addOneTenant,
   correctEventPayload,
   generateInternalTokenMock,
   kafkaMessagePayload,
@@ -70,15 +69,20 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
   it.each([relationshipStatus.suspended, relationshipStatus.deleted])(
     "should remove admin when event has productRole admin and relationshipStatus %s",
     async (status) => {
-      const userId: UUID = randomUUID();
+      const tenantMock: Tenant = {
+        ...getMockTenant(),
+        selfcareId: correctEventPayload.institutionId,
+      };
       const clientMock = {
         ...getMockClient(),
-        adminId: userId,
+        consumerId: tenantMock.id,
+        adminId: correctEventPayload.user.userId,
         kind: clientKind.api,
       };
       const clientMock2 = {
         ...getMockClient(),
-        adminId: userId,
+        consumerId: tenantMock.id,
+        adminId: correctEventPayload.user.userId,
         kind: clientKind.api,
       };
 
@@ -100,17 +104,9 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
         },
       };
 
-      await addOneClient({
-        ...clientMock,
-        consumerId: unsafeBrandId(correctEventPayload.institutionId),
-        adminId: unsafeBrandId<UserId>(correctEventPayload.user.userId),
-      });
-
-      await addOneClient({
-        ...clientMock2,
-        consumerId: unsafeBrandId(correctEventPayload.institutionId),
-        adminId: unsafeBrandId<UserId>(correctEventPayload.user.userId),
-      });
+      await addOneTenant(tenantMock);
+      await addOneClient(clientMock);
+      await addOneClient(clientMock2);
 
       await selfcareClientUsersUpdaterProcessor.processMessage(message);
 
