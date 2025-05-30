@@ -704,7 +704,7 @@ paths:
       tags:
         - agreements
       summary: Suspend an Agreement in Active or Suspended state
-      description: >
+      description: |
         Suspend an Agreement that is in Active or Suspended state, transitioning it to Suspended state.
         An Agreement may already be in Suspended state when previously suspended by the consumer or the producer.
       operationId: suspendAgreement
@@ -800,7 +800,7 @@ paths:
       tags:
         - agreements
       summary: Unsuspend an Agreement in Suspended state
-      description: >
+      description: |
         Unsuspend an Agreement that is in Suspended state, transitioning it to Active or Suspended state.
         An Agreement may remain in Suspended state when suspended also by the consumer or the producer.
       operationId: unsuspendAgreement
@@ -896,7 +896,7 @@ paths:
       tags:
         - agreements
       summary: Upgrade an Agreement
-      description: >
+      description: |
         Upgrade the Agreement to a newer E-Service version, if available.
         The current Agreement will be archived and a new Agreement will be created, in the same state.
       operationId: upgradeAgreement
@@ -1295,7 +1295,7 @@ paths:
       tags:
         - attributes
       summary: Create a certified Attribute
-      description: >
+      description: |
         Create a certified Attribute.
         The Attribute must
           - have a unique name across all Attributes in the Platform
@@ -1480,7 +1480,7 @@ paths:
       tags:
         - clients
       summary: Link a Client to a Purpose
-      description: >
+      description: |
         Link a Client to a Purpose.
         The Purpose must be in Active or Suspended state.
       operationId: addClientPurpose
@@ -2823,7 +2823,7 @@ paths:
       tags:
         - purposes
       summary: Create a new Purpose Version
-      description: >
+      description: |
         Create a new Purpose Version to update daily calls.
         The new Version will be created in Active state if daily calls are under the E-Service threshold, in Waiting for Approval otherwise.
       operationId: createPurposeVersion
@@ -3039,7 +3039,7 @@ paths:
       tags:
         - purposes
       summary: Activate a Purpose in Draft state
-      description: > 
+      description: | 
         Activate a Purpose that is in Draft states.
         The new state will be Active if daily calls are under the E-Service threshold, Waiting for Approval otherwise.
       operationId: activateDraftPurpose
@@ -3148,7 +3148,7 @@ paths:
       tags:
         - purposes
       summary: Archive a Purpose in Active or Suspended state
-      description: >
+      description: |
         Archive a Purpose that is in Active or Suspended state, transitioning it to Archived state.
         Existing Waiting for Approval Versions will be deleted.
         The Archived state is not reversible.
@@ -3365,7 +3365,7 @@ paths:
       tags:
         - purposes
       summary: Suspend a Purpose in Active or Suspended state
-      description: >
+      description: |
         Suspend a Purpose that is in Active or Suspended state, transitioning it to Suspended state.
         A Purpose may already be in Suspended state when previously suspended by the consumer or the producer.
       operationId: suspendPurpose
@@ -3474,7 +3474,7 @@ paths:
       tags:
         - purposes
       summary: Unsuspend a Purpose in Suspended state
-      description: >
+      description: |
         Unsuspend a Purpose that is in Suspended state, transitioning it to Active or Suspended state.
         A Purpose may remain in Suspended state when suspended also by the consumer or the producer.
       operationId: unsuspendPurpose
