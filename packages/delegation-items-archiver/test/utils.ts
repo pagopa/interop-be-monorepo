@@ -10,21 +10,52 @@ import {
   toReadModelPurpose,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
+import {
+  agreementReadModelServiceBuilder,
+  purposeReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "../src/readModelService.js";
+import { config } from "../src/config/config.js";
+import { readModelServiceBuilderSQL } from "../src/readModelServiceSQL.js";
 
-export const { cleanup, readModelRepository } = await setupTestContainersVitest(
-  inject("readModelConfig")
-);
+export const { cleanup, readModelRepository, readModelDB } =
+  await setupTestContainersVitest(
+    inject("readModelConfig"),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    inject("readModelSQLConfig")
+  );
 afterEach(cleanup);
 
 export const { purposes, agreements } = readModelRepository;
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(readModelRepository);
+
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  agreementReadModelServiceSQL,
+  purposeReadModelServiceSQL,
+});
+export const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
   await writeInReadmodel(toReadModelPurpose(purpose), purposes);
+  await purposeReadModelServiceSQL.upsertPurpose(purpose, 1);
 };
 
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
+  await agreementReadModelServiceSQL.upsertAgreement(agreement, 1);
 };
