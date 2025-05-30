@@ -142,11 +142,8 @@ describe("certified attribute creation", () => {
       ...mockAttribute,
       code: "123456ab",
     };
-    const attribute2 = {
-      ...attribute,
-      name: `${mockAttribute.name}-test`,
-      code: "123456cd",
-    };
+    const attributeName = `${mockAttribute.name}-test`;
+    const attributeCode = "123456cd";
 
     const tenant: Tenant = {
       ...mockTenant,
@@ -169,7 +166,7 @@ describe("certified attribute creation", () => {
       attributeRegistryService.createCertifiedAttribute(
         {
           name: attribute.name,
-          code: attribute2.code,
+          code: attributeCode,
           description: attribute.description,
         },
         getMockContext({ authData: getMockAuthData(tenant.id) })
@@ -177,14 +174,14 @@ describe("certified attribute creation", () => {
     ).rejects.toThrowError(
       attributeDuplicateByCodeOriginOrName(
         attribute.name,
-        attribute2.code,
+        attributeCode,
         getTenantOneCertifierFeature(tenant).certifierId
       )
     );
     expect(
       attributeRegistryService.createCertifiedAttribute(
         {
-          name: attribute2.name,
+          name: attributeName,
           code: attribute.code,
           description: attribute.description,
         },
@@ -192,7 +189,7 @@ describe("certified attribute creation", () => {
       )
     ).rejects.toThrowError(
       attributeDuplicateByCodeOriginOrName(
-        attribute2.name,
+        attributeName,
         attribute.code,
         getTenantOneCertifierFeature(tenant).certifierId
       )

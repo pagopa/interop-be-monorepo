@@ -75,7 +75,7 @@ describe("certified attribute internal creation", () => {
     expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
     expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
   });
-  it("should write 2 attribute with different name and origin but same code", async () => {
+  it("should write 2 attribute with different name and origin but same code, case insensitive", async () => {
     const attributeCode = "123456ab";
     const attributeName = `${mockAttribute.name}-test`;
     const mockTenant2 = getMockTenant();
@@ -111,7 +111,7 @@ describe("certified attribute internal creation", () => {
       attributeRegistryService.internalCreateCertifiedAttribute(
         {
           name: attributeName,
-          code: attributeCode,
+          code: attributeCode.toLocaleUpperCase(),
           description: mockAttribute.description,
           origin: getTenantOneCertifierFeature(tenant2).certifierId,
         },
