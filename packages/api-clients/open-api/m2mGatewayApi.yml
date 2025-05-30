@@ -289,6 +289,7 @@ paths:
       tags:
         - agreements
       summary: Retrieve an Agreement
+      description: Retrieve an Agreement
       operationId: getAgreement
       responses:
         "200":
@@ -1682,11 +1683,13 @@ paths:
     get:
       tags:
         - eservices
-      description: Get e-services
+      summary: List E-Services
+      description: Retrieve a list of E-Services based on filters.
       operationId: getEServices
       parameters:
         - in: query
           name: producerIds
+          description: Filter E-Services by producer IDs. If not specified, return E-Services for any producer
           schema:
             type: array
             items:
@@ -1696,6 +1699,7 @@ paths:
           explode: false
         - in: query
           name: templateIds
+          description: Filter E-Services by template IDs. If not specified, return E-Services for any template, and E-Services without a template
           schema:
             type: array
             items:
@@ -1705,6 +1709,7 @@ paths:
           explode: false
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -1712,6 +1717,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -1775,7 +1781,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The e-service id
+        description: The E-Service ID
         required: true
         schema:
           type: string
@@ -1783,7 +1789,8 @@ paths:
     get:
       tags:
         - eservices
-      description: Get e-service
+      summary: Retrieve an E-Service
+      description: Retrieve an E-Service
       operationId: getEService
       responses:
         "200":
@@ -1855,7 +1862,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The e-service id
+        description: The E-Service ID of the Descriptors
         required: true
         schema:
           type: string
@@ -1863,16 +1870,18 @@ paths:
     get:
       tags:
         - eservices
-      description: Get e-service descriptors
+      summary: List E-Service Descriptors
+      description: Retrieve a list of E-Service Descriptors based on filters.
       operationId: getEServiceDescriptors
       parameters:
         - name: state
           in: query
-          description: The descriptor state
+          description: Filter Descriptors by states. If not specified, return Descriptors in any state
           schema:
             $ref: "#/components/schemas/EServiceDescriptorState"
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -1880,6 +1889,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -1888,7 +1898,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: E-Service descriptors retrieved
+          description: E-Service Descriptors retrieved
           content:
             application/json:
               schema:
@@ -1956,14 +1966,14 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The e-service id
+        description: The E-Service ID of the Descriptor
         required: true
         schema:
           type: string
           format: uuid
       - name: descriptorId
         in: path
-        description: The descriptor id
+        description: The Descriptor ID to retrieve
         required: true
         schema:
           type: string
@@ -1971,11 +1981,12 @@ paths:
     get:
       tags:
         - eservices
-      description: Get e-service descriptor
+      summary: Retrieve an E-Service Descriptor
+      description: Retrieve an E-Service Descriptor
       operationId: getEServiceDescriptor
       responses:
         "200":
-          description: E-Service descriptor retrieved
+          description: E-Service Descriptor retrieved
           content:
             application/json:
               schema:
