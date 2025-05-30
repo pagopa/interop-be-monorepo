@@ -69,8 +69,8 @@ paths:
     get:
       tags:
         - agreements
-      description: Retrieve a list of Agreements based on filters.
       summary: List agreements
+      description: Retrieve a list of Agreements based on filters.
       operationId: getAgreements
       parameters:
         - in: query
@@ -188,6 +188,7 @@ paths:
     post:
       tags:
         - agreements
+      summary: Create a new Agreement
       description: Create a new Agreement in Draft state
       operationId: createAgreement
       requestBody:
@@ -981,12 +982,13 @@ paths:
     get:
       tags:
         - delegations
-      description: List delegations
-      summary: List delegations
+      summary: List Consumer Delegations
+      description: Retrieve a list of Consumer Delegations based on filters.
       operationId: getConsumerDelegations
       parameters:
         - in: query
           name: states
+          description: Filter Consumer Delegations by states. If not specified, return Consumer Delegations in any state
           required: false
           schema:
             type: array
@@ -996,6 +998,7 @@ paths:
           explode: false
         - in: query
           name: delegatorIds
+          description: Filter Consumer Delegations by delegator IDs. If not specified, return Consumer Delegations for any delegator
           required: false
           schema:
             type: array
@@ -1006,6 +1009,7 @@ paths:
           explode: false
         - in: query
           name: delegateIds
+          description: Filter Consumer Delegations by delegate IDs. If not specified, return Consumer Delegations for any delegate
           required: false
           schema:
             type: array
@@ -1016,6 +1020,7 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
+          description: Filter Consumer Delegations by E-Service IDs. If not specified, return Consumer Delegations for any E-Service
           schema:
             type: array
             items:
@@ -1025,6 +1030,7 @@ paths:
           explode: false
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -1032,6 +1038,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -1040,7 +1047,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Delegations retrieved
+          description: Consumer Delegations retrieved
           content:
             application/json:
               schema:
@@ -1094,7 +1101,8 @@ paths:
     post:
       tags:
         - delegations
-      description: Creates a consumer delegation
+      summary: Create a new Consumer Delegation
+      description: Create a new Consumer Delegation in Waiting for Approval state
       operationId: createConsumerDelegation
       requestBody:
         content:
@@ -1104,7 +1112,7 @@ paths:
         required: true
       responses:
         "201":
-          description: Delegation created
+          description: Consumer Delegation created
           content:
             application/json:
               schema:
@@ -1185,7 +1193,7 @@ paths:
     parameters:
       - name: delegationId
         in: path
-        description: The delegation id
+        description: The delegation ID to accept
         required: true
         schema:
           type: string
@@ -1193,11 +1201,12 @@ paths:
     post:
       tags:
         - delegations
-      description: Accept consumer delegation
+      summary: Accept a Consumer Delegation in Waiting for Approval state
+      description: Accept a Consumer Delegation that is in Waiting for Approval state, transitioning it to Active state.
       operationId: acceptConsumerDelegation
       responses:
         "200":
-          description: Delegation updated
+          description: Consumer Delegation accepted
           content:
             application/json:
               schema:
@@ -1284,8 +1293,12 @@ paths:
     post:
       tags:
         - attributes
-      summary: Create certified attribute
-      description: Create the attribute passed as payload
+      summary: Create a certified Attribute
+      description: >
+        Create a certified Attribute.
+        The Attribute must
+          - have a unique name across all Attributes in the Platform
+          - have a unique code across certified Attributes owned by the requester
       operationId: createCertifiedAttribute
       requestBody:
         required: true
@@ -1295,7 +1308,7 @@ paths:
               $ref: "#/components/schemas/CertifiedAttributeSeed"
       responses:
         "201":
-          description: Certified attribute created
+          description: Certified Attribute created
           content:
             application/json:
               schema:
@@ -1376,7 +1389,7 @@ paths:
     parameters:
       - name: attributeId
         in: path
-        description: The attribute id
+        description: The Attribute ID to retrieve
         required: true
         schema:
           type: string
@@ -1384,7 +1397,8 @@ paths:
     get:
       tags:
         - attributes
-      description: Get certified attribute
+      summary: Retrieve a certified Attribute
+      description: Retrieve a certified Attribute
       operationId: getCertifiedAttribute
       responses:
         "200":
@@ -1456,7 +1470,7 @@ paths:
     parameters:
       - name: clientId
         in: path
-        description: The client id
+        description: The client ID to link the Purpose to
         required: true
         schema:
           type: string
@@ -1464,7 +1478,10 @@ paths:
     post:
       tags:
         - clients
-      description: Add a purpose to the client
+      summary: Link a Client to a Purpose
+      description: >
+        Link a Client to a Purpose.
+        The Purpose must be in Active or Suspended state.
       operationId: addClientPurpose
       requestBody:
         content:
@@ -1474,7 +1491,7 @@ paths:
         required: true
       responses:
         "204":
-          description: Purpose added
+          description: Client linked to the Purpose
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -1564,7 +1581,7 @@ paths:
     parameters:
       - name: delegationId
         in: path
-        description: The delegation id
+        description: The Consumer Delegation ID to reject
         required: true
         schema:
           type: string
@@ -1572,8 +1589,8 @@ paths:
     post:
       tags:
         - delegations
-      description: Rejects a consumer delegation
-      summary: Consumer delegation rejection
+      summary: Reject a Consumer Delegation in Waiting for Approval state
+      description: Reject an Consumer Delegation that is in Waiting for Approval state, transitioning it to Rejected state.
       operationId: rejectConsumerDelegation
       requestBody:
         content:
@@ -1584,7 +1601,7 @@ paths:
         description: Payload for delegation rejection
       responses:
         "200":
-          description: Delegation rejected
+          description: Consumer Delegation rejected
           content:
             application/json:
               schema:
