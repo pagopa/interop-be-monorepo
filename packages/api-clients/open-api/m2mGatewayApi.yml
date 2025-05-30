@@ -1862,7 +1862,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The E-Service ID of the Descriptors
+        description: The E-Service ID of the Descriptors to retrieve
         required: true
         schema:
           type: string
@@ -2062,10 +2062,12 @@ paths:
     get:
       tags:
         - eserviceTemplates
+      summary: Retrieve an E-Service Template
+      description: Retrieve an E-Service Template
       operationId: getEServiceTemplate
       responses:
         "200":
-          description: E-Service template retrieved
+          description: E-Service Template retrieved
           content:
             application/json:
               schema:
@@ -2133,7 +2135,7 @@ paths:
     parameters:
       - name: templateId
         in: path
-        description: The template id
+        description: The E-Service Template ID of the Versions to retrieve
         required: true
         schema:
           type: string
@@ -2141,16 +2143,18 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      description: Get e-service template versions
+      summary: List E-Service Template Versions
+      description: Retrieve a list of E-Service Template Versions based on filters.
       operationId: getEServiceTemplateVersions
       parameters:
         - name: state
           in: query
-          description: The version state
+          description: Filter Versions by states. If not specified, return Versions in any state
           schema:
             $ref: "#/components/schemas/EServiceTemplateVersionState"
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -2158,6 +2162,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -2166,7 +2171,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: E-Service template versions retrieved
+          description: E-Service Template Versions retrieved
           content:
             application/json:
               schema:
@@ -2234,14 +2239,14 @@ paths:
     parameters:
       - name: templateId
         in: path
-        description: The template id
+        description: The E-Service Template ID of the Version
         required: true
         schema:
           type: string
           format: uuid
       - name: versionId
         in: path
-        description: The version id
+        description: The Version ID to retrieve
         required: true
         schema:
           type: string
@@ -2249,11 +2254,12 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      description: Get e-service template version
+      summary: Retrieve an E-Service Template Version
+      description: Retrieve an E-Service Template Version
       operationId: getEServiceTemplateVersion
       responses:
         "200":
-          description: E-Service template version retrieved
+          description: E-Service Template Version retrieved
           content:
             application/json:
               schema:
