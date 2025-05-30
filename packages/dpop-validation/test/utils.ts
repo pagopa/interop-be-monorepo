@@ -1,12 +1,13 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { inject } from "vitest";
 
+const config = inject("tokenGenerationReadModelConfig");
+
+if (!config) {
+  throw new Error("config is not defined");
+}
 export const dynamoDBClient = new DynamoDBClient({
-  endpoint: `http://localhost:8085`,
-  region: "eu-south-1",
-  credentials: {
-    accessKeyId: "key",
-    secretAccessKey: "secret",
-  },
+  endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
 });
 
 export const dpopCacheTable = "dpop-cache";
