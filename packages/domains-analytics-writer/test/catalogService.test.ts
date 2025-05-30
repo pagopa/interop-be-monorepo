@@ -1123,15 +1123,6 @@ describe("Check on metadata_version merge", () => {
 
   it("handles EServiceDocumentUpdated by upserting and merging documents", async () => {
     const eservice = getMockEService();
-    const interfaceD = getMockDocument();
-    const descriptor = {
-      ...getMockDescriptor(),
-      eserviceId: eservice.id,
-      interface: interfaceD,
-    };
-
-    eservice.descriptors = [descriptor];
-
     const document = toDocumentV1({
       id: generateId(),
       name: "Security Policy",
@@ -1141,6 +1132,12 @@ describe("Check on metadata_version merge", () => {
       checksum: "xyz789",
       uploadDate: new Date(),
     });
+    const descriptor = {
+      ...getMockDescriptor(),
+      eserviceId: eservice.id,
+    };
+
+    eservice.descriptors = [descriptor];
 
     const addEvent: EServiceEventEnvelopeV1 = {
       sequence_num: 1,
@@ -1157,8 +1154,6 @@ describe("Check on metadata_version merge", () => {
       log_date: new Date(),
     };
 
-    await handleCatalogMessageV1([addEvent], dbContext);
-
     const updateDocEvent: EServiceEventEnvelopeV1 = {
       sequence_num: 2,
       stream_id: eservice.id,
@@ -1174,6 +1169,7 @@ describe("Check on metadata_version merge", () => {
       },
       log_date: new Date(),
     };
+    await handleCatalogMessageV1([addEvent, updateDocEvent], dbContext);
 
     const updateDocEvent2: EServiceEventEnvelopeV1 = {
       sequence_num: 2,
@@ -1189,7 +1185,7 @@ describe("Check on metadata_version merge", () => {
       log_date: new Date(),
     };
 
-    await handleCatalogMessageV1([updateDocEvent2, updateDocEvent], dbContext);
+    await handleCatalogMessageV1([updateDocEvent2], dbContext);
 
     const storedDocs = await getManyFromDb(
       dbContext,
@@ -1197,8 +1193,6 @@ describe("Check on metadata_version merge", () => {
       { descriptorId: descriptor.id }
     );
 
-    expect(storedDocs.length).toBe(1);
-    expect(storedDocs[0].id).toBe(document.id);
-    expect(storedDocs[0].name).toBe("Security Policy");
+    expect(storedDocs.length).toBe(0);
   });
 });

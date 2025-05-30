@@ -394,6 +394,7 @@ export function catalogServiceBuilder(db: DBContext) {
       );
 
       await interfaceRepo.clean();
+      await descriptorRepo.cleanServerUrls();
     },
 
     async deleteBatchEService(
@@ -510,7 +511,7 @@ export function catalogServiceBuilder(db: DBContext) {
       );
     },
 
-    async deleteBatchEserviceInterfaceByDescriptorId(
+    async deleteDescriptorDocumentOrInterfaceBatch(
       dbContext: DBContext,
       items: EserviceDescriptorInterfaceDeletingSchema[]
     ): Promise<void> {
@@ -527,7 +528,60 @@ export function catalogServiceBuilder(db: DBContext) {
           );
         }
 
-        await interfaceRepo.mergeDeleting(t);
+        const idsToDelete = await interfaceRepo.mergeDeleting(t);
+        if (idsToDelete.length > 0) {
+          const serverUrlsToUpdate = idsToDelete.map((items) => ({
+            id: items.descriptor_id,
+            serverUrls: JSON.stringify([]),
+            metadataVersion: items.metadata_version,
+          }));
+          await dbContext.conn.tx(async (t) => {
+            for (const batch of batchMessages(
+              serverUrlsToUpdate,
+              config.dbMessagesToInsertPerBatch
+            )) {
+              await descriptorRepo.insertServerUrls(t, dbContext.pgp, batch);
+
+              genericLogger.info(
+                `Staging data inserted for EserviceDescriptorDocument batch: ${batch
+                  .map((doc) => doc.id)
+                  .join(", ")}`
+              );
+            }
+
+            await descriptorRepo.mergeServerUrls(t);
+          });
+        } else {
+          await dbContext.conn.tx(async (t) => {
+            for (const batch of batchMessages(
+              items,
+              config.dbMessagesToInsertPerBatch
+            )) {
+              await documentRepo.insertDeleting(t, dbContext.pgp, batch);
+              genericLogger.info(
+                `Staging deletion inserted for EserviceDescriptorDocument ids: ${batch
+                  .map((item) => item.id)
+                  .join(", ")}`
+              );
+            }
+
+            await documentRepo.mergeDeleting(t);
+          });
+
+          genericLogger.info(
+            `Staging deletion merged into target tables for EserviceDescriptorDocument`
+          );
+
+          await documentRepo.cleanDeleting();
+
+          genericLogger.info(
+            `Staging deleting tables cleaned for EserviceDescriptorDocument`
+          );
+        }
+
+        genericLogger.info(
+          `Staging data merged into target tables for EserviceDescriptorDocument batches`
+        );
       });
 
       genericLogger.info(

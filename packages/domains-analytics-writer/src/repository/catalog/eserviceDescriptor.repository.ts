@@ -165,6 +165,17 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         );
       }
     },
+    async cleanServerUrls(): Promise<void> {
+      try {
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDescriptorServerUrlsTableName};`
+        );
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning deleting staging table ${stagingDescriptorServerUrlsTableName}: ${error}`
+        );
+      }
+    },
   };
 }
 

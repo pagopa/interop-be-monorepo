@@ -51,7 +51,7 @@ export async function handleCatalogMessageV1(
   const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
   const upsertEserviceInterface: EserviceDescriptorInterfaceItemsSchema[] = [];
   const upsertDescriptorServerUrls: DescriptorServerUrlsSchema[] = [];
-  const deleteDescriptorInterfaceBatch: EserviceDescriptorInterfaceDeletingSchema[] =
+  const deleteDescriptorDocumentOrInterfaceBatch: EserviceDescriptorInterfaceDeletingSchema[] =
     [];
 
   for (const message of messages) {
@@ -181,16 +181,10 @@ export async function handleCatalogMessageV1(
         }
       })
       .with({ type: "EServiceDocumentDeleted" }, (msg) => {
-        deleteDescriptorInterfaceBatch.push(
+        deleteDescriptorDocumentOrInterfaceBatch.push(
           EserviceDescriptorInterfaceDeletingSchema.parse({
-            id: msg.data.descriptorId,
-          }) satisfies z.input<typeof EserviceDescriptorInterfaceDeletingSchema>
-        );
-
-        deleteEServiceDocumentBatch.push(
-          EserviceDescriptorDocumentDeletingSchema.parse({
             id: msg.data.documentId,
-          } satisfies z.input<typeof EserviceDescriptorDocumentDeletingSchema>)
+          }) satisfies z.input<typeof EserviceDescriptorInterfaceDeletingSchema>
         );
       })
       .with(
@@ -269,10 +263,10 @@ export async function handleCatalogMessageV1(
     );
   }
 
-  if (deleteDescriptorInterfaceBatch.length > 0) {
-    await catalogService.deleteBatchEserviceInterfaceByDescriptorId(
+  if (deleteDescriptorDocumentOrInterfaceBatch.length > 0) {
+    await catalogService.deleteDescriptorDocumentOrInterfaceBatch(
       dbContext,
-      deleteDescriptorInterfaceBatch
+      deleteDescriptorDocumentOrInterfaceBatch
     );
   }
 }

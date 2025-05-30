@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { genericInternalError } from "pagopa-interop-models";
+import { DescriptorId, genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
@@ -96,18 +96,40 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       }
     },
 
-    async mergeDeleting(t: ITask<unknown>): Promise<void> {
+    async mergeDeleting(
+      t: ITask<unknown>
+    ): Promise<
+      Array<{ descriptor_id: DescriptorId; metadata_version: number }>
+    > {
       try {
+        const idsToDeleteRaw = await t.manyOrNone<{ id: DescriptorId }>(`
+          SELECT id FROM ${deletingTableName}_${config.mergeTableSuffix}
+        `);
+
+        if (idsToDeleteRaw.length === 0) {
+          return [];
+        }
+
+        const existingIds = await t.manyOrNone<{
+          descriptor_id: DescriptorId;
+          metadata_version: number;
+        }>(
+          `
+          SELECT descriptor_id FROM ${schemaName}.${tableName}
+          WHERE id = ANY($1)
+        `,
+          [idsToDeleteRaw]
+        );
+
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           deletingTableName,
-          ["descriptorId"]
+          ["id"]
         );
-        const result = await t.result(mergeQuery);
-        if (result.rowCount > 0) {
-          // TO DO SET SERVER URLS []
-        }
+        await t.none(mergeQuery);
+
+        return existingIds;
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
