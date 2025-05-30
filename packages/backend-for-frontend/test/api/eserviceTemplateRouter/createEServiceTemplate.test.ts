@@ -7,15 +7,15 @@ import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  getMockEServiceTemplateApiEServiceTemplate,
-  getMockEServiceTemplateSeed,
+  getMockBffApiEServiceTemplateApiEServiceTemplate,
+  getMockBffApiEServiceTemplateSeed,
 } from "../../mockUtils.js";
 import { toBffCreatedEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("API POST /eservices/templates", () => {
-  const mockEServiceTemplateSeed = getMockEServiceTemplateSeed();
+  const mockEServiceTemplateSeed = getMockBffApiEServiceTemplateSeed();
   const mockEServiceTemplateApiEServiceTemplate =
-    getMockEServiceTemplateApiEServiceTemplate();
+    getMockBffApiEServiceTemplateApiEServiceTemplate();
   const mockEServiceTemplate = toBffCreatedEServiceTemplateVersion(
     mockEServiceTemplateApiEServiceTemplate
   );

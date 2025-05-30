@@ -31,7 +31,7 @@ import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
 
-type GetSessionTokenReturnType =
+export type GetSessionTokenReturnType =
   | {
       limitReached: true;
       sessionToken: undefined;

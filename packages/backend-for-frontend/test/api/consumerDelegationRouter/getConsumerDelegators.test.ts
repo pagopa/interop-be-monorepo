@@ -7,7 +7,7 @@ import { bffApi, delegationApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockDelegationTenant } from "../../mockUtils.js";
+import { getMockBffApiDelegationTenant } from "../../mockUtils.js";
 
 describe("API GET /consumers/delegations/delegators", () => {
   const defaultQuery = {
@@ -16,9 +16,9 @@ describe("API GET /consumers/delegations/delegators", () => {
   };
   const mockClientReponse = {
     results: [
-      getMockDelegationTenant(),
-      getMockDelegationTenant(),
-      getMockDelegationTenant(),
+      getMockBffApiDelegationTenant(),
+      getMockBffApiDelegationTenant(),
+      getMockBffApiDelegationTenant(),
     ],
     totalCount: 3,
   };

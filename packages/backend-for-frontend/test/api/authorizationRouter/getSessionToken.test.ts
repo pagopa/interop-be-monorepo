@@ -9,11 +9,11 @@ import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockGetSessionTokenReturnType,
-  getMockIdentityToken,
+  getMockBffApiIdentityToken,
 } from "../../mockUtils.js";
 
 describe("API POST /session/tokens", () => {
-  const mockIdentityToken: bffApi.IdentityToken = getMockIdentityToken();
+  const mockIdentityToken: bffApi.IdentityToken = getMockBffApiIdentityToken();
   const mockServiceResponse = getMockGetSessionTokenReturnType();
 
   beforeEach(() => {

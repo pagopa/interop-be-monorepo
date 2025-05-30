@@ -7,11 +7,11 @@ import request from "supertest";
 import { delegationApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockRejectDelegationPayload } from "../../mockUtils.js";
+import { getMockBffApiRejectDelegationPayload } from "../../mockUtils.js";
 
 describe("API POST /consumers/delegations/:delegationId/reject", () => {
   const mockDelegationId = generateId<DelegationId>();
-  const mockRejectDelegationPayload = getMockRejectDelegationPayload();
+  const mockRejectDelegationPayload = getMockBffApiRejectDelegationPayload();
 
   beforeEach(() => {
     clients.delegationProcessClient.consumer = {} as ReturnType<

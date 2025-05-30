@@ -6,11 +6,11 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockGoogleSAMLPayload } from "../../mockUtils.js";
+import { getMockBffApiGoogleSAMLPayload } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
 
 describe("API POST /support", () => {
-  const mockGoogleSAMLPayload = getMockGoogleSAMLPayload();
+  const mockGoogleSAMLPayload = getMockBffApiGoogleSAMLPayload();
   const mockJwt = "mockJwt";
   const mockUrl = `${config.samlCallbackUrl}#saml2=${mockGoogleSAMLPayload.SAMLResponse}&jwt=${mockJwt}`;
 

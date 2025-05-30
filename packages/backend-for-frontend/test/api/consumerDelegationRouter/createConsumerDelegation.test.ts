@@ -9,12 +9,13 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockBffApiCreatedResource,
-  getMockDelegationSeed,
+  getMockBffApiDelegationSeed,
+  getMockDelegationApiDelegation,
 } from "../../mockUtils.js";
 
 describe("API POST /consumers/delegations", () => {
-  const mockDelegationSeed = getMockDelegationSeed();
-  const mockClientResponse = { id: generateId() };
+  const mockDelegationSeed = getMockBffApiDelegationSeed();
+  const mockClientResponse = getMockDelegationApiDelegation();
   const mockCreatedResource = getMockBffApiCreatedResource(
     mockClientResponse.id
   );

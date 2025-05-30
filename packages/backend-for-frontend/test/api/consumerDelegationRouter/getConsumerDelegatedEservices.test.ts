@@ -6,7 +6,7 @@ import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockCompactEService } from "../../mockUtils.js";
+import { getMockBffApiCompactEService } from "../../mockUtils.js";
 
 describe("API GET /consumers/delegations/eservices", () => {
   const defaultQuery = {
@@ -16,9 +16,9 @@ describe("API GET /consumers/delegations/eservices", () => {
   };
   const mockCompactEServices = {
     results: [
-      getMockCompactEService(),
-      getMockCompactEService(),
-      getMockCompactEService(),
+      getMockBffApiCompactEService(),
+      getMockBffApiCompactEService(),
+      getMockBffApiCompactEService(),
     ],
     pagination: {
       offset: defaultQuery.offset,
