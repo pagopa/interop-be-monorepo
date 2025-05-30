@@ -28,6 +28,7 @@ import {
   toDescriptorV1,
   toDocumentV1,
   getMockEServiceAttribute,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import { handleCatalogMessageV1 } from "../src/handlers/catalog/consumerServiceV1.js";
 import { handleCatalogMessageV2 } from "../src/handlers/catalog/consumerServiceV2.js";
@@ -901,5 +902,199 @@ describe("Check on metadata_version merge", () => {
     storedDescriptors.forEach((d) => {
       expect(d.metadataVersion).toBe(2);
     });
+  });
+
+  it("removes verified attributes when a descriptor is updated", async () => {
+    const eservice = getMockEService();
+
+    const certifiedAttr = { ...getMockAttribute(), kind: "Certified" };
+    const declaredAttr = { ...getMockAttribute(), kind: "Declared" };
+    const verifiedAttr = { ...getMockAttribute(), kind: "Verified" };
+
+    const descriptors = Array.from({ length: 3 }, () => ({
+      ...getMockDescriptor(),
+      metadataVersion: 1,
+    }));
+
+    descriptors[0].attributes = {
+      certified: [[getMockEServiceAttribute(certifiedAttr.id)]],
+      declared: [[getMockEServiceAttribute(declaredAttr.id)]],
+      verified: [[getMockEServiceAttribute(verifiedAttr.id)]],
+    };
+
+    eservice.descriptors = descriptors;
+
+    const event1: EServiceEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: eservice.id,
+      version: 1,
+      type: "EServiceAdded",
+      event_version: 1,
+      data: {
+        eservice: toEServiceV1({
+          ...eservice,
+          riskAnalysis: [],
+        }),
+      },
+      log_date: new Date(),
+    };
+
+    const descriptorV1 = toDescriptorV1(descriptors[0]);
+
+    const event2: EServiceEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: eservice.id,
+      version: 2,
+      type: "EServiceDescriptorUpdated",
+      event_version: 1,
+      data: {
+        eserviceDescriptor: descriptorV1,
+        eserviceId: eservice.id,
+      },
+      log_date: new Date(),
+    };
+
+    const updatedDescriptor = {
+      ...descriptors[0],
+      attributes: {
+        certified: [[getMockEServiceAttribute(certifiedAttr.id)]],
+        declared: [[getMockEServiceAttribute(declaredAttr.id)]],
+        verified: [],
+      },
+    };
+
+    const updatedEService: EServiceAddedV1 = {
+      eservice: toEServiceV1({
+        ...eservice,
+        descriptors: [updatedDescriptor],
+        riskAnalysis: [],
+      }),
+    };
+
+    const event3: EServiceEventEnvelopeV1 = {
+      sequence_num: 3,
+      stream_id: eservice.id,
+      version: 3,
+      type: "EServiceDescriptorUpdated",
+      event_version: 1,
+      data: {
+        eserviceDescriptor: updatedEService.eservice?.descriptors[0],
+        eserviceId: eservice.id,
+      },
+      log_date: new Date(),
+    };
+
+    await handleCatalogMessageV1([event1, event2, event3], dbContext);
+
+    const storedDescriptors = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor,
+      { eserviceId: eservice.id }
+    );
+
+    const storedAttributes = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_attribute,
+      { descriptorId: updatedDescriptor.id }
+    );
+
+    expect(storedDescriptors.length).toBe(3);
+    expect(
+      storedAttributes.filter((attr) => attr.kind === "Verified")
+    ).toHaveLength(0);
+    expect(
+      storedAttributes.filter((attr) => attr.kind === "Certified")
+    ).toHaveLength(1);
+    expect(
+      storedAttributes.filter((attr) => attr.kind === "Declared")
+    ).toHaveLength(1);
+  });
+
+  it("handles EServiceDocumentUpdated by upserting and merging documents", async () => {
+    const eservice = getMockEService();
+    const descriptor = {
+      ...getMockDescriptor(),
+      eserviceId: eservice.id,
+    };
+
+    eservice.descriptors = [descriptor];
+
+    const document = toDocumentV1({
+      id: generateId(),
+      name: "Security Policy",
+      prettyName: "Security Policy.pdf",
+      path: "/docs/security.pdf",
+      contentType: "application/pdf",
+      checksum: "xyz789",
+      uploadDate: new Date(),
+    });
+
+    const addEvent: EServiceEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: eservice.id,
+      version: 1,
+      type: "EServiceAdded",
+      event_version: 1,
+      data: {
+        eservice: toEServiceV1({
+          ...eservice,
+          riskAnalysis: [],
+        }),
+      },
+      log_date: new Date(),
+    };
+
+    const updateDocEvent: EServiceEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: eservice.id,
+      version: 2,
+      type: "EServiceDocumentUpdated",
+      event_version: 1,
+      data: {
+        updatedDocument: document,
+        documentId: document.id,
+        descriptorId: descriptor.id,
+        eserviceId: eservice.id,
+        serverUrls: ["/first-server-url.it"],
+      },
+      log_date: new Date(),
+    };
+
+    const updateDocEvent2: EServiceEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: eservice.id,
+      version: 3,
+      type: "EServiceDocumentUpdated",
+      event_version: 1,
+      data: {
+        updatedDocument: document,
+        documentId: document.id,
+        descriptorId: descriptor.id,
+        eserviceId: eservice.id,
+        serverUrls: ["/second-server-url.it"],
+      },
+      log_date: new Date(),
+    };
+
+    await handleCatalogMessageV1(
+      [addEvent, updateDocEvent2, updateDocEvent],
+      dbContext
+    );
+
+    const storedDocs = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_document,
+      { descriptorId: descriptor.id }
+    );
+    const storedDescriptors = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor,
+      { id: descriptor.id }
+    );
+
+    expect(storedDocs.length).toBe(1);
+    expect(storedDocs[0].id).toBe(document.id);
+    expect(storedDocs[0].name).toBe("Security Policy");
+    expect(storedDescriptors[0].serverUrls).toBe('["pagopa.it"]');
   });
 });

@@ -150,23 +150,22 @@ export function catalogServiceBuilder(db: DBContext) {
         await riskAnalysisAnswerRepo.merge(t);
         await rejectionRepo.merge(t);
         await templateVersionRefRepo.merge(t);
-
-        await cleaningTargetTables(
-          t,
-          "eserviceId",
-          [
-            CatalogDbTable.eservice_descriptor_template_version_ref,
-            CatalogDbTable.eservice_descriptor_rejection_reason,
-            CatalogDbTable.eservice_descriptor_interface,
-            CatalogDbTable.eservice_descriptor_document,
-            CatalogDbTable.eservice_descriptor_attribute,
-            CatalogDbTable.eservice_risk_analysis_answer,
-            CatalogDbTable.eservice_risk_analysis,
-            CatalogDbTable.eservice_descriptor,
-          ],
-          CatalogDbTable.eservice
-        );
       });
+      await cleaningTargetTables(
+        db.conn,
+        "eserviceId",
+        [
+          CatalogDbTable.eservice_descriptor_template_version_ref,
+          CatalogDbTable.eservice_descriptor_rejection_reason,
+          CatalogDbTable.eservice_descriptor_interface,
+          CatalogDbTable.eservice_descriptor_document,
+          CatalogDbTable.eservice_descriptor_attribute,
+          CatalogDbTable.eservice_risk_analysis_answer,
+          CatalogDbTable.eservice_risk_analysis,
+          CatalogDbTable.eservice_descriptor,
+        ],
+        CatalogDbTable.eservice
+      );
 
       genericLogger.info(
         `Staging data merged into target tables for all batches`
@@ -270,6 +269,19 @@ export function catalogServiceBuilder(db: DBContext) {
         await documentRepo.merge(t);
         await rejectionRepo.merge(t);
         await templateVersionRefRepo.merge(t);
+
+        await cleaningTargetTables(
+          db.conn,
+          "descriptorId",
+          [
+            CatalogDbTable.eservice_descriptor_template_version_ref,
+            CatalogDbTable.eservice_descriptor_rejection_reason,
+            CatalogDbTable.eservice_descriptor_interface,
+            CatalogDbTable.eservice_descriptor_document,
+            CatalogDbTable.eservice_descriptor_attribute,
+          ],
+          CatalogDbTable.eservice_descriptor
+        );
       });
 
       genericLogger.info(
@@ -303,6 +315,12 @@ export function catalogServiceBuilder(db: DBContext) {
         }
 
         await documentRepo.merge(t);
+        await cleaningTargetTables(
+          db.conn,
+          "id",
+          [CatalogDbTable.eservice_descriptor_document],
+          CatalogDbTable.eservice_descriptor_document
+        );
       });
 
       genericLogger.info(

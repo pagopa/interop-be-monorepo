@@ -9,6 +9,7 @@ import {
   DomainDbTableSchemas,
 } from "../model/db/index.js";
 import { config } from "../config/config.js";
+import { DBConnection } from "../db/db.js";
 
 /**
  * Given a table key from `DbTableReadModels`, returns a function that
@@ -193,7 +194,7 @@ export async function cleaningTargetTables<
   StagingTable extends DomainDbTable,
   DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>
 >(
-  t: ITask<unknown>,
+  db: DBConnection,
   id: DeleteKey,
   targetTablesName: TargetTable,
   stagingTableName: StagingTable
@@ -216,6 +217,6 @@ export async function cleaningTargetTables<
          DELETE;
       `.trim();
 
-    await t.none(deleteQuery);
+    await db.none(deleteQuery);
   }
 }
