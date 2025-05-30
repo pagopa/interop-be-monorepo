@@ -42,8 +42,13 @@ export async function initRedisRateLimiter(config: {
        */
       reconnectStrategy: (retries: number) => Math.min(retries * 1_000, 30_000),
     },
-  }).on("error", (err) => genericLogger.warn(`Redis Client Error: ${err}`));
-
+  }).on("error", (err) =>
+    genericLogger.warn(
+      `Redis Client Error (host: ${config.redisHost}, port: ${
+        config.redisPort
+      }): ${String(err)}. The client will keep retrying in background.`
+    )
+  );
   // Attempt first connection, but do NOT await: if Redis is down, log and retry in background.
   redisClient
     .connect()
@@ -54,7 +59,11 @@ export async function initRedisRateLimiter(config: {
     )
     .catch((err) =>
       genericLogger.warn(
-        `Initial Redis connect failed for host ${config.redisHost}:${config.redisPort}, will keep retrying automatically: ${err}`
+        `Redis client connection failed and will not retry (host: ${
+          config.redisHost
+        }, port: ${config.redisPort}): ${String(
+          err
+        )}. Service is operating with in-memory fallback only.`
       )
     );
 
