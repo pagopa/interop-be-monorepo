@@ -43,8 +43,8 @@ import {
   descriptorNotFound,
   eServiceNotFound,
   missingCertifiedAttributesError,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
@@ -367,7 +367,7 @@ describe("clone agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an organizationIsNotTheConsumer error when the requester is not the Consumer", async () => {
+  it("should throw an tenantIsNotTheConsumer error when the requester is not the Consumer", async () => {
     const authData = getMockAuthData();
     const agreement = getMockAgreement(
       generateId<EServiceId>(),
@@ -380,12 +380,10 @@ describe("clone agreement", () => {
         agreement.id,
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(authData.organizationId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
   });
 
-  it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the Consumer but there is a Consumer Delegation", async () => {
+  it("should throw an tenantIsNotTheDelegateConsumer error when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getMockAuthData();
     const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
     const agreement = getMockAgreement(
@@ -409,10 +407,7 @@ describe("clone agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
     );
   });
 

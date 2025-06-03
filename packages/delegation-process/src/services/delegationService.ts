@@ -108,8 +108,8 @@ export const retrieveEserviceById = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder(
-  readModelService: ReadModelService,
   dbInstance: DB,
+  readModelService: ReadModelService,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager
 ) {
@@ -682,3 +682,5 @@ export function delegationServiceBuilder(
     },
   };
 }
+
+export type DelegationService = ReturnType<typeof delegationServiceBuilder>;

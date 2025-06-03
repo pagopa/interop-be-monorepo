@@ -14,19 +14,41 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+import {
+  agreementReadModelServiceBuilder,
+  makeDrizzleConnection,
+  purposeReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { handleMessageV2 } from "./delegationItemsArchiverConsumerServiceV2.js";
 import { config } from "./config/config.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { readModelServiceBuilder } from "./readModelService.js";
+import { readModelServiceBuilderSQL } from "./readModelServiceSQL.js";
+
+const readModelDB = makeDrizzleConnection(config);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+
+const oldReadModelService = readModelServiceBuilder(
+  ReadModelRepository.init(config)
+);
+const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
+  agreementReadModelServiceSQL,
+  purposeReadModelServiceSQL,
+});
+const readModelService =
+  config.featureFlagSQL &&
+  config.readModelSQLDbHost &&
+  config.readModelSQLDbPort
+    ? readModelServiceSQL
+    : oldReadModelService;
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)
 );
 await refreshableToken.init();
-
-const readModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
 
 const { agreementProcessClient, purposeProcessClient } = getInteropBeClients();
 

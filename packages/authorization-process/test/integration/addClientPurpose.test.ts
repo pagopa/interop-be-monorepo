@@ -34,10 +34,10 @@ import {
   purposeDelegationNotFound,
   eserviceNotDelegableForClientAccess,
   eserviceNotFound,
-  noAgreementFoundInRequiredState,
-  noPurposeVersionsFoundInRequiredState,
-  organizationNotAllowedOnClient,
-  organizationNotAllowedOnPurpose,
+  noActiveOrSuspendedAgreementFound,
+  noActiveOrSuspendedPurposeVersionFound,
+  tenantNotAllowedOnClient,
+  tenantNotAllowedOnPurpose,
   purposeAlreadyLinkedToClient,
   purposeNotFound,
   clientKindNotAllowed,
@@ -92,13 +92,14 @@ describe("addClientPurpose", async () => {
     await addOneEService(mockEservice);
     await addOneAgreement(mockAgreement);
 
-    await authorizationService.addClientPurpose(
-      {
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-      },
-      getMockContext({ authData: getMockAuthData(mockConsumerId) })
-    );
+    const addClientPurposeResponse =
+      await authorizationService.addClientPurpose(
+        {
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -114,12 +115,22 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient: Client = {
+      ...mockClient,
+      purposes: [...mockClient.purposes, mockPurpose.id],
+    };
     expect(writtenPayload).toEqual({
       purposeId: mockPurpose.id,
-      client: toClientV2({
-        ...mockClient,
-        purposes: [...mockClient.purposes, mockPurpose.id],
-      }),
+      client: toClientV2(expectedClient),
+    });
+    expect(addClientPurposeResponse).toEqual({
+      data: {
+        client: expectedClient,
+        showUsers: true,
+      },
+      metadata: {
+        version: 1,
+      },
     });
   });
 
@@ -172,15 +183,16 @@ describe("addClientPurpose", async () => {
     await addOneEService(mockEservice);
     await addOneAgreement(mockAgreement);
 
-    await authorizationService.addClientPurpose(
-      {
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-      },
-      getMockContext({
-        authData: getMockAuthData(mockClient.consumerId),
-      })
-    );
+    const addClientPurposeResponse =
+      await authorizationService.addClientPurpose(
+        {
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+        },
+        getMockContext({
+          authData: getMockAuthData(mockClient.consumerId),
+        })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -196,12 +208,22 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient: Client = {
+      ...mockClient,
+      purposes: [...mockClient.purposes, mockPurpose.id],
+    };
     expect(writtenPayload).toEqual({
       purposeId: mockPurpose.id,
-      client: toClientV2({
-        ...mockClient,
-        purposes: [...mockClient.purposes, mockPurpose.id],
-      }),
+      client: toClientV2(expectedClient),
+    });
+    expect(addClientPurposeResponse).toEqual({
+      data: {
+        client: expectedClient,
+        showUsers: true,
+      },
+      metadata: {
+        version: 1,
+      },
     });
   });
 
@@ -253,15 +275,16 @@ describe("addClientPurpose", async () => {
     await addOneEService(mockEservice);
     await addOneAgreement(mockAgreement);
 
-    await authorizationService.addClientPurpose(
-      {
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-      },
-      getMockContext({
-        authData: getMockAuthData(mockClient.consumerId),
-      })
-    );
+    const addClientPurposeResponse =
+      await authorizationService.addClientPurpose(
+        {
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+        },
+        getMockContext({
+          authData: getMockAuthData(mockClient.consumerId),
+        })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -277,12 +300,23 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient: Client = {
+      ...mockClient,
+      purposes: [...mockClient.purposes, mockPurpose.id],
+    };
     expect(writtenPayload).toEqual({
       purposeId: mockPurpose.id,
-      client: toClientV2({
-        ...mockClient,
-        purposes: [...mockClient.purposes, mockPurpose.id],
-      }),
+      client: toClientV2(expectedClient),
+    });
+
+    expect(addClientPurposeResponse).toEqual({
+      data: {
+        client: expectedClient,
+        showUsers: true,
+      },
+      metadata: {
+        version: 1,
+      },
     });
   });
 
@@ -334,7 +368,7 @@ describe("addClientPurpose", async () => {
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the client consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the client consumer", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -382,7 +416,7 @@ describe("addClientPurpose", async () => {
         getMockContext({ authData: getMockAuthData(mockConsumerId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(mockConsumerId, mockClient.id)
+      tenantNotAllowedOnClient(mockConsumerId, mockClient.id)
     );
   });
   it("should throw clientKindNotAllowed if the requester is the client api", async () => {
@@ -459,7 +493,7 @@ describe("addClientPurpose", async () => {
       )
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
   });
-  it("should throw organizationNotAllowedOnPurpose if the requester is not the purpose consumer", async () => {
+  it("should throw tenantNotAllowedOnPurpose if the requester is not the purpose consumer", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -507,7 +541,7 @@ describe("addClientPurpose", async () => {
         getMockContext({ authData: getMockAuthData(mockConsumerId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnPurpose(mockConsumerId, mockPurpose.id)
+      tenantNotAllowedOnPurpose(mockConsumerId, mockPurpose.id)
     );
   });
   it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
@@ -558,7 +592,7 @@ describe("addClientPurpose", async () => {
       )
     ).rejects.toThrowError(eserviceNotFound(mockEservice.id));
   });
-  it("should throw noAgreementFoundInRequiredState if there is no agreement in required states (found no agreement)", async () => {
+  it("should throw noActiveOrSuspendedAgreementFound if there is no agreement in required states (found no agreement)", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -596,7 +630,7 @@ describe("addClientPurpose", async () => {
         getMockContext({ authData: getMockAuthData(mockConsumerId) })
       )
     ).rejects.toThrowError(
-      noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId)
+      noActiveOrSuspendedAgreementFound(mockEservice.id, mockConsumerId)
     );
   });
   it.each(
@@ -605,7 +639,7 @@ describe("addClientPurpose", async () => {
         state !== agreementState.active && state !== agreementState.suspended
     )
   )(
-    "should throw noAgreementFoundInRequiredState if there is no agreement in required states (found: %s agreements)",
+    "should throw noActiveOrSuspendedAgreementFound if there is no agreement in required states (found: %s agreements)",
     async (agreementState) => {
       const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
@@ -652,7 +686,7 @@ describe("addClientPurpose", async () => {
           getMockContext({ authData: getMockAuthData(mockConsumerId) })
         )
       ).rejects.toThrowError(
-        noAgreementFoundInRequiredState(mockEservice.id, mockConsumerId)
+        noActiveOrSuspendedAgreementFound(mockEservice.id, mockConsumerId)
       );
     }
   );
@@ -706,7 +740,7 @@ describe("addClientPurpose", async () => {
       )
     ).rejects.toThrowError(mockDescriptor.id);
   });
-  it("should throw noPurposeVersionsFoundInRequiredState if the purpose has no versions in required states (found no versions)", async () => {
+  it("should throw noActiveOrSuspendedPurposeVersionFound if the purpose has no versions in required states (found no versions)", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -755,7 +789,7 @@ describe("addClientPurpose", async () => {
         getMockContext({ authData: getMockAuthData(mockConsumerId) })
       )
     ).rejects.toThrowError(
-      noPurposeVersionsFoundInRequiredState(mockPurpose.id)
+      noActiveOrSuspendedPurposeVersionFound(mockPurpose.id)
     );
   });
   it.each(
@@ -765,7 +799,7 @@ describe("addClientPurpose", async () => {
         state !== purposeVersionState.suspended
     )
   )(
-    "should throw noPurposeVersionsFoundInRequiredState if the purpose has no versions in required states (found: %s version)",
+    "should throw noActiveOrSuspendedPurposeVersionFound if the purpose has no versions in required states (found: %s version)",
     async (versionState) => {
       const mockDescriptor: Descriptor = {
         ...getMockDescriptor(),
@@ -815,7 +849,7 @@ describe("addClientPurpose", async () => {
           getMockContext({ authData: getMockAuthData(mockConsumerId) })
         )
       ).rejects.toThrowError(
-        noPurposeVersionsFoundInRequiredState(mockPurpose.id)
+        noActiveOrSuspendedPurposeVersionFound(mockPurpose.id)
       );
     }
   );
@@ -1093,7 +1127,7 @@ describe("addClientPurpose", async () => {
       )
     ).rejects.toThrowError(purposeDelegationNotFound(delegation.id));
   });
-  it("should throw organizationNotAllowedOnPurpose if the requester is not the purpose delegation delegate nor delegator", async () => {
+  it("should throw tenantNotAllowedOnPurpose if the requester is not the purpose delegation delegate nor delegator", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -1153,7 +1187,7 @@ describe("addClientPurpose", async () => {
         getMockContext({ authData: getMockAuthData(delegateId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnPurpose(delegateId, mockPurpose.id, delegation.id)
+      tenantNotAllowedOnPurpose(delegateId, mockPurpose.id, delegation.id)
     );
   });
   it("should throw eserviceNotDelegableForClientAccess if for a purpose with a delegation the eservice doesn't have the isClientAccessDelegable to true", async () => {
@@ -1217,7 +1251,7 @@ describe("addClientPurpose", async () => {
       )
     ).rejects.toThrowError(eserviceNotDelegableForClientAccess(mockEservice));
   });
-  it("should throw noAgreementFoundInRequiredState if for a purpose with a delegation the agreement doesn't have the delegatorId as consumerId", async () => {
+  it("should throw noActiveOrSuspendedAgreementFound if for a purpose with a delegation the agreement doesn't have the delegatorId as consumerId", async () => {
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.published,
@@ -1277,7 +1311,7 @@ describe("addClientPurpose", async () => {
         getMockContext({ authData: getMockAuthData(delegateId) })
       )
     ).rejects.toThrowError(
-      noAgreementFoundInRequiredState(mockEservice.id, delegation.delegatorId)
+      noActiveOrSuspendedAgreementFound(mockEservice.id, delegation.delegatorId)
     );
   });
 });
