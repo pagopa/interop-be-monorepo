@@ -9,10 +9,10 @@ import {
   ApplicationAuditProducerConfig,
   FeatureFlagImprovedProducerVerificationClaimsConfig,
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
+  DPoPConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
-import { DPoPConfig } from "pagopa-interop-dpop-validation";
 
 const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
   .and(RedisRateLimiterConfig)
