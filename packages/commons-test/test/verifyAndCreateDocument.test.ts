@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   generateId,
   invalidInterfaceContentTypeDetected,
-  Technology,
+  technology,
 } from "pagopa-interop-models";
 import { getMockEService, readFileContent } from "../src/index.js";
 import { fileManager, s3Bucket } from "./utils.js";
@@ -59,7 +59,7 @@ describe("verifyAndCreateDocument", async () => {
     await verifyAndCreateDocument(
       fileManager,
       resourceId,
-      Technology.Enum.Rest,
+      technology.rest,
       kind,
       file,
       documentId,
@@ -90,7 +90,7 @@ describe("verifyAndCreateDocument", async () => {
       verifyAndCreateDocument(
         fileManager,
         resourceId,
-        Technology.Enum.Rest,
+       technology.rest,
         kind,
         invalidFile,
         documentId,
@@ -104,7 +104,7 @@ describe("verifyAndCreateDocument", async () => {
       invalidInterfaceContentTypeDetected(
         resourceId,
         "invalid",
-        Technology.Enum.Rest
+        technology.rest
       )
     );
   });
@@ -123,7 +123,7 @@ describe("verifyAndCreateDocument", async () => {
       verifyAndCreateDocument(
         fileManager,
         resourceId,
-        Technology.Enum.Rest,
+       technology.rest,
         kind,
         file,
         documentId,
