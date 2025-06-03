@@ -5,7 +5,7 @@ import request from "supertest";
 import { generateId } from "pagopa-interop-models";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiEServiceTemplate } from "../../mockUtils.js";
+import { getMockedApiEServiceTemplate } from "pagopa-interop-commons-test";
 import { toM2MGatewayEServiceTemplate } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("GET /eserviceTemplates/:templateId router test", () => {

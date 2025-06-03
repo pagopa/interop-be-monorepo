@@ -8,7 +8,7 @@ import { z } from "zod";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
-import { getMockedApiTenant } from "../../mockUtils.js";
+import { getMockedApiTenant } from "pagopa-interop-commons-test";
 import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
 describe("GET /tenants route test", () => {

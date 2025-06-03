@@ -5,7 +5,7 @@ import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiEservice } from "../../mockUtils.js";
+import { getMockedApiEservice } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("GET /eservice/:eserviceId router test", () => {

@@ -8,7 +8,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
-} from "../../mockUtils.js";
+} from "pagopa-interop-commons-test";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 

@@ -6,10 +6,8 @@ import {
   agreementService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiAgreement,
-} from "../../mockUtils.js";
+import { getMockedApiAgreement } from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { getMockWithMetadata } from "pagopa-interop-commons-test";
 

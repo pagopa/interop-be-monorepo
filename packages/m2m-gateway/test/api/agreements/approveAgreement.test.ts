@@ -10,7 +10,7 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiAgreement } from "../../mockUtils.js";
+import { getMockedApiAgreement } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 
 describe("POST /agreements/:agreementId/approve router test", () => {

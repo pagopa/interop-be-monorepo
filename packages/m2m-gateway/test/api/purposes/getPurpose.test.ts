@@ -5,7 +5,7 @@ import request from "supertest";
 import { generateId } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiPurpose } from "../../mockUtils.js";
+import { getMockedApiPurpose } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("GET /purpose/:purposeId router test", () => {

@@ -19,10 +19,8 @@ import {
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiAttribute,
-} from "../../mockUtils.js";
+import { getMockedApiAttribute } from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("createCertifiedAttribute", () => {

@@ -8,7 +8,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
+} from "pagopa-interop-commons-test";
 
 describe("GET /purposes/:purposeId/versions router test", () => {
   const authorizedRoles: AuthRole[] = [

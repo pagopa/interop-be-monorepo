@@ -14,10 +14,8 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiAgreement,
-} from "../../mockUtils.js";
+import { getMockedApiAgreement } from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("createAgreement", () => {

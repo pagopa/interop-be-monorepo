@@ -15,7 +15,7 @@ import {
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
-import { getMockedApiAttribute } from "../../mockUtils.js";
+import { getMockedApiAttribute } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("POST /certifiedAttributes router test", () => {

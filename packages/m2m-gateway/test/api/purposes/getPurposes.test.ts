@@ -6,7 +6,7 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
-import { getMockedApiPurpose } from "../../mockUtils.js";
+import { getMockedApiPurpose } from "pagopa-interop-commons-test";
 
 describe("GET /purposes router test", () => {
   const authorizedRoles: AuthRole[] = [

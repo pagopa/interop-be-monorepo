@@ -15,7 +15,7 @@ import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenant
 import {
   getMockedApiCertifiedTenantAttribute,
   getMockedApiTenant,
-} from "../../mockUtils.js";
+} from "pagopa-interop-commons-test";
 
 describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test", () => {
   const mockApiResponse = getMockedApiCertifiedTenantAttribute();

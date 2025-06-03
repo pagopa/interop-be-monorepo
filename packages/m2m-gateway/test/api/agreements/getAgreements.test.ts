@@ -9,7 +9,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
-import { getMockedApiAgreement } from "../../mockUtils.js";
+import { getMockedApiAgreement } from "pagopa-interop-commons-test";
 
 describe("GET /agreements route test", () => {
   const mockResponse: m2mGatewayApi.Agreements = {

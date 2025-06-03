@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import {
-  getMockM2MAdminAppContext,
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
+} from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   mockInteropBeClients,

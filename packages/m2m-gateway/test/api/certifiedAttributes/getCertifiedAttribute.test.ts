@@ -9,7 +9,7 @@ import {
 import { api, mockAttributeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { attributeNotFound } from "../../../src/model/errors.js";
-import { getMockedApiAttribute } from "../../mockUtils.js";
+import { getMockedApiAttribute } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("GET /certifiedAttributes/:attributeId router test", () => {

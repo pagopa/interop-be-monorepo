@@ -10,7 +10,7 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiPurpose } from "../../mockUtils.js";
+import { getMockedApiPurpose } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("POST /purposes/:purposeId/archive router test", () => {

@@ -14,7 +14,10 @@ import {
   mockGetClientAdminId,
 } from "../vitest.api.setup.js";
 import { appBasePath } from "../../src/config/appBasePath.js";
-import { getMockedApiAttribute, getMockedApiClient } from "../mockUtils.js";
+import {
+  getMockedApiAttribute,
+  getMockedApiClient,
+} from "pagopa-interop-commons-test";
 import { clientAdminIdNotFound } from "../../src/model/errors.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
 

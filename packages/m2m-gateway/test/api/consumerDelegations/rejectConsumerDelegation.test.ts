@@ -11,7 +11,7 @@ import {
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
-import { getMockedApiDelegation } from "../../mockUtils.js";
+import { getMockedApiDelegation } from "pagopa-interop-commons-test";
 
 describe("POST /consumerDelegations/:delegationId/reject router test", () => {
   const mockApiDelegation = getMockedApiDelegation({

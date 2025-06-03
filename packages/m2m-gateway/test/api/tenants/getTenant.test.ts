@@ -6,7 +6,7 @@ import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiTenant } from "../../mockUtils.js";
+import { getMockedApiTenant } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
 
 describe("GET /tenants/:tenantId route test", () => {

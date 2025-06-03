@@ -8,10 +8,10 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
-  getMockM2MAdminAppContext,
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
+} from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getPurposeVersions", () => {

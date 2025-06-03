@@ -8,7 +8,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
+} from "pagopa-interop-commons-test";
 import { purposeVersionNotFound } from "../../../src/model/errors.js";
 
 describe("GET /purpose/:purposeId/versions/:versionId router test", () => {

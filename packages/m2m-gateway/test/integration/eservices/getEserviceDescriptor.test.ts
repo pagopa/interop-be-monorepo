@@ -8,10 +8,10 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
-  getMockM2MAdminAppContext,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
-} from "../../mockUtils.js";
+} from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 import { getMockWithMetadata } from "pagopa-interop-commons-test";
 

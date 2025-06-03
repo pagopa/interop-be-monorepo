@@ -8,7 +8,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
-} from "../../mockUtils.js";
+} from "pagopa-interop-commons-test";
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 
 describe("GET /eserviceTemplates/:templateId/versions router test", () => {

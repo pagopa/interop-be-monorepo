@@ -6,10 +6,8 @@ import {
   purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-} from "../../mockUtils.js";
+import { getMockedApiPurpose } from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { toGetPurposesApiQueryParams } from "../../../src/api/purposeApiConverter.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { getMockWithMetadata } from "pagopa-interop-commons-test";

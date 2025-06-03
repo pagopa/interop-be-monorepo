@@ -14,7 +14,7 @@ import {
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
+} from "pagopa-interop-commons-test";
 
 describe("POST /purposes/:purposeId/versions router test", () => {
   const mockPurposeVersion = getMockedApiPurposeVersion();

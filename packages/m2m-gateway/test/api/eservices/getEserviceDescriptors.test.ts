@@ -6,7 +6,7 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiEserviceDescriptor } from "../../mockUtils.js";
+import { getMockedApiEserviceDescriptor } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 
 describe("GET /eservices/:eserviceId/descriptors router test", () => {

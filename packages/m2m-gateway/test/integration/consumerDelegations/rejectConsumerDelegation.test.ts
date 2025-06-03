@@ -14,10 +14,8 @@ import {
   resourcePollingTimeout,
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiDelegation,
-} from "../../mockUtils.js";
+import { getMockedApiDelegation } from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("rejectConsumerDelegation", () => {

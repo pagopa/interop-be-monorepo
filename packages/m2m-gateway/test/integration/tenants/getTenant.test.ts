@@ -7,10 +7,8 @@ import {
   tenantService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiTenant,
-} from "../../mockUtils.js";
+import { getMockedApiTenant } from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getTenant", () => {

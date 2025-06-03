@@ -7,7 +7,7 @@ import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiAgreement } from "../../mockUtils.js";
+import { getMockedApiAgreement } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 import {
   missingMetadata,
