@@ -133,6 +133,7 @@ components:
       properties:
         client_id:
           type: string
+          format: uuid
           example: e58035ce-c753-4f72-b613-46f8a17b71cc
         client_assertion:
           type: string
