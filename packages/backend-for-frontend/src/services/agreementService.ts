@@ -925,3 +925,5 @@ const emptyPagination = (offset: number, limit: number) => ({
   },
   results: [],
 });
+
+export type AgreementService = ReturnType<typeof agreementServiceBuilder>;

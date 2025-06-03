@@ -2,8 +2,8 @@ import { ReadModelFilter, ReadModelRepository } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementState,
+  Delegation,
   DelegationId,
-  DelegationV2,
   Purpose,
   PurposeVersionState,
 } from "pagopa-interop-models";
@@ -34,7 +34,7 @@ export function readModelServiceBuilder(
         .map(({ data }) => Purpose.parse(data))
         .toArray();
     },
-    async getAgreements(delegation: DelegationV2): Promise<Agreement[]> {
+    async getAgreements(delegation: Delegation): Promise<Agreement[]> {
       return await agreements
         .find(
           {
