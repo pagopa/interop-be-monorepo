@@ -21,6 +21,7 @@ describe("verifyAndCreateImportedDocument", () => {
     const zip = new AdmZip();
     zip.addFile(path, Buffer.from(content));
     const entries = zip.getEntries();
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return entries.find((entry) => entry.entryName === path)!;
   };
 
