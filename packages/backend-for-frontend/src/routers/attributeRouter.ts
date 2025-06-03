@@ -8,19 +8,16 @@ import {
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { attributeServiceBuilder } from "../services/attributeService.js";
+import { AttributeService } from "../services/attributeService.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
-  { attributeProcessClient }: PagoPAInteropBeClients
+  attributeService: AttributeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const attributeRouter = ctx.router(bffApi.attributesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const attributeService = attributeServiceBuilder(attributeProcessClient);
 
   attributeRouter
     .post("/certifiedAttributes", async (req, res) => {

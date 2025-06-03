@@ -19,7 +19,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  aggregateTenantArray,
   AgreementReadModelService,
   AttributeReadModelService,
   CatalogReadModelService,
@@ -31,35 +30,12 @@ import {
   attributeInReadmodelAttribute,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
-  DrizzleTransactionType,
   eserviceInReadmodelCatalog,
   tenantCertifiedAttributeInReadmodelTenant,
-  TenantCertifiedAttributeSQL,
-  tenantDeclaredAttributeInReadmodelTenant,
-  TenantDeclaredAttributeSQL,
   tenantFeatureInReadmodelTenant,
-  TenantFeatureSQL,
   tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
-  TenantMailSQL,
-  TenantSQL,
-  tenantVerifiedAttributeInReadmodelTenant,
-  tenantVerifiedAttributeRevokerInReadmodelTenant,
-  TenantVerifiedAttributeRevokerSQL,
-  TenantVerifiedAttributeSQL,
-  tenantVerifiedAttributeVerifierInReadmodelTenant,
-  TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
-import {
-  and,
-  eq,
-  ilike,
-  inArray,
-  isNotNull,
-  isNull,
-  or,
-  SQL,
-} from "drizzle-orm";
+import { and, eq, ilike, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
@@ -128,7 +104,10 @@ export function readModelServiceBuilderSQL(
           .offset(offset);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
-        const tenants = await readTenantsByIds(tenantIds, tx);
+        const tenants = await tenantReadModelService.getTenantsByIds(
+          tenantIds,
+          tx
+        );
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
           queryResult[0]?.totalCount
@@ -254,7 +233,7 @@ export function readModelServiceBuilderSQL(
               consumerName
                 ? ilike(
                     tenantInReadmodelTenant.name,
-                    escapeRegExp(consumerName)
+                    `%${escapeRegExp(consumerName)}%`
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)
@@ -266,7 +245,10 @@ export function readModelServiceBuilderSQL(
           .offset(offset);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
-        const tenants = await readTenantsByIds(tenantIds, tx);
+        const tenants = await tenantReadModelService.getTenantsByIds(
+          tenantIds,
+          tx
+        );
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
           queryResult[0]?.totalCount
@@ -305,7 +287,7 @@ export function readModelServiceBuilderSQL(
               producerName
                 ? ilike(
                     tenantInReadmodelTenant.name,
-                    escapeRegExp(producerName)
+                    `%${escapeRegExp(producerName)}%`
                   )
                 : undefined,
               isNotNull(tenantInReadmodelTenant.selfcareId)
@@ -317,7 +299,10 @@ export function readModelServiceBuilderSQL(
           .offset(offset);
 
         const tenantIds = queryResult.map((item) => item.tenantId);
-        const tenants = await readTenantsByIds(tenantIds, tx);
+        const tenants = await tenantReadModelService.getTenantsByIds(
+          tenantIds,
+          tx
+        );
         return createListResult(
           tenants.map((tenantWithMetadata) => tenantWithMetadata.data),
           queryResult[0]?.totalCount
@@ -495,133 +480,3 @@ export function readModelServiceBuilderSQL(
 }
 
 export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;
-
-const readTenantsSQL = async (
-  filter: SQL,
-  tx: DrizzleTransactionType
-): Promise<TenantSQL[]> =>
-  await tx
-    .select()
-    .from(tenantInReadmodelTenant)
-    .where(filter)
-    .orderBy(ascLower(tenantInReadmodelTenant.name));
-
-const readTenantMailsSQL = async (
-  filter: SQL | undefined,
-  tx: DrizzleTransactionType
-): Promise<TenantMailSQL[]> =>
-  await tx.select().from(tenantMailInReadmodelTenant).where(filter);
-
-const readTenantCertifiedAttributesSQL = async (
-  filter: SQL,
-  tx: DrizzleTransactionType
-): Promise<TenantCertifiedAttributeSQL[]> =>
-  await tx
-    .select()
-    .from(tenantCertifiedAttributeInReadmodelTenant)
-    .where(filter);
-
-const readTenantDeclaredAttributesSQL = async (
-  filter: SQL,
-  tx: DrizzleTransactionType
-): Promise<TenantDeclaredAttributeSQL[]> =>
-  await tx
-    .select()
-    .from(tenantDeclaredAttributeInReadmodelTenant)
-    .where(filter);
-
-const readTenantVerifiedAttributesSQL = async (
-  filter: SQL,
-  tx: DrizzleTransactionType
-): Promise<TenantVerifiedAttributeSQL[]> =>
-  await tx
-    .select()
-    .from(tenantVerifiedAttributeInReadmodelTenant)
-    .where(filter);
-
-const readTenantVerifiedAttributeVerifiersSQL = async (
-  filter: SQL,
-  tx: DrizzleTransactionType
-): Promise<TenantVerifiedAttributeVerifierSQL[]> =>
-  await tx
-    .select()
-    .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
-    .where(filter);
-
-const readTenantVerifiedAttributeRevokersSQL = async (
-  filter: SQL,
-  tx: DrizzleTransactionType
-): Promise<TenantVerifiedAttributeRevokerSQL[]> =>
-  await tx
-    .select()
-    .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
-    .where(filter);
-
-const readTenantFeaturesSQL = async (
-  filter: SQL,
-  tx: DrizzleTransactionType
-): Promise<TenantFeatureSQL[]> =>
-  await tx.select().from(tenantFeatureInReadmodelTenant).where(filter);
-
-const readTenantsByIds = async (
-  tenantIds: string[],
-  tx: DrizzleTransactionType
-): Promise<Array<WithMetadata<Tenant>>> => {
-  const [
-    tenantsSQL,
-    mailsSQL,
-    certifiedAttributesSQL,
-    declaredAttributesSQL,
-    verifiedAttributesSQL,
-    verifiedAttributeVerifiersSQL,
-    verifiedAttributeRevokersSQL,
-    featuresSQL,
-  ] = await Promise.all([
-    readTenantsSQL(inArray(tenantInReadmodelTenant.id, tenantIds), tx),
-    readTenantMailsSQL(
-      inArray(tenantMailInReadmodelTenant.tenantId, tenantIds),
-      tx
-    ),
-    readTenantCertifiedAttributesSQL(
-      inArray(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantIds),
-      tx
-    ),
-    readTenantDeclaredAttributesSQL(
-      inArray(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantIds),
-      tx
-    ),
-    readTenantVerifiedAttributesSQL(
-      inArray(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantIds),
-      tx
-    ),
-    readTenantVerifiedAttributeVerifiersSQL(
-      inArray(
-        tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
-        tenantIds
-      ),
-      tx
-    ),
-    readTenantVerifiedAttributeRevokersSQL(
-      inArray(
-        tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
-        tenantIds
-      ),
-      tx
-    ),
-    readTenantFeaturesSQL(
-      inArray(tenantFeatureInReadmodelTenant.tenantId, tenantIds),
-      tx
-    ),
-  ]);
-
-  return aggregateTenantArray({
-    tenantsSQL,
-    mailsSQL,
-    certifiedAttributesSQL,
-    declaredAttributesSQL,
-    verifiedAttributesSQL,
-    verifiedAttributeVerifiersSQL,
-    verifiedAttributeRevokersSQL,
-    featuresSQL,
-  });
-};
