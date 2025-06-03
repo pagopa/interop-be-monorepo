@@ -1,22 +1,10 @@
-import { fileURLToPath } from "url";
-import path from "path";
-import fs from "fs/promises";
 import { describe, expect, it } from "vitest";
 import {
   generateId,
   interfaceExtractingInfoError,
 } from "pagopa-interop-models";
 import { interpolateSoapApiSpec } from "pagopa-interop-commons";
-import { getMockEService } from "../src/index.js";
-
-const readFileContent = async (fileName: string): Promise<string> => {
-  const filename = fileURLToPath(import.meta.url);
-  const dirname = path.dirname(filename);
-  const templatePath = `./resources/${fileName}`;
-
-  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
-  return htmlTemplateBuffer.toString();
-};
+import { getMockEService, readFileContent } from "../src/index.js";
 
 describe("interpolateSoapApiSpec", async () => {
   const eservice = getMockEService();

@@ -113,6 +113,9 @@ import {
 import { z } from "zod";
 import * as jose from "jose";
 import { match } from "ts-pattern";
+import { fileURLToPath } from "url";
+import path from "path";
+import fs from "fs/promises";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return (
@@ -1096,3 +1099,12 @@ export const getMockContextM2M = ({
   logger: genericLogger,
   requestTimestamp: Date.now(),
 });
+
+export const readFileContent = async (fileName: string): Promise<string> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return htmlTemplateBuffer.toString();
+};

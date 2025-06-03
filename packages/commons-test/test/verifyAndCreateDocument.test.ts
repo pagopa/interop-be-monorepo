@@ -1,6 +1,3 @@
-import { fileURLToPath } from "url";
-import path from "path";
-import fs from "fs/promises";
 import {
   genericLogger,
   interpolateApiSpec,
@@ -12,17 +9,8 @@ import {
   invalidInterfaceContentTypeDetected,
   Technology,
 } from "pagopa-interop-models";
-import { getMockEService } from "../src/index.js";
+import { getMockEService, readFileContent } from "../src/index.js";
 import { fileManager, s3Bucket } from "./utils.js";
-
-const readFileContent = async (fileName: string): Promise<string> => {
-  const filename = fileURLToPath(import.meta.url);
-  const dirname = path.dirname(filename);
-  const templatePath = `./resources/${fileName}`;
-
-  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
-  return htmlTemplateBuffer.toString();
-};
 
 describe("verifyAndCreateDocument", async () => {
   const resourceId = generateId();

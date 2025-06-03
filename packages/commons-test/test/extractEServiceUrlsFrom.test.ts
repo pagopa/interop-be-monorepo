@@ -1,6 +1,3 @@
-import { fileURLToPath } from "url";
-import path from "path";
-import fs from "fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import { extractEServiceUrlsFrom } from "pagopa-interop-commons";
 import {
@@ -10,15 +7,7 @@ import {
   openapiVersionNotRecognized,
   technology,
 } from "pagopa-interop-models";
-
-const readFileContent = async (fileName: string): Promise<string> => {
-  const filename = fileURLToPath(import.meta.url);
-  const dirname = path.dirname(filename);
-  const templatePath = `./resources/${fileName}`;
-
-  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
-  return htmlTemplateBuffer.toString();
-};
+import { readFileContent } from "../src/index.js";
 
 describe("extractEServiceUrlsFrom", () => {
   const eserviceId = generateId();
