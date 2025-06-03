@@ -1,52 +1,22 @@
+import { authorizationServerApi } from "pagopa-interop-api-clients";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   getMockClientAssertion,
   getMockDPoPProof,
-  setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
 import {
-  AgreementId,
-  algorithm,
-  ClientId,
-  DescriptorId,
-  EServiceId,
-  GeneratedTokenAuditDetails,
   generateId,
+  ClientId,
+  GeneratedTokenAuditDetails,
+  EServiceId,
+  DescriptorId,
+  AgreementId,
   PurposeId,
   PurposeVersionId,
   TenantId,
 } from "pagopa-interop-models";
-import { afterEach, inject, vi } from "vitest";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { KMSClient } from "@aws-sdk/client-kms";
-import { initProducer } from "kafka-iam-auth";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
-import { dateToSeconds, InteropTokenGenerator } from "pagopa-interop-commons";
-import { tokenServiceBuilder } from "../src/services/tokenService.js";
-import { config } from "../src/config/config.js";
+import { vi } from "vitest";
 import { TokenRequest } from "../src/model/domain/models.js";
-
-export const configTokenGenerationStates = inject(
-  "tokenGenerationReadModelConfig"
-);
-
-export const { cleanup, fileManager, redisRateLimiter } =
-  await setupTestContainersVitest(
-    undefined,
-    undefined,
-    inject("fileManagerConfig"),
-    undefined,
-    inject("redisRateLimiterConfig")
-  );
-
-afterEach(cleanup);
-
-if (configTokenGenerationStates === undefined) {
-  throw new Error("configTokenGenerationStates is undefined");
-}
-
-export const dynamoDBClient = new DynamoDBClient({
-  endpoint: `http://localhost:${configTokenGenerationStates.tokenGenerationReadModelDbPort}`,
-});
 
 export const mockProducer = {
   send: vi.fn(),
@@ -54,25 +24,6 @@ export const mockProducer = {
 export const mockKMSClient = {
   send: vi.fn(),
 };
-
-const tokenGenerator = new InteropTokenGenerator(
-  {
-    generatedInteropTokenKid: config.generatedInteropTokenKid,
-    generatedInteropTokenIssuer: config.generatedInteropTokenIssuer,
-    generatedInteropTokenM2MAudience: config.generatedInteropTokenM2MAudience,
-    generatedInteropTokenM2MDurationSeconds:
-      config.generatedInteropTokenM2MDurationSeconds,
-  },
-  mockKMSClient as unknown as KMSClient
-);
-
-export const tokenService = tokenServiceBuilder({
-  tokenGenerator,
-  dynamoDBClient,
-  redisRateLimiter,
-  producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
-  fileManager,
-});
 
 export const getMockAccessTokenRequest =
   async (): Promise<authorizationServerApi.AccessTokenRequest> => {

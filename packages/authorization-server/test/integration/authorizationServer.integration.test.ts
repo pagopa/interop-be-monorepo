@@ -15,13 +15,9 @@ import {
   writeTokenGenStatesApiClient,
   getMockClientAssertion,
   getMockContext,
-  getMockDPoPProof,
-  generateKeySet,
-  signJWT,
 } from "pagopa-interop-commons-test";
 import {
   AgreementId,
-  algorithm,
   ClientId,
   clientKindTokenGenStates,
   CorrelationId,
@@ -41,46 +37,39 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import {
-  dateToSeconds,
   formatDateyyyyMMdd,
   genericLogger,
   secondsToMilliseconds,
   systemRole,
 } from "pagopa-interop-commons";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   invalidEServiceState,
   invalidAssertionType,
   invalidSignature,
   issuedAtNotFound,
 } from "pagopa-interop-client-assertion-validation";
-import {
-  expiredDPoPProof,
-  invalidDPoPSignature,
-  invalidDPoPTyp,
-} from "pagopa-interop-dpop-validation";
-import { config } from "../src/config/config.js";
+import { config } from "../../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
-  dpopProofSignatureValidationFailed,
-  dpopProofValidationFailed,
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
-  unexpectedDPoPProofForAPIToken,
-} from "../src/model/domain/errors.js";
-import { TokenRequest } from "../src/model/domain/models.js";
+} from "../../src/model/domain/errors.js";
 import {
   configTokenGenerationStates,
   dynamoDBClient,
   fileManager,
-  getMockTokenRequest,
+  tokenService,
+} from "../integrationUtils.js";
+import {
+  getMockAccessTokenRequest,
   mockKMSClient,
   mockProducer,
-  tokenService,
-} from "./utils.js";
+} from "../mockUtils.js";
 
 describe("authorization server tests", () => {
   if (!configTokenGenerationStates) {
@@ -101,15 +90,11 @@ describe("authorization server tests", () => {
     const { jws } = await getMockClientAssertion();
 
     const clientId = generateId<ClientId>();
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion_type: "wrong-client-assertion-type",
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion_type: "wrong-client-assertion-type",
+      client_assertion: jws,
+      client_id: clientId,
     };
     expect(
       tokenService.generateToken(
@@ -133,16 +118,11 @@ describe("authorization server tests", () => {
       standardClaimsOverride: { iat: undefined, sub: clientId },
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
-
     expect(
       tokenService.generateToken(
         request,
@@ -163,14 +143,10 @@ describe("authorization server tests", () => {
       customClaims: { purposeId },
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const entryPK = makeTokenGenerationStatesClientKidPurposePK({
@@ -197,14 +173,10 @@ describe("authorization server tests", () => {
       customClaims: { purposeId },
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -244,14 +216,10 @@ describe("authorization server tests", () => {
       standardClaimsOverride: { sub: clientId },
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -294,16 +262,12 @@ describe("authorization server tests", () => {
       });
 
     const splitJws = jws.split(".");
-    const jwsWithWrongSignature = `${splitJws[0]}.${splitJws[1]}.wrong-signature`;
+    const jwsWithWrongSignature = `${splitJws[0]}.${splitJws[1]}.wrong-singature`;
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jwsWithWrongSignature,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jwsWithWrongSignature,
+      client_id: clientId,
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -333,7 +297,7 @@ describe("authorization server tests", () => {
       )
     ).rejects.toThrowError(
       clientAssertionSignatureValidationFailed(
-        request.body.client_id,
+        request.client_id,
         invalidSignature().detail
       )
     );
@@ -349,14 +313,10 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -403,14 +363,10 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -460,7 +416,6 @@ describe("authorization server tests", () => {
         rateInterval: config.rateLimiterRateInterval,
         remainingRequests: 0,
       },
-      isDPoP: !!headers.DPoP,
     });
   });
 
@@ -482,14 +437,10 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -539,14 +490,10 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidPK = makeTokenGenerationStatesClientKidPK({
@@ -593,14 +540,10 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -631,121 +574,6 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(fallbackAuditFailed(clientId));
   });
 
-  it("should throw dpopProofValidationFailed - wrong typ", async () => {
-    const clientId = generateId<ClientId>();
-    const wrongTyp = "wrong-typ";
-    const { dpopProofJWS } = await getMockDPoPProof({
-      customHeader: {
-        typ: wrongTyp,
-      },
-    });
-
-    const { headers, body } = await getMockTokenRequest(true);
-    const request: TokenRequest = {
-      headers: {
-        ...headers,
-        DPoP: dpopProofJWS,
-      },
-      body: {
-        ...body,
-        client_id: clientId,
-      },
-    };
-
-    expect(
-      tokenService.generateToken(
-        request,
-        getMockContext({}),
-        () => {},
-        () => {}
-      )
-    ).rejects.toThrowError(
-      dpopProofValidationFailed(clientId, invalidDPoPTyp(wrongTyp).detail)
-    );
-  });
-
-  it("should throw dpopProofValidationFailed - iat is more than 60 seconds ago", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-
-    const clientId = generateId<ClientId>();
-    const expiredIat = Math.floor(Date.now() / 1000) - 61;
-
-    const { dpopProofJWS } = await getMockDPoPProof({
-      customPayload: {
-        iat: expiredIat,
-      },
-    });
-
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers: {
-        ...headers,
-        DPoP: dpopProofJWS,
-      },
-      body: {
-        ...body,
-        client_id: clientId,
-      },
-    };
-
-    expect(
-      tokenService.generateToken(
-        request,
-        getMockContext({}),
-        () => {},
-        () => {}
-      )
-    ).rejects.toThrowError(
-      dpopProofValidationFailed(
-        request.body.client_id,
-        expiredDPoPProof(expiredIat, dateToSeconds(new Date())).detail
-      )
-    );
-
-    vi.useRealTimers();
-  });
-
-  it("should throw dpopProofSignatureValidationFailed", async () => {
-    const clientId = generateId<ClientId>();
-
-    const { dpopProofJWT } = await getMockDPoPProof();
-
-    const { keySet: wrongKeySet } = generateKeySet(algorithm.ES256);
-
-    const jwsWithWrongSignature = await signJWT({
-      payload: dpopProofJWT.payload,
-      headers: dpopProofJWT.header,
-      keySet: wrongKeySet,
-    });
-
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers: {
-        ...headers,
-        DPoP: jwsWithWrongSignature,
-      },
-      body: {
-        ...body,
-        client_id: clientId,
-      },
-    };
-
-    expect(
-      tokenService.generateToken(
-        request,
-        getMockContext({}),
-        () => {},
-        () => {}
-      )
-    ).rejects.toThrowError(
-      dpopProofSignatureValidationFailed(
-        request.body.client_id,
-        invalidDPoPSignature().detail
-      )
-    );
-  });
-
   it("should succeed - consumer key - kafka audit failed and fallback audit succeeded", async () => {
     mockProducer.send.mockImplementation(async () => Promise.reject());
 
@@ -758,14 +586,10 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
@@ -842,7 +666,7 @@ describe("authorization server tests", () => {
       ),
       purposeId: tokenClientKidPurposeEntry.GSIPK_purposeId!,
       purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
-      algorithm: algorithm.RS256,
+      algorithm: "RS256",
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
@@ -925,14 +749,10 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const uuid = crypto.randomUUID();
@@ -946,6 +766,8 @@ describe("authorization server tests", () => {
       () => {},
       () => {}
     );
+
+    expect(result.token).toBeDefined();
 
     expect(result.limitReached).toBe(false);
     expect(result.token).toBeDefined();
@@ -984,7 +806,7 @@ describe("authorization server tests", () => {
       ),
       purposeId: tokenClientPurposeEntry.GSIPK_purposeId!,
       purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
-      algorithm: algorithm.RS256,
+      algorithm: "RS256",
       keyId: config.generatedInteropTokenKid,
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
@@ -1000,297 +822,6 @@ describe("authorization server tests", () => {
         jwtId: clientAssertion.payload.jti!,
         keyId: clientAssertion.header.kid!,
         subject: unsafeBrandId(clientAssertion.payload.sub!),
-      },
-    };
-
-    expect(parsedAuditSent).toEqual(expectedMessageBody);
-  });
-
-  it("should succeed - consumer key with DPoP - kafka audit failed and fallback audit succeeded", async () => {
-    mockProducer.send.mockImplementation(async () => Promise.reject());
-
-    const purposeId = generateId<PurposeId>();
-    const clientId = generateId<ClientId>();
-
-    const { jws, clientAssertion, publicKeyEncodedPem } =
-      await getMockClientAssertion({
-        standardClaimsOverride: { sub: clientId },
-        customClaims: { purposeId },
-      });
-
-    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
-
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers: {
-        ...headers,
-        DPoP: dpopProofJWS,
-      },
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
-    };
-
-    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
-      {
-        clientId,
-        kid: clientAssertion.header.kid!,
-        purposeId,
-      }
-    );
-
-    const tokenClientKidPurposeEntry: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
-      publicKey: publicKeyEncodedPem,
-    };
-
-    await writeTokenGenStatesConsumerClient(
-      tokenClientKidPurposeEntry,
-      dynamoDBClient
-    );
-
-    const fileListBeforeAudit = await fileManager.listFiles(
-      config.s3Bucket,
-      genericLogger
-    );
-    expect(fileListBeforeAudit).toHaveLength(0);
-
-    const uuid = crypto.randomUUID();
-    const uuidSpy = vi.spyOn(crypto, "randomUUID");
-    uuidSpy.mockReturnValue(uuid);
-
-    const correlationId = generateId<CorrelationId>();
-    const response = await tokenService.generateToken(
-      request,
-      getMockContext({ correlationId }),
-      () => {},
-      () => {}
-    );
-
-    const date = new Date();
-    const ymdDate = formatDateyyyyMMdd(date);
-
-    const fileListAfterAudit = await fileManager.listFiles(
-      config.s3Bucket,
-      genericLogger
-    );
-    expect(fileListAfterAudit).toHaveLength(1);
-    const file = fileListAfterAudit[0];
-    const split = file.split("_");
-    expect(split[0]).toEqual(`token-details/${ymdDate}/${ymdDate}`);
-
-    const fileContent = await fileManager.get(
-      config.s3Bucket,
-      file,
-      genericLogger
-    );
-
-    const decodedFileContent = Buffer.from(fileContent).toString();
-    const parsedDecodedFileContent = JSON.parse(decodedFileContent);
-
-    const expectedMessageBody: GeneratedTokenAuditDetails = {
-      jwtId: generateId(),
-      correlationId,
-      issuedAt: secondsToMilliseconds(parsedDecodedFileContent.issuedAt),
-      clientId,
-      organizationId: tokenClientKidPurposeEntry.consumerId!,
-      agreementId: unsafeBrandId<AgreementId>(
-        tokenClientKidPurposeEntry.agreementId!
-      ),
-      eserviceId: unsafeBrandId<EServiceId>(
-        tokenClientKidPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
-      ),
-      descriptorId: unsafeBrandId(
-        tokenClientKidPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
-      ),
-      purposeId: tokenClientKidPurposeEntry.GSIPK_purposeId!,
-      purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
-      algorithm: algorithm.RS256,
-      keyId: config.generatedInteropTokenKid,
-      audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
-      subject: clientId,
-      notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
-      expirationTime: secondsToMilliseconds(
-        parsedDecodedFileContent.expirationTime
-      ),
-      issuer: config.generatedInteropTokenIssuer,
-      clientAssertion: {
-        algorithm: clientAssertion.header.alg,
-        audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
-        issuer: clientAssertion.payload.iss!,
-        jwtId: clientAssertion.payload.jti!,
-        keyId: clientAssertion.header.kid!,
-        subject: unsafeBrandId(clientAssertion.payload.sub!),
-      },
-      dpop: {
-        typ: dpopProofJWT.header.typ,
-        alg: dpopProofJWT.header.alg,
-        jwk: dpopProofJWT.header.jwk,
-        htm: dpopProofJWT.payload.htm,
-        htu: dpopProofJWT.payload.htu,
-        iat: secondsToMilliseconds(dpopProofJWT.payload.iat),
-        jti: dpopProofJWT.payload.jti,
-      },
-    };
-    expect(parsedDecodedFileContent).toEqual(expectedMessageBody);
-    expect(response.limitReached).toBe(false);
-    expect(response.token).toBeDefined();
-    expect(response.rateLimiterStatus).toEqual({
-      maxRequests: config.rateLimiterMaxRequests,
-      rateInterval: config.rateLimiterRateInterval,
-      remainingRequests: config.rateLimiterMaxRequests - 1,
-    });
-  });
-
-  it("should succeed - consumer key with DPoP - kafka audit succeeded", async () => {
-    mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
-    ]);
-    mockKMSClient.send.mockImplementationOnce(async () => ({
-      Signature: "mock signature",
-    }));
-
-    vi.spyOn(mockProducer, "send");
-    vi.spyOn(fileManager, "storeBytes");
-
-    const purpose: Purpose = {
-      ...getMockPurpose(),
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
-    };
-    const clientId = generateId<ClientId>();
-
-    const {
-      jws: clientAssertionJWS,
-      clientAssertion,
-      publicKeyEncodedPem,
-    } = await getMockClientAssertion({
-      standardClaimsOverride: {
-        sub: clientId,
-      },
-      customClaims: { purposeId: purpose.id },
-    });
-
-    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
-      {
-        clientId,
-        kid: clientAssertion.header.kid!,
-        purposeId: purpose.id,
-      }
-    );
-    const tokenClientPurposeEntry: TokenGenerationStatesConsumerClient = {
-      ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
-      consumerId: purpose.consumerId,
-      GSIPK_purposeId: purpose.id,
-      purposeState: itemState.active,
-      purposeVersionId: purpose.versions[0].id,
-      agreementState: itemState.active,
-      descriptorState: itemState.active,
-      GSIPK_clientId: clientId,
-      GSIPK_clientId_kid: makeGSIPKClientIdKid({
-        clientId,
-        kid: clientAssertion.header.kid!,
-      }),
-      publicKey: publicKeyEncodedPem,
-    };
-
-    await writeTokenGenStatesConsumerClient(
-      tokenClientPurposeEntry,
-      dynamoDBClient
-    );
-
-    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
-
-    const { headers, body } = await getMockTokenRequest(true);
-    const request: TokenRequest = {
-      headers: {
-        ...headers,
-        DPoP: dpopProofJWS,
-      },
-      body: {
-        ...body,
-        client_assertion: clientAssertionJWS,
-        client_id: clientId,
-      },
-    };
-
-    const uuid = crypto.randomUUID();
-    const uuidSpy = vi.spyOn(crypto, "randomUUID");
-    uuidSpy.mockReturnValue(uuid);
-
-    const correlationId = generateId<CorrelationId>();
-    const result = await tokenService.generateToken(
-      request,
-      getMockContext({ correlationId }),
-      () => {},
-      () => {}
-    );
-
-    expect(result.limitReached).toBe(false);
-    expect(result.token).toBeDefined();
-    expect(result.rateLimiterStatus).toEqual({
-      maxRequests: config.rateLimiterMaxRequests,
-      rateInterval: config.rateLimiterRateInterval,
-      remainingRequests: config.rateLimiterMaxRequests - 1,
-    });
-
-    const fileList = await fileManager.listFiles(
-      config.s3Bucket,
-      genericLogger
-    );
-    expect(fileList).toHaveLength(0);
-    expect(fileManager.storeBytes).not.toHaveBeenCalled();
-
-    const actualMessageSent = mockProducer.send.mock.calls[0][0]
-      .messages[0] as { key: string; value: string };
-
-    const parsedAuditSent = JSON.parse(actualMessageSent.value);
-
-    const expectedMessageBody: GeneratedTokenAuditDetails = {
-      jwtId: generateId(),
-      correlationId,
-      issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
-      clientId,
-      organizationId: tokenClientPurposeEntry.consumerId!,
-      agreementId: unsafeBrandId<AgreementId>(
-        tokenClientPurposeEntry.agreementId!
-      ),
-      eserviceId: unsafeBrandId<EServiceId>(
-        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[0]
-      ),
-      descriptorId: unsafeBrandId(
-        tokenClientPurposeEntry.GSIPK_eserviceId_descriptorId!.split("#")[1]
-      ),
-      purposeId: tokenClientPurposeEntry.GSIPK_purposeId!,
-      purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
-      algorithm: algorithm.RS256,
-      keyId: config.generatedInteropTokenKid,
-      audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
-      subject: clientId,
-      notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
-      expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
-      issuer: config.generatedInteropTokenIssuer,
-      clientAssertion: {
-        algorithm: clientAssertion.header.alg,
-        audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
-        issuer: clientAssertion.payload.iss!,
-        jwtId: clientAssertion.payload.jti!,
-        keyId: clientAssertion.header.kid!,
-        subject: unsafeBrandId(clientAssertion.payload.sub!),
-      },
-      dpop: {
-        typ: dpopProofJWT.header.typ,
-        alg: dpopProofJWT.header.alg,
-        jwk: dpopProofJWT.header.jwk,
-        htm: dpopProofJWT.payload.htm,
-        htu: dpopProofJWT.payload.htu,
-        iat: secondsToMilliseconds(dpopProofJWT.payload.iat),
-        jti: dpopProofJWT.payload.jti,
       },
     };
 
@@ -1307,14 +838,10 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
@@ -1375,14 +902,10 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
+    const request: authorizationServerApi.AccessTokenRequest = {
+      ...(await getMockAccessTokenRequest()),
+      client_assertion: jws,
+      client_id: clientId,
     };
 
     const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
@@ -1430,46 +953,5 @@ describe("authorization server tests", () => {
       rateInterval: config.rateLimiterRateInterval,
       remainingRequests: config.rateLimiterMaxRequests - 1,
     });
-  });
-
-  it("should throw unexpectedDPoPProofForAPIToken when requesting an API token with a DPoP proof", async () => {
-    const clientId = generateId<ClientId>();
-
-    const { jws, clientAssertion, publicKeyEncodedPem } =
-      await getMockClientAssertion({
-        standardClaimsOverride: { sub: clientId },
-      });
-
-    const { headers, body } = await getMockTokenRequest(true);
-    const request: TokenRequest = {
-      headers,
-      body: {
-        ...body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
-    };
-
-    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
-      clientId,
-      kid: clientAssertion.header.kid!,
-    });
-
-    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenGenStatesApiClient(tokenClientKidK),
-      clientKind: clientKindTokenGenStates.api,
-      publicKey: publicKeyEncodedPem,
-    };
-
-    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
-
-    expect(
-      tokenService.generateToken(
-        request,
-        getMockContext({}),
-        () => {},
-        () => {}
-      )
-    ).rejects.toThrowError(unexpectedDPoPProofForAPIToken(clientId));
   });
 });
