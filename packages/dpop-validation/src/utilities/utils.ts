@@ -134,7 +134,6 @@ export const validateJti = (
   return successfulValidation(jti);
 };
 
-// TODO: copied from client-assertion-validation
 export const successfulValidation = <T>(
   result: T
 ): SuccessfulValidation<T> => ({
