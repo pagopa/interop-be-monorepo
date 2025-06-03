@@ -14,6 +14,7 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  algorithm,
 } from "pagopa-interop-models";
 import { vi } from "vitest";
 import { TokenRequest } from "../src/model/domain/models.js";
