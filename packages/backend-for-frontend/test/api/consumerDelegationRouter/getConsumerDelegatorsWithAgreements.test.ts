@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi, delegationApi } from "pagopa-interop-api-clients";
+import { bffApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -32,9 +32,6 @@ describe("API GET /consumers/delegations/delegatorsWithAgreements", () => {
   };
 
   beforeEach(() => {
-    clients.delegationProcessClient.consumer = {} as ReturnType<
-      typeof delegationApi.createConsumerApiClient
-    >;
     clients.delegationProcessClient.consumer.getConsumerDelegatorsWithAgreements =
       vi.fn().mockResolvedValue(mockClientReponse);
   });

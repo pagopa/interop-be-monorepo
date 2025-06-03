@@ -4,7 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { bffApi, delegationApi } from "pagopa-interop-api-clients";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -22,9 +22,6 @@ describe("API POST /consumers/delegations", () => {
   );
 
   beforeEach(() => {
-    clients.delegationProcessClient.consumer = {} as ReturnType<
-      typeof delegationApi.createConsumerApiClient
-    >;
     clients.delegationProcessClient.consumer.createConsumerDelegation = vi
       .fn()
       .mockResolvedValue(mockClientResponse);

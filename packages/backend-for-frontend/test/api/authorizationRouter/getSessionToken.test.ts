@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, TenantId } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -43,14 +43,14 @@ describe("API POST /session/tokens", () => {
     services.authorizationService.getSessionToken = vi.fn().mockResolvedValue({
       ...mockServiceResponse,
       limitReached: true,
-      rateLimitedTenantId: generateId<TenantId>(),
+      rateLimitedTenantId: generateId(),
     });
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(500);
   });
 
-  it.each([{ body: {} }])(
+  it.each([{ body: {} }, { body: { ...mockIdentityToken, extraField: 1 } }])(
     "Should return 400 if passed invalid data: %s",
     async ({ body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

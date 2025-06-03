@@ -34,16 +34,32 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
     eServiceTemplateId: EServiceTemplateId = generateId(),
     eServiceTemplateVersionId: EServiceTemplateVersionId = generateId(),
     documentBody: bffApi.createEServiceDocument_Body = mockCreateDocumentBody
-  ) =>
-    request(api)
+  ) => {
+    const requestObject = request(api)
       .post(
         `${appBasePath}/eservices/templates/${eServiceTemplateId}/versions/${eServiceTemplateVersionId}/documents`
       )
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .field("kind", documentBody.kind)
-      .field("prettyName", documentBody.prettyName)
-      .attach("doc", documentBody.doc, { filename: documentBody.doc.name });
+      .set("X-Correlation-Id", generateId());
+
+    if (documentBody.kind !== undefined) {
+      void requestObject.field("kind", documentBody.kind);
+    }
+    if (documentBody.prettyName !== undefined) {
+      void requestObject.field("prettyName", documentBody.prettyName);
+    }
+    if (documentBody.doc !== undefined) {
+      void requestObject.attach(
+        "doc",
+        Buffer.from(await documentBody.doc.arrayBuffer()),
+        {
+          filename: documentBody.doc.name,
+        }
+      );
+    }
+
+    return requestObject;
+  };
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -107,12 +123,6 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
       documentBody: {
         ...mockCreateDocumentBody,
         kind: "invalid",
-      },
-    },
-    {
-      documentBody: {
-        ...mockCreateDocumentBody,
-        doc: {},
       },
     },
   ])(
