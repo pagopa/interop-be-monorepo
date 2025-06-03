@@ -421,6 +421,50 @@ CREATE TABLE IF NOT EXISTS domains.tenant_feature (
   PRIMARY KEY (tenant_id, kind)
 );
 
+CREATE TABLE IF NOT EXISTS domains.client (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  consumer_id VARCHAR(36) NOT NULL,
+  admin_id VARCHAR(36),
+  name VARCHAR NOT NULL,
+  description VARCHAR,
+  kind VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_user (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  user_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (client_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_purpose (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  purpose_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (client_id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_key (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  user_id VARCHAR(36),
+  kid VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
+  encoded_pem VARCHAR NOT NULL,
+  "algorithm" VARCHAR NOT NULL,
+  "use" VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
+  PRIMARY KEY (client_id, kid)
+);
+
 CREATE TABLE IF NOT EXISTS domains.eservice_template (
   id VARCHAR(36),
   metadata_version INTEGER NOT NULL,

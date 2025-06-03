@@ -2,6 +2,7 @@ import {
   CorrelationId,
   DelegationEventEnvelopeV2,
   DelegationId,
+  fromDelegationV2,
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -58,6 +59,8 @@ export async function handleMessageV2({
         correlationId,
       });
 
+      const delegation = fromDelegationV2(delegationMsg.data.delegation);
+
       await Promise.all([
         processPurposes({
           readModelService,
@@ -71,7 +74,7 @@ export async function handleMessageV2({
         processAgreement({
           agreementProcessClient,
           headers,
-          delegation: delegationMsg.data.delegation,
+          delegation,
           readModelService,
         }),
       ]);
