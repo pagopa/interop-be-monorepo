@@ -11,10 +11,9 @@ import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiEServiceRiskAnalysisSeed } from "../../mockUtils.js";
+import { EServiceRiskAnalysisSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId", () => {
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
-  const mockRiskAnalysisId = generateId<RiskAnalysisId>();
   const mockEServiceRiskAnalysisSeed = getMockBffApiEServiceRiskAnalysisSeed();
 
   beforeEach(() => {
@@ -24,9 +23,9 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAn
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplateId,
-    riskAnalysisId: string = mockRiskAnalysisId,
-    body: object = mockEServiceRiskAnalysisSeed
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    riskAnalysisId: string = generateId(),
+    body: EServiceRiskAnalysisSeed = mockEServiceRiskAnalysisSeed
   ) =>
     request(api)
       .post(
@@ -43,8 +42,8 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAn
   });
 
   it.each([
-    { eServiceTemplateId: "invalid" },
-    { riskAnalysisId: "invalid" },
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { riskAnalysisId: "invalid" as RiskAnalysisId },
     { body: {} },
     {
       body: {
@@ -66,7 +65,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAn
         token,
         eServiceTemplateId,
         riskAnalysisId,
-        body
+        body as EServiceRiskAnalysisSeed
       );
       expect(res.status).toBe(400);
     }

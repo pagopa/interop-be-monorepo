@@ -7,9 +7,9 @@ import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiMockEServiceTemplateIntendedTargetUpdateSeed } from "../../mockUtils.js";
+import { EServiceTemplateIntendedTargetUpdateSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/intendedTarget/update", () => {
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
   const mockEServiceTemplateIntendedTargetUpdateSeed =
     getMockBffApiMockEServiceTemplateIntendedTargetUpdateSeed();
 
@@ -20,8 +20,8 @@ describe("API POST /eservices/templates/:eServiceTemplateId/intendedTarget/updat
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplateId,
-    body: object = mockEServiceTemplateIntendedTargetUpdateSeed
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    body: EServiceTemplateIntendedTargetUpdateSeed = mockEServiceTemplateIntendedTargetUpdateSeed
   ) =>
     request(api)
       .post(
@@ -38,7 +38,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/intendedTarget/updat
   });
 
   it.each([
-    { eServiceTemplateId: "invalid" },
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
     { body: {} },
     {
       body: {
@@ -50,7 +50,11 @@ describe("API POST /eservices/templates/:eServiceTemplateId/intendedTarget/updat
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceTemplateId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, eServiceTemplateId, body);
+      const res = await makeRequest(
+        token,
+        eServiceTemplateId,
+        body as EServiceTemplateIntendedTargetUpdateSeed
+      );
       expect(res.status).toBe(400);
     }
   );

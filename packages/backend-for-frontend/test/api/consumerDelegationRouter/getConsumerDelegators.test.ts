@@ -45,8 +45,7 @@ describe("API GET /consumers/delegations/delegators", () => {
       .get(`${appBasePath}/consumers/delegations/delegators`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query(query)
-      .send();
+      .query(query);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);

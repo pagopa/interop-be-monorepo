@@ -9,7 +9,6 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCreatedResource } from "../../mockUtils.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions", () => {
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
   const mockCreatedResource = getMockBffApiCreatedResource();
 
   beforeEach(() => {
@@ -20,7 +19,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions", () => {
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplateId
+    eServiceTemplateId: EServiceTemplateId = generateId()
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/templates/${eServiceTemplateId}/versions`)
@@ -34,7 +33,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions", () => {
     expect(res.body).toEqual(mockCreatedResource);
   });
 
-  it.each([{ eServiceTemplateId: "invalid" }])(
+  it.each([{ eServiceTemplateId: "invalid" as EServiceTemplateId }])(
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceTemplateId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

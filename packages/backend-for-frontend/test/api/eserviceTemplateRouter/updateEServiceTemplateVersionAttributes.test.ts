@@ -11,10 +11,9 @@ import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiDescriptorAttributesSeed } from "../../mockUtils.js";
+import { DescriptorAttributesSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/attributes/update", () => {
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
-  const mockEServiceTemplateVersionId = generateId<EServiceTemplateVersionId>();
   const mockDescriptorAttributesSeed = getMockBffApiDescriptorAttributesSeed();
 
   beforeEach(() => {
@@ -25,9 +24,9 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplateId,
-    eServiceTemplateVersionId: string = mockEServiceTemplateVersionId,
-    body: object = mockDescriptorAttributesSeed
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    eServiceTemplateVersionId: EServiceTemplateVersionId = generateId(),
+    body: DescriptorAttributesSeed = mockDescriptorAttributesSeed
   ) =>
     request(api)
       .post(
@@ -44,8 +43,8 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
   });
 
   it.each([
-    { eServiceTemplateId: "invalid" },
-    { eServiceTemplateVersionId: "invalid" },
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { eServiceTemplateVersionId: "invalid" as EServiceTemplateVersionId },
     { body: {} },
     {
       body: {
@@ -79,7 +78,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
         token,
         eServiceTemplateId,
         eServiceTemplateVersionId,
-        body
+        body as DescriptorAttributesSeed
       );
       expect(res.status).toBe(400);
     }

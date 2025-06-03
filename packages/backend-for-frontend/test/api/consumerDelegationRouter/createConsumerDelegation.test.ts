@@ -4,7 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { delegationApi } from "pagopa-interop-api-clients";
+import { bffApi, delegationApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -12,6 +12,7 @@ import {
   getMockBffApiDelegationSeed,
   getMockDelegationApiDelegation,
 } from "../../mockUtils.js";
+import { DelegationSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /consumers/delegations", () => {
   const mockDelegationSeed = getMockBffApiDelegationSeed();
@@ -31,13 +32,13 @@ describe("API POST /consumers/delegations", () => {
 
   const makeRequest = async (
     token: string,
-    payload: object = mockDelegationSeed
+    body: bffApi.DelegationSeed = mockDelegationSeed
   ) =>
     request(api)
       .post(`${appBasePath}/consumers/delegations`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(payload);
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -52,13 +53,7 @@ describe("API POST /consumers/delegations", () => {
     { body: { ...mockDelegationSeed, eserviceId: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body);
-    expect(res.status).toBe(400);
-  });
-
-  it("Should return 400 if passed invalid data", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {});
+    const res = await makeRequest(token, body as DelegationSeed);
     expect(res.status).toBe(400);
   });
 });

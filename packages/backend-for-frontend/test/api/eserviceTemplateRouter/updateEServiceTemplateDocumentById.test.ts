@@ -12,6 +12,7 @@ import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiUpdateEServiceTemplateVersionDocumentSeed } from "../../mockUtils.js";
+import { UpdateEServiceTemplateVersionDocumentSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId/update", () => {
   const mockUpdateEServiceTemplateVersionDocumentSeed =
@@ -25,10 +26,10 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = generateId<EServiceTemplateId>(),
-    eServiceTemplateVersionId: string = generateId<EServiceTemplateVersionId>(),
-    documentId: string = generateId<EServiceDocumentId>(),
-    body: object = mockUpdateEServiceTemplateVersionDocumentSeed
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    eServiceTemplateVersionId: EServiceTemplateVersionId = generateId(),
+    documentId: EServiceDocumentId = generateId(),
+    body: UpdateEServiceTemplateVersionDocumentSeed = mockUpdateEServiceTemplateVersionDocumentSeed
   ) =>
     request(api)
       .post(
@@ -45,9 +46,9 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
   });
 
   it.each([
-    { eServiceTemplateId: "invalid" },
-    { eServiceTemplateVersionId: "invalid" },
-    { documentId: "invalid" },
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { eServiceTemplateVersionId: "invalid" as EServiceTemplateVersionId },
+    { documentId: "invalid" as EServiceDocumentId },
     { body: {} },
     {
       body: {
@@ -81,7 +82,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
         eServiceTemplateId,
         eServiceTemplateVersionId,
         documentId,
-        body
+        body as UpdateEServiceTemplateVersionDocumentSeed
       );
       expect(res.status).toBe(400);
     }

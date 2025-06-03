@@ -13,7 +13,7 @@ import {
 } from "../../mockUtils.js";
 
 describe("API POST /session/tokens", () => {
-  const mockIdentityToken: bffApi.IdentityToken = getMockBffApiIdentityToken();
+  const mockIdentityToken = getMockBffApiIdentityToken();
   const mockServiceResponse = getMockGetSessionTokenReturnType();
 
   beforeEach(() => {
@@ -24,13 +24,13 @@ describe("API POST /session/tokens", () => {
 
   const makeRequest = async (
     token: string,
-    payload: object = mockIdentityToken
+    body: bffApi.IdentityToken = mockIdentityToken
   ) =>
     request(api)
       .post(`${appBasePath}/session/tokens`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(payload);
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -54,7 +54,7 @@ describe("API POST /session/tokens", () => {
     "Should return 400 if passed invalid data: %s",
     async ({ body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, body);
+      const res = await makeRequest(token, body as bffApi.IdentityToken);
       expect(res.status).toBe(400);
     }
   );

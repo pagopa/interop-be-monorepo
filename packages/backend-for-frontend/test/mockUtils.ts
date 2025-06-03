@@ -7,6 +7,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
   DelegationId,
+  EServiceTemplateId,
   PurposeId,
   PurposeVersionId,
   generateId,
@@ -162,7 +163,7 @@ export const getMockBffApiEServiceTemplateApiEServiceTemplate =
   });
 
 export const getMockBffApiEServiceTemplateDetails =
-  (): bffApi.EServiceTemplateDetails => ({
+  (): bffApi.EServiceTemplateDetails & { id: EServiceTemplateId } => ({
     id: generateId(),
     creator: generateMock(bffApi.CompactOrganization),
     name: generateMock(z.string()),
@@ -216,7 +217,7 @@ export const getMockBffApiMockEServiceTemplateDescriptionUpdateSeed =
   });
 
 export const getMockBffApiEServiceTemplateVersionDetails =
-  (): bffApi.EServiceTemplateVersionDetails => ({
+  (): bffApi.EServiceTemplateVersionDetails & { id: EServiceTemplateId } => ({
     id: generateId(),
     version: generateMock(z.number().int()),
     description: generateMock(z.string().optional()),
@@ -308,3 +309,10 @@ export const getMockDelegationApiDelegation = (): delegationApi.Delegation & {
   ),
   stamps: generateMock(delegationApi.DelegationStamps),
 });
+
+export const getMockBffApiCreateEServiceDocumentBody =
+  (): bffApi.createEServiceDocument_Body => ({
+    kind: generateMock(z.enum(["INTERFACE", "DOCUMENT"])),
+    prettyName: generateMock(z.string()),
+    doc: new File(["content"], "doc.txt"),
+  });

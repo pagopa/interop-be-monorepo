@@ -9,8 +9,6 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API DELETE /consumers/delegations/:delegationId", () => {
-  const mockDelegationId = generateId<DelegationId>();
-
   beforeEach(() => {
     clients.delegationProcessClient.consumer = {} as ReturnType<
       typeof delegationApi.createConsumerApiClient
@@ -22,7 +20,7 @@ describe("API DELETE /consumers/delegations/:delegationId", () => {
 
   const makeRequest = async (
     token: string,
-    delegationId: string = mockDelegationId
+    delegationId: DelegationId = generateId()
   ) =>
     request(api)
       .delete(`${appBasePath}/consumers/delegations/${delegationId}`)
@@ -35,7 +33,7 @@ describe("API DELETE /consumers/delegations/:delegationId", () => {
     expect(res.status).toBe(204);
   });
 
-  it.each([{ delegationId: "invalid" }])(
+  it.each([{ delegationId: "invalid" as DelegationId }])(
     "Should return 400 if passed invalid data: %s",
     async ({ delegationId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

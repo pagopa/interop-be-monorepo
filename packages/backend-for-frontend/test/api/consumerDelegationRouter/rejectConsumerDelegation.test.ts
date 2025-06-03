@@ -4,13 +4,12 @@ import { DelegationId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { delegationApi } from "pagopa-interop-api-clients";
+import { bffApi, delegationApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiRejectDelegationPayload } from "../../mockUtils.js";
 
 describe("API POST /consumers/delegations/:delegationId/reject", () => {
-  const mockDelegationId = generateId<DelegationId>();
   const mockRejectDelegationPayload = getMockBffApiRejectDelegationPayload();
 
   beforeEach(() => {
@@ -24,13 +23,14 @@ describe("API POST /consumers/delegations/:delegationId/reject", () => {
 
   const makeRequest = async (
     token: string,
-    delegationId: string = mockDelegationId
+    delegationId: DelegationId = generateId(),
+    body: bffApi.RejectDelegationPayload = mockRejectDelegationPayload
   ) =>
     request(api)
       .post(`${appBasePath}/consumers/delegations/${delegationId}/reject`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(mockRejectDelegationPayload);
+      .send(body);
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -38,7 +38,7 @@ describe("API POST /consumers/delegations/:delegationId/reject", () => {
     expect(res.status).toBe(204);
   });
 
-  it.each([{ delegationId: "invalid" }])(
+  it.each([{ delegationId: "invalid" as DelegationId }])(
     "Should return 400 if passed invalid data: %s",
     async ({ delegationId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

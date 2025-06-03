@@ -12,9 +12,6 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API DELETE /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId", () => {
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
-  const mockRiskAnalysisId = generateId<RiskAnalysisId>();
-
   beforeEach(() => {
     clients.eserviceTemplateProcessClient.deleteEServiceTemplateRiskAnalysis =
       vi.fn().mockResolvedValue(undefined);
@@ -22,8 +19,8 @@ describe("API DELETE /eservices/templates/:eServiceTemplateId/riskAnalysis/:risk
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplateId,
-    riskAnalysisId: string = mockRiskAnalysisId
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    riskAnalysisId: RiskAnalysisId = generateId()
   ) =>
     request(api)
       .delete(
@@ -38,7 +35,10 @@ describe("API DELETE /eservices/templates/:eServiceTemplateId/riskAnalysis/:risk
     expect(res.status).toBe(204);
   });
 
-  it.each([{ eServiceTemplateId: "invalid" }, { riskAnalysisId: "invalid" }])(
+  it.each([
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { riskAnalysisId: "invalid" as RiskAnalysisId },
+  ])(
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceTemplateId, riskAnalysisId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

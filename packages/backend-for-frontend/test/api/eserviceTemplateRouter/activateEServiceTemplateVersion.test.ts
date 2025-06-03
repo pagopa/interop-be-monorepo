@@ -12,9 +12,6 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/activate", () => {
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
-  const mockEServiceTemplateVersionId = generateId<EServiceTemplateVersionId>();
-
   beforeEach(() => {
     clients.eserviceTemplateProcessClient.activateTemplateVersion = vi
       .fn()
@@ -23,8 +20,8 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplateId,
-    eServiceTemplateVersionId: string = mockEServiceTemplateVersionId
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    eServiceTemplateVersionId: EServiceTemplateVersionId = generateId()
   ) =>
     request(api)
       .post(
@@ -40,8 +37,8 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
   });
 
   it.each([
-    { eServiceTemplateId: "invalid" },
-    { eServiceTemplateVersionId: "invalid" },
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { eServiceTemplateVersionId: "invalid" as EServiceTemplateVersionId },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceTemplateId, eServiceTemplateVersionId }) => {

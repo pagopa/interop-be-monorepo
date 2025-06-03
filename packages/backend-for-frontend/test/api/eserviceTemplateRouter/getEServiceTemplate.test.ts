@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { EServiceTemplateId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -19,7 +19,7 @@ describe("API GET /eservices/templates/:eServiceTemplateId", () => {
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplate.id
+    eServiceTemplateId: EServiceTemplateId = mockEServiceTemplate.id
   ) =>
     request(api)
       .get(`${appBasePath}/eservices/templates/${eServiceTemplateId}`)
@@ -33,7 +33,7 @@ describe("API GET /eservices/templates/:eServiceTemplateId", () => {
     expect(res.body).toEqual(mockEServiceTemplate);
   });
 
-  it.each([{ eServiceTemplateId: "invalid" }])(
+  it.each([{ eServiceTemplateId: "invalid" as EServiceTemplateId }])(
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceTemplateId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

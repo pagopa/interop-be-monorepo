@@ -7,9 +7,9 @@ import request from "supertest";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiEServiceRiskAnalysisSeed } from "../../mockUtils.js";
+import { EServiceRiskAnalysisSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis", () => {
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
   const mockEServiceRiskAnalysisSeed = getMockBffApiEServiceRiskAnalysisSeed();
 
   beforeEach(() => {
@@ -19,8 +19,8 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis", () =>
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplateId,
-    body: object = mockEServiceRiskAnalysisSeed
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    body: EServiceRiskAnalysisSeed = mockEServiceRiskAnalysisSeed
   ) =>
     request(api)
       .post(
@@ -37,7 +37,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis", () =>
   });
 
   it.each([
-    { eServiceTemplateId: "invalid" },
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
     { body: {} },
     {
       body: {
@@ -55,7 +55,11 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis", () =>
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceTemplateId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, eServiceTemplateId, body);
+      const res = await makeRequest(
+        token,
+        eServiceTemplateId,
+        body as EServiceRiskAnalysisSeed
+      );
       expect(res.status).toBe(400);
     }
   );

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
-  EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   generateId,
@@ -20,9 +19,9 @@ describe("API DELETE /eservices/templates/:eServiceTemplateId/versions/:eService
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = generateId<EServiceTemplateId>(),
-    eServiceTemplateVersionId: string = generateId<EServiceTemplateVersionId>(),
-    documentId: string = generateId<EServiceDocumentId>()
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    eServiceTemplateVersionId: EServiceTemplateVersionId = generateId(),
+    documentId: string = generateId()
   ) =>
     request(api)
       .delete(
@@ -37,11 +36,18 @@ describe("API DELETE /eservices/templates/:eServiceTemplateId/versions/:eService
     expect(res.status).toBe(204);
   });
 
-  it.each([{ eServiceTemplateId: "invalid" }, { riskAnalysisId: "invalid" }])(
+  it.each([
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { eServiceTemplateVersionId: "invalid" as EServiceTemplateVersionId },
+  ])(
     "Should return 400 if passed invalid data: %s",
-    async ({ eServiceTemplateId, riskAnalysisId }) => {
+    async ({ eServiceTemplateId, eServiceTemplateVersionId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, eServiceTemplateId, riskAnalysisId);
+      const res = await makeRequest(
+        token,
+        eServiceTemplateId,
+        eServiceTemplateVersionId
+      );
       expect(res.status).toBe(400);
     }
   );

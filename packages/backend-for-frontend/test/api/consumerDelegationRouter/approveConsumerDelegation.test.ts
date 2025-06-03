@@ -9,8 +9,6 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /consumers/delegations/:delegationId/approve", () => {
-  const mockDelegationId = generateId<DelegationId>();
-
   beforeEach(() => {
     clients.delegationProcessClient.consumer = {} as ReturnType<
       typeof delegationApi.createConsumerApiClient
@@ -22,7 +20,7 @@ describe("API POST /consumers/delegations/:delegationId/approve", () => {
 
   const makeRequest = async (
     token: string,
-    delegationId: string = mockDelegationId
+    delegationId: DelegationId = generateId()
   ) =>
     request(api)
       .post(`${appBasePath}/consumers/delegations/${delegationId}/approve`)
@@ -35,7 +33,7 @@ describe("API POST /consumers/delegations/:delegationId/approve", () => {
     expect(res.status).toBe(204);
   });
 
-  it.each([{ delegationId: "invalid" }])(
+  it.each([{ delegationId: "invalid" as DelegationId }])(
     "Should return 400 if passed invalid data: %s",
     async ({ delegationId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);

@@ -23,8 +23,8 @@ describe("API DELETE /eservices/templates/:eServiceTemplateId/versions/:eService
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplateId,
-    eServiceTemplateVersionId: string = mockEServiceTemplateVersionId
+    eServiceTemplateId: EServiceTemplateId = mockEServiceTemplateId,
+    eServiceTemplateVersionId: EServiceTemplateVersionId = mockEServiceTemplateVersionId
   ) =>
     request(api)
       .delete(
@@ -40,8 +40,8 @@ describe("API DELETE /eservices/templates/:eServiceTemplateId/versions/:eService
   });
 
   it.each([
-    { eServiceTemplateId: "invalid" },
-    { eServiceTemplateVersionId: "invalid" },
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { eServiceTemplateVersionId: "invalid" as EServiceTemplateVersionId },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceTemplateId, eServiceTemplateVersionId }) => {

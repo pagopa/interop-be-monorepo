@@ -10,15 +10,18 @@ import {
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiCreatedResource } from "../../mockUtils.js";
+import {
+  getMockBffApiCreatedResource,
+  getMockBffApiCreateEServiceDocumentBody,
+} from "../../mockUtils.js";
 import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents", () => {
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
-  const mockEServiceTemplateVersionId = generateId<EServiceTemplateVersionId>();
   const mockCreatedResource = getMockBffApiCreatedResource();
+  const mockCreateDocumentBody = getMockBffApiCreateEServiceDocumentBody();
 
   beforeEach(() => {
     services.eServiceTemplateService.createEServiceTemplateDocument = vi
@@ -28,10 +31,9 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = mockEServiceTemplateId,
-    eServiceTemplateVersionId: string = mockEServiceTemplateVersionId,
-    kind: string = "DOCUMENT",
-    prettyName: string = "prettyName"
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    eServiceTemplateVersionId: EServiceTemplateVersionId = generateId(),
+    documentBody: bffApi.createEServiceDocument_Body = mockCreateDocumentBody
   ) =>
     request(api)
       .post(
@@ -39,9 +41,9 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .field("kind", kind)
-      .field("prettyName", prettyName)
-      .attach("doc", Buffer.from("content"), { filename: "doc.txt" });
+      .field("kind", documentBody.kind)
+      .field("prettyName", documentBody.prettyName)
+      .attach("doc", documentBody.doc, { filename: documentBody.doc.name });
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -80,18 +82,48 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
   );
 
   it.each([
-    { eServiceTemplateId: "invalid" },
-    { eServiceTemplateVersionId: "invalid" },
-    { kind: "invalid" },
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { eServiceTemplateVersionId: "invalid" as EServiceTemplateVersionId },
+    { documentBody: {} },
+    {
+      documentBody: {
+        kind: mockCreateDocumentBody.kind,
+        prettyName: mockCreateDocumentBody.prettyName,
+      },
+    },
+    {
+      documentBody: {
+        kind: mockCreateDocumentBody.kind,
+        doc: mockCreateDocumentBody.doc,
+      },
+    },
+    {
+      documentBody: {
+        prettyName: mockCreateDocumentBody.prettyName,
+        doc: mockCreateDocumentBody.doc,
+      },
+    },
+    {
+      documentBody: {
+        ...mockCreateDocumentBody,
+        kind: "invalid",
+      },
+    },
+    {
+      documentBody: {
+        ...mockCreateDocumentBody,
+        doc: {},
+      },
+    },
   ])(
     "Should return 400 if passed invalid data: %s",
-    async ({ eServiceTemplateId, eServiceTemplateVersionId, kind }) => {
+    async ({ eServiceTemplateId, eServiceTemplateVersionId, documentBody }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
         eServiceTemplateId,
         eServiceTemplateVersionId,
-        kind
+        documentBody as bffApi.createEServiceDocument_Body
       );
       expect(res.status).toBe(400);
     }

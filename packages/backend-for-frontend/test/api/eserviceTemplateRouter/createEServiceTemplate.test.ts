@@ -4,6 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -28,7 +29,7 @@ describe("API POST /eservices/templates", () => {
 
   const makeRequest = async (
     token: string,
-    body: object = mockEServiceTemplateSeed
+    body: bffApi.EServiceTemplateSeed = mockEServiceTemplateSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/templates`)
@@ -113,7 +114,7 @@ describe("API POST /eservices/templates", () => {
     },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body);
+    const res = await makeRequest(token, body as bffApi.EServiceTemplateSeed);
     expect(res.status).toBe(400);
   });
 });

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, TenantId } from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -12,7 +12,7 @@ describe("API GET /consumers/delegations/eservices", () => {
   const defaultQuery = {
     offset: 0,
     limit: 5,
-    delegatorId: generateId<TenantId>(),
+    delegatorId: generateId(),
   };
   const mockCompactEServices = {
     results: [

@@ -20,9 +20,9 @@ describe("API GET /eservices/templates/:eServiceTemplateId/versions/:eServiceTem
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: string = generateId<EServiceTemplateId>(),
-    eServiceTemplateVersionId: string = generateId<EServiceTemplateVersionId>(),
-    documentId: string = generateId<EServiceDocumentId>()
+    eServiceTemplateId: EServiceTemplateId = generateId(),
+    eServiceTemplateVersionId: EServiceTemplateVersionId = generateId(),
+    documentId: EServiceDocumentId = generateId()
   ) =>
     request(api)
       .get(
@@ -51,9 +51,9 @@ describe("API GET /eservices/templates/:eServiceTemplateId/versions/:eServiceTem
   );
 
   it.each([
-    { eServiceTemplateId: "invalid" },
-    { eServiceTemplateVersionId: "invalid" },
-    { documentId: "invalid" },
+    { eServiceTemplateId: "invalid" as EServiceTemplateId },
+    { eServiceTemplateVersionId: "invalid" as EServiceTemplateVersionId },
+    { documentId: "invalid" as EServiceDocumentId },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ eServiceTemplateId, eServiceTemplateVersionId, documentId }) => {
