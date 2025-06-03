@@ -133,7 +133,7 @@ describe("getConsumers", () => {
     expect(consumers.totalCount).toBe(3);
     expect(consumers.results).toEqual([tenant1, tenant2, tenant3]);
   });
-  it("should get the tenants consuming any of the eservices of a specific name", async () => {
+  it("should get the tenants by name, consuming any of the eservices of a specific producer", async () => {
     await addOneTenant(tenant1);
 
     const descriptor1: Descriptor = {
@@ -203,7 +203,7 @@ describe("getConsumers", () => {
     await addOneAgreement(agreementEservice3);
 
     const consumers = await readModelService.getConsumers({
-      consumerName: tenant1.name,
+      consumerName: "1",
       producerId: eService1.producerId,
       offset: 0,
       limit: 50,

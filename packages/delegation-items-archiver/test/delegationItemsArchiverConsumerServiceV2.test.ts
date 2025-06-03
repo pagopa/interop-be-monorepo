@@ -53,19 +53,6 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       kind: delegationKind.delegatedConsumer,
     });
 
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      consumerId: delegation.delegatorId,
-      delegationId: delegation.id,
-      eserviceId: delegation.eserviceId,
-    };
-
-    const mockAgreement: Agreement = {
-      ...getMockAgreement(),
-      consumerId: delegation.delegatorId,
-      eserviceId: delegation.eserviceId,
-    };
-
     const payload: ConsumerDelegationRevokedV2 = {
       delegation: toDelegationV2(delegation),
     };
@@ -92,9 +79,13 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
     });
     it.each([agreementState.suspended, agreementState.active])(
       "The consumer should call the deletePurpose when the purpose is deletable and should call archiveAgreement for the agreement in %s state",
+
       async (agreementState) => {
         const purpose1: Purpose = {
-          ...mockPurpose,
+          ...getMockPurpose(),
+          consumerId: delegation.delegatorId,
+          delegationId: delegation.id,
+          eserviceId: delegation.eserviceId,
           versions: [
             getMockPurposeVersion(purposeVersionState.draft),
             getMockPurposeVersion(purposeVersionState.waitingForApproval),
@@ -102,19 +93,27 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         };
 
         const purpose2: Purpose = {
-          ...mockPurpose,
+          ...getMockPurpose(),
+          consumerId: delegation.delegatorId,
+          delegationId: delegation.id,
+          eserviceId: delegation.eserviceId,
           versions: [getMockPurposeVersion(purposeVersionState.draft)],
         };
 
         const purpose3: Purpose = {
-          ...mockPurpose,
+          ...getMockPurpose(),
+          consumerId: delegation.delegatorId,
+          delegationId: delegation.id,
+          eserviceId: delegation.eserviceId,
           versions: [
             getMockPurposeVersion(purposeVersionState.waitingForApproval),
           ],
         };
 
-        const agreement = {
-          ...mockAgreement,
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId: delegation.delegatorId,
+          eserviceId: delegation.eserviceId,
           state: agreementState,
         };
 
@@ -168,17 +167,25 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       "The consumer should call the archivePurposeVersion when the purpose is archivable and should call archiveAgreement for the agreement in %s state",
       async (agreementState) => {
         const purpose1: Purpose = {
-          ...mockPurpose,
+          ...getMockPurpose(),
+          consumerId: delegation.delegatorId,
+          delegationId: delegation.id,
+          eserviceId: delegation.eserviceId,
           versions: [getMockPurposeVersion(purposeVersionState.active)],
         };
 
         const purpose2: Purpose = {
-          ...mockPurpose,
+          ...getMockPurpose(),
+          consumerId: delegation.delegatorId,
+          delegationId: delegation.id,
+          eserviceId: delegation.eserviceId,
           versions: [getMockPurposeVersion(purposeVersionState.suspended)],
         };
 
-        const agreement = {
-          ...mockAgreement,
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId: delegation.delegatorId,
+          eserviceId: delegation.eserviceId,
           state: agreementState,
         };
 
@@ -234,8 +241,10 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
     it.each([agreementState.active, agreementState.suspended])(
       "The consumer should call the archiveAgreement for the agreement in %s state and there are no purposes",
       async (state) => {
-        const agreement = {
-          ...mockAgreement,
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId: delegation.delegatorId,
+          eserviceId: delegation.eserviceId,
           state,
         };
 
@@ -281,8 +290,10 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
     ])(
       "The consumer should call deleteAgreement when the agreement is in %s state",
       async (state) => {
-        const agreement = {
-          ...mockAgreement,
+        const agreement: Agreement = {
+          ...getMockAgreement(),
+          consumerId: delegation.delegatorId,
+          eserviceId: delegation.eserviceId,
           state,
         };
 
@@ -322,50 +333,72 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       }
     );
     it("The consumer should call the proper routes if there are more than one agreement and purposes", async () => {
-      const agreement1 = {
-        ...mockAgreement,
+      const agreement1: Agreement = {
+        ...getMockAgreement(),
+        consumerId: delegation.delegatorId,
+        eserviceId: delegation.eserviceId,
         state: agreementState.active,
       };
 
-      const agreement2 = {
-        ...mockAgreement,
+      const agreement2: Agreement = {
+        ...getMockAgreement(),
+        consumerId: delegation.delegatorId,
+        eserviceId: delegation.eserviceId,
         state: agreementState.pending,
       };
 
-      const purpose1 = {
-        ...mockPurpose,
+      const purpose1: Purpose = {
+        ...getMockPurpose(),
+        consumerId: delegation.delegatorId,
+        delegationId: delegation.id,
+        eserviceId: delegation.eserviceId,
         title: "Purpose 1", // Setting title because there can't be two purposes with the same title for the same consumer and eservice
         versions: [getMockPurposeVersion(purposeVersionState.active)],
       };
 
-      const purpose2 = {
-        ...mockPurpose,
+      const purpose2: Purpose = {
+        ...getMockPurpose(),
+        consumerId: delegation.delegatorId,
+        delegationId: delegation.id,
+        eserviceId: delegation.eserviceId,
         title: "Purpose 2",
         versions: [getMockPurposeVersion(purposeVersionState.suspended)],
       };
 
-      const purpose3 = {
-        ...mockPurpose,
+      const purpose3: Purpose = {
+        ...getMockPurpose(),
+        consumerId: delegation.delegatorId,
+        delegationId: delegation.id,
+        eserviceId: delegation.eserviceId,
         title: "Purpose 3",
         versions: [getMockPurposeVersion(purposeVersionState.draft)],
       };
 
-      const purpose4 = {
-        ...mockPurpose,
+      const purpose4: Purpose = {
+        ...getMockPurpose(),
+        consumerId: delegation.delegatorId,
+        delegationId: delegation.id,
+        eserviceId: delegation.eserviceId,
         title: "Purpose 3",
         versions: [getMockPurposeVersion(purposeVersionState.rejected)],
       };
 
-      const purpose5 = {
-        ...mockPurpose,
+      const purpose5: Purpose = {
+        ...getMockPurpose(),
+        consumerId: delegation.delegatorId,
+        delegationId: delegation.id,
+        eserviceId: delegation.eserviceId,
         title: "Purpose 3",
         versions: [
           getMockPurposeVersion(purposeVersionState.waitingForApproval),
         ],
       };
 
-      const purpose6 = {
-        ...mockPurpose,
+      const purpose6: Purpose = {
+        ...getMockPurpose(),
+        consumerId: delegation.delegatorId,
+        delegationId: delegation.id,
+        eserviceId: delegation.eserviceId,
         title: "Purpose 3",
         versions: [getMockPurposeVersion(purposeVersionState.archived)],
       };
