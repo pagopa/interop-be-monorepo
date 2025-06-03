@@ -20,12 +20,15 @@ import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("createPurposeVersion", () => {
   const mockApiPurposeVersion = getMockedApiPurposeVersion();
-  const mockApiPurpose = getMockedApiPurpose({
-    versions: [mockApiPurposeVersion],
-  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersion],
+    })
+  );
 
   const mockPurposeVersionSeed: m2mGatewayApi.PurposeVersionSeed = {
     dailyCalls: mockApiPurposeVersion.dailyCalls,
@@ -73,7 +76,9 @@ describe("createPurposeVersion", () => {
   });
 
   it("Should throw purposeVersionNotFound in case of version missing in purpose returned by the process", async () => {
-    const invalidPurpose = getMockedApiPurpose({ versions: [] });
+    const invalidPurpose = getMockWithMetadata(
+      getMockedApiPurpose({ versions: [] })
+    );
     mockCreatePurposeVersion.mockResolvedValue({
       data: {
         purpose: invalidPurpose.data,

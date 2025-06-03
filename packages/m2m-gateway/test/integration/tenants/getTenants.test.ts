@@ -13,6 +13,7 @@ import {
 } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getTenants", () => {
   const mockParams: m2mGatewayApi.GetTenantsQueryParams = {
@@ -22,8 +23,8 @@ describe("getTenants", () => {
     limit: 10,
   };
 
-  const mockApiTenant1 = getMockedApiTenant();
-  const mockApiTenant2 = getMockedApiTenant();
+  const mockApiTenant1 = getMockWithMetadata(getMockedApiTenant());
+  const mockApiTenant2 = getMockWithMetadata(getMockedApiTenant());
 
   const mockApiTenants = [mockApiTenant1.data, mockApiTenant2.data];
 

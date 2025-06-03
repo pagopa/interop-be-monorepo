@@ -11,9 +11,10 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiAgreement,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getAgreement", () => {
-  const mockApiAgreement = getMockedApiAgreement();
+  const mockApiAgreement = getMockWithMetadata(getMockedApiAgreement());
 
   const mockGetAgreement = vi.fn().mockResolvedValue(mockApiAgreement);
 

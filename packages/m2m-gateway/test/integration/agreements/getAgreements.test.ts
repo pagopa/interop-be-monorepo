@@ -11,6 +11,7 @@ import {
   getMockedApiAgreement,
 } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getAgreements", () => {
   const mockQueryParams: m2mGatewayApi.GetAgreementsQueryParams = {
@@ -22,8 +23,8 @@ describe("getAgreements", () => {
     limit: 10,
   };
 
-  const mockApiAgreement1 = getMockedApiAgreement();
-  const mockApiAgreement2 = getMockedApiAgreement();
+  const mockApiAgreement1 = getMockWithMetadata(getMockedApiAgreement());
+  const mockApiAgreement2 = getMockWithMetadata(getMockedApiAgreement());
 
   const mockApiAgreements = [mockApiAgreement1.data, mockApiAgreement2.data];
 

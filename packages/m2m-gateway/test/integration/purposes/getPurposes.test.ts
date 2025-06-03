@@ -12,6 +12,7 @@ import {
 } from "../../mockUtils.js";
 import { toGetPurposesApiQueryParams } from "../../../src/api/purposeApiConverter.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getPurposes", () => {
   const mockParams: m2mGatewayApi.GetPurposesQueryParams = {
@@ -20,8 +21,8 @@ describe("getPurposes", () => {
     limit: 10,
   };
 
-  const mockApiPurpose1 = getMockedApiPurpose();
-  const mockApiPurpose2 = getMockedApiPurpose();
+  const mockApiPurpose1 = getMockWithMetadata(getMockedApiPurpose());
+  const mockApiPurpose2 = getMockWithMetadata(getMockedApiPurpose());
 
   const mockApiPurposes = [mockApiPurpose1.data, mockApiPurpose2.data];
 

@@ -11,9 +11,10 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getPurpose", () => {
-  const mockApiPurposeResponse = getMockedApiPurpose();
+  const mockApiPurposeResponse = getMockWithMetadata(getMockedApiPurpose());
 
   const mockGetPurpose = vi.fn().mockResolvedValue(mockApiPurposeResponse);
 

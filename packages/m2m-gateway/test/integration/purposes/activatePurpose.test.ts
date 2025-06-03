@@ -20,6 +20,7 @@ import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("activatePurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
@@ -28,9 +29,11 @@ describe("activatePurposeVersion", () => {
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
     state: purposeApi.PurposeVersionState.Enum.REJECTED,
   });
-  const mockApiPurpose = getMockedApiPurpose({
-    versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
-  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+    })
+  );
 
   const activatePurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> = {
     data: mockApiPurposeVersion1,
@@ -99,13 +102,15 @@ describe("activatePurposeVersion", () => {
   });
 
   it("Should throw missingPurposeVersionWithState in case of missing active version to activate", async () => {
-    const invalidPurpose = getMockedApiPurpose({
-      versions: [
-        getMockedApiPurposeVersion({
-          state: purposeApi.PurposeVersionState.Enum.REJECTED,
-        }),
-      ],
-    });
+    const invalidPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [
+          getMockedApiPurposeVersion({
+            state: purposeApi.PurposeVersionState.Enum.REJECTED,
+          }),
+        ],
+      })
+    );
     // The activate will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
 

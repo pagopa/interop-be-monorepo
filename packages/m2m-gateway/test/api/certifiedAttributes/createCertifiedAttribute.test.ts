@@ -31,7 +31,7 @@ describe("POST /certifiedAttributes router test", () => {
 
   const mockM2MCertifiedAttributeResponse: m2mGatewayApi.CertifiedAttribute =
     toM2MGatewayApiCertifiedAttribute({
-      attribute: mockApiCertifiedAttribute.data,
+      attribute: mockApiCertifiedAttribute,
       logger: genericLogger,
     });
 
@@ -105,8 +105,8 @@ describe("POST /certifiedAttributes router test", () => {
 
   it.each([
     missingMetadata(),
-    unexpectedAttributeKind(mockApiCertifiedAttribute.data),
-    unexpectedUndefinedAttributeOriginOrCode(mockApiCertifiedAttribute.data),
+    unexpectedAttributeKind(mockApiCertifiedAttribute),
+    unexpectedUndefinedAttributeOriginOrCode(mockApiCertifiedAttribute),
     resourcePollingTimeout(3),
   ])("Should return 500 in case of $code error", async (error) => {
     mockAttributeService.createCertifiedAttribute = vi

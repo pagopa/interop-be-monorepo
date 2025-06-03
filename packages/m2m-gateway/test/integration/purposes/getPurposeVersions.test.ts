@@ -12,6 +12,7 @@ import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getPurposeVersions", () => {
   const mockParams: m2mGatewayApi.GetPurposeVersionsQueryParams = {
@@ -34,15 +35,17 @@ describe("getPurposeVersions", () => {
     state: purposeApi.PurposeVersionState.Enum.SUSPENDED,
   });
 
-  const mockApiPurpose = getMockedApiPurpose({
-    versions: [
-      mockApiPurposeVersion1,
-      mockApiPurposeVersion2,
-      mockApiPurposeVersion3,
-      mockApiPurposeVersion4,
-      mockApiPurposeVersion5,
-    ],
-  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [
+        mockApiPurposeVersion1,
+        mockApiPurposeVersion2,
+        mockApiPurposeVersion3,
+        mockApiPurposeVersion4,
+        mockApiPurposeVersion5,
+      ],
+    })
+  );
   const mockGetPurpose = vi.fn().mockResolvedValue(mockApiPurpose);
 
   mockInteropBeClients.purposeProcessClient = {

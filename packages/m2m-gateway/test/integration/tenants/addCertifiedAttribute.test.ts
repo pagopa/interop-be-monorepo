@@ -22,6 +22,7 @@ import {
   getMockedApiCertifiedTenantAttribute,
   getMockedApiTenant,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("addCertifiedAttribute", () => {
   const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({
@@ -31,17 +32,19 @@ describe("addCertifiedAttribute", () => {
   const otherMockedAttributes = generateMock(
     z.array(tenantApi.TenantAttribute)
   );
-  const mockTenantProcessResponse = getMockedApiTenant({
-    attributes: [
-      {
-        certified: mockCertifiedAttribute1,
-      },
-      {
-        certified: mockCertifiedAttribute2,
-      },
-      ...otherMockedAttributes,
-    ],
-  });
+  const mockTenantProcessResponse = getMockWithMetadata(
+    getMockedApiTenant({
+      attributes: [
+        {
+          certified: mockCertifiedAttribute1,
+        },
+        {
+          certified: mockCertifiedAttribute2,
+        },
+        ...otherMockedAttributes,
+      ],
+    })
+  );
 
   const mockTenantCertifiedAttributeSeed: m2mGatewayApi.TenantCertifiedAttributeSeed =
     {

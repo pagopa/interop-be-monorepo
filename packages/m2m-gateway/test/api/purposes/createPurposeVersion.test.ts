@@ -47,7 +47,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
       const token = generateToken(role);
       const res = await makeRequest(
         token,
-        mockPurpose.data.id,
+        mockPurpose.id,
         mockPurposeVersionSeed
       );
 
@@ -62,7 +62,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
     const token = generateToken(role);
     const res = await makeRequest(
       token,
-      mockPurpose.data.id,
+      mockPurpose.id,
       mockPurposeVersionSeed
     );
     expect(res.status).toBe(403);
@@ -78,7 +78,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        mockPurpose.data.id,
+        mockPurpose.id,
         body as unknown as m2mGatewayApi.PurposeSeed
       );
 
@@ -89,7 +89,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
   it.each([
     missingMetadata(),
     purposeVersionNotFound(
-      unsafeBrandId(mockPurpose.data.id),
+      unsafeBrandId(mockPurpose.id),
       mockPurposeVersion.id
     ),
     resourcePollingTimeout(3),
@@ -98,7 +98,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      mockPurpose.data.id,
+      mockPurpose.id,
       mockPurposeVersionSeed
     );
 
@@ -119,7 +119,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        mockPurpose.data.id,
+        mockPurpose.id,
         mockPurposeVersionSeed
       );
 

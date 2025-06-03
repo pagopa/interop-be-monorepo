@@ -21,7 +21,7 @@ describe("GET /purpose/:purposeId router test", () => {
       .send();
 
   const mockApiPurpose = getMockedApiPurpose();
-  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose.data);
+  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose);
 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",

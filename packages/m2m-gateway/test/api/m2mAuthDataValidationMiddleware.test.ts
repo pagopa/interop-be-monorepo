@@ -30,7 +30,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
     toM2MGatewayApiCertifiedAttribute({
       attribute: getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-      }).data,
+      }),
       logger: genericLogger,
     })
   );
@@ -93,7 +93,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
   it("Should return 403 if getClientAdminId throws clientAdminIdNotFound", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     mockGetClientAdminId.mockRejectedValue(
-      clientAdminIdNotFound(getMockedApiClient().data)
+      clientAdminIdNotFound(getMockedApiClient())
     );
     const res = await makeRequest(token);
 

@@ -18,11 +18,14 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiAgreement,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("upgradeAgreement", () => {
-  const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.PENDING,
-  });
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.PENDING,
+    })
+  );
 
   const mockUpgradeAgreement = vi
     .fn()

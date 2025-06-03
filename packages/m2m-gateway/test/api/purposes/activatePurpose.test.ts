@@ -16,7 +16,7 @@ import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js"
 
 describe("POST /purposes/:purposeId/activate router test", () => {
   const mockApiPurpose = getMockedApiPurpose();
-  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose.data);
+  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose);
 
   const makeRequest = async (token: string, purposeId: string) =>
     request(api)

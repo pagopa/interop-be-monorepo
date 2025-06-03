@@ -11,6 +11,7 @@ import {
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("toM2MGatewayApiPurpose", () => {
   const mockGetPurpose = vi.fn();
@@ -45,14 +46,16 @@ describe("toM2MGatewayApiPurpose", () => {
         state: purposeApi.PurposeVersionState.Enum.REJECTED,
       });
 
-      const mockApiPurpose = getMockedApiPurpose({
-        versions: [
-          mockApiPurposeVersion1,
-          mockApiPurposeVersion2,
-          mockApiPurposeVersion3,
-          mockApiPurposeVersion4,
-        ],
-      });
+      const mockApiPurpose = getMockWithMetadata(
+        getMockedApiPurpose({
+          versions: [
+            mockApiPurposeVersion1,
+            mockApiPurposeVersion2,
+            mockApiPurposeVersion3,
+            mockApiPurposeVersion4,
+          ],
+        })
+      );
 
       mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
@@ -92,13 +95,15 @@ describe("toM2MGatewayApiPurpose", () => {
     const mockApiPurposeVersion3 = getMockedApiPurposeVersion({
       state: purposeApi.PurposeVersionState.Enum.WAITING_FOR_APPROVAL,
     });
-    const mockApiPurpose = getMockedApiPurpose({
-      versions: [
-        mockApiPurposeVersion1,
-        mockApiPurposeVersion2,
-        mockApiPurposeVersion3,
-      ],
-    });
+    const mockApiPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [
+          mockApiPurposeVersion1,
+          mockApiPurposeVersion2,
+          mockApiPurposeVersion3,
+        ],
+      })
+    );
 
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
@@ -136,13 +141,15 @@ describe("toM2MGatewayApiPurpose", () => {
     const mockApiPurposeVersion3 = getMockedApiPurposeVersion({
       state: purposeApi.PurposeVersionState.Enum.REJECTED,
     });
-    const mockApiPurpose = getMockedApiPurpose({
-      versions: [
-        mockApiPurposeVersion1,
-        mockApiPurposeVersion2,
-        mockApiPurposeVersion3,
-      ],
-    });
+    const mockApiPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [
+          mockApiPurposeVersion1,
+          mockApiPurposeVersion2,
+          mockApiPurposeVersion3,
+        ],
+      })
+    );
 
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
@@ -177,9 +184,11 @@ describe("toM2MGatewayApiPurpose", () => {
     const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
       state: purposeApi.PurposeVersionState.Enum.REJECTED,
     });
-    const mockApiPurpose = getMockedApiPurpose({
-      versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
-    });
+    const mockApiPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+      })
+    );
 
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
@@ -214,9 +223,11 @@ describe("toM2MGatewayApiPurpose", () => {
     const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
       state: purposeApi.PurposeVersionState.Enum.REJECTED,
     });
-    const mockApiPurpose = getMockedApiPurpose({
-      versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
-    });
+    const mockApiPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+      })
+    );
 
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
@@ -251,9 +262,11 @@ describe("toM2MGatewayApiPurpose", () => {
     const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
       state: purposeApi.PurposeVersionState.Enum.WAITING_FOR_APPROVAL,
     });
-    const mockApiPurpose = getMockedApiPurpose({
-      versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
-    });
+    const mockApiPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+      })
+    );
 
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 
@@ -291,13 +304,15 @@ describe("toM2MGatewayApiPurpose", () => {
     const mockApiPurposeVersion3 = getMockedApiPurposeVersion({
       state: purposeApi.PurposeVersionState.Enum.WAITING_FOR_APPROVAL,
     });
-    const mockApiPurpose = getMockedApiPurpose({
-      versions: [
-        mockApiPurposeVersion1,
-        mockApiPurposeVersion2,
-        mockApiPurposeVersion3,
-      ],
-    });
+    const mockApiPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [
+          mockApiPurposeVersion1,
+          mockApiPurposeVersion2,
+          mockApiPurposeVersion3,
+        ],
+      })
+    );
 
     mockGetPurpose.mockResolvedValueOnce(mockApiPurpose);
 

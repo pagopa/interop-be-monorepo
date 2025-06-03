@@ -53,7 +53,7 @@ describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test
   });
 
   it.each([
-    tenantCertifiedAttributeNotFound(getMockedApiTenant().data, generateId()),
+    tenantCertifiedAttributeNotFound(getMockedApiTenant(), generateId()),
     missingMetadata(),
     resourcePollingTimeout(3),
   ])("Should return 500 in case of $code error", async (error) => {

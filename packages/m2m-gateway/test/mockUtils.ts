@@ -10,12 +10,7 @@ import {
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { WithLogger, systemRole, genericLogger } from "pagopa-interop-commons";
-import {
-  CorrelationId,
-  TenantId,
-  WithMetadata,
-  generateId,
-} from "pagopa-interop-models";
+import { CorrelationId, TenantId, generateId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
@@ -37,23 +32,18 @@ export function getMockedApiPurpose({
   versions,
 }: {
   versions?: purposeApi.PurposeVersion[];
-} = {}): WithMetadata<purposeApi.Purpose> {
+} = {}): purposeApi.Purpose {
   return {
-    data: {
-      id: generateId(),
-      eserviceId: generateId(),
-      consumerId: generateId(),
-      versions: versions ?? [getMockedApiPurposeVersion()],
-      title: generateMock(z.string().length(10)),
-      description: generateMock(z.string().length(10)),
-      createdAt: new Date().toISOString(),
-      isRiskAnalysisValid: true,
-      isFreeOfCharge: true,
-      freeOfChargeReason: generateMock(z.string()),
-    },
-    metadata: {
-      version: 0,
-    },
+    id: generateId(),
+    eserviceId: generateId(),
+    consumerId: generateId(),
+    versions: versions ?? [getMockedApiPurposeVersion()],
+    title: generateMock(z.string().length(10)),
+    description: generateMock(z.string().length(10)),
+    createdAt: new Date().toISOString(),
+    isRiskAnalysisValid: true,
+    isFreeOfCharge: true,
+    freeOfChargeReason: generateMock(z.string()),
   };
 }
 
@@ -67,25 +57,20 @@ export function getMockedApiDelegation({
   eserviceId?: string;
   delegateId?: string;
   state?: delegationApi.DelegationState;
-} = {}): WithMetadata<delegationApi.Delegation> {
+} = {}): delegationApi.Delegation {
   return {
-    data: {
-      kind: kind ?? delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-      id: generateId(),
-      eserviceId: eserviceId ?? generateId(),
-      delegateId: delegateId ?? generateId(),
-      delegatorId: generateId(),
-      createdAt: new Date().toISOString(),
-      state: state ?? delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
-      stamps: {
-        submission: {
-          who: generateId(),
-          when: new Date().toISOString(),
-        },
+    kind: kind ?? delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+    id: generateId(),
+    eserviceId: eserviceId ?? generateId(),
+    delegateId: delegateId ?? generateId(),
+    delegatorId: generateId(),
+    createdAt: new Date().toISOString(),
+    state: state ?? delegationApi.DelegationState.Values.WAITING_FOR_APPROVAL,
+    stamps: {
+      submission: {
+        who: generateId(),
+        when: new Date().toISOString(),
       },
-    },
-    metadata: {
-      version: 0,
     },
   };
 }
@@ -98,26 +83,19 @@ export function getMockedApiAgreement({
   state?: agreementApi.AgreementState;
   eserviceId?: string;
   descriptorId?: string;
-} = {}): WithMetadata<agreementApi.Agreement> {
+} = {}): agreementApi.Agreement {
   return {
-    data: {
-      id: generateId(),
-      eserviceId: eserviceId ?? generateId(),
-      descriptorId: descriptorId ?? generateId(),
-      producerId: generateId(),
-      consumerId: generateId(),
-      state: state ?? agreementApi.AgreementState.Values.ACTIVE,
-      certifiedAttributes: generateMock(
-        z.array(agreementApi.CertifiedAttribute)
-      ),
-      declaredAttributes: generateMock(z.array(agreementApi.DeclaredAttribute)),
-      consumerDocuments: generateMock(z.array(agreementApi.Document)),
-      verifiedAttributes: generateMock(z.array(agreementApi.VerifiedAttribute)),
-      createdAt: new Date().toISOString(),
-    },
-    metadata: {
-      version: 0,
-    },
+    id: generateId(),
+    eserviceId: eserviceId ?? generateId(),
+    descriptorId: descriptorId ?? generateId(),
+    producerId: generateId(),
+    consumerId: generateId(),
+    state: state ?? agreementApi.AgreementState.Values.ACTIVE,
+    certifiedAttributes: generateMock(z.array(agreementApi.CertifiedAttribute)),
+    declaredAttributes: generateMock(z.array(agreementApi.DeclaredAttribute)),
+    consumerDocuments: generateMock(z.array(agreementApi.Document)),
+    verifiedAttributes: generateMock(z.array(agreementApi.VerifiedAttribute)),
+    createdAt: new Date().toISOString(),
   };
 }
 
@@ -125,25 +103,19 @@ export function getMockedApiTenant({
   attributes,
 }: {
   attributes?: tenantApi.TenantAttribute[];
-} = {}): WithMetadata<tenantApi.Tenant> {
+} = {}): tenantApi.Tenant {
   return {
-    data: {
-      id: generateId(),
-      attributes:
-        attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
-      externalId: {
-        origin: generateMock(z.string()),
-        value: generateMock(z.string()),
-      },
-      name: generateMock(z.string()),
-      createdAt: new Date().toISOString(),
-      kind: tenantApi.TenantKind.Values.GSP,
-      mails: generateMock(z.array(tenantApi.Mail)),
-      features: generateMock(z.array(tenantApi.TenantFeature)),
+    id: generateId(),
+    attributes: attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
+    externalId: {
+      origin: generateMock(z.string()),
+      value: generateMock(z.string()),
     },
-    metadata: {
-      version: 0,
-    },
+    name: generateMock(z.string()),
+    createdAt: new Date().toISOString(),
+    kind: tenantApi.TenantKind.Values.GSP,
+    mails: generateMock(z.array(tenantApi.Mail)),
+    features: generateMock(z.array(tenantApi.TenantFeature)),
   };
 }
 
@@ -157,20 +129,15 @@ export function getMockedApiAttribute({
   code?: string;
   name?: string;
   description?: string;
-} = {}): WithMetadata<attributeRegistryApi.Attribute> {
+} = {}): attributeRegistryApi.Attribute {
   return {
-    data: {
-      id: generateId(),
-      name: name ?? generateMock(z.string()),
-      description: description ?? generateMock(z.string()),
-      creationTime: new Date().toISOString(),
-      code: code ?? generateMock(z.string()),
-      origin: generateMock(z.string()),
-      kind: kind ?? attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-    },
-    metadata: {
-      version: 0,
-    },
+    id: generateId(),
+    name: name ?? generateMock(z.string()),
+    description: description ?? generateMock(z.string()),
+    creationTime: new Date().toISOString(),
+    code: code ?? generateMock(z.string()),
+    origin: generateMock(z.string()),
+    kind: kind ?? attributeRegistryApi.AttributeKind.Values.CERTIFIED,
   };
 }
 
@@ -178,26 +145,21 @@ export function getMockedApiClient({
   kind: paramKind,
 }: {
   kind?: authorizationApi.ClientKind;
-} = {}): WithMetadata<authorizationApi.Client> {
+} = {}): authorizationApi.Client {
   const kind = paramKind ?? authorizationApi.ClientKind.Values.API;
   return {
-    data: {
-      kind,
-      id: generateId(),
-      name: generateMock(z.string()),
-      description: generateMock(z.string()),
-      createdAt: new Date().toISOString(),
-      consumerId: generateId(),
-      purposes: [],
-      users: [],
-      adminId:
-        kind === authorizationApi.ClientKind.Values.API
-          ? generateId()
-          : undefined,
-    },
-    metadata: {
-      version: 0,
-    },
+    kind,
+    id: generateId(),
+    name: generateMock(z.string()),
+    description: generateMock(z.string()),
+    createdAt: new Date().toISOString(),
+    consumerId: generateId(),
+    purposes: [],
+    users: [],
+    adminId:
+      kind === authorizationApi.ClientKind.Values.API
+        ? generateId()
+        : undefined,
   };
 }
 
@@ -205,26 +167,21 @@ export function getMockedApiEservice({
   descriptors,
 }: {
   descriptors?: catalogApi.EServiceDescriptor[];
-} = {}): WithMetadata<catalogApi.EService> {
+} = {}): catalogApi.EService {
   return {
-    data: {
-      id: generateId(),
-      name: generateMock(z.string().length(10)),
-      producerId: generateId(),
-      description: generateMock(z.string().length(10)),
-      technology: generateMock(catalogApi.EServiceTechnology),
-      descriptors:
-        descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
-      riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
-      mode: generateMock(catalogApi.EServiceMode),
-      isSignalHubEnabled: generateMock(z.boolean()),
-      isConsumerDelegable: generateMock(z.boolean()),
-      isClientAccessDelegable: generateMock(z.boolean()),
-      templateId: generateId(),
-    },
-    metadata: {
-      version: 0,
-    },
+    id: generateId(),
+    name: generateMock(z.string().length(10)),
+    producerId: generateId(),
+    description: generateMock(z.string().length(10)),
+    technology: generateMock(catalogApi.EServiceTechnology),
+    descriptors:
+      descriptors ?? generateMock(z.array(catalogApi.EServiceDescriptor)),
+    riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
+    mode: generateMock(catalogApi.EServiceMode),
+    isSignalHubEnabled: generateMock(z.boolean()),
+    isConsumerDelegable: generateMock(z.boolean()),
+    isClientAccessDelegable: generateMock(z.boolean()),
+    templateId: generateId(),
   };
 }
 
@@ -232,32 +189,27 @@ export function getMockedApiEserviceDescriptor({
   state,
 }: {
   state?: catalogApi.EServiceDescriptorState;
-} = {}): WithMetadata<catalogApi.EServiceDescriptor> {
+} = {}): catalogApi.EServiceDescriptor {
   return {
-    data: {
-      id: generateId(),
-      version: generateMock(z.string()),
-      description: generateMock(z.string().length(10)),
-      audience: generateMock(z.array(z.string())),
-      voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
-      dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
-      dailyCallsTotal: generateMock(z.number().int().gte(1)),
-      interface: generateMock(catalogApi.EServiceDoc),
-      docs: generateMock(z.array(catalogApi.EServiceDoc)),
-      state: state ?? generateMock(catalogApi.EServiceDescriptorState),
-      agreementApprovalPolicy: generateMock(catalogApi.AgreementApprovalPolicy),
-      serverUrls: generateMock(z.array(z.string())),
-      publishedAt: new Date().toISOString(),
-      suspendedAt: new Date().toISOString(),
-      deprecatedAt: new Date().toISOString(),
-      archivedAt: new Date().toISOString(),
-      attributes: generateMock(catalogApi.Attributes),
-      rejectionReasons: generateMock(z.array(catalogApi.RejectionReason)),
-      templateVersionRef: generateMock(catalogApi.EServiceTemplateVersionRef),
-    },
-    metadata: {
-      version: 0,
-    },
+    id: generateId(),
+    version: generateMock(z.string()),
+    description: generateMock(z.string().length(10)),
+    audience: generateMock(z.array(z.string())),
+    voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
+    dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
+    dailyCallsTotal: generateMock(z.number().int().gte(1)),
+    interface: generateMock(catalogApi.EServiceDoc),
+    docs: generateMock(z.array(catalogApi.EServiceDoc)),
+    state: state ?? generateMock(catalogApi.EServiceDescriptorState),
+    agreementApprovalPolicy: generateMock(catalogApi.AgreementApprovalPolicy),
+    serverUrls: generateMock(z.array(z.string())),
+    publishedAt: new Date().toISOString(),
+    suspendedAt: new Date().toISOString(),
+    deprecatedAt: new Date().toISOString(),
+    archivedAt: new Date().toISOString(),
+    attributes: generateMock(catalogApi.Attributes),
+    rejectionReasons: generateMock(z.array(catalogApi.RejectionReason)),
+    templateVersionRef: generateMock(catalogApi.EServiceTemplateVersionRef),
   };
 }
 
@@ -295,23 +247,18 @@ export function getMockedApiEServiceTemplate({
   versions,
 }: {
   versions?: eserviceTemplateApi.EServiceTemplateVersion[];
-} = {}): WithMetadata<eserviceTemplateApi.EServiceTemplate> {
+} = {}): eserviceTemplateApi.EServiceTemplate {
   return {
-    data: {
-      id: generateId(),
-      creatorId: generateId(),
-      description: generateMock(z.string().length(10)),
-      intendedTarget: generateMock(z.string().length(10)),
-      mode: generateMock(m2mGatewayApi.EServiceMode),
-      name: generateMock(z.string().length(10)),
-      technology: generateMock(m2mGatewayApi.EServiceTechnology),
-      versions: versions ?? [getMockedApiEserviceTemplateVersion()],
-      isSignalHubEnabled: generateMock(z.boolean().optional()),
-      riskAnalysis: [getMockedApiRiskAnalysis()],
-    },
-    metadata: {
-      version: 0,
-    },
+    id: generateId(),
+    creatorId: generateId(),
+    description: generateMock(z.string().length(10)),
+    intendedTarget: generateMock(z.string().length(10)),
+    mode: generateMock(m2mGatewayApi.EServiceMode),
+    name: generateMock(z.string().length(10)),
+    technology: generateMock(m2mGatewayApi.EServiceTechnology),
+    versions: versions ?? [getMockedApiEserviceTemplateVersion()],
+    isSignalHubEnabled: generateMock(z.boolean().optional()),
+    riskAnalysis: [getMockedApiRiskAnalysis()],
   };
 }
 

@@ -20,12 +20,12 @@ describe("POST /agreements/:agreementId/submit router test", () => {
   };
 
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement.data);
+    toM2MGatewayApiAgreement(mockApiAgreement);
 
   const makeRequest = async (
     token: string,
     body: m2mGatewayApi.AgreementSubmission,
-    agreementId: string = mockApiAgreement.data.id
+    agreementId: string = mockApiAgreement.id
   ) =>
     request(api)
       .post(`${appBasePath}/agreements/${agreementId}/submit`)

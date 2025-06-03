@@ -11,7 +11,7 @@ import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.j
 describe("GET /eservice/:eserviceId router test", () => {
   const mockApiEservice = getMockedApiEservice();
   const mockM2MEserviceResponse: m2mGatewayApi.EService =
-    toM2MGatewayApiEService(mockApiEservice.data);
+    toM2MGatewayApiEService(mockApiEservice);
 
   const makeRequest = async (token: string, eserviceId: string) =>
     request(api)
@@ -31,7 +31,7 @@ describe("GET /eservice/:eserviceId router test", () => {
         .mockResolvedValue(mockM2MEserviceResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockApiEservice.data.id);
+      const res = await makeRequest(token, mockApiEservice.id);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MEserviceResponse);
@@ -42,7 +42,7 @@ describe("GET /eservice/:eserviceId router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockApiEservice.data.id);
+    const res = await makeRequest(token, mockApiEservice.id);
     expect(res.status).toBe(403);
   });
 
@@ -62,7 +62,7 @@ describe("GET /eservice/:eserviceId router test", () => {
     async (resp) => {
       mockEserviceService.getEService = vi.fn().mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockApiEservice.data.id);
+      const res = await makeRequest(token, mockApiEservice.id);
 
       expect(res.status).toBe(500);
     }

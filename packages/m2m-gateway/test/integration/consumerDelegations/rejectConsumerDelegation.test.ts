@@ -18,12 +18,15 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiDelegation,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("rejectConsumerDelegation", () => {
-  const mockDelegationProcessResponse = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-    state: delegationApi.DelegationState.Values.REJECTED,
-  });
+  const mockDelegationProcessResponse = getMockWithMetadata(
+    getMockedApiDelegation({
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      state: delegationApi.DelegationState.Values.REJECTED,
+    })
+  );
 
   const mockRejectConsumerDelegation = vi
     .fn()

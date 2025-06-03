@@ -17,8 +17,8 @@ describe("GET /tenants route test", () => {
 
   const mockResponse: m2mGatewayApi.Tenants = {
     results: [
-      toM2MGatewayApiTenant(mockApiTenant1.data),
-      toM2MGatewayApiTenant(mockApiTenant2.data),
+      toM2MGatewayApiTenant(mockApiTenant1),
+      toM2MGatewayApiTenant(mockApiTenant2),
     ],
     pagination: {
       limit: 10,

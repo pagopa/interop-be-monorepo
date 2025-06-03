@@ -11,9 +11,8 @@ import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
 
 describe("GET /tenants/:tenantId route test", () => {
   const mockApiResponse = getMockedApiTenant();
-  const mockResponse: m2mGatewayApi.Tenant = toM2MGatewayApiTenant(
-    mockApiResponse.data
-  );
+  const mockResponse: m2mGatewayApi.Tenant =
+    toM2MGatewayApiTenant(mockApiResponse);
 
   const makeRequest = async (token: string) =>
     request(api)

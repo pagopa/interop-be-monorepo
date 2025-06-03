@@ -19,6 +19,7 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiDelegation,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("createConsumerDelegation", () => {
   const mockDelegationSeed: m2mGatewayApi.DelegationSeed = {
@@ -26,11 +27,13 @@ describe("createConsumerDelegation", () => {
     delegateId: generateId(),
   };
 
-  const mockDelegationProcessResponse = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-    eserviceId: mockDelegationSeed.eserviceId,
-    delegateId: mockDelegationSeed.delegateId,
-  });
+  const mockDelegationProcessResponse = getMockWithMetadata(
+    getMockedApiDelegation({
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      eserviceId: mockDelegationSeed.eserviceId,
+      delegateId: mockDelegationSeed.delegateId,
+    })
+  );
 
   const mockCreateConsumerDelegation = vi
     .fn()

@@ -14,11 +14,14 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiAttribute,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getCertifiedAttribute", () => {
-  const mockAttributeProcessResponse = getMockedApiAttribute({
-    kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-  });
+  const mockAttributeProcessResponse = getMockWithMetadata(
+    getMockedApiAttribute({
+      kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+    })
+  );
   const mockGetAttribute = vi
     .fn()
     .mockResolvedValue(mockAttributeProcessResponse);

@@ -16,9 +16,7 @@ describe("GET /eserviceTemplates/:templateId router test", () => {
       .send();
 
   const mockApiTemplate = getMockedApiEServiceTemplate();
-  const mockM2MTemplateResponse = toM2MGatewayEServiceTemplate(
-    mockApiTemplate.data
-  );
+  const mockM2MTemplateResponse = toM2MGatewayEServiceTemplate(mockApiTemplate);
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ADMIN_ROLE,

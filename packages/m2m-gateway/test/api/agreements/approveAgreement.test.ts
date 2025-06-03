@@ -19,11 +19,11 @@ describe("POST /agreements/:agreementId/approve router test", () => {
   });
 
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement.data);
+    toM2MGatewayApiAgreement(mockApiAgreement);
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockApiAgreement.data.id
+    agreementId: string = mockApiAgreement.id
   ) =>
     request(api)
       .post(`${appBasePath}/agreements/${agreementId}/approve`)
@@ -69,7 +69,7 @@ describe("POST /agreements/:agreementId/approve router test", () => {
   it("Should return 409 in case of agreementNotInPendingState error", async () => {
     mockAgreementService.approveAgreement = vi
       .fn()
-      .mockRejectedValue(agreementNotInPendingState(mockApiAgreement.data.id));
+      .mockRejectedValue(agreementNotInPendingState(mockApiAgreement.id));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 

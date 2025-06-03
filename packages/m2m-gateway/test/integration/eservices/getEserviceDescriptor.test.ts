@@ -13,16 +13,19 @@ import {
   getMockedApiEserviceDescriptor,
 } from "../../mockUtils.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getEserviceDescriptor", () => {
-  const mockCatalogProcessResponseDescriptor =
-    getMockedApiEserviceDescriptor().data;
-  const mockCatalogProcessResponse = getMockedApiEservice({
-    descriptors: [
-      mockCatalogProcessResponseDescriptor,
-      getMockedApiEserviceDescriptor().data,
-    ],
-  });
+  const mockCatalogProcessResponseDescriptor = getMockedApiEserviceDescriptor();
+
+  const mockCatalogProcessResponse = getMockWithMetadata(
+    getMockedApiEservice({
+      descriptors: [
+        mockCatalogProcessResponseDescriptor,
+        getMockedApiEserviceDescriptor(),
+      ],
+    })
+  );
   const mockGetEservice = vi.fn().mockResolvedValue(mockCatalogProcessResponse);
 
   mockInteropBeClients.catalogProcessClient = {

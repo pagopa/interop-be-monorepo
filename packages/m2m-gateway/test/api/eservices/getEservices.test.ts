@@ -16,8 +16,8 @@ describe("GET /eservices router test", () => {
   const mockM2MEservicesResponse: m2mGatewayApi.EServices = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MGatewayApiEService(mockApiEservice1.data),
-      toM2MGatewayApiEService(mockApiEservice2.data),
+      toM2MGatewayApiEService(mockApiEservice1),
+      toM2MGatewayApiEService(mockApiEservice2),
     ],
   };
 

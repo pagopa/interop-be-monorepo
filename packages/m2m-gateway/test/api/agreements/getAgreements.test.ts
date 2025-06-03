@@ -13,7 +13,7 @@ import { getMockedApiAgreement } from "../../mockUtils.js";
 
 describe("GET /agreements route test", () => {
   const mockResponse: m2mGatewayApi.Agreements = {
-    results: [toM2MGatewayApiAgreement(getMockedApiAgreement().data)],
+    results: [toM2MGatewayApiAgreement(getMockedApiAgreement())],
     pagination: {
       limit: 10,
       offset: 0,

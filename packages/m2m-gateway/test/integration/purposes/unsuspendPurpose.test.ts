@@ -20,6 +20,7 @@ import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("unsuspendPurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
@@ -28,9 +29,11 @@ describe("unsuspendPurposeVersion", () => {
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
     state: purposeApi.PurposeVersionState.Enum.DRAFT,
   });
-  const mockApiPurpose = getMockedApiPurpose({
-    versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
-  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+    })
+  );
 
   const activatePurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> = {
     data: mockApiPurposeVersion1,
@@ -97,13 +100,15 @@ describe("unsuspendPurposeVersion", () => {
   });
 
   it("Should throw missingPurposeVersionWithState in case of missing version to unsuspend", async () => {
-    const invalidPurpose = getMockedApiPurpose({
-      versions: [
-        getMockedApiPurposeVersion({
-          state: purposeApi.PurposeVersionState.Enum.REJECTED,
-        }),
-      ],
-    });
+    const invalidPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [
+          getMockedApiPurposeVersion({
+            state: purposeApi.PurposeVersionState.Enum.REJECTED,
+          }),
+        ],
+      })
+    );
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
 
     await expect(

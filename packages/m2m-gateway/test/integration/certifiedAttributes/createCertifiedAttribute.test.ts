@@ -23,17 +23,20 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiAttribute,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("createCertifiedAttribute", () => {
   const mockCertifiedAttributeSeed: m2mGatewayApi.CertifiedAttributeSeed =
     generateMock(m2mGatewayApi.CertifiedAttributeSeed);
 
-  const mockAttributeProcessResponse = getMockedApiAttribute({
-    kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-    code: mockCertifiedAttributeSeed.code,
-    name: mockCertifiedAttributeSeed.name,
-    description: mockCertifiedAttributeSeed.description,
-  });
+  const mockAttributeProcessResponse = getMockWithMetadata(
+    getMockedApiAttribute({
+      kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+      code: mockCertifiedAttributeSeed.code,
+      name: mockCertifiedAttributeSeed.name,
+      description: mockCertifiedAttributeSeed.description,
+    })
+  );
 
   const mockCreateCertifiedAttribute = vi
     .fn()

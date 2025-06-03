@@ -11,9 +11,10 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiEServiceTemplate,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getEserviceTemplate", () => {
-  const mockApiTemplate = getMockedApiEServiceTemplate();
+  const mockApiTemplate = getMockWithMetadata(getMockedApiEServiceTemplate());
 
   const mockGetTemplate = vi.fn().mockResolvedValue(mockApiTemplate);
 

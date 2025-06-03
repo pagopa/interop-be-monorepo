@@ -18,17 +18,20 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiAgreement,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("createAgreement", () => {
   const mockAgreementSeed: m2mGatewayApi.AgreementSeed = generateMock(
     m2mGatewayApi.AgreementSeed
   );
 
-  const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.DRAFT,
-    eserviceId: mockAgreementSeed.eserviceId,
-    descriptorId: mockAgreementSeed.descriptorId,
-  });
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.DRAFT,
+      eserviceId: mockAgreementSeed.eserviceId,
+      descriptorId: mockAgreementSeed.descriptorId,
+    })
+  );
 
   const mockCreateAgreement = vi
     .fn()

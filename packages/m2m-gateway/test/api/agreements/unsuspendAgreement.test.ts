@@ -19,11 +19,11 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
   });
 
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement.data);
+    toM2MGatewayApiAgreement(mockApiAgreement);
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockApiAgreement.data.id
+    agreementId: string = mockApiAgreement.id
   ) =>
     request(api)
       .post(`${appBasePath}/agreements/${agreementId}/unsuspend`)
@@ -71,9 +71,7 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
   it("Should return 409 in case of agreementNotInSuspendedState error", async () => {
     mockAgreementService.unsuspendAgreement = vi
       .fn()
-      .mockRejectedValue(
-        agreementNotInSuspendedState(mockApiAgreement.data.id)
-      );
+      .mockRejectedValue(agreementNotInSuspendedState(mockApiAgreement.id));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 

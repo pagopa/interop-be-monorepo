@@ -61,7 +61,7 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(
       token,
-      mockApiPurpose.data.id,
+      mockApiPurpose.id,
       "INVALID_VERSION_ID"
     );
     expect(res.status).toBe(400);
@@ -72,14 +72,14 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
       .fn()
       .mockRejectedValue(
         purposeVersionNotFound(
-          unsafeBrandId(mockApiPurpose.data.id),
+          unsafeBrandId(mockApiPurpose.id),
           unsafeBrandId(mockApiPurposeVersion.id)
         )
       );
 
     const token = generateToken(authRole.M2M_ROLE);
 
-    const res = await makeRequest(token, mockApiPurpose.data.id, generateId());
+    const res = await makeRequest(token, mockApiPurpose.id, generateId());
     expect(res.status).toBe(404);
   });
 

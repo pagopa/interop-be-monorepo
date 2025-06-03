@@ -18,13 +18,16 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiClient,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("addClientPurpose", () => {
   const mockSeed: m2mGatewayApi.ClientAddPurpose = {
     purposeId: generateId(),
   };
 
-  const mockAuthorizationProcessResponse = getMockedApiClient();
+  const mockAuthorizationProcessResponse = getMockWithMetadata(
+    getMockedApiClient()
+  );
 
   const mockAddClientPurpose = vi
     .fn()

@@ -17,12 +17,15 @@ import {
   getMockedApiPurposeVersion,
 } from "../../mockUtils.js";
 import { purposeVersionNotFound } from "../../../src/model/errors.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getPurposeVersion", () => {
   const mockApiPurposeVersionResponse = getMockedApiPurposeVersion();
-  const mockApiPurposeResponse = getMockedApiPurpose({
-    versions: [mockApiPurposeVersionResponse],
-  });
+  const mockApiPurposeResponse = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersionResponse],
+    })
+  );
 
   const mockGetPurpose = vi.fn().mockResolvedValue(mockApiPurposeResponse);
 

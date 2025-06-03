@@ -12,32 +12,40 @@ import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getEserviceDescriptors", () => {
   const mockCatalogProcessDescriptor1 = getMockedApiEserviceDescriptor({
     state: "ARCHIVED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor2 = getMockedApiEserviceDescriptor({
     state: "ARCHIVED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor3 = getMockedApiEserviceDescriptor({
     state: "DEPRECATED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor4 = getMockedApiEserviceDescriptor({
     state: "PUBLISHED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor5 = getMockedApiEserviceDescriptor({
     state: "DRAFT",
-  }).data;
-  const mockCatalogProcessResponse = getMockedApiEservice({
-    descriptors: [
-      mockCatalogProcessDescriptor1,
-      mockCatalogProcessDescriptor2,
-      mockCatalogProcessDescriptor3,
-      mockCatalogProcessDescriptor4,
-      mockCatalogProcessDescriptor5,
-    ],
   });
+
+  const mockCatalogProcessResponse = getMockWithMetadata(
+    getMockedApiEservice({
+      descriptors: [
+        mockCatalogProcessDescriptor1,
+        mockCatalogProcessDescriptor2,
+        mockCatalogProcessDescriptor3,
+        mockCatalogProcessDescriptor4,
+        mockCatalogProcessDescriptor5,
+      ],
+    })
+  );
 
   const testToM2MGatewayApiDescriptor = (
     descriptor: catalogApi.EServiceDescriptor

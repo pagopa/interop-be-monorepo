@@ -65,7 +65,7 @@ describe("GET /eserviceTemplates/:templateId/versions router test", () => {
         .mockResolvedValue(mockM2MVersionsResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockParams, mockApiTemplate.data.id);
+      const res = await makeRequest(token, mockParams, mockApiTemplate.id);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MVersionsResponse);
@@ -83,7 +83,7 @@ describe("GET /eserviceTemplates/:templateId/versions router test", () => {
     const res = await makeRequest(
       token,
       query as m2mGatewayApi.GetEServiceTemplateVersionsQueryParams,
-      mockApiTemplate.data.id
+      mockApiTemplate.id
     );
 
     expect(res.status).toBe(400);
@@ -93,7 +93,7 @@ describe("GET /eserviceTemplates/:templateId/versions router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockParams, mockApiTemplate.data.id);
+    const res = await makeRequest(token, mockParams, mockApiTemplate.id);
     expect(res.status).toBe(403);
   });
 
@@ -127,7 +127,7 @@ describe("GET /eserviceTemplates/:templateId/versions router test", () => {
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockParams, mockApiTemplate.data.id);
+      const res = await makeRequest(token, mockParams, mockApiTemplate.id);
 
       expect(res.status).toBe(500);
     }

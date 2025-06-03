@@ -12,6 +12,7 @@ import {
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getEServiceTemplateVersions", () => {
   const mockParams: m2mGatewayApi.GetEServiceTemplateVersionsQueryParams = {
@@ -36,15 +37,17 @@ describe("getEServiceTemplateVersions", () => {
     state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.SUSPENDED,
   });
 
-  const mockApiTemplate = getMockedApiEServiceTemplate({
-    versions: [
-      mockApiTemplateVersion1,
-      mockApiTemplateVersion2,
-      mockApiTemplateVersion3,
-      mockApiTemplateVersion4,
-      mockApiTemplateVersion5,
-    ],
-  });
+  const mockApiTemplate = getMockWithMetadata(
+    getMockedApiEServiceTemplate({
+      versions: [
+        mockApiTemplateVersion1,
+        mockApiTemplateVersion2,
+        mockApiTemplateVersion3,
+        mockApiTemplateVersion4,
+        mockApiTemplateVersion5,
+      ],
+    })
+  );
 
   const mockGetTemplate = vi.fn().mockResolvedValue(mockApiTemplate);
 

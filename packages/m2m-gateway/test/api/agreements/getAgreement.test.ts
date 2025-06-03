@@ -12,11 +12,11 @@ import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter
 describe("GET /agreements/:agreementId route test", () => {
   const mockApiAgreement = getMockedApiAgreement();
   const mockM2MAgreementResponse: m2mGatewayApi.Agreement =
-    toM2MGatewayApiAgreement(mockApiAgreement.data);
+    toM2MGatewayApiAgreement(mockApiAgreement);
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockApiAgreement.data.id
+    agreementId: string = mockApiAgreement.id
   ) =>
     request(api)
       .get(`${appBasePath}/agreements/${agreementId}`)

@@ -17,18 +17,22 @@ import {
   getMockedApiEserviceTemplateVersion,
 } from "../../mockUtils.js";
 import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getEServiceTemplateVersion", () => {
   const mockApiTemplateVersion1 = getMockedApiEserviceTemplateVersion({
     state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DRAFT,
   });
+
   const mockApiTemplateVersion2 = getMockedApiEserviceTemplateVersion({
     state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DEPRECATED,
   });
 
-  const mockApiTemplate = getMockedApiEServiceTemplate({
-    versions: [mockApiTemplateVersion1, mockApiTemplateVersion2],
-  });
+  const mockApiTemplate = getMockWithMetadata(
+    getMockedApiEServiceTemplate({
+      versions: [mockApiTemplateVersion1, mockApiTemplateVersion2],
+    })
+  );
 
   const mockGetTemplate = vi.fn().mockResolvedValue(mockApiTemplate);
 

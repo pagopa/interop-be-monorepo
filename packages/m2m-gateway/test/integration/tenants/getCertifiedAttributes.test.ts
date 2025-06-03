@@ -14,6 +14,7 @@ import {
   getMockedApiCertifiedTenantAttribute,
   getMockedApiTenant,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getCertifiedAttributes", () => {
   const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({
@@ -27,26 +28,28 @@ describe("getCertifiedAttributes", () => {
     z.array(tenantApi.TenantAttribute)
   ).filter((attr) => attr.certified === undefined);
 
-  const mockTenantProcessResponse = getMockedApiTenant({
-    attributes: [
-      {
-        certified: mockCertifiedAttribute1,
-      },
-      {
-        certified: mockCertifiedAttribute2,
-      },
-      {
-        certified: mockCertifiedAttribute3,
-      },
-      {
-        certified: mockCertifiedAttribute4,
-      },
-      {
-        certified: mockCertifiedAttribute5,
-      },
-      ...otherMockedAttributes,
-    ],
-  });
+  const mockTenantProcessResponse = getMockWithMetadata(
+    getMockedApiTenant({
+      attributes: [
+        {
+          certified: mockCertifiedAttribute1,
+        },
+        {
+          certified: mockCertifiedAttribute2,
+        },
+        {
+          certified: mockCertifiedAttribute3,
+        },
+        {
+          certified: mockCertifiedAttribute4,
+        },
+        {
+          certified: mockCertifiedAttribute5,
+        },
+        ...otherMockedAttributes,
+      ],
+    })
+  );
 
   const testToM2MGatewayApiCertifiedAttribute = (
     attribute: tenantApi.CertifiedTenantAttribute

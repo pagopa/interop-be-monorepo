@@ -19,11 +19,14 @@ import {
   getMockedApiAgreement,
   getMockM2MAdminAppContext,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("approveAgreement", () => {
-  const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.PENDING,
-  });
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.PENDING,
+    })
+  );
 
   const pollingTentatives = 2;
   const mockActivateAgreement = vi
@@ -67,7 +70,9 @@ describe("approveAgreement", () => {
   });
 
   it("Should throw agreementNotInPendingState in case of non-pending agreement", async () => {
-    const mockAgreementNotPending = getMockedApiAgreement({ state: "ACTIVE" });
+    const mockAgreementNotPending = getMockWithMetadata(
+      getMockedApiAgreement({ state: "ACTIVE" })
+    );
     mockGetAgreement.mockResolvedValueOnce(mockAgreementNotPending);
 
     await expect(

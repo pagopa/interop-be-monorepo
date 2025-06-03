@@ -19,11 +19,14 @@ import {
   getMockedApiAgreement,
   getMockM2MAdminAppContext,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("unsuspendAgreement", () => {
-  const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.SUSPENDED,
-  });
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.SUSPENDED,
+    })
+  );
 
   const pollingTentatives = 2;
   const mockActivateAgreement = vi
@@ -67,9 +70,11 @@ describe("unsuspendAgreement", () => {
   });
 
   it("Should throw agreementNotInSuspendedState in case of non-suspended agreement", async () => {
-    const mockAgreementNotSuspended = getMockedApiAgreement({
-      state: agreementApi.AgreementState.Values.ACTIVE,
-    });
+    const mockAgreementNotSuspended = getMockWithMetadata(
+      getMockedApiAgreement({
+        state: agreementApi.AgreementState.Values.ACTIVE,
+      })
+    );
     mockGetAgreement.mockResolvedValueOnce(mockAgreementNotSuspended);
 
     await expect(

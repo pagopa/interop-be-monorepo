@@ -17,8 +17,8 @@ describe("GET /eservices/:eserviceId/descriptors router test", () => {
     {
       pagination: { offset: 0, limit: 10, totalCount: 2 },
       results: [
-        toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor1.data),
-        toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor2.data),
+        toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor1),
+        toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor2),
       ],
     };
 

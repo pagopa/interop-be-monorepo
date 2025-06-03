@@ -26,7 +26,7 @@ describe("POST /consumerDelegations router test", () => {
     delegateId: mockDelegationSeed.delegateId,
   });
   const mockM2MDelegationResponse: m2mGatewayApi.ConsumerDelegation =
-    toM2MGatewayApiConsumerDelegation(mockApiDelegation.data);
+    toM2MGatewayApiConsumerDelegation(mockApiDelegation);
 
   const makeRequest = async (
     token: string,
@@ -99,7 +99,7 @@ describe("POST /consumerDelegations router test", () => {
 
   it.each([
     missingMetadata(),
-    unexpectedDelegationKind(mockApiDelegation.data),
+    unexpectedDelegationKind(mockApiDelegation),
     resourcePollingTimeout(3),
   ])("Should return 500 in case of $code error", async (error) => {
     mockDelegationService.createConsumerDelegation = vi

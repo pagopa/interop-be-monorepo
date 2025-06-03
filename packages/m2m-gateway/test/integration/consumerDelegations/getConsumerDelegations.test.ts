@@ -13,6 +13,7 @@ import {
 } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { unexpectedDelegationKind } from "../../../src/model/errors.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getConsumerDelegations", () => {
   const mockParams: m2mGatewayApi.GetConsumerDelegationsQueryParams = {
@@ -24,12 +25,16 @@ describe("getConsumerDelegations", () => {
     limit: 10,
   };
 
-  const mockApiDelegation1 = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-  });
-  const mockApiDelegation2 = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-  });
+  const mockApiDelegation1 = getMockWithMetadata(
+    getMockedApiDelegation({
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+    })
+  );
+  const mockApiDelegation2 = getMockWithMetadata(
+    getMockedApiDelegation({
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+    })
+  );
 
   const mockApiDelegations = [mockApiDelegation1.data, mockApiDelegation2.data];
 

@@ -30,8 +30,8 @@ describe("GET /purposes router test", () => {
   const mockM2MPurposesResponse: m2mGatewayApi.Purposes = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MGatewayApiPurpose(mockApiPurpose1.data),
-      toM2MGatewayApiPurpose(mockApiPurpose2.data),
+      toM2MGatewayApiPurpose(mockApiPurpose1),
+      toM2MGatewayApiPurpose(mockApiPurpose2),
     ],
   };
 

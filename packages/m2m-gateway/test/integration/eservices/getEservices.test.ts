@@ -12,6 +12,7 @@ import {
   getMockedApiEservice,
 } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getEservices", () => {
   const mockParams: m2mGatewayApi.GetEServicesQueryParams = {
@@ -21,8 +22,8 @@ describe("getEservices", () => {
     limit: 10,
   };
 
-  const mockApiEservice1 = getMockedApiEservice();
-  const mockApiEservice2 = getMockedApiEservice();
+  const mockApiEservice1 = getMockWithMetadata(getMockedApiEservice());
+  const mockApiEservice2 = getMockWithMetadata(getMockedApiEservice());
 
   const mockApiEservices = [mockApiEservice1.data, mockApiEservice2.data];
 

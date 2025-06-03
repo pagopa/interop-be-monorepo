@@ -18,9 +18,12 @@ import {
   getMockM2MAdminAppContext,
   getMockedApiPurpose,
 } from "../../mockUtils.js";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("createPurpose", () => {
-  const mockPurposeProcessGetResponse = getMockedApiPurpose();
+  const mockPurposeProcessGetResponse = getMockWithMetadata(
+    getMockedApiPurpose()
+  );
 
   const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,

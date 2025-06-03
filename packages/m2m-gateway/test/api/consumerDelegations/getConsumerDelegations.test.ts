@@ -21,8 +21,8 @@ describe("GET /consumerDelegations router test", () => {
   const mockM2MDelegationsResponse: m2mGatewayApi.ConsumerDelegations = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MGatewayApiConsumerDelegation(mockApiDelegation1.data),
-      toM2MGatewayApiConsumerDelegation(mockApiDelegation2.data),
+      toM2MGatewayApiConsumerDelegation(mockApiDelegation1),
+      toM2MGatewayApiConsumerDelegation(mockApiDelegation2),
     ],
   };
 
@@ -122,7 +122,7 @@ describe("GET /consumerDelegations router test", () => {
   it("Should return 500 in case of unexpectedDelegationKind error", async () => {
     mockDelegationService.getConsumerDelegations = vi
       .fn()
-      .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation1.data));
+      .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation1));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockQueryParams);
 
