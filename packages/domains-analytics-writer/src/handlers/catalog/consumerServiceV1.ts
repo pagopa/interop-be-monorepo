@@ -165,7 +165,7 @@ export async function handleCatalogMessageV1(
           upsertDescriptorServerUrls.push(
             DescriptorServerUrlsSchema.parse({
               serverUrls: msg.data.serverUrls,
-              id: msg.data.descriptorId as "asfqe",
+              id: msg.data.descriptorId,
               metadataVersion: msg.version,
             } satisfies z.input<typeof DescriptorServerUrlsSchema>)
           );

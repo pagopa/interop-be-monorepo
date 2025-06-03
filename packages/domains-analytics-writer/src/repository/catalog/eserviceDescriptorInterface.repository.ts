@@ -102,13 +102,11 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       Array<{ descriptor_id: DescriptorId; metadata_version: number }>
     > {
       try {
-        const idsToDeleteRaw = await t.manyOrNone<{ id: DescriptorId }>(`
-          SELECT id FROM ${deletingTableName}_${config.mergeTableSuffix}
-        `);
-
-        if (idsToDeleteRaw.length === 0) {
-          return [];
-        }
+        const idsToDelete = await t.map<DescriptorId>(
+          `SELECT id FROM ${deletingTableName}_${config.mergeTableSuffix}`,
+          [],
+          (row) => row.id
+        );
 
         const existingIds = await t.manyOrNone<{
           descriptor_id: DescriptorId;
@@ -118,7 +116,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           SELECT descriptor_id FROM ${schemaName}.${tableName}
           WHERE id = ANY($1)
         `,
-          [idsToDeleteRaw]
+          [idsToDelete]
         );
 
         const mergeQuery = generateMergeDeleteQuery(

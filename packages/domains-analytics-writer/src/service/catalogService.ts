@@ -536,18 +536,17 @@ export function catalogServiceBuilder(db: DBContext) {
             metadataVersion: items.metadata_version,
           }));
           await dbContext.conn.tx(async (t) => {
-            for (const batch of batchMessages(
-              serverUrlsToUpdate,
-              config.dbMessagesToInsertPerBatch
-            )) {
-              await descriptorRepo.insertServerUrls(t, dbContext.pgp, batch);
+            await descriptorRepo.insertServerUrls(
+              t,
+              dbContext.pgp,
+              serverUrlsToUpdate
+            );
 
-              genericLogger.info(
-                `Staging data inserted for EserviceDescriptorDocument batch: ${batch
-                  .map((doc) => doc.id)
-                  .join(", ")}`
-              );
-            }
+            genericLogger.info(
+              `Staging data inserted for server urls to update, descriptorIds: ${serverUrlsToUpdate
+                .map((descriptor) => descriptor.id)
+                .join(", ")}`
+            );
 
             await descriptorRepo.mergeServerUrls(t);
           });

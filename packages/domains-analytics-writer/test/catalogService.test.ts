@@ -265,7 +265,69 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     expect(stored[0].metadataVersion).toBe(3);
   });
 
-  it("EServiceRiskAnalysisDeleted: marks riskAnalysis deleted", async () => {
+  it("EServiceDocumentAdded: upserts interface when isInterface is true and removes serverUrls from descriptor", async () => {
+    const mock = getMockEService();
+    const descriptor = getMockDescriptor();
+    const interfaceDoc = getMockDocument();
+
+    const msg1: EServiceEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      type: "EServiceAdded",
+      event_version: 1,
+      data: { eservice: toEServiceV1(mock) },
+      log_date: new Date(),
+    };
+
+    const msg2: EServiceEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      type: "EServiceDescriptorAdded",
+      event_version: 1,
+      data: {
+        eserviceId: mock.id,
+        eserviceDescriptor: toDescriptorV1({ ...descriptor, docs: [] }),
+      },
+      log_date: new Date(),
+    };
+
+    const payload: EServiceDocumentAddedV1 = {
+      eserviceId: mock.id,
+      descriptorId: descriptor.id,
+      serverUrls: [],
+      document: toDocumentV1({ ...interfaceDoc, uploadDate: new Date() }),
+      isInterface: true,
+    };
+    const msg3: EServiceEventEnvelopeV1 = {
+      sequence_num: 3,
+      stream_id: mock.id,
+      version: 3,
+      type: "EServiceDocumentAdded",
+      event_version: 1,
+      data: payload,
+      log_date: new Date(),
+    };
+
+    await handleCatalogMessageV1([msg1, msg2, msg3], dbContext);
+
+    const storedInterface = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_interface,
+      { id: interfaceDoc.id }
+    );
+    expect(storedInterface.length).toBeGreaterThan(0);
+
+    const storedDescriptor = await getOneFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor,
+      { id: descriptor.id }
+    );
+    expect(storedDescriptor?.serverUrls).toBe("[]");
+  });
+
+  it("EServiceRiskAnalysisDeleted: removes RiskAnalysis", async () => {
     const mock = getMockEService();
     const risk = getMockValidRiskAnalysis("PA");
 
@@ -298,12 +360,12 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     };
     await handleCatalogMessageV1([msg], dbContext);
 
-    const stored = await getManyFromDb(
+    const storedRisk = await getManyFromDb(
       dbContext,
       CatalogDbTable.eservice_risk_analysis,
       { id: risk.id }
     );
-    stored.forEach((r) => expect(r.deleted).toBe(true));
+    expect(storedRisk.length).toBe(0);
   });
 
   it("EServiceWithDescriptorsDeleted: removes descriptor", async () => {

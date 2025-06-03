@@ -14,6 +14,7 @@ import { retryConnection } from "./db/buildColumnSet.js";
 import {
   AgreementDbTable,
   AttributeDbTable,
+  CatalogDbPartialTable,
   CatalogDbTable,
   DelegationDbTable,
   DeletingDbTable,
@@ -80,6 +81,7 @@ await retryConnection(
     ]);
     await setupDbService.setupPartialStagingTables([
       TenantDbPartialTable.tenant_self_care_id,
+      CatalogDbPartialTable.descriptor_server_urls,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
