@@ -458,11 +458,11 @@ describe("authorization server tests", () => {
       limitReached: true,
       rateLimitedTenantId: tokenClientKidPurposeEntry.consumerId,
       token: undefined,
+      isDPoP: !!headers.DPoP,
       rateLimiterStatus: {
         maxRequests: config.rateLimiterMaxRequests,
         rateInterval: config.rateLimiterRateInterval,
         remainingRequests: 0,
-        isDPoP: !!headers.DPoP,
       },
     });
   });
