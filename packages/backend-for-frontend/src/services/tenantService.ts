@@ -534,3 +534,5 @@ export function toApiVerifiedTenantAttribute(
     revokedBy: attribute.verified.revokedBy,
   };
 }
+
+export type TenantService = ReturnType<typeof tenantServiceBuilder>;
