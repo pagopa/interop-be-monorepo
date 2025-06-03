@@ -18,6 +18,7 @@ import {
   DeletingDbTableConfigMap,
   DomainDbTable,
   DomainDbTableSchemas,
+  EserviceTemplateDbTable,
   TenantDbPartialTable,
   PurposeDbTable,
   TenantDbTable,
@@ -91,6 +92,16 @@ export const tenantTables: TenantDbTable[] = [
   TenantDbTable.tenant_verified_attribute_verifier,
 ];
 
+export const eserviceTemplateTables: EserviceTemplateDbTable[] = [
+  EserviceTemplateDbTable.eservice_template,
+  EserviceTemplateDbTable.eservice_template_version,
+  EserviceTemplateDbTable.eservice_template_version_attribute,
+  EserviceTemplateDbTable.eservice_template_version_document,
+  EserviceTemplateDbTable.eservice_template_version_interface,
+  EserviceTemplateDbTable.eservice_template_risk_analysis,
+  EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+];
+
 export const clientTables: ClientDbTable[] = [
   ClientDbTable.client,
   ClientDbTable.client_purpose,
@@ -113,6 +124,7 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.client_purpose_deleting_table,
   DeletingDbTable.client_user_deleting_table,
   DeletingDbTable.client_key_deleting_table,
+  DeletingDbTable.eservice_template_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
@@ -123,6 +135,7 @@ export const domainTables: DomainDbTable[] = [
   ...delegationTables,
   ...tenantTables,
   ...clientTables,
+  ...eserviceTemplateTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
@@ -164,6 +177,10 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   {
     name: DeletingDbTable.client_key_deleting_table,
     columns: ["clientId", "kid"],
+  },
+  {
+    name: DeletingDbTable.eservice_template_deleting_table,
+    columns: ["id"],
   },
 ];
 
