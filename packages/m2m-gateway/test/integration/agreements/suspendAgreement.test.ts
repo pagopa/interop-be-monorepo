@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   agreementService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -14,9 +18,7 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiAgreement } from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("suspendAgreement", () => {
   const mockAgreementProcessResponse = getMockWithMetadata(

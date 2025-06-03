@@ -2,18 +2,18 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { DescriptorId, generateId, unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiEservice,
+  getMockedApiEserviceDescriptor,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockedApiEservice,
-  getMockedApiEserviceDescriptor,
-} from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
-import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getEserviceDescriptor", () => {
   const mockCatalogProcessResponseDescriptor = getMockedApiEserviceDescriptor();

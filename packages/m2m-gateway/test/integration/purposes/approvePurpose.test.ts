@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unsafeBrandId, WithMetadata } from "pagopa-interop-models";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -15,12 +20,7 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import {
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
-} from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("approvePurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({

@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import {
+  getMockedApiAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   agreementService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -14,9 +18,7 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiAgreement } from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("createAgreement", () => {
   const mockAgreementSeed: m2mGatewayApi.AgreementSeed = generateMock(

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockedApiTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -8,7 +8,6 @@ import { z } from "zod";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
-import { getMockedApiTenant } from "pagopa-interop-commons-test";
 import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
 describe("GET /tenants route test", () => {

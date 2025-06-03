@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
+  getMockedApiClient,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -14,9 +18,7 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiClient } from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("addClientPurpose", () => {
   const mockSeed: m2mGatewayApi.ClientAddPurpose = {

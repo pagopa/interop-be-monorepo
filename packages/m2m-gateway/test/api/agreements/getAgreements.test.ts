@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiAgreement,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -9,7 +12,6 @@ import { generateMock } from "@anatine/zod-mock";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
-import { getMockedApiAgreement } from "pagopa-interop-commons-test";
 
 describe("GET /agreements route test", () => {
   const mockResponse: m2mGatewayApi.Agreements = {

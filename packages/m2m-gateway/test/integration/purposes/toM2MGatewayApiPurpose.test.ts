@@ -4,6 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -11,7 +12,6 @@ import {
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
-import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("toM2MGatewayApiPurpose", () => {
   const mockGetPurpose = vi.fn();

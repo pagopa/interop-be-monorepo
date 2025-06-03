@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiDelegation,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -8,7 +11,6 @@ import { api, mockDelegationService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { unexpectedDelegationKind } from "../../../src/model/errors.js";
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
-import { getMockedApiDelegation } from "pagopa-interop-commons-test";
 
 describe("GET /consumerDelegations router test", () => {
   const mockApiDelegation1 = getMockedApiDelegation({

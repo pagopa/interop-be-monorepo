@@ -4,6 +4,8 @@ import { generateId } from "pagopa-interop-models";
 import {
   generateToken,
   mockM2MAdminClientId,
+  getMockedApiClient,
+  getMockedApiAttribute,
 } from "pagopa-interop-commons-test";
 import { authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
@@ -14,10 +16,6 @@ import {
   mockGetClientAdminId,
 } from "../vitest.api.setup.js";
 import { appBasePath } from "../../src/config/appBasePath.js";
-import {
-  getMockedApiAttribute,
-  getMockedApiClient,
-} from "pagopa-interop-commons-test";
 import { clientAdminIdNotFound } from "../../src/model/errors.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
 

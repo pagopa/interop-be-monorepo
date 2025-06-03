@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
-} from "pagopa-interop-commons-test";
 
 describe("GET /purposes/:purposeId/versions router test", () => {
   const authorizedRoles: AuthRole[] = [

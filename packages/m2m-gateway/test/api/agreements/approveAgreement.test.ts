@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiAgreement,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -10,7 +13,6 @@ import {
   missingMetadata,
   resourcePollingTimeout,
 } from "../../../src/model/errors.js";
-import { getMockedApiAgreement } from "pagopa-interop-commons-test";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 
 describe("POST /agreements/:agreementId/approve router test", () => {

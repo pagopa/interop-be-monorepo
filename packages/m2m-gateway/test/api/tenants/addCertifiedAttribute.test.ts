@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -13,10 +17,6 @@ import {
   tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
-import {
-  getMockedApiCertifiedTenantAttribute,
-  getMockedApiTenant,
-} from "pagopa-interop-commons-test";
 
 describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   const mockApiResponse = getMockedApiCertifiedTenantAttribute();

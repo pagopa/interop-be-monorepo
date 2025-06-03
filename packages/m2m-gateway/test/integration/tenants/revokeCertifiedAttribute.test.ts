@@ -4,6 +4,11 @@ import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -17,12 +22,7 @@ import {
   resourcePollingTimeout,
   tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
-import {
-  getMockedApiCertifiedTenantAttribute,
-  getMockedApiTenant,
-} from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("revokeCertifiedAttribute", () => {
   const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({

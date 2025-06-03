@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
@@ -12,10 +16,6 @@ import {
   tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
-import {
-  getMockedApiCertifiedTenantAttribute,
-  getMockedApiTenant,
-} from "pagopa-interop-commons-test";
 
 describe("DELETE /tenants/:tenantId/certifiedAttributes/:attributeId router test", () => {
   const mockApiResponse = getMockedApiCertifiedTenantAttribute();

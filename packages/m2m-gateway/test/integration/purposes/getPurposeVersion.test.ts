@@ -6,18 +6,18 @@ import {
 } from "pagopa-interop-models";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
-} from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { purposeVersionNotFound } from "../../../src/model/errors.js";
-import { getMockWithMetadata } from "pagopa-interop-commons-test";
 
 describe("getPurposeVersion", () => {
   const mockApiPurposeVersionResponse = getMockedApiPurposeVersion();
