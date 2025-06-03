@@ -1,6 +1,5 @@
 import { IncomingHttpHeaders } from "http";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
-import { z } from "zod";
 
 export interface InteropTokenResponse {
   access_token: string;
@@ -12,13 +11,3 @@ export type TokenRequest = {
   headers: IncomingHttpHeaders & { DPoP?: string };
   body: authorizationServerApi.AccessTokenRequest;
 };
-
-export const tokenType = {
-  bearer: "Bearer",
-  dpop: "DPoP",
-} as const;
-export const TokenType = z.enum([
-  Object.values(tokenType)[0],
-  ...Object.values(tokenType).slice(1),
-]);
-export type TokenType = z.infer<typeof TokenType>;
