@@ -19,9 +19,15 @@ import {
   clientAssertionRequestValidationFailed,
   clientAssertionSignatureValidationFailed,
   clientAssertionValidationFailed,
+  dpopProofJtiAlreadyUsed,
+  dpopProofSignatureValidationFailed,
+  dpopProofValidationFailed,
   platformStateValidationFailed,
   tokenGenerationStatesEntryNotFound,
+  unexpectedDPoPProofForAPIToken,
 } from "../../src/model/domain/errors.js";
+import { GenerateTokenReturnType } from "../../src/services/tokenService.js";
+import { tokenType } from "../../src/model/domain/models.js";
 
 describe("POST /authorization-server/token.oauth2", () => {
   const clientId = getMockClient().id;
@@ -76,7 +82,7 @@ describe("POST /authorization-server/token.oauth2", () => {
     vi.restoreAllMocks();
   });
 
-  it("Should return 200 for valid request", async () => {
+  it("Should return 200 for valid Bearer request", async () => {
     tokenService.generateToken = vi.fn().mockResolvedValue({
       limitReached: false,
       token,
@@ -85,14 +91,39 @@ describe("POST /authorization-server/token.oauth2", () => {
         rateInterval: 1,
         remainingRequests: 10,
       },
-    });
+    } satisfies GenerateTokenReturnType);
 
     const res = await makeRequest();
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       access_token: "",
-      token_type: "Bearer",
+      token_type: tokenType.bearer,
+      expires_in: 90,
+    });
+    expect(res.headers["x-rate-limit-limit"]).toBe("100");
+    expect(res.headers["x-rate-limit-interval"]).toBe("1");
+    expect(res.headers["x-rate-limit-remaining"]).toBe("10");
+  });
+
+  it("Should return 200 for valid DPoP request", async () => {
+    tokenService.generateToken = vi.fn().mockResolvedValue({
+      limitReached: false,
+      token,
+      rateLimiterStatus: {
+        maxRequests: 100,
+        rateInterval: 1,
+        remainingRequests: 10,
+      },
+      isDPoP: true,
+    } satisfies GenerateTokenReturnType);
+
+    const res = await makeRequest();
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      access_token: "",
+      token_type: tokenType.dpop,
       expires_in: 90,
     });
     expect(res.headers["x-rate-limit-limit"]).toBe("100");
@@ -119,6 +150,22 @@ describe("POST /authorization-server/token.oauth2", () => {
     },
     {
       error: platformStateValidationFailed(""),
+      expectedStatus: 400,
+    },
+    {
+      error: dpopProofValidationFailed(clientId, ""),
+      expectedStatus: 400,
+    },
+    {
+      error: dpopProofSignatureValidationFailed(clientId, ""),
+      expectedStatus: 400,
+    },
+    {
+      error: unexpectedDPoPProofForAPIToken(clientId),
+      expectedStatus: 400,
+    },
+    {
+      error: dpopProofJtiAlreadyUsed(generateId()),
       expectedStatus: 400,
     },
   ])(
