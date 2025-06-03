@@ -123,7 +123,7 @@ export function makeApiProblemBuilder<T extends string>(
 ): MakeApiProblemFn<T> {
   const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
     options;
-  const allErrors = { ...errorCodes, ...errors };
+  const allErrors = { ...commonErrorCodes, ...errors };
 
   function retrieveServiceErrorCode(serviceName: string): string {
     const serviceNameParsed = ServiceName.safeParse(serviceName);
@@ -218,7 +218,8 @@ export function makeApiProblemBuilder<T extends string>(
 
             if (
               forceGenericProblemOn500 &&
-              receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR
+              (e.response.status === HTTP_STATUS_INTERNAL_SERVER_ERROR ||
+                receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR)
             ) {
               logger.warn(
                 `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
@@ -256,7 +257,7 @@ export function makeApiProblemBuilder<T extends string>(
   };
 }
 
-const errorCodes = {
+export const commonErrorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
   htmlTemplateInterpolationError: "9002",
@@ -299,7 +300,7 @@ const errorCodes = {
   decodeSQSMessageError: "10024",
 } as const;
 
-export type CommonErrorCodes = keyof typeof errorCodes;
+export type CommonErrorCodes = keyof typeof commonErrorCodes;
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
