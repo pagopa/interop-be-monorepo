@@ -27,7 +27,6 @@ import {
   unexpectedDPoPProofForAPIToken,
 } from "../../src/model/domain/errors.js";
 import { GenerateTokenReturnType } from "../../src/services/tokenService.js";
-import { tokenType } from "../../src/model/domain/models.js";
 
 describe("POST /authorization-server/token.oauth2", () => {
   const clientId = getMockClient().id;
@@ -98,7 +97,7 @@ describe("POST /authorization-server/token.oauth2", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       access_token: "",
-      token_type: tokenType.bearer,
+      token_type: "Bearer",
       expires_in: 90,
     });
     expect(res.headers["x-rate-limit-limit"]).toBe("100");
@@ -123,7 +122,7 @@ describe("POST /authorization-server/token.oauth2", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       access_token: "",
-      token_type: tokenType.dpop,
+      token_type: "DPoP",
       expires_in: 90,
     });
     expect(res.headers["x-rate-limit-limit"]).toBe("100");

@@ -20,7 +20,6 @@ import { ZodiosRouter } from "@zodios/express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { TokenService } from "../services/tokenService.js";
-import { tokenType } from "../model/domain/models.js";
 
 const authorizationServerRouter = (
   ctx: ZodiosContext,
@@ -80,7 +79,7 @@ const authorizationServerRouter = (
 
         return res.status(200).send({
           access_token: tokenResult.token.serialized,
-          token_type: tokenResult.isDPoP ? tokenType.dpop : tokenType.bearer,
+          token_type: tokenResult.isDPoP ? "DPoP" : "Bearer",
           expires_in:
             tokenResult.token.payload.exp - tokenResult.token.payload.iat,
         });
