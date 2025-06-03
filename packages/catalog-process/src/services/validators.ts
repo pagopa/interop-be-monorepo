@@ -93,7 +93,7 @@ export function isActiveDescriptor(descriptor: Descriptor): boolean {
   return !isNotActiveDescriptor(descriptor);
 }
 
-export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
+function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(
       descriptorState.deprecated,
@@ -322,14 +322,18 @@ export function assertConsistentDailyCalls({
   }
 }
 
-export function assertDescriptorUpdatable(descriptor: Descriptor): void {
-  if (!isDescriptorUpdatable(descriptor)) {
+export function assertDescriptorUpdatableAfterPublish(
+  descriptor: Descriptor
+): void {
+  if (!isDescriptorUpdatableAfterPublish(descriptor)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }
 
-export function assertEServiceUpdatable(eservice: EService): void {
-  const hasValidDescriptor = eservice.descriptors.some(isDescriptorUpdatable);
+export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
+  const hasValidDescriptor = eservice.descriptors.some(
+    isDescriptorUpdatableAfterPublish
+  );
   if (!hasValidDescriptor) {
     throw eserviceWithoutValidDescriptors(eservice.id);
   }
