@@ -90,7 +90,7 @@ describe("verifyAndCreateDocument", async () => {
       verifyAndCreateDocument(
         fileManager,
         resourceId,
-       technology.rest,
+        technology.rest,
         kind,
         invalidFile,
         documentId,
@@ -123,7 +123,7 @@ describe("verifyAndCreateDocument", async () => {
       verifyAndCreateDocument(
         fileManager,
         resourceId,
-       technology.rest,
+        technology.rest,
         kind,
         file,
         documentId,
