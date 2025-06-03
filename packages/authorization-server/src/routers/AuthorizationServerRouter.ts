@@ -20,6 +20,7 @@ import { ZodiosRouter } from "@zodios/express";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { authorizationServerErrorMapper } from "../utilities/errorMappers.js";
 import { TokenService } from "../services/tokenService.js";
+import { tokenType } from "../model/domain/models.js";
 
 const authorizationServerRouter = (
   ctx: ZodiosContext,
