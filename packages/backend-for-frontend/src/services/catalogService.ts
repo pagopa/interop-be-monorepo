@@ -866,9 +866,6 @@ export function catalogServiceBuilder(
           id: requesterId,
         },
       });
-      if (!requesterTenant) {
-        throw tenantNotFound(requesterId);
-      }
 
       const delegationTenantsSet = await getTenantsFromDelegation(
         tenantProcessClient,
