@@ -114,36 +114,11 @@ export function tokenServiceBuilder({
       logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
       // DPoP proof validation
-      const { data, errors: dpopProofErrors } = headers.DPoP
-        ? verifyDPoPProof({
-            dpopProofJWS: headers.DPoP,
-            expectedDPoPProofHtu: config.dpopHtu,
-          })
-        : { data: undefined, errors: undefined };
-
-      const dpopProofJWT = data?.dpopProofJWT;
-      const dpopProofJWS = data?.dpopProofJWS;
-
-      if (dpopProofErrors) {
-        throw dpopProofValidationFailed(
-          body.client_id,
-          dpopProofErrors.map((error) => error.detail).join(", ")
-        );
-      }
-
-      if (dpopProofJWT && dpopProofJWS) {
-        const { errors: dpopProofSignatureErrors } =
-          await verifyDPoPProofSignature(dpopProofJWS, dpopProofJWT.header.jwk);
-
-        if (dpopProofSignatureErrors) {
-          throw dpopProofSignatureValidationFailed(
-            body.client_id,
-            dpopProofSignatureErrors.map((error) => error.detail).join(", ")
-          );
-        }
-
-        logger.info(`[JTI=${dpopProofJWT.payload.jti}] - DPoP proof validated`);
-      }
+      const { dpopProofJWS, dpopProofJWT } = await validateDPoPProof(
+        headers.DPoP,
+        body.client_id,
+        logger
+      );
 
       // Request body parameters validation
       const { errors: parametersErrors } = validateRequestParameters({
@@ -554,4 +529,48 @@ export const logTokenGenerationInfo = ({
   const tokenType = `[TYPE=${clientKind}]`;
   const jti = `[JTI=${tokenJti}]`;
   logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
+};
+
+const validateDPoPProof = async (
+  dpopProofHeader: string | undefined,
+  clientId: string | undefined,
+  logger: Logger
+): Promise<{
+  dpopProofJWS: string | undefined;
+  dpopProofJWT: DPoPProof | undefined;
+}> => {
+  const { data, errors: dpopProofErrors } = dpopProofHeader
+    ? verifyDPoPProof({
+        dpopProofJWS: dpopProofHeader,
+        expectedDPoPProofHtu: config.dpopHtu,
+      })
+    : { data: undefined, errors: undefined };
+
+  if (dpopProofErrors) {
+    throw dpopProofValidationFailed(
+      clientId,
+      dpopProofErrors.map((error) => error.detail).join(", ")
+    );
+  }
+
+  const dpopProofJWT = data?.dpopProofJWT;
+  const dpopProofJWS = data?.dpopProofJWS;
+
+  if (dpopProofJWT && dpopProofJWS) {
+    const { errors: dpopProofSignatureErrors } = await verifyDPoPProofSignature(
+      dpopProofJWS,
+      dpopProofJWT.header.jwk
+    );
+
+    if (dpopProofSignatureErrors) {
+      throw dpopProofSignatureValidationFailed(
+        clientId,
+        dpopProofSignatureErrors.map((error) => error.detail).join(", ")
+      );
+    }
+
+    logger.info(`[JTI=${dpopProofJWT.payload.jti}] - DPoP proof validated`);
+  }
+
+  return { dpopProofJWS, dpopProofJWT };
 };
