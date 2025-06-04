@@ -23,6 +23,7 @@ import {
   ClientDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
+import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
 
 const dbInstance = initDB({
   username: config.dbUsername,
@@ -82,6 +83,13 @@ await retryConnection(
       TenantDbTable.tenant_verified_attribute_verifier,
       TenantDbTable.tenant_verified_attribute_revoker,
       TenantDbTable.tenant_feature,
+      EserviceTemplateDbTable.eservice_template,
+      EserviceTemplateDbTable.eservice_template_version,
+      EserviceTemplateDbTable.eservice_template_version_attribute,
+      EserviceTemplateDbTable.eservice_template_version_document,
+      EserviceTemplateDbTable.eservice_template_version_interface,
+      EserviceTemplateDbTable.eservice_template_risk_analysis,
+      EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
     ]);
     await setupDbService.setupPartialStagingTables([
       TenantDbPartialTable.tenant_self_care_id,
@@ -120,6 +128,10 @@ await retryConnection(
       {
         name: DeletingDbTable.client_key_deleting_table,
         columns: ["clientId", "kid"],
+      },
+      {
+        name: DeletingDbTable.eservice_template_deleting_table,
+        columns: ["id"],
       },
     ]);
   },
