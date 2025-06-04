@@ -21,6 +21,7 @@ import {
   TenantDbPartialTable,
   PurposeDbTable,
   TenantDbTable,
+  ClientDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
@@ -90,6 +91,13 @@ export const tenantTables: TenantDbTable[] = [
   TenantDbTable.tenant_verified_attribute_verifier,
 ];
 
+export const clientTables: ClientDbTable[] = [
+  ClientDbTable.client,
+  ClientDbTable.client_purpose,
+  ClientDbTable.client_user,
+  ClientDbTable.client_key,
+];
+
 export const partialTables = [TenantDbPartialTable.tenant_self_care_id];
 
 export const deletingTables: DeletingDbTable[] = [
@@ -101,6 +109,10 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.tenant_deleting_table,
   DeletingDbTable.tenant_mail_deleting_table,
   DeletingDbTable.tenant_feature_deleting_table,
+  DeletingDbTable.client_deleting_table,
+  DeletingDbTable.client_purpose_deleting_table,
+  DeletingDbTable.client_user_deleting_table,
+  DeletingDbTable.client_key_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
@@ -110,6 +122,7 @@ export const domainTables: DomainDbTable[] = [
   ...purposeTables,
   ...delegationTables,
   ...tenantTables,
+  ...clientTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
@@ -138,6 +151,19 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   {
     name: DeletingDbTable.tenant_feature_deleting_table,
     columns: ["tenantId", "kind"],
+  },
+  { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
+  {
+    name: DeletingDbTable.client_user_deleting_table,
+    columns: ["clientId", "userId"],
+  },
+  {
+    name: DeletingDbTable.client_purpose_deleting_table,
+    columns: ["clientId", "purposeId"],
+  },
+  {
+    name: DeletingDbTable.client_key_deleting_table,
+    columns: ["clientId", "kid"],
   },
 ];
 
