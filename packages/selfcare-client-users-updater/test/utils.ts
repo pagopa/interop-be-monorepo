@@ -4,7 +4,9 @@ import { InteropInternalToken, userRole } from "pagopa-interop-commons";
 import {
   Client,
   generateId,
+  Tenant,
   toReadModelClient,
+  toReadModelTenant,
   UserId,
 } from "pagopa-interop-models";
 import {
@@ -12,7 +14,10 @@ import {
   writeInReadmodel,
 } from "pagopa-interop-commons-test";
 import { afterEach, inject } from "vitest";
-import { clientReadModelServiceBuilder } from "pagopa-interop-readmodel";
+import {
+  clientReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { config } from "../src/config/config.js";
@@ -88,12 +93,13 @@ export const { cleanup, readModelRepository, readModelDB } =
 
 afterEach(cleanup);
 
-export const clients = readModelRepository.clients;
+export const { clients, tenants } = readModelRepository;
 
 const clientReadModelServiceSQL = clientReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL({
+  readModelDB,
   clientReadModelServiceSQL,
 });
 export const readModelService = config.featureFlagSQL
@@ -104,4 +110,9 @@ export const addOneClient = async (client: Client): Promise<void> => {
   await writeInReadmodel(toReadModelClient(client), clients);
 
   await clientReadModelServiceSQL.upsertClient(client, 0);
+};
+
+export const addOneTenant = async (tenant: Tenant): Promise<void> => {
+  await writeInReadmodel(toReadModelTenant(tenant), tenants);
+  await tenantReadModelServiceBuilder(readModelDB).upsertTenant(tenant, 0);
 };
