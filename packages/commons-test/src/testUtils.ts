@@ -1,6 +1,9 @@
 /* eslint-disable fp/no-delete */
 import crypto from "crypto";
 import { fail } from "assert";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -94,6 +97,7 @@ import {
   CertifiedAttributeV2,
   AgreementDocumentV2,
   PurposeV2,
+  EserviceAttributes,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -109,6 +113,9 @@ import {
   UserRole,
   userRole,
   WithLogger,
+  M2MAdminAuthData,
+  CustomClaims,
+  SessionClaims,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -191,8 +198,11 @@ export const getMockAgreementAttribute = (
   id: attributeId,
 });
 
-export const getMockEServiceAttributes = (num: number): EServiceAttribute[] =>
-  new Array(num).map(() => getMockEServiceAttribute());
+export const getMockEServiceAttributes = (): EserviceAttributes => ({
+  certified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  declared: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+  verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
+});
 
 export const getMockEService = (
   eserviceId: EServiceId = generateId<EServiceId>(),
@@ -343,7 +353,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   version: "1",
   docs: [],
   state: state || descriptorState.draft,
-  audience: [],
+  audience: ["pagopa.it"],
   voucherLifespan: 60,
   dailyCallsPerConsumer: 10,
   dailyCallsTotal: 1000,
@@ -528,6 +538,7 @@ export const getMockTokenGenStatesConsumerClient = (
     ? unsafeBrandId<ClientId>(tokenGenStatesEntryPK.split("#")[1])
     : generateId<ClientId>();
   const purposeId = generateId<PurposeId>();
+  const producerId = generateId<TenantId>();
   const consumerId = generateId<TenantId>();
   const eserviceId = generateId<EServiceId>();
   const descriptorId = generateId<DescriptorId>();
@@ -552,6 +563,7 @@ export const getMockTokenGenStatesConsumerClient = (
       descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
       descriptorVoucherLifespan: 60,
       updatedAt: new Date().toISOString(),
+      producerId,
       consumerId,
       agreementId,
       purposeVersionId,
@@ -599,6 +611,7 @@ export const getMockPlatformStatesAgreementEntry = (
   agreementId,
   agreementTimestamp: new Date().toISOString(),
   agreementDescriptorId: generateId<DescriptorId>(),
+  producerId: generateId(),
 });
 
 export const getMockTokenGenStatesApiClient = (
@@ -1096,3 +1109,58 @@ export const getMockContextM2M = ({
   logger: genericLogger,
   requestTimestamp: Date.now(),
 });
+
+export const getMockContextM2MAdmin = ({
+  organizationId,
+  serviceName,
+}: {
+  organizationId?: TenantId;
+  serviceName?: string;
+}): WithLogger<AppContext<M2MAdminAuthData>> => ({
+  authData: {
+    systemRole: systemRole.M2M_ADMIN_ROLE,
+    organizationId: organizationId || generateId(),
+    clientId: generateId(),
+    userId: generateId(),
+  },
+  serviceName: serviceName || "test",
+  correlationId: generateId(),
+  spanId: generateId(),
+  logger: genericLogger,
+  requestTimestamp: Date.now(),
+});
+
+export const getMockSessionClaims = (
+  roles: UserRole[] = [userRole.ADMIN_ROLE]
+): SessionClaims & CustomClaims => ({
+  uid: generateId(),
+  organization: {
+    id: generateId(),
+    name: "My Org",
+    roles: roles.map((r) => ({ role: r })),
+  },
+  name: "A generic user",
+  family_name: "Family name",
+  email: "randomEmailforTest@tester.com",
+  "user-roles": roles.join(","),
+  organizationId: generateId(),
+  selfcareId: generateId(),
+  externalId: {
+    origin: "Internals",
+    value: generateId(),
+  },
+});
+
+export const getMockWithMetadata = <T>(data: T): WithMetadata<T> => ({
+  data,
+  metadata: { version: generateMock(z.number().int()) },
+});
+
+export const readFileContent = async (fileName: string): Promise<string> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return htmlTemplateBuffer.toString();
+};

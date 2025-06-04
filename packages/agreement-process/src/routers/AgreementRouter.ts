@@ -2,15 +2,12 @@ import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
-  ReadModelRepository,
   ZodiosContext,
-  initDB,
-  initFileManager,
-  initPDFGenerator,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
   authRole,
   validateAuthorization,
+  setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import {
   TenantId,
@@ -22,22 +19,12 @@ import {
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
-  agreementReadModelServiceBuilder,
-  attributeReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  makeDrizzleConnection,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
-import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
-import { agreementServiceBuilder } from "../services/agreementService.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
+import { AgreementService } from "../services/agreementService.js";
 import {
   activateAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
@@ -57,62 +44,20 @@ import {
   verifyTenantCertifiedAttributesErrorMapper,
 } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/domain/errors.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
-
-const db = makeDrizzleConnection(config);
-const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
-const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
-const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
-
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const readModelServiceSQL = readModelServiceBuilderSQL(
-  db,
-  agreementReadModelServiceSQL,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-  attributeReadModelServiceSQL,
-  delegationReadModelServiceSQL
-);
-
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
-const pdfGenerator = await initPDFGenerator();
-
-const agreementService = agreementServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  initFileManager(config),
-  pdfGenerator
-);
 
 const {
   ADMIN_ROLE,
   SECURITY_ROLE,
   API_ROLE,
   M2M_ROLE,
+  M2M_ADMIN_ROLE,
   INTERNAL_ROLE,
   SUPPORT_ROLE,
 } = authRole;
 
 const agreementRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  agreementService: AgreementService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const agreementRouter = ctx.router(agreementApi.agreementApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -123,13 +68,17 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.submitAgreement(
-          unsafeBrandId(req.params.agreementId),
-          req.body,
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.submitAgreement(
+            unsafeBrandId(req.params.agreementId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -145,12 +94,15 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.activateAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.activateAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
@@ -256,12 +208,16 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.suspendAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.suspendAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -281,13 +237,17 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.rejectAgreement(
-          unsafeBrandId(req.params.agreementId),
-          req.body.reason,
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.rejectAgreement(
+            unsafeBrandId(req.params.agreementId),
+            req.body.reason,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -328,18 +288,22 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.createAgreement(
-          {
-            eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
-            descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
-            delegationId: req.body.delegationId
-              ? unsafeBrandId<DelegationId>(req.body.delegationId)
-              : undefined,
-          },
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.createAgreement(
+            {
+              eserviceId: unsafeBrandId<EServiceId>(req.body.eserviceId),
+              descriptorId: unsafeBrandId<DescriptorId>(req.body.descriptorId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -360,6 +324,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
@@ -462,13 +427,18 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
-        const agreement = await agreementService.getAgreementById(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.getAgreementById(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -574,12 +544,15 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const agreement = await agreementService.upgradeAgreement(
-          unsafeBrandId(req.params.agreementId),
-          ctx
-        );
+        const { data: agreement, metadata } =
+          await agreementService.upgradeAgreement(
+            unsafeBrandId(req.params.agreementId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)

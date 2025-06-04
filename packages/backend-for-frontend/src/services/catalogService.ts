@@ -83,8 +83,6 @@ import {
 } from "./validators.js";
 import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
-export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
-
 export const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
@@ -1887,3 +1885,5 @@ export function catalogServiceBuilder(
     },
   };
 }
+
+export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

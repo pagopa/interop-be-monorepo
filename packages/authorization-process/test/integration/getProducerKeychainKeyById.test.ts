@@ -10,7 +10,7 @@ import {
 import {
   producerKeychainNotFound,
   producerKeyNotFound,
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
 } from "../../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
@@ -38,7 +38,7 @@ describe("getProducerKeychainKeyById", async () => {
     );
     expect(retrievedKey).toEqual(mockKey1);
   });
-  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
+  it("should throw tenantNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     const organizationId: TenantId = generateId();
     const mockKey = getMockKey();
     const mockProducerKeychain: ProducerKeychain = {
@@ -57,7 +57,7 @@ describe("getProducerKeychainKeyById", async () => {
         getMockContext({ authData: getMockAuthData(organizationId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnProducerKeychain(
+      tenantNotAllowedOnProducerKeychain(
         organizationId,
         mockProducerKeychain.id
       )

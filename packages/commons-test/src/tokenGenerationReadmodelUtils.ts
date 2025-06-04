@@ -104,6 +104,13 @@ export const writeTokenGenStatesConsumerClient = async (
       updatedAt: {
         S: tokenGenStatesEntry.updatedAt,
       },
+      ...(tokenGenStatesEntry.producerId
+        ? {
+            producerId: {
+              S: tokenGenStatesEntry.producerId,
+            },
+          }
+        : {}),
       ...(tokenGenStatesEntry.consumerId
         ? {
             consumerId: {
@@ -468,6 +475,9 @@ export const writePlatformAgreementEntry = async (
       },
       agreementDescriptorId: {
         S: agreementEntry.agreementDescriptorId,
+      },
+      producerId: {
+        S: agreementEntry.producerId,
       },
     },
     TableName: "platform-states",

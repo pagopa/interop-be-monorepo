@@ -15,7 +15,7 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import {
-  eServiceTemplateDuplicate,
+  eserviceTemplateDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
@@ -104,7 +104,7 @@ describe("create eservice template", () => {
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
   });
 
-  it("should throw eServiceTemplateDuplicate if an eservice template with the same name already exists, case insensitive", async () => {
+  it("should throw eserviceTemplateDuplicate if an eservice template with the same name already exists, case insensitive", async () => {
     await addOneEServiceTemplate(mockEServiceTemplate);
     await expect(
       eserviceTemplateService.createEServiceTemplate(
@@ -114,7 +114,7 @@ describe("create eservice template", () => {
         })
       )
     ).rejects.toThrowError(
-      eServiceTemplateDuplicate(mockEServiceTemplate.name)
+      eserviceTemplateDuplicate(mockEServiceTemplate.name)
     );
   });
 
@@ -124,7 +124,7 @@ describe("create eservice template", () => {
         eserviceTemplateToApiEServiceTemplateSeed({
           ...mockEServiceTemplate,
           versions: [
-            { ...mockVersion, dailyCallsPerConsumer: 1, dailyCallsTotal: 0 },
+            { ...mockVersion, dailyCallsPerConsumer: 2, dailyCallsTotal: 1 },
           ],
         }),
         getMockContext({

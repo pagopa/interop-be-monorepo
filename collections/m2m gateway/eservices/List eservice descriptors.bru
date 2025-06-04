@@ -1,0 +1,19 @@
+meta {
+  name: List eservice descriptors
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

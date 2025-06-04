@@ -27,6 +27,7 @@ import {
   getMockTenant,
   getMockAgreement,
   getMockContext,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   purposeNotFound,
@@ -44,7 +45,6 @@ import {
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
 
 describe("deletePurpose", () => {
   it("should write on event-store for the deletion of a purpose (no versions)", async () => {
