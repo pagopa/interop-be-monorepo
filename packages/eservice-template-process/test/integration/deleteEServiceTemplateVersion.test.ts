@@ -23,8 +23,8 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
 import {
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
@@ -272,7 +272,7 @@ describe("deleteEServiceTemplateVersion", () => {
     }
   });
 
-  it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", () => {
+  it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", () => {
     const mockEServiceTemplate = getMockEServiceTemplate();
     expect(
       eserviceTemplateService.deleteEServiceTemplateVersion(
@@ -280,7 +280,7 @@ describe("deleteEServiceTemplateVersion", () => {
         getMockEServiceTemplateVersion().id,
         getMockContext({})
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
   it("should throw operationForbidden if the requester is not the eservice template creator", async () => {
@@ -300,7 +300,7 @@ describe("deleteEServiceTemplateVersion", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceTemplateVersionNotFound if the eservice template version doesn't exist", async () => {
+  it("should throw eserviceTemplateVersionNotFound if the eservice template version doesn't exist", async () => {
     const eserviceTemplate: EServiceTemplate = getMockEServiceTemplate();
     await addOneEServiceTemplate(eserviceTemplate);
 
@@ -315,7 +315,7 @@ describe("deleteEServiceTemplateVersion", () => {
         })
       )
     ).rejects.toThrowError(
-      eServiceTemplateVersionNotFound(eserviceTemplate.id, versionId)
+      eserviceTemplateVersionNotFound(eserviceTemplate.id, versionId)
     );
   });
 

@@ -107,7 +107,9 @@ export const fromAgreementV1 = (input: AgreementV1): Agreement => ({
   }),
   createdAt: bigIntToDate(input.createdAt),
   ...(input.updatedAt && { updatedAt: bigIntToDate(input.updatedAt) }),
-  ...(input.consumerNotes && { consumerNotes: input.consumerNotes }),
+  ...(input.consumerNotes !== undefined && {
+    consumerNotes: input.consumerNotes,
+  }),
   consumerDocuments: input.consumerDocuments.map(fromAgreementDocumentV1),
   ...(input.contract && { contract: fromAgreementDocumentV1(input.contract) }),
   stamps: fromAgreementStampsV1(input.stamps),

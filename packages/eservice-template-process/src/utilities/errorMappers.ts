@@ -18,7 +18,7 @@ export const getEServiceTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const suspendEServiceTemplateVersionErrorMapper = (
@@ -26,8 +26,8 @@ export const suspendEServiceTemplateVersionErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
@@ -39,8 +39,8 @@ export const activateEServiceTemplateVersionErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
@@ -52,8 +52,8 @@ export const publishEServiceTemplateVersionErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       "missingTemplateVersionInterface",
       () => HTTP_STATUS_NOT_FOUND
     )
@@ -74,11 +74,11 @@ export const updateEServiceTemplateNameErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateWithoutPublishedVersion",
-      "eServiceTemplateDuplicate",
+      "eserviceTemplateDuplicate",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -87,7 +87,7 @@ export const updateEServiceTemplateIntendedTargetErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("eserviceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -96,7 +96,7 @@ export const updateEServiceTemplateDescriptionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("eserviceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -106,8 +106,8 @@ export const updateEServiceTemplateVersionQuotasErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
@@ -122,7 +122,7 @@ export const createRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateNotInDraftState",
@@ -142,7 +142,7 @@ export const deleteRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceTemplateNotInDraftState",
@@ -156,7 +156,7 @@ export const updateRiskAnalysisErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
+      "eserviceTemplateNotFound",
       "tenantNotFound",
       "tenantKindNotFound",
       () => HTTP_STATUS_NOT_FOUND
@@ -175,8 +175,8 @@ export const deleteEServiceTemplateVersionErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -188,8 +188,8 @@ export const updateEServiceTemplateVersionAttributesErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
@@ -207,7 +207,7 @@ export const createEServiceTemplateErrorMapper = (
 ): number =>
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
-    .with("eServiceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("eserviceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("inconsistentDailyCalls", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -215,10 +215,10 @@ export const updateEServiceTemplateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with("eserviceTemplateNotInDraftState", () => HTTP_STATUS_BAD_REQUEST)
-    .with("eServiceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("eserviceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateDraftTemplateVersionErrorMapper = (
@@ -226,8 +226,8 @@ export const updateDraftTemplateVersionErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       "attributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
@@ -243,7 +243,7 @@ export const createEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "draftEServiceTemplateVersionAlreadyExists",
       "inconsistentDailyCalls",
@@ -258,8 +258,8 @@ export const createEServiceTemplateDocumentErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -273,9 +273,9 @@ export const getEServiceTemplateDocumentErrorMapper = (
   match(error.code)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateVersionNotFound",
       "eserviceTemplateDocumentNotFound",
-      "eServiceTemplateNotFound",
+      "eserviceTemplateNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -285,8 +285,8 @@ export const updateDocumentErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       "eserviceTemplateDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
@@ -300,9 +300,8 @@ export const deleteDocumentErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eServiceTemplateNotFound",
-      "eServiceTemplateVersionNotFound",
-      "eServiceDocumentNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       "eserviceTemplateDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
@@ -314,5 +313,5 @@ export const getEServiceTemplatesErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

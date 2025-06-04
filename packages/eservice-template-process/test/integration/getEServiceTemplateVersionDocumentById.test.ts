@@ -2,8 +2,8 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  eserviceTemplateVersionState,
   generateId,
-  operationForbidden,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -15,8 +15,8 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   eserviceTemplateDocumentNotFound,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -58,7 +58,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
       {
         eServiceTemplateId: mockEServiceTemplate.id,
         eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
-        eServiceDocumentId: unsafeBrandId(documentId),
+        documentId: unsafeBrandId(documentId),
       },
       getMockContext({})
     );
@@ -80,11 +80,11 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         {
           eServiceTemplateId: invalidEServiceTemplateId,
           eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
-          eServiceDocumentId: unsafeBrandId(generateId()),
+          documentId: unsafeBrandId(generateId()),
         },
         getMockContext({})
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(invalidEServiceTemplateId));
+    ).rejects.toThrowError(eserviceTemplateNotFound(invalidEServiceTemplateId));
   });
   it("should throw eServiceTemplateVersion not found", async () => {
     const eServiceTemplate = {
@@ -102,30 +102,37 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         {
           eServiceTemplateId: mockEServiceTemplate.id,
           eServiceTemplateVersionId: invalidEServiceTemplateVersionId,
-          eServiceDocumentId: unsafeBrandId(generateId()),
+          documentId: unsafeBrandId(generateId()),
         },
         getMockContext({})
       )
     ).rejects.toThrowError(
-      eServiceTemplateVersionNotFound(
+      eserviceTemplateVersionNotFound(
         eServiceTemplate.id,
         invalidEServiceTemplateVersionId
       )
     );
   });
-  it("Should throw operation forbidden", async () => {
+  it("Should throw eserviceTemplateDocumentNotFound", async () => {
     const documentId = generateId();
-    const version: EServiceTemplateVersion = {
+    const versionDraft: EServiceTemplateVersion = {
       ...mockEServiceTemplateVersion,
+      state: eserviceTemplateVersionState.draft,
       interface: {
         ...mockDocument,
         id: unsafeBrandId(documentId),
       },
     };
 
+    const versionPublished: EServiceTemplateVersion = {
+      ...mockEServiceTemplateVersion,
+      id: generateId(),
+      state: "Published",
+    };
+
     const eServiceTemplate = {
       ...mockEServiceTemplate,
-      versions: [version],
+      versions: [versionDraft, versionPublished],
     };
 
     await addOneEServiceTemplate(eServiceTemplate);
@@ -134,12 +141,18 @@ describe("getEServiceTemplateVersionDocumentById", () => {
       eserviceTemplateService.getEServiceTemplateDocument(
         {
           eServiceTemplateId: mockEServiceTemplate.id,
-          eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
-          eServiceDocumentId: unsafeBrandId(documentId),
+          eServiceTemplateVersionId: versionDraft.id,
+          documentId: unsafeBrandId(documentId),
         },
         getMockContext({})
       )
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrowError(
+      eserviceTemplateDocumentNotFound(
+        mockEServiceTemplate.id,
+        versionDraft.id,
+        documentId
+      )
+    );
   });
   it("Should throw eServiceTemplateDocument not found", async () => {
     const documentId = generateId();
@@ -161,7 +174,7 @@ describe("getEServiceTemplateVersionDocumentById", () => {
         {
           eServiceTemplateId: mockEServiceTemplate.id,
           eServiceTemplateVersionId: mockEServiceTemplateVersion.id,
-          eServiceDocumentId: unsafeBrandId(documentId),
+          documentId: unsafeBrandId(documentId),
         },
         getMockContext({})
       )
