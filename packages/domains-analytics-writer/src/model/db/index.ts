@@ -18,10 +18,14 @@ import {
 import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
 import { DeletingDbTableConfig, DeletingDbTableReadModel } from "./deleting.js";
 import {
+  EserviceTemplateDbTableConfig,
+  EserviceTemplateDbTableReadModel,
+} from "./eserviceTemplate.js";
+import {
   TenantDbPartialTableConfig,
-  TenantDbPartialTableReadModel,
   TenantDbTableConfig,
   TenantDbTableReadModel,
+  TenantDbPartialTableReadModel,
 } from "./tenant.js";
 
 export const PartialDbTable = {
@@ -38,6 +42,7 @@ export const DomainDbTable = {
   ...DelegationDbTableConfig,
   ...TenantDbTableConfig,
   ...ClientDbTableConfig,
+  ...EserviceTemplateDbTableConfig,
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
 export type DomainDbTable = keyof DomainDbTableSchemas;
@@ -58,6 +63,7 @@ export const DomainDbTableReadModels = {
   ...PurposeDbTableReadModel,
   ...TenantDbTableReadModel,
   ...ClientDbTableReadModel,
+  ...EserviceTemplateDbTableReadModel,
 } as const;
 export type DomainDbTableReadModels = typeof DomainDbTableReadModels;
 
@@ -81,3 +87,4 @@ export * from "./purpose.js";
 export * from "./delegation.js";
 export * from "./tenant.js";
 export * from "./deleting.js";
+export * from "./eserviceTemplate.js";
