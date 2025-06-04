@@ -26,7 +26,6 @@ import {
   ClientKindTokenGenStates,
   ClientId,
   DPoPProof,
-  DPoPAuditDetails,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -454,7 +453,7 @@ export const publishAudit = async ({
             htu: dpop.payload.htu,
             iat: secondsToMilliseconds(dpop.payload.iat),
             jti: dpop.payload.jti,
-          } satisfies DPoPAuditDetails,
+          },
         }
       : {}),
   };
