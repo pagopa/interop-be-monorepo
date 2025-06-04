@@ -1,0 +1,98 @@
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: root
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo:4.0
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: "redis:7.2.5-alpine3.20"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:RELEASE.2024-02-06T21-36-22Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: testawskey # use this as AWS S3 access key ID
+      MINIO_ROOT_PASSWORD: testawssecret # use this as AWS S3 secret access key
+      MINIO_SITE_REGION: eu-south-1
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - miniodata:/data
+
+  dynamodb:
+    image: amazon/dynamodb-local:2.5.2
+    command: "-jar DynamoDBLocal.jar -inMemory -sharedDb"
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/shell"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mailpit:
+    image: axllent/mailpit:v1.19
+    ports:
+      - "8025:8025" # Web UI
+      - "1025:1025" # SMTP
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8025/api/v1/messages"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  localstack:
+    image: nsmithuk/local-kms:3.11.7
+    environment:
+      PORT: 4566
+      KMS_REGION: eu-south-1
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - localstack_data:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  pgdata:
+  miniodata:
+  localstack_data:
