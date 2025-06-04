@@ -72,8 +72,8 @@ describe("Authorization messages consumers - handleAuthorizationMessageV1", () =
       id: client.id,
     });
     expect(storedClient).toBeDefined();
-    expect(storedClient.name).toBe(mockClient.name);
-    expect(storedClient.metadataVersion).toBe(1);
+    expect(storedClient?.name).toBe(mockClient.name);
+    expect(storedClient?.metadataVersion).toBe(1);
 
     const storedUsers = await getManyFromDb(
       dbContext,
@@ -131,7 +131,7 @@ describe("Authorization messages consumers - handleAuthorizationMessageV1", () =
     const storedClient = await getOneFromDb(dbContext, ClientDbTable.client, {
       id: client.id,
     });
-    expect(storedClient.deleted).toBe(true);
+    expect(storedClient?.deleted).toBe(true);
 
     const checks = [
       { table: ClientDbTable.client_user, where: { clientId: client.id } },
@@ -197,11 +197,11 @@ describe("Authorization messages consumers - handleAuthorizationMessageV1", () =
 
     await handleAuthorizationMessageV1([addMsg, removeMsg], dbContext);
 
-    const users = await getManyFromDb(dbContext, ClientDbTable.client_user, {
+    const user = await getOneFromDb(dbContext, ClientDbTable.client_user, {
       clientId: client.id,
       userId,
     });
-    expect(users[0].deleted).toBe(true);
+    expect(user).toBeUndefined();
   });
 
   it("ClientPurposeAdded: adds purpose to client", async () => {
@@ -277,7 +277,7 @@ describe("Authorization messages consumers - handleAuthorizationMessageV1", () =
 
     await handleAuthorizationMessageV1([addMsg, removeMsg], dbContext);
 
-    const purposes = await getManyFromDb(
+    const purpose = await getOneFromDb(
       dbContext,
       ClientDbTable.client_purpose,
       {
@@ -285,7 +285,7 @@ describe("Authorization messages consumers - handleAuthorizationMessageV1", () =
         purposeId,
       }
     );
-    expect(purposes[0].deleted).toBe(true);
+    expect(purpose).toBeUndefined();
   });
 
   it("ClientAdded: should throw error when client is missing", async () => {
@@ -435,8 +435,8 @@ describe("Authorization messages consumers - handleAuthorizationMessageV2", () =
       id: client.id,
     });
     expect(storedClient).toBeDefined();
-    expect(storedClient.name).toBe(mockClient.name);
-    expect(storedClient.metadataVersion).toBe(1);
+    expect(storedClient?.name).toBe(mockClient.name);
+    expect(storedClient?.metadataVersion).toBe(1);
 
     const storedUsers = await getManyFromDb(
       dbContext,
@@ -509,7 +509,7 @@ describe("Authorization messages consumers - handleAuthorizationMessageV2", () =
     const storedClient = await getOneFromDb(dbContext, ClientDbTable.client, {
       id: client.id,
     });
-    expect(storedClient.deleted).toBe(true);
+    expect(storedClient?.deleted).toBe(true);
 
     const checks = [
       { table: ClientDbTable.client_user, where: { clientId: client.id } },
@@ -576,7 +576,7 @@ describe("Authorization messages consumers - handleAuthorizationMessageV2", () =
       id: client.id,
     });
 
-    expect(stored.name).toBe("V3");
-    expect(stored.metadataVersion).toBe(3);
+    expect(stored?.name).toBe("V3");
+    expect(stored?.metadataVersion).toBe(3);
   });
 });

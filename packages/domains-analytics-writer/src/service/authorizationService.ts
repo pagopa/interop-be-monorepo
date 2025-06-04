@@ -5,7 +5,10 @@
 import { genericLogger } from "pagopa-interop-commons";
 import { DBContext } from "../db/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
-import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
 import {
   ClientItemsSchema,
@@ -79,6 +82,19 @@ export function authorizationServiceBuilder(db: DBContext) {
         await clientUserRepo.merge(t);
         await clientPurposeRepo.merge(t);
         await clientKeyRepo.merge(t);
+      });
+
+      await dbContext.conn.tx(async (t) => {
+        await cleaningTargetTables(
+          t,
+          "clientId",
+          [
+            ClientDbTable.client_user,
+            ClientDbTable.client_purpose,
+            ClientDbTable.client_key,
+          ],
+          ClientDbTable.client
+        );
       });
 
       genericLogger.info(
