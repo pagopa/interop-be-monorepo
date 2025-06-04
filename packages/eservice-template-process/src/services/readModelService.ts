@@ -101,19 +101,16 @@ export function readModelServiceBuilder({
       return getEServiceTemplate(eserviceTemplates, { "data.id": id });
     },
 
-    async getEServiceTemplateByNameAndCreatorId({
+    async getEServiceTemplateByName({
       name,
-      creatorId,
     }: {
       name: string;
-      creatorId: TenantId;
     }): Promise<WithMetadata<EServiceTemplate> | undefined> {
       return getEServiceTemplate(eserviceTemplates, {
         "data.name": {
           $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
           $options: "i",
         },
-        "data.creatorId": creatorId,
       });
     },
 

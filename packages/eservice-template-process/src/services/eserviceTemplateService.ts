@@ -633,10 +633,10 @@ export function eserviceTemplateServiceBuilder(
 
       if (name !== eserviceTemplate.data.name) {
         const eserviceTemplateWithSameName =
-          await readModelService.getEServiceTemplateByNameAndCreatorId({
+          await readModelService.getEServiceTemplateByName({
             name,
-            creatorId: eserviceTemplate.data.creatorId,
           });
+
         if (eserviceTemplateWithSameName !== undefined) {
           throw eserviceTemplateDuplicate(name);
         }
@@ -1179,10 +1179,10 @@ export function eserviceTemplateServiceBuilder(
       }
 
       const eserviceTemplateWithSameName =
-        await readModelService.getEServiceTemplateByNameAndCreatorId({
+        await readModelService.getEServiceTemplateByName({
           name: seed.name,
-          creatorId: authData.organizationId,
         });
+
       if (eserviceTemplateWithSameName) {
         throw eserviceTemplateDuplicate(seed.name);
       }
@@ -1255,9 +1255,8 @@ export function eserviceTemplateServiceBuilder(
 
       if (eserviceTemplateSeed.name !== eserviceTemplate.data.name) {
         const eserviceTemplateWithSameName =
-          await readModelService.getEServiceTemplateByNameAndCreatorId({
+          await readModelService.getEServiceTemplateByName({
             name: eserviceTemplateSeed.name,
-            creatorId: eserviceTemplate.data.creatorId,
           });
         if (eserviceTemplateWithSameName !== undefined) {
           throw eserviceTemplateDuplicate(eserviceTemplateSeed.name);

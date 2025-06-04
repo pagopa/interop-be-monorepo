@@ -71,20 +71,15 @@ export function readModelServiceBuilderSQL({
         id
       );
     },
-    async getEServiceTemplateByNameAndCreatorId({
+    async getEServiceTemplateByName({
       name,
-      creatorId,
     }: {
       name: string;
-      creatorId: TenantId;
     }): Promise<WithMetadata<EServiceTemplate> | undefined> {
       return await eserviceTemplateReadModelServiceSQL.getEServiceTemplateByFilter(
-        and(
-          eq(eserviceTemplateInReadmodelEserviceTemplate.creatorId, creatorId),
-          ilike(
-            eserviceTemplateInReadmodelEserviceTemplate.name,
-            escapeRegExp(name)
-          )
+        ilike(
+          eserviceTemplateInReadmodelEserviceTemplate.name,
+          escapeRegExp(name)
         )
       );
     },
