@@ -7,7 +7,11 @@ import {
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
 
-import { emptyErrorMapper } from "pagopa-interop-models";
+import {
+  ApiError,
+  emptyErrorMapper,
+  genericError,
+} from "pagopa-interop-models";
 import { AuthorizationService } from "../services/authorizationService.js";
 import { makeApiProblem } from "../model/errors.js";
 import { fromBffAppContext } from "../utilities/context.js";

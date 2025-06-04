@@ -15,7 +15,6 @@ import {
 } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { AuthorizationService } from "../services/authorizationService.js";
-import { sessionTokenErrorMapper } from "../utilities/errorMappers.js";
 import { config } from "../config/config.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
