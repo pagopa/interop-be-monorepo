@@ -82,7 +82,6 @@ import {
   mockKMSClient,
   mockProducer,
 } from "../mockUtils.js";
-import { TokenRequest } from "../../src/model/domain/models.js";
 
 describe("authorization server tests", () => {
   if (!configTokenGenerationStates) {
@@ -103,11 +102,11 @@ describe("authorization server tests", () => {
     const { jws } = await getMockClientAssertion();
 
     const clientId = generateId<ClientId>();
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion_type: "wrong-client-assertion-type",
         client_assertion: jws,
         client_id: clientId,
@@ -116,7 +115,8 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -136,11 +136,11 @@ describe("authorization server tests", () => {
       standardClaimsOverride: { iat: undefined, sub: clientId },
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -148,7 +148,8 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -166,11 +167,11 @@ describe("authorization server tests", () => {
       customClaims: { purposeId },
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -183,7 +184,8 @@ describe("authorization server tests", () => {
     });
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -200,11 +202,11 @@ describe("authorization server tests", () => {
       customClaims: { purposeId },
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -229,7 +231,8 @@ describe("authorization server tests", () => {
     );
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -247,11 +250,11 @@ describe("authorization server tests", () => {
       standardClaimsOverride: { sub: clientId },
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -274,7 +277,8 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -299,11 +303,11 @@ describe("authorization server tests", () => {
     const splitJws = jws.split(".");
     const jwsWithWrongSignature = `${splitJws[0]}.${splitJws[1]}.wrong-signature`;
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jwsWithWrongSignature,
         client_id: clientId,
       },
@@ -329,7 +333,8 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -352,11 +357,11 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -384,7 +389,8 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -406,11 +412,11 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -436,7 +442,8 @@ describe("authorization server tests", () => {
     // eslint-disable-next-line functional/no-let
     for (let i = 0; i < config.rateLimiterMaxRequests; i++) {
       const response = await tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -448,7 +455,8 @@ describe("authorization server tests", () => {
     }
 
     const responseAfterLimitExceeded = await tokenService.generateToken(
-      request,
+      request.headers,
+      request.body,
       getMockContext({}),
       () => {},
       () => {}
@@ -458,7 +466,7 @@ describe("authorization server tests", () => {
       limitReached: true,
       rateLimitedTenantId: tokenClientKidPurposeEntry.consumerId,
       token: undefined,
-      isDPoP: !!headers.DPoP,
+      isDPoP: !!request.headers.DPoP,
       rateLimiterStatus: {
         maxRequests: config.rateLimiterMaxRequests,
         rateInterval: config.rateLimiterRateInterval,
@@ -485,11 +493,11 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -516,7 +524,8 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -542,11 +551,11 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -567,7 +576,8 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -596,11 +606,11 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -626,7 +636,8 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -643,21 +654,22 @@ describe("authorization server tests", () => {
       },
     });
 
-    const { headers, body } = await getMockTokenRequest(true);
-    const request: TokenRequest = {
+    const mockRequestWithDPoP = await getMockTokenRequest(true);
+    const request: typeof mockRequestWithDPoP = {
       headers: {
-        ...headers,
+        ...mockRequestWithDPoP.headers,
         DPoP: dpopProofJWS,
       },
       body: {
-        ...body,
+        ...mockRequestWithDPoP.body,
         client_id: clientId,
       },
     };
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -680,21 +692,22 @@ describe("authorization server tests", () => {
       },
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
       headers: {
-        ...headers,
+        ...mockRequest.headers,
         DPoP: dpopProofJWS,
       },
       body: {
-        ...body,
+        ...mockRequest.body,
         client_id: clientId,
       },
     };
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -722,21 +735,22 @@ describe("authorization server tests", () => {
       keySet: wrongKeySet,
     });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
       headers: {
-        ...headers,
+        ...mockRequest.headers,
         DPoP: jwsWithWrongSignature,
       },
       body: {
-        ...body,
+        ...mockRequest.body,
         client_id: clientId,
       },
     };
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}
@@ -761,11 +775,11 @@ describe("authorization server tests", () => {
         customClaims: { purposeId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -801,7 +815,8 @@ describe("authorization server tests", () => {
 
     const correlationId = generateId<CorrelationId>();
     const response = await tokenService.generateToken(
-      request,
+      request.headers,
+      request.body,
       getMockContext({ correlationId }),
       () => {},
       () => {}
@@ -928,11 +943,11 @@ describe("authorization server tests", () => {
       dynamoDBClient
     );
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -944,7 +959,8 @@ describe("authorization server tests", () => {
 
     const correlationId = generateId<CorrelationId>();
     const result = await tokenService.generateToken(
-      request,
+      request.headers,
+      request.body,
       getMockContext({ correlationId }),
       () => {},
       () => {}
@@ -1023,14 +1039,14 @@ describe("authorization server tests", () => {
 
     const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
       headers: {
-        ...headers,
+        ...mockRequest.headers,
         DPoP: dpopProofJWS,
       },
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -1066,7 +1082,8 @@ describe("authorization server tests", () => {
 
     const correlationId = generateId<CorrelationId>();
     const response = await tokenService.generateToken(
-      request,
+      request.headers,
+      request.body,
       getMockContext({ correlationId }),
       () => {},
       () => {}
@@ -1207,14 +1224,14 @@ describe("authorization server tests", () => {
 
     const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
 
-    const { headers, body } = await getMockTokenRequest(true);
-    const request: TokenRequest = {
+    const mockRequestWithDPoP = await getMockTokenRequest(true);
+    const request: typeof mockRequestWithDPoP = {
       headers: {
-        ...headers,
+        ...mockRequestWithDPoP.headers,
         DPoP: dpopProofJWS,
       },
       body: {
-        ...body,
+        ...mockRequestWithDPoP.body,
         client_assertion: clientAssertionJWS,
         client_id: clientId,
       },
@@ -1226,7 +1243,8 @@ describe("authorization server tests", () => {
 
     const correlationId = generateId<CorrelationId>();
     const result = await tokenService.generateToken(
-      request,
+      request.headers,
+      request.body,
       getMockContext({ correlationId }),
       () => {},
       () => {}
@@ -1310,11 +1328,11 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -1340,7 +1358,8 @@ describe("authorization server tests", () => {
     expect(fileListBefore).toHaveLength(0);
 
     const response = await tokenService.generateToken(
-      request,
+      request.headers,
+      request.body,
       getMockContext({}),
       () => {},
       () => {}
@@ -1378,11 +1397,11 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const { headers, body } = await getMockTokenRequest();
-    const request: TokenRequest = {
-      headers,
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
       body: {
-        ...body,
+        ...mockRequest.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -1409,7 +1428,8 @@ describe("authorization server tests", () => {
     expect(fileListBefore).toHaveLength(0);
 
     const response = await tokenService.generateToken(
-      request,
+      request.headers,
+      request.body,
       getMockContext({}),
       () => {},
       () => {}
@@ -1443,11 +1463,11 @@ describe("authorization server tests", () => {
         standardClaimsOverride: { sub: clientId },
       });
 
-    const { headers, body } = await getMockTokenRequest(true);
-    const request: TokenRequest = {
-      headers,
+    const mockRequestWithDPoP = await getMockTokenRequest(true);
+    const request: typeof mockRequestWithDPoP = {
+      headers: mockRequestWithDPoP.headers,
       body: {
-        ...body,
+        ...mockRequestWithDPoP.body,
         client_assertion: jws,
         client_id: clientId,
       },
@@ -1468,7 +1488,8 @@ describe("authorization server tests", () => {
 
     expect(
       tokenService.generateToken(
-        request,
+        request.headers,
+        request.body,
         getMockContext({}),
         () => {},
         () => {}

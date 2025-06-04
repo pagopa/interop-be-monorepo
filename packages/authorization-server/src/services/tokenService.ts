@@ -1,9 +1,11 @@
+import { IncomingHttpHeaders } from "http";
 import {
   validateClientKindAndPlatformState,
   validateRequestParameters,
   verifyClientAssertion,
   verifyClientAssertionSignature,
 } from "pagopa-interop-client-assertion-validation";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   clientKindTokenGenStates,
   DescriptorId,
@@ -71,7 +73,6 @@ import {
   unexpectedDPoPProofForAPIToken,
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
-import { TokenRequest } from "../model/domain/models.js";
 
 export type GenerateTokenReturnType =
   | {
@@ -104,17 +105,18 @@ export function tokenServiceBuilder({
 }) {
   return {
     async generateToken(
-      request: TokenRequest,
+      headers: IncomingHttpHeaders & { DPoP?: string },
+      body: authorizationServerApi.AccessTokenRequest,
       { logger, correlationId }: WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<GenerateTokenReturnType> {
-      logger.info(`[CLIENTID=${request.body.client_id}] Token requested`);
+      logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
       // DPoP proof validation
-      const { data, errors: dpopProofErrors } = request.headers.DPoP
+      const { data, errors: dpopProofErrors } = headers.DPoP
         ? verifyDPoPProof({
-            dpopProofJWS: request.headers.DPoP,
+            dpopProofJWS: headers.DPoP,
             expectedDPoPProofHtu: config.dpopHtu,
           })
         : { data: undefined, errors: undefined };
@@ -124,7 +126,7 @@ export function tokenServiceBuilder({
 
       if (dpopProofErrors) {
         throw dpopProofValidationFailed(
-          request.body.client_id,
+          body.client_id,
           dpopProofErrors.map((error) => error.detail).join(", ")
         );
       }
@@ -135,7 +137,7 @@ export function tokenServiceBuilder({
 
         if (dpopProofSignatureErrors) {
           throw dpopProofSignatureValidationFailed(
-            request.body.client_id,
+            body.client_id,
             dpopProofSignatureErrors.map((error) => error.detail).join(", ")
           );
         }
@@ -145,15 +147,15 @@ export function tokenServiceBuilder({
 
       // Request body parameters validation
       const { errors: parametersErrors } = validateRequestParameters({
-        client_assertion: request.body.client_assertion,
-        client_assertion_type: request.body.client_assertion_type,
-        grant_type: request.body.grant_type,
-        client_id: request.body.client_id,
+        client_assertion: body.client_assertion,
+        client_assertion_type: body.client_assertion_type,
+        grant_type: body.grant_type,
+        client_id: body.client_id,
       });
 
       if (parametersErrors) {
         throw clientAssertionRequestValidationFailed(
-          request.body.client_id,
+          body.client_id,
           parametersErrors.map((error) => error.detail).join(", ")
         );
       }
@@ -161,8 +163,8 @@ export function tokenServiceBuilder({
       // Client assertion validation
       const { data: clientAssertionJWT, errors: clientAssertionErrors } =
         verifyClientAssertion(
-          request.body.client_assertion,
-          request.body.client_id,
+          body.client_assertion,
+          body.client_id,
           config.clientAssertionAudience,
           logger,
           isFeatureFlagEnabled(
@@ -173,7 +175,7 @@ export function tokenServiceBuilder({
 
       if (clientAssertionErrors) {
         throw clientAssertionValidationFailed(
-          request.body.client_id,
+          body.client_id,
           clientAssertionErrors.map((error) => error.detail).join(", ")
         );
       }
@@ -218,14 +220,14 @@ export function tokenServiceBuilder({
 
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
-          request.body.client_assertion,
+          body.client_assertion,
           key,
           clientAssertionJWT.header.alg
         );
 
       if (clientAssertionSignatureErrors) {
         throw clientAssertionSignatureValidationFailed(
-          request.body.client_id,
+          body.client_id,
           clientAssertionSignatureErrors.map((error) => error.detail).join(", ")
         );
       }

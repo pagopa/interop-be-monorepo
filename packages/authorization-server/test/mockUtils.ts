@@ -1,3 +1,4 @@
+import { IncomingHttpHeaders } from "http";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { dateToSeconds } from "pagopa-interop-commons";
 import {
@@ -17,7 +18,6 @@ import {
   algorithm,
 } from "pagopa-interop-models";
 import { vi } from "vitest";
-import { TokenRequest } from "../src/model/domain/models.js";
 
 export const mockProducer = {
   send: vi.fn(),
@@ -40,7 +40,10 @@ export const getMockAccessTokenRequest =
 
 export const getMockTokenRequest = async (
   withDPoPProof: boolean = false
-): Promise<TokenRequest> => ({
+): Promise<{
+  headers: IncomingHttpHeaders & { DPoP?: string };
+  body: authorizationServerApi.AccessTokenRequest;
+}> => ({
   headers: {
     ...(withDPoPProof ? { DPoP: (await getMockDPoPProof()).dpopProofJWS } : {}),
   },
