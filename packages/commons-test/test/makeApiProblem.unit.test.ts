@@ -1,3 +1,4 @@
+import { constants } from "http2";
 import {
   ApiError,
   CommonErrorCodes,
@@ -14,9 +15,8 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { describe, expect, it, vi } from "vitest";
-import { constants } from "http2";
-import { getMockContext } from "../src/testUtils.js";
 import { z } from "zod";
+import { getMockContext } from "../src/testUtils.js";
 
 export const testErrorCodes = {
   testError1: "0001",
@@ -228,7 +228,7 @@ describe("makeApiProblem", () => {
       detail: "Unexpected error",
       errors: [
         {
-          code: `000-${commonErrorCodes["genericError"]}`,
+          code: `000-${commonErrorCodes.genericError}`,
           detail: "Unexpected error",
         },
       ],
@@ -254,7 +254,7 @@ describe("makeApiProblem", () => {
       detail: "Unexpected error",
       errors: [
         {
-          code: `000-${commonErrorCodes["genericError"]}`,
+          code: `000-${commonErrorCodes.genericError}`,
           detail: "Unexpected error",
         },
       ],
@@ -320,7 +320,7 @@ describe("makeApiProblem - problemErrorsPassthrough = false", () => {
       detail: "Unexpected error",
       errors: [
         {
-          code: `000-${commonErrorCodes["genericError"]}`,
+          code: `000-${commonErrorCodes.genericError}`,
           detail: "Unexpected error",
         },
       ],
@@ -357,7 +357,7 @@ describe("makeApiProblem - forceGenericProblemOn500 = true", () => {
       detail: "Unexpected error",
       errors: [
         {
-          code: `000-${commonErrorCodes["genericError"]}`,
+          code: `000-${commonErrorCodes.genericError}`,
           detail: "Unexpected error",
         },
       ],
@@ -397,7 +397,7 @@ describe("makeApiProblem - forceGenericProblemOn500 = true", () => {
       detail: "Unexpected error",
       errors: [
         {
-          code: `000-${commonErrorCodes["genericError"]}`,
+          code: `000-${commonErrorCodes.genericError}`,
           detail: "Unexpected error",
         },
       ],
