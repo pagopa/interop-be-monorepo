@@ -10,6 +10,7 @@ import {
   EServiceTemplateId,
   PurposeId,
   PurposeVersionId,
+  TenantId,
   generateId,
 } from "pagopa-interop-models";
 import { EServiceRiskAnalysis } from "../../api-clients/dist/bffApi.js";
@@ -274,6 +275,104 @@ export const getMockBffApiDescriptorAttributesSeed =
     certified: generateMock(z.array(z.array(bffApi.DescriptorAttributeSeed))),
     declared: generateMock(z.array(z.array(bffApi.DescriptorAttributeSeed))),
     verified: generateMock(z.array(z.array(bffApi.DescriptorAttributeSeed))),
+  });
+
+export const getMockBffApiMailSeed = (): bffApi.MailSeed => ({
+  kind: generateMock(bffApi.MailKind),
+  address: generateMock(z.string()),
+  description: generateMock(z.string().optional()),
+});
+
+export const getMockBffApiTenantDelegatedFeaturesFlagsUpdateSeed =
+  (): bffApi.TenantDelegatedFeaturesFlagsUpdateSeed => ({
+    isDelegatedConsumerFeatureEnabled: generateMock(z.boolean()),
+    isDelegatedProducerFeatureEnabled: generateMock(z.boolean()),
+  });
+
+export const getMockBffApiVerifiedTenantAttributeSeed =
+  (): bffApi.VerifiedTenantAttributeSeed => ({
+    id: generateId(),
+    agreementId: generateId(),
+    expirationDate: generateMock(
+      z.string().datetime({ offset: true }).optional()
+    ),
+  });
+
+export const getMockBffApiTenant = (): bffApi.Tenant & { id: TenantId } => ({
+  id: generateId(),
+  selfcareId: generateMock(z.string().uuid().optional()),
+  kind: generateMock(bffApi.TenantKind.optional()),
+  externalId: generateMock(bffApi.ExternalId),
+  features: generateMock(z.array(bffApi.TenantFeature)),
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+  updatedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+  name: generateMock(z.string()),
+  attributes: generateMock(bffApi.TenantAttributes),
+  contactMail: generateMock(bffApi.Mail.optional()),
+  onboardedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+  subUnitType: generateMock(bffApi.TenantUnitType.optional()),
+});
+
+export const getMockBffApiCompactTenant = (): bffApi.CompactTenant => ({
+  id: generateId(),
+  selfcareId: generateMock(z.string().optional()),
+  name: generateMock(z.string()),
+  logoUrl: generateMock(z.string().optional()),
+});
+
+export const getMockBffApiVerifiedAttributesResponse =
+  (): bffApi.VerifiedAttributesResponse => ({
+    attributes: generateMock(
+      z.array(
+        z.object({
+          id: z.string().uuid(),
+          name: z.string(),
+          description: z.string(),
+          assignmentTimestamp: z.string().datetime({ offset: true }),
+          verifiedBy: z.array(bffApi.TenantVerifier),
+          revokedBy: z.array(bffApi.TenantRevoker),
+        })
+      )
+    ),
+  });
+
+export const getMockBffApiDeclaredAttributesResponse =
+  (): bffApi.DeclaredAttributesResponse => ({
+    attributes: generateMock(
+      z.array(
+        z.object({
+          id: z.string().uuid(),
+          name: z.string(),
+          description: z.string(),
+          assignmentTimestamp: z.string().datetime({ offset: true }),
+          revocationTimestamp: z.string().datetime({ offset: true }).optional(),
+          delegationId: z.string().uuid().optional(),
+        })
+      )
+    ),
+  });
+
+export const getMockBffApiCertifiedAttributesResponse =
+  (): bffApi.CertifiedAttributesResponse => ({
+    attributes: generateMock(
+      z.array(
+        z.object({
+          id: z.string().uuid(),
+          name: z.string(),
+          description: z.string(),
+          assignmentTimestamp: z.string().datetime({ offset: true }),
+          revocationTimestamp: z.string().datetime({ offset: true }).optional(),
+        })
+      )
+    ),
+  });
+
+export const getMockBffApiRequesterCertifiedAttribute =
+  (): bffApi.RequesterCertifiedAttribute => ({
+    tenantId: generateId(),
+    tenantName: generateMock(z.string()),
+    attributeId: generateId(),
+    attributeName: generateMock(z.string()),
   });
 
 export const getMockBffApiCompactOrganization =
