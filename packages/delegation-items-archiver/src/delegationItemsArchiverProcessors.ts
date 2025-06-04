@@ -1,8 +1,8 @@
 import { match } from "ts-pattern";
 import {
   agreementState,
+  Delegation,
   DelegationId,
-  DelegationV2,
   purposeVersionState,
 } from "pagopa-interop-models";
 import { InteropHeaders } from "pagopa-interop-commons";
@@ -95,7 +95,7 @@ export const processAgreement = async ({
   readModelService: ReadModelService;
   agreementProcessClient: AgreementProcessClient;
   headers: InteropHeaders;
-  delegation: DelegationV2;
+  delegation: Delegation;
 }): Promise<void> => {
   const agreements = await readModelService.getAgreements(delegation);
 

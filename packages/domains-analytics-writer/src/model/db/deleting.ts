@@ -2,19 +2,29 @@ import { z } from "zod";
 import {
   agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
-  purposeInReadmodelPurpose,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
+  purposeInReadmodelPurpose,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  clientInReadmodelClient,
+  clientUserInReadmodelClient,
+  clientPurposeInReadmodelClient,
+  clientKeyInReadmodelClient,
 } from "pagopa-interop-readmodel-models";
 
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
 import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
+import { EserviceTemplateDeletingSchema } from "../eserviceTemplate/eserviceTemplate.js";
 import { TenantDeletingSchema } from "../tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../tenant/tenantMail.js";
 import { AgreementDeletingSchema } from "../agreement/agreement.js";
+import { ClientDeletingSchema } from "../authorization/client.js";
+import { ClientUserDeletingSchema } from "../authorization/clientUser.js";
+import { ClientPurposeDeletingSchema } from "../authorization/clientPurpose.js";
+import { ClientKeyDeletingSchema } from "../authorization/clientKey.js";
 import { PurposeDeletingSchema } from "../purpose/purpose.js";
 
 export const DeletingDbTableConfig = {
@@ -25,6 +35,11 @@ export const DeletingDbTableConfig = {
   purpose_deleting_table: PurposeDeletingSchema,
   tenant_deleting_table: TenantDeletingSchema,
   tenant_mail_deleting_table: TenantMailDeletingSchema,
+  client_deleting_table: ClientDeletingSchema,
+  client_user_deleting_table: ClientUserDeletingSchema,
+  client_purpose_deleting_table: ClientPurposeDeletingSchema,
+  client_key_deleting_table: ClientKeyDeletingSchema,
+  eservice_template_deleting_table: EserviceTemplateDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
 
@@ -36,6 +51,11 @@ export const DeletingDbTableReadModel = {
   purpose_deleting_table: purposeInReadmodelPurpose,
   tenant_deleting_table: tenantInReadmodelTenant,
   tenant_mail_deleting_table: tenantMailInReadmodelTenant,
+  client_deleting_table: clientInReadmodelClient,
+  client_user_deleting_table: clientUserInReadmodelClient,
+  client_purpose_deleting_table: clientPurposeInReadmodelClient,
+  client_key_deleting_table: clientKeyInReadmodelClient,
+  eservice_template_deleting_table: eserviceTemplateInReadmodelEserviceTemplate,
 } as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
 

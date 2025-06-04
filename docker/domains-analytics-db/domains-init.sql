@@ -420,3 +420,147 @@ CREATE TABLE IF NOT EXISTS domains.tenant_feature (
   deleted BOOLEAN,
   PRIMARY KEY (tenant_id, kind)
 );
+
+CREATE TABLE IF NOT EXISTS domains.client (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  consumer_id VARCHAR(36) NOT NULL,
+  admin_id VARCHAR(36),
+  name VARCHAR NOT NULL,
+  description VARCHAR,
+  kind VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_user (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  user_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (client_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_purpose (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  purpose_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (client_id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.client_key (
+  metadata_version INTEGER NOT NULL,
+  client_id VARCHAR(36) NOT NULL REFERENCES domains.client (id),
+  user_id VARCHAR(36),
+  kid VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
+  encoded_pem VARCHAR NOT NULL,
+  "algorithm" VARCHAR NOT NULL,
+  "use" VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
+  PRIMARY KEY (client_id, kid)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_template (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  creator_id VARCHAR(36) NOT NULL,
+  name VARCHAR NOT NULL,
+  intended_target VARCHAR NOT NULL,
+  description VARCHAR NOT NULL,
+  technology VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  mode VARCHAR NOT NULL,
+  is_signal_hub_enabled BOOLEAN,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_template_version (
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
+  metadata_version INTEGER NOT NULL,
+  version INTEGER NOT NULL,
+  description VARCHAR,
+  state VARCHAR NOT NULL,
+  voucher_lifespan INTEGER NOT NULL,
+  daily_calls_per_consumer INTEGER,
+  daily_calls_total INTEGER,
+  agreement_approval_policy VARCHAR,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  published_at TIMESTAMP WITH TIME ZONE,
+  suspended_at TIMESTAMP WITH TIME ZONE,
+  deprecated_at TIMESTAMP WITH TIME ZONE,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_template_version_interface (
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
+  metadata_version INTEGER NOT NULL,
+  version_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.eservice_template_version (id),
+  name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  checksum VARCHAR NOT NULL,
+  upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_template_version_document (
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
+  metadata_version INTEGER NOT NULL,
+  version_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template_version (id),
+  name VARCHAR NOT NULL,
+  content_type VARCHAR NOT NULL,
+  pretty_name VARCHAR NOT NULL,
+  path VARCHAR NOT NULL,
+  checksum VARCHAR NOT NULL,
+  upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_template_version_attribute (
+  attribute_id VARCHAR(36) NOT NULL,
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
+  metadata_version INTEGER NOT NULL,
+  version_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template_version (id),
+  explicit_attribute_verification BOOLEAN NOT NULL,
+  kind VARCHAR NOT NULL,
+  group_id INTEGER NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (attribute_id, version_id, group_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_template_risk_analysis (
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
+  metadata_version INTEGER NOT NULL,
+  name VARCHAR NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
+  risk_analysis_form_version VARCHAR NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_template_risk_analysis_answer (
+  id VARCHAR(36),
+  eservice_template_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template (id),
+  metadata_version INTEGER NOT NULL,
+  risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_template_risk_analysis (risk_analysis_form_id),
+  kind VARCHAR NOT NULL,
+  key VARCHAR NOT NULL,
+  value VARCHAR(65535) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
