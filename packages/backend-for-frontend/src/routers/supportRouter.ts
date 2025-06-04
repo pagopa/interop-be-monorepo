@@ -6,7 +6,6 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-
 import {
   ApiError,
   emptyErrorMapper,
