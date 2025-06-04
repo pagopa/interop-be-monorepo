@@ -474,7 +474,8 @@ export function extractBasicMessageInfo(message: KafkaMessage): {
     }
 
     const rawMessage = JSON.parse(message.value.toString());
-    const dataSource = rawMessage.value?.after || rawMessage;
+    const dataSource =
+      rawMessage.value?.after || rawMessage.after || rawMessage;
 
     return {
       offset: message.offset,
