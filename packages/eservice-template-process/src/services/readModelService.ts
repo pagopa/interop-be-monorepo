@@ -5,8 +5,7 @@ import {
   TenantCollection,
   UIAuthData,
   M2MAuthData,
-  hasAtLeastOneUserRole,
-  userRole,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -25,6 +24,7 @@ import {
 import { Filter, WithId } from "mongodb";
 import { z } from "zod";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { hasRoleToAccessDraftTemplateVersions } from "./validators.js";
 
 export type GetEServiceTemplatesFilters = {
   name?: string;
@@ -145,7 +145,7 @@ export function readModelServiceBuilder({
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      authData: UIAuthData | M2MAuthData
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<EServiceTemplate>> {
       const { eserviceTemplatesIds, creatorsIds, states, name } = filters;
 
@@ -174,11 +174,7 @@ export function readModelServiceBuilder({
         });
 
       const visibilityFilter: ReadModelFilter<EServiceTemplate> =
-        hasAtLeastOneUserRole(authData, [
-          userRole.ADMIN_ROLE,
-          userRole.API_ROLE,
-          userRole.SUPPORT_ROLE,
-        ])
+        hasRoleToAccessDraftTemplateVersions(authData)
           ? {
               $or: [
                 { "data.creatorId": authData.organizationId },

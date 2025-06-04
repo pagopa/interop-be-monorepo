@@ -4,30 +4,13 @@ import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
-  ReadModelRepository,
-  initDB,
-  initFileManager,
   fromAppContext,
-  initPDFGenerator,
   authRole,
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import {
-  EServiceId,
-  TenantId,
-  emptyErrorMapper,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { EServiceId, TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
-import {
-  agreementReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  makeDrizzleConnection,
-  purposeReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import {
   apiPurposeVersionStateToPurposeVersionState,
   purposeToApiPurpose,
@@ -35,8 +18,6 @@ import {
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
 } from "../model/domain/apiConverter.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   activatePurposeVersionErrorMapper,
@@ -55,57 +36,13 @@ import {
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
   getPurposesErrorMapper,
+  retrieveLatestRiskAnalysisConfigurationErrorMapper,
 } from "../utilities/errorMappers.js";
-import { purposeServiceBuilder } from "../services/purposeService.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
-
-const readModelDB = makeDrizzleConnection(config);
-const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
-const delegationReadModelServiceSQL =
-  delegationReadModelServiceBuilder(readModelDB);
-
-const oldReadModelService = readModelServiceBuilder(
-  ReadModelRepository.init(config)
-);
-const readModelServiceSQL = readModelServiceBuilderSQL({
-  readModelDB,
-  purposeReadModelServiceSQL,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-  agreementReadModelServiceSQL,
-  delegationReadModelServiceSQL,
-});
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
-const fileManager = initFileManager(config);
-const pdfGenerator = await initPDFGenerator();
-
-const purposeService = purposeServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService,
-  fileManager,
-  pdfGenerator
-);
+import { PurposeService } from "../services/purposeService.js";
 
 const purposeRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  purposeService: PurposeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const purposeRouter = ctx.router(purposeApi.purposeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -456,21 +393,24 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           const { purposeId, versionId } = req.params;
-          const purposeVersion = await purposeService.activatePurposeVersion(
-            {
-              purposeId: unsafeBrandId(purposeId),
-              versionId: unsafeBrandId(versionId),
-            },
-            ctx
-          );
+          const { data, metadata } =
+            await purposeService.activatePurposeVersion(
+              {
+                purposeId: unsafeBrandId(purposeId),
+                versionId: unsafeBrandId(versionId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
               purposeApi.PurposeVersion.parse(
-                purposeVersionToApiPurposeVersion(purposeVersion)
+                purposeVersionToApiPurposeVersion(data)
               )
             );
         } catch (error) {
@@ -513,20 +453,21 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          const suspendedVersion = await purposeService.suspendPurposeVersion(
+          const { data, metadata } = await purposeService.suspendPurposeVersion(
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
             },
             ctx
           );
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
               purposeApi.PurposeVersion.parse(
-                purposeVersionToApiPurposeVersion(suspendedVersion)
+                purposeVersionToApiPurposeVersion(data)
               )
             );
         } catch (error) {
@@ -545,20 +486,21 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          const archivedVersion = await purposeService.archivePurposeVersion(
+          const { data, metadata } = await purposeService.archivePurposeVersion(
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
             },
             ctx
           );
+          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(
               purposeApi.PurposeVersion.parse(
-                purposeVersionToApiPurposeVersion(archivedVersion)
+                purposeVersionToApiPurposeVersion(data)
               )
             );
         } catch (error) {
@@ -624,7 +566,11 @@ const purposeRouter = (
             )
           );
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          retrieveLatestRiskAnalysisConfigurationErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })

@@ -384,3 +384,15 @@ export function getMockedApiEServiceDocument(): catalogApi.EServiceDoc {
     },
   };
 }
+
+export function getMockedApiCertifiedTenantAttribute({
+  revoked = false,
+}: {
+  revoked?: boolean;
+} = {}): tenantApi.CertifiedTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    revocationTimestamp: revoked ? new Date().toISOString() : undefined,
+  };
+}

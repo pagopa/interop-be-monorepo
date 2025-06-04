@@ -27,7 +27,7 @@ import { keyToApiKey } from "../../src/model/domain/apiConverter.js";
 import {
   clientNotFound,
   keyAlreadyExists,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
   tooManyKeysPerClient,
   userNotFound,
   userWithoutSecurityPrivileges,
@@ -131,7 +131,7 @@ describe("API /clients/{clientId}/keys authorization test", () => {
       expectedStatus: 409,
     },
     {
-      error: organizationNotAllowedOnClient(generateId(), mockClient.id),
+      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
       expectedStatus: 403,
     },
     {

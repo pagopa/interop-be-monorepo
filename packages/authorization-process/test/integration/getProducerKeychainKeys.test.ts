@@ -15,7 +15,7 @@ import {
 import { describe, expect, it } from "vitest";
 import {
   producerKeychainNotFound,
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
 } from "../../src/model/domain/errors.js";
 import {
   addOneProducerKeychain,
@@ -114,7 +114,7 @@ describe("getProducerKeychainKeys", async () => {
       producerKeychainNotFound(unsafeBrandId(producerKeychainId))
     );
   });
-  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
+  it("should throw tenantNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     await addOneProducerKeychain(mockProducerKeychain);
     const organizationId = generateId<TenantId>();
     await expect(
@@ -126,7 +126,7 @@ describe("getProducerKeychainKeys", async () => {
         getMockContext({ authData: getMockAuthData(organizationId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnProducerKeychain(
+      tenantNotAllowedOnProducerKeychain(
         unsafeBrandId(organizationId),
         unsafeBrandId(mockProducerKeychain.id)
       )

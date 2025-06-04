@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { ascLower } from "pagopa-interop-commons";
 import {
   Agreement,
   Attribute,
@@ -17,7 +18,6 @@ import {
   aggregateAttributeArray,
   aggregateEserviceArray,
   toEServiceAggregatorArray,
-  toTenantAggregatorArray,
   aggregateTenantArray,
   toPurposeAggregatorArray,
   aggregatePurposeArray,
@@ -50,6 +50,7 @@ import {
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
+  DrizzleTransactionType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -77,13 +78,21 @@ import {
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
+  TenantCertifiedAttributeSQL,
   tenantDeclaredAttributeInReadmodelTenant,
+  TenantDeclaredAttributeSQL,
   tenantFeatureInReadmodelTenant,
+  TenantFeatureSQL,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  TenantMailSQL,
+  TenantSQL,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
+  TenantVerifiedAttributeRevokerSQL,
+  TenantVerifiedAttributeSQL,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
+  TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -113,7 +122,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         })
         .from(eserviceInReadmodelCatalog)
         .leftJoin(
-          // 1
           eserviceDescriptorInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -121,7 +129,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           eserviceDescriptorInterfaceInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -129,7 +136,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           eserviceDescriptorDocumentInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -137,7 +143,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           eserviceDescriptorAttributeInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -145,7 +150,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 5
           eserviceDescriptorRejectionReasonInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -153,7 +157,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 6
           eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
@@ -161,7 +164,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 7
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -169,7 +171,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 8
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
           eq(
             eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
@@ -198,7 +199,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .leftJoin(
-          // 1
           eserviceTemplateVersionInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
@@ -206,7 +206,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateVersionInReadmodelEserviceTemplate.id,
@@ -214,7 +213,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateVersionInReadmodelEserviceTemplate.id,
@@ -222,7 +220,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateVersionInReadmodelEserviceTemplate.id,
@@ -230,7 +227,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 5
           eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
@@ -238,7 +234,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 6
           eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
@@ -252,73 +247,38 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
     },
 
     async getAllTenants(): Promise<Array<WithMetadata<Tenant>>> {
-      const queryResult = await readModelDB
-        .select({
-          tenant: tenantInReadmodelTenant,
-          mail: tenantMailInReadmodelTenant,
-          certifiedAttribute: tenantCertifiedAttributeInReadmodelTenant,
-          declaredAttribute: tenantDeclaredAttributeInReadmodelTenant,
-          verifiedAttribute: tenantVerifiedAttributeInReadmodelTenant,
-          verifier: tenantVerifiedAttributeVerifierInReadmodelTenant,
-          revoker: tenantVerifiedAttributeRevokerInReadmodelTenant,
-          feature: tenantFeatureInReadmodelTenant,
-        })
-        .from(tenantInReadmodelTenant)
-        .leftJoin(
-          // 1
-          tenantMailInReadmodelTenant,
-          eq(tenantInReadmodelTenant.id, tenantMailInReadmodelTenant.tenantId)
-        )
-        .leftJoin(
-          // 2
-          tenantCertifiedAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantCertifiedAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          // 3
-          tenantDeclaredAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantDeclaredAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          // 4
-          tenantVerifiedAttributeInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantVerifiedAttributeInReadmodelTenant.tenantId
-          )
-        )
-        .leftJoin(
-          // 5
-          tenantVerifiedAttributeVerifierInReadmodelTenant,
-          eq(
-            tenantVerifiedAttributeInReadmodelTenant.attributeId,
-            tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId
-          )
-        )
-        .leftJoin(
-          // 6
-          tenantVerifiedAttributeRevokerInReadmodelTenant,
-          eq(
-            tenantVerifiedAttributeInReadmodelTenant.attributeId,
-            tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId
-          )
-        )
-        .leftJoin(
-          // 7
-          tenantFeatureInReadmodelTenant,
-          eq(
-            tenantInReadmodelTenant.id,
-            tenantFeatureInReadmodelTenant.tenantId
-          )
-        );
+      return await readModelDB.transaction(async (tx) => {
+        const [
+          tenantsSQL,
+          mailsSQL,
+          certifiedAttributesSQL,
+          declaredAttributesSQL,
+          verifiedAttributesSQL,
+          verifiedAttributeVerifiersSQL,
+          verifiedAttributeRevokersSQL,
+          featuresSQL,
+        ] = await Promise.all([
+          readAllTenantsSQL(tx),
+          readAllTenantMailsSQL(tx),
+          readAllTenantCertifiedAttributesSQL(tx),
+          readAllTenantDeclaredAttributesSQL(tx),
+          readAllTenantVerifiedAttributesSQL(tx),
+          readAllTenantVerifiedAttributeVerifiersSQL(tx),
+          readAllTenantVerifiedAttributeRevokersSQL(tx),
+          readAllTenantFeaturesSQL(tx),
+        ]);
 
-      return aggregateTenantArray(toTenantAggregatorArray(queryResult));
+        return aggregateTenantArray({
+          tenantsSQL,
+          mailsSQL,
+          certifiedAttributesSQL,
+          declaredAttributesSQL,
+          verifiedAttributesSQL,
+          verifiedAttributeVerifiersSQL,
+          verifiedAttributeRevokersSQL,
+          featuresSQL,
+        });
+      });
     },
 
     async getAllPurposes(): Promise<Array<WithMetadata<Purpose>>> {
@@ -333,7 +293,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         })
         .from(purposeInReadmodelPurpose)
         .leftJoin(
-          // 1
           purposeRiskAnalysisFormInReadmodelPurpose,
           eq(
             purposeInReadmodelPurpose.id,
@@ -341,7 +300,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           purposeRiskAnalysisAnswerInReadmodelPurpose,
           eq(
             purposeRiskAnalysisFormInReadmodelPurpose.id,
@@ -349,7 +307,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           purposeVersionInReadmodelPurpose,
           eq(
             purposeInReadmodelPurpose.id,
@@ -357,7 +314,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           purposeVersionDocumentInReadmodelPurpose,
           eq(
             purposeVersionInReadmodelPurpose.id,
@@ -379,7 +335,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         })
         .from(agreementInReadmodelAgreement)
         .leftJoin(
-          // 1
           agreementStampInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -387,7 +342,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           agreementAttributeInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -395,7 +349,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           agreementConsumerDocumentInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -403,7 +356,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 4
           agreementContractInReadmodelAgreement,
           eq(
             agreementInReadmodelAgreement.id,
@@ -424,12 +376,10 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         })
         .from(clientInReadmodelClient)
         .leftJoin(
-          // 1
           clientUserInReadmodelClient,
           eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
         )
         .leftJoin(
-          // 2
           clientPurposeInReadmodelClient,
           eq(
             clientInReadmodelClient.id,
@@ -437,7 +387,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           clientKeyInReadmodelClient,
           eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
         );
@@ -456,11 +405,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
     async getAllProducerKeychains(): Promise<
       Array<WithMetadata<ProducerKeychain>>
     > {
-      /*
-        producer_keychain -> 1 producer_keychain_user
-                          -> 2 producer_keychain_eservice
-                          -> 3 producer_keychain_key
-      */
       const queryResult = await readModelDB
         .select({
           producerKeychain: producerKeychainInReadmodelProducerKeychain,
@@ -471,7 +415,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         })
         .from(producerKeychainInReadmodelProducerKeychain)
         .leftJoin(
-          // 1
           producerKeychainUserInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
@@ -479,7 +422,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           producerKeychainEserviceInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
@@ -487,7 +429,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 3
           producerKeychainKeyInReadmodelProducerKeychain,
           eq(
             producerKeychainInReadmodelProducerKeychain.id,
@@ -520,7 +461,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         })
         .from(delegationInReadmodelDelegation)
         .leftJoin(
-          // 1
           delegationStampInReadmodelDelegation,
           eq(
             delegationInReadmodelDelegation.id,
@@ -528,7 +468,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
-          // 2
           delegationContractDocumentInReadmodelDelegation,
           eq(
             delegationInReadmodelDelegation.id,
@@ -542,3 +481,46 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
     },
   };
 }
+
+const readAllTenantsSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantSQL[]> =>
+  await tx
+    .select()
+    .from(tenantInReadmodelTenant)
+    .orderBy(ascLower(tenantInReadmodelTenant.name));
+
+const readAllTenantMailsSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantMailSQL[]> =>
+  await tx.select().from(tenantMailInReadmodelTenant);
+
+const readAllTenantCertifiedAttributesSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantCertifiedAttributeSQL[]> =>
+  await tx.select().from(tenantCertifiedAttributeInReadmodelTenant);
+
+const readAllTenantDeclaredAttributesSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantDeclaredAttributeSQL[]> =>
+  await tx.select().from(tenantDeclaredAttributeInReadmodelTenant);
+
+const readAllTenantVerifiedAttributesSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantVerifiedAttributeSQL[]> =>
+  await tx.select().from(tenantVerifiedAttributeInReadmodelTenant);
+
+const readAllTenantVerifiedAttributeVerifiersSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantVerifiedAttributeVerifierSQL[]> =>
+  await tx.select().from(tenantVerifiedAttributeVerifierInReadmodelTenant);
+
+const readAllTenantVerifiedAttributeRevokersSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantVerifiedAttributeRevokerSQL[]> =>
+  await tx.select().from(tenantVerifiedAttributeRevokerInReadmodelTenant);
+
+const readAllTenantFeaturesSQL = async (
+  tx: DrizzleTransactionType
+): Promise<TenantFeatureSQL[]> =>
+  await tx.select().from(tenantFeatureInReadmodelTenant);
