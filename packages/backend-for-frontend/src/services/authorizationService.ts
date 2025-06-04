@@ -29,7 +29,7 @@ import {
   tenantLoginNotAllowed,
   tenantBySelfcareIdNotFound,
 } from "../model/errors.js";
-import { BffAppContext } from "../utilities/context.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
@@ -94,6 +94,22 @@ export function authorizationServiceBuilder(
       throw tenantLoginNotAllowed(selfcareId);
     }
   };
+
+  const retrieveTenantById = async (
+    selfcareId: string,
+    headers: Headers
+  ): Promise<tenantApi.Tenant> =>
+    tenantProcessClient.selfcare
+      .getTenantBySelfcareId({
+        params: { selfcareId },
+        headers,
+      })
+      .catch((err) => {
+        throw isAxiosError(err) &&
+          err.response?.status === HTTP_STATUS_NOT_FOUND
+          ? tenantBySelfcareIdNotFound(selfcareId)
+          : err;
+      });
 
   const buildJwtCustomClaims = (
     roles: string,
@@ -166,22 +182,10 @@ export function authorizationServiceBuilder(
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
 
-      const internalHeaders = {
+      const tenantBySelfcareId = await retrieveTenantById(selfcareId, {
         ...headers,
         Authorization: `Bearer ${serialized}`,
-      };
-
-      const tenantBySelfcareId = await tenantProcessClient.selfcare
-        .getTenantBySelfcareId({
-          params: { selfcareId },
-          headers: internalHeaders,
-        })
-        .catch((err) => {
-          throw isAxiosError(err) &&
-            err.response?.status === HTTP_STATUS_NOT_FOUND
-            ? tenantBySelfcareIdNotFound(selfcareId)
-            : err;
-        });
+      });
       const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
       assertTenantAllowed(selfcareId, tenantBySelfcareId.externalId.origin);
