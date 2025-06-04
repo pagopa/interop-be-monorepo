@@ -1,6 +1,9 @@
 /* eslint-disable fp/no-delete */
 import crypto from "crypto";
 import { fail } from "assert";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -1152,3 +1155,12 @@ export const getMockWithMetadata = <T>(data: T): WithMetadata<T> => ({
   data,
   metadata: { version: generateMock(z.number().int()) },
 });
+
+export const readFileContent = async (fileName: string): Promise<string> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return htmlTemplateBuffer.toString();
+};

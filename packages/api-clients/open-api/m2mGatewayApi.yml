@@ -4462,10 +4462,6 @@ components:
           type: string
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
-        versions:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceTemplateVersion"
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
@@ -4477,7 +4473,6 @@ components:
         - intendedTarget
         - description
         - technology
-        - versions
         - riskAnalysis
         - mode
     EServiceTemplateVersion:
@@ -4860,7 +4855,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 250
+              maxLength: 500
       required:
         - version
         - answers

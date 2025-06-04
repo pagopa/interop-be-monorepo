@@ -2,15 +2,13 @@ import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
   ExpressContext,
-  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { delegationServiceBuilder } from "../services/delegationService.js";
+import { DelegationService } from "../services/delegationService.js";
 import { makeApiProblem } from "../model/errors.js";
 import {
   getDelegationByIdErrorMapper,
@@ -19,23 +17,11 @@ import {
 
 const delegationRouter = (
   ctx: ZodiosContext,
-  {
-    delegationProcessClient,
-    tenantProcessClient,
-    catalogProcessClient,
-  }: PagoPAInteropBeClients,
-  fileManager: FileManager
+  delegationService: DelegationService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const delegationRouter = ctx.router(bffApi.delegationsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const delegationService = delegationServiceBuilder(
-    delegationProcessClient,
-    tenantProcessClient,
-    catalogProcessClient,
-    fileManager
-  );
 
   delegationRouter
     .get("/delegations", async (req, res) => {
