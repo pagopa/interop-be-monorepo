@@ -393,7 +393,6 @@ export function catalogServiceBuilder(db: DBContext) {
         `Staging data merged into target tables for EserviceDescriptorDocument batches`
       );
 
-      await interfaceRepo.clean();
       await descriptorRepo.cleanServerUrls();
     },
 
@@ -527,45 +526,54 @@ export function catalogServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
+        const interfaceIdsDeleted = await interfaceRepo.mergeDeleting(t);
+        const interfaceItems = items.filter((i) =>
+          interfaceIdsDeleted.includes(i.id)
+        );
+        const documentItems = items.filter(
+          (i) => !interfaceIdsDeleted.includes(i.id)
+        );
 
-        const idsToDelete = await interfaceRepo.mergeDeleting(t);
-        if (idsToDelete.length > 0) {
-          const serverUrlsToUpdate = idsToDelete.map((items) => ({
-            id: items.descriptor_id,
+        if (interfaceItems.length > 0) {
+          const serverUrlsToUpdate = interfaceItems.map((item) => ({
+            id: item.descriptorId,
             serverUrls: JSON.stringify([]),
-            metadataVersion: items.metadata_version,
+            metadataVersion: item.metadataVersion,
           }));
-          await dbContext.conn.tx(async (t) => {
-            await descriptorRepo.insertServerUrls(
-              t,
-              dbContext.pgp,
-              serverUrlsToUpdate
-            );
 
+          await descriptorRepo.insertServerUrls(
+            t,
+            dbContext.pgp,
+            serverUrlsToUpdate
+          );
+          genericLogger.info(
+            `Staging data inserted for server urls to update, descriptorIds: ${serverUrlsToUpdate
+              .map((descriptor) => descriptor.id)
+              .join(", ")}`
+          );
+          await descriptorRepo.mergeServerUrls(t);
+
+          await interfaceRepo.cleanDeleting();
+
+          genericLogger.info(
+            `Staging deleting tables cleaned for EserviceDescriptorInterface`
+          );
+        }
+
+        if (documentItems.length > 0) {
+          for (const batch of batchMessages(
+            documentItems,
+            config.dbMessagesToInsertPerBatch
+          )) {
+            await documentRepo.insertDeleting(t, dbContext.pgp, batch);
             genericLogger.info(
-              `Staging data inserted for server urls to update, descriptorIds: ${serverUrlsToUpdate
-                .map((descriptor) => descriptor.id)
+              `Staging deletion inserted for EserviceDescriptorDocument ids: ${batch
+                .map((item) => item.id)
                 .join(", ")}`
             );
+          }
 
-            await descriptorRepo.mergeServerUrls(t);
-          });
-        } else {
-          await dbContext.conn.tx(async (t) => {
-            for (const batch of batchMessages(
-              items,
-              config.dbMessagesToInsertPerBatch
-            )) {
-              await documentRepo.insertDeleting(t, dbContext.pgp, batch);
-              genericLogger.info(
-                `Staging deletion inserted for EserviceDescriptorDocument ids: ${batch
-                  .map((item) => item.id)
-                  .join(", ")}`
-              );
-            }
-
-            await documentRepo.mergeDeleting(t);
-          });
+          await documentRepo.mergeDeleting(t);
 
           genericLogger.info(
             `Staging deletion merged into target tables for EserviceDescriptorDocument`
@@ -577,20 +585,7 @@ export function catalogServiceBuilder(db: DBContext) {
             `Staging deleting tables cleaned for EserviceDescriptorDocument`
           );
         }
-
-        genericLogger.info(
-          `Staging data merged into target tables for EserviceDescriptorDocument batches`
-        );
       });
-
-      genericLogger.info(
-        `Staging deletion merged into target tables for EserviceDescriptorInterface`
-      );
-      await interfaceRepo.cleanDeleting();
-
-      genericLogger.info(
-        `Staging deleting tables cleaned for EserviceDescriptorInterface`
-      );
     },
   };
 }

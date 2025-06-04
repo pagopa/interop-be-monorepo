@@ -21,6 +21,8 @@ export type EserviceDescriptorInterfaceItemsSchema = z.infer<
 export const EserviceDescriptorInterfaceDeletingSchema =
   EserviceDescriptorInterfaceSchema.pick({
     id: true,
+    descriptorId: true,
+    metadataVersion: true,
     deleted: true,
   });
 export type EserviceDescriptorInterfaceDeletingSchema = z.infer<

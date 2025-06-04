@@ -101,6 +101,7 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
   DeletingDbTable.catalog_risk_deleting_table,
+  DeletingDbTable.catalog_descriptor_interface_deleting_table,
   DeletingDbTable.purpose_deleting_table,
   DeletingDbTable.tenant_deleting_table,
   DeletingDbTable.tenant_mail_deleting_table,
@@ -119,21 +120,15 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
   { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
   {
+    name: DeletingDbTable.catalog_descriptor_interface_deleting_table,
+    columns: ["id", "descriptorId", "metadataVersion"],
+  },
+  {
     name: DeletingDbTable.catalog_risk_deleting_table,
     columns: ["id", "eserviceId"],
   },
-  {
-    name: DeletingDbTable.catalog_descriptor_interface_deleting_table,
-    columns: ["id"],
-  },
-  {
-    name: DeletingDbTable.agreement_deleting_table,
-    columns: ["id"],
-  },
-  {
-    name: DeletingDbTable.purpose_deleting_table,
-    columns: ["id"],
-  },
+  { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+  { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
   {
     name: DeletingDbTable.tenant_deleting_table,
     columns: ["id"],

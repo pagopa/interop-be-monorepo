@@ -88,9 +88,8 @@ await retryConnection(
       { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.catalog_descriptor_interface_deleting_table,
-        columns: ["id"],
+        columns: ["id", "descriptorId", "metadataVersion"],
       },
-      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.catalog_risk_deleting_table,
         columns: ["id", "eserviceId"],
@@ -107,7 +106,7 @@ await retryConnection(
       },
     ]);
   },
-  logger({ serviceName: config.serviceName })
+  logger({ serviceName: config.serviceName }),
 );
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
@@ -118,7 +117,7 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   genericLogger.info(
     `Handled batch. Partition: ${
       batch.partition
-    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`
+    }. Offsets: ${batch.firstOffset()} -> ${batch.lastOffset()}`,
   );
 }
 
@@ -135,5 +134,5 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch
+  processBatch,
 );

@@ -184,6 +184,8 @@ export async function handleCatalogMessageV1(
         deleteDescriptorDocumentOrInterfaceBatch.push(
           EserviceDescriptorInterfaceDeletingSchema.parse({
             id: msg.data.documentId,
+            descriptorId: msg.data.descriptorId,
+            metadataVersion: msg.version,
           }) satisfies z.input<typeof EserviceDescriptorInterfaceDeletingSchema>
         );
       })

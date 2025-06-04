@@ -327,6 +327,218 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
     expect(storedDescriptor?.serverUrls).toBe("[]");
   });
 
+  it("EServiceDocumentUpdated: upsert interface when serverUrls are lenght > 0 and overwrite descriptor serverUrls", async () => {
+    const eservice = getMockEService();
+    const document = toDocumentV1({
+      id: generateId(),
+      name: "Security Policy",
+      prettyName: "Security Policy.pdf",
+      path: "/docs/security.pdf",
+      contentType: "application/pdf",
+      checksum: "xyz789",
+      uploadDate: new Date(),
+    });
+    const descriptor = {
+      ...getMockDescriptor(),
+      eserviceId: eservice.id,
+    };
+
+    eservice.descriptors = [descriptor];
+
+    const addEvent: EServiceEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: eservice.id,
+      version: 1,
+      type: "EServiceAdded",
+      event_version: 1,
+      data: {
+        eservice: toEServiceV1({
+          ...eservice,
+          riskAnalysis: [],
+        }),
+      },
+      log_date: new Date(),
+    };
+
+    const updateDocEvent: EServiceEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: eservice.id,
+      version: 2,
+      type: "EServiceDocumentUpdated",
+      event_version: 1,
+      data: {
+        updatedDocument: { ...document, name: "interface name updated" },
+        documentId: document.id,
+        descriptorId: descriptor.id,
+        eserviceId: eservice.id,
+        serverUrls: ["newServerUrl"],
+      },
+      log_date: new Date(),
+    };
+    await handleCatalogMessageV1([addEvent, updateDocEvent], dbContext);
+
+    const storedInterface = await getOneFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_interface,
+      { id: document.id }
+    );
+
+    expect(storedInterface?.name).toBe("interface name updated");
+
+    const storedDescriptor = await getOneFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor,
+      { id: descriptor.id }
+    );
+    const serverUrls = JSON.parse(storedDescriptor?.serverUrls ?? "error");
+    expect(serverUrls).toStrictEqual(["newServerUrl"]);
+  });
+
+  it("EServiceDocumentUpdated: upsert document when serverUrls is empty", async () => {
+    const eservice = getMockEService();
+    const document = toDocumentV1({
+      id: generateId(),
+      name: "Security Policy",
+      prettyName: "Security Policy.pdf",
+      path: "/docs/security.pdf",
+      contentType: "application/pdf",
+      checksum: "xyz789",
+      uploadDate: new Date(),
+    });
+    const descriptor = {
+      ...getMockDescriptor(),
+      eserviceId: eservice.id,
+    };
+
+    eservice.descriptors = [descriptor];
+
+    const addEvent: EServiceEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: eservice.id,
+      version: 1,
+      type: "EServiceAdded",
+      event_version: 1,
+      data: {
+        eservice: toEServiceV1({
+          ...eservice,
+          riskAnalysis: [],
+        }),
+      },
+      log_date: new Date(),
+    };
+
+    const updateDocEvent: EServiceEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: eservice.id,
+      version: 2,
+      type: "EServiceDocumentUpdated",
+      event_version: 1,
+      data: {
+        updatedDocument: { ...document, name: "document name updated" },
+        documentId: document.id,
+        descriptorId: descriptor.id,
+        eserviceId: eservice.id,
+        serverUrls: [],
+      },
+      log_date: new Date(),
+    };
+    await handleCatalogMessageV1([addEvent, updateDocEvent], dbContext);
+
+    const storedInterface = await getOneFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_document,
+      { id: document.id }
+    );
+
+    expect(storedInterface?.name).toBe("document name updated");
+  });
+
+  it("EServiceDocumentDeleted: deletes interface or document based on existence", async () => {
+    const mock = getMockEService();
+    const descriptor = getMockDescriptor();
+    const document = getMockDocument();
+    const interf = getMockDocument();
+
+    const msg1: EServiceEventEnvelopeV1 = {
+      sequence_num: 1,
+      stream_id: mock.id,
+      version: 1,
+      type: "EServiceAdded",
+      event_version: 1,
+      data: { eservice: toEServiceV1(mock) },
+      log_date: new Date(),
+    };
+
+    const msg2: EServiceEventEnvelopeV1 = {
+      sequence_num: 2,
+      stream_id: mock.id,
+      version: 2,
+      type: "EServiceDescriptorAdded",
+      event_version: 1,
+      data: {
+        eserviceId: mock.id,
+        eserviceDescriptor: toDescriptorV1({
+          ...descriptor,
+          docs: [document],
+          interface: interf,
+        }),
+      },
+      log_date: new Date(),
+    };
+
+    const msg3: EServiceEventEnvelopeV1 = {
+      sequence_num: 3,
+      stream_id: mock.id,
+      version: 3,
+      type: "EServiceDocumentDeleted",
+      event_version: 1,
+      data: {
+        eserviceId: mock.id,
+        documentId: interf.id,
+        descriptorId: descriptor.id,
+      },
+      log_date: new Date(),
+    };
+
+    const msg4: EServiceEventEnvelopeV1 = {
+      sequence_num: 4,
+      stream_id: mock.id,
+      version: 4,
+      type: "EServiceDocumentDeleted",
+      event_version: 1,
+      data: {
+        eserviceId: mock.id,
+        documentId: document.id,
+        descriptorId: descriptor.id,
+      },
+      log_date: new Date(),
+    };
+
+    await handleCatalogMessageV1([msg1, msg2, msg3, msg4], dbContext);
+
+    const deletedInterface = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_interface,
+      { id: interf.id }
+    );
+    expect(deletedInterface.length).toBe(0);
+
+    const deletedDocument = await getManyFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor_document,
+      { id: document.id }
+    );
+    expect(deletedDocument.length).toBe(0);
+
+    const updatedDescriptor = await getOneFromDb(
+      dbContext,
+      CatalogDbTable.eservice_descriptor,
+      { id: descriptor.id }
+    );
+    const serverUrls = JSON.parse(updatedDescriptor?.serverUrls ?? "error");
+    expect(serverUrls).toEqual([]);
+  });
+
   it("EServiceRiskAnalysisDeleted: removes RiskAnalysis", async () => {
     const mock = getMockEService();
     const risk = getMockValidRiskAnalysis("PA");
@@ -1181,80 +1393,5 @@ describe("Check on metadata_version merge", () => {
     expect(
       storedAttributes.filter((attr) => attr.kind === "Declared")
     ).toHaveLength(1);
-  });
-
-  it("handles EServiceDocumentUpdated by upserting and merging documents", async () => {
-    const eservice = getMockEService();
-    const document = toDocumentV1({
-      id: generateId(),
-      name: "Security Policy",
-      prettyName: "Security Policy.pdf",
-      path: "/docs/security.pdf",
-      contentType: "application/pdf",
-      checksum: "xyz789",
-      uploadDate: new Date(),
-    });
-    const descriptor = {
-      ...getMockDescriptor(),
-      eserviceId: eservice.id,
-    };
-
-    eservice.descriptors = [descriptor];
-
-    const addEvent: EServiceEventEnvelopeV1 = {
-      sequence_num: 1,
-      stream_id: eservice.id,
-      version: 1,
-      type: "EServiceAdded",
-      event_version: 1,
-      data: {
-        eservice: toEServiceV1({
-          ...eservice,
-          riskAnalysis: [],
-        }),
-      },
-      log_date: new Date(),
-    };
-
-    const updateDocEvent: EServiceEventEnvelopeV1 = {
-      sequence_num: 2,
-      stream_id: eservice.id,
-      version: 2,
-      type: "EServiceDocumentUpdated",
-      event_version: 1,
-      data: {
-        updatedDocument: document,
-        documentId: document.id,
-        descriptorId: descriptor.id,
-        eserviceId: eservice.id,
-        serverUrls: [],
-      },
-      log_date: new Date(),
-    };
-    await handleCatalogMessageV1([addEvent, updateDocEvent], dbContext);
-
-    const updateDocEvent2: EServiceEventEnvelopeV1 = {
-      sequence_num: 2,
-      stream_id: eservice.id,
-      version: 3,
-      type: "EServiceDocumentDeleted",
-      event_version: 1,
-      data: {
-        documentId: document.id,
-        descriptorId: descriptor.id,
-        eserviceId: eservice.id,
-      },
-      log_date: new Date(),
-    };
-
-    await handleCatalogMessageV1([updateDocEvent2], dbContext);
-
-    const storedDocs = await getManyFromDb(
-      dbContext,
-      CatalogDbTable.eservice_descriptor_document,
-      { descriptorId: descriptor.id }
-    );
-
-    expect(storedDocs.length).toBe(0);
   });
 });

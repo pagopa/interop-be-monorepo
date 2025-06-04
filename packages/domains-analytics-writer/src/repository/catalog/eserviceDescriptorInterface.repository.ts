@@ -96,11 +96,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       }
     },
 
-    async mergeDeleting(
-      t: ITask<unknown>
-    ): Promise<
-      Array<{ descriptor_id: DescriptorId; metadata_version: number }>
-    > {
+    async mergeDeleting(t: ITask<unknown>): Promise<string[]> {
       try {
         const idsToDelete = await t.map<DescriptorId>(
           `SELECT id FROM ${deletingTableName}_${config.mergeTableSuffix}`,
@@ -108,15 +104,14 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           (row) => row.id
         );
 
-        const existingIds = await t.manyOrNone<{
-          descriptor_id: DescriptorId;
-          metadata_version: number;
-        }>(
-          `
-          SELECT descriptor_id FROM ${schemaName}.${tableName}
-          WHERE id = ANY($1)
-        `,
-          [idsToDelete]
+        if (idsToDelete.length === 0) {
+          return [];
+        }
+
+        const existingIds = await t.map<string>(
+          `SELECT id FROM ${schemaName}.${tableName} WHERE id = ANY($1)`,
+          [idsToDelete],
+          (row) => row.id
         );
 
         const mergeQuery = generateMergeDeleteQuery(
@@ -130,7 +125,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
         return existingIds;
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${deletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
