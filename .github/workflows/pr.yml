@@ -24,7 +24,7 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
       - run: pnpm format:check
@@ -43,7 +43,7 @@ jobs:
           key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-lint-
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
@@ -65,7 +65,7 @@ jobs:
           key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-check
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
@@ -86,7 +86,7 @@ jobs:
           key: ${{ runner.os }}-turbo-test-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-test
-      - uses: actions/setup-node@1e60f620b9541d16bece96c5465dc8ee9832be0b # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
