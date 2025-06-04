@@ -4,23 +4,19 @@ import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import {
-  getMockApiCreatedResource,
+  getMockBffApiCreatedResource,
+  getMockBffApiUpdateEServiceDescriptorTemplateInstanceSeed,
   getMockCatalogApiEService,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /templates/eservices/:eServiceId", () => {
-  const mockUpdateEServiceTemplateInstanceSeed: bffApi.UpdateEServiceTemplateInstanceSeed =
-    {
-      isClientAccessDelegable: true,
-      isConsumerDelegable: true,
-      isSignalHubEnabled: true,
-    };
+  const mockUpdateEServiceTemplateInstanceSeed =
+    getMockBffApiUpdateEServiceDescriptorTemplateInstanceSeed();
   const mockEService = getMockCatalogApiEService();
-  const mockApiCreatedResource = getMockApiCreatedResource(mockEService.id);
+  const mockApiCreatedResource = getMockBffApiCreatedResource(mockEService.id);
 
   const makeRequest = async (
     token: string,

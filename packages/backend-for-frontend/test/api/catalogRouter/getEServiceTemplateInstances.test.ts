@@ -6,14 +6,14 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getApiMockEServiceTemplateInstance } from "../../mockUtils.js";
+import { getMockBffApiEServiceTemplateInstance } from "../../mockUtils.js";
 import { eserviceTemplateNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /templates/:templateId/eservices", () => {
   const mockTemplateId = generateId<EServiceTemplateId>();
-  const mockTemplateInstance1 = getApiMockEServiceTemplateInstance();
-  const mockTemplateInstance2 = getApiMockEServiceTemplateInstance();
-  const mockTemplateInstance3 = getApiMockEServiceTemplateInstance();
+  const mockTemplateInstance1 = getMockBffApiEServiceTemplateInstance();
+  const mockTemplateInstance2 = getMockBffApiEServiceTemplateInstance();
+  const mockTemplateInstance3 = getMockBffApiEServiceTemplateInstance();
   const mockTemplateInstances = {
     results: [
       mockTemplateInstance1,

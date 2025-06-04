@@ -1,59 +1,59 @@
 import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
-import {
-  AgreementId,
-  DelegationId,
-  DescriptorId,
-  EServiceDocumentId,
-  EServiceId,
-  EServiceTemplateId,
-  generateId,
-  RiskAnalysisFormId,
-  RiskAnalysisId,
-  TenantId,
-} from "pagopa-interop-models";
-import { CompactDescriptor } from "../../api-clients/dist/bffApi.js";
+import { generateId } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
+import { z } from "zod";
 
-export const getMockApiAgreementListEntry = (): bffApi.AgreementListEntry => ({
-  id: generateId(),
-  consumer: getMockApiCompactOrganization(),
-  eservice: getMockBffApiCompactEService(),
-  canBeUpgraded: false,
-  descriptor: getApiMockCompactDescriptor(),
-  state: "DRAFT",
-});
-
-export const getMockApiAgreement = (): bffApi.Agreement => ({
-  id: generateId<AgreementId>(),
-  descriptorId: generateId<DescriptorId>(),
-  delegation: {
-    id: generateId<DelegationId>(),
-    delegate: getMockApiCompactOrganization(),
-  },
-  producer: getMockApiCompactOrganization(),
-  consumer: getMockApiTenant(),
-  eservice: getMockApiAgreementsEService(),
-  state: "ACTIVE",
-  verifiedAttributes: [],
-  certifiedAttributes: [],
-  declaredAttributes: [],
-  isContractPresent: true,
-  consumerDocuments: [],
-  createdAt: new Date().toISOString(),
-});
-
-export const getMockApiAddAgreementConsumerDocument_Body =
-  (): bffApi.addAgreementConsumerDocument_Body => ({
-    name: "name",
-    prettyName: "pretty name",
-    doc: new File([], "file name"),
+export const getMockBffApiAgreementListEntry =
+  (): bffApi.AgreementListEntry => ({
+    id: generateId(),
+    consumer: generateMock(bffApi.CompactOrganization),
+    eservice: generateMock(bffApi.CompactEService),
+    state: generateMock(bffApi.AgreementState),
+    canBeUpgraded: generateMock(z.boolean()),
+    suspendedByConsumer: generateMock(z.boolean().optional()),
+    suspendedByProducer: generateMock(z.boolean().optional()),
+    suspendedByPlatform: generateMock(z.boolean().optional()),
+    descriptor: generateMock(bffApi.CompactDescriptor),
+    delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
   });
 
-export const getMockApiAgreementPayload = (): bffApi.AgreementPayload => ({
-  descriptorId: generateId<DescriptorId>(),
-  eserviceId: generateId<EServiceId>(),
+export const getMockBffApiAgreement = (): bffApi.Agreement => ({
+  id: generateId(),
+  descriptorId: generateId(),
+  delegation: {
+    id: generateId(),
+    delegate: generateMock(bffApi.CompactOrganization),
+  },
+  producer: generateMock(bffApi.CompactOrganization),
+  consumer: generateMock(bffApi.Tenant),
+  eservice: generateMock(bffApi.AgreementsEService),
+  state: generateMock(bffApi.AgreementState),
+  verifiedAttributes: generateMock(z.array(bffApi.VerifiedAttribute)),
+  certifiedAttributes: generateMock(z.array(bffApi.CertifiedAttribute)),
+  declaredAttributes: generateMock(z.array(bffApi.DeclaredAttribute)),
+  isContractPresent: generateMock(z.boolean()),
+  consumerNotes: generateMock(z.string().optional()),
+  rejectionReason: generateMock(z.string().optional()),
+  consumerDocuments: generateMock(z.array(bffApi.Document)),
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+  updatedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+  suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
 });
 
-export const getMockApiCreatedResource = (
+export const getMockBffApiAddAgreementConsumerDocument_Body =
+  (): bffApi.addAgreementConsumerDocument_Body => ({
+    name: generateMock(z.string()),
+    prettyName: generateMock(z.string()),
+    doc: new File(["content"], "doc.txt"),
+  });
+
+export const getMockBffApiAgreementPayload = (): bffApi.AgreementPayload => ({
+  descriptorId: generateId(),
+  eserviceId: generateId(),
+  delegationId: generateId(),
+});
+
+export const getMockBffApiCreatedResource = (
   id: string = generateId()
 ): bffApi.CreatedResource => ({
   id,
@@ -61,107 +61,145 @@ export const getMockApiCreatedResource = (
 
 export const getMockAgreementApiCompactEService =
   (): agreementApi.CompactEService => ({
-    id: generateId<EServiceId>(),
-    name: "name",
+    id: generateId(),
+    name: generateMock(z.string()),
   });
 
-export const getMockApiCatalogEService = (): bffApi.CatalogEService => ({
-  id: generateId<EServiceId>(),
-  name: "name",
-  description: "description",
-  producer: getMockApiCompactOrganization(),
-  isMine: true,
+export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
+  id: generateId(),
+  name: generateMock(z.string()),
+  description: generateMock(z.string()),
+  producer: generateMock(bffApi.CompactOrganization),
+  agreement: generateMock(bffApi.CompactAgreement.optional()),
+  isMine: generateMock(z.boolean()),
+  activeDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
 });
 
-export const getMockApiCompactEServiceLight = (
-  id: string = generateId<EServiceId>()
+export const getMockBffApiCompactEServiceLight = (
+  id: string = generateId()
 ): bffApi.CompactEServiceLight => ({
   id,
-  name: "name",
+  name: generateMock(z.string()),
 });
 
-export const getMockApiAgreementSubmissionPayload =
-  (): bffApi.AgreementSubmissionPayload => ({});
+export const getMockBffApiAgreementSubmissionPayload =
+  (): bffApi.AgreementSubmissionPayload => ({
+    consumerNotes: generateMock(z.string().optional()),
+  });
 
-export const getMockApiAgreementRejectionPayload =
-  (): bffApi.AgreementRejectionPayload => ({ reason: "reason" });
+export const getMockBffApiAgreementRejectionPayload =
+  (): bffApi.AgreementRejectionPayload => ({
+    reason: generateMock(z.string()),
+  });
 
-export const getMockApiAgreementUpdatePayload =
-  (): bffApi.AgreementUpdatePayload => ({ consumerNotes: "notes" });
+export const getMockBffApiAgreementUpdatePayload =
+  (): bffApi.AgreementUpdatePayload => ({
+    consumerNotes: generateMock(z.string()),
+  });
 
-export const getMockApiHasCertifiedAttributes =
+export const getMockBffApiHasCertifiedAttributes =
   (): bffApi.HasCertifiedAttributes => ({
-    hasCertifiedAttributes: true,
+    hasCertifiedAttributes: generateMock(z.boolean()),
   });
 
 export const getMockAgreementApiCompactOrganization =
   (): agreementApi.CompactOrganization => ({
-    id: generateId<TenantId>(),
-    name: "name",
+    id: generateId(),
+    name: generateMock(z.string()),
   });
 
-export const getMockApiProducerEServiceDescriptor =
+export const getMockBffApiProducerEServiceDescriptor =
   (): bffApi.ProducerEServiceDescriptor => ({
-    id: generateId<DescriptorId>(),
-    version: "1.0",
-    docs: [],
-    state: "WAITING_FOR_APPROVAL",
-    audience: [],
-    voucherLifespan: 0,
-    dailyCallsPerConsumer: 0,
-    dailyCallsTotal: 0,
-    agreementApprovalPolicy: "AUTOMATIC",
-    eservice: getMockApiProducerDescriptorEService(),
-    attributes: getMockApiDescriptorAttributes(),
+    id: generateId(),
+    version: generateMock(z.string()),
+    description: generateMock(z.string().optional()),
+    interface: generateMock(bffApi.EServiceDoc.optional()),
+    docs: generateMock(z.array(bffApi.EServiceDoc)),
+    state: generateMock(bffApi.EServiceDescriptorState),
+    audience: generateMock(z.array(z.string())),
+    voucherLifespan: generateMock(z.number().int()),
+    dailyCallsPerConsumer: generateMock(z.number().int().gte(0)),
+    dailyCallsTotal: generateMock(z.number().int().gte(0)),
+    agreementApprovalPolicy: generateMock(bffApi.AgreementApprovalPolicy),
+    eservice: generateMock(bffApi.ProducerDescriptorEService),
+    attributes: generateMock(bffApi.DescriptorAttributes),
+    publishedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    deprecatedAt: generateMock(
+      z.string().datetime({ offset: true }).optional()
+    ),
+    archivedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    rejectionReasons: generateMock(
+      z.array(bffApi.DescriptorRejectionReason).optional()
+    ),
+    serverUrls: generateMock(z.array(z.string().url()).optional()),
+    templateRef: generateMock(bffApi.EServiceTemplateRef.optional()),
+    delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
   });
 
-export const getMockApiProducerEService = (): bffApi.ProducerEService => ({
-  id: generateId<EServiceId>(),
-  name: "name",
-  mode: "DELIVER",
-  isTemplateInstance: true,
+export const getMockBffApiProducerEService = (): bffApi.ProducerEService => ({
+  id: generateId(),
+  name: generateMock(z.string()),
+  mode: generateMock(bffApi.EServiceMode),
+  activeDescriptor: generateMock(bffApi.CompactProducerDescriptor.optional()),
+  draftDescriptor: generateMock(bffApi.CompactProducerDescriptor.optional()),
+  delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+  isTemplateInstance: generateMock(z.boolean()),
+  isNewTemplateVersionAvailable: generateMock(z.boolean().optional()),
 });
 
-export const getMockApiProducerEServiceDetails =
+export const getMockBffApiProducerEServiceDetails =
   (): bffApi.ProducerEServiceDetails => ({
-    id: generateId<EServiceId>(),
-    name: "name",
-    description: "description",
-    technology: "REST",
-    mode: "DELIVER",
-    riskAnalysis: [],
+    id: generateId(),
+    name: generateMock(z.string()),
+    description: generateMock(z.string()),
+    technology: generateMock(bffApi.EServiceTechnology),
+    mode: generateMock(bffApi.EServiceMode),
+    riskAnalysis: generateMock(z.array(bffApi.EServiceRiskAnalysis)),
+    isSignalHubEnabled: generateMock(z.boolean().optional()),
+    isConsumerDelegable: generateMock(z.boolean().optional()),
+    isClientAccessDelegable: generateMock(z.boolean().optional()),
   });
 
-export const getMockApiCatalogEServiceDescriptor =
+export const getMockBffApiCatalogEServiceDescriptor =
   (): bffApi.CatalogEServiceDescriptor => ({
-    id: generateId<DescriptorId>(),
-    version: "1.0",
-    docs: [],
-    attributes: getMockApiDescriptorAttributes(),
-    state: "WAITING_FOR_APPROVAL",
-    audience: [],
-    voucherLifespan: 0,
-    dailyCallsPerConsumer: 0,
-    dailyCallsTotal: 0,
-    agreementApprovalPolicy: "AUTOMATIC",
-    eservice: getMockApiCatalogDescriptorEservice(),
+    id: generateId(),
+    version: generateMock(z.string()),
+    description: generateMock(z.string().optional()),
+    interface: generateMock(bffApi.EServiceDoc.optional()),
+    docs: generateMock(z.array(bffApi.EServiceDoc)),
+    attributes: generateMock(bffApi.DescriptorAttributes),
+    state: generateMock(bffApi.EServiceDescriptorState),
+    audience: generateMock(z.array(z.string())),
+    voucherLifespan: generateMock(z.number().int()),
+    dailyCallsPerConsumer: generateMock(z.number().int().gte(0)),
+    dailyCallsTotal: generateMock(z.number().int().gte(0)),
+    agreementApprovalPolicy: generateMock(bffApi.AgreementApprovalPolicy),
+    eservice: generateMock(bffApi.CatalogDescriptorEService),
+    publishedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    deprecatedAt: generateMock(
+      z.string().datetime({ offset: true }).optional()
+    ),
+    archivedAt: generateMock(z.string().datetime({ offset: true }).optional()),
   });
 
-export const getMockApiCreatedEServiceDescriptor = (
-  eServiceId: string = generateId<EServiceId>(),
-  descriptorId: string = generateId<DescriptorId>()
+export const getMockBffApiCreatedEServiceDescriptor = (
+  eServiceId: string = generateId(),
+  descriptorId: string = generateId()
 ): bffApi.CreatedEServiceDescriptor => ({
   id: eServiceId,
   descriptorId,
 });
 
 export const getMockCatalogApiEServiceDoc = (): catalogApi.EServiceDoc => ({
-  id: generateId<EServiceDocumentId>(),
-  name: "name",
-  contentType: "type",
-  prettyName: "pretty name",
-  path: "path/to/doc",
-  checksum: "checksum",
+  id: generateId(),
+  name: generateMock(z.string()),
+  contentType: generateMock(z.string()),
+  prettyName: generateMock(z.string()),
+  path: generateMock(z.string()),
+  checksum: generateMock(z.string()),
+  contacts: generateMock(catalogApi.DescriptorInterfaceContacts.optional()),
 });
 
 export const toApiEServiceDoc = (
@@ -175,131 +213,187 @@ export const toApiEServiceDoc = (
 });
 
 export const getMockCatalogApiEService = (): catalogApi.EService => ({
-  id: generateId<EServiceId>(),
-  producerId: generateId<TenantId>(),
-  name: "name",
-  description: "description",
-  technology: "REST",
-  descriptors: [getMockCatalogApiEServiceDescriptor()],
-  riskAnalysis: [getMockCatalogApiEserviceRiskAnalysis()],
-  mode: "DELIVER",
+  id: generateId(),
+  producerId: generateId(),
+  name: generateMock(z.string()),
+  description: generateMock(z.string()),
+  technology: generateMock(catalogApi.EServiceTechnology),
+  descriptors: generateMock(z.array(catalogApi.EServiceDescriptor)),
+  riskAnalysis: generateMock(z.array(catalogApi.EServiceRiskAnalysis)),
+  mode: generateMock(catalogApi.EServiceMode),
+  isSignalHubEnabled: generateMock(z.boolean().optional()),
+  isConsumerDelegable: generateMock(z.boolean().optional()),
+  isClientAccessDelegable: generateMock(z.boolean().optional()),
+  templateId: generateMock(z.string().uuid().optional()),
 });
 
-export const getMockApiFileResource = (): bffApi.FileResource => ({
-  url: "http://valid.url.com",
-  filename: "filename",
+export const getMockBffApiFileResource = (): bffApi.FileResource => ({
+  url: generateMock(z.string().url()),
+  filename: generateMock(z.string()),
 });
 
-export const getMockApiPresignedUrl = (): bffApi.PresignedUrl => ({
-  url: "http://valid.url.com",
+export const getMockBffApiPresignedUrl = (): bffApi.PresignedUrl => ({
+  url: generateMock(z.string().url()),
 });
 
 export const getMockCatalogApiEServiceDescriptor =
   (): catalogApi.EServiceDescriptor => ({
-    id: generateId<DescriptorId>(),
-    version: "1.0",
-    audience: [],
-    voucherLifespan: 0,
-    dailyCallsPerConsumer: 1,
-    dailyCallsTotal: 1,
-    docs: [],
-    state: "WAITING_FOR_APPROVAL",
-    agreementApprovalPolicy: "AUTOMATIC",
-    serverUrls: [],
-    attributes: {
-      certified: [],
-      declared: [],
-      verified: [],
-    },
+    id: generateId(),
+    version: generateMock(z.string()),
+    description: generateMock(z.string().optional()),
+    audience: generateMock(z.array(z.string())),
+    voucherLifespan: generateMock(z.number().int()),
+    dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
+    dailyCallsTotal: generateMock(z.number().int().gte(1)),
+    interface: generateMock(catalogApi.EServiceDoc.optional()),
+    docs: generateMock(z.array(catalogApi.EServiceDoc)),
+    state: generateMock(catalogApi.EServiceDescriptorState),
+    agreementApprovalPolicy: generateMock(catalogApi.AgreementApprovalPolicy),
+    serverUrls: generateMock(z.array(z.string())),
+    publishedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    deprecatedAt: generateMock(
+      z.string().datetime({ offset: true }).optional()
+    ),
+    archivedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    attributes: generateMock(catalogApi.Attributes),
+    rejectionReasons: generateMock(
+      z.array(catalogApi.RejectionReason).optional()
+    ),
+    templateVersionRef: generateMock(
+      catalogApi.EServiceTemplateVersionRef.optional()
+    ),
   });
 
-export const getApiMockEServiceTemplateInstance =
+export const getMockBffApiEServiceTemplateInstance =
   (): bffApi.EServiceTemplateInstance => ({
-    id: generateId<EServiceTemplateId>(),
-    descriptors: [],
-    name: "name",
-    producerId: generateId<TenantId>(),
-    producerName: "name",
+    id: generateId(),
+    name: generateMock(z.string()),
+    producerId: generateId(),
+    producerName: generateMock(z.string()),
+    latestDescriptor: generateMock(bffApi.CompactDescriptor.optional()),
+    descriptors: generateMock(z.array(bffApi.CompactDescriptor)),
   });
 
-const getMockApiAgreementsEService = (): bffApi.AgreementsEService => ({
-  id: generateId<EServiceId>(),
-  name: "name",
-  version: "1.0",
-});
-
-const getMockApiTenant = (): bffApi.Tenant => ({
-  id: generateId<TenantId>(),
-  externalId: {
-    origin: "origin",
-    value: "value",
-  },
-  features: [],
-  createdAt: new Date().toISOString(),
-  name: "name",
-  attributes: {
-    declared: [],
-    certified: [],
-    verified: [],
-  },
-});
-
-const getApiMockCompactDescriptor = (): CompactDescriptor => ({
-  id: generateId<DescriptorId>(),
-  audience: ["audience"],
-  state: "DRAFT",
-  version: "1.0",
-});
-
-const getMockApiCompactOrganization = (): bffApi.CompactOrganization => ({
-  id: generateId<TenantId>(),
-  name: "name",
-});
-
-const getMockBffApiCompactEService = (): bffApi.CompactEService => ({
-  id: generateId<EServiceId>(),
-  name: "name",
-  producer: getMockApiCompactOrganization(),
-});
-
-const getMockApiProducerDescriptorEService =
-  (): bffApi.ProducerDescriptorEService => ({
-    id: generateId<EServiceId>(),
-    name: "name",
-    description: "description",
-    producer: getMockApiProducerDescriptorEServiceProducer(),
-    technology: "REST",
-    mode: "DELIVER",
-    riskAnalysis: [],
-    descriptors: [],
+export const getMockBffApiTemplateInstanceInterfaceRESTSeed =
+  (): bffApi.TemplateInstanceInterfaceRESTSeed => ({
+    contactName: generateMock(z.string()),
+    contactEmail: generateMock(z.string().email()),
+    contactUrl: generateMock(z.string().url().optional()),
+    termsAndConditionsUrl: generateMock(z.string().url().optional()),
+    serverUrls: generateMock(z.array(z.string().url())),
   });
 
-const getMockApiProducerDescriptorEServiceProducer =
-  (): bffApi.ProducerDescriptorEServiceProducer => ({
-    id: generateId<TenantId>(),
+export const getMockBffApiTemplateInstanceInterfaceSOAPSeed =
+  (): bffApi.TemplateInstanceInterfaceSOAPSeed => ({
+    serverUrls: generateMock(z.array(z.string().url())),
   });
 
-const getMockApiDescriptorAttributes = (): bffApi.DescriptorAttributes => ({
-  certified: [],
-  declared: [],
-  verified: [],
+export const getMockBffApiEServiceRiskAnalysisSeed =
+  (): bffApi.EServiceRiskAnalysisSeed => ({
+    name: generateMock(z.string()),
+    riskAnalysisForm: generateMock(bffApi.RiskAnalysisForm),
+  });
+
+export const getMockBffApiInstanceEServiceSeed =
+  (): bffApi.InstanceEServiceSeed => ({
+    isSignalHubEnabled: generateMock(z.boolean().optional()),
+    isClientAccessDelegable: generateMock(z.boolean().optional()),
+    isConsumerDelegable: generateMock(z.boolean().optional()),
+  });
+
+export const getMockBffApiEServiceSeed = (): bffApi.EServiceSeed => ({
+  name: generateMock(z.string()),
+  description: generateMock(z.string()),
+  technology: generateMock(bffApi.EServiceTechnology),
+  mode: generateMock(bffApi.EServiceMode),
+  isSignalHubEnabled: generateMock(z.boolean().optional()),
+  isClientAccessDelegable: generateMock(z.boolean().optional()),
+  isConsumerDelegable: generateMock(z.boolean().optional()),
 });
 
-const getMockApiCatalogDescriptorEservice =
-  (): bffApi.CatalogDescriptorEService => ({
-    id: generateId<EServiceId>(),
-    name: "name",
-    producer: getMockApiCompactOrganization(),
-    description: "description",
-    technology: "REST",
-    mode: "DELIVER",
-    riskAnalysis: [],
-    descriptors: [],
-    isMine: true,
-    hasCertifiedAttributes: true,
-    isSubscribed: true,
+export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
+  (): bffApi.RejectDelegatedEServiceDescriptorSeed => ({
+    rejectionReason: generateMock(z.string()),
   });
 
+export const getMockCatalogApiUpdateEServiceDescriptorQuotasSeed =
+  (): catalogApi.UpdateEServiceDescriptorQuotasSeed => ({
+    voucherLifespan: generateMock(z.number().int().gte(60).lte(86400)),
+    dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
+    dailyCallsTotal: generateMock(z.number().int().gte(1)),
+  });
+
+export const getMockBffApiDescriptorAttributesSeed =
+  (): bffApi.DescriptorAttributesSeed => ({
+    certified: generateMock(z.array(z.array(bffApi.DescriptorAttributeSeed))),
+    declared: generateMock(z.array(z.array(bffApi.DescriptorAttributeSeed))),
+    verified: generateMock(z.array(z.array(bffApi.DescriptorAttributeSeed))),
+  });
+
+export const getMockBffApiUpdateEServiceDescriptorSeed =
+  (): bffApi.UpdateEServiceDescriptorSeed => ({
+    description: generateMock(z.string().optional()),
+    audience: generateMock(z.array(z.string())),
+    voucherLifespan: generateMock(z.number().int()),
+    dailyCallsPerConsumer: generateMock(z.number().int()),
+    dailyCallsTotal: generateMock(z.number().int()),
+    agreementApprovalPolicy: generateMock(bffApi.AgreementApprovalPolicy),
+    attributes: generateMock(bffApi.DescriptorAttributesSeed),
+  });
+
+export const getMockBffApiUpdateEServiceDescriptorTemplateInstanceSeed =
+  (): bffApi.UpdateEServiceDescriptorTemplateInstanceSeed => ({
+    audience: generateMock(z.array(z.string())),
+    dailyCallsPerConsumer: generateMock(z.number().int()),
+    dailyCallsTotal: generateMock(z.number().int()),
+    agreementApprovalPolicy: generateMock(bffApi.AgreementApprovalPolicy),
+  });
+
+export const getMockBffApiUpdateEServiceSeed =
+  (): bffApi.UpdateEServiceSeed => ({
+    name: generateMock(z.string()),
+    description: generateMock(z.string()),
+    technology: generateMock(bffApi.EServiceTechnology),
+    mode: generateMock(bffApi.EServiceMode),
+    isSignalHubEnabled: generateMock(z.boolean().optional()),
+    isConsumerDelegable: generateMock(z.boolean().optional()),
+    isClientAccessDelegable: generateMock(z.boolean().optional()),
+  });
+
+export const getMockBffApiEServiceDescriptionUpdateSeed =
+  (): bffApi.EServiceDescriptionUpdateSeed => ({
+    description: generateMock(z.string()),
+  });
+
+export const getMockBffApiUpdateEServiceDescriptorDocumentSeed =
+  (): bffApi.UpdateEServiceDescriptorDocumentSeed => ({
+    prettyName: generateMock(z.string()),
+  });
+
+export const getMockBffApiEServiceDelegationFlagsUpdateSeed =
+  (): bffApi.EServiceDelegationFlagsUpdateSeed => ({
+    isConsumerDelegable: generateMock(z.boolean()),
+    isClientAccessDelegable: generateMock(z.boolean()),
+  });
+
+export const getMockBffApiEServiceNameUpdateSeed =
+  (): bffApi.EServiceNameUpdateSeed => ({
+    name: generateMock(z.string()),
+  });
+
+export const getMockBffApiUpdateEServiceTemplateInstanceSeed =
+  // eslint-disable-next-line sonarjs/no-identical-functions
+  (): bffApi.UpdateEServiceTemplateInstanceSeed => ({
+    isSignalHubEnabled: generateMock(z.boolean().optional()),
+    isClientAccessDelegable: generateMock(z.boolean().optional()),
+    isConsumerDelegable: generateMock(z.boolean().optional()),
+  });
+
+export const getMockBffApiUpdateEServiceTemplateInstanceDescriptorQuotas =
+  (): bffApi.UpdateEServiceTemplateInstanceDescriptorQuotas => ({
+    dailyCallsPerConsumer: generateMock(z.number().int().gte(0)),
+    dailyCallsTotal: generateMock(z.number().int().gte(0)),
 const getMockCatalogApiEserviceRiskAnalysis =
   (): catalogApi.EServiceRiskAnalysis => ({
     id: generateId<RiskAnalysisId>(),

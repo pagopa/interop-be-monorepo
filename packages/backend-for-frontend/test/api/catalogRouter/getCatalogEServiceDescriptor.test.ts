@@ -16,13 +16,13 @@ import {
   eserviceRiskNotFound,
   invalidEServiceRequester,
 } from "../../../src/model/errors.js";
-import { getMockApiCatalogEServiceDescriptor } from "../../mockUtils.js";
+import { getMockBffApiCatalogEServiceDescriptor } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /catalog/eservices/:eserviceId/descriptor/:descriptorId", () => {
   const mockEServiceId = generateId<EServiceId>();
   const mockApiCatalogEServiceDescriptor =
-    getMockApiCatalogEServiceDescriptor();
+    getMockBffApiCatalogEServiceDescriptor();
 
   const makeRequest = async (
     token: string,

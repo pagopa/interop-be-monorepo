@@ -11,10 +11,10 @@ import {
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients, services } from "../../vitest.api.setup.js";
 import {
-  getMockApiCreatedResource,
+  getMockBffApiCreatedResource,
+  getMockBffApiTemplateInstanceInterfaceRESTSeed,
   getMockCatalogApiEService,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -28,13 +28,9 @@ describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/in
   const mockEService = getMockCatalogApiEService();
   const mockDescriptorId = generateId<DescriptorId>();
   const mockEServiceTemplateId = generateId<EServiceTemplateId>();
-  const mockTemplateInstanceInterfaceRESTSeed: bffApi.TemplateInstanceInterfaceRESTSeed =
-    {
-      contactEmail: "email@email.com",
-      contactName: "name",
-      serverUrls: [],
-    };
-  const mockApiCreatedResource = getMockApiCreatedResource(mockDescriptorId);
+  const mockTemplateInstanceInterfaceRESTSeed =
+    getMockBffApiTemplateInstanceInterfaceRESTSeed();
+  const mockApiCreatedResource = getMockBffApiCreatedResource(mockDescriptorId);
 
   const makeRequest = async (
     token: string,

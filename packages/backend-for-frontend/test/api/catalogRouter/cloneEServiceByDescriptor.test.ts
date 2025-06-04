@@ -6,13 +6,13 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiCreatedEServiceDescriptor } from "../../mockUtils.js";
+import { getMockBffApiCreatedEServiceDescriptor } from "../../mockUtils.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/clone", () => {
   const mockEServiceId = generateId<EServiceId>();
   const mockDescriptorId = generateId<DescriptorId>();
   const mockApiCreatedEServiceDescriptor =
-    getMockApiCreatedEServiceDescriptor();
+    getMockBffApiCreatedEServiceDescriptor();
 
   const makeRequest = async (
     token: string,

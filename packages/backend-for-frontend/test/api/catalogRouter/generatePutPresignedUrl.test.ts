@@ -12,7 +12,7 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiPresignedUrl } from "../../mockUtils.js";
+import { getMockBffApiPresignedUrl } from "../../mockUtils.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -20,7 +20,7 @@ import {
 } from "../../../src/model/errors.js";
 
 describe("API GET /import/eservices/presignedUrl", () => {
-  const mockPresignedUrl = getMockApiPresignedUrl();
+  const mockPresignedUrl = getMockBffApiPresignedUrl();
 
   const makeRequest = async (token: string, fileName: unknown = "fileName") =>
     request(api)

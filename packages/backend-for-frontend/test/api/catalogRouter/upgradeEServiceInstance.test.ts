@@ -6,7 +6,7 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, clients } from "../../vitest.api.setup.js";
 import {
-  getMockApiCreatedResource,
+  getMockBffApiCreatedResource,
   getMockCatalogApiEServiceDescriptor,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -14,7 +14,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 describe("API POST /templates/eservices/:eServiceId/upgrade", () => {
   const mockEServiceId = generateId<EServiceId>();
   const mockEServiceDescriptor = getMockCatalogApiEServiceDescriptor();
-  const mockApiCreatedResource = getMockApiCreatedResource(
+  const mockApiCreatedResource = getMockBffApiCreatedResource(
     mockEServiceDescriptor.id
   );
 

@@ -16,12 +16,12 @@ import {
   eserviceRiskNotFound,
   invalidEServiceRequester,
 } from "../../../src/model/errors.js";
-import { getMockApiProducerEServiceDetails } from "../../mockUtils.js";
+import { getMockBffApiProducerEServiceDetails } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /producers/eservices/:eserviceId", () => {
   const mockEServiceId = generateId<EServiceId>();
-  const mockApiProducerEServiceDetails = getMockApiProducerEServiceDetails();
+  const mockApiProducerEServiceDetails = getMockBffApiProducerEServiceDetails();
 
   const makeRequest = async (
     token: string,

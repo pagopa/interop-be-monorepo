@@ -12,7 +12,7 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiFileResource } from "../../mockUtils.js";
+import { getMockBffApiFileResource } from "../../mockUtils.js";
 import {
   eserviceDescriptorNotFound,
   invalidEServiceRequester,
@@ -23,7 +23,7 @@ import {
 describe("API GET /export/eservices/:eserviceId/descriptors/:descriptorId", () => {
   const mockEServiceId = generateId<EServiceId>();
   const mockDescriptorId = generateId<DescriptorId>();
-  const mockFileResource = getMockApiFileResource();
+  const mockFileResource = getMockBffApiFileResource();
 
   const makeRequest = async (
     token: string,

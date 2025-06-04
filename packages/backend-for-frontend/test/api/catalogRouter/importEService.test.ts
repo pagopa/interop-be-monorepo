@@ -12,8 +12,8 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, services } from "../../vitest.api.setup.js";
 import {
-  getMockApiCreatedEServiceDescriptor,
-  getMockApiFileResource,
+  getMockBffApiCreatedEServiceDescriptor,
+  getMockBffApiFileResource,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -21,8 +21,8 @@ import {
   invalidZipStructure,
   notValidDescriptor,
 } from "../../../src/model/errors.js";
-const mockFileResource = getMockApiFileResource();
-const mockCreatedEServiceDescriptor = getMockApiCreatedEServiceDescriptor();
+const mockFileResource = getMockBffApiFileResource();
+const mockCreatedEServiceDescriptor = getMockBffApiCreatedEServiceDescriptor();
 const mockEServiceId = generateId<EServiceId>();
 const mockDescriptorId = generateId<DescriptorId>();
 

@@ -9,9 +9,11 @@ import {
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients, services } from "../../vitest.api.setup.js";
-import { getMockCatalogApiEService } from "../../mockUtils.js";
+import {
+  getMockBffApiEServiceRiskAnalysisSeed,
+  getMockCatalogApiEService,
+} from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceDescriptorNotFound,
@@ -22,13 +24,7 @@ import {
 describe("API POST /eservices/:eServiceId/riskAnalysis/:riskAnalysisId", () => {
   const mockEService = getMockCatalogApiEService();
   const mockRiskAnalysis = mockEService.riskAnalysis[0];
-  const mockEServiceRiskAnalysisSeed: bffApi.EServiceRiskAnalysisSeed = {
-    name: "name",
-    riskAnalysisForm: {
-      version: "1.0",
-      answers: {},
-    },
-  };
+  const mockEServiceRiskAnalysisSeed = getMockBffApiEServiceRiskAnalysisSeed();
 
   const makeRequest = async (
     token: string,

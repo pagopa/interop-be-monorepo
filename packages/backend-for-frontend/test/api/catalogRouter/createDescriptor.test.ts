@@ -5,17 +5,16 @@ import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, services } from "../../vitest.api.setup.js";
-import { getMockApiCreatedResource } from "../../mockUtils.js";
+import {
+  getMockBffApiCreatedResource,
+  getMockBffApiInstanceEServiceSeed,
+} from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /eservices/:eServiceId/descriptors", () => {
-  const mockInstanceEServiceSeed = {
-    isSignalHubEnabled: true,
-    isConsumerDelegable: true,
-    isClientAccessDelegable: true,
-  };
+  const mockInstanceEServiceSeed = getMockBffApiInstanceEServiceSeed();
   const mockEServiceId = generateId<EServiceId>();
-  const mockApiCreatedResource = getMockApiCreatedResource(mockEServiceId);
+  const mockApiCreatedResource = getMockBffApiCreatedResource(mockEServiceId);
 
   const makeRequest = async (
     token: string,

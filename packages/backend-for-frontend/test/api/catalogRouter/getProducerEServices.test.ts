@@ -15,13 +15,13 @@ import {
   eserviceRiskNotFound,
   invalidEServiceRequester,
 } from "../../../src/model/errors.js";
-import { getMockApiProducerEService } from "../../mockUtils.js";
+import { getMockBffApiProducerEService } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /producers/eservices", () => {
-  const mockApiCatalogEService1 = getMockApiProducerEService();
-  const mockApiCatalogEService2 = getMockApiProducerEService();
-  const mockApiCatalogEService3 = getMockApiProducerEService();
+  const mockApiCatalogEService1 = getMockBffApiProducerEService();
+  const mockApiCatalogEService2 = getMockBffApiProducerEService();
+  const mockApiCatalogEService3 = getMockBffApiProducerEService();
 
   const mockApiCatalogEServices = {
     results: [

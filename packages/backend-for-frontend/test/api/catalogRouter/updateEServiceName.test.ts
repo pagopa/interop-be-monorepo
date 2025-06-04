@@ -4,15 +4,16 @@ import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
-import { getMockCatalogApiEService } from "../../mockUtils.js";
+import {
+  getMockBffApiEServiceNameUpdateSeed,
+  getMockCatalogApiEService,
+} from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /eservices/:eServiceId/name/update", () => {
-  const mockEServiceDelegationFlagsUpdateSeed: bffApi.EServiceNameUpdateSeed = {
-    name: "name",
-  };
+  const mockEServiceDelegationFlagsUpdateSeed =
+    getMockBffApiEServiceNameUpdateSeed();
   const mockEService = getMockCatalogApiEService();
 
   const makeRequest = async (

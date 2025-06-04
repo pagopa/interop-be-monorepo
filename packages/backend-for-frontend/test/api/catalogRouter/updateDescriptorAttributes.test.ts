@@ -4,18 +4,14 @@ import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { getMockBffApiDescriptorAttributesSeed } from "../../mockUtils.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/attributes/update", () => {
   const mockEServiceId = generateId<EServiceId>();
   const mockDescriptorId = generateId<DescriptorId>();
-  const mockDescriptorAttributesSeed: bffApi.DescriptorAttributesSeed = {
-    certified: [],
-    declared: [],
-    verified: [],
-  };
+  const mockDescriptorAttributesSeed = getMockBffApiDescriptorAttributesSeed();
 
   const makeRequest = async (
     token: string,

@@ -4,21 +4,19 @@ import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
-import { getMockApiCreatedResource } from "../../mockUtils.js";
+import {
+  getMockBffApiCreatedResource,
+  getMockCatalogApiUpdateEServiceDescriptorQuotasSeed,
+} from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/update", () => {
   const mockEServiceId = generateId<EServiceId>();
   const mockDescriptorId = generateId<DescriptorId>();
-  const mockApiUpdateEServiceDescriptorQuotas: catalogApi.UpdateEServiceDescriptorQuotasSeed =
-    {
-      voucherLifespan: 0,
-      dailyCallsPerConsumer: 0,
-      dailyCallsTotal: 0,
-    };
-  const mockApiCreatedResource = getMockApiCreatedResource();
+  const mockApiUpdateEServiceDescriptorQuotas =
+    getMockCatalogApiUpdateEServiceDescriptorQuotasSeed();
+  const mockApiCreatedResource = getMockBffApiCreatedResource();
 
   const makeRequest = async (
     token: string,

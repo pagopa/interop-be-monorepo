@@ -4,22 +4,19 @@ import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
-import { getMockApiCreatedResource } from "../../mockUtils.js";
+import {
+  getMockBffApiCreatedResource,
+  getMockBffApiUpdateEServiceDescriptorTemplateInstanceSeed,
+} from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API PUT /templates/eservices/:eServiceId/descriptors/:descriptorId", () => {
   const mockEServiceId = generateId<EServiceId>();
   const mockDescriptorId = generateId<DescriptorId>();
-  const mockApiUpdateEServiceDescriptorTemplateInstanceSeed: bffApi.UpdateEServiceDescriptorTemplateInstanceSeed =
-    {
-      audience: [],
-      dailyCallsPerConsumer: 0,
-      dailyCallsTotal: 0,
-      agreementApprovalPolicy: "AUTOMATIC",
-    };
-  const mockApiCreatedResource = getMockApiCreatedResource();
+  const mockApiUpdateEServiceDescriptorTemplateInstanceSeed =
+    getMockBffApiUpdateEServiceDescriptorTemplateInstanceSeed();
+  const mockApiCreatedResource = getMockBffApiCreatedResource();
 
   const makeRequest = async (
     token: string,

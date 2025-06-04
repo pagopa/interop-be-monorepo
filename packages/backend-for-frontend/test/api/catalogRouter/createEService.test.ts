@@ -7,20 +7,15 @@ import { authRole } from "pagopa-interop-commons";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  getMockApiCreatedEServiceDescriptor,
+  getMockBffApiCreatedEServiceDescriptor,
+  getMockBffApiEServiceSeed,
   getMockCatalogApiEService,
 } from "../../mockUtils.js";
-import { EServiceSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices", () => {
-  const mockInstanceEServiceSeed: EServiceSeed = {
-    name: "name",
-    description: "description",
-    technology: "REST",
-    mode: "DELIVER",
-  };
+  const mockInstanceEServiceSeed = getMockBffApiEServiceSeed();
   const mockCatalogApiEService = getMockCatalogApiEService();
-  const mockApiCreatedEServiceDescriptor = getMockApiCreatedEServiceDescriptor(
+  const mockApiCreatedEServiceDescriptor = getMockBffApiCreatedEServiceDescriptor(
     mockCatalogApiEService.id,
     mockCatalogApiEService.descriptors[0].id
   );

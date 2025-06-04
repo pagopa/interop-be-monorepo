@@ -11,10 +11,10 @@ import {
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
+  getMockBffApiUpdateEServiceDescriptorDocumentSeed,
   getMockCatalogApiEServiceDoc,
   toApiEServiceDoc,
 } from "../../mockUtils.js";
@@ -28,10 +28,8 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents/:d
   const mockEServiceId = generateId<EServiceId>();
   const mockDescriptorId = generateId<DescriptorId>();
   const mockDocumentId = generateId<EServiceDocumentId>();
-  const mockUpdateEServiceDescriptorDocumentSeed: bffApi.UpdateEServiceDescriptorDocumentSeed =
-    {
-      prettyName: "prettyName",
-    };
+  const mockUpdateEServiceDescriptorDocumentSeed =
+    getMockBffApiUpdateEServiceDescriptorDocumentSeed();
   const mockEServiceDoc = getMockCatalogApiEServiceDoc();
   const mockApiEServiceDoc = toApiEServiceDoc(mockEServiceDoc);
 

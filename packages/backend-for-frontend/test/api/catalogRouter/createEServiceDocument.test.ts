@@ -12,13 +12,13 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiCreatedResource } from "../../mockUtils.js";
+import { getMockBffApiCreatedResource } from "../../mockUtils.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", () => {
   const mockEServiceId = generateId<EServiceId>();
   const mockDescriptorId = generateId<DescriptorId>();
-  const mockApiCreatedResource = getMockApiCreatedResource();
+  const mockApiCreatedResource = getMockBffApiCreatedResource();
 
   const makeRequest = async (
     token: string,

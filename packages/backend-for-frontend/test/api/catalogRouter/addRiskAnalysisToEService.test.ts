@@ -4,19 +4,15 @@ import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
-import { getMockCatalogApiEService } from "../../mockUtils.js";
+import {
+  getMockBffApiEServiceRiskAnalysisSeed,
+  getMockCatalogApiEService,
+} from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /eservices/:eServiceId/riskAnalysis", () => {
-  const mockEServiceRiskAnalysisSeed: bffApi.EServiceRiskAnalysisSeed = {
-    name: "name",
-    riskAnalysisForm: {
-      version: "1.0",
-      answers: {},
-    },
-  };
+  const mockEServiceRiskAnalysisSeed = getMockBffApiEServiceRiskAnalysisSeed();
   const mockEService = getMockCatalogApiEService();
 
   const makeRequest = async (

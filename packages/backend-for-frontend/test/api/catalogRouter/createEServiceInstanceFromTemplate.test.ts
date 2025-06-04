@@ -14,23 +14,22 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, clients } from "../../vitest.api.setup.js";
-import { getMockApiCreatedEServiceDescriptor } from "../../mockUtils.js";
+import {
+  getMockBffApiCreatedEServiceDescriptor,
+  getMockBffApiEServiceSeed,
+} from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /templates/:templateId/eservices", () => {
   const mockTemplateId = generateId<EServiceTemplateId>();
-  const mockInstanceEServiceSeed = {
-    isSignalHubEnabled: true,
-    isConsumerDelegable: true,
-    isClientAccessDelegable: true,
-  };
+  const mockInstanceEServiceSeed = getMockBffApiEServiceSeed();
   const mockDescriptor = getMockDescriptor();
   const mockEService = getMockEService(
     generateId<EServiceId>(),
     generateId<TenantId>(),
     [mockDescriptor]
   );
-  const mockApiCreatedEServiceDescriptor = getMockApiCreatedEServiceDescriptor(
+  const mockApiCreatedEServiceDescriptor = getMockBffApiCreatedEServiceDescriptor(
     mockEService.id,
     mockDescriptor.id
   );

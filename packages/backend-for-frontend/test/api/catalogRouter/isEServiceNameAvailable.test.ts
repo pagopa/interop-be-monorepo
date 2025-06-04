@@ -6,12 +6,12 @@ import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockApiCatalogEService } from "../../mockUtils.js";
+import { getMockBffApiCatalogEService } from "../../mockUtils.js";
 
 describe("API GET /eservices/names/availability", () => {
-  const mockEService1 = getMockApiCatalogEService();
-  const mockEService2 = getMockApiCatalogEService();
-  const mockEService3 = getMockApiCatalogEService();
+  const mockEService1 = getMockBffApiCatalogEService();
+  const mockEService2 = getMockBffApiCatalogEService();
+  const mockEService3 = getMockBffApiCatalogEService();
   const mockEServices = {
     results: [mockEService1, mockEService2, mockEService3],
     pagination: {

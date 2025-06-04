@@ -16,13 +16,13 @@ import {
   eserviceRiskNotFound,
   invalidEServiceRequester,
 } from "../../../src/model/errors.js";
-import { getMockApiProducerEServiceDescriptor } from "../../mockUtils.js";
+import { getMockBffApiProducerEServiceDescriptor } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /producers/eservices/:eserviceId/descriptors/:descriptorId", () => {
   const mockEServiceId = generateId<EServiceId>();
   const mockApiProducerEServiceDescriptor =
-    getMockApiProducerEServiceDescriptor();
+    getMockBffApiProducerEServiceDescriptor();
 
   const makeRequest = async (
     token: string,

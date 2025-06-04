@@ -16,13 +16,13 @@ import {
   invalidEServiceRequester,
 } from "../../../src/model/errors.js";
 import { api, services } from "../../vitest.api.setup.js";
-import { getMockApiCatalogEService } from "../../mockUtils.js";
+import { getMockBffApiCatalogEService } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /catalog", () => {
-  const mockApiCatalogEService1 = getMockApiCatalogEService();
-  const mockApiCatalogEService2 = getMockApiCatalogEService();
-  const mockApiCatalogEService3 = getMockApiCatalogEService();
+  const mockApiCatalogEService1 = getMockBffApiCatalogEService();
+  const mockApiCatalogEService2 = getMockBffApiCatalogEService();
+  const mockApiCatalogEService3 = getMockBffApiCatalogEService();
 
   const mockApiCatalogEServices = {
     results: [
