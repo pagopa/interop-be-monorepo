@@ -11,5 +11,6 @@
       "AttributeName": "privacyNoticeId",
       "AttributeType": "S"
     }
-  ]
+  ],
+  "BillingMode": "PAY_PER_REQUEST"
 }
