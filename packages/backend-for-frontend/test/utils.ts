@@ -2,7 +2,6 @@ import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
 import {
   AppContext,
-  FileManager,
   genericLogger,
   UIAuthData,
   WithLogger,
@@ -14,15 +13,6 @@ import {
   EServiceTemplate,
   EServiceTemplateVersion,
 } from "pagopa-interop-models";
-import {
-  EServiceTemplateService,
-  eserviceTemplateServiceBuilder,
-} from "../src/services/eserviceTemplateService.js";
-import {
-  AttributeProcessClient,
-  EServiceTemplateProcessClient,
-  TenantProcessClient,
-} from "../src/clients/clientsProvider.js";
 import { BffAppContext } from "../src/utilities/context.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
@@ -33,19 +23,6 @@ export const { cleanup, readModelRepository, postgresDB, fileManager } =
   );
 
 afterEach(cleanup);
-
-export const createEServiceTeamplateService = (
-  eserviceProcessTemplateClient: EServiceTemplateProcessClient,
-  tenantProcessClient: TenantProcessClient,
-  attributeProcessClient: AttributeProcessClient,
-  fileManager: FileManager
-): EServiceTemplateService =>
-  eserviceTemplateServiceBuilder(
-    eserviceProcessTemplateClient,
-    tenantProcessClient,
-    attributeProcessClient,
-    fileManager
-  );
 
 export const toEserviceTemplateProcessMock = (
   eserviceTemplate: EServiceTemplate,
