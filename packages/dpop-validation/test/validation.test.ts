@@ -29,6 +29,7 @@ import {
   invalidDPoPSignature,
   dpopJtiAlreadyCached,
   dpopTypNotFound,
+  multipleDPoPProofsError,
 } from "../src/errors.js";
 import { writeDPoPCache } from "../src/utilities/dpopCacheUtils.js";
 import { dynamoDBClient, dpopCacheTable } from "./utils.js";
@@ -309,6 +310,18 @@ describe("DPoP validation tests", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors?.[0].code).toBe(dpopJtiNotFound().code);
+    });
+
+    it("should add error if the headers contain multiple DPoP proofs", async () => {
+      const { dpopProofJWT } = await getMockDPoPProof();
+
+      const { errors } = verifyDPoPProof({
+        dpopProofJWS: "dpopProof1, dpopProof2",
+        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+      });
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors?.[0].code).toEqual(multipleDPoPProofsError().code);
     });
   });
 

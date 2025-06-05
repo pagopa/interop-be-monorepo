@@ -1,10 +1,4 @@
-import {
-  DPoPProof,
-  DPoPProofPayload,
-  DPoPProofHeader,
-  JWKKey,
-  JWKKeyES256,
-} from "pagopa-interop-models";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import * as jose from "jose";
 import {
   JOSEError,
@@ -13,30 +7,37 @@ import {
   JWTClaimValidationFailed,
   JWTInvalid,
 } from "jose/errors";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import {
+  DPoPProof,
+  DPoPProofHeader,
+  DPoPProofPayload,
+  JWKKey,
+  JWKKeyES256,
+} from "pagopa-interop-models";
+import {
+  dpopJtiAlreadyCached,
+  dpopProofInvalidClaims,
+  dpopProofSignatureVerificationError,
+  invalidDPoPJwt,
+  invalidDPoPProofFormat,
+  invalidDPoPSignature,
+  multipleDPoPProofsError,
+  unexpectedDPoPProofError,
+  unexpectedDPoPProofSignatureVerificationError,
+} from "./errors.js";
+import { ValidationResult } from "./types.js";
+import { readDPoPCache, writeDPoPCache } from "./utilities/dpopCacheUtils.js";
 import {
   failedValidation,
   successfulValidation,
-  validateTyp,
   validateAlgorithm,
-  validateJWK,
   validateHtm,
   validateHtu,
   validateIat,
   validateJti,
+  validateJWK,
+  validateTyp,
 } from "./utilities/utils.js";
-import { ValidationResult } from "./types.js";
-import {
-  dpopProofInvalidClaims,
-  dpopProofSignatureVerificationError,
-  invalidDPoPProofFormat,
-  invalidDPoPJwt,
-  invalidDPoPSignature,
-  unexpectedDPoPProofError,
-  unexpectedDPoPProofSignatureVerificationError,
-  dpopJtiAlreadyCached,
-} from "./errors.js";
-import { readDPoPCache, writeDPoPCache } from "./utilities/dpopCacheUtils.js";
 
 export const verifyDPoPProof = ({
   dpopProofJWS,
@@ -46,6 +47,10 @@ export const verifyDPoPProof = ({
   expectedDPoPProofHtu: string;
 }): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
   try {
+    if (dpopProofJWS.split(",").length > 1) {
+      return failedValidation([multipleDPoPProofsError()]);
+    }
+
     const decodedPayload = jose.decodeJwt(dpopProofJWS);
     const decodedHeader = jose.decodeProtectedHeader(dpopProofJWS);
 
