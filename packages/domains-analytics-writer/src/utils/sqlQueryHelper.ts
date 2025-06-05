@@ -219,12 +219,12 @@ export function generateStagingDeleteQuery<
   T extends DomainDbTable,
   ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>
 >(tableName: T, keyColumns: ColumnKeys[]): string {
-  const snakeCaseMapper = getColumnNameMapper(tableName as DbTable);
+  const snakeCaseMapper = getColumnNameMapper(tableName);
   const quoteColumn = (c: string) => `"${c}"`;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
-  const keyConditions = (keyColumns as string[]).map((logicalKey) => {
-    const sqlCol = snakeCaseMapper(logicalKey);
+  const keyConditions = keyColumns.map((key) => {
+    const sqlCol = snakeCaseMapper(String(key));
     return `${stagingTableName}.${quoteColumn(sqlCol)} = b.${quoteColumn(
       sqlCol
     )}`;
