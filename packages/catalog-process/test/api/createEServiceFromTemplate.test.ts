@@ -23,7 +23,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   documentPrettyNameDuplicate,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
@@ -98,7 +98,10 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
       expectedStatus: 409,
     },
     {
-      error: eServiceNameDuplicate(eService.name),
+      error: eServiceNameDuplicateForProducer(
+        eService.name,
+        eService.producerId
+      ),
       expectedStatus: 409,
     },
     {
