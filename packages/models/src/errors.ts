@@ -297,6 +297,7 @@ const errorCodes = {
   fallbackApplicationAuditingFailed: "10022",
   invalidSqsMessage: "10023",
   decodeSQSMessageError: "10024",
+  pollingMaxRetriesExceeded: "10025",
 } as const;
 
 export type CommonErrorCodes = keyof typeof errorCodes;
@@ -710,5 +711,16 @@ export function featureFlagNotEnabled(
     detail: `Feature flag ${featureFlag} is not enabled`,
     code: "featureFlagNotEnabled",
     title: "Feature flag not enabled",
+  });
+}
+
+export function pollingMaxRetriesExceeded(
+  retries: number,
+  retryDelayMs: number
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Polling exceeded maximum retries (${retries}) with delay ${retryDelayMs}ms`,
+    code: "pollingMaxRetriesExceeded",
+    title: "Polling max retries exceeded",
   });
 }

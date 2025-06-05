@@ -6,7 +6,7 @@ import {
 
 import {
   isPolledVersionAtLeastResponseVersion,
-  pollResource,
+  pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -17,18 +17,17 @@ export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollAttribute = (
     response: WithMaybeMetadata<attributeRegistryApi.Attribute>,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
-    pollResource(() =>
+  ): Promise<WithMaybeMetadata<attributeRegistryApi.Attribute>> =>
+    pollResourceWithMetadata(() =>
       clients.attributeProcessClient.getAttributeById({
         params: { attributeId: response.data.id },
         headers,
       })
     )({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {

@@ -4,7 +4,6 @@ import {
   PurposeId,
   PurposeVersionId,
   unsafeBrandId,
-  WithMetadata,
 } from "pagopa-interop-models";
 import {
   toGetPurposesApiQueryParams,
@@ -15,7 +14,7 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
-  pollResource,
+  pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
   isPolledVersionAtLeastMetadataTargetVersion,
 } from "../utils/polling.js";
@@ -62,20 +61,20 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
   const pollPurpose = (
     response: WithMaybeMetadata<purposeApi.Purpose>,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMetadata<purposeApi.Purpose>> =>
-    pollResource(() =>
+  ): Promise<WithMaybeMetadata<purposeApi.Purpose>> =>
+    pollResourceWithMetadata(() =>
       retrievePurposeById(unsafeBrandId(response.data.id), headers)
     )({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   const pollPurposeById = (
     purposeId: PurposeId,
     metadata: { version: number } | undefined,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMetadata<purposeApi.Purpose>> =>
-    pollResource(() => retrievePurposeById(purposeId, headers))({
-      checkFn: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+  ): Promise<WithMaybeMetadata<purposeApi.Purpose>> =>
+    pollResourceWithMetadata(() => retrievePurposeById(purposeId, headers))({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
   const retrieveLatestPurposeVersionByState = (
