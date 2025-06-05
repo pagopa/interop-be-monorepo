@@ -2099,6 +2099,9 @@ importers:
       '@testcontainers/postgresql':
         specifier: 10.9.0
         version: 10.9.0
+      '@types/adm-zip':
+        specifier: 0.5.5
+        version: 0.5.5
       '@types/jsonwebtoken':
         specifier: 9.0.6
         version: 9.0.6
@@ -2108,6 +2111,9 @@ importers:
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.8.2)(zod@3.23.8)
+      adm-zip:
+        specifier: 0.5.15
+        version: 0.5.15
       aws-sdk-client-mock:
         specifier: 4.0.1
         version: 4.0.1
@@ -2839,6 +2845,9 @@ importers:
       dotenv-flow:
         specifier: 4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: 0.39.3
+        version: 0.39.3(@types/pg@8.11.11)(pg@8.13.1)
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
@@ -2854,6 +2863,12 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -3641,6 +3656,9 @@ importers:
       pagopa-interop-readmodel:
         specifier: workspace:*
         version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
       ts-pattern:
         specifier: 5.2.0
         version: 5.2.0
@@ -3766,6 +3784,9 @@ importers:
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
       zod:
         specifier: 3.23.8
         version: 3.23.8
