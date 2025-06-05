@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // /* eslint-disable @typescript-eslint/ban-ts-comment */
 // /* eslint-disable @typescript-eslint/explicit-function-return-type */
 // /* eslint-disable functional/immutable-data */
@@ -239,6 +241,121 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
+// import { config as dotenv } from "dotenv-flow";
+// dotenv();
+// import {
+//   AWSSesConfig,
+//   AnalyticsSQLDbConfig,
+//   EventStoreConfig,
+//   FileManagerConfig,
+//   ReadModelDbConfig,
+//   ReadModelSQLDbConfig,
+//   RedisRateLimiterConfig,
+//   S3Config,
+//   TokenGenerationReadModelDbConfig,
+// } from "pagopa-interop-commons";
+// import type {} from "vitest";
+// import type { TestProject } from "vitest/node";
+// import { z } from "zod";
+// import { PecEmailManagerConfigTest } from "./testConfig.js";
+
+// const EnhancedTokenGenerationReadModelDbConfig =
+//   TokenGenerationReadModelDbConfig.and(
+//     z.object({ tokenGenerationReadModelDbPort: z.number() })
+//   );
+// type EnhancedTokenGenerationReadModelDbConfig = z.infer<
+//   typeof EnhancedTokenGenerationReadModelDbConfig
+// >;
+
+// declare module "vitest" {
+//   export interface ProvidedContext {
+//     readModelConfig?: ReadModelDbConfig;
+//     readModelSQLConfig?: ReadModelSQLDbConfig;
+//     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
+//     eventStoreConfig?: EventStoreConfig;
+//     fileManagerConfig?: FileManagerConfig & S3Config;
+//     redisRateLimiterConfig?: RedisRateLimiterConfig;
+//     emailManagerConfig?: PecEmailManagerConfigTest;
+//     sesEmailManagerConfig?: AWSSesConfig;
+//     analyticsSQLDbConfig?: AnalyticsSQLDbConfig;
+//   }
+// }
+
+// export function setupTestContainersVitestGlobal() {
+//   // Carica anche .env.testcontainers
+//   // dotenv({ node_env: "testcontainers" });
+//   dotenv();
+//   return async function ({
+//     provide,
+//   }: TestProject): Promise<() => Promise<void>> {
+//     const eventStoreConfig = EventStoreConfig.safeParse(process.env);
+//     if (eventStoreConfig.success) {
+//       provide("eventStoreConfig", eventStoreConfig.data);
+//     }
+
+//     const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
+//     if (readModelSQLConfig.success) {
+//       provide("readModelSQLConfig", readModelSQLConfig.data);
+//     }
+
+//     const analyticsSQLDbConfig = AnalyticsSQLDbConfig.safeParse(process.env);
+//     if (analyticsSQLDbConfig.success) {
+//       provide("analyticsSQLDbConfig", analyticsSQLDbConfig.data);
+//     }
+
+//     const readModelConfig = ReadModelDbConfig.safeParse(process.env);
+//     if (readModelConfig.success) {
+//       provide("readModelConfig", readModelConfig.data);
+//     }
+
+//     const fileManagerConfig = FileManagerConfig.safeParse(process.env);
+//     if (fileManagerConfig.success) {
+//       const s3Bucket =
+//         S3Config.safeParse(process.env)?.data?.s3Bucket ??
+//         "interop-local-bucket";
+//       provide("fileManagerConfig", {
+//         ...fileManagerConfig.data,
+//         s3Bucket,
+//       });
+//     }
+
+//     const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
+//     if (emailManagerConfig.success) {
+//       provide("emailManagerConfig", emailManagerConfig.data);
+//     }
+
+//     const tokenGenerationReadModelConfig =
+//       EnhancedTokenGenerationReadModelDbConfig.safeParse(process.env);
+//     if (tokenGenerationReadModelConfig.success) {
+//       provide(
+//         "tokenGenerationReadModelConfig",
+//         tokenGenerationReadModelConfig.data
+//       );
+//     }
+
+//     const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(
+//       process.env
+//     );
+//     if (redisRateLimiterConfig.success) {
+//       provide("redisRateLimiterConfig", redisRateLimiterConfig.data);
+//     }
+
+//     const awsSESConfig = AWSSesConfig.safeParse(process.env);
+//     if (awsSESConfig.success) {
+//       provide("sesEmailManagerConfig", awsSESConfig.data);
+//     }
+
+//     return async () => {
+//       // Nessuna cleanup da fare, i container sono gestiti fuori da questo script
+//     };
+//   };
+// }
+
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-let */
+
 import { config as dotenv } from "dotenv-flow";
 dotenv();
 import {
@@ -252,7 +369,7 @@ import {
   S3Config,
   TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
-import type {} from "vitest";
+import type { ProvidedContext } from "vitest";
 import type { TestProject } from "vitest/node";
 import { z } from "zod";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
@@ -280,71 +397,68 @@ declare module "vitest" {
 }
 
 export function setupTestContainersVitestGlobal() {
-  // Carica anche .env.testcontainers
-  // dotenv({ node_env: "testcontainers" });
-  dotenv();
+  dotenv(); // Carica .env.test e .env.testcontainers se presenti
   return async function ({
     provide,
   }: TestProject): Promise<() => Promise<void>> {
-    const eventStoreConfig = EventStoreConfig.safeParse(process.env);
-    if (eventStoreConfig.success) {
-      provide("eventStoreConfig", eventStoreConfig.data);
-    }
+    const provideConfig = <K extends keyof ProvidedContext>(
+      label: K,
+      parser: z.SafeParseReturnType<any, ProvidedContext[K]>
+    ) => {
+      if (parser.success) {
+        provide(label, parser.data); // 👈 cast esplicito
+        console.log(`✅ Provided ${label}`);
+      } else {
+        console.warn(`⚠️ Failed to provide ${label}`);
+      }
+    };
 
-    const readModelSQLConfig = ReadModelSQLDbConfig.safeParse(process.env);
-    if (readModelSQLConfig.success) {
-      provide("readModelSQLConfig", readModelSQLConfig.data);
-    }
+    provideConfig("eventStoreConfig", EventStoreConfig.safeParse(process.env));
+    provideConfig(
+      "readModelSQLConfig",
+      ReadModelSQLDbConfig.safeParse(process.env)
+    );
+    provideConfig(
+      "analyticsSQLDbConfig",
+      AnalyticsSQLDbConfig.safeParse(process.env)
+    );
+    provideConfig("readModelConfig", ReadModelDbConfig.safeParse(process.env));
+    provideConfig(
+      "redisRateLimiterConfig",
+      RedisRateLimiterConfig.safeParse(process.env)
+    );
+    provideConfig("sesEmailManagerConfig", AWSSesConfig.safeParse(process.env));
+    provideConfig(
+      "emailManagerConfig",
+      PecEmailManagerConfigTest.safeParse(process.env)
+    );
 
-    const analyticsSQLDbConfig = AnalyticsSQLDbConfig.safeParse(process.env);
-    if (analyticsSQLDbConfig.success) {
-      provide("analyticsSQLDbConfig", analyticsSQLDbConfig.data);
-    }
-
-    const readModelConfig = ReadModelDbConfig.safeParse(process.env);
-    if (readModelConfig.success) {
-      provide("readModelConfig", readModelConfig.data);
-    }
-
-    const fileManagerConfig = FileManagerConfig.safeParse(process.env);
-    if (fileManagerConfig.success) {
-      const s3Bucket =
-        S3Config.safeParse(process.env)?.data?.s3Bucket ??
-        "interop-local-bucket";
-      provide("fileManagerConfig", {
-        ...fileManagerConfig.data,
-        s3Bucket,
-      });
-    }
-
-    const emailManagerConfig = PecEmailManagerConfigTest.safeParse(process.env);
-    if (emailManagerConfig.success) {
-      provide("emailManagerConfig", emailManagerConfig.data);
-    }
-
-    const tokenGenerationReadModelConfig =
-      EnhancedTokenGenerationReadModelDbConfig.safeParse(process.env);
-    if (tokenGenerationReadModelConfig.success) {
-      provide(
-        "tokenGenerationReadModelConfig",
-        tokenGenerationReadModelConfig.data
-      );
-    }
-
-    const redisRateLimiterConfig = RedisRateLimiterConfig.safeParse(
+    const tokenGenParsed = EnhancedTokenGenerationReadModelDbConfig.safeParse(
       process.env
     );
-    if (redisRateLimiterConfig.success) {
-      provide("redisRateLimiterConfig", redisRateLimiterConfig.data);
+    if (tokenGenParsed.success) {
+      provide("tokenGenerationReadModelConfig", tokenGenParsed.data);
+      console.log("✅ Provided tokenGenerationReadModelConfig");
+    } else {
+      console.warn("⚠️ Failed to provide tokenGenerationReadModelConfig");
     }
 
-    const awsSESConfig = AWSSesConfig.safeParse(process.env);
-    if (awsSESConfig.success) {
-      provide("sesEmailManagerConfig", awsSESConfig.data);
+    const fileManagerParsed = FileManagerConfig.safeParse(process.env);
+    const s3Parsed = S3Config.safeParse(process.env);
+    if (fileManagerParsed.success) {
+      provide("fileManagerConfig", {
+        ...fileManagerParsed.data,
+        s3Bucket: s3Parsed.success
+          ? s3Parsed.data.s3Bucket
+          : "interop-local-bucket",
+      });
+      console.log("✅ Provided fileManagerConfig with s3Bucket");
+    } else {
+      console.warn("⚠️ Failed to provide fileManagerConfig");
     }
 
     return async () => {
-      // Nessuna cleanup da fare, i container sono gestiti fuori da questo script
+      // No cleanup logic necessary: containers are external
     };
   };
 }
