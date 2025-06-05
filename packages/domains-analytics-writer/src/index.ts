@@ -18,8 +18,12 @@ import {
   DelegationDbTable,
   DeletingDbTable,
   PurposeDbTable,
+  TenantDbPartialTable,
+  TenantDbTable,
+  ClientDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
+import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
 
 const dbInstance = initDB({
   username: config.dbUsername,
@@ -64,19 +68,71 @@ await retryConnection(
       PurposeDbTable.purpose_version_document,
       PurposeDbTable.purpose_risk_analysis_form,
       PurposeDbTable.purpose_risk_analysis_answer,
+      ClientDbTable.client,
+      ClientDbTable.client_purpose,
+      ClientDbTable.client_user,
+      ClientDbTable.client_key,
       DelegationDbTable.delegation,
       DelegationDbTable.delegation_stamp,
       DelegationDbTable.delegation_contract_document,
+      TenantDbTable.tenant,
+      TenantDbTable.tenant_mail,
+      TenantDbTable.tenant_certified_attribute,
+      TenantDbTable.tenant_declared_attribute,
+      TenantDbTable.tenant_verified_attribute,
+      TenantDbTable.tenant_verified_attribute_verifier,
+      TenantDbTable.tenant_verified_attribute_revoker,
+      TenantDbTable.tenant_feature,
+      EserviceTemplateDbTable.eservice_template,
+      EserviceTemplateDbTable.eservice_template_version,
+      EserviceTemplateDbTable.eservice_template_version_attribute,
+      EserviceTemplateDbTable.eservice_template_version_document,
+      EserviceTemplateDbTable.eservice_template_version_interface,
+      EserviceTemplateDbTable.eservice_template_risk_analysis,
+      EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+    ]);
+    await setupDbService.setupPartialStagingTables([
+      TenantDbPartialTable.tenant_self_care_id,
     ]);
     await setupDbService.setupStagingDeletingTables([
       { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
+      { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       {
         name: DeletingDbTable.catalog_risk_deleting_table,
         columns: ["id", "eserviceId"],
       },
       { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
       { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.tenant_deleting_table,
+        columns: ["id"],
+      },
+      {
+        name: DeletingDbTable.tenant_mail_deleting_table,
+        columns: ["id", "tenantId"],
+      },
+      {
+        name: DeletingDbTable.tenant_feature_deleting_table,
+        columns: ["tenantId", "kind"],
+      },
+      { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
+      {
+        name: DeletingDbTable.client_user_deleting_table,
+        columns: ["clientId", "userId"],
+      },
+      {
+        name: DeletingDbTable.client_purpose_deleting_table,
+        columns: ["clientId", "purposeId"],
+      },
+      {
+        name: DeletingDbTable.client_key_deleting_table,
+        columns: ["clientId", "kid"],
+      },
+      {
+        name: DeletingDbTable.eservice_template_deleting_table,
+        columns: ["id"],
+      },
     ]);
   },
   logger({ serviceName: config.serviceName })

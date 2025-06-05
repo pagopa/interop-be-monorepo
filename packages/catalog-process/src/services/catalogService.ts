@@ -76,7 +76,6 @@ import {
   eServiceDescriptorWithoutInterface,
   eServiceDocumentNotFound,
   eserviceInterfaceDataNotValid,
-  eServiceNameDuplicate,
   eServiceNotAnInstance,
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
@@ -149,7 +148,7 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
-  assertNotDuplicatedEServiceName,
+  assertNotDuplicatedEServiceNameForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
@@ -160,8 +159,8 @@ import {
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
-  assertDescriptorUpdatable,
-  assertEServiceUpdatable,
+  assertDescriptorUpdatableAfterPublish,
+  assertEServiceUpdatableAfterPublish,
   hasRoleToAccessInactiveDescriptors,
 } from "./validators.js";
 
@@ -482,14 +481,11 @@ async function innerCreateEService(
     throw originNotCompliant(authData.externalId.origin);
   }
 
-  const eserviceWithSameName =
-    await readModelService.getEServiceByNameAndProducerId({
-      name: seed.name,
-      producerId: authData.organizationId,
-    });
-  if (eserviceWithSameName) {
-    throw eServiceNameDuplicate(seed.name);
-  }
+  await assertNotDuplicatedEServiceNameForProducer(
+    seed.name,
+    authData.organizationId,
+    readModelService
+  );
 
   const creationDate = new Date();
   const newEService: EService = {
@@ -840,14 +836,11 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
 
       if (eserviceSeed.name !== eservice.data.name) {
-        const eserviceWithSameName =
-          await readModelService.getEServiceByNameAndProducerId({
-            name: eserviceSeed.name,
-            producerId: eservice.data.producerId,
-          });
-        if (eserviceWithSameName !== undefined) {
-          throw eServiceNameDuplicate(eserviceSeed.name);
-        }
+        await assertNotDuplicatedEServiceNameForProducer(
+          eserviceSeed.name,
+          eservice.data.producerId,
+          readModelService
+        );
       }
 
       const updatedTechnology = apiTechnologyToTechnology(
@@ -1735,14 +1728,11 @@ export function catalogServiceBuilder(
         eservice.data.name
       } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
 
-      if (
-        await readModelService.getEServiceByNameAndProducerId({
-          name: clonedEServiceName,
-          producerId: eservice.data.producerId,
-        })
-      ) {
-        throw eServiceNameDuplicate(clonedEServiceName);
-      }
+      await assertNotDuplicatedEServiceNameForProducer(
+        clonedEServiceName,
+        eservice.data.producerId,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -1888,7 +1878,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorUpdatable(descriptor);
+      assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
       const updatedDescriptor: Descriptor = {
@@ -1937,7 +1927,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorUpdatable(descriptor);
+      assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
       const updatedEService = replaceDescriptor(eservice.data, {
@@ -1981,7 +1971,7 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      assertDescriptorUpdatable(descriptor);
+      assertDescriptorUpdatableAfterPublish(descriptor);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2216,7 +2206,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      assertEServiceUpdatable(eservice.data);
+      assertEServiceUpdatableAfterPublish(eservice.data);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -2252,7 +2242,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      assertEServiceUpdatable(eservice.data);
+      assertEServiceUpdatableAfterPublish(eservice.data);
 
       if (!isConsumerDelegable && isClientAccessDelegable) {
         throw invalidEServiceFlags(eserviceId);
@@ -2398,13 +2388,15 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      assertEServiceUpdatable(eservice.data);
+      assertEServiceUpdatableAfterPublish(eservice.data);
 
-      await assertNotDuplicatedEServiceName(
-        name,
-        eservice.data,
-        readModelService
-      );
+      if (name !== eservice.data.name) {
+        await assertNotDuplicatedEServiceNameForProducer(
+          name,
+          eservice.data.producerId,
+          readModelService
+        );
+      }
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -2530,7 +2522,7 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      assertDescriptorUpdatable(descriptor);
+      assertDescriptorUpdatableAfterPublish(descriptor);
 
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
@@ -2577,9 +2569,9 @@ export function catalogServiceBuilder(
         return;
       }
 
-      await assertNotDuplicatedEServiceName(
+      await assertNotDuplicatedEServiceNameForProducer(
         newName,
-        eservice.data,
+        eservice.data.producerId,
         readModelService
       );
 

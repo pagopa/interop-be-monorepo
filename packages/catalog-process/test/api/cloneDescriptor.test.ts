@@ -23,7 +23,7 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -98,7 +98,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/clone authoriza
 
   it.each([
     {
-      error: eServiceNameDuplicate(eservice.name),
+      error: eServiceNameDuplicateForProducer(
+        eservice.name,
+        eservice.producerId
+      ),
       expectedStatus: 409,
     },
     {
