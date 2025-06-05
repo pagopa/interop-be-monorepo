@@ -195,7 +195,7 @@ describe("updateEServiceTemplateName", () => {
       versions: [eserviceTemplateVersion],
     };
 
-    const duplicateName = "eservice duplciate name";
+    const duplicateName = "eservice duplicate name";
 
     const eserviceTemplateWithSameName: EServiceTemplate = {
       ...getMockEServiceTemplate(),
@@ -206,11 +206,10 @@ describe("updateEServiceTemplateName", () => {
     await addOneEServiceTemplate(eserviceTemplate);
     await addOneEServiceTemplate(eserviceTemplateWithSameName);
 
-    const updatedName = duplicateName;
     expect(
       eserviceTemplateService.updateEServiceTemplateName(
         eserviceTemplate.id,
-        updatedName,
+        duplicateName,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
