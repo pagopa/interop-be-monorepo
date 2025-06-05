@@ -211,8 +211,8 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
  * whenever there is another row with the same keyColumns and a higher
  * metadata_version (or, if equal, a lower ctid).
  *
- * @param tableName   - The base table name.
- * @param keyColumns  - Array of column keys used to match records for deletion.
+ * @param tableName - The base table name.
+ * @param keyColumns - Array of column keys used to match records for deletion.
  * @returns - A DELETE SQL query string to perform a deduplication.
  */
 export function generateStagingDeleteQuery<
