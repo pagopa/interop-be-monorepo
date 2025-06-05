@@ -15,7 +15,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   eserviceNotFound,
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
 } from "../../src/model/domain/errors.js";
 
@@ -77,7 +77,7 @@ describe("API /producerKeychains/{producerKeychainId}/eservices/{eserviceId} aut
       expectedStatus: 404,
     },
     {
-      error: organizationNotAllowedOnProducerKeychain(
+      error: tenantNotAllowedOnProducerKeychain(
         generateId(),
         mockProducerKeychain.id
       ),

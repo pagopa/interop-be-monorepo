@@ -6,6 +6,8 @@ import {
   FileManagerConfig,
   LoggerConfig,
   ReadModelDbConfig,
+  FeatureFlagSQLConfig,
+  ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -32,7 +34,9 @@ const EServiceTemplateUpdaterConfig = CatalogProcessServerConfig.and(
   .and(LoggerConfig)
   .and(TokenGenerationConfig)
   .and(KafkaConsumerConfig)
-  .and(ReadModelDbConfig);
+  .and(ReadModelDbConfig)
+  .and(FeatureFlagSQLConfig)
+  .and(ReadModelSQLDbConfig.optional());
 
 export type EServiceTemplateUpdaterConfig = z.infer<
   typeof EServiceTemplateUpdaterConfig

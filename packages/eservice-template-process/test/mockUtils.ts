@@ -3,9 +3,19 @@ import {
   RiskAnalysis,
   generateId,
   EServiceTemplateVersion,
+  TenantId,
 } from "pagopa-interop-models";
-import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
+import {
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  userRole,
+} from "pagopa-interop-commons";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  getMockContext,
+  getMockAuthData,
+  getMockContextM2M,
+  getMockContextM2MAdmin,
+} from "pagopa-interop-commons-test";
 import {
   eServiceModeToApiEServiceMode,
   eserviceTemplateToApiEServiceTemplate,
@@ -27,10 +37,13 @@ export const eserviceTemplateToApiEServiceTemplateSeed = (
   const apiEserviceTemplate =
     eserviceTemplateToApiEServiceTemplate(eserviceTemplate);
 
-  return {
+  return eserviceTemplateApi.EServiceTemplateSeed.strip().parse({
     ...apiEserviceTemplate,
-    version: apiEserviceTemplate.versions[0],
-  };
+    version:
+      eserviceTemplateApi.VersionSeedForEServiceTemplateCreation.strip().parse(
+        apiEserviceTemplate.versions[0]
+      ),
+  });
 };
 
 export const eserviceTemplateToApiUpdateEServiceTemplateSeed = (
@@ -82,3 +95,31 @@ export const buildDocumentSeed =
     fileName: "fileName",
     checksum: "checksum",
   });
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export const getContextsAllowedToSeeDraftVersions = (creatorId: TenantId) => [
+  getMockContext({
+    authData: {
+      ...getMockAuthData(creatorId),
+      userRoles: [userRole.ADMIN_ROLE],
+    },
+  }),
+  getMockContext({
+    authData: {
+      ...getMockAuthData(creatorId),
+      userRoles: [userRole.API_ROLE],
+    },
+  }),
+  getMockContext({
+    authData: {
+      ...getMockAuthData(creatorId),
+      userRoles: [userRole.SUPPORT_ROLE],
+    },
+  }),
+  getMockContextM2M({
+    organizationId: creatorId,
+  }),
+  getMockContextM2MAdmin({
+    organizationId: creatorId,
+  }),
+];

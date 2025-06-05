@@ -7,7 +7,6 @@ import {
   DB,
   eventRepository,
   FileManager,
-  hasAtLeastOneUserRole,
   InternalAuthData,
   interpolateApiSpec,
   Logger,
@@ -15,12 +14,12 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
-  userRole,
   verifyAndCreateDocument,
   WithLogger,
   formatDateddMMyyyyHHmmss,
   assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -156,13 +155,13 @@ import {
   assertTenantKindExists,
   descriptorStatesNotAllowingDocumentOperations,
   isActiveDescriptor,
-  isNotActiveDescriptor,
   validateRiskAnalysisSchemaOrThrow,
   assertEServiceIsTemplateInstance,
   assertConsistentDailyCalls,
   assertIsDraftDescriptor,
-  assertDescriptorUpdatable,
-  assertEServiceUpdatable,
+  assertDescriptorUpdatableAfterPublish,
+  assertEServiceUpdatableAfterPublish,
+  hasRoleToAccessInactiveDescriptors,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -709,7 +708,10 @@ export function catalogServiceBuilder(
   return {
     async getEServiceById(
       eserviceId: EServiceId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<EService> {
       logger.info(`Retrieving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -725,7 +727,10 @@ export function catalogServiceBuilder(
       filters: ApiGetEServicesFilters,
       offset: number,
       limit: number,
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EService>> {
       logger.info(
         `Getting EServices with name = ${filters.name}, ids = ${filters.eservicesIds}, producers = ${filters.producersIds}, states = ${filters.states}, agreementStates = ${filters.agreementStates}, mode = ${filters.mode}, isConsumerDelegable = ${filters.isConsumerDelegable}, limit = ${limit}, offset = ${offset}`
@@ -1873,7 +1878,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorUpdatable(descriptor);
+      assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
       const updatedDescriptor: Descriptor = {
@@ -1922,7 +1927,7 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      assertDescriptorUpdatable(descriptor);
+      assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
       const updatedEService = replaceDescriptor(eservice.data, {
@@ -1966,7 +1971,7 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      assertDescriptorUpdatable(descriptor);
+      assertDescriptorUpdatableAfterPublish(descriptor);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2201,7 +2206,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      assertEServiceUpdatable(eservice.data);
+      assertEServiceUpdatableAfterPublish(eservice.data);
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -2237,7 +2242,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      assertEServiceUpdatable(eservice.data);
+      assertEServiceUpdatableAfterPublish(eservice.data);
 
       if (!isConsumerDelegable && isClientAccessDelegable) {
         throw invalidEServiceFlags(eserviceId);
@@ -2383,7 +2388,7 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      assertEServiceUpdatable(eservice.data);
+      assertEServiceUpdatableAfterPublish(eservice.data);
 
       if (name !== eservice.data.name) {
         await assertNotDuplicatedEServiceNameForProducer(
@@ -2517,7 +2522,7 @@ export function catalogServiceBuilder(
       );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
-      assertDescriptorUpdatable(descriptor);
+      assertDescriptorUpdatableAfterPublish(descriptor);
 
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
@@ -3297,42 +3302,44 @@ async function createOpenApiInterfaceByTemplate(
 
 async function applyVisibilityToEService(
   eservice: EService,
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<EService> {
-  if (
-    hasAtLeastOneUserRole(authData, [
-      userRole.ADMIN_ROLE,
-      userRole.API_ROLE,
-      userRole.SUPPORT_ROLE,
-    ]) &&
-    authData.organizationId === eservice.producerId
-  ) {
-    return eservice;
+  if (hasRoleToAccessInactiveDescriptors(authData)) {
+    /* Inactive descriptors are visible only if both conditions are met:
+       1) The request is made with a role that can access inactive descriptors.
+          (see the condition above)
+       2) The request originates from the producer tenant or a delegate producer tenant.
+          (see the following code)
+    */
+    if (authData.organizationId === eservice.producerId) {
+      return eservice;
+    }
+
+    const producerDelegation = await readModelService.getLatestDelegation({
+      eserviceId: eservice.id,
+      states: [delegationState.active],
+      kind: delegationKind.delegatedProducer,
+    });
+
+    if (authData.organizationId === producerDelegation?.delegateId) {
+      return eservice;
+    }
   }
 
-  const producerDelegation = await readModelService.getLatestDelegation({
-    eserviceId: eservice.id,
-    delegateId: authData.organizationId,
-    kind: delegationKind.delegatedProducer,
-  });
-
-  if (producerDelegation?.state === delegationState.active) {
-    return eservice;
+  /* If the conditions above are not met:
+    - we filter out the draft descriptors.
+    - we throw a not found error if there are no active descriptors
+  */
+  const hasActiveDescriptors = eservice.descriptors.some(isActiveDescriptor);
+  if (hasActiveDescriptors) {
+    return {
+      ...eservice,
+      descriptors: eservice.descriptors.filter(isActiveDescriptor),
+    };
   }
 
-  const hasNoActiveDescriptor = eservice.descriptors.every(
-    isNotActiveDescriptor
-  );
-
-  if (!producerDelegation && hasNoActiveDescriptor) {
-    throw eServiceNotFound(eservice.id);
-  }
-
-  return {
-    ...eservice,
-    descriptors: eservice.descriptors.filter(isActiveDescriptor),
-  };
+  throw eServiceNotFound(eservice.id);
 }
 
 const deleteDescriptorInterfaceAndDocs = async (
