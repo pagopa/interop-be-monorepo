@@ -1,9 +1,13 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
-import { EService, genericInternalError } from "pagopa-interop-models";
+import {
+  EService,
+  EServiceTemplateId,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { z } from "zod";
 
 export type ReadModelService = {
-  getEServiceTemplateInstances: (id: string) => Promise<EService[]>;
+  getEServiceTemplateInstances: (id: EServiceTemplateId) => Promise<EService[]>;
 };
 
 export function readModelServiceBuilder(
@@ -12,11 +16,11 @@ export function readModelServiceBuilder(
   const eservices = readModelRepository.eservices;
 
   async function getEServiceTemplateInstances(
-    eserviceTemplateId: string
+    eserviceTemplateId: EServiceTemplateId
   ): Promise<EService[]> {
     const data = await eservices
       .find(
-        { "data.templateRef.id": eserviceTemplateId },
+        { "data.templateId": eserviceTemplateId },
         { projection: { data: true } }
       )
       .map((item) => item.data)

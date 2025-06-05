@@ -24,6 +24,7 @@ import {
   TokenGenerationStatesApiClient,
   TokenGenStatesConsumerClientGSIAgreement,
   TokenGenStatesConsumerClientGSIDescriptor,
+  PlatformStatesClientEntry,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -55,6 +56,11 @@ export const writeTokenGenStatesApiClient = async (
       GSIPK_clientId_kid: {
         S: tokenGenStatesEntry.GSIPK_clientId_kid,
       },
+      ...(tokenGenStatesEntry.adminId
+        ? {
+            adminId: { S: tokenGenStatesEntry.adminId },
+          }
+        : {}),
     },
     TableName: "token-generation-states",
   };
@@ -98,6 +104,13 @@ export const writeTokenGenStatesConsumerClient = async (
       updatedAt: {
         S: tokenGenStatesEntry.updatedAt,
       },
+      ...(tokenGenStatesEntry.producerId
+        ? {
+            producerId: {
+              S: tokenGenStatesEntry.producerId,
+            },
+          }
+        : {}),
       ...(tokenGenStatesEntry.consumerId
         ? {
             consumerId: {
@@ -462,6 +475,46 @@ export const writePlatformAgreementEntry = async (
       },
       agreementDescriptorId: {
         S: agreementEntry.agreementDescriptorId,
+      },
+      producerId: {
+        S: agreementEntry.producerId,
+      },
+    },
+    TableName: "platform-states",
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+};
+
+export const writePlatformStatesClientEntry = async (
+  clientEntry: PlatformStatesClientEntry,
+  dynamoDBClient: DynamoDBClient
+): Promise<void> => {
+  const input: PutItemInput = {
+    ConditionExpression: "attribute_not_exists(PK)",
+    Item: {
+      PK: {
+        S: clientEntry.PK,
+      },
+      state: {
+        S: clientEntry.state,
+      },
+      clientPurposesIds: {
+        L: clientEntry.clientPurposesIds.map((purposeId) => ({
+          S: purposeId,
+        })),
+      },
+      clientKind: {
+        S: clientEntry.clientKind,
+      },
+      clientConsumerId: {
+        S: clientEntry.clientConsumerId,
+      },
+      version: {
+        N: clientEntry.version.toString(),
+      },
+      updatedAt: {
+        S: clientEntry.updatedAt,
       },
     },
     TableName: "platform-states",

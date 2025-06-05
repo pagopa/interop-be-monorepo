@@ -1,4 +1,12 @@
-import { AuthData } from "pagopa-interop-commons";
+import {
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
+  systemRole,
+  userRole,
+} from "pagopa-interop-commons";
 import {
   EServiceTemplate,
   EServiceTemplateVersion,
@@ -20,7 +28,7 @@ import {
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
-  authData: AuthData
+  authData: UIAuthData
 ): void {
   if (authData.organizationId !== creatorId) {
     throw operationForbidden;
@@ -108,4 +116,26 @@ export function assertPublishedEServiceTemplate(
   ) {
     throw eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id);
   }
+}
+
+/**
+ * Checks if the user has the roles required to access draft
+ * template versions.
+ * NOT sufficient to access them; the request must also originate
+ * from the template creator tenant.
+ */
+export function hasRoleToAccessDraftTemplateVersions(
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): boolean {
+  return (
+    hasAtLeastOneUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
+  );
 }

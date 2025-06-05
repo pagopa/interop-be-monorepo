@@ -25,6 +25,7 @@ import {
   FullTokenGenerationStatesConsumerClient,
   CorrelationId,
   ClientKindTokenGenStates,
+  ClientId,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -35,16 +36,19 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
 import {
+  AuthServerAppContext,
   FileManager,
   formatDateyyyyMMdd,
   formatTimehhmmss,
   InteropApiToken,
   InteropConsumerToken,
   InteropTokenGenerator,
+  isFeatureFlagEnabled,
   Logger,
   RateLimiter,
   RateLimiterStatus,
   secondsToMilliseconds,
+  WithLogger,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
 import { config } from "../config/config.js";
@@ -89,8 +93,9 @@ export function tokenServiceBuilder({
   return {
     async generateToken(
       request: authorizationServerApi.AccessTokenRequest,
-      correlationId: CorrelationId,
-      logger: Logger
+      { logger, correlationId }: WithLogger<AuthServerAppContext>,
+      setCtxClientId: (clientId: ClientId) => void,
+      setCtxOrganizationId: (organizationId: TenantId) => void
     ): Promise<GenerateTokenReturnType> {
       logger.info(`[CLIENTID=${request.client_id}] Token requested`);
 
@@ -113,7 +118,11 @@ export function tokenServiceBuilder({
           request.client_assertion,
           request.client_id,
           config.clientAssertionAudience,
-          logger
+          logger,
+          isFeatureFlagEnabled(
+            config,
+            "featureFlagClientAssertionStrictClaimsValidation"
+          )
         );
 
       if (clientAssertionErrors) {
@@ -126,6 +135,8 @@ export function tokenServiceBuilder({
       const clientId = jwt.payload.sub;
       const kid = jwt.header.kid;
       const purposeId = jwt.payload.purposeId;
+
+      setCtxClientId(clientId);
 
       logTokenGenerationInfo({
         validatedJwt: jwt,
@@ -144,6 +155,8 @@ export function tokenServiceBuilder({
         : makeTokenGenerationStatesClientKidPK({ clientId, kid });
 
       const key = await retrieveKey(dynamoDBClient, pk);
+
+      setCtxOrganizationId(key.consumerId);
 
       logTokenGenerationInfo({
         validatedJwt: jwt,
@@ -190,12 +203,25 @@ export function tokenServiceBuilder({
         .with(
           { clientKind: clientKindTokenGenStates.consumer },
           async (key) => {
+            const { eserviceId, descriptorId } =
+              deconstructGSIPK_eserviceId_descriptorId(
+                key.GSIPK_eserviceId_descriptorId
+              );
             const token = await tokenGenerator.generateInteropConsumerToken({
               sub: jwt.payload.sub,
               audience: key.descriptorAudience,
               purposeId: key.GSIPK_purposeId,
               tokenDurationInSeconds: key.descriptorVoucherLifespan,
               digest: jwt.payload.digest || undefined,
+              producerId: key.producerId,
+              consumerId: key.consumerId,
+              eserviceId,
+              descriptorId,
+              featureFlagImprovedProducerVerificationClaims:
+                isFeatureFlagEnabled(
+                  config,
+                  "featureFlagImprovedProducerVerificationClaims"
+                ),
             });
 
             await publishAudit({
@@ -227,6 +253,7 @@ export function tokenServiceBuilder({
           const token = await tokenGenerator.generateInteropApiToken({
             sub: jwt.payload.sub,
             consumerId: key.consumerId,
+            clientAdminId: key.adminId,
           });
 
           logTokenGenerationInfo({
@@ -247,6 +274,8 @@ export function tokenServiceBuilder({
     },
   };
 }
+
+export type TokenService = ReturnType<typeof tokenServiceBuilder>;
 
 export const retrieveKey = async (
   dynamoDBClient: DynamoDBClient,
@@ -311,6 +340,9 @@ export const publishAudit = async ({
   fileManager: FileManager;
   logger: Logger;
 }): Promise<void> => {
+  const { eserviceId, descriptorId } = deconstructGSIPK_eserviceId_descriptorId(
+    key.GSIPK_eserviceId_descriptorId
+  );
   const messageBody: GeneratedTokenAuditDetails = {
     jwtId: generatedToken.payload.jti,
     correlationId,
@@ -318,12 +350,8 @@ export const publishAudit = async ({
     clientId: clientAssertion.payload.sub,
     organizationId: key.consumerId,
     agreementId: key.agreementId,
-    eserviceId: deconstructGSIPK_eserviceId_descriptorId(
-      key.GSIPK_eserviceId_descriptorId
-    ).eserviceId,
-    descriptorId: deconstructGSIPK_eserviceId_descriptorId(
-      key.GSIPK_eserviceId_descriptorId
-    ).descriptorId,
+    eserviceId,
+    descriptorId,
     purposeId: key.GSIPK_purposeId,
     purposeVersionId: unsafeBrandId(key.purposeVersionId),
     algorithm: generatedToken.header.alg,
@@ -358,7 +386,7 @@ export const publishAudit = async ({
       throw kafkaAuditingFailed();
     }
   } catch (e) {
-    logger.info("main auditing flow failed, going through fallback");
+    logger.error("main auditing flow failed, going through fallback");
     await fallbackAudit(messageBody, fileManager, logger);
   }
 };
@@ -386,7 +414,8 @@ export const fallbackAudit = async (
       logger
     );
     logger.info("auditing succeeded through fallback");
-  } catch {
+  } catch (err) {
+    logger.error(`Auditing fallback failed: ${err}`);
     throw fallbackAuditFailed(messageBody.clientId);
   }
 };

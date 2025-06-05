@@ -1,4 +1,3 @@
-import { constants } from "http2";
 import {
   ApiError,
   AttributeId,
@@ -18,7 +17,6 @@ export const errorCodes = {
   tenantNotFound: "0011",
   agreementNotFound: "0012",
   eserviceDescriptorNotFound: "0013",
-  purposeDraftVersionNotFound: "0014",
   dynamoReadingError: "0015",
   missingInterface: "0016",
   eserviceRiskNotFound: "0017",
@@ -44,7 +42,7 @@ export const errorCodes = {
   activeAgreementByEserviceAndConsumerNotFound: "0037",
   purposeIdNotFoundInClientAssertion: "0038",
   delegationNotFound: "0039",
-  organizationNotAllowed: "0040",
+  tenantNotAllowed: "0040",
   cannotGetKeyWithClient: "0041",
   clientAssertionPublicKeyNotFound: "0042",
   eserviceDelegated: "0043",
@@ -65,10 +63,10 @@ export const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes);
-
-export const emptyErrorMapper = (): number =>
-  constants.HTTP_STATUS_INTERNAL_SERVER_ERROR;
+export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
+  problemErrorsPassthrough: true,
+  forceGenericProblemOn500: true,
+});
 
 export function selfcareEntityNotFilled(
   className: string,
@@ -195,16 +193,6 @@ export function eserviceDescriptorNotFound(
   });
 }
 
-export function purposeDraftVersionNotFound(
-  purposeId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Version in DRAFT state for Purpose ${purposeId} not found`,
-    code: "purposeDraftVersionNotFound",
-    title: "Purpose draft version not found",
-  });
-}
-
 export function attributeNotExists(id: AttributeId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute ${id} does not exist in the attribute registry`,
@@ -298,7 +286,7 @@ export function notValidDescriptor(
   state: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
+    detail: `Descriptor ${descriptorId} is in an invalid state ${state} for this operation`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
   });
@@ -368,11 +356,11 @@ export function clientAssertionPublicKeyNotFound(
   });
 }
 
-export function organizationNotAllowed(clientId: string): ApiError<ErrorCodes> {
+export function tenantNotAllowed(clientId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization not allowed for client ${clientId}`,
-    code: "organizationNotAllowed",
-    title: "Organization not allowed",
+    detail: `Tenant not allowed for client ${clientId}`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
   });
 }
 

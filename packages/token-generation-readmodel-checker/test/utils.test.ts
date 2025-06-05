@@ -13,6 +13,7 @@ import {
   getMockPurposeVersion,
   getMockTokenGenStatesConsumerClient,
   writePlatformCatalogEntry,
+  writePlatformStatesClientEntry,
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import {
@@ -59,7 +60,6 @@ import {
   addOneEService,
   addOnePurpose,
   dynamoDBClient,
-  writePlatformStatesClientEntry,
 } from "./utils.js";
 
 describe("Token Generation Read Model Checker utils tests", () => {
@@ -160,6 +160,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
+        producerId: agreement1.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -176,6 +177,7 @@ describe("Token Generation Read Model Checker utils tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
+        producerId: generateId(),
         version: 1,
         updatedAt: new Date().toISOString(),
       };

@@ -1,8 +1,14 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
-  AuthData,
+  M2MAdminAuthData,
+  M2MAuthData,
   RiskAnalysisValidatedForm,
+  UIAuthData,
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  systemRole,
+  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -23,7 +29,7 @@ import {
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -35,6 +41,7 @@ import {
   templateInstanceNotAllowed,
   eServiceNotAnInstance,
   inconsistentDailyCalls,
+  eserviceWithoutValidDescriptors,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -62,6 +69,13 @@ export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.waitingForApproval,
 ];
 
+export const activeDescriptorStates: DescriptorState[] = [
+  descriptorState.published,
+  descriptorState.suspended,
+  descriptorState.deprecated,
+  descriptorState.archived,
+];
+
 export function isNotActiveDescriptor(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(descriptorState.draft, descriptorState.waitingForApproval, () => true)
@@ -79,7 +93,7 @@ export function isActiveDescriptor(descriptor: Descriptor): boolean {
   return !isNotActiveDescriptor(descriptor);
 }
 
-export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
+function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(
       descriptorState.deprecated,
@@ -99,13 +113,9 @@ export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
-  authData: AuthData,
+  authData: UIAuthData | M2MAuthData,
   readModelService: ReadModelService
 ): Promise<void> {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
-
   // Search for active producer delegation
   const producerDelegation = await readModelService.getLatestDelegation({
     eserviceId,
@@ -129,11 +139,8 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
 export function assertRequesterIsProducer(
   producerId: TenantId,
-  authData: AuthData
+  authData: UIAuthData | M2MAuthData
 ): void {
-  if (authData.userRoles.includes("internal")) {
-    return;
-  }
   if (producerId !== authData.organizationId) {
     throw operationForbidden;
   }
@@ -262,20 +269,18 @@ export function assertDocumentDeletableDescriptorState(
     .exhaustive();
 }
 
-export async function assertNotDuplicatedEServiceName(
+export async function assertNotDuplicatedEServiceNameForProducer(
   name: string,
-  eservice: EService,
+  producerId: TenantId,
   readModelService: ReadModelService
 ): Promise<void> {
-  if (name !== eservice.name) {
-    const eserviceWithSameName =
-      await readModelService.getEServiceByNameAndProducerId({
-        name,
-        producerId: eservice.producerId,
-      });
-    if (eserviceWithSameName !== undefined) {
-      throw eServiceNameDuplicate(name);
-    }
+  const eserviceWithSameName =
+    await readModelService.getEServiceByNameAndProducerId({
+      name,
+      producerId,
+    });
+  if (eserviceWithSameName !== undefined) {
+    throw eServiceNameDuplicateForProducer(name, producerId);
   }
 }
 
@@ -291,14 +296,14 @@ export function assertEServiceNotTemplateInstance(
 export function assertEServiceIsTemplateInstance(
   eservice: EService
 ): asserts eservice is EService & {
-  templateRef: NonNullable<EService["templateRef"]>;
+  templateId: EServiceTemplateId;
   descriptors: Array<
     Descriptor & {
       templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
     }
   >;
 } {
-  if (eservice.templateRef === undefined) {
+  if (eservice.templateId === undefined) {
     throw eServiceNotAnInstance(eservice.id);
   }
 }
@@ -315,8 +320,41 @@ export function assertConsistentDailyCalls({
   }
 }
 
-export function assertDescriptorUpdatable(descriptor: Descriptor): void {
-  if (!isDescriptorUpdatable(descriptor)) {
+export function assertDescriptorUpdatableAfterPublish(
+  descriptor: Descriptor
+): void {
+  if (!isDescriptorUpdatableAfterPublish(descriptor)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
+}
+
+export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
+  const hasValidDescriptor = eservice.descriptors.some(
+    isDescriptorUpdatableAfterPublish
+  );
+  if (!hasValidDescriptor) {
+    throw eserviceWithoutValidDescriptors(eservice.id);
+  }
+}
+
+/**
+ * Checks if the user has the roles required to access inactive
+ * descriptors (i.e., DRAFT or WAITING_FOR_APPROVAL).
+ * NOT sufficient to access them; the request must also originate
+ * from the producer tenant or the delegate producer tenant.
+ */
+export function hasRoleToAccessInactiveDescriptors(
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): boolean {
+  return (
+    hasAtLeastOneUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
+  );
 }

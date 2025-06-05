@@ -1,18 +1,18 @@
 import {
   AppContext,
-  AuthData,
   DB,
   FileManager,
   RiskAnalysisValidatedForm,
   WithLogger,
   eventRepository,
-  hasPermission,
-  userRoles,
   riskAnalysisValidatedFormToNewRiskAnalysis,
   validateRiskAnalysis,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisValidationIssue,
   Logger,
+  UIAuthData,
+  M2MAuthData,
+  M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -43,9 +43,9 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   checksumDuplicate,
-  eServiceTemplateDuplicate,
-  eServiceTemplateNotFound,
-  eServiceTemplateVersionNotFound,
+  eserviceTemplateDuplicate,
+  eserviceTemplateNotFound,
+  eserviceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
   missingRiskAnalysis,
   instanceNameConflict,
@@ -58,7 +58,7 @@ import {
   riskAnalysisValidationFailed,
   tenantNotFound,
   originNotCompliant,
-  eserviceTemaplateRiskAnalysisNameDuplicate,
+  eserviceTemplateRiskAnalysisNameDuplicate,
   missingTemplateVersionInterface,
   interfaceAlreadyExists,
   documentPrettyNameDuplicate,
@@ -107,6 +107,7 @@ import {
   versionStatesNotAllowingDocumentOperations,
   assertConsistentDailyCalls,
   assertPublishedEServiceTemplate,
+  hasRoleToAccessDraftTemplateVersions,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -117,7 +118,7 @@ export const retrieveEServiceTemplate = async (
     eserviceTemplateId
   );
   if (eserviceTemplate === undefined) {
-    throw eServiceTemplateNotFound(eserviceTemplateId);
+    throw eserviceTemplateNotFound(eserviceTemplateId);
   }
   return eserviceTemplate;
 };
@@ -131,7 +132,7 @@ const retrieveEServiceTemplateVersion = (
   );
 
   if (eserviceTemplateVersion === undefined) {
-    throw eServiceTemplateVersionNotFound(
+    throw eserviceTemplateVersionNotFound(
       eserviceTemplate.id,
       eserviceTemplateVersionId
     );
@@ -336,7 +337,7 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(
         `Update draft e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
@@ -405,7 +406,7 @@ export function eserviceTemplateServiceBuilder(
     async suspendEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Suspending e-service template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
@@ -459,7 +460,7 @@ export function eserviceTemplateServiceBuilder(
     async publishEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Publishing e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
@@ -561,7 +562,7 @@ export function eserviceTemplateServiceBuilder(
     async activateEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Activating e-service template version ${eserviceTemplateVersionId} for EService ${eserviceTemplateId}`
@@ -615,7 +616,7 @@ export function eserviceTemplateServiceBuilder(
     async updateEServiceTemplateName(
       eserviceTemplateId: EServiceTemplateId,
       name: string,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(`Updating name of EService template ${eserviceTemplateId}`);
 
@@ -637,7 +638,7 @@ export function eserviceTemplateServiceBuilder(
             creatorId: eserviceTemplate.data.creatorId,
           });
         if (eserviceTemplateWithSameName !== undefined) {
-          throw eServiceTemplateDuplicate(name);
+          throw eserviceTemplateDuplicate(name);
         }
 
         const hasConflictingInstances =
@@ -669,7 +670,7 @@ export function eserviceTemplateServiceBuilder(
     async updateEServiceTemplateIntendedTarget(
       eserviceTemplateId: EServiceTemplateId,
       intendedTarget: string,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(
         `Updating intended target description of EService template ${eserviceTemplateId}`
@@ -704,7 +705,7 @@ export function eserviceTemplateServiceBuilder(
     async updateEServiceTemplateDescription(
       eserviceTemplateId: EServiceTemplateId,
       description: string,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(
         `Updating e-service description of EService template ${eserviceTemplateId}`
@@ -740,7 +741,7 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       seed: eserviceTemplateApi.UpdateEServiceTemplateVersionQuotasSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(
         `Updating e-service template version quotas of EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
@@ -808,7 +809,10 @@ export function eserviceTemplateServiceBuilder(
     },
     async getEServiceTemplateById(
       eserviceTemplateId: EServiceTemplateId,
-      { authData, logger }: WithLogger<AppContext>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(`Retrieving EService template ${eserviceTemplateId}`);
 
@@ -821,7 +825,7 @@ export function eserviceTemplateServiceBuilder(
     async deleteEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Deleting EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId}`
@@ -892,7 +896,7 @@ export function eserviceTemplateServiceBuilder(
     async createRiskAnalysis(
       id: EServiceTemplateId,
       createRiskAnalysis: eserviceTemplateApi.EServiceRiskAnalysisSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Creating risk analysis for eServiceTemplateId: ${id}`);
 
@@ -911,7 +915,7 @@ export function eserviceTemplateServiceBuilder(
         (ra) => ra.name === createRiskAnalysis.name
       );
       if (raSameName) {
-        throw eserviceTemaplateRiskAnalysisNameDuplicate(
+        throw eserviceTemplateRiskAnalysisNameDuplicate(
           createRiskAnalysis.name
         );
       }
@@ -945,7 +949,7 @@ export function eserviceTemplateServiceBuilder(
     async deleteRiskAnalysis(
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Deleting risk analysis with id: ${riskAnalysisId} from eServiceTemplate with id: ${templateId}`
@@ -980,7 +984,7 @@ export function eserviceTemplateServiceBuilder(
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
       updateRiskAnalysis: eserviceTemplateApi.EServiceRiskAnalysisSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Updating risk analysis with id: ${riskAnalysisId} from eServiceTemplate with id: ${templateId}`
@@ -1035,7 +1039,7 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       seed: eserviceTemplateApi.AttributesSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(
         `Updating attributes of eservice template version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
@@ -1166,7 +1170,7 @@ export function eserviceTemplateServiceBuilder(
     },
     async createEServiceTemplate(
       seed: eserviceTemplateApi.EServiceTemplateSeed,
-      { logger, authData, correlationId }: WithLogger<AppContext>
+      { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(`Creating EService template with name ${seed.name}`);
 
@@ -1180,7 +1184,7 @@ export function eserviceTemplateServiceBuilder(
           creatorId: authData.organizationId,
         });
       if (eserviceTemplateWithSameName) {
-        throw eServiceTemplateDuplicate(seed.name);
+        throw eserviceTemplateDuplicate(seed.name);
       }
 
       assertConsistentDailyCalls(seed.version);
@@ -1233,7 +1237,7 @@ export function eserviceTemplateServiceBuilder(
     async updateEServiceTemplate(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateSeed: eserviceTemplateApi.UpdateEServiceTemplateSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(`Updating EService template ${eserviceTemplateId}`);
 
@@ -1256,7 +1260,7 @@ export function eserviceTemplateServiceBuilder(
             creatorId: eserviceTemplate.data.creatorId,
           });
         if (eserviceTemplateWithSameName !== undefined) {
-          throw eServiceTemplateDuplicate(eserviceTemplateSeed.name);
+          throw eserviceTemplateDuplicate(eserviceTemplateSeed.name);
         }
       }
 
@@ -1318,7 +1322,7 @@ export function eserviceTemplateServiceBuilder(
     },
     async createEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplateVersion> {
       logger.info(
         `Creating new eservice template version for EService template ${eserviceTemplateId}`
@@ -1428,7 +1432,10 @@ export function eserviceTemplateServiceBuilder(
       filters: GetEServiceTemplatesFilters,
       offset: number,
       limit: number,
-      { authData, logger }: WithLogger<AppContext>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EServiceTemplate>> {
       logger.info(
         `Getting EServices templates with name = ${filters.name}, ids = ${filters.eserviceTemplatesIds}, creators = ${filters.creatorsIds}, states = ${filters.states}, limit = ${limit}, offset = ${offset}`
@@ -1464,7 +1471,7 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       document: eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(
         `Creating EService Document ${document.documentId.toString()} of kind ${
@@ -1567,16 +1574,16 @@ export function eserviceTemplateServiceBuilder(
       {
         eServiceTemplateId,
         eServiceTemplateVersionId,
-        eServiceDocumentId,
+        documentId,
       }: {
         eServiceTemplateId: EServiceTemplateId;
         eServiceTemplateVersionId: EServiceTemplateVersionId;
-        eServiceDocumentId: EServiceDocumentId;
+        documentId: EServiceDocumentId;
       },
-      { authData, logger }: WithLogger<AppContext>
+      { authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Document> {
       logger.info(
-        `Getting EService Document ${eServiceDocumentId.toString()} for EService Template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
+        `Getting EService Document ${documentId.toString()} for EService Template ${eServiceTemplateId} and Version ${eServiceTemplateVersionId}`
       );
 
       const eServiceTemplate = await retrieveEServiceTemplate(
@@ -1589,21 +1596,31 @@ export function eserviceTemplateServiceBuilder(
         eServiceTemplate.data
       );
 
-      if (version.state === eserviceTemplateVersionState.draft) {
-        assertRequesterEServiceTemplateCreator(
-          eServiceTemplate.data.creatorId,
-          authData
+      const checkedTemplate = applyVisibilityToEServiceTemplate(
+        eServiceTemplate.data,
+        authData
+      );
+
+      if (
+        !checkedTemplate.versions.find(
+          (v) => v.id === eServiceTemplateVersionId
+        )
+      ) {
+        throw eserviceTemplateDocumentNotFound(
+          eServiceTemplateId,
+          eServiceTemplateVersionId,
+          documentId
         );
       }
 
-      return retrieveDocument(eServiceTemplateId, version, eServiceDocumentId);
+      return retrieveDocument(eServiceTemplateId, version, documentId);
     },
     async updateDocument(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       documentId: EServiceDocumentId,
       apiEServiceDescriptorDocumentUpdateSeed: eserviceTemplateApi.UpdateEServiceTemplateVersionDocumentSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Document> {
       logger.info(
         `Updating Document ${documentId} of Version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
@@ -1694,7 +1711,7 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplateId: EServiceTemplateId,
       eserviceTemplateVersionId: EServiceTemplateVersionId,
       documentId: EServiceDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext>
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(
         `Deleting Document ${documentId} of Version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
@@ -1776,32 +1793,29 @@ export type EServiceTemplateService = ReturnType<
 
 function applyVisibilityToEServiceTemplate(
   eserviceTemplate: EServiceTemplate,
-  authData: AuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): EServiceTemplate {
   if (
-    hasPermission(
-      [userRoles.ADMIN_ROLE, userRoles.API_ROLE, userRoles.SUPPORT_ROLE],
-      authData
-    ) &&
+    hasRoleToAccessDraftTemplateVersions(authData) &&
     authData.organizationId === eserviceTemplate.creatorId
   ) {
     return eserviceTemplate;
   }
 
-  const hasNoPublishedVersions = eserviceTemplate.versions.every(
-    (v) => v.state === eserviceTemplateVersionState.draft
+  const hasPublishedVersions = eserviceTemplate.versions.some(
+    (v) => v.state !== eserviceTemplateVersionState.draft
   );
 
-  if (hasNoPublishedVersions) {
-    throw eServiceTemplateNotFound(eserviceTemplate.id);
+  if (hasPublishedVersions) {
+    return {
+      ...eserviceTemplate,
+      versions: eserviceTemplate.versions.filter(
+        (v) => v.state !== eserviceTemplateVersionState.draft
+      ),
+    };
   }
 
-  return {
-    ...eserviceTemplate,
-    versions: eserviceTemplate.versions.filter(
-      (v) => v.state !== eserviceTemplateVersionState.draft
-    ),
-  };
+  throw eserviceTemplateNotFound(eserviceTemplate.id);
 }
 
 export async function cloneEServiceTemplateDocument({

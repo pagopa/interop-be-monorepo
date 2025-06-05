@@ -506,6 +506,13 @@ export const writeTokenGenStatesApiClient = async (
       GSIPK_clientId_kid: {
         S: tokenGenStatesApiClient.GSIPK_clientId_kid,
       },
+      ...(tokenGenStatesApiClient.adminId
+        ? {
+            adminId: {
+              S: tokenGenStatesApiClient.adminId,
+            },
+          }
+        : {}),
     },
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
@@ -647,6 +654,13 @@ export const upsertTokenGenStatesConsumerClient = async (
       updatedAt: {
         S: tokenGenStatesConsumerClient.updatedAt,
       },
+      ...(tokenGenStatesConsumerClient.producerId
+        ? {
+            producerId: {
+              S: tokenGenStatesConsumerClient.producerId,
+            },
+          }
+        : {}),
       ...(tokenGenStatesConsumerClient.consumerId
         ? {
             consumerId: {
@@ -771,6 +785,13 @@ export const writePlatformClientEntry = async (
       updatedAt: {
         S: clientEntry.updatedAt,
       },
+      ...(clientEntry.clientAdminId
+        ? {
+            clientAdminId: {
+              S: clientEntry.clientAdminId,
+            },
+          }
+        : {}),
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
@@ -987,6 +1008,13 @@ export const upsertPlatformClientEntry = async (
       updatedAt: {
         S: entry.updatedAt,
       },
+      ...(entry.clientAdminId
+        ? {
+            clientAdminId: {
+              S: entry.clientAdminId,
+            },
+          }
+        : {}),
     },
     TableName: config.tokenGenerationReadModelTableNamePlatform,
   };
@@ -1023,6 +1051,13 @@ export const upsertTokenGenStatesApiClient = async (
       updatedAt: {
         S: entry.updatedAt,
       },
+      ...(entry.adminId
+        ? {
+            adminId: {
+              S: entry.adminId,
+            },
+          }
+        : {}),
     },
     TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
   };
@@ -1085,6 +1120,7 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
             })
           ),
           ...setIfChanged("agreementState", agreementEntry.state),
+          ...setIfChanged("producerId", agreementEntry.producerId),
         }
       : {}),
     ...(catalogEntry
@@ -1242,6 +1278,7 @@ export const createTokenGenStatesConsumerClient = ({
           eserviceId: purposeEntry.purposeEserviceId,
           descriptorId: agreementEntry.agreementDescriptorId,
         }),
+        producerId: agreementEntry.producerId,
       }),
     ...(catalogEntry && {
       descriptorState: catalogEntry.state,
@@ -1249,4 +1286,27 @@ export const createTokenGenStatesConsumerClient = ({
       descriptorVoucherLifespan: catalogEntry.descriptorVoucherLifespan,
     }),
   };
+};
+
+export const removeAdminIdFromTokenGenStatesApiClient = async (
+  primaryKey: TokenGenerationStatesClientKidPK,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  const input: UpdateItemInput = {
+    ConditionExpression: "attribute_exists(PK)",
+    Key: {
+      PK: {
+        S: primaryKey,
+      },
+    },
+    UpdateExpression: "REMOVE adminId",
+    TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
+    ReturnValues: "NONE",
+  };
+  const command = new UpdateItemCommand(input);
+  await dynamoDBClient.send(command);
+  logger.info(
+    `Token-generation-states. Removed adminId from api client ${primaryKey}`
+  );
 };

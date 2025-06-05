@@ -1,5 +1,9 @@
 /* eslint-disable max-params */
-import { AuthData, CreateEvent } from "pagopa-interop-commons";
+import {
+  UIAuthData,
+  CreateEvent,
+  M2MAdminAuthData,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -53,7 +57,7 @@ export const createSubmissionUpdateAgreementSeed = (
   agreement: Agreement,
   payload: agreementApi.AgreementSubmissionPayload,
   newState: AgreementState,
-  authData: AuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   suspendedByPlatform: boolean | undefined,
   activeConsumerDelegation: Delegation | undefined
 ): UpdateAgreementSeed => {
