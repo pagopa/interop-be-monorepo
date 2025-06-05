@@ -6,6 +6,7 @@ import {
   buildColumnSet,
   generateMergeQuery,
   generateMergeDeleteQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
@@ -33,12 +34,7 @@ export function eserviceTemplateRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, EserviceTemplateSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.id = b.id
-          AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`

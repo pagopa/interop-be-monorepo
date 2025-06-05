@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
+/* eslint-disable functional/immutable-data */
 import { z } from "zod";
 import { ColumnSet, IColumnDescriptor, IMain, ITask } from "pg-promise";
 import {
@@ -204,3 +205,50 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
     table: { table: `${tableName}_${config.mergeTableSuffix}` },
   });
 };
+
+/**
+ * Generates a DELETE query that removes rows from a staging table
+ * whenever there is another row with the same keyColumns and a higher
+ * metadata_version (or, if equal, a lower ctid).
+ *
+ * @param tableName   - The base table name.
+ * @param keyColumns  - Array of column keys used to match records for deletion.
+ * @returns           - A DELETE SQL query string to perform a deduplication.
+ */
+export function generateStagingDeleteQuery<
+  T extends DomainDbTable,
+  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>
+>(tableName: T, keyColumns: ColumnKeys[]): string {
+  const snakeCaseMapper = getColumnNameMapper(tableName as DbTable);
+  const quoteColumn = (c: string) => `"${c}"`;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+
+  const keyConditions = (keyColumns as string[]).map((logicalKey) => {
+    const sqlCol = snakeCaseMapper(logicalKey);
+    return `${stagingTableName}.${quoteColumn(sqlCol)} = b.${quoteColumn(
+      sqlCol
+    )}`;
+  });
+
+  keyConditions.push(
+    `(
+      ${stagingTableName}.${quoteColumn("metadata_version")} < b.${quoteColumn(
+      "metadata_version"
+    )}
+      OR (
+        ${stagingTableName}.${quoteColumn(
+      "metadata_version"
+    )} = b.${quoteColumn("metadata_version")}
+        AND ${stagingTableName}.ctid > b.ctid
+      )
+    )`
+  );
+
+  const whereClause = keyConditions.join(" AND ");
+
+  return `
+    DELETE FROM ${stagingTableName}
+    USING ${stagingTableName} AS b
+    WHERE ${whereClause};
+  `.trim();
+}
