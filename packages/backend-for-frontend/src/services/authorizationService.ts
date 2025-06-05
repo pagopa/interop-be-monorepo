@@ -98,8 +98,8 @@ export function authorizationServiceBuilder(
   const retrieveTenantById = async (
     selfcareId: string,
     headers: Headers
-  ): Promise<tenantApi.Tenant> =>
-    tenantProcessClient.selfcare
+  ): Promise<tenantApi.Tenant> => {
+    const tenant = await tenantProcessClient.selfcare
       .getTenantBySelfcareId({
         params: { selfcareId },
         headers,
@@ -110,6 +110,12 @@ export function authorizationServiceBuilder(
           ? tenantBySelfcareIdNotFound(selfcareId)
           : err;
       });
+
+    if (!tenant) {
+      throw tenantBySelfcareIdNotFound(selfcareId);
+    }
+    return tenant;
+  };
 
   const buildJwtCustomClaims = (
     roles: string,
