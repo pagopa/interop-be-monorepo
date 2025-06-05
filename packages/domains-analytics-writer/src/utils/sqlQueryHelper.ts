@@ -220,27 +220,20 @@ export function generateStagingDeleteQuery<
   ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>
 >(tableName: T, keyConditions: ColumnKeys[]): string {
   const snakeCaseMapper = getColumnNameMapper(tableName);
-  const quoteColumn = (c: string) => `"${c}"`;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   const whereCondition = keyConditions
     .map((key) => {
       const columnName = snakeCaseMapper(String(key));
-      return `${stagingTableName}.${quoteColumn(columnName)} = b.${quoteColumn(
-        columnName
-      )}`;
+      return `${stagingTableName}.${columnName} = b.${columnName}`;
     })
     .join("\n  AND ");
 
   const dedupCondition = `
     (
-      ${stagingTableName}.${quoteColumn("metadata_version")} < b.${quoteColumn(
-    "metadata_version"
-  )}
+      ${stagingTableName}.metadata_version < b.metadata_version
       OR (
-        ${stagingTableName}.${quoteColumn(
-    "metadata_version"
-  )} = b.${quoteColumn("metadata_version")}
+        ${stagingTableName}.metadata_version = b.metadata_version
         AND ${stagingTableName}.ctid > b.ctid
       )
     )
