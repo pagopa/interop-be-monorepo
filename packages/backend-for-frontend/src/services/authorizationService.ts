@@ -95,11 +95,11 @@ export function authorizationServiceBuilder(
     }
   };
 
-  const retrieveTenantById = async (
+  const retrieveTenantBySelfcareId = async (
     selfcareId: string,
     headers: Headers
-  ): Promise<tenantApi.Tenant> => {
-    const tenant = await tenantProcessClient.selfcare
+  ): Promise<tenantApi.Tenant> =>
+    tenantProcessClient.selfcare
       .getTenantBySelfcareId({
         params: { selfcareId },
         headers,
@@ -110,12 +110,6 @@ export function authorizationServiceBuilder(
           ? tenantBySelfcareIdNotFound(selfcareId)
           : err;
       });
-
-    if (!tenant) {
-      throw tenantBySelfcareIdNotFound(selfcareId);
-    }
-    return tenant;
-  };
 
   const buildJwtCustomClaims = (
     roles: string,
@@ -188,7 +182,7 @@ export function authorizationServiceBuilder(
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
 
-      const tenantBySelfcareId = await retrieveTenantById(selfcareId, {
+      const tenantBySelfcareId = await retrieveTenantBySelfcareId(selfcareId, {
         ...headers,
         Authorization: `Bearer ${serialized}`,
       });
