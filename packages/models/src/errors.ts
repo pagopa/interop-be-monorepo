@@ -3,6 +3,7 @@ import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { AxiosError, isAxiosError } from "axios";
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
@@ -192,22 +193,26 @@ export function makeApiProblemBuilder<T extends string>(
         /* this case is to allow a passthrough of Problem errors, so that
            services that call other interop services can forward Problem errors
            as they are, without the need to explicitly handle them */
-        {
-          response: {
-            status: P.number,
-            data: {
-              type: "about:blank",
-              title: P.string,
+        P.intersection(
+          P.when((e): e is AxiosError<Problem> => isAxiosError(e)),
+          {
+            response: {
+              // Matching also AxiosError content to ensure data matches Problem type
               status: P.number,
-              detail: P.string,
-              errors: P.array({
-                code: P.string,
+              data: {
+                type: "about:blank",
+                title: P.string,
+                status: P.number,
                 detail: P.string,
-              }),
-              correlationId: P.string.optional(),
+                errors: P.array({
+                  code: P.string,
+                  detail: P.string,
+                }),
+                correlationId: P.string.optional(),
+              },
             },
-          },
-        },
+          }
+        ),
         (e) => {
           const receivedProblem: Problem = e.response.data;
           if (problemErrorsPassthrough) {

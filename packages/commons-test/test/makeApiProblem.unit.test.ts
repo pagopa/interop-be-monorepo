@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { constants } from "http2";
 import {
   ApiError,
@@ -16,37 +17,38 @@ import {
 import { match } from "ts-pattern";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { AxiosError, AxiosResponse } from "axios";
 import { getMockContext } from "../src/testUtils.js";
 
 export const testErrorCodes = {
-  testError1: "0001",
-  testError2: "0002",
-  testError3: "0003",
+  testBadRequestError: "0001",
+  testNotFoundError: "0002",
+  testGenericError: "0003",
 };
 
 export type TestErrorCodes = keyof typeof testErrorCodes;
 
-export function testError1(): ApiError<TestErrorCodes> {
+export function testBadRequestError(): ApiError<TestErrorCodes> {
   return new ApiError({
-    detail: "This is a test error 1",
-    code: "testError1",
-    title: "Test Error 1",
+    detail: "This is a test bad request error",
+    code: "testBadRequestError",
+    title: "Test bad request error",
   });
 }
 
-export function testError2(): ApiError<TestErrorCodes> {
+export function testNotFoundError(): ApiError<TestErrorCodes> {
   return new ApiError({
-    detail: "This is a test error 2",
-    code: "testError2",
-    title: "Test Error 2",
+    detail: "This is a test not found error",
+    code: "testNotFoundError",
+    title: "Test not found error",
   });
 }
 
-export function testError3(): ApiError<TestErrorCodes> {
+export function testGenericError(): ApiError<TestErrorCodes> {
   return new ApiError({
-    detail: "This is a test error 3",
-    code: "testError3",
-    title: "Test Error 3",
+    detail: "This is a test generic error",
+    code: "testGenericError",
+    title: "Test generic error",
   });
 }
 
@@ -63,8 +65,8 @@ const defaultTestErrorMapper = (
   error: ApiError<TestErrorCodes | CommonErrorCodes>
 ): number =>
   match(error.code)
-    .with("testError1", () => HTTP_STATUS_BAD_REQUEST)
-    .with("testError2", () => HTTP_STATUS_NOT_FOUND)
+    .with("testBadRequestError", () => HTTP_STATUS_BAD_REQUEST)
+    .with("testNotFoundError", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 const testProblem: Problem = {
@@ -78,17 +80,25 @@ const testProblem: Problem = {
   ],
   correlationId: "test-correlation-id",
 };
-const testProblemResponse = {
-  response: { status: HTTP_STATUS_BAD_REQUEST, data: testProblem },
-};
+
+const testProblemResponse: AxiosError<Problem> = new AxiosError(
+  testProblem.title,
+  undefined,
+  undefined,
+  undefined,
+  {
+    status: HTTP_STATUS_BAD_REQUEST,
+    data: testProblem,
+  } as AxiosResponse<Problem>
+);
 
 describe("makeApiProblem", () => {
   const makeApiProblem = makeApiProblemBuilder(testErrorCodes);
 
   it.each([
-    [testError1(), HTTP_STATUS_BAD_REQUEST],
-    [testError2(), HTTP_STATUS_NOT_FOUND],
-    [testError3(), HTTP_STATUS_INTERNAL_SERVER_ERROR],
+    [testBadRequestError(), HTTP_STATUS_BAD_REQUEST],
+    [testNotFoundError(), HTTP_STATUS_NOT_FOUND],
+    [testGenericError(), HTTP_STATUS_INTERNAL_SERVER_ERROR],
   ])(
     "should create a Problem from the $title ApiError using the error mapper to map the status code",
     (error, expectedStatus) => {
@@ -146,9 +156,9 @@ describe("makeApiProblem", () => {
   it.each(Object.entries(serviceErrorCode))(
     "Should create a Problem and add the right code prefix: %s",
     (serviceName, expectedPrefix) => {
-      const error = testError1();
+      const error = testBadRequestError();
       const problem = makeApiProblem(
-        testError1(),
+        testBadRequestError(),
         defaultTestErrorMapper,
         getMockContext({
           serviceName,
@@ -171,20 +181,20 @@ describe("makeApiProblem", () => {
   );
 
   it("Should log the problem details", () => {
-    const error = testError1();
+    const error = testBadRequestError();
     const context = getMockContext({});
     vi.spyOn(context.logger, "warn");
     makeApiProblem(error, defaultTestErrorMapper, context);
     expect(context.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(
-        /.*title: Test Error 1.*detail: This is a test error 1.*original error: Error: This is a test error 1.*/
+        /.*title: Test bad request error.*detail: This is a test bad request error.*original error: Error: This is a test bad request error.*/
       )
     );
   });
 
   it("Should log the operational log message when passed as parameter", () => {
     const operationalLogMessage = "This is an operational log message";
-    const error = testError1();
+    const error = testBadRequestError();
     const context = getMockContext({});
     vi.spyOn(context.logger, "warn");
 
@@ -278,12 +288,12 @@ describe("makeApiProblem", () => {
     );
     expect(problemPassthrough).toEqual({
       type: "about:blank",
-      status: testProblemResponse.response.status,
-      title: testProblemResponse.response.data.title,
+      status: testProblemResponse.response!.status,
+      title: testProblemResponse.response!.data.title,
       correlationId: expect.any(String),
-      detail: testProblemResponse.response.data.detail,
+      detail: testProblemResponse.response!.data.detail,
       errors: [
-        ...testProblemResponse.response.data.errors.map((error) => ({
+        ...testProblemResponse.response!.data.errors.map((error) => ({
           code: error.code,
           detail: error.detail,
         })),
@@ -334,7 +344,7 @@ describe("makeApiProblem - forceGenericProblemOn500 = true", () => {
   });
 
   it("Should create a generic Problem from an ApiError mapped to 500, but log the error details", () => {
-    const error = testError1();
+    const error = testBadRequestError();
     const context = getMockContext({});
     vi.spyOn(context.logger, "warn");
 
@@ -346,7 +356,7 @@ describe("makeApiProblem - forceGenericProblemOn500 = true", () => {
 
     expect(context.logger.warn).toHaveBeenCalledWith(
       expect.stringMatching(
-        /.*title: Test Error 1.*detail: This is a test error 1.* forceGenericProblemOn500 is set to true, returning generic problem.*/
+        /.*title: Test bad request error.*detail: This is a test bad request error.* forceGenericProblemOn500 is set to true, returning generic problem.*/
       )
     );
     expect(problem).toEqual({
@@ -368,18 +378,22 @@ describe("makeApiProblem - forceGenericProblemOn500 = true", () => {
     const context = getMockContext({});
     vi.spyOn(context.logger, "warn");
 
-    const problemResponse = {
-      response: {
+    const problemResponse500: AxiosError<Problem> = new AxiosError(
+      testProblem.title,
+      undefined,
+      undefined,
+      undefined,
+      {
         status: HTTP_STATUS_INTERNAL_SERVER_ERROR,
         data: {
           ...testProblem,
           status: HTTP_STATUS_INTERNAL_SERVER_ERROR,
         },
-      },
-    };
+      } as AxiosResponse<Problem>
+    );
 
     const problemPassthrough = makeApiProblem(
-      problemResponse,
+      problemResponse500,
       emptyErrorMapper,
       context
     );
