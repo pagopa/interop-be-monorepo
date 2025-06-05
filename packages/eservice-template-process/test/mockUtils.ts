@@ -15,7 +15,7 @@ import {
   getMockAuthData,
   getMockContextM2M,
   getMockContextM2MAdmin,
-} from "pagopa-interop-commons-test/dist/testUtils.js";
+} from "pagopa-interop-commons-test";
 import {
   eServiceModeToApiEServiceMode,
   eserviceTemplateToApiEServiceTemplate,
