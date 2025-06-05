@@ -152,15 +152,12 @@ export const deleteDynamoDBTables = async (
   dynamoDBClient: DynamoDBClient
 ): Promise<void> => {
   const platformStatesDeleteInput: DeleteTableInput = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "platform-states",
   };
   const tokenGenStatesDeleteInput: DeleteTableInput = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "token-generation-states",
   };
   const dpopCacheDeleteInput: DeleteTableInput = {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     TableName: "dpop-cache",
   };
 
