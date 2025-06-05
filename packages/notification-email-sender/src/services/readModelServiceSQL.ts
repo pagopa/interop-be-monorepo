@@ -12,7 +12,7 @@ import {
   CatalogReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
-import { agreementInReadmodelAgreement } from "../../../readmodel-models/dist/drizzle/schema.js";
+import { agreementInReadmodelAgreement } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
