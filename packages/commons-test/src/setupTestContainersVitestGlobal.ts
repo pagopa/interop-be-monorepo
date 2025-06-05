@@ -1,9 +1,9 @@
 /* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// /* eslint-disable @typescript-eslint/ban-ts-comment */
-// /* eslint-disable @typescript-eslint/explicit-function-return-type */
-// /* eslint-disable functional/immutable-data */
-// /* eslint-disable functional/no-let */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-let */
 
 // import { config as dotenv } from "dotenv-flow";
 // import {
@@ -22,6 +22,15 @@
 // import type { GlobalSetupContext } from "vitest/node";
 // import { z } from "zod";
 // import {
+//   awsSESContainer,
+//   dynamoDBContainer,
+//   mailpitContainer,
+//   minioContainer,
+//   mongoDBContainer,
+//   postgreSQLAnalyticsContainer,
+//   postgreSQLContainer,
+//   postgreSQLReadModelContainer,
+//   redisContainer,
 //   TEST_AWS_SES_PORT,
 //   TEST_DYNAMODB_PORT,
 //   TEST_MAILPIT_HTTP_PORT,
@@ -30,15 +39,6 @@
 //   TEST_MONGO_DB_PORT,
 //   TEST_POSTGRES_DB_PORT,
 //   TEST_REDIS_PORT,
-//   awsSESContainer,
-//   dynamoDBContainer,
-//   mailpitContainer,
-//   minioContainer,
-//   mongoDBContainer,
-//   postgreSQLReadModelContainer,
-//   postgreSQLContainer,
-//   redisContainer,
-//   postgreSQLAnalyticsContainer,
 // } from "./containerTestUtils.js";
 // import { PecEmailManagerConfigTest } from "./testConfig.js";
 
@@ -356,8 +356,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { config as dotenv } from "dotenv-flow";
-dotenv();
 import {
   AWSSesConfig,
   AnalyticsSQLDbConfig,
@@ -367,17 +368,29 @@ import {
   ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
-  TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
 import type { ProvidedContext } from "vitest";
 import type { TestProject } from "vitest/node";
 import { z } from "zod";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
-const EnhancedTokenGenerationReadModelDbConfig =
-  TokenGenerationReadModelDbConfig.and(
-    z.object({ tokenGenerationReadModelDbPort: z.number() })
-  );
+const EnhancedTokenGenerationReadModelDbConfig = z
+  .object({
+    TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM: z.string(),
+    TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION: z.string(),
+    TOKEN_GENERATION_READ_MODEL_DB_PORT: z
+      .string()
+      .transform((val) => Number(val))
+      .refine((val) => !Number.isNaN(val), { message: "Must be a number" }),
+  })
+  .transform((env) => ({
+    tokenGenerationReadModelTableNamePlatform:
+      env.TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM,
+    tokenGenerationReadModelTableNameTokenGeneration:
+      env.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
+    tokenGenerationReadModelDbPort: env.TOKEN_GENERATION_READ_MODEL_DB_PORT,
+  }));
+
 type EnhancedTokenGenerationReadModelDbConfig = z.infer<
   typeof EnhancedTokenGenerationReadModelDbConfig
 >;
@@ -397,19 +410,51 @@ declare module "vitest" {
 }
 
 export function setupTestContainersVitestGlobal() {
-  dotenv(); // Carica .env.test e .env.testcontainers se presenti
+  const monorepoRoot = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../.."
+  );
+  dotenv({ path: monorepoRoot });
+
+  console.log("ENV example:", {
+    ANALYTICS_SQL_DB_NAME: process.env.ANALYTICS_SQL_DB_NAME,
+    TOKEN_GENERATION_READ_MODEL_DB_PORT:
+      process.env.TOKEN_GENERATION_READ_MODEL_DB_PORT,
+    TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM:
+      process.env.TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM,
+    TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION:
+      process.env.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
+    tokenGenerationReadModelDbPort: process.env.tokenGenerationReadModelDbPort,
+    tokenGenerationReadModelTableNamePlatform:
+      process.env.tokenGenerationReadModelTableNamePlatform,
+    tokenGenerationReadModelTableNameTokenGeneration:
+      process.env.tokenGenerationReadModelTableNameTokenGeneration,
+  });
   return async function ({
     provide,
   }: TestProject): Promise<() => Promise<void>> {
+    // const provideConfig = <K extends keyof ProvidedContext>(
+    //   label: K,
+    //   parser: z.SafeParseReturnType<any, ProvidedContext[K]>
+    // ) => {
+    //   if (parser.success) {
+    //     provide(label, parser.data); // 👈 cast esplicito
+    //     console.log(`✅ Provided ${label}`);
+    //   } else {
+    //     console.warn(`⚠️ Failed to provide ${label}`);
+    //   }
+    // };
+
     const provideConfig = <K extends keyof ProvidedContext>(
       label: K,
       parser: z.SafeParseReturnType<any, ProvidedContext[K]>
     ) => {
       if (parser.success) {
-        provide(label, parser.data); // 👈 cast esplicito
+        provide(label, parser.data);
         console.log(`✅ Provided ${label}`);
       } else {
         console.warn(`⚠️ Failed to provide ${label}`);
+        console.warn(parser.error.format()); // <<< stampa dettagli errori di parsing
       }
     };
 
