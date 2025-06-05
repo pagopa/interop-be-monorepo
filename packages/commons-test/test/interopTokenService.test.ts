@@ -6,6 +6,7 @@ import {
   TokenGenerationConfig,
   UserRole,
   b64ByteUrlDecode,
+  calculateKid,
   dateToSeconds,
   systemRole,
   userRole,
@@ -22,7 +23,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { KMSClient } from "@aws-sdk/client-kms";
-import { getMockSessionClaims } from "../src/testUtils.js";
+import { getMockDPoPProof, getMockSessionClaims } from "../src/testUtils.js";
 
 const deserializeJWT = (jwt: string): JSON =>
   b64ByteUrlDecode(jwt.split(".")[1]);
@@ -320,6 +321,70 @@ describe("Token Generator", () => {
         sub: subClientId,
         purposeId,
         digest,
+      });
+    });
+
+    it("should have Interop Consumer standard token claims and the DPoP thumbprint", async () => {
+      const subClientId: ClientId = generateId();
+      const audience = ["Audience1", "Audience2"];
+      const purposeId = generateId<PurposeId>();
+      const consumerId: TenantId = generateId();
+      const producerId: TenantId = generateId();
+      const eserviceId: EServiceId = generateId();
+      const descriptorId: DescriptorId = generateId();
+      const tokenDurationInSeconds = 1000;
+      const { dpopProofJWT } = await getMockDPoPProof();
+
+      const digest: ClientAssertionDigest = {
+        alg: "RS256",
+        value: "valid-digest-value",
+      };
+
+      const interopTokenGenerator = new InteropTokenGenerator(
+        authServerConfig,
+        kmsClient
+      );
+
+      const actualToken =
+        await interopTokenGenerator.generateInteropConsumerToken({
+          sub: subClientId,
+          audience,
+          purposeId,
+          tokenDurationInSeconds,
+          digest,
+          producerId,
+          consumerId,
+          eserviceId,
+          descriptorId,
+          featureFlagImprovedProducerVerificationClaims: false,
+          dpopJWK: dpopProofJWT?.header.jwk,
+        });
+
+      expect(actualToken.header).toEqual({
+        alg: "RS256",
+        use: "sig",
+        typ: "at+jwt",
+        kid: authServerConfig.generatedInteropTokenKid,
+      });
+
+      const decodedActualToken = deserializeJWT(actualToken.serialized);
+      expect(actualToken.payload).toEqual(decodedActualToken);
+
+      // Interop Consumer token payload don't have custom claims
+      expect(decodedActualToken).toEqual({
+        jti: expect.any(String),
+        iss: authServerConfig.generatedInteropTokenIssuer,
+        aud: audience,
+        iat: mockTimeStamp,
+        nbf: mockTimeStamp,
+        exp: mockTimeStamp + tokenDurationInSeconds,
+        client_id: subClientId,
+        sub: subClientId,
+        purposeId,
+        digest,
+        cnf: {
+          jkt: calculateKid(dpopProofJWT?.header.jwk),
+        },
       });
     });
   });
