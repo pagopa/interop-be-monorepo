@@ -123,7 +123,7 @@ describe("getProducers", () => {
     await addOneEService(eService2);
 
     const producers = await readModelService.getProducers({
-      producerName: tenant1.name,
+      producerName: "1",
       offset: 0,
       limit: 50,
     });

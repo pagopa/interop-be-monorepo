@@ -13,16 +13,24 @@ import {
   CatalogDbTableReadModel,
 } from "./catalog.js";
 import {
+  ClientDbTableConfig,
+  ClientDbTableReadModel,
+} from "./authorization.js";
+import {
   DelegationDbTableConfig,
   DelegationDbTableReadModel,
 } from "./delegation.js";
 import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
 import { DeletingDbTableConfig, DeletingDbTableReadModel } from "./deleting.js";
 import {
+  EserviceTemplateDbTableConfig,
+  EserviceTemplateDbTableReadModel,
+} from "./eserviceTemplate.js";
+import {
   TenantDbPartialTableConfig,
-  TenantDbPartialTableReadModel,
   TenantDbTableConfig,
   TenantDbTableReadModel,
+  TenantDbPartialTableReadModel,
 } from "./tenant.js";
 
 export const PartialDbTable = {
@@ -39,6 +47,8 @@ export const DomainDbTable = {
   ...PurposeDbTableConfig,
   ...DelegationDbTableConfig,
   ...TenantDbTableConfig,
+  ...ClientDbTableConfig,
+  ...EserviceTemplateDbTableConfig,
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
 export type DomainDbTable = keyof DomainDbTableSchemas;
@@ -58,6 +68,8 @@ export const DomainDbTableReadModels = {
   ...DelegationDbTableReadModel,
   ...PurposeDbTableReadModel,
   ...TenantDbTableReadModel,
+  ...ClientDbTableReadModel,
+  ...EserviceTemplateDbTableReadModel,
 } as const;
 export type DomainDbTableReadModels = typeof DomainDbTableReadModels;
 
@@ -77,7 +89,9 @@ export type DbTableReadModels = typeof DbTableReadModels;
 export * from "./attribute.js";
 export * from "./catalog.js";
 export * from "./agreement.js";
-export * from "./tenant.js";
-export * from "./delegation.js";
-export * from "./deleting.js";
+export * from "./authorization.js";
 export * from "./purpose.js";
+export * from "./delegation.js";
+export * from "./tenant.js";
+export * from "./deleting.js";
+export * from "./eserviceTemplate.js";
