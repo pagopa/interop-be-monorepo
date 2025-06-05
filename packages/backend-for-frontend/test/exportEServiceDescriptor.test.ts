@@ -147,7 +147,7 @@ describe("exportEServiceDescriptor", () => {
       );
     });
 
-    it("should throw invalidEServiceRequester if requester is not an eservice producer", async () => {
+    it("should throw invalidEServiceRequester if requester is not the eservice producer", async () => {
       const differentProducerId = generateId<TenantId>();
       const differentProducerEService: catalogApi.EService = {
         ...baseEService,
