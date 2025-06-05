@@ -19,7 +19,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
   templateInstanceNotAllowed,
@@ -83,7 +83,10 @@ describe("API /eservices/{eServiceId}/name/update authorization test", () => {
       expectedStatus: 409,
     },
     {
-      error: eServiceNameDuplicate(mockEService.id),
+      error: eServiceNameDuplicateForProducer(
+        mockEService.id,
+        mockEService.producerId
+      ),
       expectedStatus: 409,
     },
     {
