@@ -11,7 +11,7 @@ import {
   DPoPProof,
   DPoPProofHeader,
   DPoPProofPayload,
-  JWKKey,
+  JWKKeyRS256,
   JWKKeyES256,
 } from "pagopa-interop-models";
 import {
@@ -142,7 +142,7 @@ export const verifyDPoPProof = ({
 
 export const verifyDPoPProofSignature = async (
   dpopProofJWS: string,
-  jwk: JWKKey | JWKKeyES256
+  jwk: JWKKeyRS256 | JWKKeyES256
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
     const publicKey = await jose.importJWK(jwk, jwk.alg);

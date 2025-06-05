@@ -2,7 +2,7 @@ import {
   algorithm,
   Algorithm,
   ApiError,
-  JWKKey,
+  JWKKeyRS256,
   JWKKeyES256,
 } from "pagopa-interop-models";
 import * as jose from "jose";
@@ -69,14 +69,14 @@ export const validateAlgorithm = (
 
 export const validateJWK = (
   jwk: jose.JWK | undefined
-): ValidationResult<JWKKey | JWKKeyES256> => {
+): ValidationResult<JWKKeyRS256 | JWKKeyES256> => {
   if (!jwk) {
     return failedValidation([dpopJwkNotFound()]);
   }
 
   return match(jwk.alg)
     .with(algorithm.ES256, () => successfulValidation(JWKKeyES256.parse(jwk)))
-    .with(algorithm.RS256, () => successfulValidation(JWKKey.parse(jwk)))
+    .with(algorithm.RS256, () => successfulValidation(JWKKeyRS256.parse(jwk)))
     .with(undefined, () => failedValidation([dpopAlgorithmNotFound()]))
     .otherwise((alg) => failedValidation([dpopAlgorithmNotAllowed(alg)]));
 };

@@ -101,7 +101,7 @@ import {
   DPoPProof,
   DPoPProofPayload,
   DPoPProofHeader,
-  JWKKey,
+  JWKKeyRS256,
   JWKKeyES256,
   Algorithm,
   algorithm,
@@ -751,7 +751,7 @@ export const getMockDPoPProof = async (
       })
     )
     .with(algorithm.RS256, () =>
-      JWKKey.parse({
+      JWKKeyRS256.parse({
         ...cryptoJWK,
         kid: calculateKid(cryptoJWK),
         use: "sig",
