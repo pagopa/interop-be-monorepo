@@ -41,9 +41,16 @@ describe("remove client purpose", () => {
       purposes: [purposeIdToRemove],
     };
 
+    const clientWithoutPurpose: Client = {
+      ...getMockClient(),
+      consumerId: mockConsumer.id,
+      purposes: [],
+    };
+
     await addOneClient(mockClient1);
     await addOneClient(mockClient2);
     await addOneClient(mockClient3);
+    await addOneClient(clientWithoutPurpose);
 
     await authorizationService.removePurposeFromClients(
       {
@@ -55,6 +62,9 @@ describe("remove client purpose", () => {
     const writtenEvent1 = await readLastAuthorizationEvent(mockClient1.id);
     const writtenEvent2 = await readLastAuthorizationEvent(mockClient2.id);
     const writtenEvent3 = await readLastAuthorizationEvent(mockClient3.id);
+    const writtenEvent4 = await readLastAuthorizationEvent(
+      clientWithoutPurpose.id
+    );
 
     expect(writtenEvent1).toMatchObject({
       stream_id: mockClient1.id,
@@ -70,6 +80,13 @@ describe("remove client purpose", () => {
     });
     expect(writtenEvent3).toMatchObject({
       stream_id: mockClient3.id,
+      version: "1",
+      type: "ClientPurposeRemoved",
+      event_version: 2,
+    });
+
+    expect(writtenEvent4).not.toMatchObject({
+      stream_id: clientWithoutPurpose.id,
       version: "1",
       type: "ClientPurposeRemoved",
       event_version: 2,
