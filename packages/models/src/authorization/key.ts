@@ -23,7 +23,7 @@ export const Key = z.object({
 export type Key = z.infer<typeof Key>;
 
 // RS256 key
-export const JWKKey = z.object({
+export const JWKKeyRS256 = z.object({
   alg: z.string(),
   e: z.string(),
   kid: z.string(),
@@ -31,7 +31,7 @@ export const JWKKey = z.object({
   n: z.string(),
   use: z.string(),
 });
-export type JWKKey = z.infer<typeof JWKKey>;
+export type JWKKeyRS256 = z.infer<typeof JWKKeyRS256>;
 
 // ES256 key
 export const JWKKeyES256 = z.object({
@@ -45,12 +45,12 @@ export const JWKKeyES256 = z.object({
 });
 export type JWKKeyES256 = z.infer<typeof JWKKeyES256>;
 
-export const ClientJWKKey = JWKKey.extend({
+export const ClientJWKKey = JWKKeyRS256.extend({
   clientId: ClientId,
 });
 export type ClientJWKKey = z.infer<typeof ClientJWKKey>;
 
-export const ProducerJWKKey = JWKKey.extend({
+export const ProducerJWKKey = JWKKeyRS256.extend({
   producerKeychainId: ProducerKeychainId,
 });
 export type ProducerJWKKey = z.infer<typeof ProducerJWKKey>;

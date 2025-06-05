@@ -8,7 +8,7 @@ import {
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
-import { JWKKey, JWKKeyES256 } from "../authorization/key.js";
+import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
 
 export const ClientAssertionAuditDetails = z.object({
   jwtId: z.string(),
@@ -27,7 +27,7 @@ export type ClientAssertionAuditDetails = z.infer<
 export const DPoPAuditDetails = z.object({
   typ: z.string(),
   alg: z.string(),
-  jwk: JWKKey.or(JWKKeyES256),
+  jwk: JWKKeyRS256.or(JWKKeyES256),
   htm: z.string(),
   htu: z.string(),
   iat: z.number().int().min(0),
