@@ -212,43 +212,44 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
  * metadata_version (or, if equal, a lower ctid).
  *
  * @param tableName - The base table name.
- * @param keyColumns - Array of column keys used to match records for deletion.
+ * @param keyConditions - Array of column keys used to match records for deletion.
  * @returns - A DELETE SQL query string to perform a deduplication.
  */
 export function generateStagingDeleteQuery<
   T extends DomainDbTable,
   ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>
->(tableName: T, keyColumns: ColumnKeys[]): string {
+>(tableName: T, keyConditions: ColumnKeys[]): string {
   const snakeCaseMapper = getColumnNameMapper(tableName);
   const quoteColumn = (c: string) => `"${c}"`;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
-  const keyConditions = keyColumns.map((key) => {
-    const sqlCol = snakeCaseMapper(String(key));
-    return `${stagingTableName}.${quoteColumn(sqlCol)} = b.${quoteColumn(
-      sqlCol
-    )}`;
-  });
+  const whereCondition = keyConditions
+    .map((key) => {
+      const columnName = snakeCaseMapper(String(key));
+      return `${stagingTableName}.${quoteColumn(columnName)} = b.${quoteColumn(
+        columnName
+      )}`;
+    })
+    .join("\n  AND ");
 
-  keyConditions.push(
-    `(
+  const dedupCondition = `
+    (
       ${stagingTableName}.${quoteColumn("metadata_version")} < b.${quoteColumn(
-      "metadata_version"
-    )}
+    "metadata_version"
+  )}
       OR (
         ${stagingTableName}.${quoteColumn(
-      "metadata_version"
-    )} = b.${quoteColumn("metadata_version")}
+    "metadata_version"
+  )} = b.${quoteColumn("metadata_version")}
         AND ${stagingTableName}.ctid > b.ctid
       )
-    )`
-  );
-
-  const whereClause = keyConditions.join(" AND ");
+    )
+  `;
 
   return `
     DELETE FROM ${stagingTableName}
     USING ${stagingTableName} AS b
-    WHERE ${whereClause};
+    WHERE ${whereCondition}
+    AND ${dedupCondition};
   `.trim();
 }
