@@ -140,10 +140,6 @@ export const buildDynamoDBTables = async (
         KeyType: "HASH",
       },
     ],
-    ProvisionedThroughput: {
-      ReadCapacityUnits: 10,
-      WriteCapacityUnits: 5,
-    },
     BillingMode: "PAY_PER_REQUEST",
   };
   const dpopCacheCreationCommand = new CreateTableCommand(
