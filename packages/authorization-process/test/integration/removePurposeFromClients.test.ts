@@ -85,12 +85,8 @@ describe("remove client purpose", () => {
       event_version: 2,
     });
 
-    expect(writtenEvent4).not.toMatchObject({
-      stream_id: clientWithoutPurpose.id,
-      version: "1",
-      type: "ClientPurposeRemoved",
-      event_version: 2,
-    });
+    expect(writtenEvent4.version).not.toEqual(1);
+    expect(writtenEvent4.type).not.toEqual("ClientPurposeRemoved");
 
     const writtenPayload1 = decodeProtobufPayload({
       messageType: ClientPurposeRemovedV2,
