@@ -12,10 +12,9 @@ import {
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
-import { EServiceSeed } from "../../../api-clients/dist/catalogApi.js";
 
 describe("API /eservices authorization test", () => {
   const mockEService: EService = {
@@ -27,7 +26,7 @@ describe("API /eservices authorization test", () => {
     eServiceToApiEService(mockEService)
   );
 
-  const eserviceSeed: EServiceSeed = {
+  const eserviceSeed: catalogApi.EServiceSeed = {
     name: apiEservice.name,
     description: apiEservice.description,
     technology: "REST",
@@ -46,7 +45,7 @@ describe("API /eservices authorization test", () => {
 
   const makeRequest = async (
     token: string,
-    body: EServiceSeed = eserviceSeed
+    body: catalogApi.EServiceSeed = eserviceSeed
   ) =>
     request(api)
       .post("/eservices")
@@ -77,7 +76,10 @@ describe("API /eservices authorization test", () => {
 
   it.each([
     {
-      error: eServiceNameDuplicate(mockEService.name),
+      error: eServiceNameDuplicateForProducer(
+        mockEService.name,
+        mockEService.producerId
+      ),
       expectedStatus: 409,
     },
     {
@@ -141,7 +143,7 @@ describe("API /eservices authorization test", () => {
     },
   ])("Should return 400 if passed invalid params: %s", async (body) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body as EServiceSeed);
+    const res = await makeRequest(token, body as catalogApi.EServiceSeed);
 
     expect(res.status).toBe(400);
   });
