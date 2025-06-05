@@ -213,7 +213,7 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
  *
  * @param tableName   - The base table name.
  * @param keyColumns  - Array of column keys used to match records for deletion.
- * @returns           - A DELETE SQL query string to perform a deduplication.
+ * @returns - A DELETE SQL query string to perform a deduplication.
  */
 export function generateStagingDeleteQuery<
   T extends DomainDbTable,
