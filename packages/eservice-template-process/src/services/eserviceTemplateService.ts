@@ -43,7 +43,6 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   checksumDuplicate,
-  eserviceTemplateDuplicate,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
@@ -108,6 +107,7 @@ import {
   assertConsistentDailyCalls,
   assertPublishedEServiceTemplate,
   hasRoleToAccessDraftTemplateVersions,
+  assertNotDuplicatedEServiceTemplateName,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -632,14 +632,7 @@ export function eserviceTemplateServiceBuilder(
       assertPublishedEServiceTemplate(eserviceTemplate.data);
 
       if (name !== eserviceTemplate.data.name) {
-        const eserviceTemplateWithSameName =
-          await readModelService.getEServiceTemplateByName({
-            name,
-          });
-
-        if (eserviceTemplateWithSameName !== undefined) {
-          throw eserviceTemplateDuplicate(name);
-        }
+        await assertNotDuplicatedEServiceTemplateName(name, readModelService);
 
         const hasConflictingInstances =
           await readModelService.checkNameConflictInstances(
@@ -1178,14 +1171,10 @@ export function eserviceTemplateServiceBuilder(
         throw originNotCompliant(authData.externalId.origin);
       }
 
-      const eserviceTemplateWithSameName =
-        await readModelService.getEServiceTemplateByName({
-          name: seed.name,
-        });
-
-      if (eserviceTemplateWithSameName) {
-        throw eserviceTemplateDuplicate(seed.name);
-      }
+      await assertNotDuplicatedEServiceTemplateName(
+        seed.name,
+        readModelService
+      );
 
       assertConsistentDailyCalls(seed.version);
 
@@ -1254,13 +1243,10 @@ export function eserviceTemplateServiceBuilder(
       assertIsDraftEServiceTemplate(eserviceTemplate.data);
 
       if (eserviceTemplateSeed.name !== eserviceTemplate.data.name) {
-        const eserviceTemplateWithSameName =
-          await readModelService.getEServiceTemplateByName({
-            name: eserviceTemplateSeed.name,
-          });
-        if (eserviceTemplateWithSameName !== undefined) {
-          throw eserviceTemplateDuplicate(eserviceTemplateSeed.name);
-        }
+        await assertNotDuplicatedEServiceTemplateName(
+          eserviceTemplateSeed.name,
+          readModelService
+        );
       }
 
       const updatedTechnology = apiTechnologyToTechnology(

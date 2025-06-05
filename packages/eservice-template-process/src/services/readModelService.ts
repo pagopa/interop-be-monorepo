@@ -101,17 +101,21 @@ export function readModelServiceBuilder({
       return getEServiceTemplate(eserviceTemplates, { "data.id": id });
     },
 
-    async getEServiceTemplateByName({
+    async checkEServiceTemplateExistsByName({
       name,
     }: {
       name: string;
-    }): Promise<WithMetadata<EServiceTemplate> | undefined> {
-      return getEServiceTemplate(eserviceTemplates, {
-        "data.name": {
-          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-          $options: "i",
+    }): Promise<boolean> {
+      const count = await eserviceTemplates.countDocuments(
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
+            $options: "i",
+          },
         },
-      });
+        { limit: 1 }
+      );
+      return count > 0;
     },
 
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
@@ -251,10 +255,16 @@ export function readModelServiceBuilder({
         .map(({ data }) => data.producerId)
         .toArray();
 
-      const data = await eservices.countDocuments({
-        "data.name": newName,
-        "data.producerId": { $in: instanceProducerIds },
-      });
+      const data = await eservices.countDocuments(
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(newName)}$$`,
+            $options: "i",
+          },
+          "data.producerId": { $in: instanceProducerIds },
+        },
+        { limit: 1 }
+      );
 
       return data > 0;
     },
