@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { JWKKey, JWKKeyES256 } from "../authorization/key.js";
+import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
 
 export const algorithm = {
   RS256: "RS256",
@@ -15,7 +15,7 @@ export const DPoPProofHeader = z
   .object({
     typ: z.string(),
     alg: z.string(),
-    jwk: JWKKey.or(JWKKeyES256),
+    jwk: JWKKeyRS256.or(JWKKeyES256),
   })
   .strict();
 export type DPoPProofHeader = z.infer<typeof DPoPProofHeader>;
