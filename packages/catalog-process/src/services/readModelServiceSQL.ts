@@ -62,9 +62,11 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   tenantInReadmodelTenant,
+  eserviceTemplateInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
 import {
   and,
+  count,
   desc,
   eq,
   exists,
@@ -405,19 +407,43 @@ export function readModelServiceBuilderSQL(
         queryResult[0]?.totalCount
       );
     },
-    async getEServiceByNameAndProducerId({
+    async existsEServiceWithNameAndProducerId({
       name,
       producerId,
     }: {
       name: string;
       producerId: TenantId;
-    }): Promise<WithMetadata<EService> | undefined> {
-      return await catalogReadModelService.getEServiceByFilter(
-        and(
-          ilike(eserviceInReadmodelCatalog.name, escapeRegExp(name)),
-          eq(eserviceInReadmodelCatalog.producerId, producerId)
+    }): Promise<boolean> {
+      const result = await readmodelDB
+        .select({ count: count() })
+        .from(eserviceInReadmodelCatalog)
+        .where(
+          and(
+            ilike(eserviceInReadmodelCatalog.name, escapeRegExp(name)),
+            eq(eserviceInReadmodelCatalog.producerId, producerId)
+          )
         )
-      );
+        .limit(1);
+
+      return (result[0]?.count ?? 0) > 0;
+    },
+    async existsEServiceTemplateWithName({
+      name,
+    }: {
+      name: string;
+    }): Promise<boolean> {
+      const result = await readmodelDB
+        .select({ count: count() })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .where(
+          ilike(
+            eserviceTemplateInReadmodelEserviceTemplate.name,
+            escapeRegExp(name)
+          )
+        )
+        .limit(1);
+
+      return (result[0]?.count ?? 0) > 0;
     },
     async getEServiceById(
       id: EServiceId

@@ -42,6 +42,7 @@ import {
   eServiceNotAnInstance,
   inconsistentDailyCalls,
   eserviceWithoutValidDescriptors,
+  eserviceTemplateNameConflict,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -274,13 +275,26 @@ export async function assertNotDuplicatedEServiceNameForProducer(
   producerId: TenantId,
   readModelService: ReadModelService
 ): Promise<void> {
-  const eserviceWithSameName =
-    await readModelService.getEServiceByNameAndProducerId({
+  const eserviceWithSameNameExists =
+    await readModelService.existsEServiceWithNameAndProducerId({
       name,
       producerId,
     });
-  if (eserviceWithSameName !== undefined) {
+  if (eserviceWithSameNameExists) {
     throw eServiceNameDuplicateForProducer(name, producerId);
+  }
+}
+
+export async function assertNoEServiceTemplateNameConflict(
+  name: string,
+  readModelService: ReadModelService
+): Promise<void> {
+  const eserviceTemplateWithSameNameExists =
+    await readModelService.existsEServiceTemplateWithName({
+      name,
+    });
+  if (eserviceTemplateWithSameNameExists) {
+    throw eserviceTemplateNameConflict(name);
   }
 }
 
