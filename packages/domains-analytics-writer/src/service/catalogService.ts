@@ -526,10 +526,16 @@ export function catalogServiceBuilder(db: DBContext) {
               .join(", ")}`
           );
         }
-        const interfaceIdsDeleted = await interfaceRepo.mergeDeleting(t);
+        const idsToDelete = items.map((item) => item.id);
+        const interfaceIdsDeleted = await interfaceRepo.mergeDeleting(
+          t,
+          idsToDelete
+        );
+
         const interfaceItems = items.filter((i) =>
           interfaceIdsDeleted.includes(i.id)
         );
+
         const documentItems = items.filter(
           (i) => !interfaceIdsDeleted.includes(i.id)
         );

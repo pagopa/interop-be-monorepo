@@ -324,7 +324,8 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
       CatalogDbTable.eservice_descriptor,
       { id: descriptor.id }
     );
-    expect(storedDescriptor?.serverUrls).toBe("[]");
+
+    expect(storedDescriptor?.serverUrls).to.equal("[]");
   });
 
   it("EServiceDocumentUpdated: upsert interface when serverUrls are lenght > 0 and overwrite descriptor serverUrls", async () => {
@@ -535,8 +536,7 @@ describe("Catalog messages consumers - handleCatalogMessageV1", () => {
       CatalogDbTable.eservice_descriptor,
       { id: descriptor.id }
     );
-    const serverUrls = JSON.parse(updatedDescriptor?.serverUrls ?? "error");
-    expect(serverUrls).toEqual([]);
+    expect(updatedDescriptor?.serverUrls).to.equal("[]");
   });
 
   it("EServiceRiskAnalysisDeleted: removes RiskAnalysis", async () => {

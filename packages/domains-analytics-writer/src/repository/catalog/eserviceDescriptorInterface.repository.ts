@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { DescriptorId, genericInternalError } from "pagopa-interop-models";
+import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 import { DBConnection } from "../../db/db.js";
 import { buildColumnSet } from "../../utils/sqlQueryHelper.js";
@@ -96,18 +96,11 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       }
     },
 
-    async mergeDeleting(t: ITask<unknown>): Promise<string[]> {
+    async mergeDeleting(
+      t: ITask<unknown>,
+      idsToDelete: string[]
+    ): Promise<string[]> {
       try {
-        const idsToDelete = await t.map<DescriptorId>(
-          `SELECT id FROM ${deletingTableName}_${config.mergeTableSuffix}`,
-          [],
-          (row) => row.id
-        );
-
-        if (idsToDelete.length === 0) {
-          return [];
-        }
-
         const existingIds = await t.map<string>(
           `SELECT id FROM ${schemaName}.${tableName} WHERE id = ANY($1)`,
           [idsToDelete],
