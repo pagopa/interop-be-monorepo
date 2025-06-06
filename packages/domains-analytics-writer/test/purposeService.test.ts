@@ -16,6 +16,9 @@ import {
   PurposeRiskAnalysisForm,
   RiskAnalysisId,
   tenantKind,
+  Purpose,
+  PurposeVersion,
+  PurposeVersionId,
 } from "pagopa-interop-models";
 import {
   getMockPurpose,
@@ -46,7 +49,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
-    const mockPurpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       delegationId: generateId<DelegationId>(),
       suspendedByConsumer: false,
@@ -56,10 +59,10 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [getMockPurposeVersion()],
     };
-    const payload: PurposeCreatedV1 = { purpose: toPurposeV1(mockPurpose) };
+    const payload: PurposeCreatedV1 = { purpose: toPurposeV1(purpose) };
     const msg: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 1,
       type: "PurposeCreated",
       event_version: 1,
@@ -70,11 +73,11 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     await handlePurposeMessageV1([msg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mockPurpose.id,
+      id: purpose.id,
     });
     expect(stored).toBeDefined();
 
-    for (const version of mockPurpose.versions) {
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -92,7 +95,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       const riskAnalysisStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_form,
-        { purposeId: mockPurpose.id }
+        { purposeId: purpose.id }
       );
 
       expect(riskAnalysisStored.length).toBeGreaterThan(0);
@@ -100,23 +103,23 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       const riskAnalysisAnswerStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_answer,
-        { purposeId: mockPurpose.id }
+        { purposeId: purpose.id }
       );
       expect(riskAnalysisAnswerStored.length).toBeGreaterThan(0);
     }
   });
 
   it("PurposeVersionCreated: inserts version record", async () => {
-    const mock = getMockPurpose();
+    const purpose = getMockPurpose();
     await handlePurposeMessageV1(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: purpose.id,
           version: 1,
           type: "PurposeCreated",
           event_version: 1,
-          data: { purpose: toPurposeV1(mock) } as any,
+          data: { purpose: toPurposeV1(purpose) },
           log_date: new Date(),
         },
       ],
@@ -125,12 +128,12 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
 
     const version = getMockPurposeVersion();
     const payload: PurposeVersionCreatedV1 = {
-      purposeId: mock.id,
+      purposeId: purpose.id,
       version: toPurposeVersionV1(version),
     };
     const msg: PurposeEventEnvelopeV1 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 2,
       type: "PurposeVersionCreated",
       event_version: 1,
@@ -155,7 +158,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
-    const mockPurpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       delegationId: generateId<DelegationId>(),
       suspendedByConsumer: false,
@@ -167,32 +170,32 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     };
     const createMsg: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 1,
       type: "PurposeCreated",
       event_version: 1,
-      data: { purpose: toPurposeV1(mockPurpose) } as any,
+      data: { purpose: toPurposeV1(purpose) },
       log_date: new Date(),
     };
     await handlePurposeMessageV1([createMsg], dbContext);
 
     const deleteMsg: PurposeEventEnvelopeV1 = {
       sequence_num: 2,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 2,
       type: "PurposeDeleted",
       event_version: 1,
-      data: { purposeId: mockPurpose.id } as any,
+      data: { purposeId: purpose.id },
       log_date: new Date(),
     };
     await handlePurposeMessageV1([deleteMsg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mockPurpose.id,
+      id: purpose.id,
     });
     expect(stored.deleted).toBe(true);
-    expect(mockPurpose.versions.length).toBeGreaterThan(0);
-    for (const version of mockPurpose.versions) {
+    expect(purpose.versions.length).toBeGreaterThan(0);
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -215,7 +218,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     const riskAnalysisStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_form,
-      { purposeId: mockPurpose.id }
+      { purposeId: purpose.id }
     );
 
     expect(riskAnalysisStored.forEach((r) => expect(r.deleted).toBe(true)));
@@ -223,7 +226,7 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
     const riskAnalysisAnswerStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_answer,
-      { purposeId: mockPurpose.id }
+      { purposeId: purpose.id }
     );
 
     expect(
@@ -232,36 +235,38 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
   });
 
   it("PurposeVersionDeleted: marks version deleted", async () => {
-    const mock = getMockPurpose();
-    const versionId = generateId();
+    const purpose = getMockPurpose();
+    const versionId = generateId<PurposeVersionId>();
     await handlePurposeMessageV1(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: purpose.id,
           version: 1,
           type: "PurposeCreated",
           event_version: 1,
-          data: { purpose: toPurposeV1(mock) } as any,
+          data: { purpose: toPurposeV1(purpose) },
           log_date: new Date(),
         },
       ],
       dbContext
     );
-    const version = getMockPurposeVersion();
-    version.id = versionId as any;
+    const version: PurposeVersion = {
+      ...getMockPurposeVersion(),
+      id: versionId,
+    };
     await handlePurposeMessageV1(
       [
         {
           sequence_num: 2,
-          stream_id: mock.id,
+          stream_id: purpose.id,
           version: 2,
           type: "PurposeVersionCreated",
           event_version: 1,
           data: {
-            purposeId: mock.id,
+            purposeId: purpose.id,
             version: toPurposeVersionV1(version),
-          } as any,
+          },
           log_date: new Date(),
         },
       ],
@@ -270,11 +275,11 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
 
     const deleteVer: PurposeEventEnvelopeV1 = {
       sequence_num: 3,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 3,
       type: "PurposeVersionDeleted",
       event_version: 1,
-      data: { versionId: version.id } as any,
+      data: { purposeId: purpose.id, versionId: version.id },
       log_date: new Date(),
     };
     await handlePurposeMessageV1([deleteVer], dbContext);
@@ -282,13 +287,13 @@ describe("Purpose messages consumers - handlePurposeMessageV1", () => {
       dbContext,
       PurposeDbTable.purpose,
       {
-        id: mock.id,
+        id: purpose.id,
       }
     );
 
     expect(purposeStored.deleted).toBeFalsy();
 
-    for (const version of mock.versions) {
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -321,7 +326,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
-    const mockPurpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       delegationId: generateId<DelegationId>(),
       suspendedByConsumer: false,
@@ -332,10 +337,10 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       versions: [getMockPurposeVersion()],
     };
 
-    const payload: PurposeAddedV2 = { purpose: toPurposeV2(mockPurpose) };
+    const payload: PurposeAddedV2 = { purpose: toPurposeV2(purpose) };
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 1,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 1,
       type: "PurposeAdded",
       event_version: 2,
@@ -346,11 +351,11 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     await handlePurposeMessageV2([msg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mockPurpose.id,
+      id: purpose.id,
     });
     expect(stored).toBeDefined();
 
-    for (const version of mockPurpose.versions) {
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -368,53 +373,53 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       const riskAnalysisStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_form,
-        { purposeId: mockPurpose.id }
+        { purposeId: purpose.id }
       );
       expect(riskAnalysisStored.length).toBeGreaterThan(0);
 
       const riskAnalysisAnswerStored = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose_risk_analysis_answer,
-        { purposeId: mockPurpose.id }
+        { purposeId: purpose.id }
       );
       expect(riskAnalysisAnswerStored.length).toBeGreaterThan(0);
     }
   });
 
   it("DraftPurposeUpdated: upserts purpose metadata_version incremented", async () => {
-    const mock = getMockPurpose();
+    const purpose = getMockPurpose();
 
     await handlePurposeMessageV2(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: purpose.id,
           version: 1,
           type: "PurposeAdded",
           event_version: 2,
-          data: { purpose: toPurposeV2(mock) } as any,
+          data: { purpose: toPurposeV2(purpose) },
           log_date: new Date(),
         },
       ],
       dbContext
     );
 
-    const updated = { ...mock, title: "updated" };
+    const updatedPurpose: Purpose = { ...purpose, title: "updated" };
 
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 2,
       type: "DraftPurposeUpdated",
       event_version: 2,
-      data: { purpose: toPurposeV2(updated) },
+      data: { purpose: toPurposeV2(updatedPurpose) },
       log_date: new Date(),
     };
 
     await handlePurposeMessageV2([msg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mock.id,
+      id: purpose.id,
     });
     expect(stored.title).toBe("updated");
     expect(stored.metadataVersion).toBe(2);
@@ -426,7 +431,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
-    const mockPurpose = {
+    const purpose: Purpose = {
       ...getMockPurpose(),
       delegationId: generateId<DelegationId>(),
       suspendedByConsumer: false,
@@ -441,11 +446,11 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       [
         {
           sequence_num: 1,
-          stream_id: mockPurpose.id,
+          stream_id: purpose.id,
           version: 1,
           type: "PurposeAdded",
           event_version: 2,
-          data: { purpose: toPurposeV2(mockPurpose) } as any,
+          data: { purpose: toPurposeV2(purpose) },
           log_date: new Date(),
         },
       ],
@@ -454,21 +459,21 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
 
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mockPurpose.id,
+      stream_id: purpose.id,
       version: 2,
       type: "DraftPurposeDeleted",
       event_version: 2,
-      data: { purpose: toPurposeV2(mockPurpose) } as any,
+      data: { purpose: toPurposeV2(purpose) },
       log_date: new Date(),
     };
     await handlePurposeMessageV2([msg], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mockPurpose.id,
+      id: purpose.id,
     });
     expect(stored.deleted).toBe(true);
 
-    for (const version of mockPurpose.versions) {
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -488,29 +493,29 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     const riskAnalysisStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_form,
-      { purposeId: mockPurpose.id }
+      { purposeId: purpose.id }
     );
     riskAnalysisStored.forEach((r) => expect(r.deleted).toBe(true));
 
     const riskAnalysisAnswerStored = await getManyFromDb(
       dbContext,
       PurposeDbTable.purpose_risk_analysis_answer,
-      { purposeId: mockPurpose.id }
+      { purposeId: purpose.id }
     );
     riskAnalysisAnswerStored.forEach((r) => expect(r.deleted).toBe(true));
   });
 
   it("NewPurposeVersionActivated: adds a version on a existing purpose", async () => {
-    const mock = getMockPurpose();
+    const purpose = getMockPurpose();
     await handlePurposeMessageV2(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: purpose.id,
           version: 1,
           type: "PurposeAdded",
           event_version: 2,
-          data: { purpose: toPurposeV2(mock) } as any,
+          data: { purpose: toPurposeV2(purpose) },
           log_date: new Date(),
         },
       ],
@@ -518,16 +523,16 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     );
 
     const version = getMockPurposeVersion();
-    mock.versions.push(version);
+    purpose.versions.push(version);
 
     const payload: NewPurposeVersionActivatedV2 = {
       versionId: version.id,
-      purpose: toPurposeV2(mock),
+      purpose: toPurposeV2(purpose),
     };
 
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 2,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 2,
       type: "NewPurposeVersionActivated",
       event_version: 2,
@@ -545,16 +550,16 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
   });
 
   it("WaitingForApprovalPurposeVersionDeleted: marks version deleted", async () => {
-    const mock = getMockPurpose();
+    const purpose = getMockPurpose();
     await handlePurposeMessageV2(
       [
         {
           sequence_num: 1,
-          stream_id: mock.id,
+          stream_id: purpose.id,
           version: 1,
           type: "PurposeAdded",
           event_version: 2,
-          data: { purpose: toPurposeV2(mock) } as any,
+          data: { purpose: toPurposeV2(purpose) },
           log_date: new Date(),
         },
       ],
@@ -562,16 +567,16 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     );
 
     const version = getMockPurposeVersion();
-    mock.versions.push(version);
+    purpose.versions.push(version);
     await handlePurposeMessageV2(
       [
         {
           sequence_num: 2,
-          stream_id: mock.id,
+          stream_id: purpose.id,
           version: 2,
           type: "NewPurposeVersionActivated",
           event_version: 2,
-          data: { versionId: version.id, purpose: toPurposeV2(mock) } as any,
+          data: { versionId: version.id, purpose: toPurposeV2(purpose) },
           log_date: new Date(),
         },
       ],
@@ -580,11 +585,11 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
 
     const msg: PurposeEventEnvelopeV2 = {
       sequence_num: 3,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 3,
       type: "WaitingForApprovalPurposeVersionDeleted",
       event_version: 2,
-      data: { versionId: version.id, purpose: toPurposeV2(mock) } as any,
+      data: { versionId: version.id, purpose: toPurposeV2(purpose) },
       log_date: new Date(),
     };
     await handlePurposeMessageV2([msg], dbContext);
@@ -592,11 +597,11 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
     const purposeStored = await getOneFromDb(
       dbContext,
       PurposeDbTable.purpose,
-      { id: mock.id }
+      { id: purpose.id }
     );
     expect(purposeStored.deleted).toBeFalsy();
 
-    for (const version of mock.versions) {
+    for (const version of purpose.versions) {
       const versionStored = await getOneFromDb(
         dbContext,
         PurposeDbTable.purpose_version,
@@ -621,68 +626,68 @@ describe("Check on metadata_version merge - Purpose", () => {
   });
 
   it("should skip update when incoming metadata_version is lower or equal", async () => {
-    const mock = getMockPurpose();
+    const purpose = getMockPurpose();
 
     const msgV1: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 1,
       type: "PurposeCreated",
       event_version: 1,
-      data: { purpose: toPurposeV1({ ...mock, title: "Title v1" }) },
+      data: { purpose: toPurposeV1({ ...purpose, title: "Title v1" }) },
       log_date: new Date(),
     };
 
     await handlePurposeMessageV1([msgV1], dbContext);
     const stored1 = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mock.id,
+      id: purpose.id,
     });
     expect(stored1.title).toBe("Title v1");
     expect(stored1.metadataVersion).toBe(1);
 
-    const msgV3 = {
+    const msgV3: PurposeEventEnvelopeV1 = {
       ...msgV1,
       version: 3,
       sequence_num: 2,
-      data: { purpose: toPurposeV1({ ...mock, title: "Title v3" }) },
+      data: { purpose: toPurposeV1({ ...purpose, title: "Title v3" }) },
     };
     await handlePurposeMessageV1([msgV3], dbContext);
     const stored2 = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mock.id,
+      id: purpose.id,
     });
     expect(stored2.title).toBe("Title v3");
     expect(stored2.metadataVersion).toBe(3);
 
-    const msgV2 = {
+    const msgV2: PurposeEventEnvelopeV1 = {
       ...msgV1,
       version: 2,
       sequence_num: 3,
-      data: { purpose: toPurposeV1({ ...mock, title: "Title v2" }) },
+      data: { purpose: toPurposeV1({ ...purpose, title: "Title v2" }) },
     };
     await handlePurposeMessageV1([msgV2], dbContext);
     const stored3 = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mock.id,
+      id: purpose.id,
     });
     expect(stored3.title).toBe("Title v3");
     expect(stored3.metadataVersion).toBe(3);
   });
 
   it("should apply update when incoming metadata_version is greater", async () => {
-    const mock = getMockPurpose();
+    const purpose = getMockPurpose();
 
     const msgV2: PurposeEventEnvelopeV1 = {
       sequence_num: 1,
-      stream_id: mock.id,
+      stream_id: purpose.id,
       version: 2,
       type: "PurposeCreated",
       event_version: 1,
-      data: { purpose: toPurposeV1({ ...mock, title: "Title v2" }) },
+      data: { purpose: toPurposeV1({ ...purpose, title: "Title v2" }) },
       log_date: new Date(),
     };
     await handlePurposeMessageV1([msgV2], dbContext);
 
     const stored = await getOneFromDb(dbContext, PurposeDbTable.purpose, {
-      id: mock.id,
+      id: purpose.id,
     });
     expect(stored.title).toBe("Title v2");
     expect(stored.metadataVersion).toBe(2);

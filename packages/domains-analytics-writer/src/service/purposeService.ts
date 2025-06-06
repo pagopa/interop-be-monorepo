@@ -98,7 +98,6 @@ export function purposeServiceBuilder(db: DBContext) {
         await formRepository.merge(t);
         await answerRepository.merge(t);
       });
-
       genericLogger.info(
         `Staging data merged into target tables for all batches`
       );
@@ -172,7 +171,6 @@ export function purposeServiceBuilder(db: DBContext) {
             `Staging deletion inserted for purposeIds: ${batch.join(", ")}`
           );
         }
-
         await purposeRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
@@ -210,7 +208,6 @@ export function purposeServiceBuilder(db: DBContext) {
             )}`
           );
         }
-
         await versionRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
