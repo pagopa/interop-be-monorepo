@@ -559,6 +559,8 @@ export function catalogServiceBuilder(db: DBContext) {
           );
           await descriptorRepo.mergeServerUrls(t);
 
+          await descriptorRepo.cleanServerUrls();
+
           await interfaceRepo.cleanDeleting();
 
           genericLogger.info(
