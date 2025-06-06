@@ -7,25 +7,24 @@ import { clientAdminIdNotFound } from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastResponseVersion,
-  pollResource,
+  pollResourceWithMetadata,
 } from "../utils/polling.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollClient = (
     response: WithMaybeMetadata<authorizationApi.Client>,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
-    pollResource(() =>
+  ): Promise<WithMaybeMetadata<authorizationApi.Client>> =>
+    pollResourceWithMetadata(() =>
       clients.authorizationClient.client.getClient({
         params: { clientId: response.data.id },
         headers,
       })
     )({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {

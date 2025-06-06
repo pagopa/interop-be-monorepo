@@ -71,6 +71,10 @@ export * from "./token-generation-readmodel/commons.js";
 export * from "./token-generation-audit/audit.js";
 export * from "./client-assertion/clientAssertionValidation.js";
 
+// DPoP
+export * from "./dpop/dpop.js";
+export * from "./dpop/dpopCache.js";
+
 // Protobuf
 export * from "./protobuf/protobuf.js";
 
@@ -115,6 +119,7 @@ export * from "./gen/v2/agreement/agreement.js";
 export * from "./gen/v2/agreement/events.js";
 export * from "./gen/v2/purpose/purpose.js";
 export * from "./gen/v2/purpose/events.js";
+export * from "./gen/v2/purpose/riskAnalysis.js";
 export * from "./gen/v2/authorization/client.js";
 export * from "./gen/v2/authorization/key.js";
 export * from "./gen/v2/authorization/events.js";

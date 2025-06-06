@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -9,10 +9,7 @@ import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockedApiAgreement } from "../../mockUtils.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 
 describe("POST /agreements router test", () => {
   const mockAgreementSeed: m2mGatewayApi.AgreementSeed = {
@@ -78,7 +75,7 @@ describe("POST /agreements router test", () => {
     }
   );
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
     "Should return 500 in case of $code error",
     async (error) => {
       mockAgreementService.createAgreement = vi.fn().mockRejectedValue(error);
