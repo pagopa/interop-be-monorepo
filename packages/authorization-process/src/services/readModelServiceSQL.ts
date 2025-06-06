@@ -203,6 +203,7 @@ export function readModelServiceBuilderSQL({
             eq(clientPurposeInReadmodelClient.purposeId, purposeId)
           )
         )
+        .where(eq(clientPurposeInReadmodelClient.purposeId, purposeId))
         .groupBy(clientInReadmodelClient.id)
         .as("subquery");
 
