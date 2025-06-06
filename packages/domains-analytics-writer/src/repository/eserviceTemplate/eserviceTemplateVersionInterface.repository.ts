@@ -39,7 +39,6 @@ export function eserviceTemplateVersionInterfaceRepository(conn: DBConnection) {
           EserviceTemplateVersionInterfaceSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-
         await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
