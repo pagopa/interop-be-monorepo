@@ -3,13 +3,10 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { WithMetadata } from "pagopa-interop-models";
+import { WithMetadata, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockedApiPurpose } from "../../mockUtils.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
@@ -69,7 +66,7 @@ describe("POST /purposes router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
     "Should return 500 in case of $code error",
     async (error) => {
       mockPurposeService.createPurpose = vi.fn().mockRejectedValue(error);
