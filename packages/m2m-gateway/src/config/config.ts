@@ -108,13 +108,13 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
     z
       .object({
         M2M_GATEWAY_INTERFACE_VERSION: z.string(),
-        DEFAULT_POLLING_INTERVAL_MS: z.coerce.number().default(1000),
-        DEFAULT_POLLING_MAX_ATTEMPTS: z.coerce.number().default(5),
+        DEFAULT_POLLING_RETRY_DELAY: z.coerce.number().default(1000),
+        DEFAULT_POLLING_MAX_RETRIES: z.coerce.number().default(5),
       })
       .transform((c) => ({
         m2mGatewayInterfaceVersion: c.M2M_GATEWAY_INTERFACE_VERSION,
-        defaultPollingIntervalMs: c.DEFAULT_POLLING_INTERVAL_MS,
-        defaultPollingMaxAttempts: c.DEFAULT_POLLING_MAX_ATTEMPTS,
+        defaultPollingRetryDelay: c.DEFAULT_POLLING_RETRY_DELAY,
+        defaultPollingMaxRetries: c.DEFAULT_POLLING_MAX_RETRIES,
       }))
   );
 
