@@ -3,12 +3,10 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockedApiAgreement } from "../../mockUtils.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 
@@ -52,7 +50,7 @@ describe("POST /agreements/:agreementId/upgrade router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
     "Should return 500 in case of $code error",
     async (error) => {
       mockAgreementService.upgradeAgreement = vi.fn().mockRejectedValue(error);

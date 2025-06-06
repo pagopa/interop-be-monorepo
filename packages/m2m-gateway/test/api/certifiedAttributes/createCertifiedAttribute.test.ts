@@ -7,11 +7,11 @@ import {
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockAttributeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingMetadata,
-  resourcePollingTimeout,
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
@@ -107,7 +107,7 @@ describe("POST /certifiedAttributes router test", () => {
     missingMetadata(),
     unexpectedAttributeKind(mockApiCertifiedAttribute.data),
     unexpectedUndefinedAttributeOriginOrCode(mockApiCertifiedAttribute.data),
-    resourcePollingTimeout(3),
+    pollingMaxRetriesExceeded(3, 10),
   ])("Should return 500 in case of $code error", async (error) => {
     mockAttributeService.createCertifiedAttribute = vi
       .fn()
