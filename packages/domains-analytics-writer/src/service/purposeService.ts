@@ -238,13 +238,14 @@ export function purposeServiceBuilder(db: DBContext) {
           );
         }
 
-        await versionRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
           "purposeVersionId",
           [PurposeDbTable.purpose_version_document],
-          DeletingDbTable.purpose_deleting_table
+          DeletingDbTable.purpose_deleting_table,
+          true
         );
+        await versionRepository.mergeDeleting(t);
       });
       genericLogger.info(
         `Staging deletion merged into target tables for all purpose versions`
