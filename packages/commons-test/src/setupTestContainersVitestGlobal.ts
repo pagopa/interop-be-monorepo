@@ -356,23 +356,27 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+// import { fileURLToPath } from "node:url";
+// import path from "node:path";
 import { config as dotenv } from "dotenv-flow";
 import {
   AWSSesConfig,
   AnalyticsSQLDbConfig,
+  AuthData,
   EventStoreConfig,
   FileManagerConfig,
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
+  userRole,
 } from "pagopa-interop-commons";
-import type { ProvidedContext } from "vitest";
+import { vi, type ProvidedContext } from "vitest";
 import type { TestProject } from "vitest/node";
 import { z } from "zod";
+import { generateId } from "pagopa-interop-models";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
+import { dynamoDBContainer, TEST_DYNAMODB_PORT } from "./containerTestUtils.js";
 
 const EnhancedTokenGenerationReadModelDbConfig = z
   .object({
@@ -409,12 +413,68 @@ declare module "vitest" {
   }
 }
 
+vi.mock("../testUtils.ts", async () => {
+  // importa le implementazioni vere per poterle usare nel mock
+  const actual = await vi.importActual("../testUtils.ts");
+  return {
+    ...actual,
+    getMockAuthData: (
+      organizationId?: string,
+      userId?: string,
+      userRoles?: string[]
+    ) => ({
+      systemRole: undefined,
+      organizationId: organizationId || generateId(),
+      userId: userId || generateId(),
+      userRoles: userRoles || [userRole.ADMIN_ROLE],
+      externalId: {
+        value: "123456",
+        origin: "IPA",
+      },
+      selfcareId: generateId(),
+    }),
+    getMockContext: (args: {
+      authData: AuthData;
+      serviceName: string;
+      correlationId: string;
+    }) => ({
+      authData: args?.authData || {
+        systemRole: undefined,
+        organizationId: generateId(),
+        userId: generateId(),
+        userRoles: [userRole.ADMIN_ROLE],
+        externalId: {
+          value: "123456",
+          origin: "IPA",
+        },
+        selfcareId: generateId(),
+      },
+      serviceName: args?.serviceName || "test",
+      correlationId: args?.correlationId || generateId(),
+      spanId: "span-id-mock",
+      logger: console, // o genericLogger
+      requestTimestamp: Date.now(),
+    }),
+  };
+});
+
 export function setupTestContainersVitestGlobal() {
-  const monorepoRoot = path.resolve(
-    path.dirname(fileURLToPath(import.meta.url)),
-    "../../.."
-  );
-  dotenv({ path: monorepoRoot });
+  // const monorepoRoot = path.resolve(
+  //   path.dirname(fileURLToPath(import.meta.url)),
+  //   "../../.."
+  // );
+  // const envPath = path.join(monorepoRoot, ".env.test");
+
+  // console.log("Loaded .env.test from", envPath);
+
+  // dotenv({ path: envPath });
+
+  // const currentFile = fileURLToPath(import.meta.url);
+  // const packageRoot = path.resolve(currentFile, "../../");
+  const packageRoot = process.cwd();
+  dotenv({ path: packageRoot });
+
+  console.log("✅ Loaded envs from", packageRoot);
 
   console.log("ENV example:", {
     ANALYTICS_SQL_DB_NAME: process.env.ANALYTICS_SQL_DB_NAME,
@@ -424,11 +484,6 @@ export function setupTestContainersVitestGlobal() {
       process.env.TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM,
     TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION:
       process.env.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
-    tokenGenerationReadModelDbPort: process.env.tokenGenerationReadModelDbPort,
-    tokenGenerationReadModelTableNamePlatform:
-      process.env.tokenGenerationReadModelTableNamePlatform,
-    tokenGenerationReadModelTableNameTokenGeneration:
-      process.env.tokenGenerationReadModelTableNameTokenGeneration,
   });
   return async function ({
     provide,
@@ -445,6 +500,19 @@ export function setupTestContainersVitestGlobal() {
     //   }
     // };
 
+    // const provideConfig = <K extends keyof ProvidedContext>(
+    //   label: K,
+    //   parser: z.SafeParseReturnType<any, ProvidedContext[K]>
+    // ) => {
+    //   if (parser.success) {
+    //     provide(label, parser.data);
+    //     console.log(`✅ Provided ${label}`);
+    //   } else {
+    //     console.warn(`⚠️ Failed to provide ${label}`);
+    //     console.warn(parser.error.format()); // <<< stampa dettagli errori di parsing
+    //   }
+    // };
+
     const provideConfig = <K extends keyof ProvidedContext>(
       label: K,
       parser: z.SafeParseReturnType<any, ProvidedContext[K]>
@@ -453,8 +521,7 @@ export function setupTestContainersVitestGlobal() {
         provide(label, parser.data);
         console.log(`✅ Provided ${label}`);
       } else {
-        console.warn(`⚠️ Failed to provide ${label}`);
-        console.warn(parser.error.format()); // <<< stampa dettagli errori di parsing
+        console.log(`ℹ️ Skipped optional config ${label}`);
       }
     };
 
@@ -481,11 +548,23 @@ export function setupTestContainersVitestGlobal() {
     const tokenGenParsed = EnhancedTokenGenerationReadModelDbConfig.safeParse(
       process.env
     );
-    if (tokenGenParsed.success) {
-      provide("tokenGenerationReadModelConfig", tokenGenParsed.data);
-      console.log("✅ Provided tokenGenerationReadModelConfig");
-    } else {
-      console.warn("⚠️ Failed to provide tokenGenerationReadModelConfig");
+    // if (tokenGenParsed.success) {
+    //   provide("tokenGenerationReadModelConfig", tokenGenParsed.data);
+    //   console.log("✅ Provided tokenGenerationReadModelConfig");
+    // } else {
+    //   console.warn("⚠️ Failed to provide tokenGenerationReadModelConfig");
+    // }
+
+    const skipTokenReadModel = process.env.SKIP_TOKEN_READMODEL === "true";
+
+    if (tokenGenParsed.success && !skipTokenReadModel) {
+      const startedDynamoDbContainer = await dynamoDBContainer().start();
+
+      provide("tokenGenerationReadModelConfig", {
+        ...tokenGenParsed.data,
+        tokenGenerationReadModelDbPort:
+          startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
+      });
     }
 
     const fileManagerParsed = FileManagerConfig.safeParse(process.env);

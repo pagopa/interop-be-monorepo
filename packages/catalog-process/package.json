@@ -5,6 +5,7 @@
   "main": "dist",
   "type": "module",
   "scripts": {
+    "test:run": "vitest run --reporter verbose --logHeapUsage",
     "test:api": "vitest --config vitest.api.config.ts",
     "test:integration": "echo \"Old readmodel\" && vitest --config vitest.integration.config.ts && echo \"SQL readmodel\" && vitest --config vitest.integrationsql.config.ts",
     "lint": "eslint . --ext .ts,.tsx",
