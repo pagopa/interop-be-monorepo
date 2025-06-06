@@ -195,7 +195,13 @@ export function readModelServiceBuilderSQL({
         .from(clientInReadmodelClient)
         .innerJoin(
           clientPurposeInReadmodelClient,
-          eq(clientPurposeInReadmodelClient.purposeId, purposeId)
+          and(
+            eq(
+              clientInReadmodelClient.id,
+              clientPurposeInReadmodelClient.clientId
+            ),
+            eq(clientPurposeInReadmodelClient.purposeId, purposeId)
+          )
         )
         .groupBy(clientInReadmodelClient.id)
         .as("subquery");
