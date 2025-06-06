@@ -55,7 +55,6 @@ export async function handleAgreementMessageV2(
         deleteDocumentBatch.push(
           AgreementConsumerDocumentDeletingSchema.parse({
             id: msg.data.documentId,
-            deleted: true,
           } satisfies z.input<typeof AgreementConsumerDocumentDeletingSchema>)
         );
       })
