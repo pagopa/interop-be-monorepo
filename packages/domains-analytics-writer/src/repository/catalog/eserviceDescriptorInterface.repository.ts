@@ -83,8 +83,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
           deletingTableName,
           EserviceDescriptorInterfaceDeletingSchema
         );
-
-        await t.result(
+        await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
