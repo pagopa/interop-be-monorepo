@@ -1,14 +1,14 @@
 {
-  "TableName": "platform-states",
+  "TableName": "dpop-cache",
   "AttributeDefinitions": [
     {
-      "AttributeName": "PK",
+      "AttributeName": "jti",
       "AttributeType": "S"
     }
   ],
   "KeySchema": [
     {
-      "AttributeName": "PK",
+      "AttributeName": "jti",
       "KeyType": "HASH"
     }
   ],
