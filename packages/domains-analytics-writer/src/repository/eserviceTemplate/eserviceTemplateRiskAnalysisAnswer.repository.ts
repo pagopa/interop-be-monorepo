@@ -33,7 +33,6 @@ export function eserviceTemplateRiskAnalysisAnswerRepository(
           EserviceTemplateRiskAnalysisAnswerSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-
         await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
