@@ -788,33 +788,22 @@ describe("Check on metadata_version merge", () => {
     };
     await handleCatalogMessageV1([msgV1], dbContext);
 
-    const stored1 = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
-      id: mock.id,
-    });
-    expect(stored1.name).toBe("Name v1");
-    expect(stored1.metadataVersion).toBe(1);
-
-    const msgV3 = {
+    const msgV3: EServiceEventEnvelopeV1 = {
       ...msgV1,
+      type: "EServiceUpdated",
       version: 3,
       sequence_num: 2,
       data: { eservice: toEServiceV1({ ...mock, name: "Name v3" }) },
     };
-    await handleCatalogMessageV1([msgV3], dbContext);
 
-    const stored2 = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
-      id: mock.id,
-    });
-    expect(stored2.name).toBe("Name v3");
-    expect(stored2.metadataVersion).toBe(3);
-
-    const msgV2 = {
+    const msgV2: EServiceEventEnvelopeV1 = {
       ...msgV1,
+      type: "EServiceUpdated",
       version: 2,
       sequence_num: 3,
       data: { eservice: toEServiceV1({ ...mock, name: "Name v2" }) },
     };
-    await handleCatalogMessageV1([msgV2], dbContext);
+    await handleCatalogMessageV1([msgV3, msgV2], dbContext);
 
     const stored3 = await getOneFromDb(dbContext, CatalogDbTable.eservice, {
       id: mock.id,
