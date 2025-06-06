@@ -3,7 +3,7 @@ import { WithLogger } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {
   isPolledVersionAtLeastResponseVersion,
-  pollResource,
+  pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -16,18 +16,17 @@ export type DelegationService = ReturnType<typeof delegationServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollDelegation = (
     response: WithMaybeMetadata<delegationApi.Delegation>,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
-    pollResource(() =>
+  ): Promise<WithMaybeMetadata<delegationApi.Delegation>> =>
+    pollResourceWithMetadata(() =>
       clients.delegationProcessClient.delegation.getDelegation({
         params: { delegationId: response.data.id },
         headers,
       })
     )({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {
