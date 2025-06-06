@@ -122,6 +122,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         );
       }
     },
+
     async insertServerUrls(
       t: ITask<unknown>,
       pgp: IMain,
@@ -135,18 +136,14 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         );
 
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingDescriptorServerUrlsTableName} a
-          USING ${stagingDescriptorServerUrlsTableName} b
-          WHERE a.id = b.id
-          AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDescriptorServerUrlsTableName}: ${error}`
         );
       }
     },
+
     async mergeServerUrls(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
@@ -163,6 +160,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
         );
       }
     },
+
     async cleanServerUrls(): Promise<void> {
       try {
         await conn.none(
