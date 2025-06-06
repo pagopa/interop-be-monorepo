@@ -6,7 +6,7 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastResponseVersion,
-  pollResource,
+  pollResourceWithMetadata,
 } from "../utils/polling.js";
 import {
   assertAgreementIsPending,
@@ -32,13 +32,14 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       headers,
     });
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollAgreement = (
     response: WithMaybeMetadata<agreementApi.Agreement>,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
-    pollResource(() => retrieveAgreementById(headers, response.data.id))({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
+  ): Promise<WithMaybeMetadata<agreementApi.Agreement>> =>
+    pollResourceWithMetadata(() =>
+      retrieveAgreementById(headers, response.data.id)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {

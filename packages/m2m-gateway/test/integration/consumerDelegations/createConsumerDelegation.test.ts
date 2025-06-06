@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   delegationService,
@@ -12,7 +12,6 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
-  resourcePollingTimeout,
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
 import {
@@ -141,11 +140,11 @@ describe("createConsumerDelegation", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetDelegation.mockImplementation(
       mockPollingResponse(
         mockDelegationProcessResponse,
-        config.defaultPollingMaxAttempts + 1
+        config.defaultPollingMaxRetries + 1
       )
     );
 
@@ -155,10 +154,13 @@ describe("createConsumerDelegation", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetDelegation).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });
