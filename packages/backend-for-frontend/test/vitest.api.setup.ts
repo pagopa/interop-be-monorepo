@@ -78,7 +78,11 @@ import {
 import { config } from "../src/config/config.js";
 
 export const clients = {
-  tenantProcessClient: {} as TenantProcessClient,
+  tenantProcessClient: {
+    tenant: {},
+    tenantAttribute: {},
+    selfcare: {},
+  } as TenantProcessClient,
   attributeProcessClient: {} as AttributeProcessClient,
   catalogProcessClient: {} as CatalogProcessClient,
   agreementProcessClient: {} as AgreementProcessClient,
