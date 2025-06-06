@@ -103,9 +103,9 @@ export async function handleCatalogMessageV2(
           );
         }
       )
-
       .exhaustive();
   }
+
   if (upsertEServiceBatch.length > 0) {
     await catalogService.upsertBatchEService(dbContext, upsertEServiceBatch);
   }

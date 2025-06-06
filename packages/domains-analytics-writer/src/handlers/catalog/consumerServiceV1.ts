@@ -223,19 +223,27 @@ export async function handleCatalogMessageV1(
   if (upsertEServiceBatch.length > 0) {
     await catalogService.upsertBatchEService(dbContext, upsertEServiceBatch);
   }
-  if (deleteEServiceBatch.length > 0) {
-    await catalogService.deleteBatchEService(dbContext, deleteEServiceBatch);
-  }
-  if (deleteDescriptorBatch.length > 0) {
-    await catalogService.deleteBatchDescriptor(
+
+  if (upsertDescriptorBatch.length > 0) {
+    await catalogService.upsertBatchEServiceDescriptor(
       dbContext,
-      deleteDescriptorBatch
+      upsertDescriptorBatch
     );
   }
   if (upsertEServiceDocumentBatch.length > 0) {
     await catalogService.upsertBatchEServiceDocument(
       dbContext,
       upsertEServiceDocumentBatch
+    );
+  }
+  if (deleteEServiceBatch.length > 0) {
+    await catalogService.deleteBatchEService(dbContext, deleteEServiceBatch);
+  }
+
+  if (deleteDescriptorBatch.length > 0) {
+    await catalogService.deleteBatchDescriptor(
+      dbContext,
+      deleteDescriptorBatch
     );
   }
   if (deleteEServiceDocumentBatch.length > 0) {

@@ -21,7 +21,7 @@ import { match } from "ts-pattern";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eServiceNotFound,
   eserviceNotInDraftState,
   templateInstanceNotAllowed,
@@ -95,7 +95,10 @@ describe("API /eservices/{eServiceId} authorization test", () => {
 
   it.each([
     {
-      error: eServiceNameDuplicate(mockEService.name),
+      error: eServiceNameDuplicateForProducer(
+        mockEService.name,
+        mockEService.producerId
+      ),
       expectedStatus: 409,
     },
     {

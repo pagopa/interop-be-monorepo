@@ -109,8 +109,8 @@ export function purposeServiceBuilder(db: DBContext) {
           [
             PurposeDbTable.purpose_version_document,
             PurposeDbTable.purpose_version,
-            PurposeDbTable.purpose_risk_analysis_form,
             PurposeDbTable.purpose_risk_analysis_answer,
+            PurposeDbTable.purpose_risk_analysis_form,
           ],
           PurposeDbTable.purpose
         );

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
+/* eslint-disable functional/immutable-data */
 import { z } from "zod";
 import { ColumnSet, IColumnDescriptor, IMain, ITask } from "pg-promise";
 import {
@@ -218,6 +219,37 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
     table: { table: `${tableName}_${config.mergeTableSuffix}` },
   });
 };
+
+/**
+ * Generates a DELETE query that removes rows from a staging table
+ * whenever there is another row with the same keyColumns and a higher
+ * metadata_version.
+ *
+ * @param tableName - The base table name.
+ * @param keyConditions - Array of column keys used to match records for deletion.
+ * @returns - A DELETE SQL query string to perform a deduplication.
+ */
+export function generateStagingDeleteQuery<
+  T extends DomainDbTable,
+  ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>
+>(tableName: T, keyConditions: ColumnKeys[]): string {
+  const snakeCaseMapper = getColumnNameMapper(tableName);
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+
+  const whereCondition = keyConditions
+    .map((key) => {
+      const columnName = snakeCaseMapper(String(key));
+      return `${stagingTableName}.${columnName} = b.${columnName}`;
+    })
+    .join("\n  AND ");
+
+  return `
+    DELETE FROM ${stagingTableName}
+    USING ${stagingTableName} AS b
+    WHERE ${whereCondition}
+    AND ${stagingTableName}.metadata_version < b.metadata_version;
+  `.trim();
+}
 
 /**
  * Purge obsolete rows in target tables by merging with staging data.

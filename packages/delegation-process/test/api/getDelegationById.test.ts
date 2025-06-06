@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { delegationApi } from "pagopa-interop-api-clients";
-import { generateToken, getMockDelegation } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockDelegation,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Delegation,
   DelegationId,
@@ -20,15 +24,15 @@ describe("API GET /delegations/:delegationId test", () => {
     kind: delegationKind.delegatedConsumer,
   });
 
+  const serviceResponse = getMockWithMetadata(mockDelegation);
   const apiDelegation = delegationApi.Delegation.parse(
     delegationToApiDelegation(mockDelegation)
   );
 
   beforeEach(() => {
-    delegationService.getDelegationById = vi.fn().mockResolvedValue({
-      data: mockDelegation,
-      metadata: { version: 0 },
-    });
+    delegationService.getDelegationById = vi
+      .fn()
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -56,6 +60,9 @@ describe("API GET /delegations/:delegationId test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiDelegation);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
