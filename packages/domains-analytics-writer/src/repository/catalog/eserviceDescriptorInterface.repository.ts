@@ -98,9 +98,13 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
       idsToDelete: string[]
     ): Promise<string[]> {
       try {
+        const idParams = idsToDelete.map((_, i) => `$${i + 1}`).join(", ");
+
         const existingIds = await t.map<string>(
-          `SELECT id FROM ${schemaName}.${tableName} WHERE id = ANY($1)`,
-          [idsToDelete],
+          `SELECT id 
+          FROM ${schemaName}.${tableName}
+          WHERE id IN (${idParams})`,
+          idsToDelete,
           (row) => row.id
         );
 
@@ -115,7 +119,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
         return existingIds;
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${deletingTableName} into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
