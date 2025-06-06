@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   clientService,
@@ -10,10 +14,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   getMockedApiClient,
@@ -102,11 +103,11 @@ describe("addClientPurpose", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetClient.mockImplementation(
       mockPollingResponse(
         mockAuthorizationProcessResponse,
-        config.defaultPollingMaxAttempts + 1
+        config.defaultPollingMaxRetries + 1
       )
     );
 
@@ -117,10 +118,13 @@ describe("addClientPurpose", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetClient).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });
