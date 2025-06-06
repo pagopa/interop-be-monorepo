@@ -229,20 +229,10 @@ export function generateStagingDeleteQuery<
     })
     .join("\n  AND ");
 
-  const dedupCondition = `
-    (
-      ${stagingTableName}.metadata_version < b.metadata_version
-      OR (
-        ${stagingTableName}.metadata_version = b.metadata_version
-        AND ${stagingTableName}.ctid > b.ctid
-      )
-    )
-  `;
-
   return `
     DELETE FROM ${stagingTableName}
     USING ${stagingTableName} AS b
     WHERE ${whereCondition}
-    AND ${dedupCondition};
+    AND ${stagingTableName}.metadata_version < b.metadata_version;
   `.trim();
 }
