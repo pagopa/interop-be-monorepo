@@ -53,6 +53,10 @@ export type InteropJwtConsumerPayload = InteropJwtCommonPayload & {
   consumerId?: TenantId;
   eserviceId?: EServiceId;
   descriptorId?: DescriptorId;
+  // Only for DPoP tokens
+  cnf?: {
+    jkt: string;
+  };
 };
 
 export type InteropConsumerToken = {

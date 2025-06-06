@@ -321,7 +321,6 @@ describe("SQL Attribute Service - Events V1", () => {
         data: { attribute: toAttributeV1(attr) },
         log_date: new Date(),
       };
-      await handleAttributeMessageV1([initial], dbContext);
 
       const higherAttr: Attribute = { ...attr, code: "updated code" };
       const higher: AttributeEventEnvelope = {
@@ -333,7 +332,7 @@ describe("SQL Attribute Service - Events V1", () => {
         data: { attribute: toAttributeV1(higherAttr) },
         log_date: new Date(),
       };
-      await handleAttributeMessageV1([higher], dbContext);
+      await handleAttributeMessageV1([higher, initial], dbContext);
 
       const stored = await getOneFromDb(dbContext, AttributeDbTable.attribute, {
         id: attr.id,
