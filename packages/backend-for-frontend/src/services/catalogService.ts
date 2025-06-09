@@ -578,6 +578,22 @@ export function catalogServiceBuilder(
         },
       });
     },
+
+    enableSignalHub: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      signalhubActivateSeed: bffApi.EServiceSignalhubActivateSeed
+    ): Promise<void> => {
+      logger.info(
+        `Update signalhub flag  of eservice with id = ${eServiceId} to ${signalhubActivateSeed.isSignalHubEnabled}`
+      );
+      await catalogProcessClient.enableSignalhub(signalhubActivateSeed, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers, logger }: WithLogger<BffAppContext>

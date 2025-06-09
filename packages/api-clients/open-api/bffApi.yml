@@ -5201,6 +5201,102 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/signalhub/activate:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Enabling signalhub service
+      operationId: enableSignalhub
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing boolean which describe if signalhub should be enabled
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceSignalhubActivateSeed"
+      responses:
+        "204":
+          description: Signalhub flag name updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
     post:
       security:
@@ -10858,20 +10954,20 @@ paths:
       summary: Removes an admin from a client
       operationId: removeClientAdmin
       parameters:
-      - name: clientId
-        in: path
-        description: ID of Client
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: adminId
-        in: path
-        description: ID of Admin
-        required: true
-        schema:
-          type: string
-          format: uuid
+        - name: clientId
+          in: path
+          description: ID of Client
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: adminId
+          in: path
+          description: ID of Admin
+          required: true
+          schema:
+            type: string
+            format: uuid
       responses:
         "204":
           description: Request succeed
@@ -18080,6 +18176,14 @@ components:
           type: string
       required:
         - name
+    EServiceSignalhubActivateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+      required:
+        - isSignalHubEnabled
     RejectDelegatedEServiceDescriptorSeed:
       type: object
       additionalProperties: false

@@ -19,6 +19,7 @@ export const eventV2TypeMapper = (
       "EServiceNameUpdated",
       "EServiceNameUpdatedByTemplateUpdate",
       "EServiceDescriptionUpdatedByTemplateUpdate",
+      "EServiceSignalhubActivationServiceUpdated",
       () => "catalog_item_updated"
     )
     .with(

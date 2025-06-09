@@ -134,6 +134,7 @@ import {
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
+  toCreateEventEServiceSignalhubActivationServiceUpdated,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -2405,6 +2406,41 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(
         toCreateEventEServiceNameUpdated(
+          eservice.metadata.version,
+          updatedEservice,
+          correlationId
+        )
+      );
+      return updatedEservice;
+    },
+
+    async enableSignalHub(
+      eserviceId: EServiceId,
+      isSignalHubEnabled: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      logger.info(
+        `Updating Signalhub for E-Service ${eserviceId} with value = ${isSignalHubEnabled}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceUpdatableAfterPublish(eservice.data);
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        isSignalHubEnabled,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceSignalhubActivationServiceUpdated(
           eservice.metadata.version,
           updatedEservice,
           correlationId

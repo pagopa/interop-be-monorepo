@@ -200,3 +200,8 @@ message EServiceDescriptorDocumentDeletedByTemplateUpdateV2 {
   string documentId = 2;
   EServiceV2 eservice = 3;
 }
+
+message EServiceSignalhubActivationServiceUpdatedV2 {
+    EServiceV2 eservice = 1;
+}
+

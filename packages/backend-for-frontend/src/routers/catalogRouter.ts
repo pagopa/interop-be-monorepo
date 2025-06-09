@@ -711,6 +711,25 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/eservices/:eServiceId/signalhub/activate", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.enableSignalHub(
+          ctx,
+          unsafeBrandId(req.params.eServiceId),
+          req.body
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error activating signalhub for eservice with Id: ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get(
       "/eservices/:eServiceId/riskAnalysis/:riskAnalysisId",
       async (req, res) => {

@@ -1625,6 +1625,56 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/signalhub/activate:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Enabling signalhub service
+      operationId: enableSignalhub
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing boolean which describe if signalhub should be enabled
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceSignalhubActivateSeed"
+      responses:
+        "200":
+          description: Signalhub flag name updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/:eServiceId/descriptors/:descriptorId/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2906,6 +2956,14 @@ components:
           maxLength: 60
       required:
         - name
+    EServiceSignalhubActivateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+      required:
+        - isSignalHubEnabled
     EServiceDescriptor:
       type: object
       additionalProperties: false
