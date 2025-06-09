@@ -34,7 +34,10 @@ describe("API GET /catalog/eservices/templates", () => {
       .mockResolvedValue(mockCatalogEServiceTemplates);
   });
 
-  const makeRequest = async (token: string, query: typeof defaultQuery = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get(`${appBasePath}/catalog/eservices/templates`)
       .set("Authorization", `Bearer ${token}`)
@@ -60,14 +63,17 @@ describe("API GET /catalog/eservices/templates", () => {
   });
 
   it.each([
-    {},
-    { offset: 0 },
-    { limit: 10 },
-    { ...defaultQuery, offset: "invalid" },
-    { ...defaultQuery, limit: "invalid" },
-  ])("Should return 400 if passed invalid data: %s", async (query) => {
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -2 } },
+    { query: { offset: 0, limit: 55 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+  ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query);
+    const res = await makeRequest(token, query as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });
