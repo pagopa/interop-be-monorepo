@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import {
   generateToken,
+  getMockedApiAttribute,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
 import { authRole, genericLogger } from "pagopa-interop-commons";
@@ -14,7 +15,6 @@ import {
   mockRateLimiter,
 } from "../vitest.api.setup.js";
 import { appBasePath } from "../../src/config/appBasePath.js";
-import { getMockedApiAttribute } from "../mockUtils.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
 
 /*
@@ -33,7 +33,7 @@ describe("rateLimiterMiddleware", () => {
     toM2MGatewayApiCertifiedAttribute({
       attribute: getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-      }).data,
+      }),
       logger: genericLogger,
     })
   );
