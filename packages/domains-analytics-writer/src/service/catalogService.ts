@@ -380,7 +380,7 @@ export function catalogServiceBuilder(db: DBContext) {
           await descriptorRepo.insertServerUrls(t, dbContext.pgp, batch);
 
           genericLogger.info(
-            `Staging data inserted for EserviceDescriptorDocument batch: ${batch
+            `Staging data inserted for for server urls to update, batch: ${batch
               .map((doc) => doc.id)
               .join(", ")}`
           );
@@ -390,7 +390,7 @@ export function catalogServiceBuilder(db: DBContext) {
       });
 
       genericLogger.info(
-        `Staging data merged into target tables for EserviceDescriptorDocument batches`
+        `Staging data merged into target tables for server urls to update, batches`
       );
 
       await descriptorRepo.cleanServerUrls();
