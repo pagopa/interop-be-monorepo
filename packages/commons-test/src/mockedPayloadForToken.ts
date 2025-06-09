@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { AuthRole, userRole } from "pagopa-interop-commons";
-import { UserId, generateId } from "pagopa-interop-models";
+import { TenantId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
-import { getMockAuthData } from "./testUtils.js";
 
-function createUserPayload(role: AuthRole) {
+export const mockTokenOrganizationId = generateId<TenantId>();
+
+function createUserPayload(commaSeparatedUserRoles: string) {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
@@ -17,9 +18,8 @@ function createUserPayload(role: AuthRole) {
     name: "Mario",
     family_name: "Rossi",
     email: "Mario.rossi@psp.it",
-    ...getMockAuthData(),
     organization: {
-      id: generateId(),
+      id: mockTokenOrganizationId,
       name: "PagoPA S.p.A.",
       roles: [
         {
@@ -30,7 +30,13 @@ function createUserPayload(role: AuthRole) {
       fiscal_code: "15376371009",
       ipaCode: "5N2TR557",
     },
-    "user-roles": role,
+    "user-roles": commaSeparatedUserRoles,
+    organizationId: mockTokenOrganizationId,
+    externalId: {
+      value: "123456",
+      origin: "IPA",
+    },
+    selfcareId: generateId(),
   };
 }
 
@@ -56,7 +62,7 @@ function createM2MPayload() {
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "m2m",
-    organizationId: generateId(),
+    organizationId: mockTokenOrganizationId,
     client_id: generateId(),
     sub: generateId(),
   };
@@ -89,7 +95,7 @@ function createM2MAdminPayload() {
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "m2m-admin",
-    organizationId: generateId(),
+    organizationId: mockTokenOrganizationId,
     client_id: mockM2MAdminClientId,
     sub: mockM2MAdminClientId,
     adminId: mockM2MAdminUserId,

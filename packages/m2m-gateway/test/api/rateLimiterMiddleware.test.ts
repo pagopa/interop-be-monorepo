@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  mockTokenOrganizationId,
+} from "pagopa-interop-commons-test";
 import { authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -50,7 +53,10 @@ describe("rateLimiterMiddleware", () => {
     const res = await makeRequest(token);
 
     expect(res.status).toBe(200);
-
+    expect(mockRateLimitByOrganization).toHaveBeenCalledWith(
+      mockTokenOrganizationId,
+      expect.anything()
+    );
     expect(res.headers["x-rate-limit-limit"]).toBe("100");
     expect(res.headers["x-rate-limit-interval"]).toBe("1000");
     expect(res.headers["x-rate-limit-remaining"]).toBe("10");
