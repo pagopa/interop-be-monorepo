@@ -35,11 +35,19 @@ describe("API POST /consumers/delegations/:delegationId/reject", () => {
     expect(res.status).toBe(204);
   });
 
-  it.each([{ delegationId: "invalid" as DelegationId }])(
+  it.each([
+    { delegationId: "invalid" as DelegationId },
+    { body: {} },
+    { body: { ...mockRejectDelegationPayload, extraField: 1 } },
+  ])(
     "Should return 400 if passed invalid data: %s",
-    async ({ delegationId }) => {
+    async ({ delegationId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, delegationId);
+      const res = await makeRequest(
+        token,
+        delegationId,
+        body as bffApi.RejectDelegationPayload
+      );
       expect(res.status).toBe(400);
     }
   );

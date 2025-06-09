@@ -33,12 +33,9 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions", () => {
     expect(res.body).toEqual(mockCreatedResource);
   });
 
-  it.each([{ eServiceTemplateId: "invalid" as EServiceTemplateId }])(
-    "Should return 400 if passed invalid data: %s",
-    async ({ eServiceTemplateId }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, eServiceTemplateId);
-      expect(res.status).toBe(400);
-    }
-  );
+  it("Should return 400 if passed invalid eServiceTemplateId", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid" as EServiceTemplateId);
+    expect(res.status).toBe(400);
+  });
 });

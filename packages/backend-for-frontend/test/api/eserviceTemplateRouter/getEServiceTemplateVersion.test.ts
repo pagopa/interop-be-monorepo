@@ -11,6 +11,7 @@ import request from "supertest";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiEServiceTemplateVersionDetails } from "../../mockUtils.js";
+import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId", () => {
   const mockEServiceTemplateVersion =
@@ -24,7 +25,7 @@ describe("API GET /eservices/templates/:eServiceTemplateId/versions/:eServiceTem
 
   const makeRequest = async (
     token: string,
-    eServiceTemplateId: EServiceTemplateId = mockEServiceTemplateVersion.id,
+    eServiceTemplateId: EServiceTemplateId = generateId(),
     eServiceTemplateVersionId: EServiceTemplateVersionId = generateId()
   ) =>
     request(api)
@@ -39,6 +40,17 @@ describe("API GET /eservices/templates/:eServiceTemplateId/versions/:eServiceTem
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockEServiceTemplateVersion);
+  });
+
+  it("Should return 404 for eserviceTemplateVersionNotFound", async () => {
+    services.eServiceTemplateService.getEServiceTemplateVersion = vi
+      .fn()
+      .mockRejectedValue(
+        eserviceTemplateVersionNotFound(generateId(), generateId())
+      );
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
   });
 
   it.each([

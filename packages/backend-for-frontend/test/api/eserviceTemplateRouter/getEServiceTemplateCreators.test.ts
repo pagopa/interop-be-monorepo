@@ -41,7 +41,10 @@ describe("API GET /eservices/templates/filter/creators", () => {
       .mockResolvedValue(mockTemplateApiCompactOrganizations);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get(`${appBasePath}/eservices/templates/filter/creators`)
       .set("Authorization", `Bearer ${token}`)

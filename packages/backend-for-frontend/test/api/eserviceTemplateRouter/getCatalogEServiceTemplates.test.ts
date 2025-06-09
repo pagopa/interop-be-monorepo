@@ -34,7 +34,7 @@ describe("API GET /catalog/eservices/templates", () => {
       .mockResolvedValue(mockCatalogEServiceTemplates);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (token: string, query: typeof defaultQuery = defaultQuery) =>
     request(api)
       .get(`${appBasePath}/catalog/eservices/templates`)
       .set("Authorization", `Bearer ${token}`)

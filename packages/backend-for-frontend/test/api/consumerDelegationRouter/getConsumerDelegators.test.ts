@@ -37,7 +37,7 @@ describe("API GET /consumers/delegations/delegators", () => {
       .mockResolvedValue(mockClientReponse);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (token: string, query: typeof defaultQuery = defaultQuery) =>
     request(api)
       .get(`${appBasePath}/consumers/delegations/delegators`)
       .set("Authorization", `Bearer ${token}`)

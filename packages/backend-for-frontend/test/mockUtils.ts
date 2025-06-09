@@ -218,7 +218,7 @@ export const getMockBffApiMockEServiceTemplateDescriptionUpdateSeed =
   });
 
 export const getMockBffApiEServiceTemplateVersionDetails =
-  (): bffApi.EServiceTemplateVersionDetails & { id: EServiceTemplateId } => ({
+  (): bffApi.EServiceTemplateVersionDetails => ({
     id: generateId(),
     version: generateMock(z.number().int()),
     description: generateMock(z.string().optional()),
