@@ -791,6 +791,24 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
+        "400":
+          description: Agreement not upgradable
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Agreement not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 
   "/agreements/{agreementId}/clone":
     parameters:
