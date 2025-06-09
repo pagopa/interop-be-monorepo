@@ -6,3 +6,6 @@ extends:
 rules:
   servers-use-https: off
   paths-status: off # Enable this once authorization server migration is completes and we can remove the /authorization-server prefix
+
+  use-problem-json-for-errors: off # Disabled since openapi to zod lib doesn't handle application/problem+json
+  paths-status-return-problem: off # Disabled since openapi to zod lib doesn't handle application/problem+json
