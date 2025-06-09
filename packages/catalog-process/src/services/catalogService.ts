@@ -2420,7 +2420,7 @@ export function catalogServiceBuilder(
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(
-        `Updating Signalhub for E-Service ${eserviceId} with value = ${isSignalHubEnabled}`
+        `Updating Signalhub for E-Service ${eserviceId} to ${isSignalHubEnabled}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
