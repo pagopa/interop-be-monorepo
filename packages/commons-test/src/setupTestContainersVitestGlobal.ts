@@ -38,11 +38,11 @@ import {
   redisContainer,
   postgreSQLAnalyticsContainer,
 } from "./containerTestUtils.js";
-import { PecEmailManagerConfigTest } from "./testConfig.js";
 import {
   EnhancedDPoPConfig,
   EnhancedTokenGenerationReadModelDbConfig,
-} from "./customConfigs.js";
+  PecEmailManagerConfigTest,
+} from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
