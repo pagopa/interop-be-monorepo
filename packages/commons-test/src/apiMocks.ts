@@ -282,24 +282,6 @@ export function getMockedApiEServiceAttribute(): catalogApi.Attribute {
   };
 }
 
-export function getMockedApiEServiceDocument(): catalogApi.EServiceDoc {
-  return {
-    id: generateId(),
-    checksum: generateMock(z.string()),
-    contentType: generateMock(z.string()),
-    name: generateMock(z.string()),
-    path: generateMock(z.string()),
-    prettyName: generateMock(z.string()),
-    contacts: {
-      name: generateMock(z.string()),
-      email: generateMock(z.string().email()),
-      serverUrls: generateMock(z.array(z.string().url())),
-      termsAndConditionsUrl: generateMock(z.string().url()),
-      url: generateMock(z.string().url()),
-    },
-  };
-}
-
 export function getMockedApiCertifiedTenantAttribute({
   revoked = false,
 }: {
