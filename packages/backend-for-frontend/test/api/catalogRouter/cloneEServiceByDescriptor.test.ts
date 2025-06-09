@@ -9,24 +9,20 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCreatedEServiceDescriptor } from "../../mockUtils.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/clone", () => {
-  const mockEServiceId = generateId<EServiceId>();
-  const mockDescriptorId = generateId<DescriptorId>();
   const mockApiCreatedEServiceDescriptor =
     getMockBffApiCreatedEServiceDescriptor();
 
   const makeRequest = async (
     token: string,
-    descriptorId: unknown = mockDescriptorId
+    eServiceId: EServiceId = generateId(),
+    descriptorId: DescriptorId = generateId()
   ) =>
     request(api)
       .post(
-        `${appBasePath}/eservices/${mockEServiceId}/descriptors/${descriptorId}/clone`
+        `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/clone`
       )
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .field("kind", "DOCUMENT")
-      .field("prettyName", "prettyName")
-      .attach("doc", Buffer.from("content"), { filename: "doc.txt" });
+      .set("X-Correlation-Id", generateId());
 
   beforeEach(() => {
     services.catalogService.cloneEServiceByDescriptor = vi
@@ -41,9 +37,15 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/clone", () =
     expect(res.body).toEqual(mockApiCreatedEServiceDescriptor);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { eServiceId: "invalid" as EServiceId },
+    { descriptorId: "invalid" as DescriptorId },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ eServiceId, descriptorId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eServiceId, descriptorId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

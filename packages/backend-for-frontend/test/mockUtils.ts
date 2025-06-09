@@ -1,5 +1,5 @@
 import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
+import { EServiceId, generateId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 
@@ -212,7 +212,9 @@ export const toApiEServiceDoc = (
   checksum: doc.checksum,
 });
 
-export const getMockCatalogApiEService = (): catalogApi.EService => ({
+export const getMockCatalogApiEService = (): catalogApi.EService & {
+  id: EServiceId;
+} => ({
   id: generateId(),
   producerId: generateId(),
   name: generateMock(z.string()),
@@ -292,7 +294,7 @@ export const getMockBffApiTemplateInstanceInterfaceSOAPSeed =
 export const getMockBffApiEServiceRiskAnalysisSeed =
   (): bffApi.EServiceRiskAnalysisSeed => ({
     name: generateMock(z.string()),
-    riskAnalysisForm: generateMock(bffApi.RiskAnalysisForm),
+    riskAnalysisForm: generateMock(bffApi.RiskAnalysisFormSeed),
   });
 
 export const getMockBffApiInstanceEServiceSeed =
@@ -588,4 +590,11 @@ export const getMockBffApiCompactOrganization =
     name: generateMock(z.string()),
     kind: generateMock(bffApi.TenantKind.optional()),
     contactMail: generateMock(bffApi.Mail.optional()),
+  });
+
+export const getMockBffApiCreateEServiceDocumentBody =
+  (): bffApi.createEServiceDocument_Body => ({
+    kind: generateMock(z.enum(["INTERFACE", "DOCUMENT"])),
+    prettyName: generateMock(z.string()),
+    doc: new File(["content"], "doc.txt"),
   });

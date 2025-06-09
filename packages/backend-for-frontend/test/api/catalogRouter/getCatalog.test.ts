@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  DescriptorId,
-  generateId,
-  RiskAnalysisId,
-  TenantId,
-} from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
@@ -20,39 +15,36 @@ import { getMockBffApiCatalogEService } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /catalog", () => {
-  const mockApiCatalogEService1 = getMockBffApiCatalogEService();
-  const mockApiCatalogEService2 = getMockBffApiCatalogEService();
-  const mockApiCatalogEService3 = getMockBffApiCatalogEService();
-
+  const defaultQuery = {
+    offset: 0,
+    limit: 5,
+  };
   const mockApiCatalogEServices = {
     results: [
-      mockApiCatalogEService1,
-      mockApiCatalogEService2,
-      mockApiCatalogEService3,
+      getMockBffApiCatalogEService(),
+      getMockBffApiCatalogEService(),
+      getMockBffApiCatalogEService(),
     ],
     pagination: {
-      offset: 0,
-      limit: 10,
+      offset: defaultQuery.offset,
+      limit: defaultQuery.limit,
       totalCount: 3,
     },
   };
-
-  const makeRequest = async (token: string, limit: unknown = 10) =>
-    request(api)
-      .get(`${appBasePath}/catalog`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({
-        offset: 0,
-        limit,
-      })
-      .send();
 
   beforeEach(() => {
     services.catalogService.getCatalog = vi
       .fn()
       .mockResolvedValue(mockApiCatalogEServices);
   });
+
+  const makeRequest = async (token: string, query: object = defaultQuery) =>
+    request(api)
+      .get(`${appBasePath}/catalog`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .query(query)
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -63,24 +55,15 @@ describe("API GET /catalog", () => {
 
   it.each([
     {
-      error: eserviceRiskNotFound(
-        mockApiCatalogEService1.id,
-        generateId<RiskAnalysisId>()
-      ),
+      error: eserviceRiskNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: eserviceDescriptorNotFound(
-        mockApiCatalogEService1.id,
-        generateId<DescriptorId>()
-      ),
+      error: eserviceDescriptorNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: invalidEServiceRequester(
-        mockApiCatalogEService1.id,
-        generateId<TenantId>()
-      ),
+      error: invalidEServiceRequester(generateId(), generateId()),
       expectedStatus: 403,
     },
   ])(
@@ -93,9 +76,18 @@ describe("API GET /catalog", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -2 } },
+    { query: { offset: 0, limit: 55 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+  ])("Should return 400 if passed an invalid parameter", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, query);
     expect(res.status).toBe(400);
   });
 });

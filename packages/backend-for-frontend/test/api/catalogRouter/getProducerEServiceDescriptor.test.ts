@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  DescriptorId,
-  EServiceId,
-  generateId,
-  RiskAnalysisId,
-  TenantId,
-} from "pagopa-interop-models";
+import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
@@ -20,27 +14,27 @@ import { getMockBffApiProducerEServiceDescriptor } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /producers/eservices/:eserviceId/descriptors/:descriptorId", () => {
-  const mockEServiceId = generateId<EServiceId>();
   const mockApiProducerEServiceDescriptor =
     getMockBffApiProducerEServiceDescriptor();
-
-  const makeRequest = async (
-    token: string,
-    descriptorId: unknown = mockApiProducerEServiceDescriptor.id
-  ) =>
-    request(api)
-      .get(
-        `${appBasePath}/producers/eservices/${mockEServiceId}/descriptors/${descriptorId}`
-      )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
 
   beforeEach(() => {
     services.catalogService.getProducerEServiceDescriptor = vi
       .fn()
       .mockResolvedValue(mockApiProducerEServiceDescriptor);
   });
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId = generateId(),
+    descriptorId: DescriptorId = generateId()
+  ) =>
+    request(api)
+      .get(
+        `${appBasePath}/producers/eservices/${eServiceId}/descriptors/${descriptorId}`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -51,18 +45,15 @@ describe("API GET /producers/eservices/:eserviceId/descriptors/:descriptorId", (
 
   it.each([
     {
-      error: eserviceRiskNotFound(mockEServiceId, generateId<RiskAnalysisId>()),
+      error: eserviceRiskNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: eserviceDescriptorNotFound(
-        mockEServiceId,
-        generateId<DescriptorId>()
-      ),
+      error: eserviceDescriptorNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: invalidEServiceRequester(mockEServiceId, generateId<TenantId>()),
+      error: invalidEServiceRequester(generateId(), generateId()),
       expectedStatus: 403,
     },
   ])(
@@ -77,9 +68,15 @@ describe("API GET /producers/eservices/:eserviceId/descriptors/:descriptorId", (
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { eServiceId: "invalid" as EServiceId },
+    { descriptorId: "invalid" as DescriptorId },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ eServiceId, descriptorId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eServiceId, descriptorId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

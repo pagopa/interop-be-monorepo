@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  DescriptorId,
-  EServiceId,
-  generateId,
-  RiskAnalysisId,
-  TenantId,
-} from "pagopa-interop-models";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
@@ -20,21 +14,24 @@ import {
 } from "../../../src/model/errors.js";
 
 describe("API GET /import/eservices/presignedUrl", () => {
+  const defaultQuery = {
+    fileName: "fileName",
+  };
   const mockPresignedUrl = getMockBffApiPresignedUrl();
-
-  const makeRequest = async (token: string, fileName: unknown = "fileName") =>
-    request(api)
-      .get(`${appBasePath}/import/eservices/presignedUrl`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({ fileName })
-      .send();
 
   beforeEach(() => {
     services.catalogService.generatePutPresignedUrl = vi
       .fn()
       .mockResolvedValue(mockPresignedUrl);
   });
+
+  const makeRequest = async (token: string, query: object = defaultQuery) =>
+    request(api)
+      .get(`${appBasePath}/import/eservices/presignedUrl`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .query(query)
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -45,24 +42,15 @@ describe("API GET /import/eservices/presignedUrl", () => {
 
   it.each([
     {
-      error: eserviceRiskNotFound(
-        generateId<EServiceId>(),
-        generateId<RiskAnalysisId>()
-      ),
+      error: eserviceRiskNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: eserviceDescriptorNotFound(
-        generateId<EServiceId>(),
-        generateId<DescriptorId>()
-      ),
+      error: eserviceDescriptorNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: invalidEServiceRequester(
-        generateId<EServiceId>(),
-        generateId<TenantId>()
-      ),
+      error: invalidEServiceRequester(generateId(), generateId()),
       expectedStatus: 403,
     },
   ])(
@@ -77,13 +65,9 @@ describe("API GET /import/eservices/presignedUrl", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 400 if passed an invalid query", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await request(api)
-      .get(`${appBasePath}/import/eservices/presignedUrl`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
+    const res = await makeRequest(token, {});
     expect(res.status).toBe(400);
   });
 });

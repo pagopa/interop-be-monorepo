@@ -8,11 +8,15 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API DELETE /eservices/:eServiceId", () => {
-  const mockEServiceId = generateId<EServiceId>();
+  beforeEach(() => {
+    clients.catalogProcessClient.deleteEService = vi
+      .fn()
+      .mockResolvedValue(undefined);
+  });
 
   const makeRequest = async (
     token: string,
-    eServiceId: unknown = mockEServiceId
+    eServiceId: EServiceId = generateId()
   ) =>
     request(api)
       .delete(`${appBasePath}/eservices/${eServiceId}`)
@@ -20,21 +24,15 @@ describe("API DELETE /eservices/:eServiceId", () => {
       .set("X-Correlation-Id", generateId())
       .send();
 
-  beforeEach(() => {
-    clients.catalogProcessClient.deleteEService = vi
-      .fn()
-      .mockResolvedValue(undefined);
-  });
-
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 400 if passed an invalid eServiceId", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as EServiceId);
     expect(res.status).toBe(400);
   });
 });

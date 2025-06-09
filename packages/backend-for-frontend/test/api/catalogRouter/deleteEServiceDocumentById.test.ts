@@ -13,27 +13,25 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API DELETE /eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId", () => {
-  const mockEServiceId = generateId<EServiceId>();
-  const mockDescriptorId = generateId<DescriptorId>();
-  const mockDocumentId = generateId<EServiceDocumentId>();
-
-  const makeRequest = async (
-    token: string,
-    documentId: unknown = mockDocumentId
-  ) =>
-    request(api)
-      .delete(
-        `${appBasePath}/eservices/${mockEServiceId}/descriptors/${mockDescriptorId}/documents/${documentId}`
-      )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
-
   beforeEach(() => {
     clients.catalogProcessClient.deleteEServiceDocumentById = vi
       .fn()
       .mockResolvedValue(undefined);
   });
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId = generateId(),
+    descriptorId: DescriptorId = generateId(),
+    documentId: EServiceDocumentId = generateId()
+  ) =>
+    request(api)
+      .delete(
+        `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/documents/${documentId}`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -41,9 +39,21 @@ describe("API DELETE /eservices/:eServiceId/descriptors/:descriptorId/documents/
     expect(res.status).toBe(204);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { eServiceId: "invalid" as EServiceId },
+    { descriptorId: "invalid" as DescriptorId },
+    { documentId: "invalid" as EServiceDocumentId },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ eServiceId, descriptorId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId,
+        descriptorId,
+        documentId
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 });

@@ -18,21 +18,21 @@ describe("API POST /templates/eservices/:eServiceId/upgrade", () => {
     mockEServiceDescriptor.id
   );
 
+  beforeEach(() => {
+    clients.catalogProcessClient.upgradeEServiceInstance = vi
+      .fn()
+      .mockResolvedValue(mockEServiceDescriptor);
+  });
+
   const makeRequest = async (
     token: string,
-    eServiceId: unknown = mockEServiceId
+    eServiceId: EServiceId = mockEServiceId
   ) =>
     request(api)
       .post(`${appBasePath}/templates/eservices/${eServiceId}/upgrade`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send();
-
-  beforeEach(() => {
-    clients.catalogProcessClient.upgradeEServiceInstance = vi
-      .fn()
-      .mockResolvedValue(mockEServiceDescriptor);
-  });
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -41,9 +41,9 @@ describe("API POST /templates/eservices/:eServiceId/upgrade", () => {
     expect(res.body).toEqual(mockApiCreatedResource);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 400 if passed an invalid eServiceId", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as EServiceId);
     expect(res.status).toBe(400);
   });
 });

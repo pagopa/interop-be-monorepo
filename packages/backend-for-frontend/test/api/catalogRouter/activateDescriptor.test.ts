@@ -8,26 +8,24 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/activate", () => {
-  const mockEServiceId = generateId<EServiceId>();
-  const mockDescriptorId = generateId<DescriptorId>();
-
-  const makeRequest = async (
-    token: string,
-    descriptorId: unknown = mockDescriptorId
-  ) =>
-    request(api)
-      .post(
-        `${appBasePath}/eservices/${mockEServiceId}/descriptors/${descriptorId}/activate`
-      )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
-
   beforeEach(() => {
     clients.catalogProcessClient.activateDescriptor = vi
       .fn()
       .mockResolvedValue(undefined);
   });
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId = generateId(),
+    descriptorId: DescriptorId = generateId()
+  ) =>
+    request(api)
+      .post(
+        `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/activate`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -35,9 +33,15 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/activate", (
     expect(res.status).toBe(204);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { eServiceId: "invalid" as EServiceId },
+    { descriptorId: "invalid" as DescriptorId },
+  ])(
+    "Should return 400 if passed an invalid data: %s",
+    async ({ eServiceId, descriptorId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eServiceId, descriptorId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

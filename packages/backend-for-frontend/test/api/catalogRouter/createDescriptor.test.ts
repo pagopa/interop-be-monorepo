@@ -5,32 +5,28 @@ import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, services } from "../../vitest.api.setup.js";
-import {
-  getMockBffApiCreatedResource,
-  getMockBffApiInstanceEServiceSeed,
-} from "../../mockUtils.js";
+import { getMockBffApiCreatedResource } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /eservices/:eServiceId/descriptors", () => {
-  const mockInstanceEServiceSeed = getMockBffApiInstanceEServiceSeed();
   const mockEServiceId = generateId<EServiceId>();
   const mockApiCreatedResource = getMockBffApiCreatedResource(mockEServiceId);
-
-  const makeRequest = async (
-    token: string,
-    eServiceId: unknown = mockEServiceId
-  ) =>
-    request(api)
-      .post(`${appBasePath}/eservices/${eServiceId}/descriptors`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send(mockInstanceEServiceSeed);
 
   beforeEach(() => {
     services.catalogService.createDescriptor = vi
       .fn()
       .mockResolvedValue(mockApiCreatedResource);
   });
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId = mockEServiceId
+  ) =>
+    request(api)
+      .post(`${appBasePath}/eservices/${eServiceId}/descriptors`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -39,9 +35,12 @@ describe("API POST /eservices/:eServiceId/descriptors", () => {
     expect(res.body).toEqual(mockApiCreatedResource);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([{ eServiceId: "invalid" as EServiceId }])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ eServiceId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eServiceId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

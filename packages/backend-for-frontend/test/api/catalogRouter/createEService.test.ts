@@ -4,6 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -13,28 +14,29 @@ import {
 } from "../../mockUtils.js";
 
 describe("API POST /eservices", () => {
-  const mockInstanceEServiceSeed = getMockBffApiEServiceSeed();
+  const mockEServiceSeed = getMockBffApiEServiceSeed();
   const mockCatalogApiEService = getMockCatalogApiEService();
-  const mockApiCreatedEServiceDescriptor = getMockBffApiCreatedEServiceDescriptor(
-    mockCatalogApiEService.id,
-    mockCatalogApiEService.descriptors[0].id
-  );
-
-  const makeRequest = async (
-    token: string,
-    payload: object = mockInstanceEServiceSeed
-  ) =>
-    request(api)
-      .post(`${appBasePath}/eservices`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send(payload);
+  const mockApiCreatedEServiceDescriptor =
+    getMockBffApiCreatedEServiceDescriptor(
+      mockCatalogApiEService.id,
+      mockCatalogApiEService.descriptors[0].id
+    );
 
   beforeEach(() => {
     clients.catalogProcessClient.createEService = vi
       .fn()
       .mockResolvedValue(mockCatalogApiEService);
   });
+
+  const makeRequest = async (
+    token: string,
+    body: bffApi.InstanceEServiceSeed = mockEServiceSeed
+  ) =>
+    request(api)
+      .post(`${appBasePath}/eservices`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send(body);
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -43,12 +45,22 @@ describe("API POST /eservices", () => {
     expect(res.body).toEqual(mockApiCreatedEServiceDescriptor);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {
-      ...mockInstanceEServiceSeed,
-      technology: "invalid",
-    });
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { body: {} },
+    { body: { ...mockEServiceSeed, extraField: 1 } },
+    { body: { ...mockEServiceSeed, isConsumerDelegable: "invalid" } },
+    {
+      body: { ...mockEServiceSeed, isClientAccessDelegable: "invalid" },
+    },
+    { body: { ...mockEServiceSeed, isSignalHubEnabled: "invalid" } },
+    { body: { ...mockEServiceSeed, mode: "invalid" } },
+    { body: { ...mockEServiceSeed, technology: "invalid" } },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, body as bffApi.EServiceSeed);
+      expect(res.status).toBe(400);
+    }
+  );
 });

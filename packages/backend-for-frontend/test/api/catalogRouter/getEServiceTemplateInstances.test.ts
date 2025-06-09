@@ -10,36 +10,40 @@ import { getMockBffApiEServiceTemplateInstance } from "../../mockUtils.js";
 import { eserviceTemplateNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /templates/:templateId/eservices", () => {
-  const mockTemplateId = generateId<EServiceTemplateId>();
-  const mockTemplateInstance1 = getMockBffApiEServiceTemplateInstance();
-  const mockTemplateInstance2 = getMockBffApiEServiceTemplateInstance();
-  const mockTemplateInstance3 = getMockBffApiEServiceTemplateInstance();
+  const defaultQuery = {
+    offset: 0,
+    limit: 10,
+  };
   const mockTemplateInstances = {
     results: [
-      mockTemplateInstance1,
-      mockTemplateInstance2,
-      mockTemplateInstance3,
+      getMockBffApiEServiceTemplateInstance(),
+      getMockBffApiEServiceTemplateInstance(),
+      getMockBffApiEServiceTemplateInstance(),
     ],
     pagination: {
-      limit: 10,
-      offset: 0,
+      offset: defaultQuery.offset,
+      limit: defaultQuery.limit,
       totalCount: 3,
     },
   };
-
-  const makeRequest = async (token: string, limit: unknown = 10) =>
-    request(api)
-      .get(`${appBasePath}/templates/${mockTemplateId}/eservices`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit })
-      .send();
 
   beforeEach(() => {
     services.catalogService.getEServiceTemplateInstances = vi
       .fn()
       .mockResolvedValue(mockTemplateInstances);
   });
+
+  const makeRequest = async (
+    token: string,
+    templateId: EServiceTemplateId = generateId(),
+    query: object = defaultQuery
+  ) =>
+    request(api)
+      .get(`${appBasePath}/templates/${templateId}/eservices`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .query(query)
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -51,15 +55,28 @@ describe("API GET /templates/:templateId/eservices", () => {
   it("Should return 404 for eserviceTemplateNotFound", async () => {
     services.catalogService.getEServiceTemplateInstances = vi
       .fn()
-      .mockRejectedValue(eserviceTemplateNotFound(mockTemplateId));
+      .mockRejectedValue(eserviceTemplateNotFound(generateId()));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { templateId: "invalid" as EServiceTemplateId },
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -2 } },
+    { query: { offset: 0, limit: 55 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ templateId, query }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, templateId, query);
+      expect(res.status).toBe(400);
+    }
+  );
 });

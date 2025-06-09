@@ -21,27 +21,26 @@ import {
 } from "../../../src/model/errors.js";
 
 describe("API GET /export/eservices/:eserviceId/descriptors/:descriptorId", () => {
-  const mockEServiceId = generateId<EServiceId>();
-  const mockDescriptorId = generateId<DescriptorId>();
   const mockFileResource = getMockBffApiFileResource();
-
-  const makeRequest = async (
-    token: string,
-    descriptorId: unknown = mockDescriptorId
-  ) =>
-    request(api)
-      .get(
-        `${appBasePath}/export/eservices/${mockEServiceId}/descriptors/${descriptorId}`
-      )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
 
   beforeEach(() => {
     services.catalogService.exportEServiceDescriptor = vi
       .fn()
       .mockResolvedValue(mockFileResource);
   });
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId = generateId(),
+    descriptorId: DescriptorId = generateId()
+  ) =>
+    request(api)
+      .get(
+        `${appBasePath}/export/eservices/${eServiceId}/descriptors/${descriptorId}`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -53,22 +52,22 @@ describe("API GET /export/eservices/:eserviceId/descriptors/:descriptorId", () =
   it.each([
     {
       error: eserviceDescriptorNotFound(
-        mockEServiceId,
+        generateId(),
         generateId<DescriptorId>()
       ),
       expectedStatus: 404,
     },
     {
-      error: notValidDescriptor(mockDescriptorId, ""),
+      error: notValidDescriptor(generateId(), ""),
       expectedStatus: 400,
     },
     {
-      error: invalidEServiceRequester(mockEServiceId, generateId<TenantId>()),
+      error: invalidEServiceRequester(generateId(), generateId<TenantId>()),
       expectedStatus: 403,
     },
     {
       error: templateInstanceNotAllowed(
-        mockEServiceId,
+        generateId(),
         generateId<EServiceTemplateId>()
       ),
       expectedStatus: 409,
@@ -85,9 +84,15 @@ describe("API GET /export/eservices/:eserviceId/descriptors/:descriptorId", () =
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { eServiceId: "invalid" as EServiceId },
+    { descriptorId: "invalid" as DescriptorId },
+  ])(
+    "Should return 400 if passed an invalid parameter",
+    async ({ eServiceId, descriptorId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, eServiceId, descriptorId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

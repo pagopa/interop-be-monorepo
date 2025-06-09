@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  DescriptorId,
-  EServiceId,
-  generateId,
-  RiskAnalysisId,
-  TenantId,
-} from "pagopa-interop-models";
+import { EServiceId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
@@ -20,24 +14,23 @@ import { getMockBffApiProducerEServiceDetails } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /producers/eservices/:eserviceId", () => {
-  const mockEServiceId = generateId<EServiceId>();
   const mockApiProducerEServiceDetails = getMockBffApiProducerEServiceDetails();
-
-  const makeRequest = async (
-    token: string,
-    eServiceId: unknown = mockApiProducerEServiceDetails.id
-  ) =>
-    request(api)
-      .get(`${appBasePath}/producers/eservices/${eServiceId}`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
 
   beforeEach(() => {
     services.catalogService.getProducerEServiceDetails = vi
       .fn()
       .mockResolvedValue(mockApiProducerEServiceDetails);
   });
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId = generateId()
+  ) =>
+    request(api)
+      .get(`${appBasePath}/producers/eservices/${eServiceId}`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -48,18 +41,15 @@ describe("API GET /producers/eservices/:eserviceId", () => {
 
   it.each([
     {
-      error: eserviceRiskNotFound(mockEServiceId, generateId<RiskAnalysisId>()),
+      error: eserviceRiskNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: eserviceDescriptorNotFound(
-        mockEServiceId,
-        generateId<DescriptorId>()
-      ),
+      error: eserviceDescriptorNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: invalidEServiceRequester(mockEServiceId, generateId<TenantId>()),
+      error: invalidEServiceRequester(generateId(), generateId()),
       expectedStatus: 403,
     },
   ])(
@@ -74,9 +64,9 @@ describe("API GET /producers/eservices/:eserviceId", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 400 if passed an invalid eServiceId", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as EServiceId);
     expect(res.status).toBe(400);
   });
 });

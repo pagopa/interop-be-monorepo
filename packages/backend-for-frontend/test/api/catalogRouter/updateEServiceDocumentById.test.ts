@@ -5,12 +5,11 @@ import {
   EServiceDocumentId,
   EServiceId,
   generateId,
-  RiskAnalysisId,
-  TenantId,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -25,31 +24,31 @@ import {
 } from "../../../src/model/errors.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents/:documentId/update", () => {
-  const mockEServiceId = generateId<EServiceId>();
-  const mockDescriptorId = generateId<DescriptorId>();
-  const mockDocumentId = generateId<EServiceDocumentId>();
   const mockUpdateEServiceDescriptorDocumentSeed =
     getMockBffApiUpdateEServiceDescriptorDocumentSeed();
   const mockEServiceDoc = getMockCatalogApiEServiceDoc();
   const mockApiEServiceDoc = toApiEServiceDoc(mockEServiceDoc);
-
-  const makeRequest = async (
-    token: string,
-    descriptorId: unknown = mockDescriptorId
-  ) =>
-    request(api)
-      .post(
-        `${appBasePath}/eservices/${mockEServiceId}/descriptors/${descriptorId}/documents/${mockDocumentId}/update`
-      )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send(mockUpdateEServiceDescriptorDocumentSeed);
 
   beforeEach(() => {
     clients.catalogProcessClient.updateEServiceDocumentById = vi
       .fn()
       .mockResolvedValue(mockEServiceDoc);
   });
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId = generateId(),
+    descriptorId: DescriptorId = generateId(),
+    documentId: EServiceDocumentId = generateId(),
+    body: bffApi.UpdateEServiceDescriptorDocumentSeed = mockUpdateEServiceDescriptorDocumentSeed
+  ) =>
+    request(api)
+      .post(
+        `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/documents/${documentId}/update`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send(body);
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -60,15 +59,15 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents/:d
 
   it.each([
     {
-      error: eserviceRiskNotFound(mockEServiceId, generateId<RiskAnalysisId>()),
+      error: eserviceRiskNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: eserviceDescriptorNotFound(mockEServiceId, mockDescriptorId),
+      error: eserviceDescriptorNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
-      error: invalidEServiceRequester(mockEServiceId, generateId<TenantId>()),
+      error: invalidEServiceRequester(generateId(), generateId()),
       expectedStatus: 403,
     },
   ])(
@@ -83,9 +82,24 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents/:d
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { eServiceId: "invalid" as EServiceId },
+    { descriptorId: "invalid" as DescriptorId },
+    { documentId: "invalid" as EServiceDocumentId },
+    { body: {} },
+    { body: { ...mockUpdateEServiceDescriptorDocumentSeed, extraField: 1 } },
+  ])(
+    "Should return 400 if passed an invalid parameter",
+    async ({ eServiceId, descriptorId, documentId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId,
+        descriptorId,
+        documentId,
+        body as bffApi.UpdateEServiceDescriptorDocumentSeed
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 });

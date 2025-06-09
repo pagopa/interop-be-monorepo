@@ -20168,17 +20168,18 @@ components:
         voucherLifespan:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 60
+          maximum: 86400
         dailyCallsPerConsumer:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
     UpdateEServiceTemplateInstanceDescriptorQuotas:
       required:
         - dailyCallsPerConsumer

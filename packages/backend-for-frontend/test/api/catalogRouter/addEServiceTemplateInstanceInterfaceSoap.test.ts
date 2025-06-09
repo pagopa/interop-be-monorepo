@@ -2,15 +2,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DescriptorId,
-  EServiceTemplateId,
   generateId,
   invalidInterfaceContentTypeDetected,
   invalidInterfaceFileDetected,
   interfaceExtractingInfoError,
+  EServiceId,
 } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients, services } from "../../vitest.api.setup.js";
 import {
   getMockBffApiCreatedResource,
@@ -27,28 +28,29 @@ import {
 describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/soap", () => {
   const mockEService = getMockCatalogApiEService();
   const mockDescriptorId = generateId<DescriptorId>();
-  const mockEServiceTemplateId = generateId<EServiceTemplateId>();
   const mockTemplateInstanceInterfaceSOAPSeed =
     getMockBffApiTemplateInstanceInterfaceSOAPSeed();
   const mockApiCreatedResource = getMockBffApiCreatedResource(mockDescriptorId);
-
-  const makeRequest = async (
-    token: string,
-    descriptorId: unknown = mockDescriptorId
-  ) =>
-    request(api)
-      .post(
-        `${appBasePath}/templates/eservices/${mockEService.id}/descriptors/${descriptorId}/interface/soap`
-      )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send(mockTemplateInstanceInterfaceSOAPSeed);
 
   beforeEach(() => {
     clients.catalogProcessClient.addEServiceTemplateInstanceInterfaceSoap = vi
       .fn()
       .mockResolvedValue(mockEService);
   });
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId = generateId(),
+    descriptorId: DescriptorId = mockDescriptorId,
+    body: bffApi.TemplateInstanceInterfaceSOAPSeed = mockTemplateInstanceInterfaceSOAPSeed
+  ) =>
+    request(api)
+      .post(
+        `${appBasePath}/templates/eservices/${eServiceId}/descriptors/${descriptorId}/interface/soap`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send(body);
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -59,16 +61,16 @@ describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/in
 
   it.each([
     {
-      error: eserviceTemplateNotPublished(mockEServiceTemplateId),
+      error: eserviceTemplateNotPublished(generateId()),
       expectedStatus: 400,
     },
     {
-      error: eserviceTemplateNotPublished(mockEServiceTemplateId),
+      error: eserviceTemplateNotPublished(generateId()),
       expectedStatus: 400,
     },
     { error: eserviceIsNotDraft(mockEService.id), expectedStatus: 400 },
     {
-      error: eserviceTemplateNotFound(mockEServiceTemplateId),
+      error: eserviceTemplateNotFound(generateId()),
       expectedStatus: 400,
     },
     {
@@ -88,14 +90,33 @@ describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/in
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, "invalid");
+      const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { eServiceId: "invalid" as EServiceId },
+    { descriptorId: "invalid" as DescriptorId },
+    { body: {} },
+    { body: { ...mockTemplateInstanceInterfaceSOAPSeed, extraField: 1 } },
+    {
+      body: {
+        ...mockTemplateInstanceInterfaceSOAPSeed,
+        serverUrls: ["invalid"],
+      },
+    },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ eServiceId, descriptorId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId,
+        descriptorId,
+        body as bffApi.TemplateInstanceInterfaceSOAPSeed
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 });

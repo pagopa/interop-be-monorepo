@@ -10,35 +10,56 @@ import {
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiCreatedResource } from "../../mockUtils.js";
+import {
+  getMockBffApiCreatedResource,
+  getMockBffApiCreateEServiceDocumentBody,
+} from "../../mockUtils.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", () => {
-  const mockEServiceId = generateId<EServiceId>();
-  const mockDescriptorId = generateId<DescriptorId>();
   const mockApiCreatedResource = getMockBffApiCreatedResource();
-
-  const makeRequest = async (
-    token: string,
-    descriptorId: unknown = mockDescriptorId
-  ) =>
-    request(api)
-      .post(
-        `${appBasePath}/eservices/${mockEServiceId}/descriptors/${descriptorId}/documents`
-      )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .field("kind", "DOCUMENT")
-      .field("prettyName", "prettyName")
-      .attach("doc", Buffer.from("content"), { filename: "doc.txt" });
+  const mockCreateDocumentBody = getMockBffApiCreateEServiceDocumentBody();
 
   beforeEach(() => {
     services.catalogService.createEServiceDocument = vi
       .fn()
       .mockResolvedValue(mockApiCreatedResource);
   });
+
+  const makeRequest = async (
+    token: string,
+    eServiceId: EServiceId = generateId(),
+    descriptorId: DescriptorId = generateId(),
+    documentBody: bffApi.createEServiceDocument_Body = mockCreateDocumentBody
+  ) => {
+    const requestObject = request(api)
+      .post(
+        `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/documents`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId());
+
+    if (documentBody.kind !== undefined) {
+      void requestObject.field("kind", documentBody.kind);
+    }
+    if (documentBody.prettyName !== undefined) {
+      void requestObject.field("prettyName", documentBody.prettyName);
+    }
+    if (documentBody.doc !== undefined) {
+      void requestObject.attach(
+        "doc",
+        Buffer.from(await documentBody.doc.arrayBuffer()),
+        {
+          filename: documentBody.doc.name,
+        }
+      );
+    }
+
+    return requestObject;
+  };
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -49,12 +70,12 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", 
 
   it.each([
     {
-      error: eserviceDescriptorNotFound(mockEServiceId, mockDescriptorId),
+      error: eserviceDescriptorNotFound(generateId(), generateId()),
       expectedStatus: 404,
     },
     {
       error: invalidInterfaceContentTypeDetected(
-        mockEServiceId,
+        generateId(),
         "contentType",
         "REST"
       ),
@@ -73,9 +94,45 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", 
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { eServiceId: "invalid" as EServiceId },
+    { descriptorId: "invalid" as DescriptorId },
+    { documentBody: {} },
+    {
+      documentBody: {
+        kind: mockCreateDocumentBody.kind,
+        prettyName: mockCreateDocumentBody.prettyName,
+      },
+    },
+    {
+      documentBody: {
+        kind: mockCreateDocumentBody.kind,
+        doc: mockCreateDocumentBody.doc,
+      },
+    },
+    {
+      documentBody: {
+        prettyName: mockCreateDocumentBody.prettyName,
+        doc: mockCreateDocumentBody.doc,
+      },
+    },
+    {
+      documentBody: {
+        ...mockCreateDocumentBody,
+        kind: "invalid",
+      },
+    },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ eServiceId, descriptorId, documentBody }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        eServiceId,
+        descriptorId,
+        documentBody as bffApi.createEServiceDocument_Body
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 });
