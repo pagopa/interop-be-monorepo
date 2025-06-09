@@ -5,14 +5,17 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { generateId, PurposeId } from "pagopa-interop-models";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  PurposeId,
+} from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingPurposeVersionWithState,
   missingMetadata,
-  resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
@@ -70,7 +73,7 @@ describe("POST /purposes/:purposeId/unsuspend router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
     "Should return 500 in case of $code error",
     async (error) => {
       mockPurposeService.unsuspendPurpose = vi.fn().mockRejectedValue(error);

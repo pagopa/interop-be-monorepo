@@ -32,6 +32,8 @@ paths:
       summary: Create a new access token
       description: Return the generated access token
       operationId: createToken
+      parameters:
+        - $ref: "#/components/parameters/DPoP"
       requestBody:
         required: true
         content:
@@ -112,6 +114,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  parameters:
+    DPoP:
+      in: header
+      name: DPoP
+      description: DPoP proof JWT that demonstrates proof of possession of a private key
+      required: false
+      schema:
+        type: string
+        format: jws
   schemas:
     AccessTokenRequest:
       type: object
@@ -139,6 +150,7 @@ components:
       description: Represents the token type
       enum:
         - Bearer
+        - DPoP
     ClientCredentialsResponse:
       type: object
       required:

@@ -5,10 +5,10 @@ import {
   Descriptor,
   descriptorState,
   EService,
+  EServiceTemplate,
   EServiceTemplateEventEnvelope,
-  EServiceTemplateV2,
-  EServiceTemplateVersionV2,
-  fromEServiceTemplateVersionV2,
+  EServiceTemplateVersion,
+  fromEServiceTemplateV2,
   generateId,
   missingKafkaMessageDataError,
   unsafeBrandId,
@@ -117,9 +117,7 @@ export async function handleMessageV2({
     .with({ type: "EServiceTemplateVersionAttributesUpdated" }, async (msg) => {
       const eserviceTemplateVersion = getTemplateVersionFromEvent(msg);
 
-      const attributes = fromEServiceTemplateVersionV2(
-        eserviceTemplateVersion
-      ).attributes;
+      const attributes = eserviceTemplateVersion.attributes;
 
       const updateTemplateInstanceDescriptorAttributes = async (
         instance: EService,
@@ -371,12 +369,12 @@ function getTemplateDocumentFromEvent(
 
 function getTemplateFromEvent(
   msg: EServiceTemplateEventEnvelope
-): EServiceTemplateV2 {
+): EServiceTemplate {
   if (!msg.data.eserviceTemplate) {
     throw missingKafkaMessageDataError("eserviceTemplate", msg.type);
   }
 
-  return msg.data.eserviceTemplate;
+  return fromEServiceTemplateV2(msg.data.eserviceTemplate);
 }
 
 function retrieveTemplateInstanceDescriptors(
@@ -392,7 +390,7 @@ function getTemplateVersionFromEvent(
   msg: EServiceTemplateEventEnvelope & {
     data: { eserviceTemplateVersionId: string };
   }
-): EServiceTemplateVersionV2 {
+): EServiceTemplateVersion {
   const eserviceTemplate = getTemplateFromEvent(msg);
 
   const eserviceTemplateVersion = eserviceTemplate.versions.find(

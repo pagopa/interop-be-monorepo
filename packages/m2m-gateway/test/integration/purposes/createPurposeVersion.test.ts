@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
@@ -18,7 +21,6 @@ import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
   purposeVersionNotFound,
-  resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
@@ -134,9 +136,9 @@ describe("createPurposeVersion", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetPurpose.mockImplementation(
-      mockPollingResponse(mockApiPurpose, config.defaultPollingMaxAttempts + 1)
+      mockPollingResponse(mockApiPurpose, config.defaultPollingMaxRetries + 1)
     );
 
     await expect(
@@ -146,10 +148,13 @@ describe("createPurposeVersion", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetPurpose).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });

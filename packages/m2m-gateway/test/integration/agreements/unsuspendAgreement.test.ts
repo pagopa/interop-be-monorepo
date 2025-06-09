@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { agreementApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   getMockedApiAgreement,
   getMockWithMetadata,
@@ -17,7 +20,6 @@ import { config } from "../../../src/config/config.js";
 import {
   agreementNotInSuspendedState,
   missingMetadata,
-  resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
@@ -118,14 +120,14 @@ describe("unsuspendAgreement", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     // The activate will first get the agreement, then perform the polling
     mockGetAgreement
       .mockResolvedValueOnce(mockAgreementProcessResponse)
       .mockImplementation(
         mockPollingResponse(
           mockAgreementProcessResponse,
-          config.defaultPollingMaxAttempts + 1
+          config.defaultPollingMaxRetries + 1
         )
       );
 
@@ -135,10 +137,13 @@ describe("unsuspendAgreement", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts + 1
+      config.defaultPollingMaxRetries + 1
     );
   });
 });

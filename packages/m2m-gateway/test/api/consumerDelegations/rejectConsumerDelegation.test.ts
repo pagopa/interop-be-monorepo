@@ -6,11 +6,11 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockDelegationService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingMetadata,
-  resourcePollingTimeout,
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
@@ -106,7 +106,7 @@ describe("POST /consumerDelegations/:delegationId/reject router test", () => {
   it.each([
     missingMetadata(),
     unexpectedDelegationKind(mockApiDelegation),
-    resourcePollingTimeout(3),
+    pollingMaxRetriesExceeded(3, 10),
   ])("Should return 500 in case of $code error", async (error) => {
     mockDelegationService.rejectConsumerDelegation = vi
       .fn()
