@@ -103,7 +103,7 @@ describe("create descriptor", async () => {
       descriptors: [
         {
           ...mockDescriptor,
-          version: "1",
+          version: 1,
           createdAt: new Date(
             Number(writtenPayload.eservice!.descriptors[0]!.createdAt)
           ),
@@ -206,7 +206,7 @@ describe("create descriptor", async () => {
 
     const newDescriptor: Descriptor = {
       ...mockDescriptor,
-      version: "2",
+      version: 2,
       createdAt: new Date(),
       id: newDescriptorId,
       serverUrls: [],
@@ -326,7 +326,7 @@ describe("create descriptor", async () => {
 
     const newDescriptor: Descriptor = {
       ...mockDescriptor,
-      version: "2",
+      version: 2,
       createdAt: new Date(),
       id: newDescriptorId,
       serverUrls: [],
