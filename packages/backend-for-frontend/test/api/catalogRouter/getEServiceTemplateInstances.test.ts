@@ -36,7 +36,7 @@ describe("API GET /templates/:templateId/eservices", () => {
   const makeRequest = async (
     token: string,
     templateId: EServiceTemplateId = generateId(),
-    query: object = defaultQuery
+    query: typeof defaultQuery = defaultQuery
   ) =>
     request(api)
       .get(`${appBasePath}/templates/${templateId}/eservices`)

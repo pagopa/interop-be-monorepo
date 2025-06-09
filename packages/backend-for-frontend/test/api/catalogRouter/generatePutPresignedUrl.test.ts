@@ -25,7 +25,7 @@ describe("API GET /import/eservices/presignedUrl", () => {
       .mockResolvedValue(mockPresignedUrl);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (token: string, query: typeof defaultQuery = defaultQuery) =>
     request(api)
       .get(`${appBasePath}/import/eservices/presignedUrl`)
       .set("Authorization", `Bearer ${token}`)
