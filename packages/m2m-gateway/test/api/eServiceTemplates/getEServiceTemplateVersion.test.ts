@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiEServiceTemplate,
+  getMockedApiEserviceTemplateVersion,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  getMockedApiEServiceTemplate,
-  getMockedApiEserviceTemplateVersion,
-} from "../../mockUtils.js";
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
 import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
 
@@ -55,7 +55,7 @@ describe("GET /eserviceTemplates/:templateId/version/:versionId router test", ()
       const token = generateToken(role);
       const res = await makeRequest(
         token,
-        mockApiTemplate.data.id,
+        mockApiTemplate.id,
         mockM2MVersionResponse.id
       );
 
@@ -78,7 +78,7 @@ describe("GET /eserviceTemplates/:templateId/version/:versionId router test", ()
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(
       token,
-      mockApiTemplate.data.id,
+      mockApiTemplate.id,
       "INVALID_VERSION_ID"
     );
     expect(res.status).toBe(400);
@@ -89,14 +89,14 @@ describe("GET /eserviceTemplates/:templateId/version/:versionId router test", ()
       .fn()
       .mockRejectedValue(
         eserviceTemplateVersionNotFound(
-          unsafeBrandId(mockApiTemplate.data.id),
+          unsafeBrandId(mockApiTemplate.id),
           unsafeBrandId(mockApiTemplateVersion1.id)
         )
       );
 
     const token = generateToken(authRole.M2M_ROLE);
 
-    const res = await makeRequest(token, mockApiTemplate.data.id, generateId());
+    const res = await makeRequest(token, mockApiTemplate.id, generateId());
     expect(res.status).toBe(404);
   });
 
@@ -106,7 +106,7 @@ describe("GET /eserviceTemplates/:templateId/version/:versionId router test", ()
     const token = generateToken(role);
     const res = await makeRequest(
       token,
-      mockApiTemplate.data.id,
+      mockApiTemplate.id,
       mockM2MVersionResponse.id
     );
     expect(res.status).toBe(403);
@@ -125,7 +125,7 @@ describe("GET /eserviceTemplates/:templateId/version/:versionId router test", ()
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        mockApiTemplate.data.id,
+        mockApiTemplate.id,
         mockApiTemplateVersion1.id
       );
 

@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
+  getMockedApiDelegation,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   delegationService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -14,10 +18,7 @@ import {
   missingMetadata,
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiDelegation,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createConsumerDelegation", () => {
   const mockDelegationSeed: m2mGatewayApi.DelegationSeed = {
@@ -25,11 +26,13 @@ describe("createConsumerDelegation", () => {
     delegateId: generateId(),
   };
 
-  const mockDelegationProcessResponse = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-    eserviceId: mockDelegationSeed.eserviceId,
-    delegateId: mockDelegationSeed.delegateId,
-  });
+  const mockDelegationProcessResponse = getMockWithMetadata(
+    getMockedApiDelegation({
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      eserviceId: mockDelegationSeed.eserviceId,
+      delegateId: mockDelegationSeed.delegateId,
+    })
+  );
 
   const mockCreateConsumerDelegation = vi
     .fn()

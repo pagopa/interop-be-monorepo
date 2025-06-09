@@ -9,6 +9,11 @@ import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -21,11 +26,7 @@ import {
   missingMetadata,
   tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiCertifiedTenantAttribute,
-  getMockedApiTenant,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("revokeCertifiedAttribute", () => {
   const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({
@@ -35,17 +36,19 @@ describe("revokeCertifiedAttribute", () => {
   const otherMockedAttributes = generateMock(
     z.array(tenantApi.TenantAttribute)
   );
-  const mockTenantProcessResponse = getMockedApiTenant({
-    attributes: [
-      {
-        certified: mockCertifiedAttribute1,
-      },
-      {
-        certified: mockCertifiedAttribute2,
-      },
-      ...otherMockedAttributes,
-    ],
-  });
+  const mockTenantProcessResponse = getMockWithMetadata(
+    getMockedApiTenant({
+      attributes: [
+        {
+          certified: mockCertifiedAttribute1,
+        },
+        {
+          certified: mockCertifiedAttribute2,
+        },
+        ...otherMockedAttributes,
+      ],
+    })
+  );
 
   const mockRevokeCertifiedAttributeById = vi
     .fn()
