@@ -66,11 +66,11 @@ paths:
         description: payload for agreement submission
         required: true
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Draft agreement submitted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -113,35 +113,47 @@ paths:
       summary: Agreement Activation
       operationId: activateAgreement
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Pending agreement activated.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -277,29 +289,38 @@ paths:
       summary: Suspend Agreement
       operationId: suspendAgreement
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Active agreement suspended.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -327,29 +348,38 @@ paths:
               $ref: "#/components/schemas/AgreementRejectionPayload"
         required: true
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement rejected.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -405,29 +435,38 @@ paths:
       summary: Agreement Creation
       operationId: createAgreement
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement created.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -633,17 +672,20 @@ paths:
       description: returns an agreement for a given agreementId
       operationId: getAgreementById
       responses:
-        headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement found
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
         "404":
           description: Agreement not found
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -740,33 +782,15 @@ paths:
             type: string
             format: uuid
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Agreement updated.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Agreement"
-        "400":
-          description: Invalid ID supplied
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "404":
-          description: Agreement not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
 
   "/agreements/{agreementId}/clone":
     parameters:
@@ -1053,6 +1077,7 @@ components:
       description: The version number of the resource in the read model
       schema:
         type: integer
+        format: int32
   parameters:
     CorrelationIdHeader:
       in: header

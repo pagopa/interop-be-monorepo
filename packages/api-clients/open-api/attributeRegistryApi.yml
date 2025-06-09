@@ -41,29 +41,38 @@ paths:
         - attribute
       operationId: createCertifiedAttribute
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Certified attribute created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "400":
           description: Bad Request
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -333,17 +342,20 @@ paths:
       tags:
         - attribute
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Attribute data
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "404":
           description: Attribute not found
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -417,6 +429,7 @@ components:
       description: The version number of the resource in the read model
       schema:
         type: integer
+        format: int32
   parameters:
     CorrelationIdHeader:
       in: header

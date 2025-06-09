@@ -209,29 +209,38 @@ paths:
       operationId: createPurpose
       description: Creates the Purpose
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
           description: Bad Request
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Name Conflict
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -353,17 +362,20 @@ paths:
       operationId: getPurpose
       description: Retrieve the Purpose
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose requested
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "404":
           description: Purpose Not Found
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -456,17 +468,20 @@ paths:
       operationId: createPurposeVersion
       description: Creates a draft Purpose Version
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose version created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/CreatedPurposeVersion"
         "400":
           description: Bad Request
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -670,17 +685,20 @@ paths:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Activated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PurposeVersion"
         "400":
           description: Bad Request
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -765,29 +783,38 @@ paths:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Suspended
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/PurposeVersion"
         "400":
           description: Bad Request
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -814,11 +841,11 @@ paths:
       summary: Archive Purpose Version
       operationId: archivePurposeVersion
       responses:
-        headers:
-          X-Metadata-Version:
-            $ref: "#/components/headers/MetadataVersionHeader"
         "200":
           description: Purpose Version Archived
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -919,6 +946,7 @@ components:
       description: The version number of the resource in the read model
       schema:
         type: integer
+        format: int32
   parameters:
     CorrelationIdHeader:
       in: header
