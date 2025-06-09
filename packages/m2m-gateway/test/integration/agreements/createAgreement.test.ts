@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import {
   agreementService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,10 +11,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   getMockedApiAgreement,
@@ -105,11 +103,11 @@ describe("createAgreement", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetAgreement.mockImplementation(
       mockPollingResponse(
         mockAgreementProcessResponse,
-        config.defaultPollingMaxAttempts + 1
+        config.defaultPollingMaxRetries + 1
       )
     );
 
@@ -119,10 +117,13 @@ describe("createAgreement", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });

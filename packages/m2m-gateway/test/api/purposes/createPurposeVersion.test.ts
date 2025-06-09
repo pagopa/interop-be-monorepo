@@ -3,13 +3,15 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingMetadata,
   purposeVersionNotFound,
-  resourcePollingTimeout,
 } from "../../../src/model/errors.js";
 import {
   getMockedApiPurpose,
@@ -92,7 +94,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
       unsafeBrandId(mockPurpose.data.id),
       mockPurposeVersion.id
     ),
-    resourcePollingTimeout(3),
+    pollingMaxRetriesExceeded(3, 10),
   ])("Should return 500 in case of $code error", async (error) => {
     mockPurposeService.createPurposeVersion = vi.fn().mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
