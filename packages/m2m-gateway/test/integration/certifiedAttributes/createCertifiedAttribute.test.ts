@@ -6,6 +6,10 @@ import {
 import { generateMock } from "@anatine/zod-mock";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import {
+  getMockedApiAttribute,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   attributeService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -19,21 +23,20 @@ import {
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiAttribute,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createCertifiedAttribute", () => {
   const mockCertifiedAttributeSeed: m2mGatewayApi.CertifiedAttributeSeed =
     generateMock(m2mGatewayApi.CertifiedAttributeSeed);
 
-  const mockAttributeProcessResponse = getMockedApiAttribute({
-    kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-    code: mockCertifiedAttributeSeed.code,
-    name: mockCertifiedAttributeSeed.name,
-    description: mockCertifiedAttributeSeed.description,
-  });
+  const mockAttributeProcessResponse = getMockWithMetadata(
+    getMockedApiAttribute({
+      kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+      code: mockCertifiedAttributeSeed.code,
+      name: mockCertifiedAttributeSeed.name,
+      description: mockCertifiedAttributeSeed.description,
+    })
+  );
 
   const mockCreateCertifiedAttribute = vi
     .fn()
