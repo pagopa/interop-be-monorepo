@@ -2,15 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
 import {
+  getMockedApiTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   tenantService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiTenant,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
 
@@ -22,8 +23,8 @@ describe("getTenants", () => {
     limit: 10,
   };
 
-  const mockApiTenant1 = getMockedApiTenant();
-  const mockApiTenant2 = getMockedApiTenant();
+  const mockApiTenant1 = getMockWithMetadata(getMockedApiTenant());
+  const mockApiTenant2 = getMockWithMetadata(getMockedApiTenant());
 
   const mockApiTenants = [mockApiTenant1.data, mockApiTenant2.data];
 

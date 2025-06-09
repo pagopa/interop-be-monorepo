@@ -1,6 +1,6 @@
 import { createHash } from "crypto";
 import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
-import { InteropHeaders, Logger } from "pagopa-interop-commons";
+import { InteropHeaders, Logger, delay } from "pagopa-interop-commons";
 import {
   attributeKind,
   Tenant,
@@ -175,7 +175,7 @@ export async function createNewAttributes(
   // wait until every event reaches the read model store
   do {
     loggerInstance.info("Waiting for attributes to be created");
-    await new Promise((r) => setTimeout(r, config.attributeCreationWaitTime));
+    await delay(config.attributeCreationWaitTime);
   } while (!(await checkAttributesPresence(readModelService, newAttributes)));
 }
 
