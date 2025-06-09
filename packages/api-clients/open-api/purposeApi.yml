@@ -55,19 +55,19 @@ paths:
         "403":
           description: Purpose has at least one version that is not in draft state or more than one version
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /internal/delegations/{delegationId}/purposes/{purposeId}/versions/{versionId}/archive:
@@ -103,19 +103,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes:
@@ -200,7 +200,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
@@ -224,7 +224,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -233,7 +233,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
@@ -242,7 +242,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -277,19 +277,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /reverse/purposes/{id}:
@@ -325,25 +325,25 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Duplicated purpose title
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes/{id}:
@@ -377,7 +377,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
@@ -403,25 +403,25 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Duplicated purpose title
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -437,19 +437,19 @@ paths:
         "403":
           description: Purpose has at least one version that is not in draft state or more than one version
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions:
@@ -483,25 +483,25 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       requestBody:
@@ -534,19 +534,19 @@ paths:
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Version cannot be deleted
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -594,13 +594,13 @@ paths:
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Document Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /status:
@@ -615,7 +615,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions/{versionId}/reject:
@@ -648,19 +648,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       description: reject the purpose version by id
@@ -700,19 +700,19 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -746,19 +746,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Purpose cannot be cloned
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -798,7 +798,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
@@ -807,7 +807,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
@@ -816,7 +816,7 @@ paths:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -853,19 +853,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
       tags:
@@ -893,13 +893,13 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /purposes/riskAnalysis/version/{riskAnalysisVersion}:
@@ -931,13 +931,13 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
