@@ -113,9 +113,8 @@ import {
   UserRole,
   userRole,
   WithLogger,
+  UIClaims,
   M2MAdminAuthData,
-  CustomClaims,
-  SessionClaims,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -1128,7 +1127,7 @@ export const getMockContextM2MAdmin = ({
 
 export const getMockSessionClaims = (
   roles: UserRole[] = [userRole.ADMIN_ROLE]
-): SessionClaims & CustomClaims => ({
+): UIClaims => ({
   uid: generateId(),
   organization: {
     id: generateId(),
@@ -1138,7 +1137,7 @@ export const getMockSessionClaims = (
   name: "A generic user",
   family_name: "Family name",
   email: "randomEmailforTest@tester.com",
-  "user-roles": roles.join(","),
+  "user-roles": roles,
   organizationId: generateId(),
   selfcareId: generateId(),
   externalId: {
