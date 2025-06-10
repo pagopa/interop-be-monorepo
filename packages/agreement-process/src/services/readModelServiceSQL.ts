@@ -69,13 +69,6 @@ export type AgreementEServicesQueryFilters = {
   producerIds: TenantId[];
 };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const withPagination = <T extends PgSelect>(
-  qb: T,
-  limit: number,
-  offset: number
-) => qb.limit(limit).offset(offset);
-
 async function filterAgreementsUpgradeable(
   agreementEserviceAndDescriptors: Array<{
     agreementId: string;
@@ -392,9 +385,10 @@ export function readModelServiceBuilderSQL(
 
       const queryAgreementIds = showOnlyUpgradeable
         ? queryBaseAgreementIds.as("queryAgreementIds")
-        : withPagination(queryBaseAgreementIds, limit, offset).as(
-            "queryAgreementIds"
-          );
+        : queryBaseAgreementIds
+            .limit(limit)
+            .offset(offset)
+            .as("queryAgreementIds");
 
       const resultSet = await readmodelDB
         .select({
