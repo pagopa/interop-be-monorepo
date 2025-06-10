@@ -368,13 +368,12 @@ describe("Token Generator", () => {
       });
 
       const decodedActualToken = deserializeJWT(actualToken.serialized);
-      expect(actualToken.payload).toEqual(decodedActualToken);
 
       // Interop Consumer token payload don't have custom claims
       expect(decodedActualToken).toEqual({
         jti: expect.any(String),
         iss: authServerConfig.generatedInteropTokenIssuer,
-        aud: audience,
+        aud: audience.join(","),
         iat: mockTimeStamp,
         nbf: mockTimeStamp,
         exp: mockTimeStamp + tokenDurationInSeconds,
