@@ -217,7 +217,7 @@ export function tokenServiceBuilder({
         );
       }
 
-      // Rate limiter
+      // Rate limit check
       const { limitReached, ...rateLimiterStatus } =
         await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
       if (limitReached) {
@@ -230,7 +230,7 @@ export function tokenServiceBuilder({
         };
       }
 
-      // Check if the DPoP proof is in the cache
+      // // Check if the cache contains the DPoP proof
       if (dpopProofJWT) {
         const { errors: dpopCacheErrors } = await checkDPoPCache({
           dynamoDBClient,
