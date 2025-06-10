@@ -10,7 +10,7 @@
   },
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
-    "lint:openapi": "bash -c 'shopt -s extglob && spectral lint ./packages/api-clients/open-api/!\\(selfcareV2ClientApi.yml\\|authorizationManagementApi.yaml\\|notifierApi.yml\\) --ruleset ../../.spectral.yaml'",
+    "lint:openapi": "spectral lint ./packages/api-clients/open-api/!\\(selfcareV2ClientApi.yml\\|authorizationManagementApi.yaml\\|notifierApi.yml\\) --ruleset ../../.spectral.yaml",
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
