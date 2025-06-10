@@ -10,7 +10,6 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiKeySeed } from "../../mockUtils.js";
 
 describe("API POST /clients/:clientId/keys", () => {
-  const mockClientId = generateId<ClientId>();
   const mockKeySeed = getMockBffApiKeySeed();
 
   beforeEach(() => {
@@ -21,7 +20,7 @@ describe("API POST /clients/:clientId/keys", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId,
+    clientId: ClientId = generateId(),
     body: bffApi.KeySeed = mockKeySeed
   ) =>
     request(api)

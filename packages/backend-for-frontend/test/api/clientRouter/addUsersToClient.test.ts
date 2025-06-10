@@ -10,7 +10,6 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 type AddUsersToClientBody = { userIds: UserId[] };
 
 describe("API POST /clients/:clientId/users", () => {
-  const mockClientId = generateId<ClientId>();
   const mockUserIds = {
     userIds: [generateId<UserId>()],
   };
@@ -23,7 +22,7 @@ describe("API POST /clients/:clientId/users", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId,
+    clientId: ClientId = generateId(),
     body: AddUsersToClientBody = mockUserIds
   ) =>
     request(api)

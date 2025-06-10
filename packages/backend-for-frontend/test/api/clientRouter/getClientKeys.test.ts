@@ -10,7 +10,6 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiPublicKey } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/keys", () => {
-  const mockClientId = generateId<ClientId>();
   const defaultQuery = {
     offset: 0,
     limit: 5,
@@ -36,8 +35,8 @@ describe("API GET /clients/:clientId/keys", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId,
-    query: object = defaultQuery
+    clientId: ClientId = generateId(),
+    query: typeof defaultQuery = defaultQuery
   ) =>
     request(api)
       .get(`${appBasePath}/clients/${clientId}/keys`)
@@ -59,11 +58,17 @@ describe("API GET /clients/:clientId/keys", () => {
     { query: { limit: 5 } },
     { query: { ...defaultQuery, offset: "invalid" } },
     { query: { ...defaultQuery, limit: "invalid" } },
+    { query: { ...defaultQuery, userIds: "invalid" } },
+    { query: { ...defaultQuery, userIds: ["invalid"] } },
   ])(
     "Should return 400 if passed an invalid data: %s",
     async ({ clientId, query }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, clientId, query);
+      const res = await makeRequest(
+        token,
+        clientId,
+        query as typeof defaultQuery
+      );
       expect(res.status).toBe(400);
     }
   );

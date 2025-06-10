@@ -12,8 +12,6 @@ import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /delegations/:delegationId/contracts/:contractId", () => {
-  const mockDelegationId = generateId<DelegationId>();
-  const mockContractId = generateId<DelegationContractId>();
   const mockBuffer = Buffer.from("content");
 
   beforeEach(() => {
@@ -24,8 +22,8 @@ describe("API GET /delegations/:delegationId/contracts/:contractId", () => {
 
   const makeRequest = async (
     token: string,
-    delegationId: DelegationId = mockDelegationId,
-    contractId: DelegationContractId = mockContractId
+    delegationId: DelegationId = generateId(),
+    contractId: DelegationContractId = generateId()
   ) =>
     request(api)
       .get(`${appBasePath}/delegations/${delegationId}/contracts/${contractId}`)

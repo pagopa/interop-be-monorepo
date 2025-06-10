@@ -9,7 +9,6 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiPublicKey } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/keys/:keyId", () => {
-  const mockClientId = generateId<ClientId>();
   const mockKeyId = generateId();
   const mockApiPublicKey = getMockBffApiPublicKey();
 
@@ -21,7 +20,7 @@ describe("API GET /clients/:clientId/keys/:keyId", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId,
+    clientId: ClientId = generateId(),
     keyId: string = mockKeyId
   ) =>
     request(api)

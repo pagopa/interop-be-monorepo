@@ -8,9 +8,6 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API DELETE /clients/:clientId/users/:userId", () => {
-  const mockClientId = generateId<ClientId>();
-  const mockUserId = generateId<UserId>();
-
   beforeEach(() => {
     clients.authorizationClient.client.removeUser = vi
       .fn()
@@ -19,8 +16,8 @@ describe("API DELETE /clients/:clientId/users/:userId", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId,
-    userId: UserId = mockUserId
+    clientId: ClientId = generateId(),
+    userId: UserId = generateId()
   ) =>
     request(api)
       .delete(`${appBasePath}/clients/${clientId}/users/${userId}`)

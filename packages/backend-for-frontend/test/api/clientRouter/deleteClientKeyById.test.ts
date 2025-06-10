@@ -8,7 +8,6 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API DELETE /clients/:clientId/keys/:keyId", () => {
-  const mockClientId = generateId<ClientId>();
   const mockKeyId = generateId();
 
   beforeEach(() => {
@@ -19,7 +18,7 @@ describe("API DELETE /clients/:clientId/keys/:keyId", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId,
+    clientId: ClientId = generateId(),
     keyId: string = mockKeyId
   ) =>
     request(api)

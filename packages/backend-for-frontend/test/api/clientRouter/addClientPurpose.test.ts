@@ -10,7 +10,6 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiPurposeAdditionDetailsSeed } from "../../mockUtils.js";
 
 describe("API POST /clients/:clientId/purposes", () => {
-  const mockClientId = generateId<ClientId>();
   const mockPurposeAdditionDetailsSeed =
     getMockBffApiPurposeAdditionDetailsSeed();
 
@@ -22,7 +21,7 @@ describe("API POST /clients/:clientId/purposes", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId,
+    clientId: ClientId = generateId(),
     body: bffApi.PurposeAdditionDetailsSeed = mockPurposeAdditionDetailsSeed
   ) =>
     request(api)

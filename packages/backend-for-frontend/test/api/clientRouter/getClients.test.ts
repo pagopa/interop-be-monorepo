@@ -33,7 +33,10 @@ describe("API GET /clients", () => {
       .mockResolvedValue(mockApiClients);
   });
 
-  const makeRequest = async (token: string, query: object = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get(`${appBasePath}/clients`)
       .set("Authorization", `Bearer ${token}`)
@@ -55,7 +58,10 @@ describe("API GET /clients", () => {
     { query: { ...defaultQuery, limit: "invalid" } },
   ])("Should return 400 if passed an invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, query);
+    const res = await makeRequest(
+      token,
+      query as unknown as typeof defaultQuery
+    );
     expect(res.status).toBe(400);
   });
 });

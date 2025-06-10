@@ -12,7 +12,6 @@ import {
 } from "../../mockUtils.js";
 
 describe("API GET /clients/:clientId/encoded/keys/:keyId", () => {
-  const mockClientId = generateId<ClientId>();
   const mockKeyId = generateId();
   const mockKey = getMockAuthorizationApiKey();
   const mockApiEncodedClientKey = getMockBffApiEncodedClientKey(
@@ -27,7 +26,7 @@ describe("API GET /clients/:clientId/encoded/keys/:keyId", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId,
+    clientId: ClientId = generateId(),
     keyId: string = mockKeyId
   ) =>
     request(api)

@@ -11,7 +11,6 @@ import { getMockBffApiCompactUser } from "../../mockUtils.js";
 import { userNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /clients/:clientId/users", () => {
-  const mockClientId = generateId<ClientId>();
   const mockResponse: bffApi.CompactUsers = [
     getMockBffApiCompactUser(),
     getMockBffApiCompactUser(),
@@ -26,7 +25,7 @@ describe("API GET /clients/:clientId/users", () => {
 
   const makeRequest = async (
     token: string,
-    clientId: ClientId = mockClientId
+    clientId: ClientId = generateId()
   ) =>
     request(api)
       .get(`${appBasePath}/clients/${clientId}/users`)
