@@ -2030,7 +2030,7 @@ paths:
           format: uuid
       - name: descriptorId
         in: path
-        description: The ID of the Descriptor to retrieve
+        description: The ID of the Descriptor for which to download the interface
         required: true
         schema:
           type: string
@@ -2038,27 +2038,32 @@ paths:
     get:
       tags:
         - eservices
-      summary: Download E-Service Descriptor Interface
-      description: Retrieve the interface document of a specific E-Service Descriptor.
+      summary: Download an E-Service Descriptor interface
+      description: Download the interface document of an E-Service Descriptor.
       operationId: downloadEServiceDescriptorInterface
       responses:
         "200":
-          description: E-Service Descriptor Interface retrieved. The response is a multipart containing the file and its metadata.
+          description: E-Service Descriptor interface retrieved: a multipart containing the file and its metadata.
           content:
             multipart/form-data:
               schema:
                 type: object
+                additionalProperties: false
+                required:
+                  - file
+                  - filename
+                  - contentType
                 properties:
                   file:
                     type: string
                     format: binary
-                    description: The interface document file.
+                    description: The interface document file
                   filename:
                     type: string
-                    description: The name of the file.
+                    description: The name of the file
                   contentType:
                     type: string
-                    description: The content type of the file.
+                    description: The content type of the file
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
