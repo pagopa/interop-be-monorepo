@@ -500,19 +500,25 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     const descriptorInstance1: Descriptor = {
       ...getMockDescriptor(),
       templateVersionRef: { id: updatedVersion.id },
-      docs: [oldDocument],
+      docs: [{ ...oldDocument, id: generateId() }],
     };
 
     const descriptorInstance2: Descriptor = {
       ...getMockDescriptor(),
       templateVersionRef: { id: updatedVersion.id },
-      docs: [oldDocument, newDocument],
+      docs: [
+        { ...oldDocument, id: generateId() },
+        { ...newDocument, id: generateId() },
+      ],
     };
 
     const descriptorInstance3: Descriptor = {
       ...getMockDescriptor(),
       templateVersionRef: { id: generateId<EServiceTemplateVersionId>() },
-      docs: [oldDocument, newDocument],
+      docs: [
+        { ...oldDocument, id: generateId() },
+        { ...newDocument, id: generateId() },
+      ],
     };
 
     const eserviceInstance1: EService = {
@@ -617,14 +623,13 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       checksum: "checksum1",
     };
     const updatedDocument: Document = {
-      ...getMockDocument(),
-      checksum: "checksum2",
+      ...oldDocument,
       prettyName: "newPrettyName",
     };
 
     const updatedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
-      docs: [oldDocument, updatedDocument],
+      docs: [updatedDocument],
     };
 
     const eserviceTemplate: EServiceTemplate = {
@@ -632,22 +637,34 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       versions: [updatedVersion],
     };
 
+    const documentIstance1: Document = {
+      ...oldDocument,
+      id: generateId(),
+    };
     const descriptorInstance1: Descriptor = {
       ...getMockDescriptor(),
       templateVersionRef: { id: updatedVersion.id },
-      docs: [oldDocument],
+      docs: [documentIstance1],
     };
 
+    const documentIstance2: Document = {
+      ...oldDocument,
+      id: generateId(),
+    };
     const descriptorInstance2: Descriptor = {
       ...getMockDescriptor(),
       templateVersionRef: { id: updatedVersion.id },
-      docs: [oldDocument, updatedDocument],
+      docs: [documentIstance2],
     };
 
+    const documentIstance3: Document = {
+      ...oldDocument,
+      id: generateId(),
+    };
     const descriptorInstance3: Descriptor = {
       ...getMockDescriptor(),
       templateVersionRef: { id: generateId<EServiceTemplateVersionId>() },
-      docs: [oldDocument, updatedDocument],
+      docs: [documentIstance3],
     };
 
     const eserviceInstance1: EService = {
@@ -700,14 +717,14 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(updateTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledTimes(1);
-    expect(updateTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalledWith(
+    expect(updateTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledTimes(2);
+    expect(updateTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledWith(
       { prettyName: updatedDocument.prettyName },
       {
         params: {
           eServiceId: eserviceInstance1.id,
           descriptorId: descriptorInstance1.id,
-          documentId: updatedDocument.id,
+          documentId: documentIstance1.id,
         },
         headers: testHeaders,
       }
@@ -718,7 +735,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         params: {
           eServiceId: eserviceInstance2.id,
           descriptorId: descriptorInstance2.id,
-          documentId: updatedDocument.id,
+          documentId: documentIstance2.id,
         },
         headers: testHeaders,
       }
@@ -731,7 +748,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         params: {
           eServiceId: eserviceInstance3.id,
           descriptorId: descriptorInstance3.id,
-          documentId: updatedDocument.id,
+          documentId: documentIstance3.id,
         },
         headers: testHeaders,
       }
@@ -739,18 +756,18 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
   });
 
   it("The consumer should call the deleteTemplateInstanceDescriptorDocument route on EServiceTemplateVersionDocumentDeleted event", async () => {
-    const oldDocument: Document = {
+    const document: Document = {
       ...getMockDocument(),
       checksum: "checksum1",
     };
-    const deletedDocument: Document = {
+    const documentToDelete: Document = {
       ...getMockDocument(),
       checksum: "checksum2",
     };
 
     const updatedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
-      docs: [oldDocument],
+      docs: [document],
     };
 
     const eserviceTemplate: EServiceTemplate = {
@@ -758,22 +775,46 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       versions: [updatedVersion],
     };
 
+    const documentIstance1: Document = {
+      ...document,
+      id: generateId(),
+    };
+    const documentIstance1ToDelete: Document = {
+      ...documentToDelete,
+      id: generateId(),
+    };
     const descriptorInstance1: Descriptor = {
       ...getMockDescriptor(),
       templateVersionRef: { id: updatedVersion.id },
-      docs: [oldDocument],
+      docs: [documentIstance1, documentIstance1ToDelete],
     };
 
+    const documentIstance2: Document = {
+      ...document,
+      id: generateId(),
+    };
+    const documentIstance2ToDelete: Document = {
+      ...documentToDelete,
+      id: generateId(),
+    };
     const descriptorInstance2: Descriptor = {
       ...getMockDescriptor(),
       templateVersionRef: { id: updatedVersion.id },
-      docs: [oldDocument, deletedDocument],
+      docs: [documentIstance2, documentIstance2ToDelete],
     };
 
+    const documentIstance3: Document = {
+      ...document,
+      id: generateId(),
+    };
+    const documentIstance3ToDelete: Document = {
+      ...documentToDelete,
+      id: generateId(),
+    };
     const descriptorInstance3: Descriptor = {
       ...getMockDescriptor(),
       templateVersionRef: { id: generateId<EServiceTemplateVersionId>() },
-      docs: [oldDocument, deletedDocument],
+      docs: [documentIstance3, documentIstance3ToDelete],
     };
 
     const eserviceInstance1: EService = {
@@ -793,7 +834,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
     };
 
     const payload: EServiceTemplateVersionDocumentDeletedV2 = {
-      documentId: deletedDocument.id,
+      documentId: documentToDelete.id,
       eserviceTemplateVersionId: updatedVersion.id,
       eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
     };
@@ -826,14 +867,14 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       fileManager,
     });
 
-    expect(deleteTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledTimes(1);
-    expect(deleteTemplateInstanceDescriptorDocumentFn).not.toHaveBeenCalledWith(
+    expect(deleteTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledTimes(2);
+    expect(deleteTemplateInstanceDescriptorDocumentFn).toHaveBeenCalledWith(
       undefined,
       {
         params: {
           eServiceId: eserviceInstance1.id,
           descriptorId: descriptorInstance1.id,
-          documentId: deletedDocument.id,
+          documentId: documentIstance1ToDelete.id,
         },
         headers: testHeaders,
       }
@@ -844,7 +885,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
         params: {
           eServiceId: eserviceInstance2.id,
           descriptorId: descriptorInstance2.id,
-          documentId: deletedDocument.id,
+          documentId: documentIstance2ToDelete.id,
         },
         headers: testHeaders,
       }
@@ -855,7 +896,7 @@ describe("eserviceTemplateUpdaterConsumerServiceV2", () => {
       params: {
         eServiceId: eserviceInstance3.id,
         descriptorId: descriptorInstance3.id,
-        documentId: deletedDocument.id,
+        documentId: documentIstance3ToDelete.id,
       },
       headers: testHeaders,
     });

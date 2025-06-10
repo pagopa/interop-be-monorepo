@@ -4,6 +4,11 @@ import {
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  getMockedApiAttribute,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   attributeService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -15,25 +20,23 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
-  resourcePollingTimeout,
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiAttribute,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createCertifiedAttribute", () => {
   const mockCertifiedAttributeSeed: m2mGatewayApi.CertifiedAttributeSeed =
     generateMock(m2mGatewayApi.CertifiedAttributeSeed);
 
-  const mockAttributeProcessResponse = getMockedApiAttribute({
-    kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-    code: mockCertifiedAttributeSeed.code,
-    name: mockCertifiedAttributeSeed.name,
-    description: mockCertifiedAttributeSeed.description,
-  });
+  const mockAttributeProcessResponse = getMockWithMetadata(
+    getMockedApiAttribute({
+      kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+      code: mockCertifiedAttributeSeed.code,
+      name: mockCertifiedAttributeSeed.name,
+      description: mockCertifiedAttributeSeed.description,
+    })
+  );
 
   const mockCreateCertifiedAttribute = vi
     .fn()
@@ -169,11 +172,11 @@ describe("createCertifiedAttribute", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetAttribute.mockImplementation(
       mockPollingResponse(
         mockAttributeProcessResponse,
-        config.defaultPollingMaxAttempts + 1
+        config.defaultPollingMaxRetries + 1
       )
     );
 
@@ -183,10 +186,13 @@ describe("createCertifiedAttribute", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetAttribute).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });
