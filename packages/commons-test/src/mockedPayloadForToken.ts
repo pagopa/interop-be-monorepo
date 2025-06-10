@@ -5,14 +5,17 @@ import {
   SerializedAuthTokenPayload,
   SerializedInteropJwtInternalPayload,
   SerializedInteropJwtApiPayload,
+  SerializedInteropJwtUIPayload,
 } from "pagopa-interop-commons";
-import { ClientId, UserId, generateId } from "pagopa-interop-models";
+import { ClientId, TenantId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
 
+export const mockTokenOrganizationId = generateId<TenantId>();
+
 function createUserPayload(
   commaSeparatedUserRoles: string
-): SerializedAuthTokenPayload {
+): SerializedInteropJwtUIPayload {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
@@ -37,7 +40,7 @@ function createUserPayload(
       ipaCode: "5N2TR557",
     },
     "user-roles": commaSeparatedUserRoles,
-    organizationId: generateId(),
+    organizationId: mockTokenOrganizationId,
     externalId: {
       value: "123456",
       origin: "IPA",
@@ -68,7 +71,7 @@ function createM2MPayload(): SerializedInteropJwtApiPayload {
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "m2m",
-    organizationId: generateId(),
+    organizationId: mockTokenOrganizationId,
     client_id: generateId(),
     sub: generateId(),
   };
@@ -101,7 +104,7 @@ function createM2MAdminPayload(): SerializedInteropJwtApiPayload {
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: "m2m-admin",
-    organizationId: generateId(),
+    organizationId: mockTokenOrganizationId,
     client_id: mockM2MAdminClientId,
     sub: mockM2MAdminClientId,
     adminId: mockM2MAdminUserId,
