@@ -230,7 +230,7 @@ export function tokenServiceBuilder({
         };
       }
 
-      // // Check if the cache contains the DPoP proof
+      // Check if the cache contains the DPoP proof
       if (dpopProofJWT) {
         const { errors: dpopCacheErrors } = await checkDPoPCache({
           dynamoDBClient,
