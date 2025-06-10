@@ -56,6 +56,7 @@ const authorizationServerRouter = (
 
       try {
         const tokenResult = await tokenService.generateToken(
+          req.headers,
           req.body,
           ctx,
           setCtxClientId,
@@ -79,7 +80,7 @@ const authorizationServerRouter = (
 
         return res.status(200).send({
           access_token: tokenResult.token.serialized,
-          token_type: "Bearer",
+          token_type: tokenResult.isDPoP ? "DPoP" : "Bearer",
           expires_in:
             tokenResult.token.payload.exp - tokenResult.token.payload.iat,
         });
