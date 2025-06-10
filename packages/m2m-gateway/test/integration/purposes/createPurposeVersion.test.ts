@@ -5,6 +5,11 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -17,17 +22,15 @@ import {
   missingMetadata,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createPurposeVersion", () => {
   const mockApiPurposeVersion = getMockedApiPurposeVersion();
-  const mockApiPurpose = getMockedApiPurpose({
-    versions: [mockApiPurposeVersion],
-  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersion],
+    })
+  );
 
   const mockPurposeVersionSeed: m2mGatewayApi.PurposeVersionSeed = {
     dailyCalls: mockApiPurposeVersion.dailyCalls,
@@ -75,7 +78,9 @@ describe("createPurposeVersion", () => {
   });
 
   it("Should throw purposeVersionNotFound in case of version missing in purpose returned by the process", async () => {
-    const invalidPurpose = getMockedApiPurpose({ versions: [] });
+    const invalidPurpose = getMockWithMetadata(
+      getMockedApiPurpose({ versions: [] })
+    );
     mockCreatePurposeVersion.mockResolvedValue({
       data: {
         purpose: invalidPurpose.data,

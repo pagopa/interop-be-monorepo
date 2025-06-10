@@ -1,9 +1,9 @@
 import {
   AuthorizationServerTokenGenerationConfig,
-  CustomClaims,
   InteropTokenGenerator,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
+  UserClaims,
   UserRole,
   b64ByteUrlDecode,
   calculateKid,
@@ -35,7 +35,7 @@ describe("Token Generator", () => {
   const authServerConfig: AuthorizationServerTokenGenerationConfig = {
     generatedInteropTokenKid: generateId(),
     generatedInteropTokenIssuer: "Interop Issuer",
-    generatedInteropTokenM2MAudience: "M2M Audience",
+    generatedInteropTokenM2MAudience: ["M2M Audience1", "M2M Audience2"],
     generatedInteropTokenM2MDurationSeconds: 1000,
   };
 
@@ -56,10 +56,10 @@ describe("Token Generator", () => {
 
   const verifyCustomClaims = (
     payload: JSON,
-    expectedClaims: CustomClaims
+    expectedClaims: UserClaims
   ): void => {
     expect(payload).toMatchObject({
-      "user-roles": expectedClaims["user-roles"],
+      "user-roles": expectedClaims["user-roles"].join(","),
       organizationId: expectedClaims.organizationId,
       selfcareId: expectedClaims.selfcareId,
       externalId: {
@@ -114,7 +114,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toMatchObject({
         jti: expect.any(String),
         iss: sessionTokenGenerationConfig.generatedIssuer,
-        aud: sessionTokenGenerationConfig.generatedAudience,
+        aud: sessionTokenGenerationConfig.generatedAudience.join(","),
         iat: mockTimeStamp,
         nbf: mockTimeStamp,
         exp:
@@ -157,7 +157,7 @@ describe("Token Generator", () => {
         expect(decodedActualToken).toMatchObject({
           jti: expect.any(String),
           iss: sessionTokenGenerationConfig.generatedIssuer,
-          aud: sessionTokenGenerationConfig.generatedAudience,
+          aud: sessionTokenGenerationConfig.generatedAudience.join(","),
           iat: mockTimeStamp,
           nbf: mockTimeStamp,
           exp:
@@ -210,7 +210,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toMatchObject({
         jti: expect.any(String),
         iss: authServerConfig.generatedInteropTokenIssuer,
-        aud: authServerConfig.generatedInteropTokenM2MAudience,
+        aud: authServerConfig.generatedInteropTokenM2MAudience.join(","),
         client_id: subClientId,
         sub: subClientId,
         iat: mockTimeStamp,
@@ -250,7 +250,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toEqual({
         jti: expect.any(String),
         iss: authServerConfig.generatedInteropTokenIssuer,
-        aud: authServerConfig.generatedInteropTokenM2MAudience,
+        aud: authServerConfig.generatedInteropTokenM2MAudience.join(","),
         client_id: subClientId,
         sub: subClientId,
         iat: mockTimeStamp,
@@ -313,7 +313,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toEqual({
         jti: expect.any(String),
         iss: authServerConfig.generatedInteropTokenIssuer,
-        aud: audience,
+        aud: audience.join(","),
         iat: mockTimeStamp,
         nbf: mockTimeStamp,
         exp: mockTimeStamp + tokenDurationInSeconds,
@@ -411,7 +411,7 @@ describe("Token Generator", () => {
       expect(decodedActualToken).toEqual({
         jti: expect.any(String),
         iss: interopTokenGenerationConfig.issuer,
-        aud: interopTokenGenerationConfig.audience,
+        aud: interopTokenGenerationConfig.audience.join(","),
         sub: interopTokenGenerationConfig.subject,
         iat: mockTimeStamp,
         nbf: mockTimeStamp,

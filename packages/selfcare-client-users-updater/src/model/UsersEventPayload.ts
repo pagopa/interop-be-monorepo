@@ -16,6 +16,7 @@ export const relationshipStatus = {
   active: "ACTIVE",
   suspended: "SUSPENDED",
   deleted: "DELETED",
+  rejected: "REJECTED",
 } as const;
 export const RelationshipStatus = z.enum([
   Object.values(relationshipStatus)[0],
@@ -30,7 +31,7 @@ const SCUser = z.object({
   email: z.string(),
   role: z.string(),
   productRole: UserRole,
-  relationshipStatus: RelationshipStatus,
+  relationshipStatus: z.string(),
   mobilePhone: z.string().nullish(),
 });
 
