@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import {
+  getMockedApiAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   agreementService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -10,19 +17,15 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiAgreement,
-} from "../../mockUtils.js";
+import { missingMetadata } from "../../../src/model/errors.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("suspendAgreement", () => {
-  const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.PENDING,
-  });
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.PENDING,
+    })
+  );
 
   const mockSuspendAgreement = vi
     .fn()
@@ -31,7 +34,7 @@ describe("suspendAgreement", () => {
   const mockGetAgreement = vi.fn(
     mockPollingResponse(
       mockAgreementProcessResponse,
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     )
   );
 
@@ -64,7 +67,7 @@ describe("suspendAgreement", () => {
 
     expect(result).toEqual(m2mAgreementResponse);
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.agreementProcessClient.suspendAgreement,
@@ -106,11 +109,11 @@ describe("suspendAgreement", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetAgreement.mockImplementation(
       mockPollingResponse(
         mockAgreementProcessResponse,
-        config.defaultPollingMaxAttempts + 1
+        config.defaultPollingMaxRetries + 1
       )
     );
 
@@ -120,10 +123,13 @@ describe("suspendAgreement", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });

@@ -3,6 +3,7 @@ import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { AxiosError, isAxiosError } from "axios";
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
@@ -123,7 +124,7 @@ export function makeApiProblemBuilder<T extends string>(
 ): MakeApiProblemFn<T> {
   const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
     options;
-  const allErrors = { ...errorCodes, ...errors };
+  const allErrors = { ...commonErrorCodes, ...errors };
 
   function retrieveServiceErrorCode(serviceName: string): string {
     const serviceNameParsed = ServiceName.safeParse(serviceName);
@@ -192,22 +193,26 @@ export function makeApiProblemBuilder<T extends string>(
         /* this case is to allow a passthrough of Problem errors, so that
            services that call other interop services can forward Problem errors
            as they are, without the need to explicitly handle them */
-        {
-          response: {
-            status: P.number,
-            data: {
-              type: "about:blank",
-              title: P.string,
+        P.intersection(
+          P.when((e): e is AxiosError<Problem> => isAxiosError(e)),
+          {
+            response: {
+              // Matching also AxiosError content to ensure data matches Problem type
               status: P.number,
-              detail: P.string,
-              errors: P.array({
-                code: P.string,
+              data: {
+                type: "about:blank",
+                title: P.string,
+                status: P.number,
                 detail: P.string,
-              }),
-              correlationId: P.string.optional(),
+                errors: P.array({
+                  code: P.string,
+                  detail: P.string,
+                }),
+                correlationId: P.string.optional(),
+              },
             },
-          },
-        },
+          }
+        ),
         (e) => {
           const receivedProblem: Problem = e.response.data;
           if (problemErrorsPassthrough) {
@@ -218,7 +223,8 @@ export function makeApiProblemBuilder<T extends string>(
 
             if (
               forceGenericProblemOn500 &&
-              receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR
+              (e.response.status === HTTP_STATUS_INTERNAL_SERVER_ERROR ||
+                receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR)
             ) {
               logger.warn(
                 `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
@@ -256,7 +262,7 @@ export function makeApiProblemBuilder<T extends string>(
   };
 }
 
-const errorCodes = {
+export const commonErrorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
   htmlTemplateInterpolationError: "9002",
@@ -297,9 +303,10 @@ const errorCodes = {
   fallbackApplicationAuditingFailed: "10022",
   invalidSqsMessage: "10023",
   decodeSQSMessageError: "10024",
+  pollingMaxRetriesExceeded: "10025",
 } as const;
 
-export type CommonErrorCodes = keyof typeof errorCodes;
+export type CommonErrorCodes = keyof typeof commonErrorCodes;
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
@@ -710,5 +717,16 @@ export function featureFlagNotEnabled(
     detail: `Feature flag ${featureFlag} is not enabled`,
     code: "featureFlagNotEnabled",
     title: "Feature flag not enabled",
+  });
+}
+
+export function pollingMaxRetriesExceeded(
+  retries: number,
+  retryDelayMs: number
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Polling exceeded maximum retries (${retries}) with delay ${retryDelayMs}ms`,
+    code: "pollingMaxRetriesExceeded",
+    title: "Polling max retries exceeded",
   });
 }

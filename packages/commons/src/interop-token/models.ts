@@ -48,6 +48,11 @@ export type InteropJwtCommonPayload = z.infer<typeof InteropJwtCommonPayload>;
 /* ==========================================
     Interop CONSUMER Token
   ========================================== */
+const CNF = z.object({
+  // jkt is a hash of the public key, required claim for DPoP tokens.
+  jkt: z.string(),
+});
+
 export const InteropJwtConsumerPayload = InteropJwtCommonPayload.merge(
   z.object({
     client_id: ClientId,
@@ -61,6 +66,8 @@ export const InteropJwtConsumerPayload = InteropJwtCommonPayload.merge(
     consumerId: TenantId.optional(),
     eserviceId: EServiceId.optional(),
     descriptorId: DescriptorId.optional(),
+    // Only for DPoP tokens
+    cnf: CNF.optional(),
   })
 );
 export type InteropJwtConsumerPayload = z.infer<
