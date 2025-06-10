@@ -55,6 +55,7 @@ import {
   TenantId,
   unsafeBrandId,
   WithMetadata,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -471,6 +472,7 @@ async function innerCreateEService(
           id: EServiceTemplateId;
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
+          riskAnalysis?: EServiceTemplateRiskAnalysis[];
         }
       | undefined;
   },

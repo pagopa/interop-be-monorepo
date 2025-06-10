@@ -16545,7 +16545,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis created.
@@ -16648,7 +16648,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis updated.
@@ -18322,6 +18322,20 @@ components:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
+    EServiceTemplateRiskAnalysisSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - riskAnalysisForm
+        - tenantKind
+      properties:
+        name:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysis:
       type: object
       additionalProperties: false
@@ -18338,6 +18352,28 @@ components:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisForm"
+        createdAt:
+          type: string
+          format: date-time
+    EServiceTemplateRiskAnalysis:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - riskAnalysisForm
+        - tenantKind
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisForm"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
         createdAt:
           type: string
           format: date-time
@@ -20752,7 +20788,7 @@ components:
         riskAnalysis:
           type: array
           items:
-            $ref: "#/components/schemas/EServiceRiskAnalysis"
+            $ref: "#/components/schemas/EServiceTemplateRiskAnalysis"
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:

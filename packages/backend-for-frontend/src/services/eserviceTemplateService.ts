@@ -398,9 +398,9 @@ export function eserviceTemplateServiceBuilder(
         },
       };
     },
-    createEServiceTemplateEServiceRiskAnalysis: async (
+    createEServiceTemplateRiskAnalysis: async (
       templateId: EServiceTemplateId,
-      seed: bffApi.EServiceRiskAnalysisSeed,
+      seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Creating EService template ${templateId} risk analysis`);
@@ -411,10 +411,10 @@ export function eserviceTemplateServiceBuilder(
         },
       });
     },
-    updateEServiceTemplateEServiceRiskAnalysis: async (
+    updateEServiceTemplateRiskAnalysis: async (
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
-      seed: bffApi.EServiceRiskAnalysisSeed,
+      seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
