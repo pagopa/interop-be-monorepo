@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Interoperability API Gateway Micro Service
   description: exposes the API for interacting with interoperability features
-  version: "v1"
+  version: "1.0"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/api-gateway/0.0"
+  - url: "{{baseUrl}}/{{version}}"
     description: Base url of the interoperability API gateway
 tags:
   - name: gateway

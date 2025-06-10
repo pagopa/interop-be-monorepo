@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/attribute-registry-process/v1"
+  - url: "/attribute-registry-process/{{version}}"
     description: This service is the attribute registry process
 security:
   - bearerAuth: []
