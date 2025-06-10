@@ -73,6 +73,7 @@ import {
   unexpectedDPoPProofForAPIToken,
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
+import { HttpDPoPHeader } from "../model/domain/models.js";
 
 export type GenerateTokenReturnType =
   | {
@@ -105,7 +106,7 @@ export function tokenServiceBuilder({
 }) {
   return {
     async generateToken(
-      headers: IncomingHttpHeaders & { DPoP?: string },
+      headers: IncomingHttpHeaders & HttpDPoPHeader,
       body: authorizationServerApi.AccessTokenRequest,
       { logger, correlationId }: WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
