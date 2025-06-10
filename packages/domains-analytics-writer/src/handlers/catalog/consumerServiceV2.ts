@@ -166,11 +166,22 @@ export async function handleCatalogMessageV2(
           );
         }
       )
-
       .exhaustive();
   }
   if (upsertEServiceBatch.length > 0) {
     await catalogService.upsertBatchEService(dbContext, upsertEServiceBatch);
+  }
+  if (upsertDescriptorBatch.length > 0) {
+    await catalogService.upsertBatchEServiceDescriptor(
+      dbContext,
+      upsertDescriptorBatch
+    );
+  }
+  if (upsertEServiceDocumentBatch.length > 0) {
+    await catalogService.upsertBatchEServiceDocument(
+      dbContext,
+      upsertEServiceDocumentBatch
+    );
   }
   if (deleteEServiceBatch.length > 0) {
     await catalogService.deleteBatchEService(dbContext, deleteEServiceBatch);
@@ -179,12 +190,6 @@ export async function handleCatalogMessageV2(
     await catalogService.deleteBatchDescriptor(
       dbContext,
       deleteDescriptorBatch
-    );
-  }
-  if (upsertEServiceDocumentBatch.length > 0) {
-    await catalogService.upsertBatchEServiceDocument(
-      dbContext,
-      upsertEServiceDocumentBatch
     );
   }
   if (deleteEServiceDocumentBatch.length > 0) {
@@ -203,12 +208,6 @@ export async function handleCatalogMessageV2(
     await catalogService.deleteBatchEserviceInterface(
       dbContext,
       deleteInterfaceBatch
-    );
-  }
-  if (upsertDescriptorBatch.length > 0) {
-    await catalogService.upsertBatchEServiceDescriptor(
-      dbContext,
-      upsertDescriptorBatch
     );
   }
 }

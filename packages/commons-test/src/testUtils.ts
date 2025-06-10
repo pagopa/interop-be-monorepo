@@ -1,6 +1,9 @@
 /* eslint-disable fp/no-delete */
 import crypto from "crypto";
 import { fail } from "assert";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -110,9 +113,8 @@ import {
   UserRole,
   userRole,
   WithLogger,
+  UIClaims,
   M2MAdminAuthData,
-  CustomClaims,
-  SessionClaims,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -130,10 +132,6 @@ export function randomArrayItem<T>(array: T[]): T {
 
 export function randomBoolean(): boolean {
   return Math.random() < 0.5;
-}
-
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export const getTenantCertifierFeatures = (
@@ -1129,7 +1127,7 @@ export const getMockContextM2MAdmin = ({
 
 export const getMockSessionClaims = (
   roles: UserRole[] = [userRole.ADMIN_ROLE]
-): SessionClaims & CustomClaims => ({
+): UIClaims => ({
   uid: generateId(),
   organization: {
     id: generateId(),
@@ -1139,7 +1137,7 @@ export const getMockSessionClaims = (
   name: "A generic user",
   family_name: "Family name",
   email: "randomEmailforTest@tester.com",
-  "user-roles": roles.join(","),
+  "user-roles": roles,
   organizationId: generateId(),
   selfcareId: generateId(),
   externalId: {
@@ -1152,3 +1150,12 @@ export const getMockWithMetadata = <T>(data: T): WithMetadata<T> => ({
   data,
   metadata: { version: generateMock(z.number().int()) },
 });
+
+export const readFileContent = async (fileName: string): Promise<string> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return htmlTemplateBuffer.toString();
+};

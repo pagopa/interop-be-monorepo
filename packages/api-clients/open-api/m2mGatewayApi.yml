@@ -5,9 +5,8 @@ info:
   version: "2.0.0"
   contact:
     name: API Support
-    url: "http://www.example.com/support"
-    email: support@example.com
-  termsOfService: "http://swagger.io/terms/"
+    url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
+  termsOfService: "https://selfcare.interop.pagopa.it/ui/it/termini-di-servizio"
 servers:
   - url: "https://api.uat.interop.pagopa.it/v2"
     description: UAT environment
@@ -16,54 +15,24 @@ security:
 tags:
   - name: clients
     description: Clients routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: attributes
     description: Attributes routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: agreements
     description: Agreements routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: eservices
     description: E-Services routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: keys
     description: Keys routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: purposes
     description: Purposes routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: tenants
     description: Tenants routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: delegations
     description: Delegations routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: eserviceTemplates
     description: E-Service Templates routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: health
     description: Verify service status
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
 paths:
   /agreements:
     get:
@@ -4854,7 +4823,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 250
+              maxLength: 500
       required:
         - version
         - answers

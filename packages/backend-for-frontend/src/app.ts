@@ -221,13 +221,13 @@ export async function createApp(
       serviceName,
       config
     ),
+    authorizationRouter(zodiosCtx, services.authorizationService),
     authenticationMiddleware(config),
     uiAuthDataValidationMiddleware(),
     // Authenticated routes (rate limiter & authorization middlewares rely on auth data to work)
     rateLimiterMiddleware,
     agreementRouter(zodiosCtx, services.agreementService),
     attributeRouter(zodiosCtx, services.attributeService),
-    authorizationRouter(zodiosCtx, services.authorizationService),
     catalogRouter(zodiosCtx, services.catalogService),
     clientRouter(zodiosCtx, services.clientService),
     consumerDelegationRouter(zodiosCtx, services.delegationService),

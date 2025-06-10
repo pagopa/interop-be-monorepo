@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-models";
 
 export const errorCodes = {
-  resourcePollingTimeout: "0001",
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
   clientAdminIdNotFound: "0004",
@@ -40,16 +39,6 @@ export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
   problemErrorsPassthrough: true,
   forceGenericProblemOn500: true,
 });
-
-export function resourcePollingTimeout(
-  maxAttempts: number
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Resource polling timed out after ${maxAttempts} attempts`,
-    code: "resourcePollingTimeout",
-    title: "Resource polling timeout",
-  });
-}
 
 export function missingMetadata(): ApiError<ErrorCodes> {
   return new ApiError({
