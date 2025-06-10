@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Key management microservice
-  version: "v1"
+  version: "{{version}}"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/authorization-management/v1"
+  - url: "/authorization-management/{{version}}"
     description: This contains key management routes
 tags:
   - name: key
@@ -24,8 +24,6 @@ tags:
     description: Operations about token generation
   - name: health
     description: Operations about service status
-  - name: purpose
-    description: Purpose
 security:
   - bearerAuth: []
 paths:
