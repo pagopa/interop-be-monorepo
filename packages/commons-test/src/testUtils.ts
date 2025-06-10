@@ -696,7 +696,7 @@ export const getMockClientAssertion = async (props?: {
   };
 
   const headers: jose.JWTHeaderParameters = {
-    alg: "RS256",
+    alg: algorithm.RS256,
     kid: "kid",
     ...props?.customHeader,
   };

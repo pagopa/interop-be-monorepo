@@ -2,6 +2,7 @@ import { KeyObject } from "crypto";
 import { describe, expect, it } from "vitest";
 import * as jose from "jose";
 import { createPublicKey, decodeBase64ToPem } from "pagopa-interop-commons";
+import { algorithm } from "pagopa-interop-models";
 
 describe("key import", async () => {
   const encodedPEM =
@@ -9,7 +10,7 @@ describe("key import", async () => {
 
   it("fails when importing a PEM without trailing newline with jose", async () => {
     await expect(
-      jose.importSPKI(decodeBase64ToPem(encodedPEM), "RS256")
+      jose.importSPKI(decodeBase64ToPem(encodedPEM), algorithm.RS256)
     ).rejects.toThrowError(`"spki" must be SPKI formatted string`);
   });
 
