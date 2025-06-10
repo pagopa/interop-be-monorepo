@@ -124,36 +124,24 @@ paths:
                 $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
@@ -300,27 +288,18 @@ paths:
                 $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
@@ -359,27 +338,18 @@ paths:
                 $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Agreement not found
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
@@ -446,27 +416,18 @@ paths:
                 $ref: "#/components/schemas/Agreement"
         "400":
           description: Bad Request
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
@@ -683,9 +644,6 @@ paths:
                 $ref: "#/components/schemas/Agreement"
         "404":
           description: Agreement not found
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:

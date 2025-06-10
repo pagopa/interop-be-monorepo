@@ -458,9 +458,6 @@ paths:
                 $ref: "#/components/schemas/Tenant"
         "404":
           description: Tenant Not Found
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
@@ -830,18 +827,12 @@ paths:
                 $ref: "#/components/schemas/Tenant"
         "403":
           description: Forbidden
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Tenant Not Found
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:

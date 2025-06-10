@@ -220,27 +220,18 @@ paths:
                 $ref: "#/components/schemas/Purpose"
         "400":
           description: Bad Request
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Name Conflict
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
@@ -373,9 +364,6 @@ paths:
                 $ref: "#/components/schemas/Purpose"
         "404":
           description: Purpose Not Found
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
@@ -479,9 +467,6 @@ paths:
                 $ref: "#/components/schemas/CreatedPurposeVersion"
         "400":
           description: Bad Request
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
@@ -696,9 +681,6 @@ paths:
                 $ref: "#/components/schemas/PurposeVersion"
         "400":
           description: Bad Request
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
@@ -794,27 +776,18 @@ paths:
                 $ref: "#/components/schemas/PurposeVersion"
         "400":
           description: Bad Request
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Organization not allowed
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/problem+json:
               schema:
