@@ -2043,7 +2043,7 @@ paths:
       operationId: downloadEServiceDescriptorInterface
       responses:
         "200":
-          description: E-Service Descriptor interface retrieved: a multipart containing the file and its metadata.
+          description: "E-Service Descriptor interface retrieved: a multipart containing the file and its metadata."
           content:
             multipart/form-data:
               schema:
