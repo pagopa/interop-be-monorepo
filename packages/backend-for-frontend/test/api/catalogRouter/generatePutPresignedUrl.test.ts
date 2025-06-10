@@ -25,7 +25,10 @@ describe("API GET /import/eservices/presignedUrl", () => {
       .mockResolvedValue(mockPresignedUrl);
   });
 
-  const makeRequest = async (token: string, query: typeof defaultQuery = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get(`${appBasePath}/import/eservices/presignedUrl`)
       .set("Authorization", `Bearer ${token}`)
@@ -67,7 +70,7 @@ describe("API GET /import/eservices/presignedUrl", () => {
 
   it("Should return 400 if passed an invalid query", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, {});
+    const res = await makeRequest(token, {} as unknown as typeof defaultQuery);
     expect(res.status).toBe(400);
   });
 });

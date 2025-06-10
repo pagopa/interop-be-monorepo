@@ -75,7 +75,11 @@ describe("API GET /templates/:templateId/eservices", () => {
     "Should return 400 if passed an invalid parameter: %s",
     async ({ templateId, query }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, templateId, query);
+      const res = await makeRequest(
+        token,
+        templateId,
+        query as typeof defaultQuery
+      );
       expect(res.status).toBe(400);
     }
   );

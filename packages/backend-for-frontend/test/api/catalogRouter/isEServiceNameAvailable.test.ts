@@ -31,7 +31,10 @@ describe("API GET /eservices/names/availability", () => {
       .mockResolvedValue(mockEServices);
   });
 
-  const makeRequest = async (token: string, query: typeof defaultQuery = defaultQuery) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get(`${appBasePath}/eservices/names/availability`)
       .set("Authorization", `Bearer ${token}`)
@@ -50,7 +53,7 @@ describe("API GET /eservices/names/availability", () => {
     "Should return 400 if passed an invalid parameter: %s",
     async ({ query }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, query);
+      const res = await makeRequest(token, query as typeof defaultQuery);
       expect(res.status).toBe(400);
     }
   );
