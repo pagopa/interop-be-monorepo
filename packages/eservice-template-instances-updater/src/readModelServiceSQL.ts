@@ -16,7 +16,7 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
@@ -90,9 +90,15 @@ export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
         )
         .leftJoin(
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          eq(
-            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          and(
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+            ),
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
+            )
           )
         )
         .orderBy(ascLower(eserviceInReadmodelCatalog.name));
