@@ -503,7 +503,7 @@ export function readModelServiceBuilderSQL(
         states,
       } = explicitFilters(filters);
 
-      const queryBaseAgreementIds = readmodelDB
+      const queryAgreementIds = readmodelDB
         .select(
           withTotalCount({
             id: agreementInReadmodelAgreement.id,
@@ -579,9 +579,8 @@ export function readModelServiceBuilderSQL(
         .orderBy(
           ascLower(eserviceInReadmodelCatalog.name),
           agreementInReadmodelAgreement.id
-        );
-
-      const queryAgreementIds = queryBaseAgreementIds.as("queryAgreementIds");
+        )
+        .as("queryAgreementIds");
 
       const resultSet = await readmodelDB
         .select({
