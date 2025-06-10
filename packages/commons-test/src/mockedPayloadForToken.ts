@@ -5,6 +5,7 @@ import {
   SerializedAuthTokenPayload,
   SerializedInteropJwtInternalPayload,
   SerializedInteropJwtApiPayload,
+  SerializedInteropJwtUIPayload,
 } from "pagopa-interop-commons";
 import { ClientId, TenantId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -14,7 +15,7 @@ export const mockTokenOrganizationId = generateId<TenantId>();
 
 function createUserPayload(
   commaSeparatedUserRoles: string
-): SerializedAuthTokenPayload {
+): SerializedInteropJwtUIPayload {
   return {
     iss: "dev.interop.pagopa.it",
     aud: "dev.interop.pagopa.it/ui",
@@ -27,7 +28,7 @@ function createUserPayload(
     family_name: "Rossi",
     email: "Mario.rossi@psp.it",
     organization: {
-      id: mockTokenOrganizationId,
+      id: generateId(),
       name: "PagoPA S.p.A.",
       roles: [
         {
