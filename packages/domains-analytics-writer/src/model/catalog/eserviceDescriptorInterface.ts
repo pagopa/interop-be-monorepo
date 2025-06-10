@@ -18,13 +18,13 @@ export type EserviceDescriptorInterfaceItemsSchema = z.infer<
   typeof EserviceDescriptorInterfaceSchema
 >;
 
-export const EserviceDescriptorInterfaceDeletingSchema =
+export const EserviceDescriptorDocumentOrInterfaceDeletingSchema =
   EserviceDescriptorInterfaceSchema.pick({
     id: true,
     descriptorId: true,
     metadataVersion: true,
     deleted: true,
   });
-export type EserviceDescriptorInterfaceDeletingSchema = z.infer<
-  typeof EserviceDescriptorInterfaceDeletingSchema
+export type EserviceDescriptorDocumentOrInterfaceDeletingSchema = z.infer<
+  typeof EserviceDescriptorDocumentOrInterfaceDeletingSchema
 >;

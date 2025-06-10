@@ -25,13 +25,13 @@ import { ClientUserDeletingSchema } from "../authorization/clientUser.js";
 import { ClientPurposeDeletingSchema } from "../authorization/clientPurpose.js";
 import { ClientKeyDeletingSchema } from "../authorization/clientKey.js";
 import { PurposeDeletingSchema } from "../purpose/purpose.js";
-import { EserviceDescriptorInterfaceDeletingSchema } from "../catalog/eserviceDescriptorInterface.js";
+import { EserviceDescriptorDocumentOrInterfaceDeletingSchema } from "../catalog/eserviceDescriptorInterface.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
   catalog_deleting_table: EserviceDeletingSchema,
   catalog_descriptor_interface_deleting_table:
-    EserviceDescriptorInterfaceDeletingSchema,
+    EserviceDescriptorDocumentOrInterfaceDeletingSchema,
   agreement_deleting_table: AgreementDeletingSchema,
   purpose_deleting_table: PurposeDeletingSchema,
   tenant_deleting_table: TenantDeletingSchema,

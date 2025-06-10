@@ -31,7 +31,7 @@ import {
   EserviceDescriptorDocumentDeletingSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
 import {
-  EserviceDescriptorInterfaceDeletingSchema,
+  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
   EserviceDescriptorInterfaceItemsSchema,
   EserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
@@ -51,7 +51,7 @@ export async function handleCatalogMessageV1(
   const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
   const upsertEserviceInterface: EserviceDescriptorInterfaceItemsSchema[] = [];
   const upsertDescriptorServerUrls: DescriptorServerUrlsSchema[] = [];
-  const deleteDescriptorDocumentOrInterfaceBatch: EserviceDescriptorInterfaceDeletingSchema[] =
+  const deleteDescriptorDocumentOrInterfaceBatch: EserviceDescriptorDocumentOrInterfaceDeletingSchema[] =
     [];
 
   for (const message of messages) {
@@ -182,11 +182,13 @@ export async function handleCatalogMessageV1(
       })
       .with({ type: "EServiceDocumentDeleted" }, (msg) => {
         deleteDescriptorDocumentOrInterfaceBatch.push(
-          EserviceDescriptorInterfaceDeletingSchema.parse({
+          EserviceDescriptorDocumentOrInterfaceDeletingSchema.parse({
             id: msg.data.documentId,
             descriptorId: msg.data.descriptorId,
             metadataVersion: msg.version,
-          }) satisfies z.input<typeof EserviceDescriptorInterfaceDeletingSchema>
+          }) satisfies z.input<
+            typeof EserviceDescriptorDocumentOrInterfaceDeletingSchema
+          >
         );
       })
       .with(

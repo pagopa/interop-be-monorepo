@@ -33,7 +33,7 @@ import {
   EserviceDescriptorDocumentSchema,
 } from "../model/catalog/eserviceDescriptorDocument.js";
 import {
-  EserviceDescriptorInterfaceDeletingSchema,
+  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
   EserviceDescriptorInterfaceSchema,
 } from "../model/catalog/eserviceDescriptorInterface.js";
 
@@ -512,7 +512,7 @@ export function catalogServiceBuilder(db: DBContext) {
 
     async deleteDescriptorDocumentOrInterfaceBatch(
       dbContext: DBContext,
-      items: EserviceDescriptorInterfaceDeletingSchema[]
+      items: EserviceDescriptorDocumentOrInterfaceDeletingSchema[]
     ): Promise<void> {
       await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(

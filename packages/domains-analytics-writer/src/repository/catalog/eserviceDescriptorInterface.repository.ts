@@ -12,7 +12,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
-  EserviceDescriptorInterfaceDeletingSchema,
+  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
   EserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
@@ -75,13 +75,13 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EserviceDescriptorInterfaceDeletingSchema[]
+      records: EserviceDescriptorDocumentOrInterfaceDeletingSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           deletingTableName,
-          EserviceDescriptorInterfaceDeletingSchema
+          EserviceDescriptorDocumentOrInterfaceDeletingSchema
         );
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
