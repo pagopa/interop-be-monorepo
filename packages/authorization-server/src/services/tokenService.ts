@@ -75,7 +75,7 @@ import {
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
 
-export type GenerateTokenReturnType =
+export type GeneratedTokenData =
   | {
       limitReached: true;
       token: undefined;
@@ -111,7 +111,7 @@ export function tokenServiceBuilder({
       { logger, correlationId }: WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
-    ): Promise<GenerateTokenReturnType> {
+    ): Promise<GeneratedTokenData> {
       logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
       // DPoP proof validation
