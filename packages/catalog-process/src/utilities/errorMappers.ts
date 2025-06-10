@@ -434,7 +434,7 @@ export const updateEServiceNameErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const updateEServiceSignalhubActivationFlagErrorMapper = (
+export const updateEServiceSignalhubFlagErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

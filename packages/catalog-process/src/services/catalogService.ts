@@ -134,7 +134,8 @@ import {
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
-  toCreateEventEServiceSignalhubActivationServiceUpdated,
+  toCreateEventEServiceSignalhubFlagEnabled,
+  toCreateEventEServiceSignalhubFlagDisabled,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -2414,13 +2415,13 @@ export function catalogServiceBuilder(
       return updatedEservice;
     },
 
-    async enableSignalHub(
+    async updateSignalHubFlag(
       eserviceId: EServiceId,
       isSignalHubEnabled: boolean,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EService> {
       logger.info(
-        `Updating Signalhub for E-Service ${eserviceId} to ${isSignalHubEnabled}`
+        `Updating Signalhub flag for E-Service ${eserviceId} to ${isSignalHubEnabled}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
@@ -2439,13 +2440,36 @@ export function catalogServiceBuilder(
         isSignalHubEnabled,
       };
 
-      await repository.createEvent(
-        toCreateEventEServiceSignalhubActivationServiceUpdated(
-          eservice.metadata.version,
-          updatedEservice,
-          correlationId
+      const event = match({
+        isSignalHubEnabled,
+      })
+        .with(
+          {
+            isSignalHubEnabled: true,
+          },
+          () =>
+            toCreateEventEServiceSignalhubFlagEnabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
         )
-      );
+        .with(
+          {
+            isSignalHubEnabled: false,
+          },
+          () =>
+            toCreateEventEServiceSignalhubFlagDisabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
+        )
+        .exhaustive();
+
+      if (event) {
+        await repository.createEvent(event);
+      }
       return updatedEservice;
     },
     async approveDelegatedEServiceDescriptor(

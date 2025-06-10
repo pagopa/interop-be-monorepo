@@ -201,7 +201,13 @@ message EServiceDescriptorDocumentDeletedByTemplateUpdateV2 {
   EServiceV2 eservice = 3;
 }
 
-message EServiceSignalhubActivationServiceUpdatedV2 {
+message EServiceSignalHubEnabledV2 {
     EServiceV2 eservice = 1;
 }
+
+message EServiceSignalHubDisabledV2 {
+    EServiceV2 eservice = 1;
+}
+
+
 

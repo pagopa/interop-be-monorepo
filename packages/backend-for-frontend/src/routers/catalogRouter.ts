@@ -711,10 +711,10 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/eservices/:eServiceId/signalhub/activate", async (req, res) => {
+    .post("/eservices/:eServiceId/signalhub/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await catalogService.enableSignalHub(
+        await catalogService.updateSignalHubFlag(
           ctx,
           unsafeBrandId(req.params.eServiceId),
           req.body

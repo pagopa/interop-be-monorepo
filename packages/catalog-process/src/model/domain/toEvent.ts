@@ -823,7 +823,7 @@ export const toCreateEventEServiceDescriptorDocumentDeletedByTemplateUpdate = (
   correlationId,
 });
 
-export const toCreateEventEServiceSignalhubActivationServiceUpdated = (
+export const toCreateEventEServiceSignalhubFlagEnabled = (
   version: number,
   eservice: EService,
   correlationId: CorrelationId
@@ -831,7 +831,24 @@ export const toCreateEventEServiceSignalhubActivationServiceUpdated = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServiceSignalhubActivationServiceUpdated",
+    type: "EServiceSignalHubEnabled",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceSignalhubFlagDisabled = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceSignalHubDisabled",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),

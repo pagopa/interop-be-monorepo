@@ -70,7 +70,7 @@ import {
   createTemplateInstanceDescriptorErrorMapper,
   updateTemplateInstanceDescriptorErrorMapper,
   updateAgreementApprovalPolicyErrorMapper,
-  updateEServiceSignalhubActivationFlagErrorMapper,
+  updateEServiceSignalhubFlagErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -860,12 +860,12 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/eservices/:eServiceId/signalhub/activate", async (req, res) => {
+    .post("/eservices/:eServiceId/signalhub/update", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        const updatedEService = await catalogService.enableSignalHub(
+        const updatedEService = await catalogService.updateSignalHubFlag(
           unsafeBrandId(req.params.eServiceId),
           req.body.isSignalHubEnabled,
           ctx
@@ -879,7 +879,7 @@ const eservicesRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          updateEServiceSignalhubActivationFlagErrorMapper,
+          updateEServiceSignalhubFlagErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

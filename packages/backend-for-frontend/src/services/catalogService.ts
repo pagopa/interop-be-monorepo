@@ -579,13 +579,13 @@ export function catalogServiceBuilder(
       });
     },
 
-    enableSignalHub: async (
+    updateSignalHubFlag: async (
       { headers, logger }: WithLogger<BffAppContext>,
       eServiceId: EServiceId,
       signalhubActivateSeed: bffApi.EServiceSignalhubActivateSeed
     ): Promise<void> => {
       logger.info(
-        `Update signalhub for E-Service with id = ${eServiceId} to ${signalhubActivateSeed.isSignalHubEnabled}`
+        `Update signalhub flag for E-Service with id = ${eServiceId} to ${signalhubActivateSeed.isSignalHubEnabled}`
       );
       await catalogProcessClient.enableSignalhub(signalhubActivateSeed, {
         headers,

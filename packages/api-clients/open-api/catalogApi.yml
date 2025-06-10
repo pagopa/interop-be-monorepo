@@ -1625,7 +1625,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /eservices/{eServiceId}/signalhub/activate:
+  /eservices/{eServiceId}/signalhub/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -1633,8 +1633,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Enabling signalhub service
-      operationId: enableSignalhub
+      summary: Enabling/disabling signalhub service
+      operationId: updateSignalHubFlag
       parameters:
         - name: eServiceId
           in: path
@@ -1644,7 +1644,7 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: A payload containing boolean which describe if signalhub should be enabled
+        description: A payload containing boolean which describe if signalhub will be enabled or disabled
         required: true
         content:
           application/json:
