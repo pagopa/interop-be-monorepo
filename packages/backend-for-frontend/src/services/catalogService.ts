@@ -587,7 +587,7 @@ export function catalogServiceBuilder(
       logger.info(
         `Update signalhub flag for E-Service with id = ${eServiceId} to ${signalhubActivateSeed.isSignalHubEnabled}`
       );
-      await catalogProcessClient.enableSignalhub(signalhubActivateSeed, {
+      await catalogProcessClient.updateSignalHubFlag(signalhubActivateSeed, {
         headers,
         params: {
           eServiceId,
