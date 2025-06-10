@@ -648,9 +648,8 @@ export function readModelServiceBuilderSQL(
     async getAttributeById(
       attributeId: AttributeId
     ): Promise<Attribute | undefined> {
-      const attributeWithMetadata =
-        await attributeReadModelServiceSQL.getAttributeById(attributeId);
-      return attributeWithMetadata?.data;
+      return (await attributeReadModelServiceSQL.getAttributeById(attributeId))
+        ?.data;
     },
 
     async getAgreementsConsumers(
