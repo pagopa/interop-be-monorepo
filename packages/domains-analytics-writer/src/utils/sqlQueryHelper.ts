@@ -79,7 +79,6 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
       USING ${stagingTableName} AS source
       ON ${onCondition}
       WHEN MATCHED
-        AND source.metadata_version > ${schemaName}.${tableName}.metadata_version
       THEN
         UPDATE SET
           ${updateSet}
@@ -230,9 +229,16 @@ export function generateStagingDeleteQuery<
     .join("\n  AND ");
 
   return `
-    DELETE FROM ${stagingTableName}
-    USING ${stagingTableName} AS b
+  DELETE FROM ${stagingTableName}
+  USING ${stagingTableName} AS b
+  WHERE ${whereCondition}
+  AND ${stagingTableName}.metadata_version < b.metadata_version;
+
+  DELETE FROM ${stagingTableName}
+  WHERE EXISTS (
+    SELECT 1 FROM ${config.dbSchemaName}.${tableName} b
     WHERE ${whereCondition}
-    AND ${stagingTableName}.metadata_version < b.metadata_version;
-  `.trim();
+      AND ${stagingTableName}.metadata_version < b.metadata_version
+    );
+  `;
 }
