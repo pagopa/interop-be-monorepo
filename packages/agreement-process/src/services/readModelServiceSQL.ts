@@ -219,6 +219,40 @@ const activeConsumerDelegations = alias(
   "activeConsumerDelegations"
 );
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const addDelegationJoins = <T extends PgSelect>(query: T) =>
+  query
+    .leftJoin(
+      activeProducerDelegations,
+      and(
+        eq(
+          agreementInReadmodelAgreement.eserviceId,
+          activeProducerDelegations.eserviceId
+        ),
+        eq(activeProducerDelegations.state, delegationState.active),
+        eq(activeProducerDelegations.kind, delegationKind.delegatedProducer),
+        eq(
+          activeProducerDelegations.delegatorId,
+          agreementInReadmodelAgreement.producerId
+        )
+      )
+    )
+    .leftJoin(
+      activeConsumerDelegations,
+      and(
+        eq(
+          agreementInReadmodelAgreement.eserviceId,
+          activeConsumerDelegations.eserviceId
+        ),
+        eq(activeConsumerDelegations.state, delegationState.active),
+        eq(activeConsumerDelegations.kind, delegationKind.delegatedConsumer),
+        eq(
+          activeConsumerDelegations.delegatorId,
+          agreementInReadmodelAgreement.consumerId
+        )
+      )
+    );
+
 const getVisibilityFilter = (requesterId: TenantId): SQL | undefined =>
   or(
     eq(agreementInReadmodelAgreement.producerId, requesterId),
@@ -323,40 +357,6 @@ export function readModelServiceBuilderSQL(
   attributeReadModelServiceSQL: AttributeReadModelService,
   delegationReadModelServiceSQL: DelegationReadModelService
 ) {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const addDelegationJoins = <T extends PgSelect>(query: T) =>
-    query
-      .leftJoin(
-        activeProducerDelegations,
-        and(
-          eq(
-            agreementInReadmodelAgreement.eserviceId,
-            activeProducerDelegations.eserviceId
-          ),
-          eq(activeProducerDelegations.state, delegationState.active),
-          eq(activeProducerDelegations.kind, delegationKind.delegatedProducer),
-          eq(
-            activeProducerDelegations.delegatorId,
-            agreementInReadmodelAgreement.producerId
-          )
-        )
-      )
-      .leftJoin(
-        activeConsumerDelegations,
-        and(
-          eq(
-            agreementInReadmodelAgreement.eserviceId,
-            activeConsumerDelegations.eserviceId
-          ),
-          eq(activeConsumerDelegations.state, delegationState.active),
-          eq(activeConsumerDelegations.kind, delegationKind.delegatedConsumer),
-          eq(
-            activeConsumerDelegations.delegatorId,
-            agreementInReadmodelAgreement.consumerId
-          )
-        )
-      );
-
   return {
     async getAgreements(
       requesterId: TenantId,
