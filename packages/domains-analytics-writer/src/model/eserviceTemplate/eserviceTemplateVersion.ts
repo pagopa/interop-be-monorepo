@@ -11,3 +11,12 @@ export const EserviceTemplateVersionSchema = createSelectSchema(
 export type EserviceTemplateVersionSchema = z.infer<
   typeof EserviceTemplateVersionSchema
 >;
+
+export const EserviceTemplateVersionDeletingSchema =
+  EserviceTemplateVersionSchema.pick({
+    id: true,
+    deleted: true,
+  });
+export type EserviceTemplateVersionDeletingSchema = z.infer<
+  typeof EserviceTemplateVersionDeletingSchema
+>;

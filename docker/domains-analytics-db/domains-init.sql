@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
   id VARCHAR(36),
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id VARCHAR(36) NOT NULL,
+  risk_analysis_form_id VARCHAR(36),
   kind VARCHAR NOT NULL,
   key VARCHAR NOT NULL,
   value VARCHAR(65535),

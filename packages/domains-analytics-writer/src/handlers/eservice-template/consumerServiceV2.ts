@@ -15,6 +15,10 @@ import {
   EserviceTemplateDeletingSchema,
 } from "../../model/eserviceTemplate/eserviceTemplate.js";
 import { eserviceTemplateServiceBuilder } from "../../service/eserviceTemplateService.js";
+import { EserviceTemplateRiskAnalysisDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateRiskAnalysis.js";
+import { EserviceTemplateVersionDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateVersion.js";
+import { EserviceTemplateDocumentDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionDocument.js";
+import { EserviceTemplateInterfaceDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionInterface.js";
 
 export async function handleEserviceTemplateMessageV2(
   messages: EServiceTemplateEventEnvelope[],
@@ -24,6 +28,14 @@ export async function handleEserviceTemplateMessageV2(
 
   const upsertEserviceTemplateBatch: EserviceTemplateItemsSchema[] = [];
   const deleteEserviceTemplateBatch: EserviceTemplateDeletingSchema[] = [];
+  const deleteEserviceTemplateVersionBatch: EserviceTemplateVersionDeletingSchema[] =
+    [];
+  const deleteEserviceTemplateInterfaceBatch: EserviceTemplateInterfaceDeletingSchema[] =
+    [];
+  const deleteEserviceTemplateDocumentBatch: EserviceTemplateDocumentDeletingSchema[] =
+    [];
+  const deleteEserviceTemplateRiskAnalysisBatch: EserviceTemplateRiskAnalysisDeletingSchema[] =
+    [];
 
   for (const message of messages) {
     match(message)
@@ -47,11 +59,7 @@ export async function handleEserviceTemplateMessageV2(
             "EServiceTemplateVersionInterfaceUpdated",
             "EServiceTemplateRiskAnalysisAdded",
             "EServiceTemplateRiskAnalysisUpdated",
-            "EServiceTemplateVersionActivated",
-            "EServiceTemplateDraftVersionDeleted",
-            "EServiceTemplateVersionInterfaceDeleted",
-            "EServiceTemplateVersionDocumentDeleted",
-            "EServiceTemplateRiskAnalysisDeleted"
+            "EServiceTemplateVersionActivated"
           ),
         },
         (msg) => {
@@ -91,6 +99,61 @@ export async function handleEserviceTemplateMessageV2(
           } satisfies z.input<typeof EserviceTemplateDeletingSchema>)
         );
       })
+      .with({ type: "EServiceTemplateDraftVersionDeleted" }, (msg) => {
+        deleteEserviceTemplateVersionBatch.push(
+          EserviceTemplateVersionDeletingSchema.parse({
+            id: msg.data.eserviceTemplateVersionId,
+            deleted: true,
+          } satisfies z.input<typeof EserviceTemplateVersionDeletingSchema>)
+        );
+      })
+      .with({ type: "EServiceTemplateVersionInterfaceDeleted" }, (msg) => {
+        const { eserviceTemplate, eserviceTemplateVersionId } = msg.data;
+
+        if (!eserviceTemplate) {
+          throw genericInternalError(
+            "eserviceTemplate can't be missing in the event message"
+          );
+        }
+
+        const version = eserviceTemplate.versions.find(
+          (v) => v.id === eserviceTemplateVersionId
+        );
+        if (!version) {
+          throw genericInternalError(
+            `Version not found for versionId: ${eserviceTemplateVersionId}`
+          );
+        }
+
+        if (!version.interface) {
+          throw genericInternalError(
+            `Missing interface for the specified version id: ${version.id}`
+          );
+        }
+
+        deleteEserviceTemplateInterfaceBatch.push(
+          EserviceTemplateInterfaceDeletingSchema.parse({
+            id: version.interface.id,
+            deleted: true,
+          } satisfies z.input<typeof EserviceTemplateInterfaceDeletingSchema>)
+        );
+      })
+      .with({ type: "EServiceTemplateVersionDocumentDeleted" }, (msg) => {
+        deleteEserviceTemplateDocumentBatch.push(
+          EserviceTemplateDocumentDeletingSchema.parse({
+            id: msg.data.documentId,
+            deleted: true,
+          } satisfies z.input<typeof EserviceTemplateDocumentDeletingSchema>)
+        );
+      })
+      .with({ type: "EServiceTemplateRiskAnalysisDeleted" }, (msg) => {
+        deleteEserviceTemplateRiskAnalysisBatch.push(
+          EserviceTemplateRiskAnalysisDeletingSchema.parse({
+            id: msg.data.riskAnalysisId,
+            deleted: true,
+          } satisfies z.input<typeof EserviceTemplateRiskAnalysisDeletingSchema>)
+        );
+      })
       .exhaustive();
   }
 
@@ -104,6 +167,30 @@ export async function handleEserviceTemplateMessageV2(
     await templateService.deleteBatchEserviceTemplate(
       dbContext,
       deleteEserviceTemplateBatch
+    );
+  }
+  if (deleteEserviceTemplateVersionBatch.length > 0) {
+    await templateService.deleteBatchEserviceTemplateVersion(
+      dbContext,
+      deleteEserviceTemplateVersionBatch
+    );
+  }
+  if (deleteEserviceTemplateInterfaceBatch.length > 0) {
+    await templateService.deleteBatchEserviceTemplateInterface(
+      dbContext,
+      deleteEserviceTemplateInterfaceBatch
+    );
+  }
+  if (deleteEserviceTemplateDocumentBatch.length > 0) {
+    await templateService.deleteBatchEserviceTemplateDocument(
+      dbContext,
+      deleteEserviceTemplateDocumentBatch
+    );
+  }
+  if (deleteEserviceTemplateRiskAnalysisBatch.length > 0) {
+    await templateService.deleteBatchEserviceTemplateRiskAnalysis(
+      dbContext,
+      deleteEserviceTemplateRiskAnalysisBatch
     );
   }
 }
