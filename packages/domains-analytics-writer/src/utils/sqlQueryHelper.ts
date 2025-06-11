@@ -232,16 +232,16 @@ export function generateStagingDeleteQuery<
     .join("\n  AND ");
 
   return `
-  DELETE FROM ${stagingTableName}
-  USING ${stagingTableName} AS b
-  WHERE ${whereCondition}
-  AND ${stagingTableName}.metadata_version < b.metadata_version;
+    DELETE FROM ${stagingTableName}
+    USING ${stagingTableName} b
+    WHERE
+      ${whereCondition}
+      AND ${stagingTableName}.metadata_version < b.metadata_version;
 
-  DELETE FROM ${stagingTableName}
-  WHERE EXISTS (
-    SELECT 1 FROM ${config.dbSchemaName}.${tableName} b
-    WHERE ${whereCondition}
-      AND ${stagingTableName}.metadata_version < b.metadata_version
-    );
-  `;
+    DELETE FROM ${stagingTableName}
+    USING ${config.dbSchemaName}.${tableName} b
+    WHERE
+      ${whereCondition}
+      AND ${stagingTableName}.metadata_version < b.metadata_version;
+`.trim();
 }
