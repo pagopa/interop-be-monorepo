@@ -7,6 +7,7 @@ import { config as dotenv } from "dotenv-flow";
 import {
   AWSSesConfig,
   AnalyticsSQLDbConfig,
+  DPoPConfig,
   EventStoreConfig,
   FileManagerConfig,
   ReadModelDbConfig,
@@ -18,7 +19,6 @@ import {
 import { StartedTestContainer } from "testcontainers";
 import type {} from "vitest";
 import type { GlobalSetupContext } from "vitest/node";
-import { z } from "zod";
 import {
   TEST_AWS_SES_PORT,
   TEST_DYNAMODB_PORT,
@@ -38,15 +38,11 @@ import {
   redisContainer,
   postgreSQLAnalyticsContainer,
 } from "./containerTestUtils.js";
-import { PecEmailManagerConfigTest } from "./testConfig.js";
-
-const EnhancedTokenGenerationReadModelDbConfig =
-  TokenGenerationReadModelDbConfig.and(
-    z.object({ tokenGenerationReadModelDbPort: z.number() })
-  );
-type EnhancedTokenGenerationReadModelDbConfig = z.infer<
-  typeof EnhancedTokenGenerationReadModelDbConfig
->;
+import {
+  EnhancedDPoPConfig,
+  EnhancedTokenGenerationReadModelDbConfig,
+  PecEmailManagerConfigTest,
+} from "./testConfig.js";
 
 declare module "vitest" {
   export interface ProvidedContext {
@@ -59,6 +55,7 @@ declare module "vitest" {
     emailManagerConfig?: PecEmailManagerConfigTest;
     sesEmailManagerConfig?: AWSSesConfig;
     analyticsSQLDbConfig?: AnalyticsSQLDbConfig;
+    dpopConfig?: EnhancedDPoPConfig;
   }
 }
 
@@ -82,6 +79,7 @@ export function setupTestContainersVitestGlobal() {
   const awsSESConfig = AWSSesConfig.safeParse(process.env);
   const tokenGenerationReadModelConfig =
     TokenGenerationReadModelDbConfig.safeParse(process.env);
+  const dpopConfig = DPoPConfig.safeParse(process.env);
 
   return async function ({
     provide,
@@ -200,6 +198,15 @@ export function setupTestContainersVitestGlobal() {
         ...tokenGenerationReadModelConfig.data,
         tokenGenerationReadModelDbPort:
           startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
+      });
+    }
+
+    if (dpopConfig.success) {
+      startedDynamoDbContainer = await dynamoDBContainer().start();
+
+      provide("dpopConfig", {
+        ...dpopConfig.data,
+        dpopDbPort: startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
       });
     }
 

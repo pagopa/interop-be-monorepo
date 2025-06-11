@@ -1,19 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockedApiTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiTenant } from "../../mockUtils.js";
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
 
 describe("GET /tenants/:tenantId route test", () => {
   const mockApiResponse = getMockedApiTenant();
-  const mockResponse: m2mGatewayApi.Tenant = toM2MGatewayApiTenant(
-    mockApiResponse.data
-  );
+  const mockResponse: m2mGatewayApi.Tenant =
+    toM2MGatewayApiTenant(mockApiResponse);
 
   const makeRequest = async (token: string) =>
     request(api)
