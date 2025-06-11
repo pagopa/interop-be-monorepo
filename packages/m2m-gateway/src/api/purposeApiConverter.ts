@@ -51,9 +51,15 @@ export function toM2MGatewayApiPurpose(
     isFreeOfCharge: purpose.isFreeOfCharge,
     freeOfChargeReason: purpose.freeOfChargeReason,
     delegationId: purpose.delegationId,
-    currentVersion,
-    waitingForApprovalVersion,
-    rejectedVersion,
+    currentVersion: currentVersion
+      ? toM2mGatewayApiPurposeVersion(currentVersion)
+      : undefined,
+    waitingForApprovalVersion: waitingForApprovalVersion
+      ? toM2mGatewayApiPurposeVersion(waitingForApprovalVersion)
+      : undefined,
+    rejectedVersion: rejectedVersion
+      ? toM2mGatewayApiPurposeVersion(rejectedVersion)
+      : undefined,
   };
 }
 
