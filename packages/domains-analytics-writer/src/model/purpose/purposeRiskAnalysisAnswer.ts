@@ -9,7 +9,8 @@ export const PurposeRiskAnalysisAnswerSchema = createSelectSchema(
   value: z
     .array(z.string())
     .transform((val) => JSON.stringify(val))
-    .pipe(z.string()),
+    .pipe(z.string())
+    .nullish(),
 });
 export type PurposeRiskAnalysisAnswerSchema = z.infer<
   typeof PurposeRiskAnalysisAnswerSchema
