@@ -1,3 +1,4 @@
+import { Readable } from "node:stream";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -9,6 +10,8 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import { FormDataEncoder } from "form-data-encoder";
+import { FormData, File } from "formdata-node";
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
@@ -114,6 +117,44 @@ const eserviceRouter = (
             getEserviceDescriptorErrorMapper,
             ctx,
             `Error retrieving eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/interface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const { file, filename, contentType } =
+            await eserviceService.getEServiceDescriptorInterface(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+
+          const form = new FormData();
+          form.set("file", new File([file], filename, { type: contentType }));
+          form.set("filename", filename);
+          form.set("contentType", contentType);
+
+          const encoder = new FormDataEncoder(form);
+
+          res.set(encoder.headers); // Content-Type + (optional) Content-Length
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return res.status(200).send(Readable.from(encoder.encode()) as any);
+
+          // TODO verify if this alternative works
+          // res.writeHead(200, encoder.headers);     // boundary + length if known
+          // Readable.from(encoder.encode()).pipe(res);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEserviceDescriptorErrorMapper,
+            ctx,
+            `Error retrieving interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

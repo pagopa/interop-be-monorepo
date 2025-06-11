@@ -2,6 +2,7 @@ import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
+  FileManagerConfig,
   RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -31,9 +32,11 @@ export type AgreementProcessServerConfig = z.infer<
 export const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
+    ESERVICE_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     catalogProcessUrl: c.CATALOG_PROCESS_URL,
+    eserviceDocumentsContainer: c.ESERVICE_DOCUMENTS_CONTAINER,
   }));
 export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
@@ -104,6 +107,7 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(DelegationProcessServerConfig)
   .and(EServiceTemplateProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
+  .and(FileManagerConfig)
   .and(
     z
       .object({
