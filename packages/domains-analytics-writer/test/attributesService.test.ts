@@ -218,9 +218,7 @@ describe("SQL Attribute Service - Events V1", () => {
       ...getMockAttribute(),
       kind: attributeKind.certified,
     };
-    const addPayload: AttributeAddedV1 = {
-      attribute: toAttributeV1(base),
-    };
+    const addPayload: AttributeAddedV1 = { attribute: toAttributeV1(base) };
     const addMsg: AttributeEventEnvelope = {
       sequence_num: 1,
       stream_id: base.id,
@@ -244,10 +242,10 @@ describe("SQL Attribute Service - Events V1", () => {
     };
     await handleAttributeMessageV1([delMsg], dbContext);
 
-    const stored = await getOneFromDb(dbContext, AttributeDbTable.attribute, {
+    const stored = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
       id: base.id,
     });
-    expect(stored?.deleted).toBe(true);
+    expect(stored[0]?.deleted).toBe(true);
   });
 
   describe("Merge and check on metadataVersion", () => {

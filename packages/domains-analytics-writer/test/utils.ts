@@ -22,7 +22,6 @@ import {
   TenantDbPartialTable,
   PurposeDbTable,
   TenantDbTable,
-  CatalogDbPartialTable,
   ClientDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
@@ -110,16 +109,13 @@ export const clientTables: ClientDbTable[] = [
   ClientDbTable.client_key,
 ];
 
-export const partialTables = [
-  TenantDbPartialTable.tenant_self_care_id,
-  CatalogDbPartialTable.descriptor_server_urls,
-];
+export const partialTables = [TenantDbPartialTable.tenant_self_care_id];
 
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
-  DeletingDbTable.catalog_descriptor_interface_deleting_table,
+  DeletingDbTable.catalog_risk_deleting_table,
   DeletingDbTable.purpose_deleting_table,
   DeletingDbTable.tenant_deleting_table,
   DeletingDbTable.tenant_mail_deleting_table,
@@ -145,11 +141,17 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
   { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
   {
-    name: DeletingDbTable.catalog_descriptor_interface_deleting_table,
-    columns: ["id", "descriptorId", "metadataVersion"],
+    name: DeletingDbTable.catalog_risk_deleting_table,
+    columns: ["id", "eserviceId"],
   },
-  { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
-  { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
+  {
+    name: DeletingDbTable.agreement_deleting_table,
+    columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.purpose_deleting_table,
+    columns: ["id"],
+  },
   {
     name: DeletingDbTable.tenant_deleting_table,
     columns: ["id"],
