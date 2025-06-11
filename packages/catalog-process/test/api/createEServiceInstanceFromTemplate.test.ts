@@ -142,7 +142,7 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
         generateId(),
         tenantKind.PA
       ),
-      expectedStatus: 500,
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",
