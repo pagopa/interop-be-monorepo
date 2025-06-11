@@ -2415,7 +2415,7 @@ export function catalogServiceBuilder(
       return updatedEservice;
     },
 
-    async updateSignalHubFlag(
+    async updateEServiceSignalHubFlag(
       eserviceId: EServiceId,
       isSignalHubEnabled: boolean,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>

@@ -865,11 +865,12 @@ const eservicesRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-        const updatedEService = await catalogService.updateSignalHubFlag(
-          unsafeBrandId(req.params.eServiceId),
-          req.body.isSignalHubEnabled,
-          ctx
-        );
+        const updatedEService =
+          await catalogService.updateEServiceSignalHubFlag(
+            unsafeBrandId(req.params.eServiceId),
+            req.body.isSignalHubEnabled,
+            ctx
+          );
 
         return res
           .status(200)
