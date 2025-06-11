@@ -2441,11 +2441,13 @@ export function catalogServiceBuilder(
       };
 
       const event = match({
-        isSignalHubEnabled,
+        newisSignalHubEnabled: isSignalHubEnabled,
+        oldSignalHubEnabled: eservice.data.isSignalHubEnabled || false,
       })
         .with(
           {
-            isSignalHubEnabled: true,
+            oldSignalHubEnabled: false,
+            newisSignalHubEnabled: true,
           },
           () =>
             toCreateEventEServiceSignalhubFlagEnabled(
@@ -2456,7 +2458,8 @@ export function catalogServiceBuilder(
         )
         .with(
           {
-            isSignalHubEnabled: false,
+            oldSignalHubEnabled: true,
+            newisSignalHubEnabled: false,
           },
           () =>
             toCreateEventEServiceSignalhubFlagDisabled(
@@ -2464,6 +2467,20 @@ export function catalogServiceBuilder(
               updatedEservice,
               correlationId
             )
+        )
+        .with(
+          {
+            oldSignalHubEnabled: true,
+            newisSignalHubEnabled: true,
+          },
+          () => undefined
+        )
+        .with(
+          {
+            oldSignalHubEnabled: false,
+            newisSignalHubEnabled: false,
+          },
+          () => undefined
         )
         .exhaustive();
 
