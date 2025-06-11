@@ -292,10 +292,11 @@ describe("createEServiceTemplateRiskAnalysis", () => {
 
     const mockValidRiskAnalysis =
       getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed = {
-      ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
-      name: riskAnalysis.name,
-    };
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
+      {
+        ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
+        name: riskAnalysis.name,
+      };
 
     expect(
       eserviceTemplateService.createRiskAnalysis(
