@@ -66,7 +66,10 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
     })
     .join(" AND ");
 
+  const snakeCaseKeysOn = keysOn.map((k) => snakeCaseMapper(String(k)));
+
   const updateSet = keys
+    .filter((field) => !snakeCaseKeysOn.includes(field))
     .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
     .join(",\n      ");
 
@@ -129,6 +132,7 @@ export function generateMergeDeleteQuery<
   ];
 
   const updateSet = fieldsToUpdate
+    .filter((field) => !deleteKeysOn.includes(field as ColumnKeys))
     .map((field) => `${field} = source.${quoteColumn(field)}`)
     .join(",\n      ");
 
