@@ -13,7 +13,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   EServiceDocumentId,
-  eserviceMode,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   RiskAnalysisId,
