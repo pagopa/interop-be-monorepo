@@ -8,159 +8,88 @@ import {
   M2MAuthData,
   MaintenanceAuthData,
   readAuthDataFromJwtToken,
+  SerializedInteropJwtApiPayload,
+  SerializedInteropJwtInternalPayload,
+  SerializedInteropJwtUIPayload,
   systemRole,
   UIAuthData,
   userRole,
 } from "pagopa-interop-commons";
 import { invalidClaim, unsafeBrandId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+import {
+  createPayload,
+  createUIPayload,
+  signPayload,
+} from "../src/mockedPayloadForToken.js";
 import { randomSubArray } from "../src/testUtils.js";
 
-const mockUiToken = {
-  iss: "dev.interop.pagopa.it",
-  externalId: {
-    origin: "IPA",
-    value: "5N2TR557",
-  },
-  "user-roles": "security,api",
-  selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
-  organizationId: unsafeBrandId("69e2865e-65ab-4e48-a638-2037a9ee2ee7"),
-  aud: "dev.interop.pagopa.it/ui,interop.pagopa.it/ui",
-  uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
-  nbf: 1710841859,
-  organization: {
-    id: "1962d21c-c701-4805-93f6-53a877898756",
-    name: "PagoPA S.p.A.",
-    roles: [
-      {
-        partyRole: "MANAGER",
-        role: userRole.ADMIN_ROLE,
-      },
-    ],
-    fiscal_code: "15376371009",
-    ipaCode: "5N2TR557",
-  },
-  name: "Mario",
-  exp: 1710928259,
-  iat: 1710841859,
-  family_name: "Rossi",
-  jti: "e82bd774-9cac-4885-931b-015b2eb4e9a5",
-  email: "m.rossi@psp.it",
-};
-
-const mockExpectedUiAuthData: UIAuthData = {
+const mockUiTokenPaylod = createUIPayload();
+const expectedUiAuthData: UIAuthData = {
   systemRole: undefined,
   externalId: {
     origin: "IPA",
     value: "5N2TR557",
   },
-  selfcareId: unsafeBrandId("1962d21c-c701-4805-93f6-53a877898756"),
-  organizationId: unsafeBrandId("69e2865e-65ab-4e48-a638-2037a9ee2ee7"),
-  userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
-  userRoles: ["security", "api"],
+  selfcareId: mockUiTokenPaylod.selfcareId,
+  organizationId: mockUiTokenPaylod.organizationId,
+  userId: mockUiTokenPaylod.uid,
+  userRoles: [userRole.SECURITY_ROLE, userRole.API_ROLE],
 };
 
-const mockM2MToken = {
-  organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
-  aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
-  sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
-  role: systemRole.M2M_ROLE,
-  nbf: 1710511524,
-  iss: "dev.interop.pagopa.it",
-  exp: 1810511523,
-  iat: 1710511524,
-  client_id: "227cadc9-1a2c-4612-b100-a247b48d0464",
-  jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
+const mockM2MTokenPayload = createPayload(
+  systemRole.M2M_ROLE
+) as SerializedInteropJwtApiPayload;
+
+const expectedM2MAuthData: M2MAuthData = {
+  systemRole: systemRole.M2M_ROLE,
+  organizationId: mockM2MTokenPayload.organizationId,
 };
 
-const mockM2MExpectedAuthData: M2MAuthData = {
-  systemRole: "m2m",
-  organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
+const mockInternalTokenPayload = createPayload(
+  systemRole.INTERNAL_ROLE
+) as SerializedInteropJwtInternalPayload;
+
+const expectedInternalAuthData: InternalAuthData = {
+  systemRole: systemRole.INTERNAL_ROLE,
 };
 
-const mockInternalToken = {
-  aud: "dev.interop.pagopa.it/m2m,interop.pagopa.it/m2m",
-  sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
-  role: systemRole.INTERNAL_ROLE,
-  nbf: 1710511524,
-  iss: "dev.interop.pagopa.it",
-  exp: 1810511523,
-  iat: 1710511524,
-  jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
+const mockMaintenanceTokenPayload: InteropJwtMaintenancePayload = createPayload(
+  systemRole.MAINTENANCE_ROLE
+) as InteropJwtMaintenancePayload;
+
+const expectedMaintenanceAuthData: MaintenanceAuthData = {
+  systemRole: systemRole.MAINTENANCE_ROLE,
 };
 
-const mockInternalExpectedAuthData: InternalAuthData = {
-  systemRole: "internal",
-};
+const mockSupportTokenPayload = createPayload(
+  userRole.SUPPORT_ROLE
+) as SerializedInteropJwtUIPayload;
 
-const mockMaintenanceToken: InteropJwtMaintenancePayload = {
-  aud: ["dev.interop.pagopa.it/maintenance", "interop.pagopa.it/maintenance"],
-  sub: "227cadc9-1a2c-4612-b100-a247b48d0464",
-  role: systemRole.MAINTENANCE_ROLE,
-  nbf: 1710511524,
-  iss: "dev.interop.pagopa.it",
-  exp: 1810511523,
-  iat: 1710511524,
-  jti: "d0c42cfb-8a32-430f-95cf-085067b52695",
-};
-
-const mockMaintenanceExpectedAuthData: MaintenanceAuthData = {
-  systemRole: "maintenance",
-};
-
-const mockSupportToken = {
-  iss: "dev.interop.pagopa.it",
-  externalId: {
-    origin: "IPA",
-    value: "5N2TR557",
-  },
-  "user-roles": "support",
-  selfcareId: "1962d21c-c701-4805-93f6-53a877898756",
-  organizationId: "69e2865e-65ab-4e48-a638-2037a9ee2ee7",
-  aud: "dev.interop.pagopa.it/ui,interop.pagopa.it/ui",
-  uid: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
-  nbf: 1710841859,
-  organization: {
-    roles: [
-      {
-        role: userRole.SUPPORT_ROLE,
-      },
-    ],
-    id: "1962d21c-c701-4805-93f6-53a877898756",
-    name: "PagoPA S.p.A.",
-  },
-  exp: 1710928259,
-  iat: 1710841859,
-  jti: "e82bd774-9cac-4885-931b-015b2eb4e9a5",
-};
-
-const mockSupportExpectedAuthData: UIAuthData = {
+const expectedSupportAuthData: UIAuthData = {
   systemRole: undefined,
   externalId: {
     origin: "IPA",
-    value: "5N2TR557",
+    value: "123456",
   },
-  selfcareId: unsafeBrandId("1962d21c-c701-4805-93f6-53a877898756"),
-  organizationId: unsafeBrandId("69e2865e-65ab-4e48-a638-2037a9ee2ee7"),
-  userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
-  userRoles: ["support"],
+  selfcareId: mockSupportTokenPayload.selfcareId,
+  organizationId: mockSupportTokenPayload.organizationId,
+  userId: mockSupportTokenPayload.uid,
+  userRoles: [userRole.SUPPORT_ROLE],
 };
 
-const mockM2MAdminToken = {
-  ...mockM2MToken,
-  role: "m2m-admin",
-  adminId: "f07ddb8f-17f9-47d4-b31e-35d1ac10e521",
+const mockM2MAdminTokenPayload: SerializedInteropJwtApiPayload = {
+  ...mockM2MTokenPayload,
+  role: systemRole.M2M_ADMIN_ROLE,
+  adminId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
 };
 
-const mockM2MAdminExpectedAuthData: M2MAdminAuthData = {
-  systemRole: "m2m-admin",
-  organizationId: unsafeBrandId("89804b2c-f62e-4867-87a4-3a82f2b03485"),
-  userId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
-  clientId: unsafeBrandId("227cadc9-1a2c-4612-b100-a247b48d0464"),
+const expectedM2MAdminAuthData: M2MAdminAuthData = {
+  systemRole: systemRole.M2M_ADMIN_ROLE,
+  organizationId: mockM2MAdminTokenPayload.organizationId,
+  userId: mockM2MAdminTokenPayload.adminId,
+  clientId: mockM2MAdminTokenPayload.client_id,
 };
-
-const getMockSignedToken = (token: object): string =>
-  jwt.sign(token, "test-secret");
 
 const getClaimsName = (token: object): string[] => {
   const commonClaims = InteropJwtCommonPayload.safeParse(token);
@@ -175,62 +104,66 @@ const getClaimsName = (token: object): string[] => {
 describe("JWT tests", () => {
   describe("readAuthDataFromJwtToken", () => {
     it("should successfully read data from a UI token with a single user role", async () => {
-      const token = jwt.decode(
-        getMockSignedToken({
-          ...mockUiToken,
+      const tokenPayload = jwt.decode(
+        signPayload({
+          ...mockUiTokenPaylod,
           "user-roles": "admin",
         })
       );
 
       const expectedUIAuthData: UIAuthData = {
-        ...mockExpectedUiAuthData,
+        ...expectedUiAuthData,
         userRoles: ["admin"],
       };
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual(expectedUIAuthData);
+      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+        expectedUIAuthData
+      );
     });
 
     it("should successfully read auth data from a UI token with multiple comma separated user roles", async () => {
       // constant contains a randomically number of user roles picked from the enum UserRole
       const userRoles = randomSubArray(Object.values(userRole));
-      const token = jwt.decode(
-        getMockSignedToken({
-          ...mockUiToken,
+      const tokenPayload = jwt.decode(
+        signPayload({
+          ...mockUiTokenPaylod,
           "user-roles": userRoles.join(","),
         })
       );
 
       const expectedUIAuthData: UIAuthData = {
-        ...mockExpectedUiAuthData,
+        ...expectedUiAuthData,
         userRoles,
       };
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual(expectedUIAuthData);
+      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+        expectedUIAuthData
+      );
     });
 
     it("should fail reading auth data from a UI token with invalid user roles", async () => {
-      const token = jwt.decode(
-        getMockSignedToken({
-          ...mockUiToken,
+      const tokenPayload = jwt.decode(
+        signPayload({
+          ...mockUiTokenPaylod,
           "user-roles": "api,invalid-role",
         })
       );
 
       expect(() => {
-        readAuthDataFromJwtToken(token!);
+        readAuthDataFromJwtToken(tokenPayload!);
       }).toThrowError(/.*Validation error: Invalid enum value.*/);
     });
 
     it("should fail reading auth data from a UI token with empty user roles", async () => {
-      const token = jwt.decode(
-        getMockSignedToken({
-          ...mockUiToken,
+      const tokenPayload = jwt.decode(
+        signPayload({
+          ...mockUiTokenPaylod,
           "user-roles": "",
         })
       );
 
       expect(() => {
-        readAuthDataFromJwtToken(token!);
+        readAuthDataFromJwtToken(tokenPayload!);
       }).toThrowError(
         invalidClaim(
           'Validation error: String must contain at least 1 character(s) at "user-roles"'
@@ -239,98 +172,92 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a M2M token", async () => {
-      const token = jwt.decode(getMockSignedToken(mockM2MToken));
+      const tokenPayload = jwt.decode(signPayload(mockM2MTokenPayload));
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual(mockM2MExpectedAuthData);
+      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+        expectedM2MAuthData
+      );
     });
 
     it("should successfully read auth data from a M2M admin token", async () => {
-      const token = jwt.decode(getMockSignedToken(mockM2MAdminToken));
+      const token = jwt.decode(signPayload(mockM2MAdminTokenPayload));
 
       expect(readAuthDataFromJwtToken(token!)).toEqual(
-        mockM2MAdminExpectedAuthData
+        expectedM2MAdminAuthData
       );
     });
 
     describe("Missing claims in M2M Token", () => {
-      it.each(getClaimsName(mockM2MToken))(
+      it.each(getClaimsName(mockM2MTokenPayload))(
         "should fails if missing common claim %s",
         (claim) => {
-          const invalidToken = { ...mockM2MToken };
+          const invalidToken = { ...mockM2MTokenPayload };
           // eslint-disable-next-line fp/no-delete, functional/immutable-data
           delete invalidToken[claim as keyof typeof invalidToken];
 
           expect(() => {
-            readAuthDataFromJwtToken(
-              jwt.decode(getMockSignedToken(invalidToken))!
-            );
+            readAuthDataFromJwtToken(jwt.decode(signPayload(invalidToken))!);
           }).toThrowError(`Validation error: Required at "${claim}"`);
         }
       );
     });
 
     describe("Missing claims in Internal Token", () => {
-      it.each(getClaimsName(mockInternalToken))(
+      it.each(getClaimsName(mockInternalTokenPayload))(
         "should fails if missing common claim %s",
         (claim) => {
-          const invalidToken = { ...mockInternalToken };
+          const invalidToken = { ...mockInternalTokenPayload };
           // eslint-disable-next-line fp/no-delete, functional/immutable-data
           delete invalidToken[claim as keyof typeof invalidToken];
 
           // eslint-disable-next-line sonarjs/no-identical-functions
           expect(() => {
-            readAuthDataFromJwtToken(
-              jwt.decode(getMockSignedToken(invalidToken))!
-            );
+            readAuthDataFromJwtToken(jwt.decode(signPayload(invalidToken))!);
           }).toThrowError(`Validation error: Required at "${claim}"`);
         }
       );
     });
 
     describe("Missing claims in Maintenance Token", () => {
-      it.each(getClaimsName(mockMaintenanceToken))(
+      it.each(getClaimsName(mockMaintenanceTokenPayload))(
         "should fails if missing common claim %s",
         (claim) => {
-          const invalidToken = { ...mockMaintenanceToken };
+          const invalidToken = { ...mockMaintenanceTokenPayload };
           // eslint-disable-next-line fp/no-delete, functional/immutable-data
           delete invalidToken[claim as keyof typeof invalidToken];
 
           // eslint-disable-next-line sonarjs/no-identical-functions
           expect(() => {
-            readAuthDataFromJwtToken(
-              jwt.decode(getMockSignedToken(invalidToken))!
-            );
+            readAuthDataFromJwtToken(jwt.decode(signPayload(invalidToken))!);
           }).toThrowError(`Validation error: Required at "${claim}"`);
         }
       );
     });
 
     describe("Missing claims in UI Token", () => {
-      it.each(getClaimsName(mockUiToken))(
+      it.each(getClaimsName(mockUiTokenPaylod))(
         "should fails if missing common claim %s",
         (claim) => {
-          const invalidToken = { ...mockUiToken };
+          const invalidToken = { ...mockUiTokenPaylod };
           // eslint-disable-next-line fp/no-delete, functional/immutable-data
           delete invalidToken[claim as keyof typeof invalidToken];
 
           // eslint-disable-next-line sonarjs/no-identical-functions
           expect(() => {
-            readAuthDataFromJwtToken(
-              jwt.decode(getMockSignedToken(invalidToken))!
-            );
+            readAuthDataFromJwtToken(jwt.decode(signPayload(invalidToken))!);
           }).toThrowError(`Validation error: Required at "${claim}"`);
         }
       );
     });
 
     it.each([
-      mockM2MToken,
-      mockInternalToken,
-      mockMaintenanceToken,
-      mockUiToken,
+      mockM2MTokenPayload,
+      mockInternalTokenPayload,
+      mockMaintenanceTokenPayload,
+      mockUiTokenPaylod,
     ])("should fail if the 'aud' claim is an empty string", (token) => {
       const invalidToken = jwt.decode(
-        getMockSignedToken({
+        signPayload({
           ...token,
           aud: "",
         })
@@ -344,65 +271,65 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from an Internal token", async () => {
-      const token = jwt.decode(getMockSignedToken(mockInternalToken));
+      const tokenPayload = jwt.decode(signPayload(mockInternalTokenPayload));
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual(
-        mockInternalExpectedAuthData
+      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+        expectedInternalAuthData
       );
     });
 
     it("should successfully read auth data from a Maintenance token", async () => {
-      const token = jwt.decode(getMockSignedToken(mockMaintenanceToken));
+      const tokenPayload = jwt.decode(signPayload(mockMaintenanceTokenPayload));
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual(
-        mockMaintenanceExpectedAuthData
+      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+        expectedMaintenanceAuthData
       );
     });
 
     it("should fail when the token is invalid", async () => {
-      const token = jwt.decode(
-        getMockSignedToken({
+      const tokenPayload = jwt.decode(
+        signPayload({
           role: "invalid-role",
         })
       );
 
-      expect(() => readAuthDataFromJwtToken(token!)).toThrowError(
+      expect(() => readAuthDataFromJwtToken(tokenPayload!)).toThrowError(
         /Validation error: Invalid discriminator value.*/
       );
     });
 
     it("should successfully read auth data from a Support token", async () => {
-      const token = jwt.decode(getMockSignedToken(mockSupportToken));
+      const tokenPayload = jwt.decode(signPayload(mockSupportTokenPayload));
 
-      expect(readAuthDataFromJwtToken(token!)).toEqual(
-        mockSupportExpectedAuthData
+      expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
+        expectedSupportAuthData
       );
     });
 
     it("should fail reading auth data from a Support token with invalid user roles", async () => {
-      const token = jwt.decode(
-        getMockSignedToken({
-          ...mockSupportToken,
+      const tokenPayload = jwt.decode(
+        signPayload({
+          ...mockSupportTokenPayload,
           "user-roles": "support,invalid-role",
         })
       );
 
       expect(() => {
-        readAuthDataFromJwtToken(token!);
+        readAuthDataFromJwtToken(tokenPayload!);
       }).toThrowError(/.*Validation error: Invalid enum value.*/);
     });
 
     it("should also accept audience as a JSON array", async () => {
-      const token = jwt.decode(
-        getMockSignedToken({
-          ...mockUiToken,
+      const tokenPayload = jwt.decode(
+        signPayload({
+          ...mockUiTokenPaylod,
           aud: ["dev.interop.pagopa.it/ui", "interop.pagopa.it/ui"],
         })
       );
 
-      const authData = readAuthDataFromJwtToken(token!);
+      const authData = readAuthDataFromJwtToken(tokenPayload!);
 
-      expect(authData).toMatchObject(mockExpectedUiAuthData);
+      expect(authData).toMatchObject(expectedUiAuthData);
     });
   });
 });
