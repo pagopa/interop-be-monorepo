@@ -227,6 +227,32 @@ const getVisibilityFilter = (requesterId: TenantId): SQL | undefined =>
     eq(activeConsumerDelegations.delegateId, requesterId)
   );
 
+const getProducerIdsFilter = (
+  producerIds: TenantId[],
+  withDelegationFilter: boolean | undefined
+): SQL | undefined =>
+  producerIds.length > 0
+    ? or(
+        inArray(agreementInReadmodelAgreement.producerId, producerIds),
+        withDelegationFilter
+          ? inArray(activeProducerDelegations.delegateId, producerIds)
+          : undefined
+      )
+    : undefined;
+
+const getConsumerIdsFilter = (
+  consumerIds: TenantId[],
+  withDelegationFilter: boolean | undefined
+): SQL | undefined =>
+  consumerIds.length > 0
+    ? or(
+        inArray(agreementInReadmodelAgreement.consumerId, consumerIds),
+        withDelegationFilter
+          ? inArray(activeConsumerDelegations.delegateId, consumerIds)
+          : undefined
+      )
+    : undefined;
+
 const getAgreementsFilters = <
   T extends
     | { requesterId: TenantId; withVisibilityAndDelegationFilters: true }
@@ -257,24 +283,10 @@ const getAgreementsFilters = <
       : undefined,
     // END // VISIBILITY
     // PRODUCERS
-    producerIds.length > 0
-      ? or(
-          inArray(agreementInReadmodelAgreement.producerId, producerIds),
-          withVisibilityAndDelegationFilters
-            ? inArray(activeProducerDelegations.delegateId, producerIds)
-            : undefined
-        )
-      : undefined,
+    getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
     // END PRODUCERS
     // CONSUMERS
-    consumerIds.length > 0
-      ? or(
-          inArray(agreementInReadmodelAgreement.consumerId, consumerIds),
-          withVisibilityAndDelegationFilters
-            ? inArray(activeConsumerDelegations.delegateId, consumerIds)
-            : undefined
-        )
-      : undefined,
+    getConsumerIdsFilter(consumerIds, withVisibilityAndDelegationFilters),
     // END CONSUMERS
     // ESERVICES
     eserviceIds.length > 0
@@ -721,6 +733,7 @@ export function readModelServiceBuilderSQL(
       offset: number
     ): Promise<ListResult<CompactEService>> {
       const { consumerIds, producerIds, eserviceName } = filters;
+      const withDelegationFilter = true;
 
       const resultSet = await addDelegationJoins(
         readmodelDB
@@ -748,25 +761,9 @@ export function readModelServiceBuilderSQL(
                   )
                 : undefined,
               // FILTER PRODUCER
-              producerIds.length > 0
-                ? or(
-                    inArray(
-                      agreementInReadmodelAgreement.producerId,
-                      producerIds
-                    ),
-                    inArray(activeProducerDelegations.delegateId, producerIds)
-                  )
-                : undefined,
+              getProducerIdsFilter(producerIds, withDelegationFilter),
               // FILTER CONSUMER
-              consumerIds.length > 0
-                ? or(
-                    inArray(
-                      agreementInReadmodelAgreement.consumerId,
-                      consumerIds
-                    ),
-                    inArray(activeConsumerDelegations.delegateId, consumerIds)
-                  )
-                : undefined,
+              getConsumerIdsFilter(consumerIds, withDelegationFilter),
               // VISIBILITY
               getVisibilityFilter(requesterId)
               // END // VISIBILITY
