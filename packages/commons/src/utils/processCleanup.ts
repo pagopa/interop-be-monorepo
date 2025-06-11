@@ -53,7 +53,7 @@ export async function gracefulShutdown(
 }
 
 export function setupGracefulShutdown(resources: CleanupResources): void {
-  const shutdownHandler = () => {
+  const shutdownHandler = (): void => {
     gracefulShutdown(resources).finally(() => {
       // If the process doesn't exit naturally after cleanup, force exit as fallback
       setTimeout(() => {
