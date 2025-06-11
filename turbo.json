@@ -52,6 +52,9 @@
       "dependsOn": ["build"],
       "outputs": ["dist"]
     },
+    "lint:openapi": {
+      "dependsOn": ["^lint:openapi"]
+    },
     "format:check": {},
     "format:write": {}
   }
