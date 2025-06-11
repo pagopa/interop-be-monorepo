@@ -78,8 +78,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
       MERGE INTO ${schemaName}.${tableName}
       USING ${stagingTableName} AS source
       ON ${onCondition}
-      WHEN MATCHED
-      THEN
+      WHEN MATCHED THEN
         UPDATE SET
           ${updateSet}
       WHEN NOT MATCHED THEN
