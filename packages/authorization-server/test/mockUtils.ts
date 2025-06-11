@@ -18,6 +18,7 @@ import {
   algorithm,
 } from "pagopa-interop-models";
 import { vi } from "vitest";
+import { HttpDPoPHeader } from "../src/model/domain/models.js";
 
 export const mockProducer = {
   send: vi.fn(),
@@ -41,7 +42,7 @@ export const getMockAccessTokenRequest =
 export const getMockTokenRequest = async (
   withDPoPProof: boolean = false
 ): Promise<{
-  headers: IncomingHttpHeaders & { DPoP?: string };
+  headers: IncomingHttpHeaders & HttpDPoPHeader;
   body: authorizationServerApi.AccessTokenRequest;
 }> => ({
   headers: {

@@ -73,8 +73,9 @@ import {
   unexpectedDPoPProofForAPIToken,
   dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
+import { HttpDPoPHeader } from "../model/domain/models.js";
 
-export type GenerateTokenReturnType =
+export type GeneratedTokenData =
   | {
       limitReached: true;
       token: undefined;
@@ -105,12 +106,12 @@ export function tokenServiceBuilder({
 }) {
   return {
     async generateToken(
-      headers: IncomingHttpHeaders & { DPoP?: string },
+      headers: IncomingHttpHeaders & HttpDPoPHeader,
       body: authorizationServerApi.AccessTokenRequest,
       { logger, correlationId }: WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
-    ): Promise<GenerateTokenReturnType> {
+    ): Promise<GeneratedTokenData> {
       logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
       // DPoP proof validation
@@ -216,7 +217,7 @@ export function tokenServiceBuilder({
         );
       }
 
-      // Rate limiter
+      // Rate limit check
       const { limitReached, ...rateLimiterStatus } =
         await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
       if (limitReached) {
@@ -229,7 +230,7 @@ export function tokenServiceBuilder({
         };
       }
 
-      // Check if the DPoP proof is in the cache
+      // Check if the cache contains the DPoP proof
       if (dpopProofJWT) {
         const { errors: dpopCacheErrors } = await checkDPoPCache({
           dynamoDBClient,
