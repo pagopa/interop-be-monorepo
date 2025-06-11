@@ -53,7 +53,7 @@ import {
   or,
   SQL,
 } from "drizzle-orm";
-import { alias } from "drizzle-orm/pg-core";
+import { alias, PgSelect } from "drizzle-orm/pg-core";
 
 export type GetPurposesFilters = {
   title?: string;
@@ -63,6 +63,50 @@ export type GetPurposesFilters = {
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
 };
+
+const activeProducerDelegations = alias(
+  delegationInReadmodelDelegation,
+  "activeProducerDelegations"
+);
+const activeConsumerDelegations = alias(
+  delegationInReadmodelDelegation,
+  "activeConsumerDelegations"
+);
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const addDelegationJoins = <T extends PgSelect>(query: T) =>
+  query
+    .leftJoin(
+      activeProducerDelegations,
+      and(
+        eq(
+          purposeInReadmodelPurpose.eserviceId,
+          activeProducerDelegations.eserviceId
+        ),
+        eq(activeProducerDelegations.state, delegationState.active),
+        eq(activeProducerDelegations.kind, delegationKind.delegatedProducer),
+        eq(
+          activeProducerDelegations.delegatorId,
+          eserviceInReadmodelCatalog.producerId
+        )
+      )
+    )
+    .leftJoin(
+      activeConsumerDelegations,
+      and(
+        eq(
+          purposeInReadmodelPurpose.eserviceId,
+          activeConsumerDelegations.eserviceId
+        ),
+        eq(activeConsumerDelegations.state, delegationState.active),
+        eq(activeConsumerDelegations.kind, delegationKind.delegatedConsumer),
+        eq(
+          activeConsumerDelegations.delegatorId,
+          purposeInReadmodelPurpose.consumerId
+        ),
+        eq(purposeInReadmodelPurpose.delegationId, activeConsumerDelegations.id)
+      )
+    );
 
 function getPurposesFilters(
   db: DrizzleReturnType,
@@ -169,107 +213,64 @@ export function readModelServiceBuilderSQL({
     ): Promise<ListResult<Purpose>> {
       const { producersIds, consumersIds, ...otherFilters } = filters;
 
-      const activeProducerDelegations = alias(
-        delegationInReadmodelDelegation,
-        "activeProducerDelegations"
-      );
-      const activeConsumerDelegations = alias(
-        delegationInReadmodelDelegation,
-        "activeConsumerDelegations"
-      );
-      const subquery = readModelDB
-        .select(
-          withTotalCount({
-            purposeId: purposeInReadmodelPurpose.id,
-          })
-        )
-        .from(purposeInReadmodelPurpose)
-        .leftJoin(
-          purposeVersionInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeVersionInReadmodelPurpose.purposeId
+      const subquery = addDelegationJoins(
+        readModelDB
+          .select(
+            withTotalCount({
+              purposeId: purposeInReadmodelPurpose.id,
+            })
           )
-        )
-        .leftJoin(
-          eserviceInReadmodelCatalog,
-          eq(
-            purposeInReadmodelPurpose.eserviceId,
-            eserviceInReadmodelCatalog.id
-          )
-        )
-        .leftJoin(
-          activeProducerDelegations,
-          and(
+          .from(purposeInReadmodelPurpose)
+          .leftJoin(
+            purposeVersionInReadmodelPurpose,
             eq(
-              purposeInReadmodelPurpose.eserviceId,
-              activeProducerDelegations.eserviceId
-            ),
-            eq(activeProducerDelegations.state, delegationState.active),
-            eq(
-              activeProducerDelegations.kind,
-              delegationKind.delegatedProducer
-            ),
-            eq(
-              activeProducerDelegations.delegatorId,
-              eserviceInReadmodelCatalog.producerId
+              purposeInReadmodelPurpose.id,
+              purposeVersionInReadmodelPurpose.purposeId
             )
           )
-        )
-        .leftJoin(
-          activeConsumerDelegations,
-          and(
+          .leftJoin(
+            eserviceInReadmodelCatalog,
             eq(
               purposeInReadmodelPurpose.eserviceId,
-              activeConsumerDelegations.eserviceId
-            ),
-            eq(activeConsumerDelegations.state, delegationState.active),
-            eq(
-              activeConsumerDelegations.kind,
-              delegationKind.delegatedConsumer
-            ),
-            eq(
-              activeConsumerDelegations.delegatorId,
-              purposeInReadmodelPurpose.consumerId
-            ),
-            eq(
-              purposeInReadmodelPurpose.delegationId,
-              activeConsumerDelegations.id
+              eserviceInReadmodelCatalog.id
             )
           )
-        )
-        .where(
-          // PRODUCER IDS
-          and(
-            producersIds.length > 0
-              ? or(
-                  inArray(eserviceInReadmodelCatalog.producerId, producersIds),
-                  inArray(activeProducerDelegations.delegateId, producersIds)
-                )
-              : undefined,
-            // CONSUMER IDS
-            consumersIds.length > 0
-              ? or(
-                  inArray(purposeInReadmodelPurpose.consumerId, consumersIds),
-                  inArray(activeConsumerDelegations.delegateId, consumersIds)
-                )
-              : undefined,
-            // VISIBILITY
-            or(
-              eq(eserviceInReadmodelCatalog.producerId, requesterId),
-              eq(purposeInReadmodelPurpose.consumerId, requesterId),
-              eq(activeProducerDelegations.delegateId, requesterId),
-              eq(activeConsumerDelegations.delegateId, requesterId)
-            ),
-            // PURPOSE FILTERS
-            ...getPurposesFilters(readModelDB, otherFilters)
+          .where(
+            // PRODUCER IDS
+            and(
+              producersIds.length > 0
+                ? or(
+                    inArray(
+                      eserviceInReadmodelCatalog.producerId,
+                      producersIds
+                    ),
+                    inArray(activeProducerDelegations.delegateId, producersIds)
+                  )
+                : undefined,
+              // CONSUMER IDS
+              consumersIds.length > 0
+                ? or(
+                    inArray(purposeInReadmodelPurpose.consumerId, consumersIds),
+                    inArray(activeConsumerDelegations.delegateId, consumersIds)
+                  )
+                : undefined,
+              // VISIBILITY
+              or(
+                eq(eserviceInReadmodelCatalog.producerId, requesterId),
+                eq(purposeInReadmodelPurpose.consumerId, requesterId),
+                eq(activeProducerDelegations.delegateId, requesterId),
+                eq(activeConsumerDelegations.delegateId, requesterId)
+              ),
+              // PURPOSE FILTERS
+              ...getPurposesFilters(readModelDB, otherFilters)
+            )
           )
-        )
-        .groupBy(purposeInReadmodelPurpose.id)
-        .orderBy(ascLower(purposeInReadmodelPurpose.title))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
+          .groupBy(purposeInReadmodelPurpose.id)
+          .orderBy(ascLower(purposeInReadmodelPurpose.title))
+          .limit(limit)
+          .offset(offset)
+          .$dynamic()
+      ).as("subquery");
 
       const queryResult = await readModelDB
         .select({
