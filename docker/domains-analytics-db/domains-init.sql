@@ -456,7 +456,7 @@ CREATE TABLE IF NOT EXISTS domains.client_key (
   user_id VARCHAR(36),
   kid VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
-  encoded_pem VARCHAR NOT NULL,
+  encoded_pem VARCHAR(8192) NOT NULL,
   "algorithm" VARCHAR NOT NULL,
   "use" VARCHAR NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
