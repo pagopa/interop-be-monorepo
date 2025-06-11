@@ -26,7 +26,10 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import { eServiceNotFound } from "../../src/model/domain/errors.js";
+import {
+  eServiceNotFound,
+  eserviceWithoutValidDescriptors,
+} from "../../src/model/domain/errors.js";
 
 describe("update E-service signalhub flag for an already created E-service", async () => {
   it("should write on event-store for the update of the E-service signalhub flag (false->true)", async () => {
@@ -43,7 +46,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
     await addOneEService(eservice);
     const newSignalhubFlagValue = true;
 
-    const returnedEService = await catalogService.updateSignalHubFlag(
+    const returnedEService = await catalogService.updateEServiceSignalHubFlag(
       eservice.id,
       newSignalhubFlagValue,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -79,12 +82,13 @@ describe("update E-service signalhub flag for an already created E-service", asy
     const eservice: EService = {
       ...getMockEService(),
       descriptors: [descriptor],
+      isSignalHubEnabled: true,
     };
 
     await addOneEService(eservice);
     const newSignalhubFlagValue = false;
 
-    const returnedEService = await catalogService.updateSignalHubFlag(
+    const returnedEService = await catalogService.updateEServiceSignalHubFlag(
       eservice.id,
       newSignalhubFlagValue,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -110,6 +114,50 @@ describe("update E-service signalhub flag for an already created E-service", asy
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
     expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
   });
+  it.each([
+    [true, true],
+    [false, false],
+  ])(
+    "should write on event-store for the update of the E-service signalhub flag (%s -> %s)",
+    async (oldSignalhubFlagValue, newSignalhubFlagValue) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(descriptorState.published),
+        interface: getMockDocument(),
+      };
+
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [descriptor],
+        isSignalHubEnabled: oldSignalhubFlagValue,
+      };
+
+      await addOneEService(eservice);
+
+      const returnedEService = await catalogService.updateEServiceSignalHubFlag(
+        eservice.id,
+        newSignalhubFlagValue,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+
+      expect(writtenEvent).not.toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceSignalHubEnabled",
+        event_version: 2,
+      });
+
+      expect(writtenEvent).not.toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceSignalHubDisabled",
+        event_version: 2,
+      });
+
+      expect(returnedEService).toEqual(eservice);
+    }
+  );
 
   it("should write on event-store for the update of the E-service signalhub flag (false->true) (delegate)", async () => {
     const descriptor: Descriptor = {
@@ -132,7 +180,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
     await addOneDelegation(delegation);
     const newSignalhubFlagValue = true;
 
-    const returnedEService = await catalogService.updateSignalHubFlag(
+    const returnedEService = await catalogService.updateEServiceSignalHubFlag(
       eservice.id,
       newSignalhubFlagValue,
       getMockContext({ authData: getMockAuthData(delegation.delegateId) })
@@ -165,7 +213,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
     async (signalhubFlag) => {
       const eservice = getMockEService();
       expect(
-        catalogService.updateSignalHubFlag(
+        catalogService.updateEServiceSignalHubFlag(
           eservice.id,
           signalhubFlag,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -180,12 +228,31 @@ describe("update E-service signalhub flag for an already created E-service", asy
       const eservice = getMockEService();
       await addOneEService(eservice);
       expect(
-        catalogService.updateSignalHubFlag(
+        catalogService.updateEServiceSignalHubFlag(
           eservice.id,
           signalhubFlag,
           getMockContext({})
         )
       ).rejects.toThrowError(operationForbidden);
+    }
+  );
+
+  it.each([true, false])(
+    "should throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors (with signalhub flag set to %s)",
+    async (signalhubFlag) => {
+      const eservice: EService = {
+        ...getMockEService(),
+        isSignalHubEnabled: signalhubFlag,
+      };
+
+      await addOneEService(eservice);
+      expect(
+        catalogService.updateEServiceSignalHubFlag(
+          eservice.id,
+          signalhubFlag,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
 });
