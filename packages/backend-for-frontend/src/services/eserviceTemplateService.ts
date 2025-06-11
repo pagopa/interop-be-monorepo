@@ -13,6 +13,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   EServiceDocumentId,
+  eserviceMode,
   EServiceTemplateId,
   EServiceTemplateVersionId,
   RiskAnalysisId,
@@ -279,9 +280,12 @@ export function eserviceTemplateServiceBuilder(
         },
       });
 
-      const canBeInstantiated = eserviceTemplate.riskAnalysis.some(
-        (r) => r.tenantKind === callerTenant.kind
-      );
+      const canBeInstantiated =
+        eserviceTemplate.mode ===
+          eserviceTemplateApi.EServiceMode.Values.DELIVER ||
+        eserviceTemplate.riskAnalysis.some(
+          (r) => r.tenantKind === callerTenant.kind
+        );
 
       return {
         id: eserviceTemplateVersion.id,
