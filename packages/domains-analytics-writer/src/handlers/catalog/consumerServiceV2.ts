@@ -14,6 +14,16 @@ import {
   EserviceItemsSchema,
   EserviceDeletingSchema,
 } from "../../model/catalog/eservice.js";
+import {
+  EserviceDescriptorItemsSchema,
+  EserviceDescriptorDeletingSchema,
+} from "../../model/catalog/eserviceDescriptor.js";
+import {
+  EserviceDescriptorDocumentSchema,
+  EserviceDescriptorDocumentDeletingSchema,
+} from "../../model/catalog/eserviceDescriptorDocument.js";
+import { EserviceDescriptorInterfaceDeletingSchema } from "../../model/catalog/eserviceDescriptorInterface.js";
+import { EserviceRiskAnalysisDeletingSchema } from "../../model/catalog/eserviceRiskAnalysis.js";
 
 export async function handleCatalogMessageV2(
   messages: EServiceEventEnvelopeV2[],
@@ -23,6 +33,13 @@ export async function handleCatalogMessageV2(
 
   const upsertEServiceBatch: EserviceItemsSchema[] = [];
   const deleteEServiceBatch: EserviceDeletingSchema[] = [];
+  const deleteDescriptorBatch: EserviceDescriptorDeletingSchema[] = [];
+  const upsertEServiceDocumentBatch: EserviceDescriptorDocumentSchema[] = [];
+  const deleteEServiceDocumentBatch: EserviceDescriptorDocumentDeletingSchema[] =
+    [];
+  const deleteRiskAnalysisBatch: EserviceRiskAnalysisDeletingSchema[] = [];
+  const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
+  const deleteInterfaceBatch: EserviceDescriptorInterfaceDeletingSchema[] = [];
 
   for (const message of messages) {
     match(message)
@@ -32,6 +49,57 @@ export async function handleCatalogMessageV2(
             id: msg.data.eserviceId,
             deleted: true,
           } satisfies z.input<typeof EserviceDeletingSchema>)
+        );
+      })
+      .with({ type: "EServiceDraftDescriptorDeleted" }, (msg) => {
+        deleteDescriptorBatch.push(
+          EserviceDescriptorDeletingSchema.parse({
+            id: msg.data.descriptorId,
+            deleted: true,
+          } satisfies z.input<typeof EserviceDescriptorDeletingSchema>)
+        );
+      })
+
+      .with({ type: "EServiceDescriptorDocumentDeleted" }, (msg) => {
+        deleteEServiceDocumentBatch.push(
+          EserviceDescriptorDocumentDeletingSchema.parse({
+            id: msg.data.descriptorId,
+            deleted: true,
+          } satisfies z.input<typeof EserviceDescriptorDocumentDeletingSchema>)
+        );
+      })
+      .with(
+        { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
+        (msg) => {
+          deleteEServiceDocumentBatch.push(
+            EserviceDescriptorDocumentDeletingSchema.parse({
+              id: msg.data.documentId,
+              deleted: true,
+            } satisfies z.input<typeof EserviceDescriptorDocumentDeletingSchema>)
+          );
+        }
+      )
+      .with({ type: "EServiceDescriptorInterfaceDeleted" }, (msg) => {
+        deleteInterfaceBatch.push(
+          EserviceDescriptorInterfaceDeletingSchema.parse({
+            id: msg.data.descriptorId,
+            deleted: true,
+          } satisfies z.input<typeof EserviceDescriptorInterfaceDeletingSchema>)
+        );
+      })
+      .with({ type: "EServiceRiskAnalysisDeleted" }, (msg) => {
+        if (!msg.data.eservice?.id) {
+          throw genericInternalError(
+            "eservice can't be missing in event message"
+          );
+        }
+
+        deleteRiskAnalysisBatch.push(
+          EserviceRiskAnalysisDeletingSchema.parse({
+            id: msg.data.riskAnalysisId,
+            eserviceId: msg.data.eservice.id,
+            deleted: true,
+          } satisfies z.input<typeof EserviceRiskAnalysisDeletingSchema>)
         );
       })
       .with(
@@ -69,12 +137,7 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
             "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-            "EServiceDescriptorDocumentAddedByTemplateUpdate",
-            "EServiceRiskAnalysisDeleted",
-            "EServiceDescriptorInterfaceDeleted",
-            "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-            "EServiceDescriptorDocumentDeleted",
-            "EServiceDraftDescriptorDeleted"
+            "EServiceDescriptorDocumentAddedByTemplateUpdate"
           ),
         },
         (msg) => {
@@ -105,11 +168,46 @@ export async function handleCatalogMessageV2(
       )
       .exhaustive();
   }
-
   if (upsertEServiceBatch.length > 0) {
     await catalogService.upsertBatchEService(dbContext, upsertEServiceBatch);
   }
+  if (upsertDescriptorBatch.length > 0) {
+    await catalogService.upsertBatchEServiceDescriptor(
+      dbContext,
+      upsertDescriptorBatch
+    );
+  }
+  if (upsertEServiceDocumentBatch.length > 0) {
+    await catalogService.upsertBatchEServiceDocument(
+      dbContext,
+      upsertEServiceDocumentBatch
+    );
+  }
   if (deleteEServiceBatch.length > 0) {
     await catalogService.deleteBatchEService(dbContext, deleteEServiceBatch);
+  }
+  if (deleteDescriptorBatch.length > 0) {
+    await catalogService.deleteBatchDescriptor(
+      dbContext,
+      deleteDescriptorBatch
+    );
+  }
+  if (deleteEServiceDocumentBatch.length > 0) {
+    await catalogService.deleteBatchEServiceDocument(
+      dbContext,
+      deleteEServiceDocumentBatch
+    );
+  }
+  if (deleteRiskAnalysisBatch.length > 0) {
+    await catalogService.deleteBatchEserviceRiskAnalysis(
+      dbContext,
+      deleteRiskAnalysisBatch
+    );
+  }
+  if (deleteInterfaceBatch.length > 0) {
+    await catalogService.deleteBatchEserviceInterface(
+      dbContext,
+      deleteInterfaceBatch
+    );
   }
 }

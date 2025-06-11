@@ -8,8 +8,6 @@ import {
   AttributeSchema,
   AttributeDeletingSchema,
 } from "../model/attribute/attribute.js";
-import { AttributeDbTable } from "../model/db/attribute.js";
-import { cleaningTargetTables } from "../utils/sqlQueryHelper.js";
 
 export function attributeServiceBuilder(db: DBContext) {
   const repo = attributeRepository(db.conn);
@@ -32,15 +30,6 @@ export function attributeServiceBuilder(db: DBContext) {
           );
         }
         await repo.merge(t);
-      });
-
-      await dbContext.conn.tx(async (t) => {
-        await cleaningTargetTables(
-          t,
-          "id",
-          [AttributeDbTable.attribute],
-          AttributeDbTable.attribute
-        );
       });
 
       genericLogger.info(

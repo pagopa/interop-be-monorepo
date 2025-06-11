@@ -3,7 +3,7 @@ import {
   agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
   eserviceInReadmodelCatalog,
-  eserviceDescriptorInterfaceInReadmodelCatalog,
+  eserviceRiskAnalysisInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
   tenantInReadmodelTenant,
@@ -16,6 +16,7 @@ import {
 
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { EserviceDeletingSchema } from "../catalog/eservice.js";
+import { EserviceRiskAnalysisDeletingSchema } from "../catalog/eserviceRiskAnalysis.js";
 import { EserviceTemplateDeletingSchema } from "../eserviceTemplate/eserviceTemplate.js";
 import { TenantDeletingSchema } from "../tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../tenant/tenantMail.js";
@@ -25,13 +26,11 @@ import { ClientUserDeletingSchema } from "../authorization/clientUser.js";
 import { ClientPurposeDeletingSchema } from "../authorization/clientPurpose.js";
 import { ClientKeyDeletingSchema } from "../authorization/clientKey.js";
 import { PurposeDeletingSchema } from "../purpose/purpose.js";
-import { EserviceDescriptorDocumentOrInterfaceDeletingSchema } from "../catalog/eserviceDescriptorInterface.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
   catalog_deleting_table: EserviceDeletingSchema,
-  catalog_descriptor_interface_deleting_table:
-    EserviceDescriptorDocumentOrInterfaceDeletingSchema,
+  catalog_risk_deleting_table: EserviceRiskAnalysisDeletingSchema,
   agreement_deleting_table: AgreementDeletingSchema,
   purpose_deleting_table: PurposeDeletingSchema,
   tenant_deleting_table: TenantDeletingSchema,
@@ -47,8 +46,7 @@ export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
 export const DeletingDbTableReadModel = {
   attribute_deleting_table: attributeInReadmodelAttribute,
   catalog_deleting_table: eserviceInReadmodelCatalog,
-  catalog_descriptor_interface_deleting_table:
-    eserviceDescriptorInterfaceInReadmodelCatalog,
+  catalog_risk_deleting_table: eserviceRiskAnalysisInReadmodelCatalog,
   agreement_deleting_table: agreementInReadmodelAgreement,
   purpose_deleting_table: purposeInReadmodelPurpose,
   tenant_deleting_table: tenantInReadmodelTenant,
