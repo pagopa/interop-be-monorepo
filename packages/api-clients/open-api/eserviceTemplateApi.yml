@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: EService Template Process Micro Service
   description: This service is the eservice template process
-  version: "v1"
+  version: "{{version}}"
   contact:
     name: API Support
     url: http://www.example.com/support
@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/eservice-template-process/v1"
+  - url: "/"
     description: This service is the eservice template process
 security:
   - bearerAuth: []

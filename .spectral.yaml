@@ -10,9 +10,3 @@ rules:
   cache-responses-indeterminate-behavior: off # Disabled to avoid warnings on cache management
   missing-ratelimit: off # Disabled to avoid warnings on rate limit headers
   no-method-name-in-operationId: off # Disabled to avoid warnings on method names in operationIds
-overrides:
-  - files:
-      - open-api/attributeRegistryApi.yml
-      - open-api/authorizationApi.yml
-    rules:
-      oas3-server-variables: off
