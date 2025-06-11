@@ -226,7 +226,12 @@ export function getMockedApiEServiceTemplate({
     technology: generateMock(m2mGatewayApi.EServiceTechnology),
     versions: versions ?? [getMockedApiEserviceTemplateVersion()],
     isSignalHubEnabled: generateMock(z.boolean().optional()),
-    riskAnalysis: [getMockedApiRiskAnalysis()],
+    riskAnalysis: [
+      {
+        ...getMockedApiRiskAnalysis(),
+        tenantKind: generateMock(m2mGatewayApi.TenantKind),
+      },
+    ],
   };
 }
 

@@ -5,7 +5,6 @@ import {
   RiskAnalysisValidatedForm,
   WithLogger,
   eventRepository,
-  riskAnalysisValidatedFormToNewRiskAnalysis,
   validateRiskAnalysis,
   riskAnalysisFormToRiskAnalysisFormToValidate,
   RiskAnalysisValidationIssue,
@@ -13,6 +12,7 @@ import {
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -27,16 +27,14 @@ import {
   eserviceTemplateVersionState,
   unsafeBrandId,
   WithMetadata,
-  RiskAnalysis,
   RiskAnalysisId,
-  Tenant,
-  TenantId,
   TenantKind,
   eserviceMode,
   generateId,
   ListResult,
   Document,
   EServiceDocumentId,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -56,7 +54,6 @@ import {
   inconsistentAttributesSeedGroupsCount,
   unchangedAttributes,
   riskAnalysisValidationFailed,
-  tenantNotFound,
   originNotCompliant,
   eserviceTemplateRiskAnalysisNameDuplicate,
   missingTemplateVersionInterface,
@@ -100,7 +97,6 @@ import {
 } from "./readModelService.js";
 import {
   assertIsReceiveTemplate,
-  assertTenantKindExists,
   assertIsDraftEServiceTemplate,
   assertRequesterEServiceTemplateCreator,
   assertNoDraftEServiceTemplateVersions,
@@ -225,17 +221,6 @@ const replaceEServiceTemplateVersion = (
     ...eserviceTemplate,
     versions: updatedEServiceTemplateVersions,
   };
-};
-
-const retrieveTenant = async (
-  tenantId: TenantId,
-  readModelService: ReadModelService
-): Promise<Tenant> => {
-  const tenant = await readModelService.getTenantById(tenantId);
-  if (tenant === undefined) {
-    throw tenantNotFound(tenantId);
-  }
-  return tenant;
 };
 
 export function validateRiskAnalysisSchemaOrThrow(
@@ -497,12 +482,6 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
-      const tenant = await retrieveTenant(
-        eserviceTemplate.data.creatorId,
-        readModelService
-      );
-      assertTenantKindExists(tenant);
-
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
         if (eserviceTemplate.data.riskAnalysis.length > 0) {
           const riskAnalysisError = eserviceTemplate.data.riskAnalysis.reduce<
@@ -511,7 +490,7 @@ export function eserviceTemplateServiceBuilder(
             const result = validateRiskAnalysis(
               riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
               true,
-              tenant.kind
+              ra.tenantKind
             );
 
             if (result.type === "invalid") {
@@ -905,12 +884,6 @@ export function eserviceTemplateServiceBuilder(
       assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
 
-      const tenant = await retrieveTenant(
-        template.data.creatorId,
-        readModelService
-      );
-      assertTenantKindExists(tenant);
-
       const raSameName = template.data.riskAnalysis.find(
         (ra) => ra.name === createRiskAnalysis.name
       );
@@ -922,14 +895,18 @@ export function eserviceTemplateServiceBuilder(
 
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         createRiskAnalysis.riskAnalysisForm,
-        tenant.kind
+        createRiskAnalysis.tenantKind
       );
 
-      const newRiskAnalysis: RiskAnalysis =
-        riskAnalysisValidatedFormToNewRiskAnalysis(
-          validatedRiskAnalysisForm,
-          createRiskAnalysis.name
-        );
+      const newRiskAnalysis: EServiceTemplateRiskAnalysis = {
+        id: generateId<RiskAnalysisId>(),
+        name: createRiskAnalysis.name,
+        createdAt: new Date(),
+        riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
+          validatedRiskAnalysisForm
+        ),
+        tenantKind: createRiskAnalysis.tenantKind,
+      };
 
       const newTemplate: EServiceTemplate = {
         ...template.data,
@@ -998,22 +975,20 @@ export function eserviceTemplateServiceBuilder(
       assertIsDraftEServiceTemplate(template.data);
       assertIsReceiveTemplate(template.data);
 
-      const tenant = await retrieveTenant(
-        template.data.creatorId,
-        readModelService
-      );
-      assertTenantKindExists(tenant);
-
       const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
         updateRiskAnalysis.riskAnalysisForm,
-        tenant.kind
+        updateRiskAnalysis.tenantKind
       );
 
-      const updatedRiskAnalysis: RiskAnalysis =
-        riskAnalysisValidatedFormToNewRiskAnalysis(
-          validatedRiskAnalysisForm,
-          updateRiskAnalysis.name
-        );
+      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
+        id: generateId<RiskAnalysisId>(),
+        name: updateRiskAnalysis.name,
+        createdAt: new Date(),
+        riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
+          validatedRiskAnalysisForm
+        ),
+        tenantKind: updateRiskAnalysis.tenantKind,
+      };
 
       const newTemplate: EServiceTemplate = {
         ...template.data,

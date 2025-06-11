@@ -1,9 +1,9 @@
 import {
   EServiceTemplate,
-  RiskAnalysis,
   generateId,
   EServiceTemplateVersion,
   TenantId,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -23,12 +23,13 @@ import {
 } from "../src/model/domain/apiConverter.js";
 
 export const buildRiskAnalysisSeed = (
-  riskAnalysis: RiskAnalysis
+  riskAnalysis: EServiceTemplateRiskAnalysis
 ): eserviceTemplateApi.EServiceRiskAnalysisSeed => ({
   name: riskAnalysis.name,
   riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
   ),
+  tenantKind: riskAnalysis.tenantKind,
 });
 
 export const eserviceTemplateToApiEServiceTemplateSeed = (

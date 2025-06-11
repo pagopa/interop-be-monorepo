@@ -1,14 +1,16 @@
 import { afterAll, beforeAll, describe, vi, it, expect } from "vitest";
 import {
   decodeProtobufPayload,
-  getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getMockAuthData,
+  getMockTenant,
+  getMockValidEServiceTemplateRiskAnalysis,
   readEventByStreamIdAndVersion,
+  getMockEService,
+  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
-  getMockEService,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -18,22 +20,26 @@ import {
   EServiceDescriptorAddedV2,
   EServiceDescriptorDocumentAddedV2,
   EServiceDocumentId,
+  eserviceMode,
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
+  Tenant,
+  tenantKind,
   toEServiceV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { config } from "../../src/config/config.js";
 import {
   catalogService,
   postgresDB,
   readLastEserviceEvent,
   addOneEServiceTemplate,
   fileManager,
+  addOneTenant,
 } from "../integrationUtils.js";
+import { config } from "../../src/config/config.js";
 
 describe("create eService from template", () => {
   const mockEService = getMockEService();
@@ -58,6 +64,12 @@ describe("create eService from template", () => {
       versions: [publishedVersion],
     };
 
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
 
     const eService = await catalogService.createEServiceInstanceFromTemplate(
@@ -178,6 +190,11 @@ describe("create eService from template", () => {
       versions: [eserviceTemplatePublishedVersion],
     };
 
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+    await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
 
     await fileManager.storeBytes(
@@ -401,6 +418,42 @@ describe("create eService from template", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedDocument2.path);
+  });
+  it("should throw templateMissingRequiredRiskAnalysis when the template is in receive mode and there are no risk analysis of the requester tenant kind", async () => {
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      id: mockEService.producerId,
+      kind: tenantKind.PA,
+    };
+
+    const validRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PRIVATE
+    );
+
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      mode: eserviceMode.receive,
+      riskAnalysis: [validRiskAnalysis],
+      versions: [publishedVersion],
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      catalogService.createEServiceInstanceFromTemplate(
+        eserviceTemplate.id,
+        {},
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toMatchObject({
+      code: "templateMissingRequiredRiskAnalysis",
+    });
   });
   it("should throw eServiceTemplateNotFound when the template does not exist", async () => {
     await expect(

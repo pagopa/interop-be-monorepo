@@ -549,6 +549,7 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_risk_analysis (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
+  tenant_kind VARCHAR NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );

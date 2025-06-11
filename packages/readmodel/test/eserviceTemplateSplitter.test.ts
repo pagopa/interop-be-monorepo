@@ -4,7 +4,7 @@ import {
   getMockEServiceAttribute,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
@@ -30,8 +30,12 @@ describe("E-service template splitter", () => {
     const certifiedAttribute = getMockEServiceAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+    const riskAnalysis1 = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PA
+    );
+    const riskAnalysis2 = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PRIVATE
+    );
     const publishedAt = new Date();
     const suspendedAt = new Date();
     const deprecatedAt = new Date();
@@ -93,6 +97,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
+      tenantKind: riskAnalysis1.tenantKind,
     };
 
     const expectedRiskAnalysisSQL2: EServiceTemplateRiskAnalysisSQL = {
@@ -103,6 +108,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
+      tenantKind: riskAnalysis2.tenantKind,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] =
@@ -176,8 +182,12 @@ describe("E-service template splitter", () => {
 
   it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
     const doc = getMockDocument();
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+    const riskAnalysis1 = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PA
+    );
+    const riskAnalysis2 = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PRIVATE
+    );
 
     const version: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -235,6 +245,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
+      tenantKind: riskAnalysis1.tenantKind,
     };
 
     const expectedRiskAnalysisSQL2: EServiceTemplateRiskAnalysisSQL = {
@@ -245,6 +256,7 @@ describe("E-service template splitter", () => {
       eserviceTemplateId: eserviceTemplate.id,
       riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
       riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
+      tenantKind: riskAnalysis2.tenantKind,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] =

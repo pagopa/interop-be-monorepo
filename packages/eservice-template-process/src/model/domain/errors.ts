@@ -6,7 +6,6 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   makeApiProblemBuilder,
-  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -17,8 +16,6 @@ export const errorCodes = {
   eserviceTemplateWithoutPublishedVersion: "0005",
   riskAnalysisNameDuplicate: "0006",
   riskAnalysisValidationFailed: "0007",
-  tenantNotFound: "0008",
-  tenantKindNotFound: "0009",
   eserviceTemplateNotInDraftState: "0010",
   eserviceTemplateNotInReceiveMode: "0011",
   inconsistentDailyCalls: "0012",
@@ -171,22 +168,6 @@ export function riskAnalysisValidationFailed(
       .join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
-  });
-}
-
-export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} not found`,
-    code: "tenantNotFound",
-    title: "Tenant not found",
-  });
-}
-
-export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant kind for tenant ${tenantId} not found`,
-    code: "tenantKindNotFound",
-    title: "Tenant kind not found",
   });
 }
 

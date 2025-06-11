@@ -2,14 +2,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   EServiceTemplateId,
-  TenantId,
   generateId,
   operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   AuthRole,
@@ -26,17 +25,16 @@ import {
   eserviceTemplateRiskAnalysisNameDuplicate,
   riskAnalysisValidationFailed,
   templateNotInReceiveMode,
-  tenantKindNotFound,
-  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/riskAnalysis", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();
 
-  const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+  const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+    tenantKind.PA
+  );
   const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
     buildRiskAnalysisSeed(mockValidRiskAnalysis);
-  const tenantId = generateId<TenantId>();
 
   const makeRequest = async (
     token: string,
@@ -116,14 +114,6 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
     {
       error: eserviceTemplateRiskAnalysisNameDuplicate("risk"),
       expectedStatus: 409,
-    },
-    {
-      error: tenantNotFound(tenantId),
-      expectedStatus: 500,
-    },
-    {
-      error: tenantKindNotFound(tenantId),
-      expectedStatus: 500,
     },
   ])(
     "Should return $expectedStatus for $error.code",

@@ -55,7 +55,7 @@ import {
   TenantId,
   unsafeBrandId,
   WithMetadata,
-  EServiceTemplateRiskAnalysis,
+  tenantKind,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -93,6 +93,7 @@ import {
   descriptorTemplateVersionNotFound,
   tenantNotFound,
   unchangedAttributes,
+  templateMissingRequiredRiskAnalysis,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -472,7 +473,7 @@ async function innerCreateEService(
           id: EServiceTemplateId;
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
-          riskAnalysis?: EServiceTemplateRiskAnalysis[];
+          riskAnalysis: RiskAnalysis[] | undefined;
         }
       | undefined;
   },
@@ -2952,6 +2953,47 @@ export function catalogServiceBuilder(
         throw eServiceTemplateWithoutPublishedVersion(templateId);
       }
 
+      const tenant = await retrieveTenant(
+        ctx.authData.organizationId,
+        readModelService
+      );
+
+      assertTenantKindExists(tenant);
+
+      const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
+        .filter((r) =>
+          match(tenant.kind)
+            .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
+            .with(
+              tenantKind.GSP,
+              tenantKind.PRIVATE,
+              tenantKind.SCP,
+              () =>
+                r.tenantKind === tenantKind.GSP ||
+                r.tenantKind === tenantKind.PRIVATE ||
+                r.tenantKind === tenantKind.SCP
+              /**
+               * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
+               * This may change in the future.
+               */
+            )
+            .exhaustive()
+        )
+        .map((r) => ({
+          id: generateId(),
+          createdAt: r.createdAt,
+          name: r.name,
+          riskAnalysisForm: r.riskAnalysisForm,
+        }));
+
+      if (template.mode === eserviceMode.receive && riskAnalysis.length === 0) {
+        throw templateMissingRequiredRiskAnalysis(
+          template.id,
+          tenant.id,
+          tenant.kind
+        );
+      }
+
       const { eService: createdEService, events } = await innerCreateEService(
         {
           seed: {
@@ -2980,6 +3022,7 @@ export function catalogServiceBuilder(
             id: template.id,
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
+            riskAnalysis,
           },
         },
         readModelService,

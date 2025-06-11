@@ -12,7 +12,6 @@ import {
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   operationForbidden,
-  Tenant,
   TenantId,
   eserviceMode,
 } from "pagopa-interop-models";
@@ -20,7 +19,6 @@ import { match } from "ts-pattern";
 import {
   draftEServiceTemplateVersionAlreadyExists,
   templateNotInReceiveMode,
-  tenantKindNotFound,
   eserviceTemplateNotInDraftState,
   inconsistentDailyCalls,
   eserviceTemplateWithoutPublishedVersion,
@@ -32,14 +30,6 @@ export function assertRequesterEServiceTemplateCreator(
 ): void {
   if (authData.organizationId !== creatorId) {
     throw operationForbidden;
-  }
-}
-
-export function assertTenantKindExists(
-  tenant: Tenant
-): asserts tenant is Tenant & { kind: NonNullable<Tenant["kind"]> } {
-  if (tenant.kind === undefined) {
-    throw tenantKindNotFound(tenant.id);
   }
 }
 

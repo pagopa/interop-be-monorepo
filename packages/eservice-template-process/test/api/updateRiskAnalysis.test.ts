@@ -3,14 +3,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   EServiceTemplateId,
   RiskAnalysisId,
-  TenantId,
   generateId,
   operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   AuthRole,
@@ -26,17 +25,16 @@ import {
   eserviceTemplateNotInDraftState,
   riskAnalysisValidationFailed,
   templateNotInReceiveMode,
-  tenantKindNotFound,
-  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();
 
-  const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
+  const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+    tenantKind.PA
+  );
   const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
     buildRiskAnalysisSeed(mockValidRiskAnalysis);
-  const tenantId = generateId<TenantId>();
 
   const makeRequest = async (
     token: string,
@@ -130,14 +128,6 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
     {
       error: operationForbidden,
       expectedStatus: 403,
-    },
-    {
-      error: tenantNotFound(tenantId),
-      expectedStatus: 404,
-    },
-    {
-      error: tenantKindNotFound(tenantId),
-      expectedStatus: 404,
     },
   ])(
     "Should return $expectedStatus for $error.code",
