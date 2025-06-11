@@ -10,3 +10,7 @@ rules:
   cache-responses-indeterminate-behavior: off # Disabled to avoid warnings on cache management
   missing-ratelimit: off # Disabled to avoid warnings on rate limit headers
   no-method-name-in-operationId: off # Disabled to avoid warnings on method names in operationIds
+  missing-retry-after: off
+  operation-description: off # Will be handled in the future
+  http-request-DELETE-no-body: off
+  allowed-number-format: off
