@@ -232,7 +232,7 @@ export function eserviceTemplateServiceBuilder(
     getEServiceTemplateVersion: async (
       templateId: EServiceTemplateId,
       templateVersionId: EServiceTemplateVersionId,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.EServiceTemplateVersionDetails> => {
       logger.info(
         `Retrieving EService template version for templateId = ${templateId}, templateVersionId = ${templateVersionId}`
@@ -272,6 +272,17 @@ export function eserviceTemplateServiceBuilder(
         },
       });
 
+      const callerTenant = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: authData.organizationId,
+        },
+      });
+
+      const canBeInstantiated = eserviceTemplate.riskAnalysis.some(
+        (r) => r.tenantKind === callerTenant.kind
+      );
+
       return {
         id: eserviceTemplateVersion.id,
         version: eserviceTemplateVersion.version,
@@ -291,6 +302,7 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate,
           creatorTenant
         ),
+        canBeInstantiated,
       };
     },
     getEServiceTemplate: async (

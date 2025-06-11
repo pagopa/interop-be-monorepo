@@ -20807,6 +20807,7 @@ components:
         - voucherLifespan
         - attributes
         - eserviceTemplate
+        - canBeInstantiated
       properties:
         id:
           type: string
@@ -20843,6 +20844,8 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplateDetails"
+        canBeInstantiated:
+          type: boolean
     EServiceTemplateVersionQuotasUpdateSeed:
       type: object
       additionalProperties: false
