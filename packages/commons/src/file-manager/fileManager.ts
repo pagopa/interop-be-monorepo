@@ -60,6 +60,7 @@ export type FileManager = {
     fileName: string,
     durationInMinutes: number
   ) => Promise<string>;
+  cleanup: () => void;
 };
 
 export function initFileManager(
@@ -230,6 +231,9 @@ export function initFileManager(
       const key: string = buildS3Key(path, undefined, fileName);
       const command = new PutObjectCommand({ Bucket: bucketName, Key: key });
       return getSignedUrl(client, command, { expiresIn: durationInMinutes });
+    },
+    cleanup: (): void => {
+      client.destroy();
     },
   };
 }

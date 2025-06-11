@@ -223,6 +223,14 @@ export class ReadModelRepository {
     return ReadModelRepository.instance;
   }
 
+  public static async cleanup(): Promise<void> {
+    if (ReadModelRepository.instance) {
+      await ReadModelRepository.instance.client.close();
+      // eslint-disable-next-line functional/immutable-data, @typescript-eslint/no-explicit-any
+      ReadModelRepository.instance = undefined as any;
+    }
+  }
+
   public static arrayToFilter<T>(
     array: unknown[],
     filter: ReadModelFilter<T>
