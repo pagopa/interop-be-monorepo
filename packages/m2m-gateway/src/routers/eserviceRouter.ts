@@ -142,13 +142,9 @@ const eserviceRouter = (
 
           const encoder = new FormDataEncoder(form);
 
-          res.set(encoder.headers); // Content-Type + (optional) Content-Length
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return res.status(200).send(Readable.from(encoder.encode()) as any);
-
-          // TODO verify if this alternative works
-          // res.writeHead(200, encoder.headers);     // boundary + length if known
-          // Readable.from(encoder.encode()).pipe(res);
+          res.writeHead(200, encoder.headers);
+          Readable.from(encoder.encode()).pipe(res);
+          return res;
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
