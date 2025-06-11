@@ -6,6 +6,10 @@ export const PurposeRiskAnalysisAnswerSchema = createSelectSchema(
   purposeRiskAnalysisAnswerInReadmodelPurpose
 ).extend({
   deleted: z.boolean().default(false).optional(),
+  value: z
+    .array(z.string())
+    .transform((val) => JSON.stringify(val))
+    .pipe(z.string()),
 });
 export type PurposeRiskAnalysisAnswerSchema = z.infer<
   typeof PurposeRiskAnalysisAnswerSchema
