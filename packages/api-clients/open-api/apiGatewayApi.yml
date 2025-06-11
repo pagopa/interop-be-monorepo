@@ -55,7 +55,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -70,14 +69,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -92,14 +90,13 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -114,14 +111,13 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -136,14 +132,13 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -158,14 +153,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -212,7 +206,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -227,14 +220,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -249,20 +241,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -277,14 +268,13 @@ paths:
         "404":
           description: Purposes not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -299,14 +289,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -344,7 +333,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -359,14 +347,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -381,20 +368,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -409,14 +395,13 @@ paths:
         "404":
           description: Purpose not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -431,14 +416,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -478,7 +462,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -493,14 +476,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -515,20 +497,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -543,14 +524,13 @@ paths:
         "404":
           description: Agreement not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -565,14 +545,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -610,7 +589,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -625,14 +603,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -647,20 +624,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -675,14 +651,13 @@ paths:
         "409":
           description: Conflict
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -697,14 +672,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -744,7 +718,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -759,14 +732,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -781,20 +753,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -809,14 +780,13 @@ paths:
         "404":
           description: Attribute not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -831,14 +801,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -878,7 +847,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -893,14 +861,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -915,20 +882,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -943,14 +909,13 @@ paths:
         "404":
           description: Client not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -965,14 +930,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1021,7 +985,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1036,14 +999,13 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1058,20 +1020,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1086,14 +1047,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1132,7 +1092,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1147,14 +1106,13 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1169,20 +1127,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1197,14 +1154,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1243,7 +1199,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1258,14 +1213,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1280,20 +1234,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1308,14 +1261,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1362,7 +1314,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1377,14 +1328,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1399,20 +1349,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1427,14 +1376,13 @@ paths:
         "404":
           description: EService not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1449,14 +1397,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1496,7 +1443,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1511,14 +1457,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1533,20 +1478,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1561,14 +1505,13 @@ paths:
         "404":
           description: Organization not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1583,14 +1526,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1651,7 +1593,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1666,14 +1607,13 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1688,20 +1628,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1716,14 +1655,13 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1773,7 +1711,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1788,14 +1725,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1810,20 +1746,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1873,7 +1808,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1888,14 +1822,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1910,20 +1843,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1973,7 +1905,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -1988,14 +1919,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2010,20 +1940,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2073,7 +2002,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2088,14 +2016,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2110,20 +2037,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2162,7 +2088,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2177,14 +2102,13 @@ paths:
         "404":
           description: Key not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2210,7 +2134,7 @@ paths:
           description: |
             This is the valid status from the server.
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/agreements/{agreementId}/purposes":
@@ -2239,7 +2163,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2254,14 +2177,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2276,20 +2198,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2304,14 +2225,13 @@ paths:
         "404":
           description: Purposes not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2349,7 +2269,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2364,14 +2283,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2386,20 +2304,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2414,14 +2331,13 @@ paths:
         "404":
           description: Purposes not found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2465,7 +2381,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2480,14 +2395,13 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2530,7 +2444,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2545,14 +2458,13 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2606,7 +2518,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2621,14 +2532,13 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2643,14 +2553,13 @@ paths:
         "404":
           description: Not Found
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2700,7 +2609,6 @@ paths:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2715,14 +2623,13 @@ paths:
         "400":
           description: Bad request
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:
@@ -2737,20 +2644,19 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/problem+json:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
-                format: int32
               description: Max allowed requests within time interval
             "X-Rate-Limit-Remaining":
               schema:

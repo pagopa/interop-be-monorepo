@@ -8,7 +8,6 @@ rules:
   paths-status: off # Enable this once authorization server migration is completes and we can remove the /authorization-server prefix
 overrides:
   - files:
-      - open-api/apiGatewayApi.yml
       - open-api/attributeRegistryApi.yml
       - open-api/authorizationApi.yml
     rules:
