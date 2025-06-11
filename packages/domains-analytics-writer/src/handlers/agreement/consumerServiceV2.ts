@@ -15,7 +15,6 @@ import {
   AgreementItemsSchema,
   AgreementDeletingSchema,
 } from "../../model/agreement/agreement.js";
-import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreementConsumerDocument.js";
 
 export async function handleAgreementMessageV2(
   messages: AgreementEventEnvelopeV2[],
@@ -25,7 +24,6 @@ export async function handleAgreementMessageV2(
 
   const upsertAgreementBatch: AgreementItemsSchema[] = [];
   const deleteAgreementBatch: AgreementDeletingSchema[] = [];
-  const deleteDocumentBatch: AgreementConsumerDocumentDeletingSchema[] = [];
 
   for (const message of messages) {
     match(message)
@@ -51,13 +49,6 @@ export async function handleAgreementMessageV2(
           );
         }
       )
-      .with({ type: "AgreementConsumerDocumentRemoved" }, (msg) => {
-        deleteDocumentBatch.push(
-          AgreementConsumerDocumentDeletingSchema.parse({
-            id: msg.data.documentId,
-          } satisfies z.input<typeof AgreementConsumerDocumentDeletingSchema>)
-        );
-      })
       .with(
         {
           type: P.union(
@@ -76,6 +67,7 @@ export async function handleAgreementMessageV2(
             "AgreementSuspendedByPlatform",
             "AgreementRejected",
             "AgreementConsumerDocumentAdded",
+            "AgreementConsumerDocumentRemoved",
             "AgreementSetDraftByPlatform",
             "AgreementSetMissingCertifiedAttributesByPlatform",
             "AgreementArchivedByRevokedDelegation"
@@ -118,13 +110,6 @@ export async function handleAgreementMessageV2(
     await agreementService.deleteBatchAgreement(
       dbContext,
       deleteAgreementBatch
-    );
-  }
-
-  if (deleteDocumentBatch.length > 0) {
-    await agreementService.deleteBatchAgreementDocument(
-      dbContext,
-      deleteDocumentBatch
     );
   }
 }

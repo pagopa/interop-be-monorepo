@@ -349,7 +349,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
     expect(storedContract[0].metadataVersion).toBe(1);
   });
 
-  it("AgreementConsumerDocumentRemoved: check if consumer document is deleted", async () => {
+  it("AgreementConsumerDocumentRemoved: should delete consumer document", async () => {
     const doc = getMockAgreementDocument();
     const mock = { ...getMockAgreement(), consumerDocuments: [doc] };
 
@@ -369,7 +369,7 @@ describe("Agreement messages consumers - handleAgreementMessageV2", () => {
       event_version: 2,
       type: "AgreementConsumerDocumentRemoved",
       data: {
-        agreement: toAgreementV2(mock),
+        agreement: toAgreementV2({ ...mock, consumerDocuments: [] }),
         documentId: doc.id,
       } as AgreementConsumerDocumentRemovedV2,
       log_date: new Date(),
