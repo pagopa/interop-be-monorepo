@@ -53,7 +53,8 @@
       "outputs": ["dist"]
     },
     "lint:openapi": {
-      "dependsOn": ["^lint:openapi"]
+      "dependsOn": ["^lint:openapi"],
+      "cache": false
     },
     "format:check": {},
     "format:write": {}
