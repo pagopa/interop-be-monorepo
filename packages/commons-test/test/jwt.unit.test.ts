@@ -37,18 +37,18 @@ const expectedUiAuthData: UIAuthData = {
   userRoles: [userRole.SECURITY_ROLE, userRole.API_ROLE],
 };
 
-const mockM2MTokenPayload = createPayload(
+const mockM2MTokenPayload: SerializedInteropJwtApiPayload = createPayload(
   systemRole.M2M_ROLE
-) as SerializedInteropJwtApiPayload;
+);
 
 const expectedM2MAuthData: M2MAuthData = {
   systemRole: systemRole.M2M_ROLE,
   organizationId: mockM2MTokenPayload.organizationId,
 };
 
-const mockInternalTokenPayload = createPayload(
+const mockInternalTokenPayload: SerializedInteropJwtInternalPayload = createPayload(
   systemRole.INTERNAL_ROLE
-) as SerializedInteropJwtInternalPayload;
+);
 
 const expectedInternalAuthData: InternalAuthData = {
   systemRole: systemRole.INTERNAL_ROLE,
@@ -56,15 +56,15 @@ const expectedInternalAuthData: InternalAuthData = {
 
 const mockMaintenanceTokenPayload: InteropJwtMaintenancePayload = createPayload(
   systemRole.MAINTENANCE_ROLE
-) as InteropJwtMaintenancePayload;
+);
 
 const expectedMaintenanceAuthData: MaintenanceAuthData = {
   systemRole: systemRole.MAINTENANCE_ROLE,
 };
 
-const mockSupportTokenPayload = createPayload(
+const mockSupportTokenPayload: SerializedInteropJwtUIPayload = createPayload(
   userRole.SUPPORT_ROLE
-) as SerializedInteropJwtUIPayload;
+);
 
 const expectedSupportAuthData: UIAuthData = {
   systemRole: undefined,

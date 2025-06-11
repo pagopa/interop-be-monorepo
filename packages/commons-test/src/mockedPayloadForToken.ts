@@ -18,7 +18,48 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
+// Overloads for stricter typing
+export function createPayload(role: typeof systemRole.M2M_ROLE): SerializedInteropJwtApiPayload;
+export function createPayload(role: typeof systemRole.M2M_ADMIN_ROLE): SerializedInteropJwtApiPayload;
+export function createPayload(role: typeof systemRole.INTERNAL_ROLE): SerializedInteropJwtInternalPayload;
+export function createPayload(role: typeof systemRole.MAINTENANCE_ROLE): InteropJwtMaintenancePayload;
+export function createPayload(role: typeof userRole.ADMIN_ROLE): SerializedInteropJwtUIPayload;
+export function createPayload(role: typeof userRole.API_ROLE): SerializedInteropJwtUIPayload;
+export function createPayload(role: typeof userRole.SECURITY_ROLE): SerializedInteropJwtUIPayload;
+export function createPayload(role: typeof userRole.SUPPORT_ROLE): SerializedInteropJwtUIPayload;
+
+// Fallback for generic AuthRole
+export function createPayload(role: AuthRole): SerializedAuthTokenPayload | InteropJwtMaintenancePayload;
+
+// Implementation
+export function createPayload(role: AuthRole): SerializedAuthTokenPayload | InteropJwtMaintenancePayload {
+  return match(role)
+    .with("maintenance", () => createMaintenancePayload())
+    .with("m2m", () => createM2MPayload())
+    .with("m2m-admin", () => createM2MAdminPayload())
+    .with("internal", () => createInternalPayload())
+    .with("admin", () => createUserPayload(userRole.ADMIN_ROLE))
+    .with("api", () => createUserPayload(userRole.API_ROLE))
+    .with("security", () => createUserPayload(userRole.SECURITY_ROLE))
+    .with("support", () => createUserPayload(userRole.SUPPORT_ROLE))
+    .exhaustive();
+}
+
+
+export const generateToken = (role: AuthRole): string =>
+  jwt.sign(createPayload(role), "test-secret");
+
+export const signPayload = (
+  payload: object // for testing purposes, allowing signature of any payload, including invalid ones
+): string => jwt.sign(payload, "test-secret");
+
+
 export const mockTokenOrganizationId = generateId<TenantId>();
+export const mockM2MAdminClientId = generateId<ClientId>();
+export const mockM2MAdminUserId: UserId = generateId();
+// ^ ID of the client and the admin user associated with the client.
+// Mocked and exported because in the M2M gateway we need to
+// validate the admin ID in the token against the adminId in the client.
 
 function createUserPayload(
   commaSeparatedUserRoles: string
@@ -131,11 +172,7 @@ export function createUIPayload(): SerializedInteropJwtUIPayload {
   };
 }
 
-export const mockM2MAdminClientId = generateId<ClientId>();
-export const mockM2MAdminUserId: UserId = generateId();
-// ^ ID of the client and the admin user associated with the client.
-// Mocked and exported because in the M2M gateway we need to
-// validate the admin ID in the token against the adminId in the client.
+
 function createM2MAdminPayload(): SerializedInteropJwtApiPayload {
   return {
     iss: "dev.interop.pagopa.it",
@@ -151,24 +188,3 @@ function createM2MAdminPayload(): SerializedInteropJwtApiPayload {
     adminId: mockM2MAdminUserId,
   };
 }
-
-export const createPayload = (
-  role: AuthRole
-): SerializedAuthTokenPayload | InteropJwtMaintenancePayload =>
-  match(role)
-    .with("maintenance", () => createMaintenancePayload())
-    .with("m2m", () => createM2MPayload())
-    .with("m2m-admin", () => createM2MAdminPayload())
-    .with("internal", () => createInternalPayload())
-    .with("admin", () => createUserPayload(userRole.ADMIN_ROLE))
-    .with("api", () => createUserPayload(userRole.API_ROLE))
-    .with("security", () => createUserPayload(userRole.SECURITY_ROLE))
-    .with("support", () => createUserPayload(userRole.SUPPORT_ROLE))
-    .exhaustive();
-
-export const generateToken = (role: AuthRole): string =>
-  jwt.sign(createPayload(role), "test-secret");
-
-export const signPayload = (
-  payload: object // for testing purposes, allowing signature of any payload, including invalid ones
-): string => jwt.sign(payload, "test-secret");
