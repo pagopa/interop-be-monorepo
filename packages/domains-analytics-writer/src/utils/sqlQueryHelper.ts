@@ -247,3 +247,32 @@ export function generateStagingDeleteQuery<
       AND ${stagingTableName}.metadata_version < b.metadata_version;
 `.trim();
 }
+
+/**
+ * Removes duplicate objects from an array based on a set of key fields.
+ *
+ * @template T - The Zod schema shape defining the object structure.
+ * @param items - The array of objects to deduplicate.
+ * @param schema - The Zod schema used to validate the unique keys.
+ * @param keys - The list of keys used to determine uniqueness.
+ * @returns A new array containing only distinct items based on the provided keys.
+ */
+export const distinctByKeys = <T extends z.ZodRawShape>(
+  items: Array<z.infer<z.ZodObject<T>>>,
+  schema: z.ZodObject<T>,
+  keys: Array<keyof z.infer<z.ZodObject<T>>>
+): Array<z.infer<z.ZodObject<T>>> => {
+  const parsedItems = items.map((item) => schema.parse(item));
+  const uniqueKeySet = new Set<string>();
+  const deduplicatedItems: typeof parsedItems = [];
+
+  for (const item of parsedItems) {
+    const compositeKey = keys.map((key) => String(item[key])).join("|");
+    if (!uniqueKeySet.has(compositeKey)) {
+      uniqueKeySet.add(compositeKey);
+      deduplicatedItems.push(item);
+    }
+  }
+
+  return deduplicatedItems;
+};

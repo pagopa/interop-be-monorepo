@@ -32,6 +32,7 @@ import {
   ClientUserDeletingSchema,
   ClientUserSchema,
 } from "../../model/authorization/clientUser.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAuthorizationMessageV1(
   messages: AuthorizationEventEnvelopeV1[],
@@ -188,13 +189,17 @@ export async function handleAuthorizationMessageV1(
       )
       .exhaustive();
   }
-
   if (upsertClientBatch.length > 0) {
     await authorizationService.upsertClientBatch(dbContext, upsertClientBatch);
   }
 
   if (deleteClientBatch.length > 0) {
-    await authorizationService.deleteClientBatch(dbContext, deleteClientBatch);
+    const distinctBatch = distinctByKeys(
+      deleteClientBatch,
+      ClientDeletingSchema,
+      ["id"]
+    );
+    await authorizationService.deleteClientBatch(dbContext, distinctBatch);
   }
 
   if (upsertClientUserBatch.length > 0) {
@@ -205,7 +210,12 @@ export async function handleAuthorizationMessageV1(
   }
 
   if (removeUserBatch.length > 0) {
-    await authorizationService.removeUserBatch(dbContext, removeUserBatch);
+    const distinctBatch = distinctByKeys(
+      removeUserBatch,
+      ClientUserDeletingSchema,
+      ["clientId", "userId"]
+    );
+    await authorizationService.removeUserBatch(dbContext, distinctBatch);
   }
 
   if (upsertClientPurposeBatch.length > 0) {
@@ -216,14 +226,21 @@ export async function handleAuthorizationMessageV1(
   }
 
   if (removePurposeBatch.length > 0) {
-    await authorizationService.removePurposeBatch(
-      dbContext,
-      removePurposeBatch
+    const distinctBatch = distinctByKeys(
+      removePurposeBatch,
+      ClientPurposeDeletingSchema,
+      ["clientId", "purposeId"]
     );
+    await authorizationService.removePurposeBatch(dbContext, distinctBatch);
   }
 
   if (deleteKeyBatch.length > 0) {
-    await authorizationService.deleteKeyBatch(dbContext, deleteKeyBatch);
+    const distinctBatch = distinctByKeys(
+      deleteKeyBatch,
+      ClientKeyDeletingSchema,
+      ["clientId", "kid"]
+    );
+    await authorizationService.deleteKeyBatch(dbContext, distinctBatch);
   }
 
   if (upsertKeyBatch.length > 0) {
