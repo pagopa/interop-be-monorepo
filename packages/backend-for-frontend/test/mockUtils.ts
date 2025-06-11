@@ -1,7 +1,13 @@
 import { agreementApi, bffApi, catalogApi } from "pagopa-interop-api-clients";
-import { EServiceId, generateId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
+import {
+  EServiceId,
+  PurposeId,
+  PurposeVersionId,
+  TenantId,
+  generateId,
+} from "pagopa-interop-models";
 
 export const getMockBffApiAgreementListEntry =
   (): bffApi.AgreementListEntry => ({
@@ -396,26 +402,7 @@ export const getMockBffApiUpdateEServiceTemplateInstanceDescriptorQuotas =
   (): bffApi.UpdateEServiceTemplateInstanceDescriptorQuotas => ({
     dailyCallsPerConsumer: generateMock(z.number().int().gte(0)),
     dailyCallsTotal: generateMock(z.number().int().gte(0)),
-const getMockCatalogApiEserviceRiskAnalysis =
-  (): catalogApi.EServiceRiskAnalysis => ({
-    id: generateId<RiskAnalysisId>(),
-    name: "name",
-    createdAt: new Date().toISOString(),
-    riskAnalysisForm: {
-      id: generateId<RiskAnalysisFormId>(),
-      version: "1.0",
-      singleAnswers: [],
-      multiAnswers: [],
-    },
-import { bffApi } from "pagopa-interop-api-clients";
-import { generateMock } from "@anatine/zod-mock";
-import { z } from "zod";
-import {
-  PurposeId,
-  PurposeVersionId,
-  TenantId,
-  generateId,
-} from "pagopa-interop-models";
+  });
 
 export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
   id: generateId(),
