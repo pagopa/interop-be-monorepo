@@ -84,7 +84,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
 
     const mockValidRiskAnalysis =
       getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
     await eserviceTemplateService.createRiskAnalysis(
@@ -292,7 +292,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
 
     const mockValidRiskAnalysis =
       getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed = {
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed = {
       ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
       name: riskAnalysis.name,
     };
@@ -336,7 +336,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
 
     const mockValidRiskAnalysis =
       getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
     const invalidRiskAnalysisSeed = {

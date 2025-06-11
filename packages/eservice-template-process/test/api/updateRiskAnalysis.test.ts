@@ -33,12 +33,12 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
   const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
     tenantKind.PA
   );
-  const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+  const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
     buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
   const makeRequest = async (
     token: string,
-    body: eserviceTemplateApi.EServiceRiskAnalysisSeed = riskAnalysisSeed,
+    body: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed = riskAnalysisSeed,
     templateId: EServiceTemplateId = eserviceTemplateId,
     riskAnalysisId: RiskAnalysisId = mockValidRiskAnalysis.id
   ) =>
@@ -94,7 +94,7 @@ describe("API POST /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        seed as eserviceTemplateApi.EServiceRiskAnalysisSeed,
+        seed as eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,
         templateId,
         riskAnalysisId as RiskAnalysisId
       );

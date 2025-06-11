@@ -817,7 +817,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis created.
@@ -870,7 +870,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis updated.
@@ -1438,7 +1438,7 @@ components:
       enum:
         - AUTOMATIC
         - MANUAL
-    EServiceRiskAnalysisSeed:
+    EServiceTemplateRiskAnalysisSeed:
       type: object
       additionalProperties: false
       required:

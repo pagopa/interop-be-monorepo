@@ -224,7 +224,7 @@ const replaceEServiceTemplateVersion = (
 };
 
 export function validateRiskAnalysisSchemaOrThrow(
-  riskAnalysisForm: eserviceTemplateApi.EServiceRiskAnalysisSeed["riskAnalysisForm"],
+  riskAnalysisForm: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed["riskAnalysisForm"],
   tenantKind: TenantKind
 ): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(riskAnalysisForm, true, tenantKind);
@@ -874,7 +874,7 @@ export function eserviceTemplateServiceBuilder(
     },
     async createRiskAnalysis(
       id: EServiceTemplateId,
-      createRiskAnalysis: eserviceTemplateApi.EServiceRiskAnalysisSeed,
+      createRiskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Creating risk analysis for eServiceTemplateId: ${id}`);
@@ -960,7 +960,7 @@ export function eserviceTemplateServiceBuilder(
     async updateRiskAnalysis(
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
-      updateRiskAnalysis: eserviceTemplateApi.EServiceRiskAnalysisSeed,
+      updateRiskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(

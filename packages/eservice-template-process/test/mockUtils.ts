@@ -24,7 +24,7 @@ import {
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: EServiceTemplateRiskAnalysis
-): eserviceTemplateApi.EServiceRiskAnalysisSeed => ({
+): eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed => ({
   name: riskAnalysis.name,
   riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm

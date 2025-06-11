@@ -91,7 +91,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       id: riskAnalysis1.id,
       name: "updated name",
     };
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
     await eserviceTemplateService.updateRiskAnalysis(
@@ -377,7 +377,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       id: riskAnalysis1.id,
       name: "updated name",
     };
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
     const invalidRiskAnalysisSeed = {
