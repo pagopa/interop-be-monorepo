@@ -579,7 +579,7 @@ export function catalogServiceBuilder(
       });
     },
 
-    updateSignalHubFlag: async (
+    updateEServiceSignalHubFlag: async (
       { headers, logger }: WithLogger<BffAppContext>,
       eServiceId: EServiceId,
       signalhubActivateSeed: bffApi.EServiceSignalhubActivateSeed

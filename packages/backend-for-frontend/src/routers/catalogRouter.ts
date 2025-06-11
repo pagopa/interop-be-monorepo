@@ -714,7 +714,7 @@ const catalogRouter = (
     .post("/eservices/:eServiceId/signalhub/update", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        await catalogService.updateSignalHubFlag(
+        await catalogService.updateEServiceSignalHubFlag(
           ctx,
           unsafeBrandId(req.params.eServiceId),
           req.body
@@ -725,7 +725,7 @@ const catalogRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error activating signalhub for eservice with Id: ${req.params.eServiceId}`
+          `Error updating signalhub for eservice with Id: ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

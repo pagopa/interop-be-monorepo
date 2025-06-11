@@ -1633,8 +1633,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Enabling/disabling signalhub service
-      operationId: updateSignalHubFlag
+      summary: Enable/disable SignalHub for an e-service
+      operationId: updateEServiceSignalHubFlag
       parameters:
         - name: eServiceId
           in: path
@@ -1644,12 +1644,12 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: A payload containing boolean which describe if signalhub will be enabled or disabled
+        description: A payload containing a boolean that describes if SignalHub will be enabled or disabled
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceSignalhubActivateSeed"
+              $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
       responses:
         "200":
           description: Signalhub flag name updated
@@ -2956,7 +2956,7 @@ components:
           maxLength: 60
       required:
         - name
-    EServiceSignalhubActivateSeed:
+    EServiceSignalHubUpdateSeed:
       type: object
       additionalProperties: false
       properties:
