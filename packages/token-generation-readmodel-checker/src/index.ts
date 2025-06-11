@@ -1,7 +1,7 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
 import { compareTokenGenerationReadModel } from "./utils/utils.js";
 import { config } from "./configs/config.js";
 import { readModelServiceBuilder } from "./services/readModelService.js";
@@ -12,41 +12,54 @@ const loggerInstance = logger({
   serviceName: "token-generation-readmodel-checker",
   correlationId: generateId<CorrelationId>(),
 });
-
+const { connection: readModelDB, cleanup: drizzleCleanup } =
+  makeDrizzleConnectionWithCleanup(config);
 async function main(): Promise<void> {
-  loggerInstance.info(
-    "Token generation read model and read model comparison started.\n"
-  );
-  loggerInstance.info("> Connecting to database...");
+  try {
+    loggerInstance.info(
+      "Token generation read model and read model comparison started.\n"
+    );
+    loggerInstance.info("> Connecting to database...");
 
-  const readModel = ReadModelRepository.init(config);
-  const oldReadModelService = readModelServiceBuilder(readModel);
+    const readModel = ReadModelRepository.init(config);
+    const oldReadModelService = readModelServiceBuilder(readModel);
 
-  const readModelDB = makeDrizzleConnection(config);
-  const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+    const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
-  const readModelService =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelServiceSQL
-      : oldReadModelService;
+    const readModelService =
+      config.featureFlagSQL &&
+      config.readModelSQLDbHost &&
+      config.readModelSQLDbPort
+        ? readModelServiceSQL
+        : oldReadModelService;
 
-  loggerInstance.info("> Connected to database!\n");
+    loggerInstance.info("> Connected to database!\n");
 
-  const differencesCount = await compareTokenGenerationReadModel(
-    dynamoDBClient,
-    readModelService,
-    loggerInstance
-  );
+    const differencesCount = await compareTokenGenerationReadModel(
+      dynamoDBClient,
+      readModelService,
+      loggerInstance
+    );
 
-  if (differencesCount > 0) {
-    loggerInstance.error(`Differences count: ${differencesCount}`);
-  } else {
-    loggerInstance.info("No differences found");
+    if (differencesCount > 0) {
+      loggerInstance.error(`Differences count: ${differencesCount}`);
+    } else {
+      loggerInstance.info("No differences found");
+    }
+  } catch (error) {
+    loggerInstance.error(error);
+  } finally {
+    // Clean up resources that prevent process exit
+    loggerInstance.info("Cleaning up resources...");
+
+    // Close MongoDB connections
+    await ReadModelRepository.cleanup();
+
+    // Close PostgreSQL pool connections
+    await drizzleCleanup();
+
+    loggerInstance.info("Cleanup completed!");
   }
 }
 
 await main();
-
-process.exit(0);

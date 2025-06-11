@@ -12,30 +12,40 @@ const loggerInstance = logger({
 });
 
 async function main(): Promise<void> {
-  loggerInstance.info(
-    "Script to populate producerId in the token generation read model started."
-  );
-
-  loggerInstance.info("> Connecting to database...");
-  const readModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-  loggerInstance.info("> Connected to database!\n");
-
-  const { platformStatesUpdateCount, tokenGenStatesUpdateCount } =
-    await addProducerIdToTokenGenReadModel(
-      dynamoDBClient,
-      readModelService,
-      loggerInstance
+  try {
+    loggerInstance.info(
+      "Script to populate producerId in the token generation read model started."
     );
 
-  loggerInstance.info(
-    `Script to populate producerId in the token generation read model ended.
-Platform-states: updated ${platformStatesUpdateCount} records.
-Token-generation-states: updated ${tokenGenStatesUpdateCount} records.`
-  );
+    loggerInstance.info("> Connecting to database...");
+    const readModelService = readModelServiceBuilder(
+      ReadModelRepository.init(config)
+    );
+    loggerInstance.info("> Connected to database!\n");
+
+    const { platformStatesUpdateCount, tokenGenStatesUpdateCount } =
+      await addProducerIdToTokenGenReadModel(
+        dynamoDBClient,
+        readModelService,
+        loggerInstance
+      );
+
+    loggerInstance.info(
+      `Script to populate producerId in the token generation read model ended.
+  Platform-states: updated ${platformStatesUpdateCount} records.
+  Token-generation-states: updated ${tokenGenStatesUpdateCount} records.`
+    );
+  } catch (error) {
+    loggerInstance.error(error);
+  } finally {
+    // Clean up resources that prevent process exit
+    loggerInstance.info("Cleaning up resources...");
+
+    // Close MongoDB connections
+    await ReadModelRepository.cleanup();
+
+    loggerInstance.info("Cleanup completed!");
+  }
 }
 
 await main();
-
-process.exit(0);

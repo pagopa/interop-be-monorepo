@@ -8,7 +8,7 @@ import {
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
-  makeDrizzleConnection,
+  makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
@@ -45,7 +45,8 @@ const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
 const tenantProcess = new TenantProcessService(config.tenantProcessUrl);
 
-const db = makeDrizzleConnection(config);
+const { connection: db, cleanup: drizzleCleanup } =
+  makeDrizzleConnectionWithCleanup(config);
 const tenantReadModelService = tenantReadModelServiceBuilder(db);
 const attributeReadModelService = attributeReadModelServiceBuilder(db);
 const readModelQueriesSQL = readModelQueriesBuilderSQL(
@@ -61,18 +62,32 @@ const readModelQueries =
     ? readModelQueriesSQL
     : oldReadModelQueries;
 
-await importAttributes(
-  csvDownloader,
-  readModelQueries,
-  tenantProcess,
-  refreshableToken,
-  config.recordsProcessBatchSize,
-  config.ivassTenantId,
-  loggerInstance,
-  correlationId
-);
+async function main(): Promise<void> {
+  try {
+    await importAttributes(
+      csvDownloader,
+      readModelQueries,
+      tenantProcess,
+      refreshableToken,
+      config.recordsProcessBatchSize,
+      config.ivassTenantId,
+      loggerInstance,
+      correlationId
+    );
+  } catch (error) {
+    loggerInstance.error(error);
+  } finally {
+    // Clean up resources that prevent process exit
+    loggerInstance.info("Cleaning up resources...");
 
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
+    // Close MongoDB connections
+    await ReadModelRepository.cleanup();
+
+    // Close PostgreSQL pool connections
+    await drizzleCleanup();
+
+    loggerInstance.info("Cleanup completed!");
+  }
+}
+
+await main();
