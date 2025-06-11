@@ -2953,46 +2953,14 @@ export function catalogServiceBuilder(
         throw eServiceTemplateWithoutPublishedVersion(templateId);
       }
 
-      const tenant = await retrieveTenant(
-        ctx.authData.organizationId,
-        readModelService
-      );
-
-      assertTenantKindExists(tenant);
-
-      const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
-        .filter((r) =>
-          match(tenant.kind)
-            .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
-            .with(
-              tenantKind.GSP,
-              tenantKind.PRIVATE,
-              tenantKind.SCP,
-              () =>
-                r.tenantKind === tenantKind.GSP ||
-                r.tenantKind === tenantKind.PRIVATE ||
-                r.tenantKind === tenantKind.SCP
-              /**
-               * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
-               * This may change in the future.
-               */
+      const riskAnalysis =
+        template.mode === eserviceMode.receive
+          ? await extractEServiceRiskAnalysisFromTemplate(
+              template,
+              ctx.authData.organizationId,
+              readModelService
             )
-            .exhaustive()
-        )
-        .map((r) => ({
-          id: generateId(),
-          createdAt: r.createdAt,
-          name: r.name,
-          riskAnalysisForm: r.riskAnalysisForm,
-        }));
-
-      if (template.mode === eserviceMode.receive && riskAnalysis.length === 0) {
-        throw templateMissingRequiredRiskAnalysis(
-          template.id,
-          tenant.id,
-          tenant.kind
-        );
-      }
+          : [];
 
       const { eService: createdEService, events } = await innerCreateEService(
         {
@@ -3539,6 +3507,52 @@ function evaluateTemplateVersionRef(
       termsAndConditionsUrl,
     },
   };
+}
+
+async function extractEServiceRiskAnalysisFromTemplate(
+  template: EServiceTemplate,
+  requester: TenantId,
+  readModelService: ReadModelService
+): Promise<RiskAnalysis[]> {
+  const tenant = await retrieveTenant(requester, readModelService);
+
+  assertTenantKindExists(tenant);
+
+  const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
+    .filter((r) =>
+      match(tenant.kind)
+        .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
+        .with(
+          tenantKind.GSP,
+          tenantKind.PRIVATE,
+          tenantKind.SCP,
+          () =>
+            r.tenantKind === tenantKind.GSP ||
+            r.tenantKind === tenantKind.PRIVATE ||
+            r.tenantKind === tenantKind.SCP
+          /**
+           * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
+           * This may change in the future.
+           */
+        )
+        .exhaustive()
+    )
+    .map((r) => ({
+      id: generateId(),
+      createdAt: r.createdAt,
+      name: r.name,
+      riskAnalysisForm: r.riskAnalysisForm,
+    }));
+
+  if (riskAnalysis.length === 0) {
+    throw templateMissingRequiredRiskAnalysis(
+      template.id,
+      tenant.id,
+      tenant.kind
+    );
+  }
+
+  return riskAnalysis;
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
