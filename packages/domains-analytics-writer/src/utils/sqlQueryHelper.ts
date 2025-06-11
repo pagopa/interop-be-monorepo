@@ -234,14 +234,12 @@ export function generateStagingDeleteQuery<
   return `
     DELETE FROM ${stagingTableName}
     USING ${stagingTableName} b
-    WHERE
-      ${whereCondition}
+    WHERE ${whereCondition}
       AND ${stagingTableName}.metadata_version < b.metadata_version;
 
     DELETE FROM ${stagingTableName}
     USING ${config.dbSchemaName}.${tableName} b
-    WHERE
-      ${whereCondition}
+    WHERE ${whereCondition}
       AND ${stagingTableName}.metadata_version < b.metadata_version;
 `.trim();
 }
