@@ -1,5 +1,9 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { logger, ReadModelRepository } from "pagopa-interop-commons";
+import {
+  logger,
+  ReadModelRepository,
+  cleanupResources,
+} from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { addProducerIdToTokenGenReadModel } from "./utils/utils.js";
 import { config } from "./configs/config.js";
@@ -38,13 +42,7 @@ async function main(): Promise<void> {
   } catch (error) {
     loggerInstance.error(error);
   } finally {
-    // Clean up resources that prevent process exit
-    loggerInstance.info("Cleaning up resources...");
-
-    // Close MongoDB connections
-    await ReadModelRepository.cleanup();
-
-    loggerInstance.info("Cleanup completed!");
+    await cleanupResources(loggerInstance);
   }
 }
 

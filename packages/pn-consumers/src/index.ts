@@ -3,6 +3,7 @@ import {
   initSesMailManager,
   logger,
   withExecutionTime,
+  cleanupResources,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
@@ -73,16 +74,7 @@ async function main(): Promise<void> {
   } catch (error) {
     loggerInstance.error(error);
   } finally {
-    // Clean up resources that prevent process exit
-    loggerInstance.info("Cleaning up resources...");
-
-    // Close MongoDB connections
-    await ReadModelRepository.cleanup();
-
-    // Close PostgreSQL pool connections
-    await drizzleCleanup();
-
-    loggerInstance.info("Cleanup completed!");
+    await cleanupResources(loggerInstance, drizzleCleanup);
   }
 }
 
