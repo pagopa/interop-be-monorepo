@@ -82,8 +82,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
       USING ${stagingTableName} AS source
       ON ${onCondition}
       WHEN MATCHED THEN
-        UPDATE SET
-          ${updateSet}
+        UPDATE SET ${updateSet}
       WHEN NOT MATCHED THEN
         INSERT (${colList})
         VALUES (${valList});
