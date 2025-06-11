@@ -205,13 +205,17 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
 };
 
 /**
- * Generates a DELETE query that removes rows from a staging table
- * whenever there is another row with the same keyColumns and a higher
- * metadata_version (or, if equal, a lower ctid).
+ * Generates SQL to remove outdated or duplicate rows from the staging table.
+ * It returns two DELETE statements:
+ *
+ * 1. Deletes rows in the staging table that have the same key columns as another
+ *    row in the staging table but a lower `metadata_version`.
+ * 2. Deletes rows in the staging table that are older than the corresponding rows
+ *    already present in the target table.
  *
  * @param tableName - The base table name.
  * @param keyConditions - Array of column keys used to match records for deletion.
- * @returns - A DELETE SQL query string to perform a deduplication.
+ * @returns A SQL string containing two DELETE statements to perform staging cleanup.
  */
 export function generateStagingDeleteQuery<
   T extends DomainDbTable,
