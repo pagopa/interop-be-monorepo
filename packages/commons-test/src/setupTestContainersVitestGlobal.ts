@@ -358,47 +358,290 @@
 
 // import { fileURLToPath } from "node:url";
 // import path from "node:path";
-import { config as dotenv } from "dotenv-flow";
+// import { config as dotenv } from "dotenv-flow";
+// import {
+//   AWSSesConfig,
+//   AnalyticsSQLDbConfig,
+//   EventStoreConfig,
+//   FileManagerConfig,
+//   ReadModelDbConfig,
+//   ReadModelSQLDbConfig,
+//   RedisRateLimiterConfig,
+//   S3Config,
+// } from "pagopa-interop-commons";
+// import { type ProvidedContext } from "vitest";
+// import type { TestProject } from "vitest/node";
+// import { z } from "zod";
+// import { PecEmailManagerConfigTest } from "./testConfig.js";
+// // import { dynamoDBContainer, TEST_DYNAMODB_PORT } from "./containerTestUtils.js";
+
+// const EnhancedTokenGenerationReadModelDbConfig = z
+//   .object({
+//     TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM: z.string(),
+//     TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION: z.string(),
+//     TOKEN_GENERATION_READ_MODEL_DB_PORT: z.coerce.number(),
+//   })
+//   .transform((env) => ({
+//     tokenGenerationReadModelTableNamePlatform:
+//       env.TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM,
+//     tokenGenerationReadModelTableNameTokenGeneration:
+//       env.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
+//     tokenGenerationReadModelDbPort: env.TOKEN_GENERATION_READ_MODEL_DB_PORT,
+//   }));
+
+// type EnhancedTokenGenerationReadModelDbConfig = z.infer<
+//   typeof EnhancedTokenGenerationReadModelDbConfig
+// >;
+
+// declare module "vitest" {
+//   export interface ProvidedContext {
+//     readModelConfig?: ReadModelDbConfig;
+//     readModelSQLConfig?: ReadModelSQLDbConfig;
+//     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
+//     eventStoreConfig?: EventStoreConfig;
+//     fileManagerConfig?: FileManagerConfig & S3Config;
+//     redisRateLimiterConfig?: RedisRateLimiterConfig;
+//     emailManagerConfig?: PecEmailManagerConfigTest;
+//     sesEmailManagerConfig?: AWSSesConfig;
+//     analyticsSQLDbConfig?: AnalyticsSQLDbConfig;
+//   }
+// }
+
+// export function setupTestContainersVitestGlobal() {
+//   const packageRoot = process.cwd();
+//   dotenv({ path: packageRoot });
+//   console.log("✅ Loaded envs from", packageRoot);
+
+//   return async function ({
+//     provide,
+//   }: TestProject): Promise<() => Promise<void>> {
+//     const provideConfig = <K extends keyof ProvidedContext>(
+//       label: K,
+//       parser: z.SafeParseReturnType<any, ProvidedContext[K]>
+//     ) => {
+//       if (parser.success) {
+//         provide(label, parser.data);
+//         console.log(`✅ Provided ${label}`);
+//       } else {
+//         console.log(`ℹ️ Skipped optional config ${label}`);
+//       }
+//     };
+
+//     // Configurazioni standard
+//     provideConfig("eventStoreConfig", EventStoreConfig.safeParse(process.env));
+//     provideConfig(
+//       "readModelSQLConfig",
+//       ReadModelSQLDbConfig.safeParse(process.env)
+//     );
+//     provideConfig(
+//       "analyticsSQLDbConfig",
+//       AnalyticsSQLDbConfig.safeParse(process.env)
+//     );
+//     provideConfig("readModelConfig", ReadModelDbConfig.safeParse(process.env));
+//     provideConfig(
+//       "redisRateLimiterConfig",
+//       RedisRateLimiterConfig.safeParse(process.env)
+//     );
+//     provideConfig("sesEmailManagerConfig", AWSSesConfig.safeParse(process.env));
+//     provideConfig(
+//       "emailManagerConfig",
+//       PecEmailManagerConfigTest.safeParse(process.env)
+//     );
+
+//     const tokenGenParsed = EnhancedTokenGenerationReadModelDbConfig.safeParse(
+//       process.env
+//     );
+//     if (tokenGenParsed.success) {
+//       provide("tokenGenerationReadModelConfig", tokenGenParsed.data);
+//       console.log("✅ Provided tokenGenerationReadModelConfig from .env");
+//     } else {
+//       console.warn(
+//         "⚠️ Failed to parse tokenGenerationReadModelConfig from .env"
+//       );
+//     }
+
+//     // Configurazione FileManager + S3
+//     const fileManagerParsed = FileManagerConfig.safeParse(process.env);
+//     const s3Parsed = S3Config.safeParse(process.env);
+//     if (fileManagerParsed.success) {
+//       provide("fileManagerConfig", {
+//         ...fileManagerParsed.data,
+//         s3Bucket: s3Parsed.success
+//           ? s3Parsed.data.s3Bucket
+//           : "interop-local-bucket",
+//       });
+//       console.log("✅ Provided fileManagerConfig with s3Bucket");
+//     } else {
+//       console.warn("⚠️ Failed to provide fileManagerConfig");
+//     }
+
+//     return async () => {
+//       // No cleanup logic necessary
+//     };
+//   };
+// }
+
+// ✅ Refactored `EnhancedTokenGenerationReadModelDbConfig`
+// import { z } from "zod";
+// import { config as dotenvFlow } from "dotenv-flow";
+// import type { ProvidedContext } from "vitest";
+// import {
+//   AWSSesConfig,
+//   AnalyticsSQLDbConfig,
+//   EventStoreConfig,
+//   FileManagerConfig,
+//   ReadModelDbConfig,
+//   ReadModelSQLDbConfig,
+//   RedisRateLimiterConfig,
+//   S3Config,
+//   TokenGenerationReadModelDbConfig,
+// } from "pagopa-interop-commons";
+// import type { TestProject } from "vitest/node";
+// import { PecEmailManagerConfigTest } from "./testConfig.js";
+
+// export const EnhancedTokenGenerationReadModelDbConfig =
+//   TokenGenerationReadModelDbConfig.and(
+//     z.object({ TOKEN_GENERATION_READ_MODEL_DB_PORT: z.coerce.number() })
+//   ).transform((env) => ({
+//     ...env,
+//     tokenGenerationReadModelDbPort: env.TOKEN_GENERATION_READ_MODEL_DB_PORT,
+//   }));
+
+// export type EnhancedTokenGenerationReadModelDbConfig = z.infer<
+//   typeof EnhancedTokenGenerationReadModelDbConfig
+// >;
+
+// // ✅ Augmentazione del contesto Vitest
+// declare module "vitest" {
+//   export interface ProvidedContext {
+//     readModelConfig?: ReadModelDbConfig;
+//     readModelSQLConfig?: ReadModelSQLDbConfig;
+//     tokenGenerationReadModelConfig?: EnhancedTokenGenerationReadModelDbConfig;
+//     eventStoreConfig?: EventStoreConfig;
+//     fileManagerConfig?: FileManagerConfig & S3Config;
+//     redisRateLimiterConfig?: RedisRateLimiterConfig;
+//     emailManagerConfig?: PecEmailManagerConfigTest;
+//     sesEmailManagerConfig?: AWSSesConfig;
+//     analyticsSQLDbConfig?: AnalyticsSQLDbConfig;
+//   }
+// }
+
+// // ✅ Funzione di setup globale Vitest
+// export function setupTestContainersVitestGlobal() {
+//   const packageRoot = process.cwd();
+//   dotenvFlow({ path: packageRoot });
+//   console.log("✅ Loaded envs from", packageRoot);
+
+//   return async function ({
+//     provide,
+//   }: TestProject): Promise<() => Promise<void>> {
+//     const provideConfig = <K extends keyof ProvidedContext>(
+//       label: K,
+//       parser: z.SafeParseReturnType<any, ProvidedContext[K]>
+//     ) => {
+//       if (parser.success) {
+//         provide(label, parser.data);
+//         console.log(`✅ Provided ${label}`);
+//       } else {
+//         console.log(`ℹ️ Skipped optional config ${label}`);
+//       }
+//     };
+
+//     // Configurazioni standard
+//     provideConfig("eventStoreConfig", EventStoreConfig.safeParse(process.env));
+//     provideConfig(
+//       "readModelSQLConfig",
+//       ReadModelSQLDbConfig.safeParse(process.env)
+//     );
+//     provideConfig(
+//       "analyticsSQLDbConfig",
+//       AnalyticsSQLDbConfig.safeParse(process.env)
+//     );
+//     provideConfig("readModelConfig", ReadModelDbConfig.safeParse(process.env));
+//     provideConfig(
+//       "redisRateLimiterConfig",
+//       RedisRateLimiterConfig.safeParse(process.env)
+//     );
+//     provideConfig("sesEmailManagerConfig", AWSSesConfig.safeParse(process.env));
+//     provideConfig(
+//       "emailManagerConfig",
+//       PecEmailManagerConfigTest.safeParse(process.env)
+//     );
+
+//     // Config opzionale per Dynamo tokenGeneration
+//     const tokenGenParsed = EnhancedTokenGenerationReadModelDbConfig.safeParse(
+//       process.env
+//     );
+//     if (tokenGenParsed.success) {
+//       provide("tokenGenerationReadModelConfig", tokenGenParsed.data);
+//       console.log("✅ Provided tokenGenerationReadModelConfig from .env");
+//     } else {
+//       console.warn(
+//         "ℹ️ Skipped tokenGenerationReadModelConfig (not required if SKIP_TOKEN_READMODEL is false)"
+//       );
+//     }
+
+//     // FileManager + S3
+//     const fileManagerParsed = FileManagerConfig.safeParse(process.env);
+//     const s3Parsed = S3Config.safeParse(process.env);
+//     if (fileManagerParsed.success) {
+//       provide("fileManagerConfig", {
+//         ...fileManagerParsed.data,
+//         s3Bucket: s3Parsed.success
+//           ? s3Parsed.data.s3Bucket
+//           : "interop-local-bucket",
+//       });
+//       console.log("✅ Provided fileManagerConfig with s3Bucket");
+//     } else {
+//       console.warn("⚠️ Failed to provide fileManagerConfig");
+//     }
+
+//     return async () => {
+//       // Nessuna logica di cleanup necessaria
+//     };
+//   };
+// }
+
+// ✅ Valore da mettere nel `.env` SOLO SE usi SKIP_TOKEN_READMODEL=true
+// TOKEN_GENERATION_READ_MODEL_DB_PORT=8000
+
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable functional/immutable-data */
+/* eslint-disable functional/no-let */
+import path from "path";
+import { z } from "zod";
+import { config as dotenvFlow } from "dotenv-flow";
+import dotenv from "dotenv";
+import type { ProvidedContext } from "vitest";
 import {
   AWSSesConfig,
   AnalyticsSQLDbConfig,
-  AuthData,
   EventStoreConfig,
   FileManagerConfig,
   ReadModelDbConfig,
   ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
   S3Config,
-  userRole,
+  TokenGenerationReadModelDbConfig,
 } from "pagopa-interop-commons";
-import { vi, type ProvidedContext } from "vitest";
 import type { TestProject } from "vitest/node";
-import { z } from "zod";
-import { generateId } from "pagopa-interop-models";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
-import { dynamoDBContainer, TEST_DYNAMODB_PORT } from "./containerTestUtils.js";
 
-const EnhancedTokenGenerationReadModelDbConfig = z
-  .object({
-    TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM: z.string(),
-    TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION: z.string(),
-    TOKEN_GENERATION_READ_MODEL_DB_PORT: z
-      .string()
-      .transform((val) => Number(val))
-      .refine((val) => !Number.isNaN(val), { message: "Must be a number" }),
-  })
-  .transform((env) => ({
-    tokenGenerationReadModelTableNamePlatform:
-      env.TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM,
-    tokenGenerationReadModelTableNameTokenGeneration:
-      env.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
+// Enhanced config per port override da .envPort
+export const EnhancedTokenGenerationReadModelDbConfig =
+  TokenGenerationReadModelDbConfig.and(
+    z.object({ TOKEN_GENERATION_READ_MODEL_DB_PORT: z.coerce.number() })
+  ).transform((env) => ({
+    ...env,
     tokenGenerationReadModelDbPort: env.TOKEN_GENERATION_READ_MODEL_DB_PORT,
   }));
 
-type EnhancedTokenGenerationReadModelDbConfig = z.infer<
+export type EnhancedTokenGenerationReadModelDbConfig = z.infer<
   typeof EnhancedTokenGenerationReadModelDbConfig
 >;
 
+// ✅ Augmentazione del contesto Vitest
 declare module "vitest" {
   export interface ProvidedContext {
     readModelConfig?: ReadModelDbConfig;
@@ -413,110 +656,48 @@ declare module "vitest" {
   }
 }
 
-vi.mock("../testUtils.ts", async () => {
-  // importa le implementazioni vere per poterle usare nel mock
-  const actual = await vi.importActual("../testUtils.ts");
-  return {
-    ...actual,
-    getMockAuthData: (
-      organizationId?: string,
-      userId?: string,
-      userRoles?: string[]
-    ) => ({
-      systemRole: undefined,
-      organizationId: organizationId || generateId(),
-      userId: userId || generateId(),
-      userRoles: userRoles || [userRole.ADMIN_ROLE],
-      externalId: {
-        value: "123456",
-        origin: "IPA",
-      },
-      selfcareId: generateId(),
-    }),
-    getMockContext: (args: {
-      authData: AuthData;
-      serviceName: string;
-      correlationId: string;
-    }) => ({
-      authData: args?.authData || {
-        systemRole: undefined,
-        organizationId: generateId(),
-        userId: generateId(),
-        userRoles: [userRole.ADMIN_ROLE],
-        externalId: {
-          value: "123456",
-          origin: "IPA",
-        },
-        selfcareId: generateId(),
-      },
-      serviceName: args?.serviceName || "test",
-      correlationId: args?.correlationId || generateId(),
-      spanId: "span-id-mock",
-      logger: console, // o genericLogger
-      requestTimestamp: Date.now(),
-    }),
-  };
-});
-
 export function setupTestContainersVitestGlobal() {
-  // const monorepoRoot = path.resolve(
-  //   path.dirname(fileURLToPath(import.meta.url)),
-  //   "../../.."
-  // );
-  // const envPath = path.join(monorepoRoot, ".env.test");
-
-  // console.log("Loaded .env.test from", envPath);
-
-  // dotenv({ path: envPath });
-
-  // const currentFile = fileURLToPath(import.meta.url);
-  // const packageRoot = path.resolve(currentFile, "../../");
   const packageRoot = process.cwd();
-  dotenv({ path: packageRoot });
+  const envPortPath = path.resolve(__dirname, "../../../.envPort");
 
-  console.log("✅ Loaded envs from", packageRoot);
+  // 1. Caricamento variabili principali con dotenv-flow
+  console.log(`📂 Caricamento variabili principali da: ${packageRoot}`);
+  dotenvFlow({ path: packageRoot });
+  console.log("✅ Variabili principali caricate con dotenv-flow");
 
-  console.log("ENV example:", {
-    ANALYTICS_SQL_DB_NAME: process.env.ANALYTICS_SQL_DB_NAME,
-    TOKEN_GENERATION_READ_MODEL_DB_PORT:
-      process.env.TOKEN_GENERATION_READ_MODEL_DB_PORT,
-    TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM:
-      process.env.TOKEN_GENERATION_READMODEL_TABLE_NAME_PLATFORM,
-    TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION:
-      process.env.TOKEN_GENERATION_READMODEL_TABLE_NAME_TOKEN_GENERATION,
+  // 2. Caricamento porte da .envPort
+  console.log(`📂 Caricamento variabili porte da: ${envPortPath}`);
+  const envPortResult = dotenv.config({ path: envPortPath, override: true });
+  if (envPortResult.error) {
+    console.warn(`⚠️ Impossibile caricare .envPort: ${envPortResult.error}`);
+  } else {
+    console.log("✅ Variabili porte caricate con override: false");
+  }
+
+  // 3. Preview log variabili principali
+  console.log("🔍 Preview alcune variabili caricate:");
+  console.log({
+    POSTGRES_PORT: process.env.POSTGRES_PORT,
+    POSTGRES_USER: process.env.POSTGRES_USER,
+    POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
+    EVENTSTORE_DB_USERNAME: process.env.EVENTSTORE_DB_USERNAME,
+    EVENTSTORE_DB_PASSWORD: process.env.EVENTSTORE_DB_PASSWORD,
+    MONGO_INITDB_ROOT_USERNAME: process.env.MONGO_INITDB_ROOT_USERNAME,
+    MONGO_INITDB_ROOT_PASSWORD: process.env.MONGO_INITDB_ROOT_PASSWORD,
+    READMODEL_DB_USERNAME: process.env.READMODEL_DB_USERNAME,
+    READMODEL_DB_PASSWORD: process.env.READMODEL_DB_PASSWORD,
+    READMODEL_DB_PORT: process.env.READMODEL_DB_PORT,
   });
+
   return async function ({
     provide,
   }: TestProject): Promise<() => Promise<void>> {
-    // const provideConfig = <K extends keyof ProvidedContext>(
-    //   label: K,
-    //   parser: z.SafeParseReturnType<any, ProvidedContext[K]>
-    // ) => {
-    //   if (parser.success) {
-    //     provide(label, parser.data); // 👈 cast esplicito
-    //     console.log(`✅ Provided ${label}`);
-    //   } else {
-    //     console.warn(`⚠️ Failed to provide ${label}`);
-    //   }
-    // };
-
-    // const provideConfig = <K extends keyof ProvidedContext>(
-    //   label: K,
-    //   parser: z.SafeParseReturnType<any, ProvidedContext[K]>
-    // ) => {
-    //   if (parser.success) {
-    //     provide(label, parser.data);
-    //     console.log(`✅ Provided ${label}`);
-    //   } else {
-    //     console.warn(`⚠️ Failed to provide ${label}`);
-    //     console.warn(parser.error.format()); // <<< stampa dettagli errori di parsing
-    //   }
-    // };
-
+    // Fix del tipo con callback
     const provideConfig = <K extends keyof ProvidedContext>(
       label: K,
-      parser: z.SafeParseReturnType<any, ProvidedContext[K]>
+      parseFn: () => z.SafeParseReturnType<any, ProvidedContext[K]>
     ) => {
+      const parser = parseFn();
       if (parser.success) {
         provide(label, parser.data);
         console.log(`✅ Provided ${label}`);
@@ -525,48 +706,35 @@ export function setupTestContainersVitestGlobal() {
       }
     };
 
-    provideConfig("eventStoreConfig", EventStoreConfig.safeParse(process.env));
-    provideConfig(
-      "readModelSQLConfig",
+    // Configurazioni standard
+    provideConfig("eventStoreConfig", () =>
+      EventStoreConfig.safeParse(process.env)
+    );
+    provideConfig("readModelSQLConfig", () =>
       ReadModelSQLDbConfig.safeParse(process.env)
     );
-    provideConfig(
-      "analyticsSQLDbConfig",
+    provideConfig("analyticsSQLDbConfig", () =>
       AnalyticsSQLDbConfig.safeParse(process.env)
     );
-    provideConfig("readModelConfig", ReadModelDbConfig.safeParse(process.env));
-    provideConfig(
-      "redisRateLimiterConfig",
+    provideConfig("readModelConfig", () =>
+      ReadModelDbConfig.safeParse(process.env)
+    );
+    provideConfig("redisRateLimiterConfig", () =>
       RedisRateLimiterConfig.safeParse(process.env)
     );
-    provideConfig("sesEmailManagerConfig", AWSSesConfig.safeParse(process.env));
-    provideConfig(
-      "emailManagerConfig",
+    provideConfig("sesEmailManagerConfig", () =>
+      AWSSesConfig.safeParse(process.env)
+    );
+    provideConfig("emailManagerConfig", () =>
       PecEmailManagerConfigTest.safeParse(process.env)
     );
 
-    const tokenGenParsed = EnhancedTokenGenerationReadModelDbConfig.safeParse(
-      process.env
+    // Config opzionale per Dynamo tokenGeneration
+    provideConfig("tokenGenerationReadModelConfig", () =>
+      EnhancedTokenGenerationReadModelDbConfig.safeParse(process.env)
     );
-    // if (tokenGenParsed.success) {
-    //   provide("tokenGenerationReadModelConfig", tokenGenParsed.data);
-    //   console.log("✅ Provided tokenGenerationReadModelConfig");
-    // } else {
-    //   console.warn("⚠️ Failed to provide tokenGenerationReadModelConfig");
-    // }
 
-    const skipTokenReadModel = process.env.SKIP_TOKEN_READMODEL === "true";
-
-    if (tokenGenParsed.success && !skipTokenReadModel) {
-      const startedDynamoDbContainer = await dynamoDBContainer().start();
-
-      provide("tokenGenerationReadModelConfig", {
-        ...tokenGenParsed.data,
-        tokenGenerationReadModelDbPort:
-          startedDynamoDbContainer.getMappedPort(TEST_DYNAMODB_PORT),
-      });
-    }
-
+    // FileManager + S3 combinati
     const fileManagerParsed = FileManagerConfig.safeParse(process.env);
     const s3Parsed = S3Config.safeParse(process.env);
     if (fileManagerParsed.success) {
@@ -582,7 +750,7 @@ export function setupTestContainersVitestGlobal() {
     }
 
     return async () => {
-      // No cleanup logic necessary: containers are external
+      // Nessuna logica di cleanup necessaria
     };
   };
 }
