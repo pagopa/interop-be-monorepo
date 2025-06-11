@@ -58,6 +58,8 @@
     "format:write": "turbo format:write",
     "generate-model": "turbo generate-model",
     "generate-protobuf": "turbo generate-protobuf",
+    "test:start-env": "./scripts/startTestEnv.sh",
+    "test:stop-env": "./scripts/stopTestEnv.sh",
     "infra:start": "./scripts/infra-start.sh",
     "infra:stop": "./scripts/infra-stop.sh",
     "infra:destroy": "./scripts/infra-destroy.sh",

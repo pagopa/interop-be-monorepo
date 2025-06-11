@@ -38,7 +38,7 @@ import { PecEmailManagerConfigTest } from "./testConfig.js";
  * The cleanup function deletes all the data from the read model repository and the event store
  * database and must be called at the end of each test (`afterEach`), to ensure that the tests are isolated.
  *
- * @param config The configuration object containing the connection parameters. It must be retrieved from the `config` object provided by the `setupTestContainersVitestGlobal` function with the vitest's `inject` function.
+ * @param config The configuration object containing the connection parameters. It must be retrieved from the `config` object provided by the `setupVitestGlobal` function with the vitest's `inject` function.
  *
  * @example
  * ```typescript

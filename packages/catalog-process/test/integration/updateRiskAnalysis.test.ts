@@ -294,7 +294,7 @@ describe("update risk analysis", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         mockEService.id,
         generateId(),

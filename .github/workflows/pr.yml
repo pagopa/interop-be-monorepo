@@ -86,6 +86,15 @@ jobs:
           key: ${{ runner.os }}-turbo-test-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-test
+            # --- Inizio sezione per Docker Compose ---
+      - name: Ensure Docker Compose is available
+        run: docker compose version
+
+      - name: Start Docker Compose services
+        run: |
+          ./scripts/startTestEnv.sh
+        working-directory: ${{ github.workspace }}
+      # --- Fine sezione per Docker Compose ---
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
@@ -93,6 +102,13 @@ jobs:
         with:
           run_install: true
       - run: pnpm test
+      # --- Clean up Docker Compose services ---
+      - name: Stop Docker Compose services (even if tests fail)
+        if: always()
+        run: |
+          ./scripts/stopTestEnv.sh
+        working-directory: ${{ github.workspace }}
+      # --- Fine clean up ---
 
   find_dockerfiles:
     name: Find Dockerfiles
