@@ -22,6 +22,7 @@ import {
   EserviceItemsSchema,
 } from "../../model/catalog/eservice.js";
 import {
+  DescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorItemsSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
@@ -29,7 +30,11 @@ import {
   EserviceDescriptorDocumentSchema,
   EserviceDescriptorDocumentDeletingSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
-import { EserviceRiskAnalysisDeletingSchema } from "../../model/catalog/eserviceRiskAnalysis.js";
+import {
+  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
+  EserviceDescriptorInterfaceItemsSchema,
+  EserviceDescriptorInterfaceSchema,
+} from "../../model/catalog/eserviceDescriptorInterface.js";
 
 export async function handleCatalogMessageV1(
   messages: EServiceEventEnvelopeV1[],
@@ -43,8 +48,11 @@ export async function handleCatalogMessageV1(
   const upsertEServiceDocumentBatch: EserviceDescriptorDocumentSchema[] = [];
   const deleteEServiceDocumentBatch: EserviceDescriptorDocumentDeletingSchema[] =
     [];
-  const deleteRiskAnalysisBatch: EserviceRiskAnalysisDeletingSchema[] = [];
   const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
+  const upsertEserviceInterface: EserviceDescriptorInterfaceItemsSchema[] = [];
+  const upsertDescriptorServerUrls: DescriptorServerUrlsSchema[] = [];
+  const deleteDescriptorDocumentOrInterfaceBatch: EserviceDescriptorDocumentOrInterfaceDeletingSchema[] =
+    [];
 
   for (const message of messages) {
     match(message)
@@ -56,7 +64,8 @@ export async function handleCatalogMessageV1(
             "EServiceUpdated",
             "EServiceRiskAnalysisAdded",
             "MovedAttributesFromEserviceToDescriptors",
-            "EServiceRiskAnalysisUpdated"
+            "EServiceRiskAnalysisUpdated",
+            "EServiceRiskAnalysisDeleted"
           ),
         },
         (msg) => {
@@ -98,7 +107,6 @@ export async function handleCatalogMessageV1(
         deleteDescriptorBatch.push(
           EserviceDescriptorDeletingSchema.parse({
             id: msg.data.descriptorId,
-            deleted: true,
           } satisfies z.input<typeof EserviceDescriptorDeletingSchema>)
         );
       })
@@ -108,15 +116,35 @@ export async function handleCatalogMessageV1(
             `EService updatedDocument can't be missing in the event message`
           );
         }
+        const isInterface =
+          msg.data.serverUrls && msg.data.serverUrls.length > 0;
 
-        upsertEServiceDocumentBatch.push(
-          EserviceDescriptorDocumentSchema.parse({
-            ...msg.data.updatedDocument,
-            eserviceId: msg.data.eserviceId,
-            descriptorId: msg.data.descriptorId,
-            metadataVersion: msg.version,
-          } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
-        );
+        if (isInterface) {
+          upsertEserviceInterface.push(
+            EserviceDescriptorInterfaceSchema.parse({
+              ...msg.data.updatedDocument,
+              eserviceId: msg.data.eserviceId,
+              descriptorId: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
+          );
+          upsertDescriptorServerUrls.push(
+            DescriptorServerUrlsSchema.parse({
+              serverUrls: msg.data.serverUrls,
+              id: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof DescriptorServerUrlsSchema>)
+          );
+        } else {
+          upsertEServiceDocumentBatch.push(
+            EserviceDescriptorDocumentSchema.parse({
+              ...msg.data.updatedDocument,
+              eserviceId: msg.data.eserviceId,
+              descriptorId: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
+          );
+        }
       })
       .with({ type: "EServiceDocumentAdded" }, (msg) => {
         if (!msg.data.document) {
@@ -125,36 +153,42 @@ export async function handleCatalogMessageV1(
           );
         }
 
-        upsertEServiceDocumentBatch.push(
-          EserviceDescriptorDocumentSchema.parse({
-            ...msg.data.document,
-            eserviceId: msg.data.eserviceId,
-            descriptorId: msg.data.descriptorId,
-            metadataVersion: msg.version,
-          } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
-        );
-      })
-      .with({ type: "EServiceDocumentDeleted" }, (msg) => {
-        deleteEServiceDocumentBatch.push(
-          EserviceDescriptorDocumentDeletingSchema.parse({
-            id: msg.data.documentId,
-            deleted: true,
-          } satisfies z.input<typeof EserviceDescriptorDocumentDeletingSchema>)
-        );
-      })
-      .with({ type: "EServiceRiskAnalysisDeleted" }, (msg) => {
-        if (!msg.data.eservice?.id) {
-          throw genericInternalError(
-            "eservice can't be missing in event message"
+        if (msg.data.isInterface) {
+          upsertEserviceInterface.push(
+            EserviceDescriptorInterfaceSchema.parse({
+              ...msg.data.document,
+              eserviceId: msg.data.eserviceId,
+              descriptorId: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
+          );
+          upsertDescriptorServerUrls.push(
+            DescriptorServerUrlsSchema.parse({
+              serverUrls: msg.data.serverUrls,
+              id: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof DescriptorServerUrlsSchema>)
+          );
+        } else {
+          upsertEServiceDocumentBatch.push(
+            EserviceDescriptorDocumentSchema.parse({
+              ...msg.data.document,
+              eserviceId: msg.data.eserviceId,
+              descriptorId: msg.data.descriptorId,
+              metadataVersion: msg.version,
+            } satisfies z.input<typeof EserviceDescriptorDocumentSchema>)
           );
         }
-
-        deleteRiskAnalysisBatch.push(
-          EserviceRiskAnalysisDeletingSchema.parse({
-            id: msg.data.riskAnalysisId,
-            eserviceId: msg.data.eservice.id,
-            deleted: true,
-          } satisfies z.input<typeof EserviceRiskAnalysisDeletingSchema>)
+      })
+      .with({ type: "EServiceDocumentDeleted" }, (msg) => {
+        deleteDescriptorDocumentOrInterfaceBatch.push(
+          EserviceDescriptorDocumentOrInterfaceDeletingSchema.parse({
+            id: msg.data.documentId,
+            descriptorId: msg.data.descriptorId,
+            metadataVersion: msg.version,
+          }) satisfies z.input<
+            typeof EserviceDescriptorDocumentOrInterfaceDeletingSchema
+          >
         );
       })
       .with(
@@ -220,10 +254,31 @@ export async function handleCatalogMessageV1(
       deleteEServiceDocumentBatch
     );
   }
-  if (deleteRiskAnalysisBatch.length > 0) {
-    await catalogService.deleteBatchEserviceRiskAnalysis(
+
+  if (upsertDescriptorBatch.length > 0) {
+    await catalogService.upsertBatchEServiceDescriptor(
       dbContext,
-      deleteRiskAnalysisBatch
+      upsertDescriptorBatch
+    );
+  }
+  if (upsertEserviceInterface.length > 0) {
+    await catalogService.upsertBatchEserviceDescriptorInterface(
+      dbContext,
+      upsertEserviceInterface
+    );
+  }
+
+  if (upsertDescriptorServerUrls.length > 0) {
+    await catalogService.upsertBatchDescriptorServerUrls(
+      dbContext,
+      upsertDescriptorServerUrls
+    );
+  }
+
+  if (deleteDescriptorDocumentOrInterfaceBatch.length > 0) {
+    await catalogService.deleteDescriptorDocumentOrInterfaceBatch(
+      dbContext,
+      deleteDescriptorDocumentOrInterfaceBatch
     );
   }
 }

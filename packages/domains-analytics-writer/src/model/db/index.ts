@@ -7,10 +7,15 @@ import {
   AttributeDbTableReadModel,
 } from "./attribute.js";
 import {
+  CatalogDbPartialTableConfig,
+  CatalogDbPartialTableReadModel,
+  CatalogDbTableConfig,
+  CatalogDbTableReadModel,
+} from "./catalog.js";
+import {
   ClientDbTableConfig,
   ClientDbTableReadModel,
 } from "./authorization.js";
-import { CatalogDbTableConfig, CatalogDbTableReadModel } from "./catalog.js";
 import {
   DelegationDbTableConfig,
   DelegationDbTableReadModel,
@@ -30,6 +35,7 @@ import {
 
 export const PartialDbTable = {
   ...TenantDbPartialTableConfig,
+  ...CatalogDbPartialTableConfig,
 } as const;
 export type PartialDbTableSchemas = typeof PartialDbTable;
 export type PartialDbTable = keyof PartialDbTableSchemas;
@@ -69,6 +75,7 @@ export type DomainDbTableReadModels = typeof DomainDbTableReadModels;
 
 export const PartialDbTableReadModels = {
   ...TenantDbPartialTableReadModel,
+  ...CatalogDbPartialTableReadModel,
 } as const;
 export type PartialDbTableReadModels = typeof PartialDbTableReadModels;
 
