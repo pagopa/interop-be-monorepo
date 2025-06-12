@@ -2473,14 +2473,11 @@ export function catalogServiceBuilder(
             oldSignalHubEnabled: true,
             newisSignalHubEnabled: true,
           },
-          () => undefined
-        )
-        .with(
           {
             oldSignalHubEnabled: false,
             newisSignalHubEnabled: false,
           },
-          () => undefined
+          () => null
         )
         .exhaustive();
 
