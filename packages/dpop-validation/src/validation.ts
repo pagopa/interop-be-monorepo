@@ -90,17 +90,17 @@ export const verifyDPoPProof = ({
       !jtiErrors
     ) {
       const payloadParseResult = DPoPProofPayload.safeParse(decodedPayload);
-      if (!payloadParseResult.success) {
-        return failedValidation([
-          dpopProofInvalidClaims(payloadParseResult.error.message),
-        ]);
-      }
-
       const headerParseResult = DPoPProofHeader.safeParse(decodedHeader);
-      if (!headerParseResult.success) {
-        return failedValidation([
-          dpopProofInvalidClaims(headerParseResult.error.message),
-        ]);
+      const parsingErrors = [
+        !payloadParseResult.success
+          ? dpopProofInvalidClaims(payloadParseResult.error.message)
+          : undefined,
+        !headerParseResult.success
+          ? dpopProofInvalidClaims(headerParseResult.error.message)
+          : undefined,
+      ];
+      if (parsingErrors.some(Boolean)) {
+        return failedValidation(parsingErrors);
       }
 
       const result: DPoPProof = {
