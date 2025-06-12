@@ -118,7 +118,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
     [true, true],
     [false, false],
   ])(
-    "should write on event-store for the update of the E-service signalhub flag (%s -> %s)",
+    "should NOT write on event-store for the update of the E-service signalhub flag (%s -> %s)",
     async (oldSignalhubFlagValue, newSignalhubFlagValue) => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(descriptorState.published),
