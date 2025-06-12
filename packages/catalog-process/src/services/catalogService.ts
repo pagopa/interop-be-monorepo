@@ -2953,14 +2953,16 @@ export function catalogServiceBuilder(
         throw eServiceTemplateWithoutPublishedVersion(templateId);
       }
 
-      const riskAnalysis =
-        template.mode === eserviceMode.receive
-          ? await extractEServiceRiskAnalysisFromTemplate(
-              template,
-              ctx.authData.organizationId,
-              readModelService
-            )
-          : [];
+      const riskAnalysis = await match(template)
+        .with({ mode: eserviceMode.receive }, (template) =>
+          extractEServiceRiskAnalysisFromTemplate(
+            template,
+            ctx.authData.organizationId,
+            readModelService
+          )
+        )
+        .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
+        .exhaustive();
 
       const { eService: createdEService, events } = await innerCreateEService(
         {
@@ -3510,7 +3512,7 @@ function evaluateTemplateVersionRef(
 }
 
 async function extractEServiceRiskAnalysisFromTemplate(
-  template: EServiceTemplate,
+  template: EServiceTemplate & { mode: typeof eserviceMode.receive },
   requester: TenantId,
   readModelService: ReadModelService
 ): Promise<RiskAnalysis[]> {

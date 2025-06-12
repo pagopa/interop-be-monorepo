@@ -17,6 +17,7 @@ import {
   EServiceTemplateVersionId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import {
   apiTechnologyToTechnology,
