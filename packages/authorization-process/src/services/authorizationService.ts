@@ -220,17 +220,22 @@ export function authorizationServiceBuilder(
         logger,
         authData,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<{ client: Client; showUsers: boolean }>> {
+    ): Promise<
+      WithMetadata<{
+        client: Client;
+        showUsers: boolean;
+      }>
+    > {
       logger.info(`Retrieving Client ${clientId}`);
       const { data: client, metadata } = await retrieveClient(
         clientId,
         readModelService
       );
-      assertOrganizationIsClientConsumer(authData, client);
+
       return {
         data: {
           client,
-          showUsers: true, // caller is client consumer, see assertOrganizationIsClientConsumer
+          showUsers: authData.organizationId === client.consumerId,
         },
         metadata,
       };
