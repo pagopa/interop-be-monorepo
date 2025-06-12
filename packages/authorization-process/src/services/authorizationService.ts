@@ -226,11 +226,11 @@ export function authorizationServiceBuilder(
         clientId,
         readModelService
       );
-      assertOrganizationIsClientConsumer(authData, client);
+
       return {
         data: {
           client,
-          showUsers: true, // caller is client consumer, see assertOrganizationIsClientConsumer
+          showUsers: authData.organizationId === client.consumerId,
         },
         metadata,
       };
