@@ -1,5 +1,4 @@
 import {
-  algorithm,
   Algorithm,
   ApiError,
   JWKKeyRS256,
@@ -7,7 +6,6 @@ import {
 } from "pagopa-interop-models";
 import * as jose from "jose";
 import { dateToSeconds } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   FailedValidation,
   ValidationResult,
@@ -68,11 +66,7 @@ export const validateJWK = (
     return failedValidation([dpopJwkNotFound()]);
   }
 
-  return match(jwk.alg)
-    .with(algorithm.ES256, () => successfulValidation(JWKKeyES256.parse(jwk)))
-    .with(algorithm.RS256, () => successfulValidation(JWKKeyRS256.parse(jwk)))
-    .with(undefined, () => failedValidation([dpopAlgorithmNotFound()]))
-    .otherwise((alg) => failedValidation([dpopAlgorithmNotAllowed(alg)]));
+  return successfulValidation(JWKKeyRS256.or(JWKKeyES256).parse(jwk));
 };
 
 export const validateHtm = (
