@@ -71,7 +71,7 @@ export function readModelServiceBuilderSQL({
         id
       );
     },
-    async checkEServiceTemplateExistsByName({
+    async isEServiceTemplateNameAvailable({
       name,
     }: {
       name: string;

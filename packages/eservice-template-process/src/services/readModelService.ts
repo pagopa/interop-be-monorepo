@@ -101,7 +101,7 @@ export function readModelServiceBuilder({
       return getEServiceTemplate(eserviceTemplates, { "data.id": id });
     },
 
-    async checkEServiceTemplateExistsByName({
+    async isEServiceTemplateNameAvailable({
       name,
     }: {
       name: string;

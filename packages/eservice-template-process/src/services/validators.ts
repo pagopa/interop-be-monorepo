@@ -142,12 +142,12 @@ export function hasRoleToAccessDraftTemplateVersions(
   );
 }
 
-export async function assertNotDuplicatedEServiceTemplateName(
+export async function assertEServiceTemplateNameAvailable(
   name: string,
   readModelService: ReadModelService
 ): Promise<void> {
   const eserviceTemplateWithSameNameExists =
-    await readModelService.checkEServiceTemplateExistsByName({
+    await readModelService.isEServiceTemplateNameAvailable({
       name,
     });
 

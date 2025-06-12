@@ -107,7 +107,7 @@ import {
   assertConsistentDailyCalls,
   assertPublishedEServiceTemplate,
   hasRoleToAccessDraftTemplateVersions,
-  assertNotDuplicatedEServiceTemplateName,
+  assertEServiceTemplateNameAvailable,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -632,7 +632,7 @@ export function eserviceTemplateServiceBuilder(
       assertPublishedEServiceTemplate(eserviceTemplate.data);
 
       if (name !== eserviceTemplate.data.name) {
-        await assertNotDuplicatedEServiceTemplateName(name, readModelService);
+        await assertEServiceTemplateNameAvailable(name, readModelService);
 
         const hasConflictingInstances =
           await readModelService.checkNameConflictInstances(
@@ -1171,10 +1171,7 @@ export function eserviceTemplateServiceBuilder(
         throw originNotCompliant(authData.externalId.origin);
       }
 
-      await assertNotDuplicatedEServiceTemplateName(
-        seed.name,
-        readModelService
-      );
+      await assertEServiceTemplateNameAvailable(seed.name, readModelService);
 
       assertConsistentDailyCalls(seed.version);
 
@@ -1243,7 +1240,7 @@ export function eserviceTemplateServiceBuilder(
       assertIsDraftEServiceTemplate(eserviceTemplate.data);
 
       if (eserviceTemplateSeed.name !== eserviceTemplate.data.name) {
-        await assertNotDuplicatedEServiceTemplateName(
+        await assertEServiceTemplateNameAvailable(
           eserviceTemplateSeed.name,
           readModelService
         );
