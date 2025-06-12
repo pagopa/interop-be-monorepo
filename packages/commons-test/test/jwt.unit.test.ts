@@ -46,9 +46,8 @@ const expectedM2MAuthData: M2MAuthData = {
   organizationId: mockM2MTokenPayload.organizationId,
 };
 
-const mockInternalTokenPayload: SerializedInteropJwtInternalPayload = createPayload(
-  systemRole.INTERNAL_ROLE
-);
+const mockInternalTokenPayload: SerializedInteropJwtInternalPayload =
+  createPayload(systemRole.INTERNAL_ROLE);
 
 const expectedInternalAuthData: InternalAuthData = {
   systemRole: systemRole.INTERNAL_ROLE,
