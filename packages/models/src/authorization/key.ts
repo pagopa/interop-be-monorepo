@@ -35,15 +35,17 @@ export const JWKKeyRS256 = JWKKey.pick({
   kty: true,
   n: true,
   e: true,
-});
+}).strict();
 export type JWKKeyRS256 = z.infer<typeof JWKKeyRS256>;
 
-export const JWKKeyES256 = z.object({
-  crv: z.string(),
-  kty: z.string(),
-  x: z.string(),
-  y: z.string(),
-});
+export const JWKKeyES256 = z
+  .object({
+    crv: z.string(),
+    kty: z.string(),
+    x: z.string(),
+    y: z.string(),
+  })
+  .strict();
 export type JWKKeyES256 = z.infer<typeof JWKKeyES256>;
 
 export const ClientJWKKey = JWKKey.extend({
