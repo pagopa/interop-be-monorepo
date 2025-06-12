@@ -72,27 +72,108 @@ jobs:
         with:
           run_install: true
       - run: pnpm check
-  test:
-    name: Test
+
+  assign-packages:
+    runs-on: ubuntu-latest
+    outputs:
+      package-groups: ${{ steps.set-groups.outputs.package-groups }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Assign package groups
+        id: set-groups
+        run: |
+          PACKAGES=$(find packages -maxdepth 1 -type d | tail -n +2 | awk -F'/' '{print $2}')
+          GROUPS=10
+          COUNT=$(echo "$PACKAGES" | wc -l)
+          PER_GROUP=$(( (COUNT + GROUPS - 1) / GROUPS ))
+          i=1
+          group=1
+          JSON="[]"
+          for pkg in $PACKAGES; do
+            JSON=$(echo $JSON | jq ". += [\"$pkg\"]")
+            if [ $((i % PER_GROUP)) -eq 0 ] || [ $i -eq $COUNT ]; then
+              echo "group-$group=$JSON" >> $GITHUB_OUTPUT
+              JSON="[]"
+              group=$((group + 1))
+            fi
+            i=$((i + 1))
+          done
+          echo "package-groups=$(jq -c '[keys[]] | map("group-" + .)' $GITHUB_OUTPUT)" >> $GITHUB_OUTPUT
+
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
+      - uses: pnpm/action-setup@v4
+      - name: Cache pnpm dependencies
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
       - name: Cache turbo setup
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-test-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-test
+          key: ${{ runner.os }}-turbo-build-${{ github.ref_name }}
+      - run: pnpm install
+      - run: pnpm build
+      - name: Cache build output
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: packages/*/dist
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+  test:
+    name: Test
+    needs: [build, assign-packages, formatting, lint, check]
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 10
+      fail-fast: false
+      matrix:
+        package-group: ${{ fromJson(needs.assign-packages.outputs.package-groups) }}
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+    env:
+      TESTCONTAINERS_REUSE_ENABLE: true
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
+      - name: Cache pnpm dependencies
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
-          run_install: true
-      - run: pnpm test
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+      - name: Cache turbo setup
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: |
+            .turbo
+            packages/*/.turbo
+          key: ${{ runner.os }}-turbo-test-${{ github.ref_name }}
+      - name: Restore build cache
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
+        with:
+          path: packages/*/dist
+          key: ${{ runner.os }}-build-${{ github.sha }}
+      - name: Install dependencies
+        run: pnpm install
+      - name: Run tests for package group
+        env:
+          DOCKER_HOST: tcp://docker:2375
+          PACKAGE_GROUP: ${{ matrix.package-group }}
+        run: |
+          ./scripts/run-tests-for-group.sh "${{ join(fromJson(needs.assign-packages.outputs.package-groups)[matrix.package-group], ' ') }}"
 
   find_dockerfiles:
     name: Find Dockerfiles
@@ -111,6 +192,7 @@ jobs:
 
   docker_build:
     name: Build
+    timeout-minutes: 15
     needs: [find_dockerfiles]
     if: ${{ github.base_ref == 'main' }}
     runs-on: ubuntu-latest
@@ -127,18 +209,15 @@ jobs:
       DOCKER_BUILD_SUMMARY: "false"
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ vars.IAM_ROLE_ARN }}
           role-session-name: be-monorepo-pr-validation-${{ github.run_number }}
-
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
-
       - name: Build Docker image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
         with:

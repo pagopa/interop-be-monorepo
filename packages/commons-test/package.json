@@ -47,6 +47,8 @@
     "ts-pattern": "5.2.0",
     "typescript": "5.4.5",
     "vitest": "3.1.4",
-    "zod": "3.23.8"
+    "zod": "3.23.8",
+    "mongodb": "6.8.0",
+    "ioredis": "5.4.1"
   }
 }
