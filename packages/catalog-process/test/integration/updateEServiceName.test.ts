@@ -218,7 +218,7 @@ describe("update eService name on published eservice", () => {
       eServiceNameDuplicateForProducer(duplicateName, eservice.producerId)
     );
   });
-  it("should throw eServiceNameDuplicateForProducer is there is another eservice with the same name by the same producer (case insensitive)", async () => {
+  it("should throw eServiceNameDuplicateForProducer if there is another eservice with the same name by the same producer (case insensitive)", async () => {
     const producerId = generateId<TenantId>();
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -252,7 +252,7 @@ describe("update eService name on published eservice", () => {
       eServiceNameDuplicateForProducer(duplicateName, eservice.producerId)
     );
   });
-  it("should throw eserviceTemplateNameConflict is there is another eservice template with the same name", async () => {
+  it("should throw eserviceTemplateNameConflict if there is another eservice template with the same name", async () => {
     const producerId = generateId<TenantId>();
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -282,7 +282,7 @@ describe("update eService name on published eservice", () => {
       )
     ).rejects.toThrowError(eserviceTemplateNameConflict(duplicateName));
   });
-  it("should throw eserviceTemplateNameConflict is there is another eservice template with the same name (case insensitive)", async () => {
+  it("should throw eserviceTemplateNameConflict if there is another eservice template with the same name (case insensitive)", async () => {
     const producerId = generateId<TenantId>();
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
