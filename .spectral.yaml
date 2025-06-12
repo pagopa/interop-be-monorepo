@@ -11,3 +11,4 @@ rules:
   missing-ratelimit: off # Disabled to avoid warnings on rate limit headers
   missing-retry-after: off
   http-request-DELETE-no-body: off # Disabled to allow DELETE requests with bodies
+  no-method-name-in-operationId: off # Disabled to avoid warnings on method names in operationIds
