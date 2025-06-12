@@ -14,7 +14,6 @@ import {
   SuccessfulValidation,
 } from "../types.js";
 import {
-  dpopAlgorithmsMismatch,
   dpopAlgorithmNotAllowed,
   dpopAlgorithmNotFound,
   ErrorCodes,
@@ -49,18 +48,13 @@ export const validateTyp = (
 };
 
 export const validateAlgorithm = (
-  alg: string | undefined,
-  jwkAlg: string | undefined
+  alg: string | undefined
 ): ValidationResult<string> => {
-  if (!alg || !jwkAlg) {
+  if (!alg) {
     return failedValidation([dpopAlgorithmNotFound()]);
   }
 
-  if (alg !== jwkAlg) {
-    return failedValidation([dpopAlgorithmsMismatch(alg, jwkAlg)]);
-  }
-
-  if (ALLOWED_ALGORITHMS.includes(alg) && ALLOWED_ALGORITHMS.includes(jwkAlg)) {
+  if (ALLOWED_ALGORITHMS.includes(alg)) {
     return successfulValidation(alg);
   }
 
