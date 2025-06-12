@@ -43,11 +43,11 @@ export async function handleAuthorizationMessageV1(
   const upsertClientBatch: ClientItemsSchema[] = [];
   const deleteClientBatch: ClientDeletingSchema[] = [];
   const upsertClientUserBatch: ClientUserSchema[] = [];
-  const removeUserBatch: ClientUserDeletingSchema[] = [];
+  const removeClientUserBatch: ClientUserDeletingSchema[] = [];
   const upsertClientPurposeBatch: ClientPurposeSchema[] = [];
-  const removePurposeBatch: ClientPurposeDeletingSchema[] = [];
-  const upsertKeyBatch: ClientKeySchema[] = [];
-  const deleteKeyBatch: ClientKeyDeletingSchema[] = [];
+  const removeClientPurposeBatch: ClientPurposeDeletingSchema[] = [];
+  const upsertClientKeyBatch: ClientKeySchema[] = [];
+  const deleteClientKeyBatch: ClientKeyDeletingSchema[] = [];
   const migrateKeyUserRelationshipBatch: ClientKeyUserMigrationSchema[] = [];
 
   for (const message of messages) {
@@ -106,7 +106,7 @@ export async function handleAuthorizationMessageV1(
           );
         }
 
-        removeUserBatch.push(
+        removeClientUserBatch.push(
           ClientUserDeletingSchema.parse({
             clientId: client.id,
             userId: msg.data.userId,
@@ -131,7 +131,7 @@ export async function handleAuthorizationMessageV1(
         );
       })
       .with({ type: "ClientPurposeRemoved" }, async (msg) => {
-        removePurposeBatch.push(
+        removeClientPurposeBatch.push(
           ClientPurposeDeletingSchema.parse({
             clientId: msg.data.clientId,
             purposeId: msg.data.purposeId,
@@ -160,10 +160,10 @@ export async function handleAuthorizationMessageV1(
             } satisfies z.input<typeof ClientKeySchema>)
           );
 
-        upsertKeyBatch.push(...keysSQL);
+        upsertClientKeyBatch.push(...keysSQL);
       })
       .with({ type: "KeyDeleted" }, async (msg) => {
-        deleteKeyBatch.push(
+        deleteClientKeyBatch.push(
           ClientKeyDeletingSchema.parse({
             clientId: msg.data.clientId,
             kid: msg.data.keyId,
@@ -209,13 +209,13 @@ export async function handleAuthorizationMessageV1(
     );
   }
 
-  if (removeUserBatch.length > 0) {
+  if (removeClientUserBatch.length > 0) {
     const distinctBatch = distinctByKeys(
-      removeUserBatch,
+      removeClientUserBatch,
       ClientUserDeletingSchema,
       ["clientId", "userId"]
     );
-    await authorizationService.removeUserBatch(dbContext, distinctBatch);
+    await authorizationService.removeClientUserBatch(dbContext, distinctBatch);
   }
 
   if (upsertClientPurposeBatch.length > 0) {
@@ -225,26 +225,32 @@ export async function handleAuthorizationMessageV1(
     );
   }
 
-  if (removePurposeBatch.length > 0) {
+  if (removeClientPurposeBatch.length > 0) {
     const distinctBatch = distinctByKeys(
-      removePurposeBatch,
+      removeClientPurposeBatch,
       ClientPurposeDeletingSchema,
       ["clientId", "purposeId"]
     );
-    await authorizationService.removePurposeBatch(dbContext, distinctBatch);
+    await authorizationService.removeClientPurposeBatch(
+      dbContext,
+      distinctBatch
+    );
   }
 
-  if (deleteKeyBatch.length > 0) {
+  if (deleteClientKeyBatch.length > 0) {
     const distinctBatch = distinctByKeys(
-      deleteKeyBatch,
+      deleteClientKeyBatch,
       ClientKeyDeletingSchema,
       ["clientId", "kid"]
     );
-    await authorizationService.deleteKeyBatch(dbContext, distinctBatch);
+    await authorizationService.deleteClientKeyBatch(dbContext, distinctBatch);
   }
 
-  if (upsertKeyBatch.length > 0) {
-    await authorizationService.upsertKeyBatch(dbContext, upsertKeyBatch);
+  if (upsertClientKeyBatch.length > 0) {
+    await authorizationService.upsertClientKeyBatch(
+      dbContext,
+      upsertClientKeyBatch
+    );
   }
 
   if (migrateKeyUserRelationshipBatch.length > 0) {
