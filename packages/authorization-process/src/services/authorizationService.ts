@@ -220,12 +220,7 @@ export function authorizationServiceBuilder(
         logger,
         authData,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{
-        client: Client;
-        showUsers: boolean;
-      }>
-    > {
+    ): Promise<WithMetadata<{ client: Client; showUsers: boolean }>> {
       logger.info(`Retrieving Client ${clientId}`);
       const { data: client, metadata } = await retrieveClient(
         clientId,
