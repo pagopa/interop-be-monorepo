@@ -144,10 +144,8 @@ export const verifyDPoPProofSignature = async (
   jwk: JWKKeyRS256 | JWKKeyES256
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
-    const publicKey = await jose.importJWK(jwk, jwk.alg);
-    const result = await jose.jwtVerify(dpopProofJWS, publicKey, {
-      algorithms: [jwk.alg],
-    });
+    const publicKey = await jose.importJWK(jwk);
+    const result = await jose.jwtVerify(dpopProofJWS, publicKey);
 
     return successfulValidation(result.payload);
   } catch (error: unknown) {
