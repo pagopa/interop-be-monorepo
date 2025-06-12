@@ -895,7 +895,7 @@ paths:
       tags:
         - tenant
       summary: Deletes a tenant
-      description: Deletes the specified tenant from the system
+      description: Deletes the specified tenant
       operationId: maintenanceTenantDelete
       responses:
         "204":

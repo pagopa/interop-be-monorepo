@@ -479,7 +479,7 @@ paths:
         - process
       summary: Adds a descriptor to the specified e-service
       operationId: createDescriptor
-      description: Creates a new descriptor for the specified E-Service
+      description: Adds a descriptor to the specified e-service
       parameters:
         - name: eServiceId
           in: path
@@ -523,7 +523,7 @@ paths:
         - process
       summary: Adds a descriptor to the specified template instance e-service
       operationId: createTemplateInstanceDescriptor
-      description: Creates a new descriptor for the specified E-Service template instance
+      description: Adds a descriptor to the specified template instance e-service
       parameters:
         - name: eServiceId
           in: path
