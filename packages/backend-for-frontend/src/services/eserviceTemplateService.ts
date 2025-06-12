@@ -279,12 +279,14 @@ export function eserviceTemplateServiceBuilder(
         },
       });
 
-      const canBeInstantiated =
-        eserviceTemplate.mode ===
-          eserviceTemplateApi.EServiceMode.Values.DELIVER ||
-        eserviceTemplate.riskAnalysis.some(
-          (r) => r.tenantKind === callerTenant.kind
-        );
+      const canBeInstantiated = match(eserviceTemplate.mode)
+        .with(eserviceTemplateApi.EServiceMode.Values.DELIVER, () => true)
+        .with(eserviceTemplateApi.EServiceMode.Values.RECEIVE, () =>
+          eserviceTemplate.riskAnalysis.some(
+            (r) => r.tenantKind === callerTenant.kind
+          )
+        )
+        .exhaustive();
 
       return {
         id: eserviceTemplateVersion.id,
