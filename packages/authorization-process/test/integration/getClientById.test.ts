@@ -57,7 +57,7 @@ describe("getClientById", async () => {
       getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
     );
     expect(clientResult).toEqual({
-      data: { expectedClient, showUsers: false },
+      data: { client: expectedClient, showUsers: false },
       metadata: { version: 0 },
     });
   });
