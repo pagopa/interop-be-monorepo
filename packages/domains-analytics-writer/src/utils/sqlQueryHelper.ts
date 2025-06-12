@@ -78,9 +78,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
       MERGE INTO ${schemaName}.${tableName}
       USING ${stagingTableName} AS source
       ON ${onCondition}
-      WHEN MATCHED
-        AND source.metadata_version > ${schemaName}.${tableName}.metadata_version
-      THEN
+      WHEN MATCHED THEN
         UPDATE SET
           ${updateSet}
       WHEN NOT MATCHED THEN
@@ -207,13 +205,17 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
 };
 
 /**
- * Generates a DELETE query that removes rows from a staging table
- * whenever there is another row with the same keyColumns and a higher
- * metadata_version (or, if equal, a lower ctid).
+ * Generates SQL to remove outdated or duplicate rows from the staging table.
+ * It returns two DELETE statements:
+ *
+ * 1. Deletes rows in the staging table that have the same key columns as another
+ *    row in the staging table but a lower `metadata_version`.
+ * 2. Deletes rows in the staging table that are older than the corresponding rows
+ *    already present in the target table.
  *
  * @param tableName - The base table name.
  * @param keyConditions - Array of column keys used to match records for deletion.
- * @returns - A DELETE SQL query string to perform a deduplication.
+ * @returns A SQL string containing two DELETE statements to perform staging cleanup.
  */
 export function generateStagingDeleteQuery<
   T extends DomainDbTable,
@@ -231,8 +233,13 @@ export function generateStagingDeleteQuery<
 
   return `
     DELETE FROM ${stagingTableName}
-    USING ${stagingTableName} AS b
+    USING ${stagingTableName} b
     WHERE ${whereCondition}
-    AND ${stagingTableName}.metadata_version < b.metadata_version;
-  `.trim();
+      AND ${stagingTableName}.metadata_version < b.metadata_version;
+
+    DELETE FROM ${stagingTableName}
+    USING ${config.dbSchemaName}.${tableName} b
+    WHERE ${whereCondition}
+      AND ${stagingTableName}.metadata_version < b.metadata_version;
+`.trim();
 }
