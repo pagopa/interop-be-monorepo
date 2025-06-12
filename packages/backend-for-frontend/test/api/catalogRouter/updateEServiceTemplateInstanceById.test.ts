@@ -8,14 +8,14 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import {
   getMockBffApiCreatedResource,
-  getMockBffApiUpdateEServiceDescriptorTemplateInstanceSeed,
+  getMockBffApiUpdateEServiceTemplateInstanceSeed,
   getMockCatalogApiEService,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /templates/eservices/:eServiceId", () => {
   const mockUpdateEServiceDescriptorTemplateInstanceSeed =
-    getMockBffApiUpdateEServiceDescriptorTemplateInstanceSeed();
+    getMockBffApiUpdateEServiceTemplateInstanceSeed();
   const mockEService = getMockCatalogApiEService();
   const mockApiCreatedResource = getMockBffApiCreatedResource(mockEService.id);
 
@@ -28,7 +28,7 @@ describe("API POST /templates/eservices/:eServiceId", () => {
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId = mockEService.id,
-    body: bffApi.UpdateEServiceDescriptorTemplateInstanceSeed = mockUpdateEServiceDescriptorTemplateInstanceSeed
+    body: bffApi.UpdateEServiceTemplateInstanceSeed = mockUpdateEServiceDescriptorTemplateInstanceSeed
   ) =>
     request(api)
       .post(`${appBasePath}/templates/eservices/${eServiceId}`)
@@ -45,7 +45,6 @@ describe("API POST /templates/eservices/:eServiceId", () => {
 
   it.each([
     { eServiceId: "invalid" as EServiceId },
-    { body: {} },
     {
       body: {
         ...mockUpdateEServiceDescriptorTemplateInstanceSeed,
@@ -55,35 +54,29 @@ describe("API POST /templates/eservices/:eServiceId", () => {
     {
       body: {
         ...mockUpdateEServiceDescriptorTemplateInstanceSeed,
-        audience: "invalid",
+        isSignalHubEnabled: "invalid",
       },
     },
     {
       body: {
         ...mockUpdateEServiceDescriptorTemplateInstanceSeed,
-        dailyCallsPerConsumer: "invalid",
+        isClientAccessDelegable: "invalid",
       },
     },
     {
       body: {
         ...mockUpdateEServiceDescriptorTemplateInstanceSeed,
-        dailyCallsTotal: "invalid",
-      },
-    },
-    {
-      body: {
-        ...mockUpdateEServiceDescriptorTemplateInstanceSeed,
-        agreementApprovalPolicy: "invalid",
+        isConsumerDelegable: "invalid",
       },
     },
   ])(
-    "Should return 400 if passed an invalid parameter",
+    "Should return 400 if passed an invalid parameter: %s",
     async ({ eServiceId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
         eServiceId,
-        body as bffApi.UpdateEServiceDescriptorTemplateInstanceSeed
+        body as bffApi.UpdateEServiceTemplateInstanceSeed
       );
       expect(res.status).toBe(400);
     }
