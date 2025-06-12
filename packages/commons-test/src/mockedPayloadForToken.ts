@@ -2,7 +2,6 @@ import jwt from "jsonwebtoken";
 import {
   AuthRole,
   InteropJwtMaintenancePayload,
-  SerializedAuthTokenPayload,
   SerializedInteropJwtApiPayload,
   SerializedInteropJwtInternalPayload,
   SerializedInteropJwtUIPayload,
@@ -18,33 +17,36 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
-// Overloads for stricter typing
-export function createPayload(role: typeof systemRole.M2M_ROLE): SerializedInteropJwtApiPayload;
-export function createPayload(role: typeof systemRole.M2M_ADMIN_ROLE): SerializedInteropJwtApiPayload;
-export function createPayload(role: typeof systemRole.INTERNAL_ROLE): SerializedInteropJwtInternalPayload;
-export function createPayload(role: typeof systemRole.MAINTENANCE_ROLE): InteropJwtMaintenancePayload;
-export function createPayload(role: typeof userRole.ADMIN_ROLE): SerializedInteropJwtUIPayload;
-export function createPayload(role: typeof userRole.API_ROLE): SerializedInteropJwtUIPayload;
-export function createPayload(role: typeof userRole.SECURITY_ROLE): SerializedInteropJwtUIPayload;
-export function createPayload(role: typeof userRole.SUPPORT_ROLE): SerializedInteropJwtUIPayload;
+const rolePayloadMap = {
+  [systemRole.M2M_ROLE]: createM2MPayload,
+  [systemRole.M2M_ADMIN_ROLE]: createM2MAdminPayload,
+  [systemRole.INTERNAL_ROLE]: createInternalPayload,
+  [systemRole.MAINTENANCE_ROLE]: createMaintenancePayload,
+  [userRole.ADMIN_ROLE]: createUserPayload,
+  [userRole.API_ROLE]: createUserPayload,
+  [userRole.SECURITY_ROLE]: createUserPayload,
+  [userRole.SUPPORT_ROLE]: createUserPayload,
+} satisfies Record<AuthRole, (...args: any) => any>;
 
-// Fallback for generic AuthRole
-export function createPayload(role: AuthRole): SerializedAuthTokenPayload | InteropJwtMaintenancePayload;
+type RolePayloadsMap = typeof rolePayloadMap;
 
-// Implementation
-export function createPayload(role: AuthRole): SerializedAuthTokenPayload | InteropJwtMaintenancePayload {
-  return match(role)
-    .with("maintenance", () => createMaintenancePayload())
-    .with("m2m", () => createM2MPayload())
-    .with("m2m-admin", () => createM2MAdminPayload())
-    .with("internal", () => createInternalPayload())
-    .with("admin", () => createUserPayload(userRole.ADMIN_ROLE))
-    .with("api", () => createUserPayload(userRole.API_ROLE))
-    .with("security", () => createUserPayload(userRole.SECURITY_ROLE))
-    .with("support", () => createUserPayload(userRole.SUPPORT_ROLE))
-    .exhaustive();
+export function createPayload<T extends keyof RolePayloadsMap>(
+  role: T
+): ReturnType<RolePayloadsMap[T]> {
+  return match<AuthRole>(role)
+    .with(systemRole.MAINTENANCE_ROLE, () => createMaintenancePayload())
+    .with(systemRole.M2M_ROLE, () => createM2MPayload())
+    .with(systemRole.M2M_ADMIN_ROLE, () => createM2MAdminPayload())
+    .with(systemRole.INTERNAL_ROLE, () => createInternalPayload())
+    .with(
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SECURITY_ROLE,
+      userRole.SUPPORT_ROLE,
+      (r) => rolePayloadMap[r](r)
+    )
+    .exhaustive() as ReturnType<RolePayloadsMap[T]>;
 }
-
 
 export const generateToken = (role: AuthRole): string =>
   jwt.sign(createPayload(role), "test-secret");
@@ -53,7 +55,6 @@ export const signPayload = (
   payload: object // for testing purposes, allowing signature of any payload, including invalid ones
 ): string => jwt.sign(payload, "test-secret");
 
-
 export const mockTokenOrganizationId = generateId<TenantId>();
 export const mockM2MAdminClientId = generateId<ClientId>();
 export const mockM2MAdminUserId: UserId = generateId();
@@ -61,7 +62,7 @@ export const mockM2MAdminUserId: UserId = generateId();
 // Mocked and exported because in the M2M gateway we need to
 // validate the admin ID in the token against the adminId in the client.
 
-function createUserPayload(
+export function createUserPayload(
   commaSeparatedUserRoles: string
 ): SerializedInteropJwtUIPayload {
   return {
@@ -171,7 +172,6 @@ export function createUIPayload(): SerializedInteropJwtUIPayload {
     email: "m.rossi@psp.it",
   };
 }
-
 
 function createM2MAdminPayload(): SerializedInteropJwtApiPayload {
   return {
