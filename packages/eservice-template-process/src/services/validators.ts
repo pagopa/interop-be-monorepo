@@ -146,12 +146,12 @@ export async function assertEServiceTemplateNameAvailable(
   name: string,
   readModelService: ReadModelService
 ): Promise<void> {
-  const eserviceTemplateWithSameNameExists =
+  const isEServiceTemplateNameAvailable =
     await readModelService.isEServiceTemplateNameAvailable({
       name,
     });
 
-  if (eserviceTemplateWithSameNameExists) {
+  if (!isEServiceTemplateNameAvailable) {
     throw eserviceTemplateDuplicate(name);
   }
 }

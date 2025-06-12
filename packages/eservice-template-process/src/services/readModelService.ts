@@ -115,7 +115,7 @@ export function readModelServiceBuilder({
         },
         { limit: 1 }
       );
-      return count > 0;
+      return count === 0;
     },
 
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {

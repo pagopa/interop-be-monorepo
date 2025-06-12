@@ -89,11 +89,7 @@ export function readModelServiceBuilderSQL({
         )
         .limit(1);
 
-      if (queryResult.length === 0) {
-        return false;
-      }
-
-      return queryResult[0].count > 0;
+      return (queryResult[0]?.count ?? 0) === 0;
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
