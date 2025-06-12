@@ -27,7 +27,6 @@ export const makeDrizzleConnection = (
 
 // Store pools for cleanup
 const drizzlePools: pg.Pool[] = [];
-
 export const makeDrizzleConnectionWithCleanup = (
   readModelSQLDbConfig: ReadModelSQLDbConfig
 ): { connection: DrizzleReturnType; cleanup: () => Promise<void> } => {
@@ -42,14 +41,16 @@ export const makeDrizzleConnectionWithCleanup = (
       : undefined,
   });
 
+  // eslint-disable-next-line functional/immutable-data
   drizzlePools.push(pool);
 
   return {
     connection: drizzle({ client: pool }),
-    cleanup: async () => {
+    cleanup: async (): Promise<void> => {
       await pool.end();
       const index = drizzlePools.indexOf(pool);
       if (index > -1) {
+        // eslint-disable-next-line functional/immutable-data
         drizzlePools.splice(index, 1);
       }
     },
@@ -58,6 +59,7 @@ export const makeDrizzleConnectionWithCleanup = (
 
 export const cleanupAllDrizzleConnections = async (): Promise<void> => {
   await Promise.all(drizzlePools.map((pool) => pool.end()));
+  // eslint-disable-next-line functional/immutable-data
   drizzlePools.length = 0;
 };
 
