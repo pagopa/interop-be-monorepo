@@ -62,8 +62,7 @@ export const verifyDPoPProof = ({
       decodedHeader.jwk
     );
     const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
-      decodedHeader.alg,
-      validatedJwk?.alg
+      decodedHeader.alg
     );
 
     // JWT payload
