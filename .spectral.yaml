@@ -10,3 +10,4 @@ rules:
   cache-responses-indeterminate-behavior: off # Disabled to avoid warnings on cache management
   missing-ratelimit: off # Disabled to avoid warnings on rate limit headers
   missing-retry-after: off
+  http-request-DELETE-no-body: off # Disabled to allow DELETE requests with bodies
