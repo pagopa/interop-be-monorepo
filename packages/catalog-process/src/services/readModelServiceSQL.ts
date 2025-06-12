@@ -413,7 +413,7 @@ export function readModelServiceBuilderSQL(
         queryResult[0]?.totalCount
       );
     },
-    async existsEServiceWithNameAndProducerId({
+    async isEServiceNameAvailableForProducer({
       name,
       producerId,
     }: {
@@ -431,9 +431,9 @@ export function readModelServiceBuilderSQL(
         )
         .limit(1);
 
-      return (result[0]?.count ?? 0) > 0;
+      return (result[0]?.count ?? 0) === 0;
     },
-    async existsEServiceTemplateWithName({
+    async isEServiceNameConflictingWithTemplate({
       name,
     }: {
       name: string;

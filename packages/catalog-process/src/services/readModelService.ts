@@ -398,7 +398,7 @@ export function readModelServiceBuilder(
         ),
       };
     },
-    async existsEServiceWithNameAndProducerId({
+    async isEServiceNameAvailableForProducer({
       name,
       producerId,
     }: {
@@ -415,9 +415,9 @@ export function readModelServiceBuilder(
         },
         { limit: 1 }
       );
-      return count > 0;
+      return count === 0;
     },
-    async existsEServiceTemplateWithName({
+    async isEServiceNameConflictingWithTemplate({
       name,
     }: {
       name: string;

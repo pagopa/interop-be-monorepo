@@ -270,27 +270,27 @@ export function assertDocumentDeletableDescriptorState(
     .exhaustive();
 }
 
-export async function assertNotDuplicatedEServiceNameForProducer(
+export async function assertEServiceNameAvailableForProducer(
   name: string,
   producerId: TenantId,
   readModelService: ReadModelService
 ): Promise<void> {
-  const eserviceWithSameNameExists =
-    await readModelService.existsEServiceWithNameAndProducerId({
+  const isEServiceNameAvailable =
+    await readModelService.isEServiceNameAvailableForProducer({
       name,
       producerId,
     });
-  if (eserviceWithSameNameExists) {
+  if (!isEServiceNameAvailable) {
     throw eServiceNameDuplicateForProducer(name, producerId);
   }
 }
 
-export async function assertNoEServiceTemplateNameConflict(
+export async function assertEServiceNameNotConflictingWithTemplate(
   name: string,
   readModelService: ReadModelService
 ): Promise<void> {
   const eserviceTemplateWithSameNameExists =
-    await readModelService.existsEServiceTemplateWithName({
+    await readModelService.isEServiceNameConflictingWithTemplate({
       name,
     });
   if (eserviceTemplateWithSameNameExists) {

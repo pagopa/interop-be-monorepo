@@ -264,39 +264,41 @@ describe("clone descriptor", () => {
       interface: mockDocument,
       docs: [mockDocument],
     };
-    const eservice1: EService = {
+    const existentEService: EService = {
       ...mockEService,
       name: mockEService.name,
       id: generateId(),
       descriptors: [descriptor],
     };
-    await addOneEService(eservice1);
+    await addOneEService(existentEService);
 
     const cloneTimestamp = new Date();
     const conflictEServiceName = `${
-      eservice1.name
+      existentEService.name
     } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
 
-    const eservice2: EService = {
+    const newEService: EService = {
       ...mockEService,
       id: generateId(),
       name: conflictEServiceName,
       descriptors: [getMockDescriptor()],
     };
-    await addOneEService(eservice2);
+    await addOneEService(newEService);
 
     expect(
       catalogService.cloneDescriptor(
-        eservice1.id,
+        existentEService.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+        getMockContext({
+          authData: getMockAuthData(existentEService.producerId),
+        })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicateForProducer(
-        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+        `${existentEService.name} - clone - ${formatDateddMMyyyyHHmmss(
           cloneTimestamp
         )}`,
-        eservice1.producerId
+        existentEService.producerId
       )
     );
   });
