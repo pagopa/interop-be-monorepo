@@ -27,7 +27,7 @@ import {
   tokenGenerationStatesEntryNotFound,
   unexpectedDPoPProofForAPIToken,
 } from "../../src/model/domain/errors.js";
-import { GenerateTokenReturnType } from "../../src/services/tokenService.js";
+import { GeneratedTokenData } from "../../src/services/tokenService.js";
 
 describe("POST /authorization-server/token.oauth2", () => {
   const clientId = getMockClient().id;
@@ -91,7 +91,7 @@ describe("POST /authorization-server/token.oauth2", () => {
         rateInterval: 1,
         remainingRequests: 10,
       },
-    } satisfies GenerateTokenReturnType);
+    } satisfies GeneratedTokenData);
 
     const res = await makeRequest();
 
@@ -116,7 +116,7 @@ describe("POST /authorization-server/token.oauth2", () => {
         remainingRequests: 10,
       },
       isDPoP: true,
-    } satisfies GenerateTokenReturnType);
+    } satisfies GeneratedTokenData);
 
     const res = await makeRequest();
 
