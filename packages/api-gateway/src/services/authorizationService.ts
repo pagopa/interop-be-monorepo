@@ -100,19 +100,20 @@ async function isAllowedToGetClient(
     )
   );
 
-  settledPromises
-    .filter((r) => r.status === "rejected")
-    .map((r) => r.reason)
-    .forEach((error) => {
-      /**
-       * There could be purposes which the requester is not allowed to see in the client.
-       * We ignore those purposes and continue the checks only with the ones that are allowed.
-       */
-      if (isAxiosError(error) && error.response?.status === 403) {
-        return;
-      }
-      throw error;
-    });
+  settledPromises.forEach((p) => {
+    if (p.status !== "rejected") {
+      return;
+    }
+    /**
+     * There could be purposes which the requester is not allowed to see in the client.
+     * We ignore those purposes and continue the checks only with the ones that are allowed.
+     */
+    const error = p.reason;
+    if (isAxiosError(error) && error.response?.status === 403) {
+      return;
+    }
+    throw error;
+  });
 
   const purposes = settledPromises
     .filter((r) => r.status === "fulfilled")
