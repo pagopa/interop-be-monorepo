@@ -106,7 +106,7 @@ async function isAllowedToGetClient(
     .forEach((error) => {
       /**
        * There could be purposes which the requester is not allowed to see in the client.
-       * We ignore those purposes and check only the ones that are allowed.
+       * We ignore those purposes and continue the checks only with the ones that are allowed.
        */
       if (isAxiosError(error) && error.response?.status === 403) {
         return;
