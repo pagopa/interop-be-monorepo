@@ -51,6 +51,7 @@ export const errorCodes = {
   eserviceTemplateInterfaceDataNotValid: "0036",
   descriptorTemplateVersionNotFound: "0037",
   templateMissingRequiredRiskAnalysis: "0038",
+  eserviceTemplateNameConflict: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -73,6 +74,16 @@ export function eServiceNameDuplicateForProducer(
     detail: `An EService with name ${eserviceName} already exists for producer ${producerId}`,
     code: "eServiceNameDuplicateForProducer",
     title: "Duplicated service name",
+  });
+}
+
+export function eserviceTemplateNameConflict(
+  eserviceName: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An EService template with name ${eserviceName} already exists`,
+    code: "eserviceTemplateNameConflict",
+    title: "EService template name conflict",
   });
 }
 
