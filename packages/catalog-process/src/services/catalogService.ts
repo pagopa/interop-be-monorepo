@@ -501,7 +501,7 @@ async function innerCreateEService(
     attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
-    riskAnalysis: [],
+    riskAnalysis: template?.riskAnalysis ?? [],
     isSignalHubEnabled: isFeatureFlagEnabled(
       config,
       "featureFlagSignalhubWhitelist"
