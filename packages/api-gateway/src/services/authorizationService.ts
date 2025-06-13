@@ -1,4 +1,8 @@
-import { authorizationApi, apiGatewayApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  apiGatewayApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { M2MAuthData, WithLogger } from "pagopa-interop-commons";
 import {
   ClientJWKKey,
@@ -116,7 +120,10 @@ async function isAllowedToGetClient(
   });
 
   const purposes = settledPromises
-    .filter((r) => r.status === "fulfilled")
+    .filter(
+      (r): r is PromiseFulfilledResult<purposeApi.Purpose> =>
+        r.status === "fulfilled"
+    )
     .map((r) => r.value);
 
   const eservices = await Promise.all(
