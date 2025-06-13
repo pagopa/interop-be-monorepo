@@ -5,6 +5,7 @@ import {
   operationForbidden,
   TenantId,
 } from "pagopa-interop-models";
+import { isAxiosError } from "axios";
 import {
   AuthorizationProcessClient,
   CatalogProcessClient,
@@ -88,22 +89,32 @@ async function isAllowedToGetClient(
     return true;
   }
 
-  /**
-   * There could be purposes which the requester is not allowed to see in the client.
-   * We ignore those purposes and check only the ones that are allowed.
-   */
-  const purposes = (
-    await Promise.allSettled(
-      client.purposes.map((purpose) =>
-        purposeProcessClient.getPurpose({
-          headers,
-          params: {
-            id: purpose,
-          },
-        })
-      )
+  const settledPromises = await Promise.allSettled(
+    client.purposes.map((purpose) =>
+      purposeProcessClient.getPurpose({
+        headers,
+        params: {
+          id: purpose,
+        },
+      })
     )
-  )
+  );
+
+  settledPromises
+    .filter((r) => r.status === "rejected")
+    .map((r) => r.reason)
+    .forEach((error) => {
+      /**
+       * There could be purposes which the requester is not allowed to see in the client.
+       * We ignore those purposes and check only the ones that are allowed.
+       */
+      if (isAxiosError(error) && error.response?.status === 403) {
+        return;
+      }
+      throw error;
+    });
+
+  const purposes = settledPromises
     .filter((r) => r.status === "fulfilled")
     .map((r) => r.value);
 
