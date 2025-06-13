@@ -173,7 +173,7 @@ export function agreementServiceBuilder(db: DBContext) {
           config.dbMessagesToInsertPerBatch
         )) {
           await agreementRepository.insertDeleting(t, dbContext.pgp, batch);
-          console.log(
+          genericLogger.info(
             `Staging deletion inserted for agreement ids: ${batch
               .map((r) => r.id)
               .join(", ")}`
