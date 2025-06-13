@@ -90,7 +90,7 @@ async function isAllowedToGetClient(
 
   /**
    * There could be purposes which the requester is not allowed to see in the client.
-   *
+   * We ignore those purposes and check only the ones that are allowed.
    */
   const purposes = (
     await Promise.allSettled(
