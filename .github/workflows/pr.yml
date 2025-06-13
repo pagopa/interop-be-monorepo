@@ -88,18 +88,21 @@ jobs:
           PER_GROUP=$(( (COUNT + GROUPS - 1) / GROUPS ))
           i=1
           group=1
-          JSON="[]"
+          GROUP_OUTPUTS=""
+          GROUP_NAMES="[]"
           for pkg in $PACKAGES; do
             JSON=$(echo $JSON | jq ". += [\"$pkg\"]")
             if [ $((i % PER_GROUP)) -eq 0 ] || [ $i -eq $COUNT ]; then
-              echo "group-$group=$JSON" >> $GITHUB_OUTPUT
+              GROUP_NAME="group-$group"
+              echo "$GROUP_NAME=$(echo $JSON | jq -c .)" >> $GITHUB_OUTPUT
+              GROUP_NAMES=$(echo $GROUP_NAMES | jq ". += [\"$GROUP_NAME\"]")
               JSON="[]"
               group=$((group + 1))
             fi
             i=$((i + 1))
           done
-          echo "package-groups=$(jq -c '[keys[]] | map("group-" + .)' $GITHUB_OUTPUT)" >> $GITHUB_OUTPUT
 
+          echo "package-groups=$(echo $GROUP_NAMES | jq -c .)" >> $GITHUB_OUTPUT
   build:
     runs-on: ubuntu-latest
     steps:

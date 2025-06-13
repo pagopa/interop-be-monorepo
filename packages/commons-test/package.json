@@ -23,6 +23,7 @@
     "@aws-sdk/client-kms": "3.693.0",
     "@aws-sdk/client-sesv2": "3.693.0",
     "@aws-sdk/util-dynamodb": "3.693.0",
+    "@aws-sdk/client-s3": "3.693.0",
     "@faker-js/faker": "8.4.1",
     "@pagopa/eslint-config": "3.0.0",
     "@protobuf-ts/runtime": "2.9.4",

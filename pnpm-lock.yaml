@@ -2081,6 +2081,9 @@ importers:
       '@aws-sdk/client-kms':
         specifier: 3.693.0
         version: 3.693.0
+      '@aws-sdk/client-s3':
+        specifier: 3.693.0
+        version: 3.693.0
       '@aws-sdk/client-sesv2':
         specifier: 3.693.0
         version: 3.693.0
