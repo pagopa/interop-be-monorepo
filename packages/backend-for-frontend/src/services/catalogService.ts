@@ -1868,7 +1868,18 @@ export function catalogServiceBuilder(
         })
       );
 
-      return !eservices.some(
+      const eserviceTemplates = await getAllFromPaginated((offset, limit) =>
+        eserviceTemplateProcessClient.getEServiceTemplates({
+          headers,
+          queries: {
+            limit,
+            offset,
+            name,
+          },
+        })
+      );
+
+      return ![...eserviceTemplates, ...eservices].some(
         (e) => e.name.toLowerCase() === name.toLowerCase()
       );
     },
