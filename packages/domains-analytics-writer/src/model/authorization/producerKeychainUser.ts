@@ -10,13 +10,3 @@ export const ProducerKeychainUserSchema = createSelectSchema(
 export type ProducerKeychainUserSchema = z.infer<
   typeof ProducerKeychainUserSchema
 >;
-
-export const ProducerKeychainUserDeletingSchema =
-  ProducerKeychainUserSchema.pick({
-    producerKeychainId: true,
-    userId: true,
-    deleted: true,
-  });
-export type ProducerKeychainUserDeletingSchema = z.infer<
-  typeof ProducerKeychainUserDeletingSchema
->;

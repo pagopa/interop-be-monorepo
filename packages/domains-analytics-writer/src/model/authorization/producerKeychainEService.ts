@@ -10,13 +10,3 @@ export const ProducerKeychainEServiceSchema = createSelectSchema(
 export type ProducerKeychainEServiceSchema = z.infer<
   typeof ProducerKeychainEServiceSchema
 >;
-
-export const ProducerKeychainEServiceDeletingSchema =
-  ProducerKeychainEServiceSchema.pick({
-    producerKeychainId: true,
-    eserviceId: true,
-    deleted: true,
-  });
-export type ProducerKeychainEServiceDeletingSchema = z.infer<
-  typeof ProducerKeychainEServiceDeletingSchema
->;
