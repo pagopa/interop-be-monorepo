@@ -88,16 +88,24 @@ async function isAllowedToGetClient(
     return true;
   }
 
-  const purposes = await Promise.all(
-    client.purposes.map((purpose) =>
-      purposeProcessClient.getPurpose({
-        headers,
-        params: {
-          id: purpose,
-        },
-      })
+  /**
+   * There could be purposes which the requester is not allowed to see in the client.
+   *
+   */
+  const purposes = (
+    await Promise.allSettled(
+      client.purposes.map((purpose) =>
+        purposeProcessClient.getPurpose({
+          headers,
+          params: {
+            id: purpose,
+          },
+        })
+      )
     )
-  );
+  )
+    .filter((r) => r.status === "fulfilled")
+    .map((r) => r.value);
 
   const eservices = await Promise.all(
     purposes.map((purpose) =>
