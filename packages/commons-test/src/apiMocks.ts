@@ -6,7 +6,6 @@ import {
   purposeApi,
   tenantApi,
   authorizationApi,
-  m2mGatewayApi,
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
@@ -221,15 +220,15 @@ export function getMockedApiEServiceTemplate({
     creatorId: generateId(),
     description: generateMock(z.string().length(10)),
     intendedTarget: generateMock(z.string().length(10)),
-    mode: generateMock(m2mGatewayApi.EServiceMode),
+    mode: generateMock(eserviceTemplateApi.EServiceMode),
     name: generateMock(z.string().length(10)),
-    technology: generateMock(m2mGatewayApi.EServiceTechnology),
+    technology: generateMock(eserviceTemplateApi.EServiceTechnology),
     versions: versions ?? [getMockedApiEserviceTemplateVersion()],
     isSignalHubEnabled: generateMock(z.boolean().optional()),
     riskAnalysis: [
       {
         ...getMockedApiRiskAnalysis(),
-        tenantKind: generateMock(m2mGatewayApi.TenantKind),
+        tenantKind: generateMock(eserviceTemplateApi.TenantKind),
       },
     ],
   };
@@ -268,7 +267,8 @@ export function getMockedApiEserviceTemplateVersion({
 } = {}): eserviceTemplateApi.EServiceTemplateVersion {
   return {
     id: generateId(),
-    state: state ?? generateMock(m2mGatewayApi.EServiceTemplateVersionState),
+    state:
+      state ?? generateMock(eserviceTemplateApi.EServiceTemplateVersionState),
     voucherLifespan: generateMock(z.number().positive()),
     version: 0,
     attributes: {
