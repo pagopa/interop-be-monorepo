@@ -140,14 +140,13 @@ CREATE TABLE domains.eservice_risk_analysis_answer (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
   metadata_version INTEGER,
-  risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id),
+  risk_analysis_form_id VARCHAR(36) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   key VARCHAR(2048) NOT NULL,
   value VARCHAR(65535) NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id, eservice_id),
-  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id),
-  FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)
+  FOREIGN KEY (risk_analysis_form_id) REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id)
 );
 
 CREATE TABLE domains.agreement (
