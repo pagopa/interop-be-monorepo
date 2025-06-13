@@ -158,7 +158,7 @@ describe("updateEServiceTemplateName", () => {
       versions: [eserviceTemplateVersion],
     };
 
-    const duplicateName = "eservice duplciate name";
+    const duplicateName = "eservice duplicate name";
 
     const eserviceTemplateWithSameName: EServiceTemplate = {
       ...getMockEServiceTemplate(),
