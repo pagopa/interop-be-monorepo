@@ -1,41 +1,49 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { services, api } from "../../vitest.api.setup.js";
-import { getMockApiAgreementListEntry } from "../../mockUtils.js";
+import { getMockBffApiAgreementListEntry } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { agreementDescriptorNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /producers/agreements", () => {
-  const mockAgreement1 = getMockApiAgreementListEntry();
-  const mockAgreement2 = getMockApiAgreementListEntry();
-  const mockAgreement3 = getMockApiAgreementListEntry();
-
+  const defaultQuery = {
+    offset: 0,
+    limit: 5,
+  };
   const mockAgreements = {
-    results: [mockAgreement1, mockAgreement2, mockAgreement3],
+    results: [
+      getMockBffApiAgreementListEntry(),
+      getMockBffApiAgreementListEntry(),
+      getMockBffApiAgreementListEntry(),
+    ],
     pagination: {
-      offset: 0,
-      limit: 10,
+      offset: defaultQuery.offset,
+      limit: defaultQuery.limit,
       totalCount: 3,
     },
   };
-
   const apiAgreements = bffApi.Agreements.parse(mockAgreements);
 
-  services.agreementService.getProducerAgreements = vi
-    .fn()
-    .mockResolvedValue(mockAgreements);
+  beforeEach(() => {
+    services.agreementService.getProducerAgreements = vi
+      .fn()
+      .mockResolvedValue(mockAgreements);
+  });
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get(`${appBasePath}/producers/agreements`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit })
+      .query(query)
       .send();
 
   it("Should return 200 if no error is thrown", async () => {
@@ -48,15 +56,27 @@ describe("API GET /producers/agreements", () => {
   it("Should return 500 for agreementDescriptorNotFound", async () => {
     services.agreementService.getProducerAgreements = vi
       .fn()
-      .mockRejectedValue(agreementDescriptorNotFound(mockAgreement1.id));
+      .mockRejectedValue(agreementDescriptorNotFound(generateId()));
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(500);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -1 } },
+    { query: { offset: 0, limit: 51 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ query }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, query as typeof defaultQuery);
+      expect(res.status).toBe(400);
+    }
+  );
 });

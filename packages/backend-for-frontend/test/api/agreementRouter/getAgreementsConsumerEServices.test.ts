@@ -8,38 +8,28 @@ import { authRole } from "pagopa-interop-commons";
 import { api, clients } from "../../vitest.api.setup.js";
 import {
   getMockAgreementApiCompactEService,
-  getMockApiCompactEServiceLight,
+  toBffCompactEServiceLight,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /consumers/agreements/eservices", () => {
-  const mockCompactEService1 = getMockAgreementApiCompactEService();
-  const mockCompactEService2 = getMockAgreementApiCompactEService();
-  const mockCompactEService3 = getMockAgreementApiCompactEService();
-  const mockCompactEServiceLight1 = getMockApiCompactEServiceLight(
-    mockCompactEService1.id
-  );
-  const mockCompactEServiceLight2 = getMockApiCompactEServiceLight(
-    mockCompactEService2.id
-  );
-  const mockCompactEServiceLight3 = getMockApiCompactEServiceLight(
-    mockCompactEService3.id
-  );
-
+  const defaultQuery = {
+    offset: 0,
+    limit: 5,
+  };
   const mockCompactEServices = {
-    results: [mockCompactEService1, mockCompactEService2, mockCompactEService3],
+    results: [
+      getMockAgreementApiCompactEService(),
+      getMockAgreementApiCompactEService(),
+      getMockAgreementApiCompactEService(),
+    ],
     totalCount: 3,
   };
-
   const mockCompactEServicesLight = {
-    results: [
-      mockCompactEServiceLight1,
-      mockCompactEServiceLight2,
-      mockCompactEServiceLight3,
-    ],
+    results: mockCompactEServices.results.map(toBffCompactEServiceLight),
     pagination: {
-      offset: 0,
-      limit: 10,
+      offset: defaultQuery.offset,
+      limit: defaultQuery.limit,
       totalCount: 3,
     },
   };
@@ -48,12 +38,15 @@ describe("API GET /consumers/agreements/eservices", () => {
     mockCompactEServicesLight
   );
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get(`${appBasePath}/consumers/agreements/eservices`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit })
+      .query(query)
       .send();
 
   beforeEach(() => {
@@ -69,9 +62,21 @@ describe("API GET /consumers/agreements/eservices", () => {
     expect(res.body).toEqual(apiCompactEServicesLight);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -1 } },
+    { query: { offset: 0, limit: 51 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ query }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, query as typeof defaultQuery);
+      expect(res.status).toBe(400);
+    }
+  );
 });

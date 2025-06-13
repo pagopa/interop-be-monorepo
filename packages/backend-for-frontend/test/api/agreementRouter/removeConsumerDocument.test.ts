@@ -12,26 +12,24 @@ import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API DELETE /agreements/:agreementId/consumer-documents/:documentId", () => {
-  const mockAgreementId = generateId<AgreementId>();
-  const mockDocumentId = generateId<AgreementDocumentId>();
-
-  const makeRequest = async (
-    token: string,
-    documentId: string = mockDocumentId
-  ) =>
-    request(api)
-      .delete(
-        `${appBasePath}/agreements/${mockAgreementId}/consumer-documents/${documentId}`
-      )
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
-
   beforeEach(() => {
     clients.agreementProcessClient.removeAgreementConsumerDocument = vi
       .fn()
       .mockResolvedValue(undefined);
   });
+
+  const makeRequest = async (
+    token: string,
+    agreementId: AgreementId = generateId(),
+    documentId: AgreementDocumentId = generateId()
+  ) =>
+    request(api)
+      .delete(
+        `${appBasePath}/agreements/${agreementId}/consumer-documents/${documentId}`
+      )
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -39,9 +37,15 @@ describe("API DELETE /agreements/:agreementId/consumer-documents/:documentId", (
     expect(res.status).toBe(204);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { agreementId: "invalid" as AgreementId },
+    { documentId: "invalid" as AgreementDocumentId },
+  ])(
+    "Should return 400 if passed an invalid parameter",
+    async ({ agreementId, documentId }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, agreementId, documentId);
+      expect(res.status).toBe(400);
+    }
+  );
 });

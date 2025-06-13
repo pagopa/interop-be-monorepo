@@ -1,35 +1,31 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { AgreementId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { services, api } from "../../vitest.api.setup.js";
-import {
-  getMockApiAgreement,
-  getMockApiAgreementSubmissionPayload,
-} from "../../mockUtils.js";
+import { getMockBffApiAgreement } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /agreements/:agreementId/suspend", () => {
-  const mockApiAgreement = getMockApiAgreement();
-  const mockPayload = getMockApiAgreementSubmissionPayload();
-
-  const makeRequest = async (
-    token: string,
-    agreementId = mockApiAgreement.id
-  ) =>
-    request(api)
-      .post(`${appBasePath}/agreements/${agreementId}/suspend`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send(mockPayload);
+  const mockApiAgreement = getMockBffApiAgreement();
 
   beforeEach(() => {
     services.agreementService.suspendAgreement = vi
       .fn()
       .mockResolvedValue(mockApiAgreement);
   });
+
+  const makeRequest = async (
+    token: string,
+    agreementId: AgreementId = mockApiAgreement.id
+  ) =>
+    request(api)
+      .post(`${appBasePath}/agreements/${agreementId}/suspend`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -38,9 +34,9 @@ describe("API POST /agreements/:agreementId/suspend", () => {
     expect(res.body).toEqual(mockApiAgreement);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 400 if passed an invalid agreementId", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as AgreementId);
     expect(res.status).toBe(400);
   });
 });

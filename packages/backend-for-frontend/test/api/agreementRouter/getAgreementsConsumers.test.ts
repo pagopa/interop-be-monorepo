@@ -10,47 +10,36 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toBffCompactOrganization } from "../../../src/api/agreementApiConverter.js";
 
 describe("API GET /agreements/filter/consumers", () => {
-  const mockCompactOrganization1 = getMockAgreementApiCompactOrganization();
-  const mockCompactOrganization2 = getMockAgreementApiCompactOrganization();
-  const mockCompactOrganization3 = getMockAgreementApiCompactOrganization();
-  const mockApiCompactOrganization1 = toBffCompactOrganization(
-    mockCompactOrganization1
-  );
-  const mockApiCompactOrganization2 = toBffCompactOrganization(
-    mockCompactOrganization2
-  );
-  const mockApiCompactOrganization3 = toBffCompactOrganization(
-    mockCompactOrganization3
-  );
-
+  const defaultQuery = {
+    offset: 0,
+    limit: 5,
+  };
   const mockCompactOrganizations = {
     results: [
-      mockCompactOrganization1,
-      mockCompactOrganization2,
-      mockCompactOrganization3,
+      getMockAgreementApiCompactOrganization(),
+      getMockAgreementApiCompactOrganization(),
+      getMockAgreementApiCompactOrganization(),
     ],
     totalCount: 3,
   };
-
   const mockApiCompactOrganizations = {
-    results: [
-      mockApiCompactOrganization1,
-      mockApiCompactOrganization2,
-      mockApiCompactOrganization3,
-    ],
+    results: mockCompactOrganizations.results.map(toBffCompactOrganization),
     pagination: {
-      offset: 0,
-      limit: 10,
+      offset: defaultQuery.offset,
+      limit: defaultQuery.limit,
       totalCount: 3,
     },
   };
 
-  const makeRequest = async (token: string, limit: unknown = 10) =>
+  const makeRequest = async (
+    token: string,
+    query: typeof defaultQuery = defaultQuery
+  ) =>
     request(api)
       .get(`${appBasePath}/agreements/filter/consumers`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ offset: 0, limit })
+      .query(query)
       .send();
 
   beforeEach(() => {
@@ -66,9 +55,21 @@ describe("API GET /agreements/filter/consumers", () => {
     expect(res.body).toEqual(mockApiCompactOrganizations);
   });
 
-  it("Should return 400 if passed an invalid parameter", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
-    expect(res.status).toBe(400);
-  });
+  it.each([
+    { query: {} },
+    { query: { offset: 0 } },
+    { query: { limit: 10 } },
+    { query: { offset: -1, limit: 10 } },
+    { query: { offset: 0, limit: -1 } },
+    { query: { offset: 0, limit: 51 } },
+    { query: { offset: "invalid", limit: 10 } },
+    { query: { offset: 0, limit: "invalid" } },
+  ])(
+    "Should return 400 if passed an invalid parameter: %s",
+    async ({ query }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, query as typeof defaultQuery);
+      expect(res.status).toBe(400);
+    }
+  );
 });

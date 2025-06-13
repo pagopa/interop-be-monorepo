@@ -12,12 +12,11 @@ import {
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API GET /agreements/:agreementId/contract", () => {
-  const mockAgreementId = generateId<AgreementId>();
   const mockBuffer = Buffer.from("content");
 
   const makeRequest = async (
     token: string,
-    agreementId: string = mockAgreementId
+    agreementId: AgreementId = generateId()
   ) =>
     request(api)
       .get(`${appBasePath}/agreements/${agreementId}/contract`)
@@ -39,8 +38,8 @@ describe("API GET /agreements/:agreementId/contract", () => {
   });
 
   it.each([
-    { error: contractNotFound(mockAgreementId), expectedStatus: 404 },
-    { error: contractException(mockAgreementId), expectedStatus: 500 },
+    { error: contractNotFound(generateId()), expectedStatus: 404 },
+    { error: contractException(generateId()), expectedStatus: 500 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -53,9 +52,9 @@ describe("API GET /agreements/:agreementId/contract", () => {
     }
   );
 
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 400 if passed an invalid agreementId", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as AgreementId);
     expect(res.status).toBe(400);
   });
 });

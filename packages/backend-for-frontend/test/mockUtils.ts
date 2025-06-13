@@ -2,6 +2,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { agreementApi, bffApi } from "pagopa-interop-api-clients";
 import {
+  AgreementId,
   PurposeId,
   PurposeVersionId,
   generateId,
@@ -213,7 +214,9 @@ export const getMockBffApiAgreementListEntry =
     delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
   });
 
-export const getMockBffApiAgreement = (): bffApi.Agreement => ({
+export const getMockBffApiAgreement = (): bffApi.Agreement & {
+  id: AgreementId;
+} => ({
   id: generateId(),
   descriptorId: generateId(),
   delegation: {
@@ -239,7 +242,7 @@ export const getMockBffApiAgreement = (): bffApi.Agreement => ({
   suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
 });
 
-export const getMockBffApiAddAgreementConsumerDocument_Body =
+export const getMockBffApiAddAgreementConsumerDocumentBody =
   (): bffApi.addAgreementConsumerDocument_Body => ({
     name: generateMock(z.string()),
     prettyName: generateMock(z.string()),
@@ -263,13 +266,6 @@ export const getMockAgreementApiCompactEService =
     id: generateId(),
     name: generateMock(z.string()),
   });
-
-export const getMockBffApiCompactEServiceLight = (
-  id: string = generateId()
-): bffApi.CompactEServiceLight => ({
-  id,
-  name: generateMock(z.string()),
-});
 
 export const getMockBffApiAgreementSubmissionPayload =
   (): bffApi.AgreementSubmissionPayload => ({
@@ -296,3 +292,10 @@ export const getMockAgreementApiCompactOrganization =
     id: generateId(),
     name: generateMock(z.string()),
   });
+
+export const toBffCompactEServiceLight = (
+  compactEService: agreementApi.CompactEService
+): bffApi.CompactEServiceLight => ({
+  id: compactEService.id,
+  name: compactEService.name,
+});

@@ -1,35 +1,37 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { AgreementId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, clients } from "../../vitest.api.setup.js";
 import {
-  getMockApiAgreement,
-  getMockApiCreatedResource,
+  getMockBffApiAgreement,
+  getMockBffApiCreatedResource,
 } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
 describe("API POST /agreements/:agreementId/clone", () => {
-  const mockApiAgreement = getMockApiAgreement();
-  const mockApiCreatedResource = getMockApiCreatedResource(mockApiAgreement.id);
-
-  const makeRequest = async (
-    token: string,
-    agreementId: string = mockApiAgreement.id
-  ) =>
-    request(api)
-      .post(`${appBasePath}/agreements/${agreementId}/clone`)
-      .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId())
-      .send();
+  const mockApiAgreement = getMockBffApiAgreement();
+  const mockApiCreatedResource = getMockBffApiCreatedResource(
+    mockApiAgreement.id
+  );
 
   beforeEach(() => {
     clients.agreementProcessClient.cloneAgreement = vi
       .fn()
       .mockResolvedValue(mockApiAgreement);
   });
+
+  const makeRequest = async (
+    token: string,
+    agreementId: AgreementId = mockApiAgreement.id
+  ) =>
+    request(api)
+      .post(`${appBasePath}/agreements/${agreementId}/clone`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send();
 
   it("Should return 200 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
@@ -38,12 +40,9 @@ describe("API POST /agreements/:agreementId/clone", () => {
     expect(res.body).toEqual(mockApiCreatedResource);
   });
 
-  // TODO: why doesn't this method have a 404 error?
-  // I can see it in the api, but not in the error mapper
-
-  it("Should return 400 if passed an invalid parameter", async () => {
+  it("Should return 400 if passed an invalid agreementId", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, "invalid");
+    const res = await makeRequest(token, "invalid" as AgreementId);
     expect(res.status).toBe(400);
   });
 });
