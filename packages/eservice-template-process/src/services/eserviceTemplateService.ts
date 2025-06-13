@@ -12,7 +12,7 @@ import {
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
-  riskAnalysisValidatedFormToNewRiskAnalysisForm,
+  riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   AttributeId,
@@ -898,15 +898,12 @@ export function eserviceTemplateServiceBuilder(
         createRiskAnalysis.tenantKind
       );
 
-      const newRiskAnalysis: EServiceTemplateRiskAnalysis = {
-        id: generateId<RiskAnalysisId>(),
-        name: createRiskAnalysis.name,
-        createdAt: new Date(),
-        riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
-          validatedRiskAnalysisForm
-        ),
-        tenantKind: createRiskAnalysis.tenantKind,
-      };
+      const newRiskAnalysis: EServiceTemplateRiskAnalysis =
+        riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
+          validatedRiskAnalysisForm,
+          createRiskAnalysis.name,
+          createRiskAnalysis.tenantKind
+        );
 
       const newTemplate: EServiceTemplate = {
         ...template.data,
@@ -980,15 +977,12 @@ export function eserviceTemplateServiceBuilder(
         updateRiskAnalysis.tenantKind
       );
 
-      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
-        id: generateId<RiskAnalysisId>(),
-        name: updateRiskAnalysis.name,
-        createdAt: new Date(),
-        riskAnalysisForm: riskAnalysisValidatedFormToNewRiskAnalysisForm(
-          validatedRiskAnalysisForm
-        ),
-        tenantKind: updateRiskAnalysis.tenantKind,
-      };
+      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis =
+        riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
+          validatedRiskAnalysisForm,
+          updateRiskAnalysis.name,
+          updateRiskAnalysis.tenantKind
+        );
 
       const newTemplate: EServiceTemplate = {
         ...template.data,
