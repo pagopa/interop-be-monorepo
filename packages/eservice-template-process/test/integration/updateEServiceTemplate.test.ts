@@ -301,6 +301,7 @@ describe("update EService template", () => {
     const eserviceTemplate2: EServiceTemplate = {
       ...mockEServiceTemplate,
       id: generateId(),
+      creatorId: generateId(),
       name: "eservice name already in use",
       versions: [],
     };

@@ -41,7 +41,6 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   attributeNotFound,
   checksumDuplicate,
-  eserviceTemplateDuplicate,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
@@ -104,6 +103,7 @@ import {
   assertConsistentDailyCalls,
   assertPublishedEServiceTemplate,
   hasRoleToAccessDraftTemplateVersions,
+  assertEServiceTemplateNameAvailable,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -611,14 +611,7 @@ export function eserviceTemplateServiceBuilder(
       assertPublishedEServiceTemplate(eserviceTemplate.data);
 
       if (name !== eserviceTemplate.data.name) {
-        const eserviceTemplateWithSameName =
-          await readModelService.getEServiceTemplateByNameAndCreatorId({
-            name,
-            creatorId: eserviceTemplate.data.creatorId,
-          });
-        if (eserviceTemplateWithSameName !== undefined) {
-          throw eserviceTemplateDuplicate(name);
-        }
+        await assertEServiceTemplateNameAvailable(name, readModelService);
 
         const hasConflictingInstances =
           await readModelService.checkNameConflictInstances(
@@ -1147,14 +1140,7 @@ export function eserviceTemplateServiceBuilder(
         throw originNotCompliant(authData.externalId.origin);
       }
 
-      const eserviceTemplateWithSameName =
-        await readModelService.getEServiceTemplateByNameAndCreatorId({
-          name: seed.name,
-          creatorId: authData.organizationId,
-        });
-      if (eserviceTemplateWithSameName) {
-        throw eserviceTemplateDuplicate(seed.name);
-      }
+      await assertEServiceTemplateNameAvailable(seed.name, readModelService);
 
       assertConsistentDailyCalls(seed.version);
 
@@ -1223,14 +1209,10 @@ export function eserviceTemplateServiceBuilder(
       assertIsDraftEServiceTemplate(eserviceTemplate.data);
 
       if (eserviceTemplateSeed.name !== eserviceTemplate.data.name) {
-        const eserviceTemplateWithSameName =
-          await readModelService.getEServiceTemplateByNameAndCreatorId({
-            name: eserviceTemplateSeed.name,
-            creatorId: eserviceTemplate.data.creatorId,
-          });
-        if (eserviceTemplateWithSameName !== undefined) {
-          throw eserviceTemplateDuplicate(eserviceTemplateSeed.name);
-        }
+        await assertEServiceTemplateNameAvailable(
+          eserviceTemplateSeed.name,
+          readModelService
+        );
       }
 
       const updatedTechnology = apiTechnologyToTechnology(

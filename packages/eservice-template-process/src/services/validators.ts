@@ -22,7 +22,9 @@ import {
   eserviceTemplateNotInDraftState,
   inconsistentDailyCalls,
   eserviceTemplateWithoutPublishedVersion,
+  eserviceTemplateDuplicate,
 } from "../model/domain/errors.js";
+import { ReadModelService } from "./readModelService.js";
 
 export function assertRequesterEServiceTemplateCreator(
   creatorId: TenantId,
@@ -128,4 +130,18 @@ export function hasRoleToAccessDraftTemplateVersions(
       systemRole.M2M_ROLE,
     ])
   );
+}
+
+export async function assertEServiceTemplateNameAvailable(
+  name: string,
+  readModelService: ReadModelService
+): Promise<void> {
+  const isEServiceTemplateNameAvailable =
+    await readModelService.isEServiceTemplateNameAvailable({
+      name,
+    });
+
+  if (!isEServiceTemplateNameAvailable) {
+    throw eserviceTemplateDuplicate(name);
+  }
 }
