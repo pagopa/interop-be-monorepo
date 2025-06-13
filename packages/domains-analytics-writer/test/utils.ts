@@ -135,9 +135,6 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.client_user_deleting_table,
   DeletingDbTable.client_key_deleting_table,
   DeletingDbTable.producer_keychain_deleting_table,
-  DeletingDbTable.producer_keychain_user_deleting_table,
-  DeletingDbTable.producer_keychain_eservice_deleting_table,
-  DeletingDbTable.producer_keychain_key_deleting_table,
   DeletingDbTable.eservice_template_deleting_table,
 ];
 
@@ -186,18 +183,6 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   {
     name: DeletingDbTable.producer_keychain_deleting_table,
     columns: ["id"],
-  },
-  {
-    name: DeletingDbTable.producer_keychain_user_deleting_table,
-    columns: ["producerKeychainId", "userId"],
-  },
-  {
-    name: DeletingDbTable.producer_keychain_eservice_deleting_table,
-    columns: ["producerKeychainId", "eserviceId"],
-  },
-  {
-    name: DeletingDbTable.producer_keychain_key_deleting_table,
-    columns: ["producerKeychainId", "kid"],
   },
   {
     name: DeletingDbTable.eservice_template_deleting_table,

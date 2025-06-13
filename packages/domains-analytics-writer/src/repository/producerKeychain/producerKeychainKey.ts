@@ -5,28 +5,18 @@ import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
-  generateMergeDeleteQuery,
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 
-import {
-  DeletingDbTable,
-  ProducerKeychainDbTable,
-} from "../../model/db/index.js";
+import { ProducerKeychainDbTable } from "../../model/db/index.js";
 
-import {
-  ProducerKeychainKeySchema,
-  ProducerKeychainKeyDeletingSchema,
-} from "../../model/authorization/producerKeychainKey.js";
+import { ProducerKeychainKeySchema } from "../../model/authorization/producerKeychainKey.js";
 
 export function producerKeychainKeyRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = ProducerKeychainDbTable.producer_keychain_key;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName =
-    DeletingDbTable.producer_keychain_key_deleting_table;
-  const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
@@ -69,55 +59,6 @@ export function producerKeychainKeyRepository(conn: DBConnection) {
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning staging table ${stagingTableName}: ${error}`
-        );
-      }
-    },
-
-    async insertDeleting(
-      t: ITask<unknown>,
-      pgp: IMain,
-      records: ProducerKeychainKeyDeletingSchema[]
-    ): Promise<void> {
-      try {
-        const cs = buildColumnSet(
-          pgp,
-          deletingTableName,
-          ProducerKeychainKeyDeletingSchema
-        );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
-        );
-      }
-    },
-
-    async mergeDeleting(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeQuery = generateMergeDeleteQuery(
-          schemaName,
-          tableName,
-          deletingTableName,
-          ["producerKeychainId", "kid"],
-          false,
-          true
-        );
-        await t.none(mergeQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging deletion flag from ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
-        );
-      }
-    },
-
-    async cleanDeleting(): Promise<void> {
-      try {
-        await conn.none(`TRUNCATE TABLE ${stagingDeletingTableName};`);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
         );
       }
     },

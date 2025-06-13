@@ -136,18 +136,6 @@ await retryConnection(
         columns: ["id"],
       },
       {
-        name: DeletingDbTable.producer_keychain_user_deleting_table,
-        columns: ["producerKeychainId", "userId"],
-      },
-      {
-        name: DeletingDbTable.producer_keychain_eservice_deleting_table,
-        columns: ["producerKeychainId", "eserviceId"],
-      },
-      {
-        name: DeletingDbTable.producer_keychain_key_deleting_table,
-        columns: ["producerKeychainId", "kid"],
-      },
-      {
         name: DeletingDbTable.eservice_template_deleting_table,
         columns: ["id"],
       },
