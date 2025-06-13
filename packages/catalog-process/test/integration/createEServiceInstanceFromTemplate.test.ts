@@ -233,7 +233,7 @@ describe("create eService from template", () => {
     expect(result).toEqual(expectedEServiceWithDescriptor);
   });
 
-  it.only("should write on event-store for the creation of an eService in RECEIVE mode from a template when user has kind Private", async () => {
+  it("should write on event-store for the creation of an eService in RECEIVE mode from a template when user has kind Private", async () => {
     const tenant: Tenant = {
       ...getMockTenant(mockEService.producerId),
       id: mockEService.producerId,

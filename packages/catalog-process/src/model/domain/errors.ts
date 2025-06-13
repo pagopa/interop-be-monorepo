@@ -435,7 +435,7 @@ export function templateMissingRequiredRiskAnalysis(
   tenantKind: TenantKind
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Template ${templateId} cannot be instantiated: no risk analysis found for tenant ${tenantId} with kind ${tenantKind} .`,
+    detail: `Template ${templateId} cannot be instantiated: no risk analysis found for tenant ${tenantId} with kind ${tenantKind}`,
     code: "templateMissingRequiredRiskAnalysis",
     title: "Missing required risk analysis",
   });

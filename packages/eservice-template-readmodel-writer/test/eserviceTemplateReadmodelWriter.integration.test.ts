@@ -33,6 +33,7 @@ import {
   eserviceTemplateVersionState,
   EServiceTemplateNameUpdatedV2,
   EServiceTemplateRiskAnalysis,
+  tenantKind,
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { eserviceTemplates } from "./utils.js";
@@ -701,7 +702,9 @@ describe("database test", async () => {
         1
       );
 
-      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis("PA");
+      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+        tenantKind.PA
+      );
       const updatedEServiceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [mockRiskAnalysis],
@@ -732,7 +735,9 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateRiskAnalysisUpdated", async () => {
-      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis("PA");
+      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+        tenantKind.PA
+      );
       const eserviceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [mockRiskAnalysis],
@@ -786,7 +791,9 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateRiskAnalysisDeleted", async () => {
-      const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis("PA");
+      const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+        tenantKind.PA
+      );
       const eserviceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [riskAnalysis],

@@ -12,6 +12,7 @@ import {
   EServiceTemplateVersionInterfaceDeletedV2,
   EServiceTemplateDraftVersionDeletedV2,
   EServiceTemplateDeletedV2,
+  tenantKind,
 } from "pagopa-interop-models";
 import {
   getMockEServiceTemplate,
@@ -52,7 +53,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     version.docs = [doc];
     const attr = getMockEServiceAttribute();
     version.attributes = { certified: [[attr]], declared: [], verified: [] };
-    const risk = getMockValidEServiceTemplateRiskAnalysis("PA");
+    const risk = getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
     template.riskAnalysis = [risk];
     template.versions = [version];
     const payload: EServiceTemplateAddedV2 = {
@@ -247,7 +248,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     version.docs = [doc];
     const attr = getMockEServiceAttribute();
     version.attributes = { certified: [[attr]], declared: [], verified: [] };
-    const risk = getMockValidEServiceTemplateRiskAnalysis("PA");
+    const risk = getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
 
     template.versions = [version];
     template.riskAnalysis = [risk];
@@ -366,7 +367,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
     version.docs = [doc];
     const attr = getMockEServiceAttribute();
     version.attributes = { certified: [[attr]], declared: [], verified: [] };
-    const risk = getMockValidEServiceTemplateRiskAnalysis("PA");
+    const risk = getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
 
     template.versions = [version];
     template.riskAnalysis = [risk];
@@ -580,7 +581,7 @@ describe("Template messages consumers - handleEserviceTemplateMessageV2", () => 
 
   it("EServiceTemplateRiskAnalysisDeleted: deletes only riskAnalysis", async () => {
     const template = getMockEServiceTemplate();
-    const risk = getMockValidEServiceTemplateRiskAnalysis("PA");
+    const risk = getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
     template.riskAnalysis = [risk];
 
     const addMsg: EServiceTemplateEventEnvelope = {

@@ -20,6 +20,7 @@ import {
   eserviceTemplateVersionState,
   eserviceMode,
   operationForbidden,
+  tenantKind,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { config } from "../../src/config/config.js";
@@ -182,7 +183,9 @@ describe("update EService template", () => {
   });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
-    const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis("PA");
+    const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PA
+    );
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [],
