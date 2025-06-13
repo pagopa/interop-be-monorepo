@@ -136,12 +136,11 @@ export function generateMergeDeleteQuery<
     .join(",\n      ");
 
   return `
-      MERGE INTO ${schemaName}.${targetTableName}
-      USING ${stagingTableName}_${config.mergeTableSuffix} AS source
-        ON ${onCondition}
-      WHEN MATCHED THEN
-        UPDATE SET ${updateSet};
-    `.trim();
+    UPDATE ${schemaName}.${targetTableName}
+    SET ${updateSet}
+    FROM ${stagingTableName}_${config.mergeTableSuffix} AS source
+    WHERE ${onCondition};
+  `.trim();
 }
 
 /**
