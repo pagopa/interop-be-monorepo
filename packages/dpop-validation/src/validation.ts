@@ -62,8 +62,7 @@ export const verifyDPoPProof = ({
       decodedHeader.jwk
     );
     const { errors: algErrors, data: validatedAlg } = validateAlgorithm(
-      decodedHeader.alg,
-      validatedJwk?.alg
+      decodedHeader.alg
     );
 
     // JWT payload
@@ -91,17 +90,17 @@ export const verifyDPoPProof = ({
       !jtiErrors
     ) {
       const payloadParseResult = DPoPProofPayload.safeParse(decodedPayload);
-      if (!payloadParseResult.success) {
-        return failedValidation([
-          dpopProofInvalidClaims(payloadParseResult.error.message),
-        ]);
-      }
-
       const headerParseResult = DPoPProofHeader.safeParse(decodedHeader);
-      if (!headerParseResult.success) {
-        return failedValidation([
-          dpopProofInvalidClaims(headerParseResult.error.message),
-        ]);
+      const parsingErrors = [
+        !payloadParseResult.success
+          ? dpopProofInvalidClaims(payloadParseResult.error.message)
+          : undefined,
+        !headerParseResult.success
+          ? dpopProofInvalidClaims(headerParseResult.error.message)
+          : undefined,
+      ];
+      if (parsingErrors.some(Boolean)) {
+        return failedValidation(parsingErrors);
       }
 
       const result: DPoPProof = {
@@ -145,10 +144,8 @@ export const verifyDPoPProofSignature = async (
   jwk: JWKKeyRS256 | JWKKeyES256
 ): Promise<ValidationResult<jose.JWTPayload>> => {
   try {
-    const publicKey = await jose.importJWK(jwk, jwk.alg);
-    const result = await jose.jwtVerify(dpopProofJWS, publicKey, {
-      algorithms: [jwk.alg],
-    });
+    const publicKey = await jose.importJWK(jwk);
+    const result = await jose.jwtVerify(dpopProofJWS, publicKey);
 
     return successfulValidation(result.payload);
   } catch (error: unknown) {

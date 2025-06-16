@@ -122,7 +122,6 @@ import {
   WithLogger,
   UIClaims,
   M2MAdminAuthData,
-  calculateKid,
   createJWK,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -755,22 +754,8 @@ export const getMockDPoPProof = async (
   });
 
   const jwk = match(alg)
-    .with(algorithm.ES256, () =>
-      JWKKeyES256.parse({
-        ...cryptoJWK,
-        kid: calculateKid(cryptoJWK),
-        use: "sig",
-        alg,
-      })
-    )
-    .with(algorithm.RS256, () =>
-      JWKKeyRS256.parse({
-        ...cryptoJWK,
-        kid: calculateKid(cryptoJWK),
-        use: "sig",
-        alg,
-      })
-    )
+    .with(algorithm.ES256, () => JWKKeyES256.parse(cryptoJWK))
+    .with(algorithm.RS256, () => JWKKeyRS256.parse(cryptoJWK))
     .exhaustive();
 
   const header: DPoPProofHeader = {
