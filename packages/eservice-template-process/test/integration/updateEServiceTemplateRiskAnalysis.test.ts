@@ -37,6 +37,7 @@ import {
   riskAnalysisValidationFailed,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
+  riskAnalysisNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -120,18 +121,12 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       ...eserviceTemplate,
       riskAnalysis: [
         {
-          ...riskAnalysisSecondary,
-          id: unsafeBrandId(
-            writtenPayload.eserviceTemplate!.riskAnalysis[0]!.id
-          ),
+          ...riskAnalysisToUpdate,
+          name: riskAnalysisSeed.name,
           riskAnalysisForm: {
-            ...mockValidRiskAnalysis.riskAnalysisForm,
-            id: unsafeBrandId(
-              writtenPayload.eserviceTemplate!.riskAnalysis[0]!
-                .riskAnalysisForm!.id
-            ),
+            ...riskAnalysisToUpdate.riskAnalysisForm,
             singleAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+              riskAnalysisToUpdate.riskAnalysisForm.singleAnswers.map(
                 (singleAnswer) => ({
                   ...singleAnswer,
                   id: unsafeBrandId(
@@ -142,7 +137,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
                 })
               ),
             multiAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+              riskAnalysisToUpdate.riskAnalysisForm.multiAnswers.map(
                 (multiAnswer) => ({
                   ...multiAnswer,
                   id: unsafeBrandId(
@@ -154,41 +149,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
               ),
           },
         },
-        {
-          ...mockValidRiskAnalysis,
-          id: unsafeBrandId(
-            writtenPayload.eserviceTemplate!.riskAnalysis[1]!.id
-          ),
-          riskAnalysisForm: {
-            ...mockValidRiskAnalysis.riskAnalysisForm,
-            id: unsafeBrandId(
-              writtenPayload.eserviceTemplate!.riskAnalysis[1]!
-                .riskAnalysisForm!.id
-            ),
-            singleAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-                (singleAnswer) => ({
-                  ...singleAnswer,
-                  id: unsafeBrandId(
-                    writtenPayload.eserviceTemplate!.riskAnalysis[1]!.riskAnalysisForm!.singleAnswers.find(
-                      (sa) => sa.key === singleAnswer.key
-                    )!.id
-                  ),
-                })
-              ),
-            multiAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-                (multiAnswer) => ({
-                  ...multiAnswer,
-                  id: unsafeBrandId(
-                    writtenPayload.eserviceTemplate!.riskAnalysis[1]!.riskAnalysisForm!.multiAnswers.find(
-                      (ma) => ma.key === multiAnswer.key
-                    )!.id
-                  ),
-                })
-              ),
-          },
-        },
+        riskAnalysisSecondary,
       ],
     };
 
@@ -229,6 +190,44 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
+  });
+  it("should throw riskAnalysisNotFound if the risk analysis doesn't exist", async () => {
+    const creatorTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const riskAnalysisToUpdate =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSecondary =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.draft,
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      mode: eserviceMode.receive,
+      versions: [eserviceTemplateVersion],
+      creatorId: generateId(),
+      riskAnalysis: [riskAnalysisSecondary],
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    expect(
+      eserviceTemplateService.updateRiskAnalysis(
+        eserviceTemplate.id,
+        riskAnalysisToUpdate.id,
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
+        ),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisNotFound(eserviceTemplate.id, riskAnalysisToUpdate.id)
+    );
   });
   it("should throw operationForbidden if the requester is not the creator", async () => {
     const creatorTenantKind: TenantKind = randomArrayItem(

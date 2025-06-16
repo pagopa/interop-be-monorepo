@@ -32,6 +32,7 @@ export const errorCodes = {
   checksumDuplicate: "0023",
   draftEServiceTemplateVersionAlreadyExists: "0024",
   eserviceTemplateDocumentNotFound: "0025",
+  riskAnalysisNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -274,5 +275,16 @@ export function eserviceTemplateDocumentNotFound(
     detail: `Document ${documentId} not found in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
     code: "eserviceTemplateDocumentNotFound",
     title: "Document not found",
+  });
+}
+
+export function riskAnalysisNotFound(
+  eserviceTemplateId: EServiceTemplateId,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found in template ${eserviceTemplateId}`,
+    code: "riskAnalysisNotFound",
+    title: "Risk analysis not found",
   });
 }
