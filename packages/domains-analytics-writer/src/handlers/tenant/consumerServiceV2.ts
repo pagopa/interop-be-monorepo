@@ -15,6 +15,7 @@ import {
 } from "../../model/tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../../model/tenant/tenantMail.js";
 import { TenantFeatureDeletingSchema } from "../../model/tenant/tenantFeature.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleTenantMessageV2(
   messages: TenantEventEnvelopeV2[],
@@ -139,20 +140,29 @@ export async function handleTenantMessageV2(
   }
 
   if (deleteTenantBatch.length > 0) {
-    await tenantService.deleteBatchTenants(deleteTenantBatch, dbContext);
+    const distinctBatch = distinctByKeys(
+      deleteTenantBatch,
+      TenantDeletingSchema,
+      ["id"]
+    );
+    await tenantService.deleteBatchTenants(distinctBatch, dbContext);
   }
 
   if (deleteTenantMailBatch.length > 0) {
-    await tenantService.deleteBatchTenantMails(
+    const distinctBatch = distinctByKeys(
       deleteTenantMailBatch,
-      dbContext
+      TenantMailDeletingSchema,
+      ["id", "tenantId"]
     );
+    await tenantService.deleteBatchTenantMails(distinctBatch, dbContext);
   }
 
   if (deleteTenantFeatureBatch.length > 0) {
-    await tenantService.deleteBatchTenantFeatures(
+    const distinctBatch = distinctByKeys(
       deleteTenantFeatureBatch,
-      dbContext
+      TenantFeatureDeletingSchema,
+      ["tenantId", "kind"]
     );
+    await tenantService.deleteBatchTenantFeatures(distinctBatch, dbContext);
   }
 }

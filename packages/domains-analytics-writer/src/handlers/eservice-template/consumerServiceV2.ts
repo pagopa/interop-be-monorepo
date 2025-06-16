@@ -19,6 +19,7 @@ import { EserviceTemplateRiskAnalysisDeletingSchema } from "../../model/eservice
 import { EserviceTemplateVersionDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateVersion.js";
 import { EserviceTemplateDocumentDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionDocument.js";
 import { EserviceTemplateInterfaceDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionInterface.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleEserviceTemplateMessageV2(
   messages: EServiceTemplateEventEnvelope[],
@@ -163,34 +164,61 @@ export async function handleEserviceTemplateMessageV2(
       upsertEserviceTemplateBatch
     );
   }
+
   if (deleteEserviceTemplateBatch.length > 0) {
-    await templateService.deleteBatchEserviceTemplate(
-      dbContext,
-      deleteEserviceTemplateBatch
+    const distinctBatch = distinctByKeys(
+      deleteEserviceTemplateBatch,
+      EserviceTemplateDeletingSchema,
+      ["id"]
     );
+    await templateService.deleteBatchEserviceTemplate(dbContext, distinctBatch);
   }
+
   if (deleteEserviceTemplateVersionBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteEserviceTemplateVersionBatch,
+      EserviceTemplateVersionDeletingSchema,
+      ["id"]
+    );
     await templateService.deleteBatchEserviceTemplateVersion(
       dbContext,
-      deleteEserviceTemplateVersionBatch
+      distinctBatch
     );
   }
+
   if (deleteEserviceTemplateInterfaceBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteEserviceTemplateInterfaceBatch,
+      EserviceTemplateInterfaceDeletingSchema,
+      ["id"]
+    );
     await templateService.deleteBatchEserviceTemplateInterface(
       dbContext,
-      deleteEserviceTemplateInterfaceBatch
+      distinctBatch
     );
   }
+
   if (deleteEserviceTemplateDocumentBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteEserviceTemplateDocumentBatch,
+      EserviceTemplateDocumentDeletingSchema,
+      ["id"]
+    );
     await templateService.deleteBatchEserviceTemplateDocument(
       dbContext,
-      deleteEserviceTemplateDocumentBatch
+      distinctBatch
     );
   }
+
   if (deleteEserviceTemplateRiskAnalysisBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteEserviceTemplateRiskAnalysisBatch,
+      EserviceTemplateRiskAnalysisDeletingSchema,
+      ["id"]
+    );
     await templateService.deleteBatchEserviceTemplateRiskAnalysis(
       dbContext,
-      deleteEserviceTemplateRiskAnalysisBatch
+      distinctBatch
     );
   }
 }

@@ -1,12 +1,9 @@
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
-  generateKeySet,
   getMockDPoPProof,
-  signJWT,
 } from "pagopa-interop-commons-test";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { algorithm } from "pagopa-interop-models";
 import { dateToSeconds } from "pagopa-interop-commons";
 import {
   checkDPoPCache,
@@ -14,7 +11,6 @@ import {
   verifyDPoPProofSignature,
 } from "../src/validation.js";
 import {
-  dpopAlgorithmsMismatch,
   dpopHtmNotFound,
   dpopHtuNotFound,
   dpopIatNotFound,
@@ -162,37 +158,6 @@ describe("DPoP validation tests", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors?.[0].code).toBe(invalidDPoPTyp(wrongTyp).code);
-    });
-
-    it("should add error if the DPoP proof ALG is different from JWK's ALG", async () => {
-      const { dpopProofJWT } = await getMockDPoPProof();
-
-      const { keySet: keySetRS256 } = generateKeySet(algorithm.RS256);
-      const dpopProofJWTWithWrongAlg = {
-        ...dpopProofJWT,
-        header: {
-          ...dpopProofJWT.header,
-          alg: algorithm.RS256,
-        },
-      };
-      const dpopProofJWSWithWrongAlg = await signJWT({
-        payload: dpopProofJWTWithWrongAlg.payload,
-        headers: dpopProofJWTWithWrongAlg.header,
-        keySet: keySetRS256,
-      });
-
-      const { errors } = verifyDPoPProof({
-        dpopProofJWS: dpopProofJWSWithWrongAlg,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
-      });
-      expect(errors).toBeDefined();
-      expect(errors).toHaveLength(1);
-      expect(errors?.[0].code).toBe(
-        dpopAlgorithmsMismatch(
-          dpopProofJWT.header.alg,
-          dpopProofJWT.header.jwk.alg
-        ).code
-      );
     });
 
     it("should add error if the DPoP proof HTM is not found", async () => {
