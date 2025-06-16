@@ -48,7 +48,7 @@
     "express": "4.20.0",
     "fast-xml-parser": "4.4.1",
     "mime": "4.0.4",
-    "multer": "2.0.0",
+    "multer": "2.0.1",
     "pagopa-interop-agreement-lifecycle": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-application-audit": "workspace:*",
