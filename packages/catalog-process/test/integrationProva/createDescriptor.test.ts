@@ -9,7 +9,6 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
-  testCleanup,
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
@@ -26,16 +25,7 @@ import {
   EServiceTemplateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  inject,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
   draftDescriptorAlreadyExists,
@@ -55,34 +45,6 @@ import {
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
 
 describe("create descriptor", async () => {
-  const readModelConfig = inject("readModelConfig");
-  const eventStoreConfig = inject("eventStoreConfig");
-  const fileManagerConfig = inject("fileManagerConfig");
-  const emailManagerConfig = inject("emailManagerConfig");
-  const redisRateLimiterConfig = inject("redisRateLimiterConfig");
-  const awsSESConfig = inject("sesEmailManagerConfig");
-  const readModelSQLConfig = inject("readModelSQLConfig");
-  const analyticsSQLDbConfig = inject("analyticsSQLDbConfig");
-  const tokenGenerationReadModelConfig = inject(
-    "tokenGenerationReadModelConfig"
-  ); // Per DynamoDB
-
-  const allTestConfigs = {
-    readModelConfig,
-    eventStoreConfig,
-    fileManagerConfig,
-    emailManagerConfig,
-    redisRateLimiterConfig,
-    sesEmailManagerConfig: awsSESConfig,
-    readModelSQLConfig,
-    analyticsSQLDbConfig,
-    tokenGenerationReadModelConfig, // Aggiungi questo se lo usi in setupTestContainersVitest
-  };
-
-  beforeEach(async () => {
-    await testCleanup(allTestConfigs);
-  });
-
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());

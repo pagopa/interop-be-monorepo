@@ -7,7 +7,6 @@ import {
   getMockDocument,
   getMockEService,
   getMockContext,
-  testCleanup,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -19,7 +18,7 @@ import {
   delegationState,
   delegationKind,
 } from "pagopa-interop-models";
-import { expect, describe, it, beforeEach, inject } from "vitest";
+import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -33,34 +32,6 @@ import {
 } from "../integrationUtils.js";
 
 describe("activate descriptor", () => {
-  const readModelConfig = inject("readModelConfig");
-  const eventStoreConfig = inject("eventStoreConfig");
-  const fileManagerConfig = inject("fileManagerConfig");
-  const emailManagerConfig = inject("emailManagerConfig");
-  const redisRateLimiterConfig = inject("redisRateLimiterConfig");
-  const awsSESConfig = inject("sesEmailManagerConfig");
-  const readModelSQLConfig = inject("readModelSQLConfig");
-  const analyticsSQLDbConfig = inject("analyticsSQLDbConfig");
-  const tokenGenerationReadModelConfig = inject(
-    "tokenGenerationReadModelConfig"
-  ); // Per DynamoDB
-
-  const allTestConfigs = {
-    readModelConfig,
-    eventStoreConfig,
-    fileManagerConfig,
-    emailManagerConfig,
-    redisRateLimiterConfig,
-    sesEmailManagerConfig: awsSESConfig,
-    readModelSQLConfig,
-    analyticsSQLDbConfig,
-    tokenGenerationReadModelConfig, // Aggiungi questo se lo usi in setupTestContainersVitest
-  };
-
-  beforeEach(async () => {
-    await testCleanup(allTestConfigs);
-  });
-
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();

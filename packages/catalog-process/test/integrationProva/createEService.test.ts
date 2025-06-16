@@ -7,7 +7,6 @@ import {
   randomArrayItem,
   readEventByStreamIdAndVersion,
   getMockEService,
-  testCleanup,
 } from "pagopa-interop-commons-test";
 import {
   EServiceAddedV2,
@@ -16,16 +15,7 @@ import {
   EServiceDescriptorAddedV2,
   generateId,
 } from "pagopa-interop-models";
-import {
-  expect,
-  describe,
-  it,
-  beforeAll,
-  vi,
-  afterAll,
-  beforeEach,
-  inject,
-} from "vitest";
+import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import { match } from "ts-pattern";
 import {
   eServiceNameDuplicateForProducer,
@@ -43,34 +33,6 @@ import { buildDescriptorSeedForEserviceCreation } from "../mockUtils.js";
 describe("create eservice", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
-
-  const readModelConfig = inject("readModelConfig");
-  const eventStoreConfig = inject("eventStoreConfig");
-  const fileManagerConfig = inject("fileManagerConfig");
-  const emailManagerConfig = inject("emailManagerConfig");
-  const redisRateLimiterConfig = inject("redisRateLimiterConfig");
-  const awsSESConfig = inject("sesEmailManagerConfig");
-  const readModelSQLConfig = inject("readModelSQLConfig");
-  const analyticsSQLDbConfig = inject("analyticsSQLDbConfig");
-  const tokenGenerationReadModelConfig = inject(
-    "tokenGenerationReadModelConfig"
-  ); // Per DynamoDB
-
-  const allTestConfigs = {
-    readModelConfig,
-    eventStoreConfig,
-    fileManagerConfig,
-    emailManagerConfig,
-    redisRateLimiterConfig,
-    sesEmailManagerConfig: awsSESConfig,
-    readModelSQLConfig,
-    analyticsSQLDbConfig,
-    tokenGenerationReadModelConfig, // Aggiungi questo se lo usi in setupTestContainersVitest
-  };
-
-  beforeEach(async () => {
-    await testCleanup(allTestConfigs);
-  });
 
   beforeAll(() => {
     vi.useFakeTimers();

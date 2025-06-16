@@ -9,7 +9,6 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
-  testCleanup,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -26,16 +25,7 @@ import {
   EServiceTemplateId,
   EServiceDocumentId,
 } from "pagopa-interop-models";
-import {
-  beforeAll,
-  vi,
-  afterAll,
-  expect,
-  describe,
-  it,
-  beforeEach,
-  inject,
-} from "vitest";
+import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
 import {
   eServiceNameDuplicateForProducer,
@@ -56,45 +46,6 @@ describe("clone descriptor", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
-
-  const readModelConfig = inject("readModelConfig");
-  const eventStoreConfig = inject("eventStoreConfig");
-  const fileManagerConfig = inject("fileManagerConfig");
-  const emailManagerConfig = inject("emailManagerConfig");
-  const redisRateLimiterConfig = inject("redisRateLimiterConfig");
-  const awsSESConfig = inject("sesEmailManagerConfig");
-  const readModelSQLConfig = inject("readModelSQLConfig");
-  const analyticsSQLDbConfig = inject("analyticsSQLDbConfig");
-  const tokenGenerationReadModelConfig = inject(
-    "tokenGenerationReadModelConfig"
-  ); // Per DynamoDB
-
-  const allTestConfigs = {
-    readModelConfig,
-    eventStoreConfig,
-    fileManagerConfig,
-    emailManagerConfig,
-    redisRateLimiterConfig,
-    sesEmailManagerConfig: awsSESConfig,
-    readModelSQLConfig,
-    analyticsSQLDbConfig,
-    tokenGenerationReadModelConfig, // Aggiungi questo se lo usi in setupTestContainersVitest
-  };
-
-  beforeEach(async () => {
-    await testCleanup(allTestConfigs);
-
-    if (!fileManager) {
-      throw new Error(
-        "FileManager not initialized in integrationUtils.js. Check global setup."
-      );
-    }
-    vi.spyOn(fileManager, "copy"); // Solo spy, nessuna mock di ritorno
-    vi.spyOn(fileManager, "storeBytes"); // Solo spy, nessuna mock di ritorno
-    vi.spyOn(fileManager, "delete"); // Solo spy
-    vi.spyOn(fileManager, "listFiles");
-  });
-
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -102,25 +53,26 @@ describe("clone descriptor", () => {
   afterAll(() => {
     vi.useRealTimers();
   });
-  it.only("should write on event-store for the cloning of a descriptor, and clone the descriptor docs and interface files", async () => {
+  it("should write on event-store for the cloning of a descriptor, and clone the descriptor docs and interface files", async () => {
+    vi.spyOn(fileManager, "copy");
     const documentId1 = generateId<EServiceDocumentId>();
     const documentId2 = generateId<EServiceDocumentId>();
     const interfaceId = generateId<EServiceDocumentId>();
 
     const document1: Document = {
-      ...getMockDocument(),
+      ...mockDocument,
       id: documentId1,
       name: `${mockDocument.name}_1`,
       path: `${config.eserviceDocumentsPath}/${documentId1}/${mockDocument.name}_1`,
     };
     const document2: Document = {
-      ...getMockDocument(),
+      ...mockDocument,
       id: documentId2,
       name: `${mockDocument.name}_2`,
       path: `${config.eserviceDocumentsPath}/${documentId2}/${mockDocument.name}_2`,
     };
     const interfaceDocument: Document = {
-      ...getMockDocument(),
+      ...mockDocument,
       id: interfaceId,
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceDocumentsPath}/${interfaceId}/${mockDocument.name}_interface`,
