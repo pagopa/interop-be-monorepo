@@ -4,8 +4,10 @@ import {
   UIAuthData,
   hasAtLeastOneSystemRole,
   hasAtLeastOneUserRole,
+  riskAnalysisFormToRiskAnalysisFormToValidate,
   systemRole,
   userRole,
+  validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
   EServiceTemplate,
@@ -23,6 +25,8 @@ import {
   inconsistentDailyCalls,
   eserviceTemplateWithoutPublishedVersion,
   eserviceTemplateDuplicate,
+  missingRiskAnalysis,
+  riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -144,4 +148,26 @@ export async function assertEServiceTemplateNameAvailable(
   if (!isEServiceTemplateNameAvailable) {
     throw eserviceTemplateDuplicate(name);
   }
+}
+
+export function assertRiskAnalysisIsValidForPublication(
+  eserviceTemplate: EServiceTemplate
+): void {
+  if (eserviceTemplate.riskAnalysis.length === 0) {
+    throw missingRiskAnalysis(eserviceTemplate.id);
+  }
+
+  eserviceTemplate.riskAnalysis.forEach((riskAnalysis) => {
+    const result = validateRiskAnalysis(
+      riskAnalysisFormToRiskAnalysisFormToValidate(
+        riskAnalysis.riskAnalysisForm
+      ),
+      false,
+      riskAnalysis.tenantKind
+    );
+
+    if (result.type === "invalid") {
+      throw riskAnalysisValidationFailed(result.issues);
+    }
+  });
 }

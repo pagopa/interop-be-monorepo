@@ -6,8 +6,6 @@ import {
   WithLogger,
   eventRepository,
   validateRiskAnalysis,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-  RiskAnalysisValidationIssue,
   Logger,
   UIAuthData,
   M2MAuthData,
@@ -45,7 +43,6 @@ import {
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
   eserviceTemplateDocumentNotFound,
-  missingRiskAnalysis,
   instanceNameConflict,
   notValidEServiceTemplateVersionState,
 } from "../model/domain/errors.js";
@@ -106,6 +103,7 @@ import {
   assertPublishedEServiceTemplate,
   hasRoleToAccessDraftTemplateVersions,
   assertEServiceTemplateNameAvailable,
+  assertRiskAnalysisIsValidForPublication,
 } from "./validators.js";
 
 export const retrieveEServiceTemplate = async (
@@ -498,29 +496,7 @@ export function eserviceTemplateServiceBuilder(
       }
 
       if (eserviceTemplate.data.mode === eserviceMode.receive) {
-        if (eserviceTemplate.data.riskAnalysis.length > 0) {
-          const riskAnalysisError = eserviceTemplate.data.riskAnalysis.reduce<
-            RiskAnalysisValidationIssue[]
-          >((acc, ra) => {
-            const result = validateRiskAnalysis(
-              riskAnalysisFormToRiskAnalysisFormToValidate(ra.riskAnalysisForm),
-              true,
-              ra.tenantKind
-            );
-
-            if (result.type === "invalid") {
-              return [...acc, ...result.issues];
-            }
-
-            return acc;
-          }, []);
-
-          if (riskAnalysisError.length > 0) {
-            throw riskAnalysisValidationFailed(riskAnalysisError);
-          }
-        } else {
-          throw missingRiskAnalysis(eserviceTemplateId);
-        }
+        assertRiskAnalysisIsValidForPublication(eserviceTemplate.data);
       }
 
       const publishedTemplate: EServiceTemplate = {
