@@ -2,6 +2,7 @@ import {
   authenticationMiddleware,
   contextMiddleware,
   loggerMiddleware,
+  sanitizeMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import {
@@ -32,6 +33,7 @@ export async function createApp(service: EServiceTemplateService) {
   app.use(await applicationAuditEndMiddleware(serviceName, config));
   app.use(authenticationMiddleware(config));
   app.use(loggerMiddleware(serviceName));
+  app.use(sanitizeMiddleware());
   app.use(router);
 
   return app;

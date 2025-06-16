@@ -1,6 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable functional/immutable-data */
 import {
   authenticationMiddleware,
   contextMiddleware,
