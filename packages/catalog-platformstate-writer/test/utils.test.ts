@@ -119,7 +119,7 @@ describe("utils tests", async () => {
   });
 
   describe("upsertPlatformStatesCatalogEntry", async () => {
-    it("should update the entry if previous entry exists", async () => {
+    it("should update the entry if the previous entry exists", async () => {
       const primaryKey = makePlatformStatesEServiceDescriptorPK({
         eserviceId: generateId(),
         descriptorId: generateId(),
