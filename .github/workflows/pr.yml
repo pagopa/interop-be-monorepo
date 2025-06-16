@@ -94,10 +94,21 @@ jobs:
           run_install: true
       - run: pnpm test
 
+  lint-openapi:
+    name: Lint Open Api specification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: stoplightio/spectral-action@2ad0b9302e32a77c1caccf474a9b2191a8060d83 #v0.8.11
+        with:
+          file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
+
   find_dockerfiles:
     name: Find Dockerfiles
-    needs: [formatting, lint, check, test]
-    if: ${{ github.base_ref == 'main' }}
+    needs: [formatting, lint, check, test, lint-openapi]
+    if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     outputs:
       packages: ${{ steps.set_packages_output.outputs.packages }}
