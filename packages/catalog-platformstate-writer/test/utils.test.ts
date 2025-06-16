@@ -29,6 +29,7 @@ import {
   readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId,
   readAllTokenGenStatesItems,
   writeTokenGenStatesConsumerClient,
+  writePlatformCatalogEntry,
 } from "pagopa-interop-commons-test";
 import { z } from "zod";
 import { genericLogger } from "pagopa-interop-commons";
@@ -38,7 +39,7 @@ import {
   readCatalogEntry,
   updateDescriptorStateInPlatformStatesEntry,
   updateDescriptorStateInTokenGenerationStatesTable,
-  writeCatalogEntry,
+  upsertPlatformStatesCatalogEntry,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -93,10 +94,9 @@ describe("utils tests", async () => {
       expect(
         await readCatalogEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await writeCatalogEntry(
+      await writePlatformCatalogEntry(
         previousCatalogStateEntry,
-        dynamoDBClient,
-        genericLogger
+        dynamoDBClient
       );
       await updateDescriptorStateInPlatformStatesEntry(
         dynamoDBClient,
@@ -118,24 +118,45 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("writeCatalogEntry", async () => {
-    it("should throw error if previous entry exists", async () => {
+  describe("upsertPlatformStatesCatalogEntry", async () => {
+    it("should update the entry if previous entry exists", async () => {
       const primaryKey = makePlatformStatesEServiceDescriptorPK({
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const catalogEntry: PlatformStatesCatalogEntry = {
+      const wrongCatalogEntry: PlatformStatesCatalogEntry = {
         PK: primaryKey,
         state: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+        descriptorAudience: ["wrong-audience-1", "wrong-audience-2"],
         descriptorVoucherLifespan: 100,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(catalogEntry, dynamoDBClient, genericLogger);
-      expect(
-        writeCatalogEntry(catalogEntry, dynamoDBClient, genericLogger)
-      ).rejects.toThrowError(ConditionalCheckFailedException);
+      await upsertPlatformStatesCatalogEntry(
+        wrongCatalogEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const correctCatalogEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: itemState.active,
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+        descriptorVoucherLifespan: 200,
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      await upsertPlatformStatesCatalogEntry(
+        correctCatalogEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const retrievedCatalogEntry = await readCatalogEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+      expect(retrievedCatalogEntry).toEqual(correctCatalogEntry);
     });
 
     it("should write if previous entry doesn't exist", async () => {
@@ -154,7 +175,11 @@ describe("utils tests", async () => {
       expect(
         await readCatalogEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await writeCatalogEntry(catalogStateEntry, dynamoDBClient, genericLogger);
+      await upsertPlatformStatesCatalogEntry(
+        catalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
         dynamoDBClient
@@ -187,10 +212,9 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
+      await writePlatformCatalogEntry(
         previousCatalogStateEntry,
-        dynamoDBClient,
-        genericLogger
+        dynamoDBClient
       );
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
@@ -225,10 +249,9 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
+      await writePlatformCatalogEntry(
         previousCatalogStateEntry,
-        dynamoDBClient,
-        genericLogger
+        dynamoDBClient
       );
       await deleteCatalogEntry(primaryKey, dynamoDBClient, genericLogger);
       const retrievedCatalogEntry = await readCatalogEntry(
