@@ -424,14 +424,14 @@ export function kafkaMessageProcessError(
   },
   error?: unknown
 ): InternalError<CommonErrorCodes> {
-  const serviceNamePrefix = serviceName ? `[${serviceName}] - ` : "";
-  const correlationIdPrefix = correlationId ? `[CID=${correlationId}] ` : "";
-  const eventTypePrefix = eventType ? `[ET=${eventType}] ` : "";
-  const eventVersionPrefix = eventVersion ? `[EV=${eventVersion}] ` : "";
+  const serviceNamePrefix = serviceName ? `[${serviceName}] -` : "";
+  const correlationIdPrefix = correlationId ? `[CID=${correlationId}]` : "";
+  const eventTypePrefix = eventType ? `[ET=${eventType}]` : "";
+  const eventVersionPrefix = eventVersion ? `[EV=${eventVersion}]` : "";
   const streamVersionPrefix =
-    streamVersion !== undefined ? `[SV=${streamVersion}] ` : "";
-  const streamIdPrefix = streamId ? `[SID=${streamId}] ` : "";
-  const errorMessage = error ? `: ${parseErrorMessage(error)}` : "";
+    streamVersion !== undefined ? `[SV=${streamVersion}]` : "";
+  const streamIdPrefix = streamId ? `[SID=${streamId}]` : "";
+  const errorMessage = error ? `${parseErrorMessage(error)}` : "";
 
   const prefixes = [
     serviceNamePrefix,
