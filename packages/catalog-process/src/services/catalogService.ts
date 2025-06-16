@@ -3561,12 +3561,15 @@ async function extractEServiceRiskAnalysisFromTemplate(
         )
         .exhaustive()
     )
-    .map((r) => ({
-      id: generateId(),
-      createdAt: r.createdAt,
-      name: r.name,
-      riskAnalysisForm: r.riskAnalysisForm,
-    }));
+    .map(
+      (r) =>
+        ({
+          id: r.id,
+          createdAt: r.createdAt,
+          name: r.name,
+          riskAnalysisForm: r.riskAnalysisForm,
+        } satisfies RiskAnalysis)
+    );
 
   if (riskAnalysis.length === 0) {
     throw templateMissingRequiredRiskAnalysis(
