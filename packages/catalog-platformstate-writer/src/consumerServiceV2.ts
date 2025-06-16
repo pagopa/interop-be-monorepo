@@ -25,7 +25,6 @@ import {
   updateDescriptorVoucherLifespanInPlatformStateEntry,
   updateDescriptorVoucherLifespanInTokenGenerationStatesTable,
   upsertPlatformStatesCatalogEntry,
-  writeCatalogEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
