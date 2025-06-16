@@ -29,7 +29,7 @@ import {
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -42,6 +42,7 @@ import {
   eServiceNotAnInstance,
   inconsistentDailyCalls,
   eserviceWithoutValidDescriptors,
+  eserviceTemplateNameConflict,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -269,20 +270,31 @@ export function assertDocumentDeletableDescriptorState(
     .exhaustive();
 }
 
-export async function assertNotDuplicatedEServiceName(
+export async function assertEServiceNameAvailableForProducer(
   name: string,
-  eservice: EService,
+  producerId: TenantId,
   readModelService: ReadModelService
 ): Promise<void> {
-  if (name !== eservice.name) {
-    const eserviceWithSameName =
-      await readModelService.getEServiceByNameAndProducerId({
-        name,
-        producerId: eservice.producerId,
-      });
-    if (eserviceWithSameName !== undefined) {
-      throw eServiceNameDuplicate(name);
-    }
+  const isEServiceNameAvailable =
+    await readModelService.isEServiceNameAvailableForProducer({
+      name,
+      producerId,
+    });
+  if (!isEServiceNameAvailable) {
+    throw eServiceNameDuplicateForProducer(name, producerId);
+  }
+}
+
+export async function assertEServiceNameNotConflictingWithTemplate(
+  name: string,
+  readModelService: ReadModelService
+): Promise<void> {
+  const eserviceTemplateWithSameNameExists =
+    await readModelService.isEServiceNameConflictingWithTemplate({
+      name,
+    });
+  if (eserviceTemplateWithSameNameExists) {
+    throw eserviceTemplateNameConflict(name);
   }
 }
 

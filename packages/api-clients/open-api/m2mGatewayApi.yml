@@ -5,9 +5,8 @@ info:
   version: "2.0.0"
   contact:
     name: API Support
-    url: "http://www.example.com/support"
-    email: support@example.com
-  termsOfService: "http://swagger.io/terms/"
+    url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
+  termsOfService: "https://selfcare.interop.pagopa.it/ui/it/termini-di-servizio"
 servers:
   - url: "https://api.uat.interop.pagopa.it/v2"
     description: UAT environment
@@ -16,54 +15,24 @@ security:
 tags:
   - name: clients
     description: Clients routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: attributes
     description: Attributes routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: agreements
     description: Agreements routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: eservices
     description: E-Services routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: keys
     description: Keys routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: purposes
     description: Purposes routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: tenants
     description: Tenants routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: delegations
     description: Delegations routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: eserviceTemplates
     description: E-Service Templates routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: health
     description: Verify service status
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
 paths:
   /agreements:
     get:
@@ -1991,6 +1960,110 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/interface:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor for which to download the interface
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eservices
+      summary: Download an E-Service Descriptor interface
+      description: Download the interface document of an E-Service Descriptor.
+      operationId: downloadEServiceDescriptorInterface
+      responses:
+        "200":
+          description: "E-Service Descriptor interface retrieved: a multipart containing the file and its metadata."
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - file
+                  - filename
+                  - contentType
+                properties:
+                  file:
+                    type: string
+                    format: binary
+                    description: The interface document file
+                  filename:
+                    type: string
+                    description: The name of the file
+                  contentType:
+                    type: string
+                    description: The content type of the file
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4854,7 +4927,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 250
+              maxLength: 500
       required:
         - version
         - answers

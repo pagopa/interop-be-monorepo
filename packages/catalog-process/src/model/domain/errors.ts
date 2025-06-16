@@ -18,7 +18,7 @@ export const errorCodes = {
   eServiceDocumentNotFound: "0004",
   eServiceNotFound: "0005",
   draftDescriptorAlreadyExists: "0006",
-  eServiceNameDuplicate: "007",
+  eServiceNameDuplicateForProducer: "007",
   originNotCompliant: "0008",
   attributeNotFound: "0009",
   inconsistentDailyCalls: "0010",
@@ -49,6 +49,7 @@ export const errorCodes = {
   eserviceTemplateInterfaceNotFound: "0035",
   eserviceTemplateInterfaceDataNotValid: "0036",
   descriptorTemplateVersionNotFound: "0037",
+  eserviceTemplateNameConflict: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -63,13 +64,24 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceNameDuplicate(
+export function eServiceNameDuplicateForProducer(
+  eserviceName: string,
+  producerId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An EService with name ${eserviceName} already exists for producer ${producerId}`,
+    code: "eServiceNameDuplicateForProducer",
+    title: "Duplicated service name",
+  });
+}
+
+export function eserviceTemplateNameConflict(
   eserviceName: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `An EService with name ${eserviceName} already exists`,
-    code: "eServiceNameDuplicate",
-    title: "Duplicated service name",
+    detail: `An EService template with name ${eserviceName} already exists`,
+    code: "eserviceTemplateNameConflict",
+    title: "EService template name conflict",
   });
 }
 

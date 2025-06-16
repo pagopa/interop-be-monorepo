@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, expect, it } from "vitest";
 import { generateId, TenantId } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { sleep } from "../src/testUtils.js";
+import { delay, genericLogger } from "pagopa-interop-commons";
 import { redisRateLimiter } from "./utils.js";
 
 describe("Redis rate limiter tests", async () => {
@@ -141,7 +140,7 @@ describe("Redis rate limiter tests", async () => {
       1
     );
 
-    await sleep(1000);
+    await delay(1000);
 
     expect(
       await redisRateLimiter.rateLimitByOrganization(

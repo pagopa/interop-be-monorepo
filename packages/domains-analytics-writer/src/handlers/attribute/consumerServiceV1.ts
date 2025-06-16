@@ -14,6 +14,7 @@ import {
   AttributeSchema,
   AttributeDeletingSchema,
 } from "../../model/attribute/attribute.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAttributeMessageV1(
   messages: AttributeEventEnvelope[],
@@ -58,6 +59,9 @@ export async function handleAttributeMessageV1(
   }
 
   if (deleteBatch.length > 0) {
-    await attributeService.deleteBatchAttribute(dbContext, deleteBatch);
+    const distinctBatch = distinctByKeys(deleteBatch, AttributeDeletingSchema, [
+      "id",
+    ]);
+    await attributeService.deleteBatchAttribute(dbContext, distinctBatch);
   }
 }

@@ -2,16 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getPurposeVersions", () => {
   const mockParams: m2mGatewayApi.GetPurposeVersionsQueryParams = {
@@ -34,15 +35,17 @@ describe("getPurposeVersions", () => {
     state: purposeApi.PurposeVersionState.Enum.SUSPENDED,
   });
 
-  const mockApiPurpose = getMockedApiPurpose({
-    versions: [
-      mockApiPurposeVersion1,
-      mockApiPurposeVersion2,
-      mockApiPurposeVersion3,
-      mockApiPurposeVersion4,
-      mockApiPurposeVersion5,
-    ],
-  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [
+        mockApiPurposeVersion1,
+        mockApiPurposeVersion2,
+        mockApiPurposeVersion3,
+        mockApiPurposeVersion4,
+        mockApiPurposeVersion5,
+      ],
+    })
+  );
   const mockGetPurpose = vi.fn().mockResolvedValue(mockApiPurpose);
 
   mockInteropBeClients.purposeProcessClient = {

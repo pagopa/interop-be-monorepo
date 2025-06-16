@@ -19,7 +19,7 @@ jobs:
     outputs:
       packages: ${{ steps.set_packages_output.outputs.packages }}
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Find packages
         id: set_packages_output
         run: |
@@ -44,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
@@ -68,7 +68,7 @@ jobs:
       - name: (branch) Docker metadata
         id: meta_branch
         if: ${{ github.ref_type == 'branch' }}
-        uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
+        uses: docker/metadata-action@418e4b98bf2841bd337d0b24fe63cb36dc8afa55
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
@@ -81,7 +81,7 @@ jobs:
       - name: (tag) Docker metadata
         id: meta_tag
         if: ${{ github.ref_type == 'tag' }}
-        uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
+        uses: docker/metadata-action@418e4b98bf2841bd337d0b24fe63cb36dc8afa55
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
@@ -93,7 +93,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build_push
-        uses: docker/build-push-action@a8d35412fb758de9162fd63e3fa3f0942bdedb4d
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
         with:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile

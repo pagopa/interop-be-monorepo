@@ -24,7 +24,11 @@ export const createEServiceErrorMapper = (
 ): number =>
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
-    .with("eServiceNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eServiceNameDuplicateForProducer",
+      "eserviceTemplateNameConflict",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createEServiceInstanceFromTemplateErrorMapper = (
@@ -41,7 +45,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
     .with(
       "interfaceAlreadyExists",
       "documentPrettyNameDuplicate",
-      "eServiceNameDuplicate",
+      "eServiceNameDuplicateForProducer",
       () => HTTP_STATUS_CONFLICT
     )
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
@@ -52,7 +56,11 @@ export const updateEServiceErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("eServiceNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eServiceNameDuplicateForProducer",
+      "eserviceTemplateNameConflict",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceNotInDraftState",
@@ -66,7 +74,7 @@ export const updateEServiceTemplateInstanceErrorMapper = (
 ): number =>
   match(error.code)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("eServiceNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with("eServiceNameDuplicateForProducer", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceNotInDraftState",
@@ -311,7 +319,11 @@ export const cloneEServiceByDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("eServiceNameDuplicate", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eServiceNameDuplicateForProducer",
+      "eserviceTemplateNameConflict",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with(
       "templateInstanceNotAllowed",
       "operationForbidden",
@@ -429,7 +441,8 @@ export const updateEServiceNameErrorMapper = (
     )
     .with(
       "eserviceWithoutValidDescriptors",
-      "eServiceNameDuplicate",
+      "eServiceNameDuplicateForProducer",
+      "eserviceTemplateNameConflict",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

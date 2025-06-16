@@ -76,7 +76,6 @@ import {
   eServiceDescriptorWithoutInterface,
   eServiceDocumentNotFound,
   eserviceInterfaceDataNotValid,
-  eServiceNameDuplicate,
   eServiceNotAnInstance,
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
@@ -149,7 +148,7 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
-  assertNotDuplicatedEServiceName,
+  assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
@@ -163,6 +162,7 @@ import {
   assertDescriptorUpdatableAfterPublish,
   assertEServiceUpdatableAfterPublish,
   hasRoleToAccessInactiveDescriptors,
+  assertEServiceNameNotConflictingWithTemplate,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -461,7 +461,7 @@ function isTenantInSignalHubWhitelist(
     : false;
 }
 
-async function innerCreateEService(
+function innerCreateEService(
   {
     seed,
     template,
@@ -475,20 +475,10 @@ async function innerCreateEService(
         }
       | undefined;
   },
-  readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext<UIAuthData>>
-): Promise<{ eService: EService; events: Array<CreateEvent<EServiceEvent>> }> {
+): { eService: EService; events: Array<CreateEvent<EServiceEvent>> } {
   if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
     throw originNotCompliant(authData.externalId.origin);
-  }
-
-  const eserviceWithSameName =
-    await readModelService.getEServiceByNameAndProducerId({
-      name: seed.name,
-      producerId: authData.organizationId,
-    });
-  if (eserviceWithSameName) {
-    throw eServiceNameDuplicate(seed.name);
   }
 
   const creationDate = new Date();
@@ -807,9 +797,18 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
-      const { eService, events } = await innerCreateEService(
+      await assertEServiceNameAvailableForProducer(
+        seed.name,
+        ctx.authData.organizationId,
+        readModelService
+      );
+      await assertEServiceNameNotConflictingWithTemplate(
+        seed.name,
+        readModelService
+      );
+
+      const { eService, events } = innerCreateEService(
         { seed, template: undefined },
-        readModelService,
         ctx
       );
 
@@ -840,14 +839,15 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
 
       if (eserviceSeed.name !== eservice.data.name) {
-        const eserviceWithSameName =
-          await readModelService.getEServiceByNameAndProducerId({
-            name: eserviceSeed.name,
-            producerId: eservice.data.producerId,
-          });
-        if (eserviceWithSameName !== undefined) {
-          throw eServiceNameDuplicate(eserviceSeed.name);
-        }
+        await assertEServiceNameAvailableForProducer(
+          eserviceSeed.name,
+          eservice.data.producerId,
+          readModelService
+        );
+        await assertEServiceNameNotConflictingWithTemplate(
+          eserviceSeed.name,
+          readModelService
+        );
       }
 
       const updatedTechnology = apiTechnologyToTechnology(
@@ -1735,14 +1735,16 @@ export function catalogServiceBuilder(
         eservice.data.name
       } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
 
-      if (
-        await readModelService.getEServiceByNameAndProducerId({
-          name: clonedEServiceName,
-          producerId: eservice.data.producerId,
-        })
-      ) {
-        throw eServiceNameDuplicate(clonedEServiceName);
-      }
+      await assertEServiceNameAvailableForProducer(
+        clonedEServiceName,
+        eservice.data.producerId,
+        readModelService
+      );
+
+      await assertEServiceNameNotConflictingWithTemplate(
+        clonedEServiceName,
+        readModelService
+      );
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -2400,11 +2402,18 @@ export function catalogServiceBuilder(
 
       assertEServiceUpdatableAfterPublish(eservice.data);
 
-      await assertNotDuplicatedEServiceName(
-        name,
-        eservice.data,
-        readModelService
-      );
+      if (name !== eservice.data.name) {
+        await assertEServiceNameAvailableForProducer(
+          name,
+          eservice.data.producerId,
+          readModelService
+        );
+
+        await assertEServiceNameNotConflictingWithTemplate(
+          name,
+          readModelService
+        );
+      }
 
       const updatedEservice: EService = {
         ...eservice.data,
@@ -2577,9 +2586,9 @@ export function catalogServiceBuilder(
         return;
       }
 
-      await assertNotDuplicatedEServiceName(
+      await assertEServiceNameAvailableForProducer(
         newName,
-        eservice.data,
+        eservice.data.producerId,
         readModelService
       );
 
@@ -2958,7 +2967,13 @@ export function catalogServiceBuilder(
         throw eServiceTemplateWithoutPublishedVersion(templateId);
       }
 
-      const { eService: createdEService, events } = await innerCreateEService(
+      await assertEServiceNameAvailableForProducer(
+        template.name,
+        ctx.authData.organizationId,
+        readModelService
+      );
+
+      const { eService: createdEService, events } = innerCreateEService(
         {
           seed: {
             name: template.name,
@@ -2988,7 +3003,6 @@ export function catalogServiceBuilder(
             attributes: publishedVersion.attributes,
           },
         },
-        readModelService,
         ctx
       );
 
