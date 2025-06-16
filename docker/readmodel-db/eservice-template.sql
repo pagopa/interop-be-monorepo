@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_risk_an
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id UUID UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
+  tenant_kind VARCHAR NOT NULL,
   PRIMARY KEY (id),
   FOREIGN KEY (eservice_template_id, metadata_version) REFERENCES readmodel_eservice_template.eservice_template (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

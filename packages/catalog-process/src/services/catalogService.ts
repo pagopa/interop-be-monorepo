@@ -55,6 +55,7 @@ import {
   TenantId,
   unsafeBrandId,
   WithMetadata,
+  tenantKind,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -92,6 +93,7 @@ import {
   descriptorTemplateVersionNotFound,
   tenantNotFound,
   unchangedAttributes,
+  templateMissingRequiredRiskAnalysis,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -474,6 +476,7 @@ function innerCreateEService(
           id: EServiceTemplateId;
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
+          riskAnalysis: RiskAnalysis[] | undefined;
         }
       | undefined;
   },
@@ -494,7 +497,7 @@ function innerCreateEService(
     attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
-    riskAnalysis: [],
+    riskAnalysis: template?.riskAnalysis ?? [],
     isSignalHubEnabled: isFeatureFlagEnabled(
       config,
       "featureFlagSignalhubWhitelist"
@@ -3041,6 +3044,17 @@ export function catalogServiceBuilder(
         throw eServiceTemplateWithoutPublishedVersion(templateId);
       }
 
+      const riskAnalysis = await match(template)
+        .with({ mode: eserviceMode.receive }, (template) =>
+          extractEServiceRiskAnalysisFromTemplate(
+            template,
+            ctx.authData.organizationId,
+            readModelService
+          )
+        )
+        .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
+        .exhaustive();
+
       await assertEServiceNameAvailableForProducer(
         template.name,
         ctx.authData.organizationId,
@@ -3075,6 +3089,7 @@ export function catalogServiceBuilder(
             id: template.id,
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
+            riskAnalysis,
           },
         },
         ctx
@@ -3590,6 +3605,55 @@ function evaluateTemplateVersionRef(
       termsAndConditionsUrl,
     },
   };
+}
+
+async function extractEServiceRiskAnalysisFromTemplate(
+  template: EServiceTemplate & { mode: typeof eserviceMode.receive },
+  requester: TenantId,
+  readModelService: ReadModelService
+): Promise<RiskAnalysis[]> {
+  const tenant = await retrieveTenant(requester, readModelService);
+
+  assertTenantKindExists(tenant);
+
+  const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
+    .filter((r) =>
+      match(tenant.kind)
+        .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
+        .with(
+          tenantKind.GSP,
+          tenantKind.PRIVATE,
+          tenantKind.SCP,
+          () =>
+            r.tenantKind === tenantKind.GSP ||
+            r.tenantKind === tenantKind.PRIVATE ||
+            r.tenantKind === tenantKind.SCP
+          /**
+           * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
+           * This may change in the future.
+           */
+        )
+        .exhaustive()
+    )
+    .map(
+      (r) =>
+        ({
+          id: r.id,
+          createdAt: r.createdAt,
+          name: r.name,
+          riskAnalysisForm: r.riskAnalysisForm,
+        } satisfies RiskAnalysis)
+    );
+
+  if (riskAnalysis.length === 0) {
+    throw templateMissingRequiredRiskAnalysis(
+      template.id,
+      tenant.id,
+      tenant.kind
+    );
+  }
+
+  return riskAnalysis;
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

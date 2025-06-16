@@ -9,6 +9,7 @@ import {
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   generateId,
+  tenantKind,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -30,6 +31,9 @@ import {
   interfaceAlreadyExists,
   notValidDescriptorState,
   originNotCompliant,
+  templateMissingRequiredRiskAnalysis,
+  tenantKindNotFound,
+  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API /templates/{templateId}/eservices authorization test", () => {
@@ -122,6 +126,22 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
     },
     {
       error: eServiceTemplateWithoutPublishedVersion(eServiceTemplate.id),
+      expectedStatus: 400,
+    },
+    {
+      error: tenantNotFound(generateId()),
+      expectedStatus: 500,
+    },
+    {
+      error: tenantKindNotFound(generateId()),
+      expectedStatus: 500,
+    },
+    {
+      error: templateMissingRequiredRiskAnalysis(
+        eServiceTemplate.id,
+        generateId(),
+        tenantKind.PA
+      ),
       expectedStatus: 400,
     },
   ])(
