@@ -211,10 +211,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
-      riskAnalysis: [
-        { ...validRiskAnalysisPA1, id: result.riskAnalysis[0].id },
-        { ...validRiskAnalysisPA2, id: result.riskAnalysis[1].id },
-      ],
+      riskAnalysis: [validRiskAnalysisPA1, validRiskAnalysisPA2],
       descriptors: [
         {
           ...mockDescriptor,
@@ -286,9 +283,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
-      riskAnalysis: [
-        { ...validRiskAnalysisPrivate, id: result.riskAnalysis[0].id },
-      ],
+      riskAnalysis: [validRiskAnalysisPrivate],
       descriptors: [
         {
           ...mockDescriptor,
