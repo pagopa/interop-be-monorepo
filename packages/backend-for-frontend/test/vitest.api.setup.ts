@@ -116,5 +116,3 @@ export const api = await createApp(
   services,
   rateLimiterMiddleware(mockRateLimiter)
 );
-
-export const api = await createApp(services, rateLimiterMiddleware);
