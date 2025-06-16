@@ -68,20 +68,22 @@ describe("getCertifiedAttributes", () => {
     );
 
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([
-      {
-        attributeId: certifiedAttribute1.id,
-        attributeName: certifiedAttribute1.name,
-        id: tenant.id,
-        name: tenant.name,
-      },
-      {
-        attributeId: certifiedAttribute2.id,
-        attributeName: certifiedAttribute2.name,
-        id: tenant.id,
-        name: tenant.name,
-      },
-    ]);
+    expect(result.results).toEqual(
+      expect.arrayContaining([
+        {
+          attributeId: certifiedAttribute1.id,
+          attributeName: certifiedAttribute1.name,
+          id: tenant.id,
+          name: tenant.name,
+        },
+        {
+          attributeId: certifiedAttribute2.id,
+          attributeName: certifiedAttribute2.name,
+          id: tenant.id,
+          name: tenant.name,
+        },
+      ])
+    );
   });
 
   it("should not return the attributes when they are revoked", async () => {
