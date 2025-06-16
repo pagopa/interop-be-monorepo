@@ -131,11 +131,6 @@ describe("importEService", () => {
   };
   zip.addFile(jsonFilename, Buffer.from(JSON.stringify(configuration)));
 
-  const zipPath = path.join(__dirname, "test.zip");
-  zip.writeZip(zipPath);
-
-  const zipContent = fs.readFileSync(zipPath);
-
   const mockPollingFunction = vi.fn(() => Promise.resolve());
   vi.spyOn(apiUtils, "createPollingByCondition").mockImplementation(
     () => mockPollingFunction
@@ -143,6 +138,11 @@ describe("importEService", () => {
 
   describe("success case", () => {
     it("should import eService from url", async () => {
+      const zipPath = path.join(__dirname, "test.zip");
+      zip.writeZip(zipPath);
+
+      const zipContent = fs.readFileSync(zipPath);
+
       const storedBytes = await fileManager.storeBytes(
         {
           bucket: config.importEserviceContainer,
