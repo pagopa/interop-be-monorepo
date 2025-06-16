@@ -23,6 +23,7 @@
     "@aws-sdk/client-kms": "3.693.0",
     "@aws-sdk/client-sesv2": "3.693.0",
     "@aws-sdk/util-dynamodb": "3.693.0",
+    "@aws-sdk/client-s3": "3.693.0",
     "@faker-js/faker": "8.4.1",
     "@pagopa/eslint-config": "3.0.0",
     "@protobuf-ts/runtime": "2.9.4",
@@ -47,6 +48,8 @@
     "ts-pattern": "5.2.0",
     "typescript": "5.4.5",
     "vitest": "3.1.4",
-    "zod": "3.23.8"
+    "zod": "3.23.8",
+    "mongodb": "6.8.0",
+    "ioredis": "5.4.1"
   }
 }

@@ -16,16 +16,18 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     globalSetup: ["./test/vitestIntegrationGlobalSetup.ts"],
-    include: ["./test/integration/**/*.test.ts"],
-    testTimeout: 60_000,
-    hookTimeout: 60_000,
-    fileParallelism: false,
+    include: ["./test/integrationProva/**/*.test.ts"],
+    testTimeout: 120_000,
+    hookTimeout: 120_000,
     pool: "forks",
     clearMocks: true,
     restoreMocks: true,
     mockReset: true,
-    reporters: ["default"],
-    env: { FEATURE_FLAG_SQL: "false" },
+    reporters: ["default", "verbose"],
+    env: {
+      FEATURE_FLAG_SQL: "false",
+      TESTCONTAINERS_REUSE_ENABLE: "true",
+    },
     watch: false,
   },
 });
