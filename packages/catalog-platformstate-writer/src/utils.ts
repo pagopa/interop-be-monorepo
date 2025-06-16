@@ -66,6 +66,41 @@ export const writeCatalogEntry = async (
   logger.info(`Platform-states. Written catalog entry ${catalogEntry.PK}`);
 };
 
+export const upsertPlatformStatesCatalogEntry = async (
+  catalogEntry: PlatformStatesCatalogEntry,
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+): Promise<void> => {
+  const input: PutItemInput = {
+    Item: {
+      PK: {
+        S: catalogEntry.PK,
+      },
+      state: {
+        S: catalogEntry.state,
+      },
+      descriptorAudience: {
+        L: catalogEntry.descriptorAudience.map((item) => ({
+          S: item,
+        })),
+      },
+      descriptorVoucherLifespan: {
+        N: catalogEntry.descriptorVoucherLifespan.toString(),
+      },
+      version: {
+        N: catalogEntry.version.toString(),
+      },
+      updatedAt: {
+        S: catalogEntry.updatedAt,
+      },
+    },
+    TableName: config.tokenGenerationReadModelTableNamePlatform,
+  };
+  const command = new PutItemCommand(input);
+  await dynamoDBClient.send(command);
+  logger.info(`Platform-states. Upserted catalog entry ${catalogEntry.PK}`);
+};
+
 export const readCatalogEntry = async (
   primaryKey: PlatformStatesEServiceDescriptorPK,
   dynamoDBClient: DynamoDBClient
