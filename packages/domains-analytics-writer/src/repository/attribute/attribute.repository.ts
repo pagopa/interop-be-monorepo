@@ -76,9 +76,7 @@ export function attributeRepository(conn: DBConnection) {
           deletingTableName,
           AttributeDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`

@@ -52,6 +52,8 @@ import {
   readAuthDataFromJwtToken,
   decodeJwtToken,
   AppContext,
+  rateLimiterMiddleware,
+  RateLimiter,
 } from "pagopa-interop-commons";
 import { mockM2MAdminUserId } from "pagopa-interop-commons-test";
 import { createApp } from "../src/app.js";
@@ -64,6 +66,17 @@ import { EserviceTemplateService } from "../src/services/eserviceTemplateService
 import { PurposeService } from "../src/services/purposeService.js";
 import { TenantService } from "../src/services/tenantService.js";
 import { KeyService } from "../src/services/keyService.js";
+
+export const mockRateLimiter: RateLimiter = {
+  rateLimitByOrganization: vi.fn().mockResolvedValue({
+    limitReached: false,
+    maxRequests: 100,
+    rateInterval: 1000,
+    remainingRequests: 99,
+  }),
+  getCountByOrganization: vi.fn(),
+  getBurstCountByOrganization: vi.fn(),
+};
 
 export const mockGetClientAdminId = vi
   .fn()
@@ -100,5 +113,5 @@ export const api = await createApp(
     tenantService: mockTenantService,
     keyService: mockKeyService,
   },
-  (_req, _res, next): void => next()
+  rateLimiterMiddleware(mockRateLimiter)
 );

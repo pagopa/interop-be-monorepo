@@ -82,9 +82,7 @@ export function eserviceDescriptorDocumentRepository(conn: DBConnection) {
           deletingTableName,
           EserviceDescriptorDocumentDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTableName}: ${error}`

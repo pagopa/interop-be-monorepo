@@ -9,6 +9,7 @@ import {
   getMockEService,
   getMockDescriptor,
   getMockDocument,
+  getMockEServiceTemplate,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -24,6 +25,7 @@ import {
   delegationKind,
   EServiceTemplateId,
   EServiceDocumentId,
+  EServiceTemplate,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
@@ -32,11 +34,13 @@ import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   templateInstanceNotAllowed,
+  eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
   addOneDelegation,
   addOneEService,
+  addOneEServiceTemplate,
   catalogService,
   fileManager,
   readLastEserviceEvent,
@@ -253,6 +257,51 @@ describe("clone descriptor", () => {
       )
     ).rejects.toThrowError(FileManagerError);
   });
+  it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      docs: [mockDocument],
+    };
+    const existentEService: EService = {
+      ...mockEService,
+      name: mockEService.name,
+      id: generateId(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(existentEService);
+
+    const cloneTimestamp = new Date();
+    const conflictEServiceName = `${
+      existentEService.name
+    } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
+
+    const newEService: EService = {
+      ...mockEService,
+      id: generateId(),
+      name: conflictEServiceName,
+      descriptors: [getMockDescriptor()],
+    };
+    await addOneEService(newEService);
+
+    expect(
+      catalogService.cloneDescriptor(
+        existentEService.id,
+        descriptor.id,
+        getMockContext({
+          authData: getMockAuthData(existentEService.producerId),
+        })
+      )
+    ).rejects.toThrowError(
+      eServiceNameDuplicateForProducer(
+        `${existentEService.name} - clone - ${formatDateddMMyyyyHHmmss(
+          cloneTimestamp
+        )}`,
+        existentEService.producerId
+      )
+    );
+  });
   it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists, case insensitive", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
@@ -293,6 +342,86 @@ describe("clone descriptor", () => {
           cloneTimestamp
         )}`,
         eservice1.producerId
+      )
+    );
+  });
+  it("should throw eserviceTemplateNameConflict if an eservice with the same name already exists", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      docs: [mockDocument],
+    };
+    const eservice1: EService = {
+      ...mockEService,
+      name: mockEService.name,
+      id: generateId(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice1);
+
+    const cloneTimestamp = new Date();
+    const conflictEServiceName = `${
+      eservice1.name
+    } - clone - ${formatDateddMMyyyyHHmmss(cloneTimestamp)}`;
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      name: conflictEServiceName,
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    expect(
+      catalogService.cloneDescriptor(
+        eservice1.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+      )
+    ).rejects.toThrowError(
+      eserviceTemplateNameConflict(
+        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+          cloneTimestamp
+        )}`
+      )
+    );
+  });
+  it("should throw eserviceTemplateNameConflict if an eservice with the same name already exists, case insensitive", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      interface: mockDocument,
+      docs: [mockDocument],
+    };
+    const eservice1: EService = {
+      ...mockEService,
+      name: mockEService.name.toUpperCase(),
+      id: generateId(),
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice1);
+
+    const cloneTimestamp = new Date();
+    const conflictEServiceName = `${eservice1.name.toLowerCase()} - clone - ${formatDateddMMyyyyHHmmss(
+      cloneTimestamp
+    )}`;
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      name: conflictEServiceName,
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    expect(
+      catalogService.cloneDescriptor(
+        eservice1.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+      )
+    ).rejects.toThrowError(
+      eserviceTemplateNameConflict(
+        `${eservice1.name} - clone - ${formatDateddMMyyyyHHmmss(
+          cloneTimestamp
+        )}`
       )
     );
   });

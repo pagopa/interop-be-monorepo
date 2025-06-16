@@ -195,9 +195,12 @@ export function readModelServiceBuilderSQL({
         .from(clientInReadmodelClient)
         .innerJoin(
           clientPurposeInReadmodelClient,
-          eq(
-            clientInReadmodelClient.id,
-            clientPurposeInReadmodelClient.clientId
+          and(
+            eq(
+              clientInReadmodelClient.id,
+              clientPurposeInReadmodelClient.clientId
+            ),
+            eq(clientPurposeInReadmodelClient.purposeId, purposeId)
           )
         )
         .where(eq(clientPurposeInReadmodelClient.purposeId, purposeId))

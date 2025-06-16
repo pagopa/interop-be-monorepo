@@ -41,6 +41,7 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
+    "pagopa-interop-api-clients": "workspace:*",
     "pg": "8.13.1",
     "pg-promise": "11.8.0",
     "testcontainers": "10.9.0",

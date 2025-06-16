@@ -2,42 +2,50 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
+  getMockedApiEservice,
+  getMockedApiEserviceDescriptor,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiEservice,
-  getMockedApiEserviceDescriptor,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEserviceDescriptors", () => {
   const mockCatalogProcessDescriptor1 = getMockedApiEserviceDescriptor({
     state: "ARCHIVED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor2 = getMockedApiEserviceDescriptor({
     state: "ARCHIVED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor3 = getMockedApiEserviceDescriptor({
     state: "DEPRECATED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor4 = getMockedApiEserviceDescriptor({
     state: "PUBLISHED",
-  }).data;
+  });
+
   const mockCatalogProcessDescriptor5 = getMockedApiEserviceDescriptor({
     state: "DRAFT",
-  }).data;
-  const mockCatalogProcessResponse = getMockedApiEservice({
-    descriptors: [
-      mockCatalogProcessDescriptor1,
-      mockCatalogProcessDescriptor2,
-      mockCatalogProcessDescriptor3,
-      mockCatalogProcessDescriptor4,
-      mockCatalogProcessDescriptor5,
-    ],
   });
+
+  const mockCatalogProcessResponse = getMockWithMetadata(
+    getMockedApiEservice({
+      descriptors: [
+        mockCatalogProcessDescriptor1,
+        mockCatalogProcessDescriptor2,
+        mockCatalogProcessDescriptor3,
+        mockCatalogProcessDescriptor4,
+        mockCatalogProcessDescriptor5,
+      ],
+    })
+  );
 
   const testToM2MGatewayApiDescriptor = (
     descriptor: catalogApi.EServiceDescriptor

@@ -15,6 +15,7 @@ import {
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../../model/tenant/tenantMail.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleTenantMessageV1(
   messages: TenantEventEnvelopeV1[],
@@ -104,13 +105,20 @@ export async function handleTenantMessageV1(
   }
 
   if (deleteTenantBatch.length > 0) {
-    await tenantService.deleteBatchTenants(deleteTenantBatch, dbContext);
+    const distinctBatch = distinctByKeys(
+      deleteTenantBatch,
+      TenantDeletingSchema,
+      ["id"]
+    );
+    await tenantService.deleteBatchTenants(distinctBatch, dbContext);
   }
 
   if (deleteTenantMailBatch.length > 0) {
-    await tenantService.deleteBatchTenantMails(
+    const distinctBatch = distinctByKeys(
       deleteTenantMailBatch,
-      dbContext
+      TenantMailDeletingSchema,
+      ["id", "tenantId"]
     );
+    await tenantService.deleteBatchTenantMails(distinctBatch, dbContext);
   }
 }

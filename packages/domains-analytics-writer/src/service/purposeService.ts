@@ -169,7 +169,9 @@ export function purposeServiceBuilder(db: DBContext) {
         )) {
           await purposeRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for purposeIds: ${batch.join(", ")}`
+            `Staging deletion inserted for purposeIds: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 
@@ -205,9 +207,9 @@ export function purposeServiceBuilder(db: DBContext) {
         )) {
           await versionRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for purposeVersionIds: ${batch.join(
-              ", "
-            )}`
+            `Staging deletion inserted for purposeVersionIds: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 

@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiAttribute,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
 import {
@@ -15,7 +18,6 @@ import {
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
-import { getMockedApiAttribute } from "../../mockUtils.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("POST /certifiedAttributes router test", () => {
@@ -31,7 +33,7 @@ describe("POST /certifiedAttributes router test", () => {
 
   const mockM2MCertifiedAttributeResponse: m2mGatewayApi.CertifiedAttribute =
     toM2MGatewayApiCertifiedAttribute({
-      attribute: mockApiCertifiedAttribute.data,
+      attribute: mockApiCertifiedAttribute,
       logger: genericLogger,
     });
 
@@ -105,8 +107,8 @@ describe("POST /certifiedAttributes router test", () => {
 
   it.each([
     missingMetadata(),
-    unexpectedAttributeKind(mockApiCertifiedAttribute.data),
-    unexpectedUndefinedAttributeOriginOrCode(mockApiCertifiedAttribute.data),
+    unexpectedAttributeKind(mockApiCertifiedAttribute),
+    unexpectedUndefinedAttributeOriginOrCode(mockApiCertifiedAttribute),
     pollingMaxRetriesExceeded(3, 10),
   ])("Should return 500 in case of $code error", async (error) => {
     mockAttributeService.createCertifiedAttribute = vi

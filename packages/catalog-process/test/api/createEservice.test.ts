@@ -13,6 +13,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNameDuplicateForProducer,
+  eserviceTemplateNameConflict,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
 
@@ -80,6 +81,10 @@ describe("API /eservices authorization test", () => {
         mockEService.name,
         mockEService.producerId
       ),
+      expectedStatus: 409,
+    },
+    {
+      error: eserviceTemplateNameConflict(mockEService.id),
       expectedStatus: 409,
     },
     {

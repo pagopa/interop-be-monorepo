@@ -71,22 +71,25 @@ export function readModelServiceBuilderSQL({
         id
       );
     },
-    async getEServiceTemplateByNameAndCreatorId({
+    async isEServiceTemplateNameAvailable({
       name,
-      creatorId,
     }: {
       name: string;
-      creatorId: TenantId;
-    }): Promise<WithMetadata<EServiceTemplate> | undefined> {
-      return await eserviceTemplateReadModelServiceSQL.getEServiceTemplateByFilter(
-        and(
-          eq(eserviceTemplateInReadmodelEserviceTemplate.creatorId, creatorId),
+    }): Promise<boolean> {
+      const queryResult = await readModelDB
+        .select({
+          count: count(),
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .where(
           ilike(
             eserviceTemplateInReadmodelEserviceTemplate.name,
             escapeRegExp(name)
           )
         )
-      );
+        .limit(1);
+
+      return (queryResult[0]?.count ?? 0) === 0;
     },
     async getTenantById(id: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(id))?.data;
@@ -286,7 +289,7 @@ export function readModelServiceBuilderSQL({
           .from(eserviceInReadmodelCatalog)
           .where(
             and(
-              eq(eserviceInReadmodelCatalog.name, newName),
+              ilike(eserviceInReadmodelCatalog.name, escapeRegExp(newName)),
               inArray(
                 eserviceInReadmodelCatalog.producerId,
                 instanceProducerIds

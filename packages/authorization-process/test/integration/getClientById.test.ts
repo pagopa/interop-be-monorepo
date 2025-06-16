@@ -39,6 +39,28 @@ describe("getClientById", async () => {
       metadata: { version: 0 },
     });
   });
+  it("should return showUsers to false if the requester is not the client consumer", async () => {
+    const userId1: UserId = generateId();
+    const userId2: UserId = generateId();
+
+    const expectedClient: Client = {
+      ...getMockClient(),
+      consumerId: organizationId,
+      users: [userId1, userId2],
+    };
+    await addOneClient(expectedClient);
+
+    const clientResult = await authorizationService.getClientById(
+      {
+        clientId: expectedClient.id,
+      },
+      getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+    );
+    expect(clientResult).toEqual({
+      data: { client: expectedClient, showUsers: false },
+      metadata: { version: 0 },
+    });
+  });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     await addOneClient(getMockClient());
     const clientId: ClientId = generateId();

@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
 
 describe("GET /purposes/:purposeId/versions router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -55,7 +55,7 @@ describe("GET /purposes/:purposeId/versions router test", () => {
         .mockResolvedValue(mockM2MPurposesResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockParams, mockApiPurpose.data.id);
+      const res = await makeRequest(token, mockParams, mockApiPurpose.id);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MPurposesResponse);
@@ -73,7 +73,7 @@ describe("GET /purposes/:purposeId/versions router test", () => {
     const res = await makeRequest(
       token,
       query as m2mGatewayApi.GetPurposeVersionsQueryParams,
-      mockApiPurpose.data.id
+      mockApiPurpose.id
     );
 
     expect(res.status).toBe(400);
@@ -83,7 +83,7 @@ describe("GET /purposes/:purposeId/versions router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockParams, mockApiPurpose.data.id);
+    const res = await makeRequest(token, mockParams, mockApiPurpose.id);
     expect(res.status).toBe(403);
   });
 
@@ -115,7 +115,7 @@ describe("GET /purposes/:purposeId/versions router test", () => {
     async (resp) => {
       mockPurposeService.getPurposeVersions = vi.fn().mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockParams, mockApiPurpose.data.id);
+      const res = await makeRequest(token, mockParams, mockApiPurpose.id);
 
       expect(res.status).toBe(500);
     }

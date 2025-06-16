@@ -2,15 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import {
+  getMockedApiEservice,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiEservice,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getEservices", () => {
@@ -21,8 +22,8 @@ describe("getEservices", () => {
     limit: 10,
   };
 
-  const mockApiEservice1 = getMockedApiEservice();
-  const mockApiEservice2 = getMockedApiEservice();
+  const mockApiEservice1 = getMockWithMetadata(getMockedApiEservice());
+  const mockApiEservice2 = getMockWithMetadata(getMockedApiEservice());
 
   const mockApiEservices = [mockApiEservice1.data, mockApiEservice2.data];
 

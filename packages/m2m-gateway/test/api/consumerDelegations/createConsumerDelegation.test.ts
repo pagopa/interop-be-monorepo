@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
+import {
+  generateToken,
+  getMockedApiDelegation,
+} from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -11,7 +14,6 @@ import {
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
-import { getMockedApiDelegation } from "../../mockUtils.js";
 
 describe("POST /consumerDelegations router test", () => {
   const mockDelegationSeed: m2mGatewayApi.DelegationSeed = {
@@ -25,7 +27,7 @@ describe("POST /consumerDelegations router test", () => {
     delegateId: mockDelegationSeed.delegateId,
   });
   const mockM2MDelegationResponse: m2mGatewayApi.ConsumerDelegation =
-    toM2MGatewayApiConsumerDelegation(mockApiDelegation.data);
+    toM2MGatewayApiConsumerDelegation(mockApiDelegation);
 
   const makeRequest = async (
     token: string,
@@ -98,7 +100,7 @@ describe("POST /consumerDelegations router test", () => {
 
   it.each([
     missingMetadata(),
-    unexpectedDelegationKind(mockApiDelegation.data),
+    unexpectedDelegationKind(mockApiDelegation),
     pollingMaxRetriesExceeded(3, 10),
   ])("Should return 500 in case of $code error", async (error) => {
     mockDelegationService.createConsumerDelegation = vi

@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import {
+  getMockedApiDelegation,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   delegationService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -14,16 +18,15 @@ import {
   missingMetadata,
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiDelegation,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("acceptConsumerDelegation", () => {
-  const mockDelegationProcessResponse = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-    state: delegationApi.DelegationState.Values.ACTIVE,
-  });
+  const mockDelegationProcessResponse = getMockWithMetadata(
+    getMockedApiDelegation({
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      state: delegationApi.DelegationState.Values.ACTIVE,
+    })
+  );
 
   const mockApproveConsumerDelegation = vi
     .fn()

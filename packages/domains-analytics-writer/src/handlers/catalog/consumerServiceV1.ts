@@ -30,6 +30,7 @@ import {
   EserviceDescriptorDocumentDeletingSchema,
 } from "../../model/catalog/eserviceDescriptorDocument.js";
 import { EserviceRiskAnalysisDeletingSchema } from "../../model/catalog/eserviceRiskAnalysis.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleCatalogMessageV1(
   messages: EServiceEventEnvelopeV1[],
@@ -198,32 +199,50 @@ export async function handleCatalogMessageV1(
       upsertDescriptorBatch
     );
   }
+
   if (upsertEServiceDocumentBatch.length > 0) {
     await catalogService.upsertBatchEServiceDocument(
       dbContext,
       upsertEServiceDocumentBatch
     );
   }
+
   if (deleteEServiceBatch.length > 0) {
-    await catalogService.deleteBatchEService(dbContext, deleteEServiceBatch);
+    const distinctBatch = distinctByKeys(
+      deleteEServiceBatch,
+      EserviceDeletingSchema,
+      ["id"]
+    );
+    await catalogService.deleteBatchEService(dbContext, distinctBatch);
   }
 
   if (deleteDescriptorBatch.length > 0) {
-    await catalogService.deleteBatchDescriptor(
-      dbContext,
-      deleteDescriptorBatch
+    const distinctBatch = distinctByKeys(
+      deleteDescriptorBatch,
+      EserviceDescriptorDeletingSchema,
+      ["id"]
     );
+    await catalogService.deleteBatchDescriptor(dbContext, distinctBatch);
   }
+
   if (deleteEServiceDocumentBatch.length > 0) {
-    await catalogService.deleteBatchEServiceDocument(
-      dbContext,
-      deleteEServiceDocumentBatch
+    const distinctBatch = distinctByKeys(
+      deleteEServiceDocumentBatch,
+      EserviceDescriptorDocumentDeletingSchema,
+      ["id"]
     );
+    await catalogService.deleteBatchEServiceDocument(dbContext, distinctBatch);
   }
+
   if (deleteRiskAnalysisBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteRiskAnalysisBatch,
+      EserviceRiskAnalysisDeletingSchema,
+      ["id", "eserviceId"]
+    );
     await catalogService.deleteBatchEserviceRiskAnalysis(
       dbContext,
-      deleteRiskAnalysisBatch
+      distinctBatch
     );
   }
 }

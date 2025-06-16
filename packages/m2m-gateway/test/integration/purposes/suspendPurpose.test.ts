@@ -6,6 +6,11 @@ import {
 } from "pagopa-interop-models";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -18,11 +23,7 @@ import {
   missingMetadata,
   missingPurposeCurrentVersion,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("suspendPurposeVersion", () => {
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion({
@@ -31,9 +32,11 @@ describe("suspendPurposeVersion", () => {
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
     state: purposeApi.PurposeVersionState.Enum.REJECTED,
   });
-  const mockApiPurpose = getMockedApiPurpose({
-    versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
-  });
+  const mockApiPurpose = getMockWithMetadata(
+    getMockedApiPurpose({
+      versions: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+    })
+  );
 
   const suspendPurposeApiResponse: WithMetadata<purposeApi.PurposeVersion> = {
     data: mockApiPurposeVersion1,
@@ -101,13 +104,15 @@ describe("suspendPurposeVersion", () => {
   });
 
   it("Should throw missingPurposeCurrentVersion in case of missing active version to suspend", async () => {
-    const invalidPurpose = getMockedApiPurpose({
-      versions: [
-        getMockedApiPurposeVersion({
-          state: purposeApi.PurposeVersionState.Enum.REJECTED,
-        }),
-      ],
-    });
+    const invalidPurpose = getMockWithMetadata(
+      getMockedApiPurpose({
+        versions: [
+          getMockedApiPurposeVersion({
+            state: purposeApi.PurposeVersionState.Enum.REJECTED,
+          }),
+        ],
+      })
+    );
     // The suspend will first get the purpose, then perform the polling
     mockGetPurpose.mockResolvedValueOnce(invalidPurpose);
 

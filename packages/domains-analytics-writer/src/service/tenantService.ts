@@ -163,7 +163,9 @@ export function tenantServiceBuilder(db: DBContext) {
           await tenantRepo.insertTenantSelfcareId(t, dbContext.pgp, batch);
           genericLogger.info(
             `Staging data inserted for TenantSelfcareId batch: ${batch
-              .map((item) => item.id)
+              .map(({ id, metadataVersion }) =>
+                JSON.stringify({ id, metadataVersion })
+              )
               .join(", ")}`
           );
         }

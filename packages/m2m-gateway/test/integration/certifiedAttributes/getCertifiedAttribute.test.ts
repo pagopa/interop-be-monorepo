@@ -4,21 +4,24 @@ import {
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
 import {
+  getMockedApiAttribute,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   attributeService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { attributeNotFound } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiAttribute,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getCertifiedAttribute", () => {
-  const mockAttributeProcessResponse = getMockedApiAttribute({
-    kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-  });
+  const mockAttributeProcessResponse = getMockWithMetadata(
+    getMockedApiAttribute({
+      kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+    })
+  );
   const mockGetAttribute = vi
     .fn()
     .mockResolvedValue(mockAttributeProcessResponse);

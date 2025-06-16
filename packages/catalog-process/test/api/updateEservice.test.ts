@@ -24,6 +24,7 @@ import {
   eServiceNameDuplicateForProducer,
   eServiceNotFound,
   eserviceNotInDraftState,
+  eserviceTemplateNameConflict,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -99,6 +100,10 @@ describe("API /eservices/{eServiceId} authorization test", () => {
         mockEService.name,
         mockEService.producerId
       ),
+      expectedStatus: 409,
+    },
+    {
+      error: eserviceTemplateNameConflict(mockEService.id),
       expectedStatus: 409,
     },
     {

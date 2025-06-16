@@ -21,6 +21,7 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNameDuplicateForProducer,
   eServiceNotFound,
+  eserviceTemplateNameConflict,
   eserviceWithoutValidDescriptors,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
@@ -87,6 +88,10 @@ describe("API /eservices/{eServiceId}/name/update authorization test", () => {
         mockEService.id,
         mockEService.producerId
       ),
+      expectedStatus: 409,
+    },
+    {
+      error: eserviceTemplateNameConflict(mockEService.id),
       expectedStatus: 409,
     },
     {

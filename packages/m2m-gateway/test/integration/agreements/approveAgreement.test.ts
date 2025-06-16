@@ -5,6 +5,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  getMockedApiAgreement,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -17,15 +21,14 @@ import {
   agreementNotInPendingState,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import {
-  getMockedApiAgreement,
-  getMockM2MAdminAppContext,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("approveAgreement", () => {
-  const mockAgreementProcessResponse = getMockedApiAgreement({
-    state: agreementApi.AgreementState.Values.PENDING,
-  });
+  const mockAgreementProcessResponse = getMockWithMetadata(
+    getMockedApiAgreement({
+      state: agreementApi.AgreementState.Values.PENDING,
+    })
+  );
 
   const pollingTentatives = 2;
   const mockActivateAgreement = vi
@@ -69,7 +72,9 @@ describe("approveAgreement", () => {
   });
 
   it("Should throw agreementNotInPendingState in case of non-pending agreement", async () => {
-    const mockAgreementNotPending = getMockedApiAgreement({ state: "ACTIVE" });
+    const mockAgreementNotPending = getMockWithMetadata(
+      getMockedApiAgreement({ state: "ACTIVE" })
+    );
     mockGetAgreement.mockResolvedValueOnce(mockAgreementNotPending);
 
     await expect(

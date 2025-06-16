@@ -202,11 +202,7 @@ describe("JWT tests", () => {
 
       expect(() => {
         readAuthDataFromJwtToken(token!);
-      }).toThrowError(
-        invalidClaim(
-          "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
-        )
-      );
+      }).toThrowError(/.*Validation error: Invalid enum value.*/);
     });
 
     it("should fail reading auth data from a UI token with empty user roles", async () => {
@@ -304,9 +300,7 @@ describe("JWT tests", () => {
       );
 
       expect(() => readAuthDataFromJwtToken(token!)).toThrowError(
-        invalidClaim(
-          "Validation error: Invalid discriminator value. Expected 'm2m' | 'm2m-admin' | 'internal' | 'maintenance' |  at \"role\""
-        )
+        /Validation error: Invalid discriminator value.*/
       );
     });
 
@@ -328,11 +322,7 @@ describe("JWT tests", () => {
 
       expect(() => {
         readAuthDataFromJwtToken(token!);
-      }).toThrowError(
-        invalidClaim(
-          "Validation error: Invalid enum value. Expected 'admin' | 'security' | 'api' | 'support', received 'invalid-role' at \"user-roles[1]\""
-        )
-      );
+      }).toThrowError(/.*Validation error: Invalid enum value.*/);
     });
 
     it("should also accept audience as a JSON array", async () => {

@@ -13,6 +13,7 @@ import {
   ClientItemsSchema,
   ClientDeletingSchema,
 } from "../../model/authorization/client.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAuthorizationEventMessageV2(
   messages: AuthorizationEventEnvelopeV2[],
@@ -95,6 +96,11 @@ export async function handleAuthorizationEventMessageV2(
   }
 
   if (deleteClientBatch.length > 0) {
-    await authorizationService.deleteClientBatch(dbContext, deleteClientBatch);
+    const distinctBatch = distinctByKeys(
+      deleteClientBatch,
+      ClientDeletingSchema,
+      ["id"]
+    );
+    await authorizationService.deleteClientBatch(dbContext, distinctBatch);
   }
 }

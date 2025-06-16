@@ -15,6 +15,10 @@ export const errorCodes = {
   tokenGenerationStatesEntryNotFound: "0006",
   incompleteTokenGenerationStatesConsumerClient: "0007",
   platformStateValidationFailed: "0008",
+  dpopProofValidationFailed: "0009",
+  dpopProofSignatureValidationFailed: "0010",
+  unexpectedDPoPProofForAPIToken: "0011",
+  dpopProofJtiAlreadyUsed: "0012",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -97,5 +101,45 @@ export function platformStateValidationFailed(
     detail: `Platform state validation failed - ${details}`,
     code: "platformStateValidationFailed",
     title: "Platform state validation failed",
+  });
+}
+
+export function dpopProofValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof validation failed for clientId: ${clientId} - ${details}`,
+    code: "dpopProofValidationFailed",
+    title: "DPoP proof validation failed",
+  });
+}
+
+export function dpopProofSignatureValidationFailed(
+  clientId: string | undefined,
+  details: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof signature validation failed for client ${clientId} - ${details}`,
+    code: "dpopProofSignatureValidationFailed",
+    title: "DPoP proof signature validation failed",
+  });
+}
+
+export function unexpectedDPoPProofForAPIToken(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected DPoP proof for API token with client ${clientId}`,
+    code: "unexpectedDPoPProofForAPIToken",
+    title: "Unexpected DPoP proof for API token",
+  });
+}
+
+export function dpopProofJtiAlreadyUsed(jti: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `DPoP proof JTI ${jti} already in cache`,
+    code: "dpopProofJtiAlreadyUsed",
+    title: "DPoP proof JTI already in cache",
   });
 }

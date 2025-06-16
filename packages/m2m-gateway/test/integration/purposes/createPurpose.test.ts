@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import {
+  getMockedApiPurpose,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -12,13 +16,12 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createPurpose", () => {
-  const mockPurposeProcessGetResponse = getMockedApiPurpose();
+  const mockPurposeProcessGetResponse = getMockWithMetadata(
+    getMockedApiPurpose()
+  );
 
   const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,

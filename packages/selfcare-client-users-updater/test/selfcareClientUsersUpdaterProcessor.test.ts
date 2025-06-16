@@ -66,7 +66,11 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     vi.clearAllMocks();
   });
 
-  it.each([relationshipStatus.suspended, relationshipStatus.deleted])(
+  it.each(
+    Object.values(relationshipStatus).filter(
+      (status) => status !== relationshipStatus.active
+    )
+  )(
     "should remove admin when event has productRole admin and relationshipStatus %s",
     async (status) => {
       const tenantMock: Tenant = {

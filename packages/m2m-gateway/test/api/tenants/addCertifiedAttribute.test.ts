@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
+import {
+  generateToken,
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+} from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -12,10 +16,6 @@ import {
   tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
-import {
-  getMockedApiCertifiedTenantAttribute,
-  getMockedApiTenant,
-} from "../../mockUtils.js";
 
 describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   const mockApiResponse = getMockedApiCertifiedTenantAttribute();
@@ -64,7 +64,7 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   });
 
   it.each([
-    tenantCertifiedAttributeNotFound(getMockedApiTenant().data, generateId()),
+    tenantCertifiedAttributeNotFound(getMockedApiTenant(), generateId()),
     missingMetadata(),
     pollingMaxRetriesExceeded(3, 10),
   ])("Should return 500 in case of $code error", async (error) => {

@@ -1,6 +1,10 @@
+import { IncomingHttpHeaders } from "http";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import { dateToSeconds } from "pagopa-interop-commons";
-import { getMockClientAssertion } from "pagopa-interop-commons-test";
+import {
+  getMockClientAssertion,
+  getMockDPoPProof,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   ClientId,
@@ -11,8 +15,10 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  algorithm,
 } from "pagopa-interop-models";
 import { vi } from "vitest";
+import { HttpDPoPHeader } from "../src/model/domain/models.js";
 
 export const mockProducer = {
   send: vi.fn(),
@@ -32,6 +38,18 @@ export const getMockAccessTokenRequest =
       grant_type: "client_credentials",
     };
   };
+
+export const getMockTokenRequest = async (
+  withDPoPProof: boolean = false
+): Promise<{
+  headers: IncomingHttpHeaders & HttpDPoPHeader;
+  body: authorizationServerApi.AccessTokenRequest;
+}> => ({
+  headers: {
+    ...(withDPoPProof ? { DPoP: (await getMockDPoPProof()).dpopProofJWS } : {}),
+  },
+  body: await getMockAccessTokenRequest(),
+});
 
 export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
   const correlationId = generateId();
@@ -53,7 +71,7 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
     subject: clientId,
     audience: "pagopa.it",
     purposeId,
-    algorithm: "RS256",
+    algorithm: algorithm.RS256,
     clientId,
     keyId: kid,
     purposeVersionId,
@@ -66,7 +84,7 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
     clientAssertion: {
       subject: clientId,
       audience: "pagopa.it",
-      algorithm: "RS256",
+      algorithm: algorithm.RS256,
       keyId: kid,
       jwtId: clientAssertionJti,
       issuedAt: dateToSeconds(new Date()),

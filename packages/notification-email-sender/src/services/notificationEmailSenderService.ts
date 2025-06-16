@@ -346,22 +346,26 @@ export function notificationEmailSenderServiceBuilder(
     ) => {
       const purpose = fromPurposeV2(purposeV2Msg);
 
-      const [htmlTemplate, eservice, consumer] = await Promise.all([
+      const [htmlTemplate, eservice] = await Promise.all([
         retrieveHTMLTemplate(
           eventMailTemplateType.newPurposeVersionWaitingForApprovalMailTemplate
         ),
         retrieveEService(purpose.eserviceId, readModelService),
-        retrieveTenant(purpose.consumerId, readModelService),
       ]);
 
-      const consumerEmail = getLatestTenantMailOfKind(
-        consumer.mails,
+      const producer = await retrieveTenant(
+        eservice.producerId,
+        readModelService
+      );
+
+      const producerEmail = getLatestTenantMailOfKind(
+        producer.mails,
         tenantMailKind.ContactEmail
       );
 
-      if (!consumerEmail) {
+      if (!producerEmail) {
         logger.warn(
-          `Consumer email not found for purpose ${purpose.id}, skipping email`
+          `Producer email not found for purpose ${purpose.id}, skipping email`
         );
         return;
       }
@@ -369,7 +373,7 @@ export function notificationEmailSenderServiceBuilder(
       const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Richiesta di variazione della stima di carico per ${eservice.name}`,
-        to: [consumerEmail.address],
+        to: [producerEmail.address],
         html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
           purposeName: purpose.title,
@@ -398,22 +402,26 @@ export function notificationEmailSenderServiceBuilder(
     ) => {
       const purpose = fromPurposeV2(purposeV2Msg);
 
-      const [htmlTemplate, eservice, consumer] = await Promise.all([
+      const [htmlTemplate, eservice] = await Promise.all([
         retrieveHTMLTemplate(
           eventMailTemplateType.purposeWaitingForApprovalMailTemplate
         ),
         retrieveEService(purpose.eserviceId, readModelService),
-        retrieveTenant(purpose.consumerId, readModelService),
       ]);
 
-      const consumerEmail = getLatestTenantMailOfKind(
-        consumer.mails,
+      const producer = await retrieveTenant(
+        eservice.producerId,
+        readModelService
+      );
+
+      const producerEmail = getLatestTenantMailOfKind(
+        producer.mails,
         tenantMailKind.ContactEmail
       );
 
-      if (!consumerEmail) {
+      if (!producerEmail) {
         logger.warn(
-          `Consumer email not found for purpose ${purpose.id}, skipping email`
+          `Producer email not found for purpose ${purpose.id}, skipping email`
         );
         return;
       }
@@ -421,7 +429,7 @@ export function notificationEmailSenderServiceBuilder(
       const mailOptions: Mail.Options = {
         from: { name: sesSenderData.label, address: sesSenderData.mail },
         subject: `Richiesta di attivazione della stima di carico sopra soglia per ${eservice.name}`,
-        to: [consumerEmail.address],
+        to: [producerEmail.address],
         html: templateService.compileHtml(htmlTemplate, {
           interopFeUrl: `https://${interopFeBaseUrl}/ui/it/erogazione/finalita/${purpose.id}`,
           eserviceName: eservice.name,

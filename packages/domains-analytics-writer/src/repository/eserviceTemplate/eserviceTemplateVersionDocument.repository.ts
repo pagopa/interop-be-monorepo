@@ -83,9 +83,7 @@ export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
           deletingTableName,
           EserviceTemplateDocumentDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into deleting staging table ${stagingDeletingTableName}: ${error}`

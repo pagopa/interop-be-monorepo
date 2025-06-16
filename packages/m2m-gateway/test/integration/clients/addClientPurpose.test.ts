@@ -6,6 +6,10 @@ import {
 } from "pagopa-interop-models";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
+  getMockedApiClient,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -15,17 +19,16 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiClient,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("addClientPurpose", () => {
   const mockSeed: m2mGatewayApi.ClientAddPurpose = {
     purposeId: generateId(),
   };
 
-  const mockAuthorizationProcessResponse = getMockedApiClient();
+  const mockAuthorizationProcessResponse = getMockWithMetadata(
+    getMockedApiClient()
+  );
 
   const mockAddClientPurpose = vi
     .fn()
