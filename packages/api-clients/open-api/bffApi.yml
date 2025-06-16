@@ -5812,7 +5812,7 @@ paths:
             type: string
             format: uuid
       requestBody:
-        description: A payload containing boolean which describe if signalhub will be enabled or disabled
+        description: A payload containing a boolean that describes if SignalHub will be enabled or disabled
         required: true
         content:
           application/json:
@@ -5820,7 +5820,7 @@ paths:
               $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
       responses:
         "204":
-          description: Signalhub flag name updated
+          description: EService SignalHub flag updated
           headers:
             "X-Rate-Limit-Limit":
               schema:

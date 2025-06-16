@@ -1664,7 +1664,7 @@ paths:
               $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
       responses:
         "200":
-          description: Signalhub flag name updated
+          description: EService SignalHub flag updated
           content:
             application/json:
               schema:
