@@ -410,21 +410,41 @@ export function kafkaMessageProcessError(
     streamId,
     eventType,
     eventVersion,
+    streamVersion,
+    correlationId,
+    serviceName,
   }: {
     offset: string;
     streamId?: string;
     eventType?: string;
     eventVersion?: number;
+    streamVersion?: number;
+    correlationId?: string;
+    serviceName?: string;
   },
   error?: unknown
 ): InternalError<CommonErrorCodes> {
+  const serviceNamePrefix = serviceName ? `[${serviceName}] - ` : "";
+  const correlationIdPrefix = correlationId ? `[CID=${correlationId}] ` : "";
+  const eventTypePrefix = eventType ? `[ET=${eventType}] ` : "";
+  const eventVersionPrefix = eventVersion ? `[EV=${eventVersion}] ` : "";
+  const streamVersionPrefix =
+    streamVersion !== undefined ? `[SV=${streamVersion}] ` : "";
+  const streamIdPrefix = streamId ? `[SID=${streamId}] ` : "";
+  const errorMessage = error ? `: ${parseErrorMessage(error)}` : "";
+
+  const prefixes = [
+    serviceNamePrefix,
+    correlationIdPrefix,
+    eventTypePrefix,
+    eventVersionPrefix,
+    streamVersionPrefix,
+    streamIdPrefix,
+  ].join(" ");
+
   return new InternalError({
     code: "kafkaMessageProcessError",
-    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}${
-      streamId ? ` - streamId ${streamId}` : ""
-    }${eventType ? ` - eventType ${eventType}` : ""}${
-      eventVersion ? ` - eventVersion ${eventVersion}` : ""
-    }. ${error ? parseErrorMessage(error) : ""}`,
+    detail: `${prefixes} Error handling Kafka message. Topic: ${topic}. Partition number: ${partition}. Offset: ${offset}. Message: ${errorMessage}`,
   });
 }
 
