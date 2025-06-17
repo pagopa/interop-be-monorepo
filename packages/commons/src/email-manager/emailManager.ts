@@ -65,8 +65,7 @@ export function initSesMailManager(
   awsConfig: AWSSesConfig,
   errorHandlingOptions?: {
     logger: Logger;
-    // flag for specific error type forced to true it's the only one available for now
-    skipTooManyRequestsError: true;
+    skipTooManyRequestsError: boolean;
   }
 ): EmailManagerSES {
   const client = new SESv2Client({
