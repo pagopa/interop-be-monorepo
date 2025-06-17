@@ -544,6 +544,7 @@ const validateDPoPProof = async (
     ? verifyDPoPProof({
         dpopProofJWS: dpopProofHeader,
         expectedDPoPProofHtu: config.dpopHtu,
+        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
       })
     : { data: undefined, errors: undefined };
 
