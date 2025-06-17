@@ -21,10 +21,22 @@ import {
   ClientDeletedV2,
   ClientUserAddedV2,
   ClientPurposeAddedV2,
+  toProducerKeychainV2,
+  ProducerKeychainAddedV2,
+  EServiceId,
+  ProducerKeychain,
+  ProducerKeychainDeletedV2,
 } from "pagopa-interop-models";
-import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
+import {
+  getMockClient,
+  getMockKey,
+  getMockProducerKeychain,
+} from "pagopa-interop-commons-test";
 import { handleAuthorizationMessageV1 } from "../src/handlers/authorization/consumerServiceV1.js";
-import { ClientDbTable } from "../src/model/db/authorization.js";
+import {
+  ClientDbTable,
+  ProducerKeychainDbTable,
+} from "../src/model/db/authorization.js";
 import { handleAuthorizationEventMessageV2 } from "../src/handlers/authorization/consumerServiceV2.js";
 import {
   dbContext,
@@ -32,6 +44,7 @@ import {
   getManyFromDb,
   getOneFromDb,
   clientTables,
+  producerKeychainTables,
 } from "./utils.js";
 
 describe("Authorization messages consumers - handleAuthorizationMessageV1", () => {
@@ -397,9 +410,22 @@ describe("Authorization messages consumers - handleAuthorizationMessageV1", () =
 
 describe("Authorization messages consumers - handleAuthorizationMessageV2", () => {
   const mockClient = getMockClient();
-  const mockMessage: Omit<AuthorizationEventEnvelopeV2, "type" | "data"> = {
+  const mockMessageClient: Omit<AuthorizationEventEnvelopeV2, "type" | "data"> =
+    {
+      event_version: 2,
+      stream_id: mockClient.id,
+      version: 1,
+      sequence_num: 1,
+      log_date: new Date(),
+    };
+
+  const mockProducerKeychain = getMockProducerKeychain();
+  const mockMessageProducerKeychain: Omit<
+    AuthorizationEventEnvelopeV2,
+    "type" | "data"
+  > = {
     event_version: 2,
-    stream_id: mockClient.id,
+    stream_id: mockProducerKeychain.id,
     version: 1,
     sequence_num: 1,
     log_date: new Date(),
@@ -407,6 +433,143 @@ describe("Authorization messages consumers - handleAuthorizationMessageV2", () =
 
   beforeEach(async () => {
     await resetTargetTables(clientTables);
+    await resetTargetTables(producerKeychainTables);
+  });
+
+  it("ProducerKeychainAdded: inserts producer keychain with users, eServices and keys", async () => {
+    const userId: UserId = generateId<UserId>();
+    const eserviceId: EServiceId = generateId<EServiceId>();
+    const key: Key = getMockKey();
+
+    const producerKeychain: ProducerKeychain = {
+      ...mockProducerKeychain,
+      users: [userId],
+      eservices: [eserviceId],
+      keys: [key],
+    };
+
+    const payload: ProducerKeychainAddedV2 = {
+      producerKeychain: toProducerKeychainV2(producerKeychain),
+    };
+
+    const msg: AuthorizationEventEnvelopeV2 = {
+      ...mockMessageProducerKeychain,
+      type: "ProducerKeychainAdded",
+      data: payload,
+    };
+
+    await handleAuthorizationEventMessageV2([msg], dbContext);
+
+    const storedProducerKeychain = await getOneFromDb(
+      dbContext,
+      ProducerKeychainDbTable.producer_keychain,
+      { id: producerKeychain.id }
+    );
+    expect(storedProducerKeychain).toBeDefined();
+    expect(storedProducerKeychain?.name).toBe(producerKeychain.name);
+    expect(storedProducerKeychain?.metadataVersion).toBe(1);
+
+    const storedUsers = await getManyFromDb(
+      dbContext,
+      ProducerKeychainDbTable.producer_keychain_user,
+      {
+        producerKeychainId: producerKeychain.id,
+        userId,
+      }
+    );
+    expect(storedUsers).toHaveLength(1);
+    expect(storedUsers[0].userId).toBe(userId);
+    expect(storedUsers[0].metadataVersion).toBe(1);
+
+    const storedEServices = await getManyFromDb(
+      dbContext,
+      ProducerKeychainDbTable.producer_keychain_eservice,
+      {
+        producerKeychainId: producerKeychain.id,
+        eserviceId,
+      }
+    );
+    expect(storedEServices).toHaveLength(1);
+    expect(storedEServices[0].eserviceId).toBe(eserviceId);
+    expect(storedEServices[0].metadataVersion).toBe(1);
+
+    const storedKeys = await getManyFromDb(
+      dbContext,
+      ProducerKeychainDbTable.producer_keychain_key,
+      {
+        producerKeychainId: producerKeychain.id,
+        kid: key.kid,
+      }
+    );
+    expect(storedKeys).toHaveLength(1);
+    expect(storedKeys[0].kid).toBe(key.kid);
+    expect(storedKeys[0].createdAt).toBeDefined();
+    expect(storedKeys[0].metadataVersion).toBe(1);
+  });
+
+  it("ProducerKeychainDeleted: marks producer keychain and relations as deleted", async () => {
+    const userId = generateId<UserId>();
+    const eserviceId = generateId<EServiceId>();
+    const key = getMockKey();
+
+    const producerKeychain: ProducerKeychain = {
+      ...mockProducerKeychain,
+      users: [userId],
+      eservices: [eserviceId],
+      keys: [key],
+    };
+
+    const payloadAdd: ProducerKeychainAddedV2 = {
+      producerKeychain: toProducerKeychainV2(producerKeychain),
+    };
+
+    const payloadDelete: ProducerKeychainDeletedV2 = {
+      producerKeychainId: producerKeychain.id,
+      producerKeychain: toProducerKeychainV2(producerKeychain),
+    };
+
+    const addMsg: AuthorizationEventEnvelopeV2 = {
+      ...mockMessageProducerKeychain,
+      type: "ProducerKeychainAdded",
+      data: payloadAdd,
+    };
+
+    const deleteMsg: AuthorizationEventEnvelopeV2 = {
+      ...mockMessageProducerKeychain,
+      version: 2,
+      type: "ProducerKeychainDeleted",
+      data: payloadDelete,
+    };
+
+    await handleAuthorizationEventMessageV2([addMsg, deleteMsg], dbContext);
+
+    const storedProducerKeychain = await getOneFromDb(
+      dbContext,
+      ProducerKeychainDbTable.producer_keychain,
+      { id: producerKeychain.id }
+    );
+    expect(storedProducerKeychain?.deleted).toBe(true);
+
+    const checks = [
+      {
+        table: ProducerKeychainDbTable.producer_keychain_user,
+        where: { producerKeychainId: producerKeychain.id },
+      },
+      {
+        table: ProducerKeychainDbTable.producer_keychain_eservice,
+        where: { producerKeychainId: producerKeychain.id },
+      },
+      {
+        table: ProducerKeychainDbTable.producer_keychain_key,
+        where: { producerKeychainId: producerKeychain.id },
+      },
+    ];
+
+    for (const { table, where } of checks) {
+      const rows = await getManyFromDb(dbContext, table, where);
+      expect(rows.length).toBeGreaterThan(0);
+      rows.forEach((r) => expect(r.deleted).toBe(true));
+    }
   });
 
   it("ClientAdded: inserts client with users and purposes", async () => {
@@ -424,7 +587,7 @@ describe("Authorization messages consumers - handleAuthorizationMessageV2", () =
     const payload: ClientAddedV2 = { client };
 
     const msg: AuthorizationEventEnvelopeV2 = {
-      ...mockMessage,
+      ...mockMessageClient,
       type: "ClientAdded",
       data: payload,
     };
@@ -492,13 +655,13 @@ describe("Authorization messages consumers - handleAuthorizationMessageV2", () =
     const payloadDelete: ClientDeletedV2 = { clientId: client.id };
 
     const addMsg: AuthorizationEventEnvelopeV2 = {
-      ...mockMessage,
+      ...mockMessageClient,
       type: "ClientAdded",
       data: payloadAdd,
     };
 
     const deleteMsg: AuthorizationEventEnvelopeV2 = {
-      ...mockMessage,
+      ...mockMessageClient,
       version: 2,
       type: "ClientDeleted",
       data: payloadDelete,
@@ -526,7 +689,7 @@ describe("Authorization messages consumers - handleAuthorizationMessageV2", () =
 
   it("ClientUserAdded: should throw error when client is missing", async () => {
     const msg: AuthorizationEventEnvelopeV2 = {
-      ...mockMessage,
+      ...mockMessageClient,
       version: 2,
       type: "ClientUserAdded",
       data: {} as unknown as ClientUserAddedV2,
@@ -549,20 +712,20 @@ describe("Authorization messages consumers - handleAuthorizationMessageV2", () =
     const clientV2 = { ...client, name: "V2" };
 
     const msgV1: AuthorizationEventEnvelopeV2 = {
-      ...mockMessage,
+      ...mockMessageClient,
       type: "ClientAdded",
       data: payloadV1,
     };
 
     const msgV3: AuthorizationEventEnvelopeV2 = {
-      ...mockMessage,
+      ...mockMessageClient,
       version: 3,
       type: "ClientPurposeAdded",
       data: { client: clientV3 } as ClientPurposeAddedV2,
     };
 
     const msgV2: AuthorizationEventEnvelopeV2 = {
-      ...mockMessage,
+      ...mockMessageClient,
       version: 2,
       type: "ClientPurposeAdded",
       data: { client: clientV2 } as ClientPurposeAddedV2,
