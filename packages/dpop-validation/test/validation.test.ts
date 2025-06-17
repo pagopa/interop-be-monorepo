@@ -243,8 +243,8 @@ describe("DPoP validation tests", async () => {
       expect(errors?.[0].code).toBe(dpopIatNotFound().code);
     });
 
-    it("should add error if the DPoP proof IAT is in the future", async () => {
-      const futureIat = dateToSeconds(new Date()) + 1;
+    it("should add error if the DPoP proof IAT is greater than the current time + the offset (used to accommodate for clock differences between the client and the server)", async () => {
+      const futureIat = dateToSeconds(new Date()) + 11;
       const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
         customPayload: {
           iat: futureIat,
@@ -260,6 +260,21 @@ describe("DPoP validation tests", async () => {
       expect(errors?.[0].code).toBe(
         notYetValidDPoPProof(futureIat, dateToSeconds(new Date())).code
       );
+    });
+
+    it("should succeed if the current time + the offset is greater or equal than the DPoP proof IAT", async () => {
+      const futureIat = dateToSeconds(new Date()) + 10;
+      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+        customPayload: {
+          iat: futureIat,
+        },
+      });
+
+      const { errors } = verifyDPoPProof({
+        dpopProofJWS,
+        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+      });
+      expect(errors).toBeUndefined();
     });
 
     it("should add error if the DPoP proof IAT is expired", async () => {

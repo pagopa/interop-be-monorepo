@@ -109,7 +109,8 @@ export const validateIat = (
   const currentTime = dateToSeconds(new Date());
   const dpopProofDuration = 60;
 
-  if (currentTime < iat) {
+  // There's a tolerance of 10 seconds to accommodate for clock offsets between the client and the server
+  if (currentTime + 10 < iat) {
     return failedValidation([notYetValidDPoPProof(iat, currentTime)]);
   } else if (currentTime > iat + dpopProofDuration) {
     return failedValidation([
