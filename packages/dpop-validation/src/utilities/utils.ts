@@ -100,7 +100,8 @@ export const validateHtu = (
 };
 
 export const validateIat = (
-  iat: number | undefined
+  iat: number | undefined,
+  toleranceSeconds: number
 ): ValidationResult<number> => {
   if (!iat) {
     return failedValidation([dpopIatNotFound()]);
@@ -109,8 +110,8 @@ export const validateIat = (
   const currentTime = dateToSeconds(new Date());
   const dpopProofDuration = 60;
 
-  // There's a tolerance of 10 seconds to accommodate for clock offsets between the client and the server
-  if (currentTime + 10 < iat) {
+  // There's a tolerance of some seconds to accommodate for clock offsets between the client and the server
+  if (currentTime + toleranceSeconds < iat) {
     return failedValidation([notYetValidDPoPProof(iat, currentTime)]);
   } else if (currentTime > iat + dpopProofDuration) {
     return failedValidation([

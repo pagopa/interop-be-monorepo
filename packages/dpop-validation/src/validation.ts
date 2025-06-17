@@ -42,9 +42,11 @@ import {
 export const verifyDPoPProof = ({
   dpopProofJWS,
   expectedDPoPProofHtu,
+  dpopProofIatToleranceSeconds,
 }: {
   dpopProofJWS: string;
   expectedDPoPProofHtu: string;
+  dpopProofIatToleranceSeconds: number;
 }): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
   try {
     if (dpopProofJWS.split(",").length > 1) {
@@ -74,7 +76,8 @@ export const verifyDPoPProof = ({
       expectedDPoPProofHtu
     );
     const { errors: iatErrors, data: validatedIat } = validateIat(
-      decodedPayload.iat
+      decodedPayload.iat,
+      dpopProofIatToleranceSeconds
     );
     const { errors: jtiErrors, data: validatedJti } = validateJti(
       decodedPayload.jti
