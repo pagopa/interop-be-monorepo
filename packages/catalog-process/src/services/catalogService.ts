@@ -136,6 +136,8 @@ import {
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
+  toCreateEventEServiceSignalhubFlagEnabled,
+  toCreateEventEServiceSignalhubFlagDisabled,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -2430,6 +2432,78 @@ export function catalogServiceBuilder(
           correlationId
         )
       );
+      return updatedEservice;
+    },
+
+    async updateEServiceSignalHubFlag(
+      eserviceId: EServiceId,
+      isSignalHubEnabled: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      logger.info(
+        `Updating Signalhub flag for E-Service ${eserviceId} to ${isSignalHubEnabled}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceUpdatableAfterPublish(eservice.data);
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        isSignalHubEnabled,
+      };
+
+      const event = match({
+        newisSignalHubEnabled: isSignalHubEnabled,
+        oldSignalHubEnabled: eservice.data.isSignalHubEnabled || false,
+      })
+        .with(
+          {
+            oldSignalHubEnabled: false,
+            newisSignalHubEnabled: true,
+          },
+          () =>
+            toCreateEventEServiceSignalhubFlagEnabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
+        )
+        .with(
+          {
+            oldSignalHubEnabled: true,
+            newisSignalHubEnabled: false,
+          },
+          () =>
+            toCreateEventEServiceSignalhubFlagDisabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
+        )
+        .with(
+          {
+            oldSignalHubEnabled: true,
+            newisSignalHubEnabled: true,
+          },
+          {
+            oldSignalHubEnabled: false,
+            newisSignalHubEnabled: false,
+          },
+          () => null
+        )
+        .exhaustive();
+
+      if (event) {
+        await repository.createEvent(event);
+      }
       return updatedEservice;
     },
     async approveDelegatedEServiceDescriptor(
