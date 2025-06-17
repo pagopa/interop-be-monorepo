@@ -168,7 +168,7 @@ CREATE TABLE domains.agreement (
 );
 
 CREATE TABLE domains.agreement_stamp (
-  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement(id),
+  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement (id),
   metadata_version INTEGER NOT NULL,
   who VARCHAR(36) NOT NULL,
   delegation_id VARCHAR(36),
@@ -179,7 +179,7 @@ CREATE TABLE domains.agreement_stamp (
 );
 
 CREATE TABLE domains.agreement_attribute (
-  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement(id),
+  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement (id),
   metadata_version INTEGER NOT NULL,
   attribute_id VARCHAR(36) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
@@ -189,7 +189,7 @@ CREATE TABLE domains.agreement_attribute (
 
 CREATE TABLE domains.agreement_consumer_document (
   id VARCHAR(36),
-  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement(id),
+  agreement_id VARCHAR(36) NOT NULL REFERENCES domains.agreement (id),
   metadata_version INTEGER NOT NULL,
   name VARCHAR(2048) NOT NULL,
   pretty_name VARCHAR(2048) NOT NULL,
@@ -202,7 +202,7 @@ CREATE TABLE domains.agreement_consumer_document (
 
 CREATE TABLE domains.agreement_contract (
   id VARCHAR(36),
-  agreement_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.agreement(id),
+  agreement_id VARCHAR(36) UNIQUE NOT NULL REFERENCES domains.agreement (id),
   metadata_version INTEGER NOT NULL,
   name VARCHAR(2048) NOT NULL,
   pretty_name VARCHAR(2048) NOT NULL,
@@ -243,7 +243,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_form (
 
 CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
   id VARCHAR(36),
-  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose (id),
   metadata_version INTEGER NOT NULL,
   risk_analysis_form_id VARCHAR(36),
   kind VARCHAR(2048) NOT NULL,
@@ -256,7 +256,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version (
   id VARCHAR(36),
-  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose (id),
   metadata_version INTEGER NOT NULL,
   state VARCHAR(2048) NOT NULL,
   daily_calls INTEGER NOT NULL,
@@ -271,9 +271,9 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version (
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
   id VARCHAR(36),
-  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose (id),
   metadata_version INTEGER NOT NULL,
-  purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
+  purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version (id),
   content_type VARCHAR(2048) NOT NULL,
   path VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP NOT NULL,
