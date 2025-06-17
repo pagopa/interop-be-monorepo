@@ -16,6 +16,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
   RiskAnalysisId,
+  tenantKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
@@ -31,6 +32,7 @@ import {
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   AttributeProcessClient,
+  CatalogProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -47,6 +49,7 @@ export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
+  catalogProcessClient: CatalogProcessClient,
   fileManager: FileManager
 ) {
   return {
@@ -280,11 +283,35 @@ export function eserviceTemplateServiceBuilder(
         },
       });
 
-      const canBeInstantiated = match(eserviceTemplate.mode)
-        .with(eserviceTemplateApi.EServiceMode.Values.DELIVER, () => true)
+      const isAlreadyInstantiated =
+        (
+          await catalogProcessClient.getEServices({
+            headers,
+            queries: {
+              templatesIds: [eserviceTemplate.id],
+              producersIds: [callerTenant.id],
+              limit: 1,
+              offset: 0,
+            },
+          })
+        ).totalCount > 0;
+
+      const hasRequesterRiskAnalysis = match(eserviceTemplate.mode)
+        .with(eserviceTemplateApi.EServiceMode.Values.DELIVER, () => null)
         .with(eserviceTemplateApi.EServiceMode.Values.RECEIVE, () =>
-          eserviceTemplate.riskAnalysis.some(
-            (r) => r.tenantKind === callerTenant.kind
+          eserviceTemplate.riskAnalysis.some((r) =>
+            match(callerTenant.kind)
+              .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
+              .with(
+                tenantKind.GSP,
+                tenantKind.PRIVATE,
+                tenantKind.SCP,
+                () =>
+                  r.tenantKind === tenantKind.GSP ||
+                  r.tenantKind === tenantKind.PRIVATE ||
+                  r.tenantKind === tenantKind.SCP
+              )
+              .otherwise(() => false)
           )
         )
         .exhaustive();
@@ -308,7 +335,8 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate,
           creatorTenant
         ),
-        canBeInstantiated,
+        isAlreadyInstantiated,
+        ...(hasRequesterRiskAnalysis !== null && { hasRequesterRiskAnalysis }),
       };
     },
     getEServiceTemplate: async (

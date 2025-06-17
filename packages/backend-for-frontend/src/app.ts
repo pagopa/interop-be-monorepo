@@ -152,6 +152,7 @@ export async function createServices(
       clients.eserviceTemplateProcessClient,
       clients.tenantProcessClient,
       clients.attributeProcessClient,
+      clients.catalogProcessClient,
       fileManager
     ),
     producerKeychainService: producerKeychainServiceBuilder(clients),
