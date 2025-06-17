@@ -26,6 +26,7 @@ import {
   dpopJtiAlreadyCached,
   dpopTypNotFound,
   multipleDPoPProofsError,
+  notYetValidDPoPProof,
 } from "../src/errors.js";
 import { writeDPoPCache } from "../src/utilities/dpopCacheUtils.js";
 import { dynamoDBClient, dpopCacheTable } from "./utils.js";
@@ -242,7 +243,26 @@ describe("DPoP validation tests", async () => {
       expect(errors?.[0].code).toBe(dpopIatNotFound().code);
     });
 
-    it("should add error if the DPoP proof IAT is invalid", async () => {
+    it("should add error if the DPoP proof IAT is in the future", async () => {
+      const futureIat = dateToSeconds(new Date()) + 1;
+      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+        customPayload: {
+          iat: futureIat,
+        },
+      });
+
+      const { errors } = verifyDPoPProof({
+        dpopProofJWS,
+        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+      });
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors?.[0].code).toBe(
+        notYetValidDPoPProof(futureIat, dateToSeconds(new Date())).code
+      );
+    });
+
+    it("should add error if the DPoP proof IAT is expired", async () => {
       const expiredIat = dateToSeconds(new Date()) - 61;
       const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
         customPayload: {

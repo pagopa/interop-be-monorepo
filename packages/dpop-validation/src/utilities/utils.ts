@@ -25,6 +25,7 @@ import {
   dpopTypNotFound,
   invalidDPoPTyp,
   dpopIatNotFound,
+  notYetValidDPoPProof,
 } from "../errors.js";
 
 const EXPECTED_TYP = "dpop+jwt";
@@ -106,7 +107,10 @@ export const validateIat = (
   }
 
   const currentTime = dateToSeconds(new Date());
-  if (currentTime < iat || currentTime > iat + 60) {
+
+  if (currentTime < iat) {
+    return failedValidation([notYetValidDPoPProof(iat, currentTime)]);
+  } else if (currentTime > iat + 60) {
     return failedValidation([expiredDPoPProof(iat, currentTime)]);
   }
 
