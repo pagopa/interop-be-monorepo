@@ -5,9 +5,15 @@ meta {
 }
 
 get {
-  url: {{host-in-app-notification}}/notifications
+  url: {{host-in-app-notification}}/notifications?offset=0&limit=20
   body: none
   auth: inherit
+}
+
+params:query {
+  offset: 0
+  limit: 20
+  ~q: 
 }
 
 headers {

@@ -34,15 +34,34 @@ paths:
       summary: Get all notifications
       description: Returns a list of all notifications for the requester
       operationId: getNotifications
+      parameters:
+        - in: query
+          name: q
+          description: Query to filter notifications
+          schema:
+            type: string
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
           description: A list of notifications
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Notification"
+                $ref: "#/components/schemas/Notifications"
         "401":
           description: Unauthorized
           content:
@@ -79,6 +98,20 @@ components:
       schema:
         type: string
   schemas:
+    Notifications:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Notification"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     Notification:
       type: object
       properties:

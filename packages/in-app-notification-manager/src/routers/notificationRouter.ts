@@ -30,8 +30,14 @@ export const notificationRouter = (
     try {
       validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
-      const notifications = await service.getNotifications(ctx);
-      return res.status(200).json(notifications);
+      const { limit, offset, q } = req.query;
+      const notifications = await service.getNotifications(
+        q,
+        limit,
+        offset,
+        ctx
+      );
+      return res.status(200).send(notifications);
     } catch (error) {
       const errorRes = makeApiProblem(
         error,
