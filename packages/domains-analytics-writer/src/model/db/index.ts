@@ -15,6 +15,8 @@ import {
 import {
   ClientDbTableConfig,
   ClientDbTableReadModel,
+  ProducerKeychainDbTableConfig,
+  ProducerKeychainDbTableReadModel,
 } from "./authorization.js";
 import {
   DelegationDbTableConfig,
@@ -48,6 +50,7 @@ export const DomainDbTable = {
   ...DelegationDbTableConfig,
   ...TenantDbTableConfig,
   ...ClientDbTableConfig,
+  ...ProducerKeychainDbTableConfig,
   ...EserviceTemplateDbTableConfig,
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
@@ -69,6 +72,7 @@ export const DomainDbTableReadModels = {
   ...PurposeDbTableReadModel,
   ...TenantDbTableReadModel,
   ...ClientDbTableReadModel,
+  ...ProducerKeychainDbTableReadModel,
   ...EserviceTemplateDbTableReadModel,
 } as const;
 export type DomainDbTableReadModels = typeof DomainDbTableReadModels;

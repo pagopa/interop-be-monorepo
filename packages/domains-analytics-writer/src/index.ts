@@ -22,6 +22,7 @@ import {
   TenantDbPartialTable,
   TenantDbTable,
   ClientDbTable,
+  ProducerKeychainDbTable,
 } from "./model/db/index.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
 import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
@@ -73,6 +74,10 @@ await retryConnection(
       ClientDbTable.client_purpose,
       ClientDbTable.client_user,
       ClientDbTable.client_key,
+      ProducerKeychainDbTable.producer_keychain,
+      ProducerKeychainDbTable.producer_keychain_eservice,
+      ProducerKeychainDbTable.producer_keychain_user,
+      ProducerKeychainDbTable.producer_keychain_key,
       DelegationDbTable.delegation,
       DelegationDbTable.delegation_stamp,
       DelegationDbTable.delegation_contract_document,
@@ -125,6 +130,10 @@ await retryConnection(
       {
         name: DeletingDbTable.client_key_deleting_table,
         columns: ["clientId", "kid"],
+      },
+      {
+        name: DeletingDbTable.producer_keychain_deleting_table,
+        columns: ["id"],
       },
       {
         name: DeletingDbTable.eservice_template_deleting_table,

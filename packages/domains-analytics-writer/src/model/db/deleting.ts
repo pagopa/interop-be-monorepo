@@ -12,6 +12,7 @@ import {
   clientUserInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientKeyInReadmodelClient,
+  producerKeychainInReadmodelProducerKeychain,
 } from "pagopa-interop-readmodel-models";
 
 import { AttributeDeletingSchema } from "../attribute/attribute.js";
@@ -26,6 +27,7 @@ import { ClientPurposeDeletingSchema } from "../authorization/clientPurpose.js";
 import { ClientKeyDeletingSchema } from "../authorization/clientKey.js";
 import { PurposeDeletingSchema } from "../purpose/purpose.js";
 import { EserviceDescriptorDocumentOrInterfaceDeletingSchema } from "../catalog/eserviceDescriptorInterface.js";
+import { ProducerKeychainDeletingSchema } from "../authorization/producerKeychain.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,
@@ -40,6 +42,7 @@ export const DeletingDbTableConfig = {
   client_user_deleting_table: ClientUserDeletingSchema,
   client_purpose_deleting_table: ClientPurposeDeletingSchema,
   client_key_deleting_table: ClientKeyDeletingSchema,
+  producer_keychain_deleting_table: ProducerKeychainDeletingSchema,
   eservice_template_deleting_table: EserviceTemplateDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
@@ -57,6 +60,7 @@ export const DeletingDbTableReadModel = {
   client_user_deleting_table: clientUserInReadmodelClient,
   client_purpose_deleting_table: clientPurposeInReadmodelClient,
   client_key_deleting_table: clientKeyInReadmodelClient,
+  producer_keychain_deleting_table: producerKeychainInReadmodelProducerKeychain,
   eservice_template_deleting_table: eserviceTemplateInReadmodelEserviceTemplate,
 } as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
