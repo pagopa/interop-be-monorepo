@@ -578,6 +578,25 @@ export function catalogServiceBuilder(
         },
       });
     },
+
+    updateEServiceSignalHubFlag: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      signalhubActivateSeed: bffApi.EServiceSignalHubUpdateSeed
+    ): Promise<void> => {
+      logger.info(
+        `Update signalhub flag for E-Service with id = ${eServiceId} to ${signalhubActivateSeed.isSignalHubEnabled}`
+      );
+      await catalogProcessClient.updateEServiceSignalHubFlag(
+        signalhubActivateSeed,
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+    },
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers, logger }: WithLogger<BffAppContext>
@@ -1868,7 +1887,18 @@ export function catalogServiceBuilder(
         })
       );
 
-      return !eservices.some(
+      const eserviceTemplates = await getAllFromPaginated((offset, limit) =>
+        eserviceTemplateProcessClient.getEServiceTemplates({
+          headers,
+          queries: {
+            limit,
+            offset,
+            name,
+          },
+        })
+      );
+
+      return ![...eserviceTemplates, ...eservices].some(
         (e) => e.name.toLowerCase() === name.toLowerCase()
       );
     },

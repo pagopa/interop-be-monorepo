@@ -55,6 +55,7 @@ import {
   TenantId,
   unsafeBrandId,
   WithMetadata,
+  tenantKind,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -92,6 +93,7 @@ import {
   descriptorTemplateVersionNotFound,
   tenantNotFound,
   unchangedAttributes,
+  templateMissingRequiredRiskAnalysis,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -134,6 +136,8 @@ import {
   toCreateEventEServiceRiskAnalysisDeleted,
   toCreateEventEServiceRiskAnalysisUpdated,
   toCreateEventEServiceUpdated,
+  toCreateEventEServiceSignalhubFlagEnabled,
+  toCreateEventEServiceSignalhubFlagDisabled,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -148,7 +152,7 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
-  assertNotDuplicatedEServiceNameForProducer,
+  assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
   assertRiskAnalysisIsValidForPublication,
@@ -162,6 +166,7 @@ import {
   assertDescriptorUpdatableAfterPublish,
   assertEServiceUpdatableAfterPublish,
   hasRoleToAccessInactiveDescriptors,
+  assertEServiceNameNotConflictingWithTemplate,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -460,7 +465,7 @@ function isTenantInSignalHubWhitelist(
     : false;
 }
 
-async function innerCreateEService(
+function innerCreateEService(
   {
     seed,
     template,
@@ -471,21 +476,15 @@ async function innerCreateEService(
           id: EServiceTemplateId;
           versionId: EServiceTemplateVersionId;
           attributes: EserviceAttributes;
+          riskAnalysis: RiskAnalysis[] | undefined;
         }
       | undefined;
   },
-  readModelService: ReadModelService,
   { authData, correlationId }: WithLogger<AppContext<UIAuthData>>
-): Promise<{ eService: EService; events: Array<CreateEvent<EServiceEvent>> }> {
+): { eService: EService; events: Array<CreateEvent<EServiceEvent>> } {
   if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
     throw originNotCompliant(authData.externalId.origin);
   }
-
-  await assertNotDuplicatedEServiceNameForProducer(
-    seed.name,
-    authData.organizationId,
-    readModelService
-  );
 
   const creationDate = new Date();
   const newEService: EService = {
@@ -498,7 +497,7 @@ async function innerCreateEService(
     attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
-    riskAnalysis: [],
+    riskAnalysis: template?.riskAnalysis ?? [],
     isSignalHubEnabled: isFeatureFlagEnabled(
       config,
       "featureFlagSignalhubWhitelist"
@@ -803,9 +802,18 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
-      const { eService, events } = await innerCreateEService(
+      await assertEServiceNameAvailableForProducer(
+        seed.name,
+        ctx.authData.organizationId,
+        readModelService
+      );
+      await assertEServiceNameNotConflictingWithTemplate(
+        seed.name,
+        readModelService
+      );
+
+      const { eService, events } = innerCreateEService(
         { seed, template: undefined },
-        readModelService,
         ctx
       );
 
@@ -836,9 +844,13 @@ export function catalogServiceBuilder(
       assertIsDraftEservice(eservice.data);
 
       if (eserviceSeed.name !== eservice.data.name) {
-        await assertNotDuplicatedEServiceNameForProducer(
+        await assertEServiceNameAvailableForProducer(
           eserviceSeed.name,
           eservice.data.producerId,
+          readModelService
+        );
+        await assertEServiceNameNotConflictingWithTemplate(
+          eserviceSeed.name,
           readModelService
         );
       }
@@ -1728,9 +1740,14 @@ export function catalogServiceBuilder(
         eservice.data.name
       } - clone - ${formatDateddMMyyyyHHmmss(new Date())}`;
 
-      await assertNotDuplicatedEServiceNameForProducer(
+      await assertEServiceNameAvailableForProducer(
         clonedEServiceName,
         eservice.data.producerId,
+        readModelService
+      );
+
+      await assertEServiceNameNotConflictingWithTemplate(
+        clonedEServiceName,
         readModelService
       );
 
@@ -2391,9 +2408,14 @@ export function catalogServiceBuilder(
       assertEServiceUpdatableAfterPublish(eservice.data);
 
       if (name !== eservice.data.name) {
-        await assertNotDuplicatedEServiceNameForProducer(
+        await assertEServiceNameAvailableForProducer(
           name,
           eservice.data.producerId,
+          readModelService
+        );
+
+        await assertEServiceNameNotConflictingWithTemplate(
+          name,
           readModelService
         );
       }
@@ -2410,6 +2432,78 @@ export function catalogServiceBuilder(
           correlationId
         )
       );
+      return updatedEservice;
+    },
+
+    async updateEServiceSignalHubFlag(
+      eserviceId: EServiceId,
+      isSignalHubEnabled: boolean,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<EService> {
+      logger.info(
+        `Updating Signalhub flag for E-Service ${eserviceId} to ${isSignalHubEnabled}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        authData,
+        readModelService
+      );
+
+      assertEServiceUpdatableAfterPublish(eservice.data);
+
+      const updatedEservice: EService = {
+        ...eservice.data,
+        isSignalHubEnabled,
+      };
+
+      const event = match({
+        newisSignalHubEnabled: isSignalHubEnabled,
+        oldSignalHubEnabled: eservice.data.isSignalHubEnabled || false,
+      })
+        .with(
+          {
+            oldSignalHubEnabled: false,
+            newisSignalHubEnabled: true,
+          },
+          () =>
+            toCreateEventEServiceSignalhubFlagEnabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
+        )
+        .with(
+          {
+            oldSignalHubEnabled: true,
+            newisSignalHubEnabled: false,
+          },
+          () =>
+            toCreateEventEServiceSignalhubFlagDisabled(
+              eservice.metadata.version,
+              updatedEservice,
+              correlationId
+            )
+        )
+        .with(
+          {
+            oldSignalHubEnabled: true,
+            newisSignalHubEnabled: true,
+          },
+          {
+            oldSignalHubEnabled: false,
+            newisSignalHubEnabled: false,
+          },
+          () => null
+        )
+        .exhaustive();
+
+      if (event) {
+        await repository.createEvent(event);
+      }
       return updatedEservice;
     },
     async approveDelegatedEServiceDescriptor(
@@ -2569,7 +2663,7 @@ export function catalogServiceBuilder(
         return;
       }
 
-      await assertNotDuplicatedEServiceNameForProducer(
+      await assertEServiceNameAvailableForProducer(
         newName,
         eservice.data.producerId,
         readModelService
@@ -2950,7 +3044,24 @@ export function catalogServiceBuilder(
         throw eServiceTemplateWithoutPublishedVersion(templateId);
       }
 
-      const { eService: createdEService, events } = await innerCreateEService(
+      const riskAnalysis = await match(template)
+        .with({ mode: eserviceMode.receive }, (template) =>
+          extractEServiceRiskAnalysisFromTemplate(
+            template,
+            ctx.authData.organizationId,
+            readModelService
+          )
+        )
+        .with({ mode: eserviceMode.deliver }, () => Promise.resolve([]))
+        .exhaustive();
+
+      await assertEServiceNameAvailableForProducer(
+        template.name,
+        ctx.authData.organizationId,
+        readModelService
+      );
+
+      const { eService: createdEService, events } = innerCreateEService(
         {
           seed: {
             name: template.name,
@@ -2978,9 +3089,9 @@ export function catalogServiceBuilder(
             id: template.id,
             versionId: publishedVersion.id,
             attributes: publishedVersion.attributes,
+            riskAnalysis,
           },
         },
-        readModelService,
         ctx
       );
 
@@ -3494,6 +3605,55 @@ function evaluateTemplateVersionRef(
       termsAndConditionsUrl,
     },
   };
+}
+
+async function extractEServiceRiskAnalysisFromTemplate(
+  template: EServiceTemplate & { mode: typeof eserviceMode.receive },
+  requester: TenantId,
+  readModelService: ReadModelService
+): Promise<RiskAnalysis[]> {
+  const tenant = await retrieveTenant(requester, readModelService);
+
+  assertTenantKindExists(tenant);
+
+  const riskAnalysis: RiskAnalysis[] = template.riskAnalysis
+    .filter((r) =>
+      match(tenant.kind)
+        .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
+        .with(
+          tenantKind.GSP,
+          tenantKind.PRIVATE,
+          tenantKind.SCP,
+          () =>
+            r.tenantKind === tenantKind.GSP ||
+            r.tenantKind === tenantKind.PRIVATE ||
+            r.tenantKind === tenantKind.SCP
+          /**
+           * For now, GSP, PRIVATE, and SCP tenants share the same risk analysis.
+           * This may change in the future.
+           */
+        )
+        .exhaustive()
+    )
+    .map(
+      (r) =>
+        ({
+          id: r.id,
+          createdAt: r.createdAt,
+          name: r.name,
+          riskAnalysisForm: r.riskAnalysisForm,
+        } satisfies RiskAnalysis)
+    );
+
+  if (riskAnalysis.length === 0) {
+    throw templateMissingRequiredRiskAnalysis(
+      template.id,
+      tenant.id,
+      tenant.kind
+    );
+  }
+
+  return riskAnalysis;
 }
 
 export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
