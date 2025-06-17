@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiPurpose,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import {
@@ -13,12 +16,11 @@ import {
   missingMetadata,
   missingPurposeCurrentVersion,
 } from "../../../src/model/errors.js";
-import { getMockedApiPurpose } from "../../mockUtils.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("POST /purposes/:purposeId/suspend router test", () => {
   const mockApiPurpose = getMockedApiPurpose();
-  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose.data);
+  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose);
 
   const makeRequest = async (token: string, purposeId: string) =>
     request(api)

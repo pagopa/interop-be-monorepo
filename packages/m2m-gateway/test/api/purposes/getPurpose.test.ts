@@ -1,11 +1,13 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiPurpose,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiPurpose } from "../../mockUtils.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("GET /purpose/:purposeId router test", () => {
@@ -21,7 +23,7 @@ describe("GET /purpose/:purposeId router test", () => {
       .send();
 
   const mockApiPurpose = getMockedApiPurpose();
-  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose.data);
+  const mockM2MPurposeResponse = toM2MGatewayApiPurpose(mockApiPurpose);
 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",

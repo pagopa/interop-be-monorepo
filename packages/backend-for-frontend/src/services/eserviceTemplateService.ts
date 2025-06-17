@@ -17,6 +17,7 @@ import {
   EServiceTemplateVersionId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import {
   apiTechnologyToTechnology,
@@ -232,7 +233,7 @@ export function eserviceTemplateServiceBuilder(
     getEServiceTemplateVersion: async (
       templateId: EServiceTemplateId,
       templateVersionId: EServiceTemplateVersionId,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.EServiceTemplateVersionDetails> => {
       logger.info(
         `Retrieving EService template version for templateId = ${templateId}, templateVersionId = ${templateVersionId}`
@@ -272,6 +273,22 @@ export function eserviceTemplateServiceBuilder(
         },
       });
 
+      const callerTenant = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: authData.organizationId,
+        },
+      });
+
+      const canBeInstantiated = match(eserviceTemplate.mode)
+        .with(eserviceTemplateApi.EServiceMode.Values.DELIVER, () => true)
+        .with(eserviceTemplateApi.EServiceMode.Values.RECEIVE, () =>
+          eserviceTemplate.riskAnalysis.some(
+            (r) => r.tenantKind === callerTenant.kind
+          )
+        )
+        .exhaustive();
+
       return {
         id: eserviceTemplateVersion.id,
         version: eserviceTemplateVersion.version,
@@ -291,6 +308,7 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate,
           creatorTenant
         ),
+        canBeInstantiated,
       };
     },
     getEServiceTemplate: async (
@@ -398,9 +416,9 @@ export function eserviceTemplateServiceBuilder(
         },
       };
     },
-    createEServiceTemplateEServiceRiskAnalysis: async (
+    createEServiceTemplateRiskAnalysis: async (
       templateId: EServiceTemplateId,
-      seed: bffApi.EServiceRiskAnalysisSeed,
+      seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Creating EService template ${templateId} risk analysis`);
@@ -411,10 +429,10 @@ export function eserviceTemplateServiceBuilder(
         },
       });
     },
-    updateEServiceTemplateEServiceRiskAnalysis: async (
+    updateEServiceTemplateRiskAnalysis: async (
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
-      seed: bffApi.EServiceRiskAnalysisSeed,
+      seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(

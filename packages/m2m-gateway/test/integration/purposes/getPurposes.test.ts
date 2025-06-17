@@ -1,15 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import {
+  getMockedApiPurpose,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiPurpose,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { toGetPurposesApiQueryParams } from "../../../src/api/purposeApiConverter.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
@@ -20,8 +21,8 @@ describe("getPurposes", () => {
     limit: 10,
   };
 
-  const mockApiPurpose1 = getMockedApiPurpose();
-  const mockApiPurpose2 = getMockedApiPurpose();
+  const mockApiPurpose1 = getMockWithMetadata(getMockedApiPurpose());
+  const mockApiPurpose2 = getMockWithMetadata(getMockedApiPurpose());
 
   const mockApiPurposes = [mockApiPurpose1.data, mockApiPurpose2.data];
 
