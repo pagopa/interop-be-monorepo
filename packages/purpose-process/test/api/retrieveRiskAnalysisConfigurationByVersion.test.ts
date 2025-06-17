@@ -1,16 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { EServiceId, generateId, tenantKind } from "pagopa-interop-models";
+import { generateId, TenantKind, tenantKind } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
 import { riskAnalysisFormConfigToApiRiskAnalysisFormConfig } from "../../src/model/domain/apiConverter.js";
-import {
-  eserviceNotFound,
-  riskAnalysisConfigVersionNotFound,
-} from "../../src/model/domain/errors.js";
+import { riskAnalysisConfigVersionNotFound } from "../../src/model/domain/errors.js";
 
 describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", () => {
   const mockRiskAnalysisConfiguration = {
@@ -33,7 +30,7 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
   const makeRequest = async (
     token: string,
     riskAnalysisVersion: string = "1",
-    query: { eserviceId: EServiceId } = { eserviceId: generateId() }
+    query: { tenantKind: TenantKind } = { tenantKind: tenantKind.PA }
   ) =>
     request(api)
       .get(`/purposes/riskAnalysis/version/${riskAnalysisVersion}`)
@@ -67,7 +64,6 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
   });
 
   it.each([
-    { error: eserviceNotFound(generateId()), expectedStatus: 404 },
     {
       error: riskAnalysisConfigVersionNotFound(
         mockRiskAnalysisConfiguration.version,
@@ -90,7 +86,7 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
   it("Should return 400 if passed invalid data: %s", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, undefined, {
-      eserviceId: "invalid" as EServiceId,
+      tenantKind: "invalid" as TenantKind,
     });
     expect(res.status).toBe(400);
   });

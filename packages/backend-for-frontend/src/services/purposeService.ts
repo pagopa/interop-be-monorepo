@@ -6,11 +6,11 @@ import {
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
-  EServiceId,
   PurposeId,
   PurposeVersionDocumentId,
   PurposeVersionId,
   RiskAnalysisId,
+  TenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -719,7 +719,7 @@ export function purposeServiceBuilder(
       );
     },
     async retrieveRiskAnalysisConfigurationByVersion(
-      eserviceId: EServiceId,
+      tenantKind: TenantKind,
       riskAnalysisVersion: RiskAnalysisId,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.RiskAnalysisFormConfig> {
@@ -733,7 +733,7 @@ export function purposeServiceBuilder(
             riskAnalysisVersion,
           },
           queries: {
-            eserviceId,
+            tenantKind,
           },
           headers,
         }

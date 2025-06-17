@@ -195,11 +195,7 @@ export const retrieveRiskAnalysisConfigurationByVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "eserviceNotFound",
-      "riskAnalysisConfigVersionNotFound",
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("riskAnalysisConfigVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const retrieveLatestRiskAnalysisConfigurationErrorMapper = (

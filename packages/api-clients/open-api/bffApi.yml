@@ -13995,23 +13995,22 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/riskAnalysis/version/{riskAnalysisVersion}:
-    parameters:
-      - name: riskAnalysisVersion
-        in: path
-        required: true
-        schema:
-          type: string
-      - name: eserviceId
-        in: query
-        required: true
-        schema:
-          type: string
-          format: uuid
     get:
       tags:
         - purposes
       operationId: retrieveRiskAnalysisConfigurationByVersion
       description: Retrieve a specified version of risk analysis configuration
+      parameters:
+        - name: riskAnalysisVersion
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: tenantKind
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/TenantKind"
       responses:
         "200":
           description: Risk analysis requested

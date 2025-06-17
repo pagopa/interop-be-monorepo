@@ -428,7 +428,7 @@ const purposeRouter = (
         try {
           const result =
             await purposeService.retrieveRiskAnalysisConfigurationByVersion(
-              unsafeBrandId(req.query.eserviceId),
+              req.query.tenantKind,
               unsafeBrandId(req.params.riskAnalysisVersion),
               ctx
             );

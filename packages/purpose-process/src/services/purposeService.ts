@@ -1418,27 +1418,17 @@ export function purposeServiceBuilder(
       };
     },
     async retrieveRiskAnalysisConfigurationByVersion({
-      eserviceId,
+      tenantKind,
       riskAnalysisVersion,
-      ctx: { logger, authData },
+      ctx: { logger },
     }: {
-      eserviceId: EServiceId;
+      tenantKind: TenantKind;
       riskAnalysisVersion: string;
       ctx: WithLogger<AppContext<UIAuthData>>;
     }): Promise<RiskAnalysisFormRules> {
       logger.info(
         `Retrieve version ${riskAnalysisVersion} of risk analysis configuration`
       );
-      // No permission checks needed for this route, as the configuration
-      // is the same for all tenants of the same kind and is not specific to a purpose.
-
-      const eservice = await retrieveEService(eserviceId, readModelService);
-      const tenantKind = await retrieveKindOfInvolvedTenantByEServiceMode(
-        eservice,
-        authData.organizationId,
-        readModelService
-      );
-
       const riskAnalysisFormConfig = getFormRulesByVersion(
         tenantKind,
         riskAnalysisVersion
