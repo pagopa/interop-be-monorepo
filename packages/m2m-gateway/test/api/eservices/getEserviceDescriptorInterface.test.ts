@@ -11,13 +11,16 @@ import {
 } from "../../../src/model/errors.js";
 
 describe("GET /eservice/:eserviceId/descriptors/:descriptorId/interface router test", () => {
-  const mockM2MEserviceDescriptorInterfaceResponse = {
-    file: Buffer.from(`This is a mock file content for testing purposes.
+  const mockFileName = "mockFileName.txt";
+  const mockContentType = "text/plain";
+  const mockFileContent = `This is a mock file content for testing purposes.
 It simulates the content of an Eservice descriptor interface file.
-On multiple lines.
-`),
-    filename: "mockFileName.txt",
-    contentType: "text/plain",
+On multiple lines.`;
+
+  const mockM2MEserviceDescriptorInterfaceResponse = {
+    file: Buffer.from(mockFileContent),
+    filename: mockFileName,
+    contentType: mockContentType,
   };
 
   const makeRequest = async (
@@ -32,17 +35,13 @@ On multiple lines.
       .set("Authorization", `Bearer ${token}`)
       .buffer(true)
       .parse((res, cb) => {
-        let data = Buffer.from("");
-        res.on("data", function (chunk) {
-          data = Buffer.concat([data, chunk]);
-        });
-        res.on("end", function () {
-          res.text = data.toString();
+        const chunks: Buffer[] = [];
+        res.on("data", (c: Buffer) => chunks.push(c));
+        res.once("end", function () {
+          res.text = Buffer.concat(chunks).toString("utf8");
           cb(null, res);
         });
-        res.on("error", function (err) {
-          cb(err, null);
-        });
+        res.once("error", cb);
       });
 
   const authorizedRoles: AuthRole[] = [
@@ -61,30 +60,32 @@ On multiple lines.
 
       expect(res.status).toBe(200);
       expect(res.headers["content-type"]).toMatch(
-        /multipart\/form-data; boundary=form-data-encoder-*/
+        /^multipart\/form-data;\s*boundary=form-data-encoder-[A-Za-z0-9]+/
       );
       const boundary = res.headers["content-type"].match(/boundary=(.*)$/)![1];
 
-      const expectedText =
-        `--${boundary}\r\n` +
-        `Content-Disposition: form-data; name="file"; filename="${mockM2MEserviceDescriptorInterfaceResponse.filename}"\r\n` +
-        `Content-Type: ${mockM2MEserviceDescriptorInterfaceResponse.contentType}\r\n` +
-        `\r\n` +
-        `${mockM2MEserviceDescriptorInterfaceResponse.file.toString()}\r\n` +
-        `--${boundary}\r\n` +
-        `Content-Disposition: form-data; name="filename"\r\n` +
-        `\r\n` +
-        `${mockM2MEserviceDescriptorInterfaceResponse.filename}\r\n` +
-        `--${boundary}\r\n` +
-        `Content-Disposition: form-data; name="contentType"\r\n` +
-        `\r\n` +
-        `${mockM2MEserviceDescriptorInterfaceResponse.contentType}\r\n` +
-        `--${boundary}--\r\n` +
-        `\r\n`;
+      const CRLF = "\r\n";
+      const expectedMultipart = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="file"; filename="${mockFileName}"`,
+        `Content-Type: ${mockContentType}`,
+        ``,
+        mockFileContent,
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="filename"`,
+        ``,
+        mockFileName,
+        `--${boundary}`,
+        `Content-Disposition: form-data; name="contentType"`,
+        ``,
+        mockContentType,
+        `--${boundary}--`,
+        CRLF,
+      ].join(CRLF);
 
-      expect(res.body.text).toEqual(expectedText);
+      expect(res.body.text).toEqual(expectedMultipart);
       expect(res.headers["content-length"]).toBe(
-        expectedText.length.toString()
+        Buffer.byteLength(expectedMultipart, "utf8").toString()
       );
     }
   );
