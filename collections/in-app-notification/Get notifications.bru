@@ -1,0 +1,16 @@
+meta {
+  name: Get notifications
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-in-app-notification}}/notifications
+  body: none
+  auth: inherit
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

@@ -16,7 +16,7 @@ servers:
 security:
   - bearerAuth: []
 tags:
-  - name: manager
+  - name: notification
     description: Implements in app notification manager
     externalDocs:
       description: Find out more
@@ -27,6 +27,34 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
+  /notifications:
+    get:
+      tags:
+        - notification
+      summary: Get all notifications
+      description: Returns a list of all notifications for the requester
+      operationId: getNotifications
+      responses:
+        "200":
+          description: A list of notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Notification"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
@@ -51,6 +79,35 @@ components:
       schema:
         type: string
   schemas:
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the notification
+        userId:
+          type: string
+          format: uuid
+          description: ID of the user
+        tenantId:
+          type: string
+          format: uuid
+          description: ID of the tenant
+        body:
+          type: string
+          description: Content of the notification
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the notification was read
+      required:
+        - id
+        - userId
+        - tenantId
+        - body
+        - readAt
     Problem:
       properties:
         type:
