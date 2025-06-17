@@ -6,8 +6,8 @@ import { applicationAuditBeginMiddleware } from "pagopa-interop-application-audi
 import { applicationAuditEndMiddleware } from "pagopa-interop-application-audit";
 import { authenticationMiddleware } from "pagopa-interop-commons";
 import { loggerMiddleware } from "pagopa-interop-commons";
-import { notificationRouter } from "./routers/NotificationRouter.js";
-import healthRouter from "./routers/HealthRouter.js";
+import { notificationRouter } from "./routers/notificationRouter.js";
+import healthRouter from "./routers/healthRouter.js";
 import { InAppNotificationService } from "./services/inAppNotificationService.js";
 import { config } from "./config/config.js";
 
