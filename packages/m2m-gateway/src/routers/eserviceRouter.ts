@@ -1,4 +1,5 @@
 import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -15,7 +16,10 @@ import { FormData, File } from "formdata-node";
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
-import { getEserviceDescriptorErrorMapper } from "../utils/errorMappers.js";
+import {
+  getEserviceDescriptorErrorMapper,
+  getEserviceDescriptorInterfaceErrorMapper,
+} from "../utils/errorMappers.js";
 
 const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
@@ -143,12 +147,14 @@ const eserviceRouter = (
           const encoder = new FormDataEncoder(form);
 
           res.writeHead(200, encoder.headers);
-          Readable.from(encoder.encode()).pipe(res);
+
+          // Stream the multipart body and end the response when done
+          await pipeline(Readable.from(encoder.encode()), res);
           return res;
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEserviceDescriptorErrorMapper,
+            getEserviceDescriptorInterfaceErrorMapper,
             ctx,
             `Error retrieving interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
