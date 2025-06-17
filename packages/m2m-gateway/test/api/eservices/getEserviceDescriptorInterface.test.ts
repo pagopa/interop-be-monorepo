@@ -34,14 +34,15 @@ On multiple lines.`;
       )
       .set("Authorization", `Bearer ${token}`)
       .buffer(true)
-      .parse((res, cb) => {
+      .parse((res, done) => {
         const chunks: Buffer[] = [];
         res.on("data", (c: Buffer) => chunks.push(c));
         res.once("end", function () {
-          res.text = Buffer.concat(chunks).toString("utf8");
-          cb(null, res);
+          const buf = Buffer.concat(chunks);
+          res.text = buf.toString("utf8");
+          done(null, res);
         });
-        res.once("error", cb);
+        res.once("error", done);
       });
 
   const authorizedRoles: AuthRole[] = [
@@ -83,7 +84,7 @@ On multiple lines.`;
         CRLF,
       ].join(CRLF);
 
-      expect(res.body.text).toEqual(expectedMultipart);
+      expect(res.text).toEqual(expectedMultipart);
       expect(res.headers["content-length"]).toBe(
         Buffer.byteLength(expectedMultipart, "utf8").toString()
       );
