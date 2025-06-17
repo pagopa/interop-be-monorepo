@@ -336,7 +336,7 @@ export function eserviceTemplateServiceBuilder(
           creatorTenant
         ),
         isAlreadyInstantiated,
-        ...(hasRequesterRiskAnalysis && { hasRequesterRiskAnalysis }),
+        ...(hasRequesterRiskAnalysis !== null && { hasRequesterRiskAnalysis }),
       };
     },
     getEServiceTemplate: async (
