@@ -189,10 +189,11 @@ export function invalidDPoPSignature(): ApiError<ErrorCodes> {
 
 export function expiredDPoPProof(
   iat: number,
-  currentTime: number
+  currentTime: number,
+  duration: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Expired DPoP proof with iat ${iat}. Requested at: ${currentTime}`,
+    detail: `Expired DPoP proof with iat ${iat}. Requested at: ${currentTime}. A DPoP proof is valid for ${duration} seconds.`,
     code: "expiredDPoPProof",
     title: "Expired DPoP proof",
   });
@@ -203,7 +204,7 @@ export function notYetValidDPoPProof(
   currentTime: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Not yet valid DPoP proof with iat ${iat}. Requested at: ${currentTime}`,
+    detail: `Not yet valid DPoP proof with iat ${iat}. Requested at: ${currentTime}.`,
     code: "notYetValidDPoPProof",
     title: "Not yet valid DPoP proof",
   });

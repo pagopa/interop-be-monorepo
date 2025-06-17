@@ -107,11 +107,14 @@ export const validateIat = (
   }
 
   const currentTime = dateToSeconds(new Date());
+  const dpopProofDuration = 60;
 
   if (currentTime < iat) {
     return failedValidation([notYetValidDPoPProof(iat, currentTime)]);
-  } else if (currentTime > iat + 60) {
-    return failedValidation([expiredDPoPProof(iat, currentTime)]);
+  } else if (currentTime > iat + dpopProofDuration) {
+    return failedValidation([
+      expiredDPoPProof(iat, currentTime, dpopProofDuration),
+    ]);
   }
 
   return successfulValidation(iat);

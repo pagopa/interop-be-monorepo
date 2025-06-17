@@ -277,7 +277,7 @@ describe("DPoP validation tests", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors?.[0].code).toBe(
-        expiredDPoPProof(expiredIat, dateToSeconds(new Date())).code
+        expiredDPoPProof(expiredIat, dateToSeconds(new Date()), 60).code
       );
     });
 
