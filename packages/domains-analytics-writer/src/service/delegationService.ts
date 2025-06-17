@@ -7,8 +7,6 @@ import { DelegationItemsSchema } from "../model/delegation/delegation.js";
 import { delegationRepository } from "../repository/delegation/delegation.repository.js";
 import { delegationStampRepository } from "../repository/delegation/delegationStamp.repository.js";
 import { delegationContractDocumentRepository } from "../repository/delegation/delegationContractDocument.repository.js";
-import { cleaningTargetTables } from "../utils/sqlQueryHelper.js";
-import { DelegationDbTable } from "../model/db/delegation.js";
 
 export function delegationServiceBuilder(dbContext: DBContext) {
   const delegationRepo = delegationRepository(dbContext.conn);
@@ -63,18 +61,6 @@ export function delegationServiceBuilder(dbContext: DBContext) {
         await delegationRepo.merge(t);
         await stampRepo.merge(t);
         await contractDocumentRepo.merge(t);
-      });
-
-      await dbContext.conn.tx(async (t) => {
-        await cleaningTargetTables(
-          t,
-          "delegationId",
-          [
-            DelegationDbTable.delegation_contract_document,
-            DelegationDbTable.delegation_stamp,
-          ],
-          DelegationDbTable.delegation
-        );
       });
 
       genericLogger.info(
