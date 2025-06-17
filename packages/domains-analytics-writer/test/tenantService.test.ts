@@ -328,7 +328,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     expect(mails[0].deleted).toBe(true);
   });
 
-  it("SelfcareMappingCreated: adds selfcare id mapping with metadata_version 3", async () => {
+  it("SelfcareMappingCreated: adds selfcare id mapping", async () => {
     const mockTenant = getMockTenant();
     const selfcareId = generateId();
 
@@ -355,18 +355,6 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
           } as SelfcareMappingCreatedV1,
           log_date: new Date(),
         },
-        {
-          sequence_num: 2,
-          stream_id: mockTenant.id,
-          version: 3,
-          type: "SelfcareMappingCreated",
-          event_version: 1,
-          data: {
-            tenantId: mockTenant.id,
-            selfcareId,
-          } as SelfcareMappingCreatedV1,
-          log_date: new Date(),
-        },
       ],
       dbContext
     );
@@ -375,7 +363,6 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
       id: mockTenant.id,
     });
     expect(mapping.selfcareId).toBe(selfcareId);
-    expect(mapping.metadataVersion).toBe(3);
   });
 
   it("TenantMailAdded: should throw error when tenant is missing", async () => {

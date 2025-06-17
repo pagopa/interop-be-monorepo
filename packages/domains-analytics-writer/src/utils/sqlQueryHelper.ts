@@ -217,21 +217,14 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
  *
  * @param tableName - The base table name.
  * @param keyConditions - Array of column keys used to match records for deletion.
- * @param partialTableName - Staging table name for partial upsert.
  * @returns A SQL string containing two DELETE statements to perform staging cleanup.
  */
 export function generateStagingDeleteQuery<
   T extends DomainDbTable,
   ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>
->(
-  tableName: T,
-  keyConditions: ColumnKeys[],
-  partialTableName?: PartialDbTable
-): string {
+>(tableName: T, keyConditions: ColumnKeys[]): string {
   const snakeCaseMapper = getColumnNameMapper(tableName);
-  const stagingTableName = `${partialTableName ?? tableName}_${
-    config.mergeTableSuffix
-  }`;
+  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   const whereCondition = keyConditions
     .map((key) => {
