@@ -684,7 +684,8 @@ describe("authorization server tests", () => {
     vi.setSystemTime(new Date());
 
     const clientId = generateId<ClientId>();
-    const expiredIat = Math.floor(Date.now() / 1000) - 61;
+    const dpopProofDuration = 60;
+    const expiredIat = Math.floor(Date.now() / 1000) - dpopProofDuration - 1;
 
     const { dpopProofJWS } = await getMockDPoPProof({
       customPayload: {
@@ -715,7 +716,11 @@ describe("authorization server tests", () => {
     ).rejects.toThrowError(
       dpopProofValidationFailed(
         request.body.client_id,
-        expiredDPoPProof(expiredIat, dateToSeconds(new Date())).detail
+        expiredDPoPProof(
+          expiredIat,
+          dateToSeconds(new Date()),
+          dpopProofDuration
+        ).detail
       )
     );
 
