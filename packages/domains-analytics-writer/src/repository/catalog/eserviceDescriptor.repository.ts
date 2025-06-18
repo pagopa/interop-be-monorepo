@@ -12,14 +12,22 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
+  DescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
-import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
+import {
+  CatalogDbPartialTable,
+  CatalogDbTable,
+  DeletingDbTable,
+} from "../../model/db/index.js";
 
 export function eserviceDescriptorRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = CatalogDbTable.eservice_descriptor;
+  const descriptorServerUrlsTableName =
+    CatalogDbPartialTable.descriptor_server_urls;
+  const stagingDescriptorServerUrlsTableName = `${CatalogDbPartialTable.descriptor_server_urls}_${config.mergeTableSuffix}`;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
   const deletingTableName = DeletingDbTable.catalog_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
@@ -111,6 +119,56 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
       } catch (error: unknown) {
         throw genericInternalError(
           `Error cleaning deleting staging table ${stagingDeletingTableName}: ${error}`
+        );
+      }
+    },
+
+    async insertServerUrls(
+      t: ITask<unknown>,
+      pgp: IMain,
+      records: DescriptorServerUrlsSchema[]
+    ): Promise<void> {
+      try {
+        const cs = buildColumnSet(
+          pgp,
+          descriptorServerUrlsTableName,
+          DescriptorServerUrlsSchema
+        );
+
+        await t.none(pgp.helpers.insert(records, cs));
+        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error inserting into staging table ${stagingDescriptorServerUrlsTableName}: ${error}`
+        );
+      }
+    },
+
+    async mergeServerUrls(t: ITask<unknown>): Promise<void> {
+      try {
+        const mergeQuery = generateMergeQuery(
+          DescriptorServerUrlsSchema,
+          schemaName,
+          tableName,
+          ["id"],
+          descriptorServerUrlsTableName
+        );
+        await t.none(mergeQuery);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error merging staging table ${stagingDescriptorServerUrlsTableName} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async cleanServerUrls(): Promise<void> {
+      try {
+        await conn.none(
+          `TRUNCATE TABLE ${stagingDescriptorServerUrlsTableName};`
+        );
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning deleting staging table ${stagingDescriptorServerUrlsTableName}: ${error}`
         );
       }
     },

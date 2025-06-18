@@ -109,7 +109,6 @@ export async function handleAuthorizationMessageV1(
           ClientUserDeletingSchema.parse({
             clientId: client.id,
             userId: msg.data.userId,
-            deleted: true,
           } satisfies z.input<typeof ClientUserDeletingSchema>)
         );
       })
@@ -134,7 +133,6 @@ export async function handleAuthorizationMessageV1(
           ClientPurposeDeletingSchema.parse({
             clientId: msg.data.clientId,
             purposeId: msg.data.purposeId,
-            deleted: true,
           } satisfies z.input<typeof ClientPurposeDeletingSchema>)
         );
       })

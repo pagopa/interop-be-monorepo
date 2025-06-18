@@ -1,42 +1,38 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
+  generateMergeDeleteQuery,
+  generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import {
-  generateMergeDeleteQuery,
-  generateMergeQuery,
-} from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
+  DeletingDbTable,
+  ProducerKeychainDbTable,
+} from "../../model/db/index.js";
 import {
-  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
-  EserviceDescriptorInterfaceSchema,
-} from "../../model/catalog/eserviceDescriptorInterface.js";
-import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
+  ProducerKeychainSchema,
+  ProducerKeychainDeletingSchema,
+} from "../../model/authorization/producerKeychain.js";
 
-export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
+export function producerKeychainRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = CatalogDbTable.eservice_descriptor_interface;
+  const tableName = ProducerKeychainDbTable.producer_keychain;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName =
-    DeletingDbTable.catalog_descriptor_interface_deleting_table;
+  const deletingTableName = DeletingDbTable.producer_keychain_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EserviceDescriptorInterfaceSchema[]
+      records: ProducerKeychainSchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(
-          pgp,
-          tableName,
-          EserviceDescriptorInterfaceSchema
-        );
+        const cs = buildColumnSet(pgp, tableName, ProducerKeychainSchema);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(generateStagingDeleteQuery(tableName, ["id"]));
       } catch (error: unknown) {
@@ -49,7 +45,7 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          EserviceDescriptorInterfaceSchema,
+          ProducerKeychainSchema,
           schemaName,
           tableName,
           ["id"]
@@ -75,51 +71,38 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EserviceDescriptorDocumentOrInterfaceDeletingSchema[]
+      records: ProducerKeychainDeletingSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           deletingTableName,
-          EserviceDescriptorDocumentOrInterfaceDeletingSchema
+          ProducerKeychainDeletingSchema
         );
         await t.none(
           pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
         );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingDeletingTableName}: ${error}`
+          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
 
-    async mergeDeleting(
-      t: ITask<unknown>,
-      idsToDelete: string[]
-    ): Promise<string[]> {
+    async mergeDeleting(t: ITask<unknown>): Promise<void> {
       try {
-        const idParams = idsToDelete.map((_, i) => `$${i + 1}`).join(", ");
-
-        const existingIds = await t.map<string>(
-          `SELECT id 
-          FROM ${schemaName}.${tableName}
-          WHERE id IN (${idParams})`,
-          idsToDelete,
-          (row) => row.id
-        );
-
         const mergeQuery = generateMergeDeleteQuery(
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["id"],
+          false,
+          false
         );
         await t.none(mergeQuery);
-
-        return existingIds;
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
+          `Error merging deletion flag from ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -135,7 +118,3 @@ export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
     },
   };
 }
-
-export type EserviceDescriptorInterfaceRepository = ReturnType<
-  typeof eserviceDescriptorInterfaceRepository
->;
