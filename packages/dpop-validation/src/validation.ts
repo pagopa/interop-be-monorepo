@@ -43,10 +43,12 @@ export const verifyDPoPProof = ({
   dpopProofJWS,
   expectedDPoPProofHtu,
   dpopProofIatToleranceSeconds,
+  dpopProofDurationSeconds,
 }: {
   dpopProofJWS: string;
   expectedDPoPProofHtu: string;
   dpopProofIatToleranceSeconds: number;
+  dpopProofDurationSeconds: number;
 }): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
   try {
     if (dpopProofJWS.split(",").length > 1) {
@@ -77,7 +79,8 @@ export const verifyDPoPProof = ({
     );
     const { errors: iatErrors, data: validatedIat } = validateIat(
       decodedPayload.iat,
-      dpopProofIatToleranceSeconds
+      dpopProofIatToleranceSeconds,
+      dpopProofDurationSeconds
     );
     const { errors: jtiErrors, data: validatedJti } = validateJti(
       decodedPayload.jti
@@ -177,11 +180,13 @@ export const checkDPoPCache = async ({
   dpopProofJti,
   dpopProofIat,
   dpopCacheTable,
+  dpopProofDurationSeconds,
 }: {
   dynamoDBClient: DynamoDBClient;
   dpopProofJti: string;
   dpopProofIat: number;
   dpopCacheTable: string;
+  dpopProofDurationSeconds: number;
 }): Promise<ValidationResult<string>> => {
   const dpopCache = await readDPoPCache(
     dynamoDBClient,
@@ -197,6 +202,7 @@ export const checkDPoPCache = async ({
     dpopCacheTable,
     jti: dpopProofJti,
     iat: dpopProofIat,
+    durationSeconds: dpopProofDurationSeconds,
   });
 
   return successfulValidation(dpopProofJti);

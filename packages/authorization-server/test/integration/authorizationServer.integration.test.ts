@@ -78,6 +78,7 @@ import {
   tokenService,
 } from "../integrationUtils.js";
 import {
+  dpopConfig,
   getMockTokenRequest,
   mockKMSClient,
   mockProducer,
@@ -679,13 +680,13 @@ describe("authorization server tests", () => {
     );
   });
 
-  it("should throw dpopProofValidationFailed - iat is more than 60 seconds ago", async () => {
+  it("should throw dpopProofValidationFailed - iat is too old", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
     const clientId = generateId<ClientId>();
-    const dpopProofDuration = 60;
-    const expiredIat = Math.floor(Date.now() / 1000) - dpopProofDuration - 1;
+    const expiredIat =
+      Math.floor(Date.now() / 1000) - dpopConfig!.dpopDurationSeconds - 1;
 
     const { dpopProofJWS } = await getMockDPoPProof({
       customPayload: {
@@ -719,7 +720,7 @@ describe("authorization server tests", () => {
         expiredDPoPProof(
           expiredIat,
           dateToSeconds(new Date()),
-          dpopProofDuration
+          dpopConfig!.dpopDurationSeconds
         ).detail
       )
     );

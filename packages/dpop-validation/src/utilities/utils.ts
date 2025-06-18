@@ -101,21 +101,21 @@ export const validateHtu = (
 
 export const validateIat = (
   iat: number | undefined,
-  toleranceSeconds: number
+  toleranceSeconds: number,
+  durationSeconds: number
 ): ValidationResult<number> => {
   if (!iat) {
     return failedValidation([dpopIatNotFound()]);
   }
 
   const currentTime = dateToSeconds(new Date());
-  const dpopProofDuration = 60;
 
   // There's a tolerance of some seconds to accommodate for clock offsets between the client and the server
   if (currentTime + toleranceSeconds < iat) {
     return failedValidation([notYetValidDPoPProof(iat, currentTime)]);
-  } else if (currentTime > iat + dpopProofDuration) {
+  } else if (currentTime > iat + durationSeconds) {
     return failedValidation([
-      expiredDPoPProof(iat, currentTime, dpopProofDuration),
+      expiredDPoPProof(iat, currentTime, durationSeconds),
     ]);
   }
 

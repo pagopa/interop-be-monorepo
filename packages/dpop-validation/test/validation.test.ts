@@ -41,6 +41,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeUndefined();
@@ -56,6 +57,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeDefined();
@@ -73,6 +75,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeDefined();
@@ -92,6 +95,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS: dpopProofWithWrongSignature,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeUndefined();
     });
@@ -101,6 +105,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS: "too.many.substrings.in.dpop.proof",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors1).toBeDefined();
       expect(errors1).toHaveLength(1);
@@ -110,6 +115,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS: "not a jwt",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors2).toBeDefined();
       expect(errors2).toHaveLength(1);
@@ -119,6 +125,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS: "not.a.jwt",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors3).toBeDefined();
       expect(errors3).toHaveLength(1);
@@ -130,6 +137,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS: "signature.missing",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors4).toBeDefined();
       expect(errors4).toHaveLength(1);
@@ -147,6 +155,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -165,6 +174,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -182,6 +192,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -200,6 +211,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -217,6 +229,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -235,6 +248,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -252,6 +266,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -270,6 +285,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -290,6 +306,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeUndefined();
     });
@@ -306,11 +323,16 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors?.[0].code).toBe(
-        expiredDPoPProof(expiredIat, dateToSeconds(new Date()), 60).code
+        expiredDPoPProof(
+          expiredIat,
+          dateToSeconds(new Date()),
+          dpopConfig!.dpopDurationSeconds
+        ).code
       );
     });
 
@@ -325,6 +347,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS,
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -336,6 +359,7 @@ describe("DPoP validation tests", async () => {
         dpopProofJWS: "dpopProof1, dpopProof2",
         expectedDPoPProofHtu: dpopConfig!.dpopHtu,
         dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -397,6 +421,7 @@ describe("DPoP validation tests", async () => {
         dpopCacheTable,
         dpopProofJti: dpopProofJWT.payload.jti,
         dpopProofIat: dpopProofJWT.payload.iat,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeUndefined();
@@ -410,6 +435,7 @@ describe("DPoP validation tests", async () => {
         dpopCacheTable,
         iat: dpopProofJWT.payload.iat,
         jti: dpopProofJWT.payload.jti,
+        durationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       const { errors } = await checkDPoPCache({
@@ -417,6 +443,7 @@ describe("DPoP validation tests", async () => {
         dpopCacheTable,
         dpopProofJti: dpopProofJWT.payload.jti,
         dpopProofIat: dpopProofJWT.payload.iat,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeDefined();
