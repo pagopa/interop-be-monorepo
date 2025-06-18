@@ -78,7 +78,7 @@ paths:
   /notifications/{notificationId}/markAsRead:
     post:
       tags:
-        - notifications
+        - notification
       summary: Mark a notification as read
       description: Mark a notification as read
       operationId: markNotificationAsRead
@@ -101,6 +101,38 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Notification not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/markAsRead:
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - notification
+      summary: Mark a list of notifications as read
+      description: Mark a list of notifications as read
+      operationId: markNotificationsAsRead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "204":
+          description: Notifications marked as read
+        "401":
+          description: Unauthorized
           content:
             application/problem+json:
               schema:

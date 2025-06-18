@@ -54,6 +54,24 @@ export const notificationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/notifications/markAsRead", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const { ids } = req.body;
+        await service.markNotificationsAsRead(ids, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error marking notifications as read"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/notifications/:notificationId/markAsRead",
       async function (req, res) {

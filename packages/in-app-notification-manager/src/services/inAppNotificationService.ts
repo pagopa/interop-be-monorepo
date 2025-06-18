@@ -6,7 +6,7 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { and, eq, ilike, desc, getTableColumns } from "drizzle-orm";
+import { and, eq, ilike, desc, inArray, getTableColumns } from "drizzle-orm";
 import {
   fromNotificationSQL,
   ListResult,
@@ -73,6 +73,30 @@ export function inAppNotificationServiceBuilder(
       if (!updated.length) {
         throw notificationNotFound();
       }
+    },
+    markNotificationsAsRead: async (
+      ids: string[],
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> => {
+      logger.info(`Marking ${ids.length} notifications as read`);
+
+      if (ids.length === 0) {
+        return;
+      }
+
+      await db
+        .update(notification)
+        .set({ readAt: new Date().toISOString() })
+        .where(
+          and(
+            inArray(notification.id, ids),
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId)
+          )
+        );
     },
   };
 }
