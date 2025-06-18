@@ -58,9 +58,8 @@ describe("API GET /attributes", () => {
 
   it.each([
     { query: {} },
-    { query: { offset: 0 } },
-    { query: { limit: 5 } },
-    { query: { kinds: [] } },
+    { query: { ...defaultQuery, offset: undefined } },
+    { query: { ...defaultQuery, limit: undefined } },
     { query: { ...defaultQuery, offset: "invalid" } },
     { query: { ...defaultQuery, limit: "invalid" } },
     { query: { ...defaultQuery, kinds: "invalid" } },
