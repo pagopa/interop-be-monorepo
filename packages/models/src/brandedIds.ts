@@ -167,6 +167,12 @@ export type EServiceTemplateVersionId = z.infer<
   typeof EServiceTemplateVersionId
 >;
 
+export const NotificationTenantId = z
+  .string()
+  .uuid()
+  .brand("NotificationTenantId");
+export type NotificationTenantId = z.infer<typeof NotificationTenantId>;
+
 type IDS =
   | CorrelationId
   | SpanId
@@ -201,7 +207,8 @@ type IDS =
   | GSIPKClientIdPurposeId
   | GSIPKClientIdKid
   | EServiceTemplateId
-  | EServiceTemplateVersionId;
+  | EServiceTemplateVersionId
+  | NotificationTenantId;
 
 // This function is used to generate a new ID for a new object
 // it infers the type of the ID based on how is used the result

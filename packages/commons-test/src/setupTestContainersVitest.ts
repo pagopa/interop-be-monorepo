@@ -274,6 +274,9 @@ export async function setupTestContainersVitest(
       await postgresDB?.none(
         "TRUNCATE TABLE eservice_template.events RESTART IDENTITY"
       );
+      await postgresDB?.none(
+        "TRUNCATE TABLE notification_config.events RESTART IDENTITY"
+      );
 
       // CLEANUP READMODEL-SQL TABLES
       await readModelDB?.execute(

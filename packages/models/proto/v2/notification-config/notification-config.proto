@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package notification.config.v2;
+
+message EServiceConsumerNotificationConfigV2 {
+  bool newEServiceVersionPublished = 1;
+}
+
+message ConsumerNotificationConfigV2 {
+  EServiceConsumerNotificationConfigV2 eService = 1;
+}
+
+message NotificationConfigV2 {
+  ConsumerNotificationConfigV2 consumer = 1;
+}
+
+message NotificationTenantV2 {
+  string id = 1;
+  string tenantId = 2;
+  NotificationConfigV2 config = 3;
+}

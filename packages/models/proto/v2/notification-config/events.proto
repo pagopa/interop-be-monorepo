@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package notification.config.v2;
+
+import "v2/notification-config/notification-config.proto";
+
+message NotificationTenantConfigUpdatedV2 {
+  NotificationTenantV2 notificationTenant = 1;
+}
