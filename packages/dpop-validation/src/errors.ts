@@ -21,7 +21,8 @@ export const errorCodes = {
   dpopProofInvalidClaims: "0018",
   invalidDPoPSignature: "0019",
   expiredDPoPProof: "0020",
-  multipleDPoPProofsError: "0021",
+  notYetValidDPoPProof: "0021",
+  multipleDPoPProofsError: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -188,12 +189,25 @@ export function invalidDPoPSignature(): ApiError<ErrorCodes> {
 
 export function expiredDPoPProof(
   iat: number,
-  currentTime: number
+  currentTime: number,
+  durationSeconds: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Expired DPoP proof with iat ${iat}. Requested at: ${currentTime}`,
+    detail: `Expired DPoP proof with iat ${iat}. Requested at: ${currentTime}. A DPoP proof is valid for ${durationSeconds} seconds.`,
     code: "expiredDPoPProof",
     title: "Expired DPoP proof",
+  });
+}
+
+export function notYetValidDPoPProof(
+  iat: number,
+  currentTime: number,
+  toleranceSeconds: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Not yet valid DPoP proof with iat ${iat}. Requested at: ${currentTime}. A DPoP proof iat has a tolerance of ${toleranceSeconds} seconds.`,
+    code: "notYetValidDPoPProof",
+    title: "Not yet valid DPoP proof",
   });
 }
 
