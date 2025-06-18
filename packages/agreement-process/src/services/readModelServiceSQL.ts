@@ -47,7 +47,7 @@ import {
   withTotalCount,
 } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { alias, PgSelect } from "drizzle-orm/pg-core";
+import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
 import {
   CompactEService,
   CompactOrganization,
@@ -287,6 +287,36 @@ const getConsumerIdsFilter = (
       )
     : undefined;
 
+const getEServiceIdsFilter = (eserviceIds: EServiceId[]): SQL | undefined =>
+  eserviceIds.length > 0
+    ? inArray(agreementInReadmodelAgreement.eserviceId, eserviceIds)
+    : undefined;
+
+const getDescriptorIdsFilter = (
+  descriptorIds: DescriptorId[]
+): SQL | undefined =>
+  descriptorIds.length > 0
+    ? inArray(agreementInReadmodelAgreement.descriptorId, descriptorIds)
+    : undefined;
+
+const getAttributeIdsFilter = (attributeIds: AttributeId[]): SQL | undefined =>
+  attributeIds.length > 0
+    ? inArray(agreementAttributeInReadmodelAgreement.attributeId, attributeIds)
+    : undefined;
+
+const getAgreementStatesFilter = (states: AgreementState[]): SQL | undefined =>
+  states && states.length > 0
+    ? inArray(agreementInReadmodelAgreement.state, states)
+    : undefined;
+
+const getNameFilter = (
+  column: PgColumn,
+  comparisonName: string | undefined
+): SQL | undefined =>
+  comparisonName !== undefined
+    ? ilike(column, `%${escapeRegExp(comparisonName)}%`)
+    : undefined;
+
 const getAgreementsFilters = <
   T extends
     | { requesterId: TenantId; withVisibilityAndDelegationFilters: true }
@@ -311,40 +341,15 @@ const getAgreementsFilters = <
   } = explicitFilters(filters);
 
   return and(
-    // VISIBILITY
-    withVisibilityAndDelegationFilters && requesterId
+    withVisibilityAndDelegationFilters
       ? getVisibilityFilter(requesterId)
       : undefined,
-    // END // VISIBILITY
-    // PRODUCERS
     getProducerIdsFilter(producerIds, withVisibilityAndDelegationFilters),
-    // END PRODUCERS
-    // CONSUMERS
     getConsumerIdsFilter(consumerIds, withVisibilityAndDelegationFilters),
-    // END CONSUMERS
-    // ESERVICES
-    eserviceIds.length > 0
-      ? inArray(agreementInReadmodelAgreement.eserviceId, eserviceIds)
-      : undefined,
-    // END ESERVICES
-    // DESCRIPTORS
-    descriptorIds.length > 0
-      ? inArray(agreementInReadmodelAgreement.descriptorId, descriptorIds)
-      : undefined,
-    // END DESCRIPTORS
-    // ATTRIBUTES
-    attributeIds.length > 0
-      ? inArray(
-          agreementAttributeInReadmodelAgreement.attributeId,
-          attributeIds
-        )
-      : undefined,
-    // END ATTRIBUTES
-    // AGREEMENT STATES
-    states && states.length > 0
-      ? inArray(agreementInReadmodelAgreement.state, states)
-      : undefined
-    // END AGREEMENT STATES
+    getEServiceIdsFilter(eserviceIds),
+    getDescriptorIdsFilter(descriptorIds),
+    getAttributeIdsFilter(attributeIds),
+    getAgreementStatesFilter(states)
   );
 };
 
@@ -654,16 +659,8 @@ export function readModelServiceBuilderSQL(
           )
           .where(
             and(
-              // FILTER NAME
-              consumerName
-                ? ilike(
-                    tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(consumerName)}%`
-                  )
-                : undefined,
-              // VISIBILITY
+              getNameFilter(tenantInReadmodelTenant.name, consumerName),
               getVisibilityFilter(requesterId)
-              // END // VISIBILITY
             )
           )
           .groupBy(tenantInReadmodelTenant.id)
@@ -702,16 +699,8 @@ export function readModelServiceBuilderSQL(
           )
           .where(
             and(
-              // FILTER NAME
-              producerName
-                ? ilike(
-                    tenantInReadmodelTenant.name,
-                    `%${escapeRegExp(producerName)}%`
-                  )
-                : undefined,
-              // VISIBILITY
+              getNameFilter(tenantInReadmodelTenant.name, producerName),
               getVisibilityFilter(requesterId)
-              // END // VISIBILITY
             )
           )
           .groupBy(tenantInReadmodelTenant.id)
@@ -753,20 +742,10 @@ export function readModelServiceBuilderSQL(
           )
           .where(
             and(
-              // FILTER NAME
-              eserviceName
-                ? ilike(
-                    eserviceInReadmodelCatalog.name,
-                    `%${escapeRegExp(eserviceName)}%`
-                  )
-                : undefined,
-              // FILTER PRODUCER
+              getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
               getProducerIdsFilter(producerIds, withDelegationFilter),
-              // FILTER CONSUMER
               getConsumerIdsFilter(consumerIds, withDelegationFilter),
-              // VISIBILITY
               getVisibilityFilter(requesterId)
-              // END // VISIBILITY
             )
           )
           .groupBy(eserviceInReadmodelCatalog.id)
