@@ -4,7 +4,7 @@ import {
   deleteDynamoDBTables,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { dateToSeconds } from "pagopa-interop-commons";
 import {
   checkDPoPCache,
@@ -274,7 +274,14 @@ describe("DPoP validation tests", async () => {
     });
 
     it("should add error if the DPoP proof IAT is greater than the current time + the tolerance (used to accommodate for clock differences between the client and the server)", async () => {
-      const futureIat = dateToSeconds(new Date()) + 11;
+      const mockDate = new Date();
+      vi.useFakeTimers();
+      vi.setSystemTime(mockDate);
+
+      const futureIat =
+        dateToSeconds(mockDate) +
+        Number(dpopConfig!.dpopIatToleranceSeconds) +
+        1;
       const { dpopProofJWS } = await getMockDPoPProof({
         customPayload: {
           iat: futureIat,
@@ -296,10 +303,13 @@ describe("DPoP validation tests", async () => {
           dpopConfig!.dpopIatToleranceSeconds
         ).code
       );
+
+      vi.useRealTimers();
     });
 
     it("should succeed if the current time + the tolerance is greater or equal than the DPoP proof IAT", async () => {
-      const futureIat = dateToSeconds(new Date()) + 10;
+      const futureIat =
+        dateToSeconds(new Date()) + Number(dpopConfig!.dpopIatToleranceSeconds);
       const { dpopProofJWS } = await getMockDPoPProof({
         customPayload: {
           iat: futureIat,
