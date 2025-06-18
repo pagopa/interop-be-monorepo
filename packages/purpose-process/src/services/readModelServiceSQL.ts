@@ -108,13 +108,37 @@ const addDelegationJoins = <T extends PgSelect>(query: T) =>
       )
     );
 
-function getPurposesFilters(
+const getProducerIdsFilter = (producersIds: TenantId[]): SQL | undefined =>
+  producersIds.length > 0
+    ? or(
+        inArray(eserviceInReadmodelCatalog.producerId, producersIds),
+        inArray(activeProducerDelegations.delegateId, producersIds)
+      )
+    : undefined;
+
+const getConsumerIdsFilter = (consumersIds: TenantId[]): SQL | undefined =>
+  consumersIds.length > 0
+    ? or(
+        inArray(purposeInReadmodelPurpose.consumerId, consumersIds),
+        inArray(activeConsumerDelegations.delegateId, consumersIds)
+      )
+    : undefined;
+
+const getVisibilityFilter = (requesterId: TenantId): SQL | undefined =>
+  or(
+    eq(eserviceInReadmodelCatalog.producerId, requesterId),
+    eq(purposeInReadmodelPurpose.consumerId, requesterId),
+    eq(activeProducerDelegations.delegateId, requesterId),
+    eq(activeConsumerDelegations.delegateId, requesterId)
+  );
+
+const getPurposesFilters = (
   db: DrizzleReturnType,
   filters: Pick<
     GetPurposesFilters,
     "title" | "eservicesIds" | "states" | "excludeDraft"
   >
-): Array<SQL | undefined> {
+): Array<SQL | undefined> => {
   const { title, eservicesIds, states, excludeDraft } = filters;
   const titleFilter = title
     ? ilike(purposeInReadmodelPurpose.title, `%${escapeRegExp(title)}%`)
@@ -163,7 +187,7 @@ function getPurposesFilters(
     : undefined;
 
   return [titleFilter, eservicesIdsFilter, versionStateFilter, draftFilter];
-}
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -236,32 +260,10 @@ export function readModelServiceBuilderSQL({
             )
           )
           .where(
-            // PRODUCER IDS
             and(
-              producersIds.length > 0
-                ? or(
-                    inArray(
-                      eserviceInReadmodelCatalog.producerId,
-                      producersIds
-                    ),
-                    inArray(activeProducerDelegations.delegateId, producersIds)
-                  )
-                : undefined,
-              // CONSUMER IDS
-              consumersIds.length > 0
-                ? or(
-                    inArray(purposeInReadmodelPurpose.consumerId, consumersIds),
-                    inArray(activeConsumerDelegations.delegateId, consumersIds)
-                  )
-                : undefined,
-              // VISIBILITY
-              or(
-                eq(eserviceInReadmodelCatalog.producerId, requesterId),
-                eq(purposeInReadmodelPurpose.consumerId, requesterId),
-                eq(activeProducerDelegations.delegateId, requesterId),
-                eq(activeConsumerDelegations.delegateId, requesterId)
-              ),
-              // PURPOSE FILTERS
+              getProducerIdsFilter(producersIds),
+              getConsumerIdsFilter(consumersIds),
+              getVisibilityFilter(requesterId),
               ...getPurposesFilters(readModelDB, otherFilters)
             )
           )
