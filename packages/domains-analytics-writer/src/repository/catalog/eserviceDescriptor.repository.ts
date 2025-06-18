@@ -12,7 +12,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import {
-  DescriptorServerUrlsSchema,
+  EserviceDescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
@@ -87,9 +87,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
           deletingTableName,
           EserviceDescriptorDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTableName}: ${error}`
@@ -126,17 +124,23 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
     async insertServerUrls(
       t: ITask<unknown>,
       pgp: IMain,
-      records: DescriptorServerUrlsSchema[]
+      records: EserviceDescriptorServerUrlsSchema[]
     ): Promise<void> {
       try {
         const cs = buildColumnSet(
           pgp,
           descriptorServerUrlsTableName,
-          DescriptorServerUrlsSchema
+          EserviceDescriptorServerUrlsSchema
         );
 
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
+        await t.none(
+          generateStagingDeleteQuery(
+            tableName,
+            ["id"],
+            descriptorServerUrlsTableName
+          )
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDescriptorServerUrlsTableName}: ${error}`
@@ -147,7 +151,7 @@ export function eserviceDescriptorRepository(conn: DBConnection) {
     async mergeServerUrls(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          DescriptorServerUrlsSchema,
+          EserviceDescriptorServerUrlsSchema,
           schemaName,
           tableName,
           ["id"],

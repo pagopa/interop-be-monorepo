@@ -24,14 +24,16 @@ export const EserviceDescriptorSchema = createSelectSchema(
   });
 export type EserviceDescriptorSchema = z.infer<typeof EserviceDescriptorSchema>;
 
-export const DescriptorServerUrlsSchema = EserviceDescriptorSchema.pick({
-  id: true,
-  serverUrls: true,
-  metadataVersion: true,
-  deleted: true,
-});
-export type DescriptorServerUrlsSchema = z.infer<
-  typeof DescriptorServerUrlsSchema
+export const EserviceDescriptorServerUrlsSchema = EserviceDescriptorSchema.pick(
+  {
+    id: true,
+    serverUrls: true,
+    metadataVersion: true,
+    deleted: true,
+  }
+);
+export type EserviceDescriptorServerUrlsSchema = z.infer<
+  typeof EserviceDescriptorServerUrlsSchema
 >;
 
 export const EserviceDescriptorDeletingSchema = EserviceDescriptorSchema.pick({

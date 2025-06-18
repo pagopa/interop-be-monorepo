@@ -66,7 +66,10 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
     })
     .join(" AND ");
 
+  const snakeCaseKeysOn = keysOn.map((k) => snakeCaseMapper(String(k)));
+
   const updateSet = keys
+    .filter((field) => !snakeCaseKeysOn.includes(field))
     .map((k) => `${quoteColumn(k)} = source.${quoteColumn(k)}`)
     .join(",\n      ");
 
@@ -78,11 +81,8 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
       MERGE INTO ${schemaName}.${tableName}
       USING ${stagingTableName} AS source
       ON ${onCondition}
-      WHEN MATCHED
-        AND source.metadata_version > ${schemaName}.${tableName}.metadata_version
-      THEN
-        UPDATE SET
-          ${updateSet}
+      WHEN MATCHED THEN
+        UPDATE SET ${updateSet}
       WHEN NOT MATCHED THEN
         INSERT (${colList})
         VALUES (${valList});
@@ -127,29 +127,28 @@ export function generateMergeDeleteQuery<
     })
     .join(" AND ");
 
-  // eslint-disable-next-line functional/no-let
-  let actionClause: string;
-
   if (physicalDelete) {
-    actionClause = "DELETE";
+    return `
+      DELETE FROM ${schemaName}.${targetTableName}
+      USING ${stagingTableName}_${config.mergeTableSuffix} AS source
+      WHERE ${onCondition};
+    `.trim();
   } else {
     const fieldsToUpdate = [
       "deleted",
       ...(additionalKeysToUpdate?.map(String) ?? []),
     ];
     const updateSet = fieldsToUpdate
-      .map((field) => `${field} = source.${quoteColumn(field)}`)
+      .map((field) => `${field} = source.${field}`)
       .join(",\n      ");
-    actionClause = `UPDATE SET ${updateSet}`;
-  }
 
-  return `
-    MERGE INTO ${schemaName}.${targetTableName}
-    USING ${stagingTableName}_${config.mergeTableSuffix} AS source
-      ON ${onCondition}
-    WHEN MATCHED THEN
-      ${actionClause};
-  `.trim();
+    return `
+      UPDATE ${schemaName}.${targetTableName}
+      SET ${updateSet}
+      FROM ${stagingTableName}_${config.mergeTableSuffix} AS source
+      WHERE ${onCondition};
+    `.trim();
+  }
 }
 
 /**
@@ -221,20 +220,31 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
 };
 
 /**
- * Generates a DELETE query that removes rows from a staging table
- * whenever there is another row with the same keyColumns and a higher
- * metadata_version.
+ * Generates SQL to remove outdated or duplicate rows from the staging table.
+ * It returns two DELETE statements:
+ *
+ * 1. Deletes rows in the staging table that have the same key columns as another
+ *    row in the staging table but a lower `metadata_version`.
+ * 2. Deletes rows in the staging table that are older than the corresponding rows
+ *    already present in the target table.
  *
  * @param tableName - The base table name.
  * @param keyConditions - Array of column keys used to match records for deletion.
- * @returns - A DELETE SQL query string to perform a deduplication.
+ * @param partialTableName - Staging table name for partial upsert.
+ * @returns A SQL string containing two DELETE statements to perform staging cleanup.
  */
 export function generateStagingDeleteQuery<
   T extends DomainDbTable,
   ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>
->(tableName: T, keyConditions: ColumnKeys[]): string {
+>(
+  tableName: T,
+  keyConditions: ColumnKeys[],
+  partialTableName?: PartialDbTable
+): string {
   const snakeCaseMapper = getColumnNameMapper(tableName);
-  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${partialTableName ?? tableName}_${
+    config.mergeTableSuffix
+  }`;
 
   const whereCondition = keyConditions
     .map((key) => {
@@ -245,10 +255,15 @@ export function generateStagingDeleteQuery<
 
   return `
     DELETE FROM ${stagingTableName}
-    USING ${stagingTableName} AS b
+    USING ${stagingTableName} b
     WHERE ${whereCondition}
-    AND ${stagingTableName}.metadata_version < b.metadata_version;
-  `.trim();
+      AND ${stagingTableName}.metadata_version < b.metadata_version;
+
+    DELETE FROM ${stagingTableName}
+    USING ${config.dbSchemaName}.${tableName} b
+    WHERE ${whereCondition}
+      AND ${stagingTableName}.metadata_version < b.metadata_version;
+`.trim();
 }
 
 /**
@@ -293,3 +308,32 @@ export async function cleaningTargetTables<
     await t.none(deleteQuery);
   }
 }
+
+/**
+ * Removes duplicate objects from an array based on a set of key fields.
+ *
+ * @template T - The Zod schema shape defining the object structure.
+ * @param items - The array of objects to deduplicate.
+ * @param schema - The Zod schema used to validate the unique keys.
+ * @param keys - The list of keys used to determine uniqueness.
+ * @returns A new array containing only distinct items based on the provided keys.
+ */
+export const distinctByKeys = <T extends z.ZodRawShape>(
+  items: Array<z.infer<z.ZodObject<T>>>,
+  schema: z.ZodObject<T>,
+  keys: Array<keyof z.infer<z.ZodObject<T>>>
+): Array<z.infer<z.ZodObject<T>>> => {
+  const parsedItems = items.map((item) => schema.parse(item));
+  const uniqueKeySet = new Set<string>();
+  const deduplicatedItems: typeof parsedItems = [];
+
+  for (const item of parsedItems) {
+    const compositeKey = keys.map((key) => String(item[key])).join("|");
+    if (!uniqueKeySet.has(compositeKey)) {
+      uniqueKeySet.add(compositeKey);
+      deduplicatedItems.push(item);
+    }
+  }
+
+  return deduplicatedItems;
+};

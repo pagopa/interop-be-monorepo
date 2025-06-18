@@ -194,7 +194,7 @@ export function authorizationServiceBuilder(db: DBContext) {
       genericLogger.info(`Staging data cleaned for ClientUser`);
     },
 
-    async removeUserBatch(
+    async removeClientUserBatch(
       dbContext: DBContext,
       items: ClientUserDeletingSchema[]
     ) {
@@ -251,7 +251,7 @@ export function authorizationServiceBuilder(db: DBContext) {
       genericLogger.info(`Staging data cleaned for ClientPurpose`);
     },
 
-    async removePurposeBatch(
+    async removeClientPurposeBatch(
       dbContext: DBContext,
       items: ClientPurposeDeletingSchema[]
     ) {
@@ -280,7 +280,7 @@ export function authorizationServiceBuilder(db: DBContext) {
       genericLogger.info(`ClientPurpose deleting table cleaned`);
     },
 
-    async upsertKeyBatch(dbContext: DBContext, items: ClientKeySchema[]) {
+    async upsertClientKeyBatch(dbContext: DBContext, items: ClientKeySchema[]) {
       await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(
           items,
@@ -306,7 +306,7 @@ export function authorizationServiceBuilder(db: DBContext) {
       genericLogger.info(`Staging data cleaned for ClientKey`);
     },
 
-    async deleteKeyBatch(
+    async deleteClientKeyBatch(
       dbContext: DBContext,
       items: ClientKeyDeletingSchema[]
     ) {

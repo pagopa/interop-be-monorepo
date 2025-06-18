@@ -22,9 +22,9 @@ import {
   EserviceItemsSchema,
 } from "../../model/catalog/eservice.js";
 import {
-  DescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorItemsSchema,
+  EserviceDescriptorServerUrlsSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
 import {
   EserviceDescriptorDocumentSchema,
@@ -35,6 +35,7 @@ import {
   EserviceDescriptorInterfaceItemsSchema,
   EserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleCatalogMessageV1(
   messages: EServiceEventEnvelopeV1[],
@@ -50,7 +51,7 @@ export async function handleCatalogMessageV1(
     [];
   const upsertDescriptorBatch: EserviceDescriptorItemsSchema[] = [];
   const upsertEserviceInterface: EserviceDescriptorInterfaceItemsSchema[] = [];
-  const upsertDescriptorServerUrls: DescriptorServerUrlsSchema[] = [];
+  const upsertDescriptorServerUrls: EserviceDescriptorServerUrlsSchema[] = [];
   const deleteDescriptorDocumentOrInterfaceBatch: EserviceDescriptorDocumentOrInterfaceDeletingSchema[] =
     [];
 
@@ -129,11 +130,11 @@ export async function handleCatalogMessageV1(
             } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
           );
           upsertDescriptorServerUrls.push(
-            DescriptorServerUrlsSchema.parse({
+            EserviceDescriptorServerUrlsSchema.parse({
               serverUrls: msg.data.serverUrls,
               id: msg.data.descriptorId,
               metadataVersion: msg.version,
-            } satisfies z.input<typeof DescriptorServerUrlsSchema>)
+            } satisfies z.input<typeof EserviceDescriptorServerUrlsSchema>)
           );
         } else {
           upsertEServiceDocumentBatch.push(
@@ -163,11 +164,11 @@ export async function handleCatalogMessageV1(
             } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
           );
           upsertDescriptorServerUrls.push(
-            DescriptorServerUrlsSchema.parse({
+            EserviceDescriptorServerUrlsSchema.parse({
               serverUrls: msg.data.serverUrls,
               id: msg.data.descriptorId,
               metadataVersion: msg.version,
-            } satisfies z.input<typeof DescriptorServerUrlsSchema>)
+            } satisfies z.input<typeof EserviceDescriptorServerUrlsSchema>)
           );
         } else {
           upsertEServiceDocumentBatch.push(
@@ -232,27 +233,39 @@ export async function handleCatalogMessageV1(
       upsertDescriptorBatch
     );
   }
+
   if (upsertEServiceDocumentBatch.length > 0) {
     await catalogService.upsertBatchEServiceDocument(
       dbContext,
       upsertEServiceDocumentBatch
     );
   }
+
   if (deleteEServiceBatch.length > 0) {
-    await catalogService.deleteBatchEService(dbContext, deleteEServiceBatch);
+    const distinctBatch = distinctByKeys(
+      deleteEServiceBatch,
+      EserviceDeletingSchema,
+      ["id"]
+    );
+    await catalogService.deleteBatchEService(dbContext, distinctBatch);
   }
 
   if (deleteDescriptorBatch.length > 0) {
-    await catalogService.deleteBatchDescriptor(
-      dbContext,
-      deleteDescriptorBatch
+    const distinctBatch = distinctByKeys(
+      deleteDescriptorBatch,
+      EserviceDescriptorDeletingSchema,
+      ["id"]
     );
+    await catalogService.deleteBatchDescriptor(dbContext, distinctBatch);
   }
+
   if (deleteEServiceDocumentBatch.length > 0) {
-    await catalogService.deleteBatchEServiceDocument(
-      dbContext,
-      deleteEServiceDocumentBatch
+    const distinctBatch = distinctByKeys(
+      deleteEServiceDocumentBatch,
+      EserviceDescriptorDocumentDeletingSchema,
+      ["id"]
     );
+    await catalogService.deleteBatchEServiceDocument(dbContext, distinctBatch);
   }
 
   if (upsertDescriptorBatch.length > 0) {
@@ -276,9 +289,14 @@ export async function handleCatalogMessageV1(
   }
 
   if (deleteDescriptorDocumentOrInterfaceBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteDescriptorDocumentOrInterfaceBatch,
+      EserviceDescriptorDocumentOrInterfaceDeletingSchema,
+      ["id"]
+    );
     await catalogService.deleteDescriptorDocumentOrInterfaceBatch(
       dbContext,
-      deleteDescriptorDocumentOrInterfaceBatch
+      distinctBatch
     );
   }
 }

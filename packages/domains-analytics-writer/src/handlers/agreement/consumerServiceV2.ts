@@ -15,6 +15,7 @@ import {
   AgreementItemsSchema,
   AgreementDeletingSchema,
 } from "../../model/agreement/agreement.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAgreementMessageV2(
   messages: AgreementEventEnvelopeV2[],
@@ -107,9 +108,11 @@ export async function handleAgreementMessageV2(
   }
 
   if (deleteAgreementBatch.length > 0) {
-    await agreementService.deleteBatchAgreement(
-      dbContext,
-      deleteAgreementBatch
+    const distinctBatch = distinctByKeys(
+      deleteAgreementBatch,
+      AgreementDeletingSchema,
+      ["id"]
     );
+    await agreementService.deleteBatchAgreement(dbContext, distinctBatch);
   }
 }

@@ -80,9 +80,7 @@ export function tenantRepository(conn: DBConnection) {
     ): Promise<void> {
       try {
         const cs = buildColumnSet(pgp, deletingTableName, TenantDeletingSchema);
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingDeletingTableName}: ${error}`
@@ -130,7 +128,13 @@ export function tenantRepository(conn: DBConnection) {
           TenantSelfcareIdSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
+        await t.none(
+          generateStagingDeleteQuery(
+            tableName,
+            ["id"],
+            tenantSelfcareUpsertTableName
+          )
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTenantSelfcareUpsertTableName}: ${error}`

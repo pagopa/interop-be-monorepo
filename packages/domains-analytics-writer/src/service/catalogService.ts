@@ -24,7 +24,7 @@ import {
   EserviceItemsSchema,
 } from "../model/catalog/eservice.js";
 import {
-  DescriptorServerUrlsSchema,
+  EserviceDescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorItemsSchema,
 } from "../model/catalog/eserviceDescriptor.js";
@@ -370,7 +370,7 @@ export function catalogServiceBuilder(db: DBContext) {
     },
     async upsertBatchDescriptorServerUrls(
       dbContext: DBContext,
-      items: DescriptorServerUrlsSchema[]
+      items: EserviceDescriptorServerUrlsSchema[]
     ): Promise<void> {
       await dbContext.conn.tx(async (t) => {
         for (const batch of batchMessages(

@@ -27,6 +27,7 @@ import {
   AgreementItemsSchema,
 } from "../../model/agreement/agreement.js";
 import { AgreementContractSchema } from "../../model/agreement/agreementContract.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAgreementMessageV1(
   messages: AgreementEventEnvelopeV1[],
@@ -154,16 +155,23 @@ export async function handleAgreementMessageV1(
   }
 
   if (deleteDocumentBatch.length > 0) {
+    const distinctBatch = distinctByKeys(
+      deleteDocumentBatch,
+      AgreementConsumerDocumentDeletingSchema,
+      ["id"]
+    );
     await agreementService.deleteBatchAgreementDocument(
       dbContext,
-      deleteDocumentBatch
+      distinctBatch
     );
   }
 
   if (deleteAgreementBatch.length > 0) {
-    await agreementService.deleteBatchAgreement(
-      dbContext,
-      deleteAgreementBatch
+    const distinctBatch = distinctByKeys(
+      deleteAgreementBatch,
+      AgreementDeletingSchema,
+      ["id"]
     );
+    await agreementService.deleteBatchAgreement(dbContext, distinctBatch);
   }
 }

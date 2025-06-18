@@ -14,6 +14,7 @@ import {
   EserviceItemsSchema,
   EserviceDeletingSchema,
 } from "../../model/catalog/eservice.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleCatalogMessageV2(
   messages: EServiceEventEnvelopeV2[],
@@ -74,7 +75,9 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceDescriptorDocumentDeleted",
-            "EServiceDraftDescriptorDeleted"
+            "EServiceDraftDescriptorDeleted",
+            "EServiceSignalHubEnabled",
+            "EServiceSignalHubDisabled"
           ),
         },
         (msg) => {
@@ -110,6 +113,11 @@ export async function handleCatalogMessageV2(
     await catalogService.upsertBatchEService(dbContext, upsertEServiceBatch);
   }
   if (deleteEServiceBatch.length > 0) {
-    await catalogService.deleteBatchEService(dbContext, deleteEServiceBatch);
+    const distinctBatch = distinctByKeys(
+      deleteEServiceBatch,
+      EserviceDeletingSchema,
+      ["id"]
+    );
+    await catalogService.deleteBatchEService(dbContext, distinctBatch);
   }
 }

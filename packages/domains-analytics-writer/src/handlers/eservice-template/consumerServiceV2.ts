@@ -15,6 +15,7 @@ import {
   EserviceTemplateDeletingSchema,
 } from "../../model/eserviceTemplate/eserviceTemplate.js";
 import { eserviceTemplateServiceBuilder } from "../../service/eserviceTemplateService.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleEserviceTemplateMessageV2(
   messages: EServiceTemplateEventEnvelope[],
@@ -100,10 +101,13 @@ export async function handleEserviceTemplateMessageV2(
       upsertEserviceTemplateBatch
     );
   }
+
   if (deleteEserviceTemplateBatch.length > 0) {
-    await templateService.deleteBatchEserviceTemplate(
-      dbContext,
-      deleteEserviceTemplateBatch
+    const distinctBatch = distinctByKeys(
+      deleteEserviceTemplateBatch,
+      EserviceTemplateDeletingSchema,
+      ["id"]
     );
+    await templateService.deleteBatchEserviceTemplate(dbContext, distinctBatch);
   }
 }

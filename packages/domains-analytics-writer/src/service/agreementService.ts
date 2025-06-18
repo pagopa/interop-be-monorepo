@@ -191,7 +191,9 @@ export function agreementServiceBuilder(db: DBContext) {
         )) {
           await agreementRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for agreement ids: ${batch.join(", ")}`
+            `Staging deletion inserted for agreement ids: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 
@@ -229,9 +231,9 @@ export function agreementServiceBuilder(db: DBContext) {
         )) {
           await docRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for agreement document ids: ${batch.join(
-              ", "
-            )}`
+            `Staging deletion inserted for agreement document ids: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 

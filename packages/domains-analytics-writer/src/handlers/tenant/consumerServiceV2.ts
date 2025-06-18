@@ -13,6 +13,7 @@ import {
   TenantItemsSchema,
   TenantDeletingSchema,
 } from "../../model/tenant/tenant.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleTenantMessageV2(
   messages: TenantEventEnvelopeV2[],
@@ -93,6 +94,11 @@ export async function handleTenantMessageV2(
   }
 
   if (deleteTenantBatch.length > 0) {
-    await tenantService.deleteBatchTenants(deleteTenantBatch, dbContext);
+    const distinctBatch = distinctByKeys(
+      deleteTenantBatch,
+      TenantDeletingSchema,
+      ["id"]
+    );
+    await tenantService.deleteBatchTenants(distinctBatch, dbContext);
   }
 }

@@ -17,9 +17,10 @@ import {
   ClientItemsSchema,
   ClientDeletingSchema,
 } from "../../model/authorization/client.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 import {
-  ProducerKeychainDeletingSchema,
   ProducerKeychainItemsSchema,
+  ProducerKeychainDeletingSchema,
 } from "../../model/authorization/producerKeychain.js";
 
 export async function handleAuthorizationEventMessageV2(
@@ -132,7 +133,12 @@ export async function handleAuthorizationEventMessageV2(
   }
 
   if (deleteClientBatch.length > 0) {
-    await authorizationService.deleteClientBatch(dbContext, deleteClientBatch);
+    const distinctBatch = distinctByKeys(
+      deleteClientBatch,
+      ClientDeletingSchema,
+      ["id"]
+    );
+    await authorizationService.deleteClientBatch(dbContext, distinctBatch);
   }
 
   if (upsertProducerKeychainBatch.length > 0) {
