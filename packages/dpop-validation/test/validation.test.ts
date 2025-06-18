@@ -290,7 +290,11 @@ describe("DPoP validation tests", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors?.[0].code).toBe(
-        notYetValidDPoPProof(futureIat, dateToSeconds(new Date())).code
+        notYetValidDPoPProof(
+          futureIat,
+          dateToSeconds(new Date()),
+          dpopConfig!.dpopIatToleranceSeconds
+        ).code
       );
     });
 

@@ -112,7 +112,9 @@ export const validateIat = (
 
   // There's a tolerance of some seconds to accommodate for clock offsets between the client and the server
   if (currentTime + toleranceSeconds < iat) {
-    return failedValidation([notYetValidDPoPProof(iat, currentTime)]);
+    return failedValidation([
+      notYetValidDPoPProof(iat, currentTime, toleranceSeconds),
+    ]);
   } else if (currentTime > iat + durationSeconds) {
     return failedValidation([
       expiredDPoPProof(iat, currentTime, durationSeconds),

@@ -201,10 +201,11 @@ export function expiredDPoPProof(
 
 export function notYetValidDPoPProof(
   iat: number,
-  currentTime: number
+  currentTime: number,
+  toleranceSeconds: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Not yet valid DPoP proof with iat ${iat}. Requested at: ${currentTime}.`,
+    detail: `Not yet valid DPoP proof with iat ${iat}. Requested at: ${currentTime}. A DPoP proof iat has a tolerance of ${toleranceSeconds} seconds.`,
     code: "notYetValidDPoPProof",
     title: "Not yet valid DPoP proof",
   });
