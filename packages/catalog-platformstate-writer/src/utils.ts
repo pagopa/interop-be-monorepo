@@ -30,13 +30,12 @@ import { z } from "zod";
 import { Logger } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 
-export const writeCatalogEntry = async (
+export const upsertPlatformStatesCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
-    ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: {
         S: catalogEntry.PK,
@@ -63,7 +62,7 @@ export const writeCatalogEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Written catalog entry ${catalogEntry.PK}`);
+  logger.info(`Platform-states. Upserted catalog entry ${catalogEntry.PK}`);
 };
 
 export const readCatalogEntry = async (
