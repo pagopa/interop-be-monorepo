@@ -1637,6 +1637,62 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/signalhub/update:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Enable/disable SignalHub for an e-service
+      operationId: updateEServiceSignalHubFlag
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing a boolean that describes if SignalHub will be enabled or disabled
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
+      responses:
+        "200":
+          description: EService SignalHub flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/approve:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2917,6 +2973,14 @@ components:
           maxLength: 60
       required:
         - name
+    EServiceSignalHubUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+      required:
+        - isSignalHubEnabled
     EServiceDescriptor:
       type: object
       additionalProperties: false

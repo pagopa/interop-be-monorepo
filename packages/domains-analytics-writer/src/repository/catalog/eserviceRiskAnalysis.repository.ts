@@ -33,7 +33,9 @@ export function eserviceRiskAnalysisRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, EserviceRiskAnalysisSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(generateStagingDeleteQuery(tableName, ["eserviceId"]));
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["id", "eserviceId"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
