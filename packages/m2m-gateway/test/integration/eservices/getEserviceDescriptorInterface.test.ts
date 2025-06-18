@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { DescriptorId, generateId, unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockedApiEservice,
