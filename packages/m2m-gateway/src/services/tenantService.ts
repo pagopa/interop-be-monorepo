@@ -7,6 +7,7 @@ import {
   toM2MGatewayApiTenantCertifiedAttribute,
   toGetTenantsApiQueryParams,
   toM2MGatewayApiTenant,
+  toM2MGatewayApiTenantDeclaredAttribute,
 } from "../api/tenantApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
@@ -96,7 +97,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getCertifiedAttributes(
       tenantId: TenantId,
-      { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
+      { limit, offset }: m2mGatewayApi.GetTenantCertifiedAttributesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantCertifiedAttributes> {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);
@@ -176,6 +177,50 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       return toM2MGatewayApiTenantCertifiedAttribute(certifiedAttribute);
+    },
+    async getDeclaredAttributes(
+      tenantId: TenantId,
+      {
+        delegationId,
+        limit,
+        offset,
+      }: m2mGatewayApi.GetTenantDeclaredAttributesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttributes> {
+      logger.info(`Retrieving tenant ${tenantId} declared attributes`);
+
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: tenantId },
+          headers,
+        });
+
+      const declaredAttributes = tenant.attributes
+        .map((v) => v.declared)
+        .filter(isDefined);
+
+      const filteredDeclaredAttributes = delegationId
+        ? declaredAttributes.filter(
+            (declaredAttribute) =>
+              declaredAttribute.delegationId === delegationId
+          )
+        : declaredAttributes;
+
+      const paginatedDeclaredAttributes = filteredDeclaredAttributes.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results: paginatedDeclaredAttributes.map(
+          toM2MGatewayApiTenantDeclaredAttribute
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: filteredDeclaredAttributes.length,
+        },
+      };
     },
   };
 }
