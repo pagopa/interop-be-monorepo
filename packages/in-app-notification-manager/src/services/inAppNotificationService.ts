@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { AppContext, UIAuthData, WithLogger } from "pagopa-interop-commons";
-import { and, eq } from "drizzle-orm";
+import { and, eq, desc } from "drizzle-orm";
 import { notification, Notification } from "../db/schema.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationServiceBuilder(
@@ -20,7 +20,8 @@ export function inAppNotificationServiceBuilder(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId)
           )
-        );
+        )
+        .orderBy(desc(notification.createdAt));
     },
   };
 }

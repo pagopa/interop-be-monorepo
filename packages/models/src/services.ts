@@ -13,7 +13,7 @@ export const serviceName = {
   DELEGATION_PROCESS: "delegation-process",
   ESERVICE_TEMPLATE_PROCESS: "eservice-template-process",
   M2M_GATEWAY: "m2m-gateway",
-  IN_APP_NOTIFICATION_MANAGER: "in-app-notificaion-manager",
+  IN_APP_NOTIFICATION_MANAGER: "in-app-notification-manager",
 } as const;
 
 export const ServiceName = z.enum([

@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS notification.notification (
   body VARCHAR NOT NULL,
   deep_link VARCHAR NOT NULL,
   read_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id)
 );

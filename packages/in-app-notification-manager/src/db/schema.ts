@@ -13,6 +13,10 @@ export const notification = notificationSchema.table("notification", {
     withTimezone: true,
     mode: "string",
   }),
+  createdAt: timestamp("created_at", {
+    withTimezone: true,
+    mode: "string",
+  }).notNull(),
 });
 
 export type Notification = InferSelectModel<typeof notification>;
