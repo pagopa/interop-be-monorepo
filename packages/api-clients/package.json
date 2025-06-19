@@ -24,7 +24,7 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@apidevtools/swagger-parser": "10.1.0",
+    "@apidevtools/swagger-parser": "10.1.1",
     "@pagopa/eslint-config": "3.0.0",
     "@stoplight/spectral-cli": "6.15.0",
     "@types/node": "20.14.6",

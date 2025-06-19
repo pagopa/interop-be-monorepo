@@ -833,7 +833,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis created.
@@ -887,7 +887,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis updated.
@@ -1460,17 +1460,20 @@ components:
       enum:
         - AUTOMATIC
         - MANUAL
-    EServiceRiskAnalysisSeed:
+    EServiceTemplateRiskAnalysisSeed:
       type: object
       additionalProperties: false
       required:
         - name
         - riskAnalysisForm
+        - tenantKind
       properties:
         name:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/EServiceRiskAnalysisFormSeed"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysisFormSeed:
       type: object
       additionalProperties: false
@@ -1524,7 +1527,7 @@ components:
         riskAnalysis:
           type: array
           items:
-            $ref: "#/components/schemas/EServiceRiskAnalysis"
+            $ref: "#/components/schemas/EServiceTemplateRiskAnalysis"
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
@@ -1535,13 +1538,14 @@ components:
       enum:
         - RECEIVE
         - DELIVER
-    EServiceRiskAnalysis:
+    EServiceTemplateRiskAnalysis:
       type: object
       additionalProperties: false
       required:
         - id
         - name
         - riskAnalysisForm
+        - tenantKind
         - createdAt
       properties:
         id:
@@ -1551,6 +1555,8 @@ components:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/EServiceRiskAnalysisForm"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
         createdAt:
           type: string
           format: date-time
@@ -1812,6 +1818,13 @@ components:
       required:
         - results
         - totalCount
+    TenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
+        - GSP
+        - SCP
     Problem:
       properties:
         type:
