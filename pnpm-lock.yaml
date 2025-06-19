@@ -3711,9 +3711,6 @@ importers:
       express:
         specifier: 4.20.0
         version: 4.20.0
-      mongodb:
-        specifier: 6.7.0
-        version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -3739,9 +3736,6 @@ importers:
         specifier: 3.23.8
         version: 3.23.8
     devDependencies:
-      '@faker-js/faker':
-        specifier: 8.4.1
-        version: 8.4.1
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
