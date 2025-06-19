@@ -4180,8 +4180,8 @@ paths:
     post:
       tags:
         - tenants
-      summary: Assign a Declared Attribute to a Tenant
-      description: Assign a Declared Attribute to a Tenant
+      summary: Assign a Declared Attribute
+      description: Assign a Declared Attribute to the requesting Tenant
       operationId: addDeclaredAttribute
       requestBody:
         content:

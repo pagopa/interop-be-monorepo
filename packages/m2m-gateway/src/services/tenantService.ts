@@ -14,7 +14,10 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import { tenantCertifiedAttributeNotFound } from "../model/errors.js";
+import {
+  tenantCertifiedAttributeNotFound,
+  tenantDeclaredAttributeNotFound,
+} from "../model/errors.js";
 
 function retrieveCertifiedAttributes(
   tenant: tenantApi.Tenant
@@ -35,6 +38,27 @@ function retrieveCertifiedAttribute(
   }
 
   return certifiedAttribute;
+}
+
+function retrieveDeclaredAttributes(
+  tenant: tenantApi.Tenant
+): tenantApi.DeclaredTenantAttribute[] {
+  return tenant.attributes.map((v) => v.declared).filter(isDefined);
+}
+
+function retrieveDeclaredAttribute(
+  tenant: tenantApi.Tenant,
+  attributeId: tenantApi.DeclaredTenantAttribute["id"]
+): tenantApi.DeclaredTenantAttribute {
+  const declaredAttribute = retrieveDeclaredAttributes(tenant).find(
+    (declaredAttribute) => declaredAttribute.id === attributeId
+  );
+
+  if (!declaredAttribute) {
+    throw tenantDeclaredAttributeNotFound(tenant, attributeId);
+  }
+
+  return declaredAttribute;
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
@@ -195,9 +219,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           headers,
         });
 
-      const declaredAttributes = tenant.attributes
-        .map((v) => v.declared)
-        .filter(isDefined);
+      const declaredAttributes = retrieveDeclaredAttributes(tenant);
 
       const filteredDeclaredAttributes = delegationId
         ? declaredAttributes.filter(
@@ -221,6 +243,32 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount: filteredDeclaredAttributes.length,
         },
       };
+    },
+    async addDeclaredAttribute(
+      seed: m2mGatewayApi.TenantDeclaredAttributeSeed,
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
+      logger.info(
+        `Assigning declared attribute ${seed.id} to tenant ${
+          authData.organizationId
+        }${seed.delegationId ? " with delegation " + seed.delegationId : ""}`
+      );
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute(
+          seed,
+          {
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const declaredAttribute = retrieveDeclaredAttribute(
+        polledTenant,
+        seed.id
+      );
+
+      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
     },
   };
 }
