@@ -1,7 +1,13 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import { AppContext, UIAuthData, WithLogger } from "pagopa-interop-commons";
+import {
+  AppContext,
+  createListResult,
+  UIAuthData,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { and, eq, ilike, desc } from "drizzle-orm";
 import { ListResult } from "pagopa-interop-models";
+import { withTotalCount } from "pagopa-interop-commons";
 import { notification, Notification } from "../db/schema.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationServiceBuilder(
@@ -19,7 +25,17 @@ export function inAppNotificationServiceBuilder(
     ): Promise<ListResult<Notification>> => {
       logger.info("Getting notifications");
       const notifications = await db
-        .select()
+        .select(
+          withTotalCount({
+            id: notification.id,
+            userId: notification.userId,
+            tenantId: notification.tenantId,
+            body: notification.body,
+            deepLink: notification.deepLink,
+            readAt: notification.readAt,
+            createdAt: notification.createdAt,
+          })
+        )
         .from(notification)
         .where(
           and(
@@ -28,12 +44,22 @@ export function inAppNotificationServiceBuilder(
             ilike(notification.body, `%${q ?? ""}%`)
           )
         )
-        .orderBy(desc(notification.createdAt));
+        .orderBy(desc(notification.createdAt))
+        .limit(limit)
+        .offset(offset);
 
-      return {
-        results: notifications.slice(offset, offset + limit),
-        totalCount: notifications.length,
-      };
+      return createListResult(
+        notifications.map((n) => ({
+          id: n.id,
+          userId: n.userId,
+          tenantId: n.tenantId,
+          body: n.body,
+          deepLink: n.deepLink,
+          readAt: n.readAt,
+          createdAt: n.createdAt,
+        })),
+        notifications[0].totalCount
+      );
     },
   };
 }
