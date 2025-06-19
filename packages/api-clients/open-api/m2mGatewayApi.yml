@@ -4283,13 +4283,6 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
   /tenants/{tenantId}/declaredAttributes/{attributeId}:
     parameters:
-      - name: tenantId
-        in: path
-        description: The Tenant ID of the Attributes
-        required: true
-        schema:
-          type: string
-          format: uuid
       - name: attributeId
         in: path
         description: The Attribute ID
@@ -4300,8 +4293,8 @@ paths:
     delete:
       tags:
         - tenants
-      summary: Revoke a Declared Attribute from a Tenant
-      description: Revoke a Declared Attribute from a Tenant
+      summary: Revoke a Declared Attribute from the requesting Tenant
+      description: Revoke a Declared Attribute from the requesting Tenant
       operationId: revokeDeclaredAttributeById
       responses:
         "200":

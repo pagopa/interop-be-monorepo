@@ -270,5 +270,30 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
     },
+    async revokeDeclaredAttribute(
+      attributeId: AttributeId,
+      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
+      logger.info(
+        `Revoking declared attribute ${attributeId} from tenant ${authData.organizationId}`
+      );
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
+          undefined,
+          {
+            params: { attributeId },
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const declaredAttribute = retrieveDeclaredAttribute(
+        polledTenant,
+        attributeId
+      );
+
+      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
+    },
   };
 }
