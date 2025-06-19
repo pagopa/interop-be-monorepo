@@ -143,9 +143,15 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         )
         .leftJoin(
           purposeRiskAnalysisAnswerInReadmodelPurpose,
-          eq(
-            purposeRiskAnalysisFormInReadmodelPurpose.id,
-            purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+          and(
+            eq(
+              purposeInReadmodelPurpose.id,
+              purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId
+            ),
+            eq(
+              purposeRiskAnalysisFormInReadmodelPurpose.id,
+              purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+            )
           )
         )
         .leftJoin(
