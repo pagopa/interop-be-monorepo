@@ -42,9 +42,13 @@ import {
 export const verifyDPoPProof = ({
   dpopProofJWS,
   expectedDPoPProofHtu,
+  dpopProofIatToleranceSeconds,
+  dpopProofDurationSeconds,
 }: {
   dpopProofJWS: string;
   expectedDPoPProofHtu: string;
+  dpopProofIatToleranceSeconds: number;
+  dpopProofDurationSeconds: number;
 }): ValidationResult<{ dpopProofJWT: DPoPProof; dpopProofJWS: string }> => {
   try {
     if (dpopProofJWS.split(",").length > 1) {
@@ -74,7 +78,9 @@ export const verifyDPoPProof = ({
       expectedDPoPProofHtu
     );
     const { errors: iatErrors, data: validatedIat } = validateIat(
-      decodedPayload.iat
+      decodedPayload.iat,
+      dpopProofIatToleranceSeconds,
+      dpopProofDurationSeconds
     );
     const { errors: jtiErrors, data: validatedJti } = validateJti(
       decodedPayload.jti
@@ -93,13 +99,13 @@ export const verifyDPoPProof = ({
       const headerParseResult = DPoPProofHeader.safeParse(decodedHeader);
       const parsingErrors = [
         !payloadParseResult.success
-          ? dpopProofInvalidClaims(payloadParseResult.error.message)
+          ? dpopProofInvalidClaims(payloadParseResult.error.message, "payload")
           : undefined,
         !headerParseResult.success
-          ? dpopProofInvalidClaims(headerParseResult.error.message)
+          ? dpopProofInvalidClaims(headerParseResult.error.message, "header")
           : undefined,
-      ];
-      if (parsingErrors.some(Boolean)) {
+      ].filter(Boolean);
+      if (parsingErrors.length > 0) {
         return failedValidation(parsingErrors);
       }
 
@@ -174,11 +180,13 @@ export const checkDPoPCache = async ({
   dpopProofJti,
   dpopProofIat,
   dpopCacheTable,
+  dpopProofDurationSeconds,
 }: {
   dynamoDBClient: DynamoDBClient;
   dpopProofJti: string;
   dpopProofIat: number;
   dpopCacheTable: string;
+  dpopProofDurationSeconds: number;
 }): Promise<ValidationResult<string>> => {
   const dpopCache = await readDPoPCache(
     dynamoDBClient,
@@ -194,6 +202,7 @@ export const checkDPoPCache = async ({
     dpopCacheTable,
     jti: dpopProofJti,
     iat: dpopProofIat,
+    durationSeconds: dpopProofDurationSeconds,
   });
 
   return successfulValidation(dpopProofJti);

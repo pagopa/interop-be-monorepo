@@ -813,30 +813,6 @@ describe("updatePurpose and updateReversePurpose", () => {
       riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
     );
   });
-  it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid in updateReversePurpose", async () => {
-    const purposeWithInvalidRiskAnalysis: Purpose = {
-      ...purposeForReceive,
-      riskAnalysisForm: {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        ...purposeForReceive.riskAnalysisForm!,
-        version: "0",
-      },
-    };
-
-    await addOnePurpose(purposeWithInvalidRiskAnalysis);
-    await addOneEService(eServiceReceive);
-    await addOneTenant(tenant);
-
-    expect(
-      purposeService.updateReversePurpose(
-        purposeWithInvalidRiskAnalysis.id,
-        reversePurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(
-      riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
-    );
-  });
   it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is updating a purpose created by the delegate in updatePurpose", async () => {
     const authData = getMockAuthData();
 

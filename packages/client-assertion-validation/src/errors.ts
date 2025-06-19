@@ -308,12 +308,17 @@ export function invalidKidFormat(): ApiError<ErrorCodes> {
 }
 
 export function clientAssertionInvalidClaims(
-  details: string
+  details: string,
+  headerOrPayload: "header" | "payload"
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Client assertion validation failure. Reason: ${details}`,
+    detail: `Invalid claims in client assertion ${headerOrPayload}. Reason: ${
+      typeof details === "object"
+        ? JSON.stringify(JSON.parse(details))
+        : details
+    }`,
     code: "clientAssertionInvalidClaims",
-    title: "Invalid claims in header or payload",
+    title: `Invalid claims in client assertion ${headerOrPayload}`,
   });
 }
 
