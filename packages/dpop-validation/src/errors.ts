@@ -176,9 +176,11 @@ export function dpopProofInvalidClaims(
   headerOrPayload: "header" | "payload"
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Invalid claims in DPoP proof ${headerOrPayload}. Reason: ${JSON.stringify(
-      JSON.parse(details)
-    )}`,
+    detail: `Invalid claims in DPoP proof ${headerOrPayload}. Reason: ${
+      typeof details === "object"
+        ? JSON.stringify(JSON.parse(details))
+        : details
+    }`,
     code: "dpopProofInvalidClaims",
     title: `Invalid claims in DPoP proof ${headerOrPayload}`,
   });
