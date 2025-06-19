@@ -135,12 +135,18 @@ components:
           format: date-time
           nullable: true
           description: Timestamp when the notification was read
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the notification was created
       required:
         - id
         - userId
         - tenantId
         - body
         - readAt
+        - createdAt
+
     Problem:
       properties:
         type:

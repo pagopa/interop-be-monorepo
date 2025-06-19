@@ -2,12 +2,16 @@ import { describe, it, expect } from "vitest";
 
 import { getMockContext } from "pagopa-interop-commons-test";
 import { getMockAuthData } from "pagopa-interop-commons-test";
-import { generateId, UserId, TenantId } from "pagopa-interop-models";
+import {
+  generateId,
+  UserId,
+  TenantId,
+  Notification,
+} from "pagopa-interop-models";
 import {
   addOneNotification,
   inAppNotificationService,
 } from "../integrationUtils.js";
-import { Notification } from "../../src/db/schema.js";
 
 describe("getNotifications", () => {
   it("should return the list of notifications", async () => {
@@ -20,8 +24,8 @@ describe("getNotifications", () => {
       tenantId,
       body: "test",
       deepLink: "test",
-      readAt: null,
-      createdAt: new Date().toISOString(),
+      readAt: undefined,
+      createdAt: new Date(),
     };
     await addOneNotification(notification);
 

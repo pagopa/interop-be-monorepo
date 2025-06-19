@@ -12,6 +12,7 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { InAppNotificationService } from "../services/inAppNotificationService.js";
 import { makeApiProblem } from "../model/errors.js";
+import { notificationToApiNotification } from "../model/apiConverter.js";
 
 export const notificationRouter = (
   zodiosCtx: ZodiosContext,
@@ -31,13 +32,16 @@ export const notificationRouter = (
       validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
       const { limit, offset, q } = req.query;
-      const notifications = await service.getNotifications(
+      const { results, totalCount } = await service.getNotifications(
         q,
         limit,
         offset,
         ctx
       );
-      return res.status(200).send(notifications);
+      return res.status(200).send({
+        results: results.map(notificationToApiNotification),
+        totalCount,
+      });
     } catch (error) {
       const errorRes = makeApiProblem(
         error,

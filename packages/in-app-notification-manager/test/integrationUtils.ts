@@ -1,7 +1,8 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach, beforeEach, vi } from "vitest";
+import { Notification } from "pagopa-interop-models";
 import { inAppNotificationServiceBuilder } from "../src/services/inAppNotificationService.js";
-import { notification, Notification } from "../src/db/schema.js";
+import { notification } from "../src/db/schema.js";
 
 export const { cleanup, inAppNotificationDB } = await setupTestContainersVitest(
   undefined,
@@ -28,5 +29,13 @@ export const inAppNotificationService =
   inAppNotificationServiceBuilder(inAppNotificationDB);
 
 export const addOneNotification = async (n: Notification): Promise<void> => {
-  await inAppNotificationDB.insert(notification).values(n);
+  await inAppNotificationDB.insert(notification).values({
+    id: n.id,
+    userId: n.userId,
+    tenantId: n.tenantId,
+    body: n.body,
+    deepLink: n.deepLink,
+    readAt: n.readAt?.toISOString(),
+    createdAt: n.createdAt.toISOString(),
+  });
 };

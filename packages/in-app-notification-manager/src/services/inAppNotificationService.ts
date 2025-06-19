@@ -6,9 +6,13 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import { and, eq, ilike, desc, getTableColumns } from "drizzle-orm";
-import { ListResult } from "pagopa-interop-models";
+import {
+  fromNotificationSQL,
+  ListResult,
+  Notification,
+} from "pagopa-interop-models";
 import { withTotalCount } from "pagopa-interop-commons";
-import { notification, Notification } from "../db/schema.js";
+import { notification } from "../db/schema.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationServiceBuilder(
   db: ReturnType<typeof drizzle>
@@ -39,7 +43,7 @@ export function inAppNotificationServiceBuilder(
         .offset(offset);
 
       return createListResult(
-        notifications.map(({ totalCount: _, ...n }) => n),
+        notifications.map(({ totalCount: _, ...n }) => fromNotificationSQL(n)),
         notifications[0].totalCount
       );
     },
