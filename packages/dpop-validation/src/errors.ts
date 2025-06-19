@@ -171,11 +171,16 @@ export function dpopAlgorithmNotAllowed(
   });
 }
 
-export function dpopProofInvalidClaims(details: string): ApiError<ErrorCodes> {
+export function dpopProofInvalidClaims(
+  details: string,
+  headerOrPayload: "header" | "payload"
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `DPoP proof validation failure. Reason: ${details}`,
+    detail: `Invalid claims in DPoP proof ${headerOrPayload}. Reason: ${JSON.stringify(
+      JSON.parse(details)
+    )}`,
     code: "dpopProofInvalidClaims",
-    title: "Invalid claims in header or payload",
+    title: `Invalid claims in DPoP proof ${headerOrPayload}`,
   });
 }
 

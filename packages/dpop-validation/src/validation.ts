@@ -99,13 +99,13 @@ export const verifyDPoPProof = ({
       const headerParseResult = DPoPProofHeader.safeParse(decodedHeader);
       const parsingErrors = [
         !payloadParseResult.success
-          ? dpopProofInvalidClaims(payloadParseResult.error.message)
+          ? dpopProofInvalidClaims(payloadParseResult.error.message, "payload")
           : undefined,
         !headerParseResult.success
-          ? dpopProofInvalidClaims(headerParseResult.error.message)
+          ? dpopProofInvalidClaims(headerParseResult.error.message, "header")
           : undefined,
-      ];
-      if (parsingErrors.some(Boolean)) {
+      ].filter(Boolean);
+      if (parsingErrors.length > 0) {
         return failedValidation(parsingErrors);
       }
 
