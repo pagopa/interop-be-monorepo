@@ -62,7 +62,7 @@ describe("DPoP validation tests", async () => {
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors?.[0].code).toBe(dpopProofInvalidClaims("").code);
+      expect(errors?.[0].code).toBe(dpopProofInvalidClaims("", "header").code);
     });
 
     it("should add error if there are invalid claims in the DPoP proof payload", async () => {
@@ -80,7 +80,7 @@ describe("DPoP validation tests", async () => {
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors?.[0].code).toBe(dpopProofInvalidClaims("").code);
+      expect(errors?.[0].code).toBe(dpopProofInvalidClaims("", "payload").code);
     });
 
     it("should not add error if the DPoP proof signature is wrong", async () => {
