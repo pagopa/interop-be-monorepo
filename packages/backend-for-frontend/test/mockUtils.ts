@@ -184,15 +184,6 @@ export const getMockBffApiCompactOrganization =
     contactMail: generateMock(bffApi.Mail.optional()),
   });
 
-// export const getMockApiAgreementListEntry = (): bffApi.AgreementListEntry => ({
-//   id: generateId(),
-//   consumer: getMockTenant(),
-//   eservice: getMockEService(),
-//   canBeUpgraded: false,
-//   descriptor: getMockDescriptor(),
-//   state: "DRAFT",
-// });
-
 export const getMockApiAddAgreementConsumerDocument_Body =
   (): bffApi.addAgreementConsumerDocument_Body => ({
     name: "name",
