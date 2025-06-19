@@ -11,6 +11,10 @@ on:
       - "!packages/*/scripts/**"
       - ".github/workflows/build-push.yaml"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   find_dockerfiles:
     name: Find Dockerfiles
