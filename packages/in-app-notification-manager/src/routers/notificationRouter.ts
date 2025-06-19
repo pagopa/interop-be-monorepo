@@ -54,7 +54,7 @@ export const notificationRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/notifications/markAsRead", async (req, res) => {
+    .post("/notifications/bulk/markAsRead", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
