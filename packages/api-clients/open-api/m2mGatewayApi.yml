@@ -4102,6 +4102,12 @@ paths:
       operationId: getDeclaredAttributes
       parameters:
         - in: query
+          name: delegationId
+          description: The ID of the Delegation to filter the Declared Attributes
+          schema:
+            type: string
+            format: uuid
+        - in: query
           name: offset
           description: Pagination starting position
           required: true
