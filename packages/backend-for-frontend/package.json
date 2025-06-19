@@ -29,7 +29,6 @@
     "@types/supertest": "6.0.2",
     "@types/swagger-ui-express": "4.1.8",
     "@types/yamljs": "0.2.34",
-    "argparse": "1.0.10",
     "pagopa-interop-commons-test": "workspace:*",
     "prettier": "2.8.8",
     "supertest": "7.0.0",
