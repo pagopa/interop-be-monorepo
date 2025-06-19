@@ -5,7 +5,7 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { and, eq, ilike, desc } from "drizzle-orm";
+import { and, eq, ilike, desc, getTableColumns } from "drizzle-orm";
 import { ListResult } from "pagopa-interop-models";
 import { withTotalCount } from "pagopa-interop-commons";
 import { notification, Notification } from "../db/schema.js";
@@ -25,17 +25,7 @@ export function inAppNotificationServiceBuilder(
     ): Promise<ListResult<Notification>> => {
       logger.info("Getting notifications");
       const notifications = await db
-        .select(
-          withTotalCount({
-            id: notification.id,
-            userId: notification.userId,
-            tenantId: notification.tenantId,
-            body: notification.body,
-            deepLink: notification.deepLink,
-            readAt: notification.readAt,
-            createdAt: notification.createdAt,
-          })
-        )
+        .select(withTotalCount(getTableColumns(notification)))
         .from(notification)
         .where(
           and(
@@ -49,15 +39,7 @@ export function inAppNotificationServiceBuilder(
         .offset(offset);
 
       return createListResult(
-        notifications.map((n) => ({
-          id: n.id,
-          userId: n.userId,
-          tenantId: n.tenantId,
-          body: n.body,
-          deepLink: n.deepLink,
-          readAt: n.readAt,
-          createdAt: n.createdAt,
-        })),
+        notifications.map(({ totalCount: _, ...n }) => n),
         notifications[0].totalCount
       );
     },
