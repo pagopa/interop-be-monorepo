@@ -1365,7 +1365,7 @@ paths:
         The Attribute must
           - have a unique name across all Attributes in the Platform
           - have a unique code across certified Attributes owned by the requester
-      operationId: createCertifiedAttribute
+      operationId: createCertifiedAttributePollTest
       requestBody:
         required: true
         content:
