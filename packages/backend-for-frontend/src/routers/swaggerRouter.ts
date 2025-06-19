@@ -4,7 +4,7 @@ import path from "path";
 import { zodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import swaggerUi from "swagger-ui-express";
-import YAML from "yamljs";
+import YAML from "yaml";
 import { config } from "../config/config.js";
 
 const YML_SPEC_PATH = "../../../api-clients/open-api/bffApi.yml";
