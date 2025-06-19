@@ -1,0 +1,23 @@
+meta {
+  name: List tenant declared attributes
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{host-m2m-gw}}/tenants/:tenantId/declaredAttributes
+  body: none
+  auth: none
+}
+
+params:path {
+  tenantId: {{tenantId}}
+}
+params:query {
+  offset: 0
+  limit: 50
+  delegationId: {{delegationId}}
+}
+headers {
+  Authorization: {{JWT-M2M}}
+}
