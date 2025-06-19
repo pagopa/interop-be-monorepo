@@ -184,8 +184,10 @@ export function getMockedApiEservice({
 
 export function getMockedApiEserviceDescriptor({
   state,
+  interfaceDoc,
 }: {
   state?: catalogApi.EServiceDescriptorState;
+  interfaceDoc?: catalogApi.EServiceDoc;
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
@@ -195,7 +197,7 @@ export function getMockedApiEserviceDescriptor({
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
     dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
     dailyCallsTotal: generateMock(z.number().int().gte(1)),
-    interface: generateMock(catalogApi.EServiceDoc),
+    interface: interfaceDoc ?? generateMock(catalogApi.EServiceDoc),
     docs: generateMock(z.array(catalogApi.EServiceDoc)),
     state: state ?? generateMock(catalogApi.EServiceDescriptorState),
     agreementApprovalPolicy: generateMock(catalogApi.AgreementApprovalPolicy),
