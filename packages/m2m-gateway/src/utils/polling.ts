@@ -62,7 +62,7 @@ export function new_pollResourceBuilder(
     id: AnyPgColumn;
   }
 ): (responseWithMetadata: WithMaybeMetadata<{ id: string }>) => Promise<void> {
-  return async (responseWithMetadata: WithMaybeMetadata<{ id: string }>) => {
+  return async (responseWithMetadata) => {
     assertMetadataExists(responseWithMetadata);
 
     const metadataVersion = responseWithMetadata.metadata.version;
