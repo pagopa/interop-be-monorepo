@@ -1311,6 +1311,9 @@ importers:
       '@types/yamljs':
         specifier: 0.2.34
         version: 0.2.34
+      argparse:
+        specifier: 1.0.10
+        version: 1.0.10
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
