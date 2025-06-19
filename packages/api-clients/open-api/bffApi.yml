@@ -19869,7 +19869,7 @@ paths:
       security: []
       tags:
         - docs
-      summary: Health status endpoint
+      summary: Swagger docs endpoint
       description: Return ok
       operationId: getDocs
       responses:
