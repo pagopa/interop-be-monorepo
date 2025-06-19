@@ -4,6 +4,7 @@ import {
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   startServer,
 } from "pagopa-interop-commons";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
 import { M2MGatewayServices, RateLimiterMiddleware, createApp } from "./app.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
@@ -17,12 +18,14 @@ import { purposeServiceBuilder } from "./services/purposeService.js";
 import { tenantServiceBuilder } from "./services/tenantService.js";
 import { keyServiceBuilder } from "./services/keyService.js";
 
+const db = makeDrizzleConnection(config);
+
 const clients = getInteropBeClients();
 const fileManager = initFileManager(config);
 
 const services: M2MGatewayServices = {
   agreementService: agreementServiceBuilder(clients),
-  attributeService: attributeServiceBuilder(clients),
+  attributeService: attributeServiceBuilder(clients, db),
   clientService: clientServiceBuilder(clients),
   delegationService: delegationServiceBuilder(clients),
   eserviceService: eserviceServiceBuilder(clients, fileManager),

@@ -1,5 +1,9 @@
 /* eslint-disable functional/no-let */
-import { createPollingByCondition } from "pagopa-interop-commons";
+import { createPollingByCondition, delay } from "pagopa-interop-commons";
+import { AnyPgTable, AnyPgColumn } from "drizzle-orm/pg-core";
+import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
+import { eq } from "drizzle-orm";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
@@ -23,6 +27,66 @@ export function pollResourceWithMetadata<T>(
     defaultPollingMaxRetries: config.defaultPollingMaxRetries,
     defaultPollingRetryDelay: config.defaultPollingRetryDelay,
   });
+}
+
+export const new_hasDbBeenUpdated = async (
+  db: DrizzleReturnType,
+  table: AnyPgTable & {
+    metadataVersion: AnyPgColumn<{ data: number }>;
+    id: AnyPgColumn;
+  },
+  metadataVersion: number,
+  id: string
+): Promise<boolean> => {
+  const [row] = await db
+    .select({
+      metadataVersion: table.metadataVersion,
+    })
+    .from(table as AnyPgTable)
+    .where(eq(table.id, id));
+
+  const existingMetadataVersion = row?.metadataVersion;
+
+  if (existingMetadataVersion == null) {
+    return false;
+  }
+  return existingMetadataVersion >= metadataVersion;
+};
+
+export function new_pollResourceBuilder(
+  db: DrizzleReturnType,
+  sqlTable: AnyPgTable & {
+    metadataVersion: AnyPgColumn<{
+      data: number;
+    }>;
+    id: AnyPgColumn;
+  }
+): (responseWithMetadata: WithMaybeMetadata<{ id: string }>) => Promise<void> {
+  return async (responseWithMetadata: WithMaybeMetadata<{ id: string }>) => {
+    assertMetadataExists(responseWithMetadata);
+
+    const metadataVersion = responseWithMetadata.metadata.version;
+    const resourceId = responseWithMetadata.data.id;
+
+    // eslint-disable-next-line functional/no-let
+    for (
+      let attempt = 0;
+      attempt < config.defaultPollingMaxRetries;
+      attempt++
+    ) {
+      if (
+        await new_hasDbBeenUpdated(db, sqlTable, metadataVersion, resourceId)
+      ) {
+        return;
+      }
+      await delay(config.defaultPollingRetryDelay);
+    }
+
+    throw pollingMaxRetriesExceeded(
+      config.defaultPollingMaxRetries,
+      config.defaultPollingRetryDelay
+    );
+  };
 }
 
 /**

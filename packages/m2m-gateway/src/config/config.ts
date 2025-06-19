@@ -3,6 +3,7 @@ import {
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
   FileManagerConfig,
+  ReadModelSQLDbConfig,
   RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -122,7 +123,8 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
         defaultPollingRetryDelay: c.DEFAULT_POLLING_RETRY_DELAY,
         defaultPollingMaxRetries: c.DEFAULT_POLLING_MAX_RETRIES,
       }))
-  );
+  )
+  .and(ReadModelSQLDbConfig);
 
 export type M2MGatewayConfig = z.infer<typeof M2MGatewayConfig>;
 export const config: M2MGatewayConfig = M2MGatewayConfig.parse(process.env);
