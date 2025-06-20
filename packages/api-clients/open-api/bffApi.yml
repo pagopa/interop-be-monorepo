@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: "http://www.example.com/support"
