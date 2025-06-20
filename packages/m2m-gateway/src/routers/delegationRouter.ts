@@ -140,6 +140,31 @@ const delegationRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .post("/producerDelegations/:delegationId/accept", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const acceptedDelegation =
+          await delegationService.acceptProducerDelegation(
+            req.params.delegationId,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.ProducerDelegation.parse(acceptedDelegation));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error accepting producer delegation with id ${req.params.delegationId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return delegationRouter;

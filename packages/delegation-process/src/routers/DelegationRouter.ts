@@ -217,7 +217,7 @@ const delegationRouter = (
       const { delegationId } = req.params;
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const { data, metadata } =
           await delegationService.approveProducerDelegation(

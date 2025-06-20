@@ -560,7 +560,7 @@ export function delegationServiceBuilder(
     },
     async approveProducerDelegation(
       delegationId: DelegationId,
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return approveDelegation(
         delegationId,
