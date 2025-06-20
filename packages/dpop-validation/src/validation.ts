@@ -98,11 +98,11 @@ export const verifyDPoPProof = ({
       const payloadParseResult = DPoPProofPayload.safeParse(decodedPayload);
       const headerParseResult = DPoPProofHeader.safeParse(decodedHeader);
       const parsingErrors = [
-        !payloadParseResult.success
-          ? dpopProofInvalidClaims(payloadParseResult.error.message, "payload")
-          : undefined,
         !headerParseResult.success
           ? dpopProofInvalidClaims(headerParseResult.error.message, "header")
+          : undefined,
+        !payloadParseResult.success
+          ? dpopProofInvalidClaims(payloadParseResult.error.message, "payload")
           : undefined,
       ].filter(Boolean);
       if (parsingErrors.length > 0) {
