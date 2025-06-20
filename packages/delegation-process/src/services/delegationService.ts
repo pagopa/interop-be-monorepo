@@ -581,7 +581,7 @@ export function delegationServiceBuilder(
     async rejectProducerDelegation(
       delegationId: DelegationId,
       rejectionReason: string,
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return rejectDelegation(
         delegationId,
