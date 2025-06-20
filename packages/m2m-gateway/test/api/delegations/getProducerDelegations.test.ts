@@ -14,10 +14,10 @@ import { toM2MGatewayApiProducerDelegation } from "../../../src/api/delegationAp
 
 describe("GET /producerDelegations router test", () => {
   const mockApiDelegation1 = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+    kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
   });
   const mockApiDelegation2 = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+    kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
   });
 
   const mockM2MDelegationsResponse: m2mGatewayApi.ProducerDelegations = {
