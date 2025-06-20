@@ -4,6 +4,7 @@ import {
   generateId,
   interfaceExtractingSoapFiledError,
   invalidInterfaceFileDetected,
+  invalidServerUrl,
   openapiVersionNotRecognized,
   technology,
 } from "pagopa-interop-models";
@@ -48,7 +49,7 @@ describe("extractEServiceUrlsFrom", () => {
       text: vi.fn().mockResolvedValue(
         JSON.stringify({
           openapi: "2.0",
-          host: "api.example.com",
+          host: "http://api.example.com",
           paths: [{}],
         })
       ),
@@ -60,7 +61,7 @@ describe("extractEServiceUrlsFrom", () => {
       "Rest",
       eserviceId
     );
-    expect(result).toEqual(["api.example.com"]);
+    expect(result).toEqual(["http://api.example.com"]);
   });
   it("should process REST interface with YAML format", async () => {
     const yamlDoc = {
@@ -225,5 +226,20 @@ describe("extractEServiceUrlsFrom", () => {
     await expect(
       extractEServiceUrlsFrom(unsupportedDoc, "INTERFACE", "Rest", eserviceId)
     ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
+  });
+  it("should throw an error for invalid server URLs", async () => {
+    const invalidDoc = {
+      name: "test.json",
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          openapi: "3.0.0",
+          servers: [{ url: "invalid-url" }],
+        })
+      ),
+    } as unknown as File;
+
+    await expect(
+      extractEServiceUrlsFrom(invalidDoc, "INTERFACE", "Rest", eserviceId)
+    ).rejects.toThrow(invalidServerUrl(eserviceId));
   });
 });
