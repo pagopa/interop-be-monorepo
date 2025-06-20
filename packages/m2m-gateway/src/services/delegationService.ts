@@ -8,7 +8,9 @@ import {
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toGetConsumerDelegationsApiQueryParams,
+  toGetProducerDelegationsApiQueryParams,
   toM2MGatewayApiConsumerDelegation,
+  toM2MGatewayApiProducerDelegation,
 } from "../api/delegationApiConverter.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 
@@ -35,7 +37,7 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegations> {
       logger.info(
-        `Retrieving delegations for states ${params.states} delegatorIds ${params.delegatorIds} delegateIds ${params.delegateIds} eserviceIds ${params.eserviceIds} offset ${params.offset} limit ${params.limit}`
+        `Retrieving consuemr delegations for states ${params.states} delegatorIds ${params.delegatorIds} delegateIds ${params.delegateIds} eserviceIds ${params.eserviceIds} offset ${params.offset} limit ${params.limit}`
       );
 
       const response =
@@ -119,6 +121,33 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
       const polledResource = await pollDelegation(response, headers);
 
       return toM2MGatewayApiConsumerDelegation(polledResource.data);
+    },
+    async getProducerDelegations(
+      params: m2mGatewayApi.GetProducerDelegationsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.ProducerDelegations> {
+      logger.info(
+        `Retrieving producer delegations for states ${params.states} delegatorIds ${params.delegatorIds} delegateIds ${params.delegateIds} eserviceIds ${params.eserviceIds} offset ${params.offset} limit ${params.limit}`
+      );
+
+      const response =
+        await clients.delegationProcessClient.delegation.getDelegations({
+          queries: toGetProducerDelegationsApiQueryParams(params),
+          headers,
+        });
+
+      const results = response.data.results.map(
+        toM2MGatewayApiProducerDelegation
+      );
+
+      return {
+        pagination: {
+          limit: params.limit,
+          offset: params.offset,
+          totalCount: response.data.totalCount,
+        },
+        results,
+      };
     },
   };
 }
