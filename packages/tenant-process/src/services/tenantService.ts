@@ -6,6 +6,7 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
+  getLatestTenantMailOfKind,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -1101,9 +1102,18 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      if (tenant.data.mails.find((m) => m.address === mailSeed.address)) {
+      const latestMail = getLatestTenantMailOfKind(
+        tenant.data.mails,
+        mailSeed.kind
+      );
+
+      if (latestMail?.address === mailSeed.address) {
         throw mailAlreadyExists();
       }
+
+      const filteredMails = tenant.data.mails.filter(
+        (mail) => mail.kind !== mailSeed.kind
+      );
 
       const newMail: TenantMail = {
         kind: mailSeed.kind,
@@ -1115,7 +1125,7 @@ export function tenantServiceBuilder(
 
       const updatedTenant: Tenant = {
         ...tenant.data,
-        mails: [...tenant.data.mails, newMail],
+        mails: [...filteredMails, newMail],
         updatedAt: new Date(),
       };
 
