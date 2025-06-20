@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { IMain, ITask } from "pg-promise";
+import { ITask, IMain } from "pg-promise";
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
@@ -8,39 +9,33 @@ import {
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
 import {
-  TenantSchema,
-  TenantDeletingSchema,
-  TenantSelfcareIdSchema,
-} from "../../model/tenant/tenant.js";
-import {
-  TenantDbTable,
   DeletingDbTable,
-  TenantDbPartialTable,
+  ProducerKeychainDbTable,
 } from "../../model/db/index.js";
+import {
+  ProducerKeychainSchema,
+  ProducerKeychainDeletingSchema,
+} from "../../model/authorization/producerKeychain.js";
 
-export function tenantRepository(conn: DBConnection) {
+export function producerKeychainRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = TenantDbTable.tenant;
+  const tableName = ProducerKeychainDbTable.producer_keychain;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
-  const deletingTableName = DeletingDbTable.tenant_deleting_table;
+  const deletingTableName = DeletingDbTable.producer_keychain_deleting_table;
   const stagingDeletingTableName = `${deletingTableName}_${config.mergeTableSuffix}`;
-  const tenantSelfcareUpsertTableName =
-    TenantDbPartialTable.tenant_self_care_id;
-  const stagingTenantSelfcareUpsertTableName = `${tenantSelfcareUpsertTableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: TenantSchema[]
+      records: ProducerKeychainSchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(pgp, tableName, TenantSchema);
+        const cs = buildColumnSet(pgp, tableName, ProducerKeychainSchema);
         await t.none(pgp.helpers.insert(records, cs));
         await t.none(generateStagingDeleteQuery(tableName, ["id"]));
-      } catch (error) {
+      } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
         );
@@ -50,7 +45,7 @@ export function tenantRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          TenantSchema,
+          ProducerKeychainSchema,
           schemaName,
           tableName,
           ["id"]
@@ -76,14 +71,20 @@ export function tenantRepository(conn: DBConnection) {
     async insertDeleting(
       t: ITask<unknown>,
       pgp: IMain,
-      records: TenantDeletingSchema[]
+      records: ProducerKeychainDeletingSchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(pgp, deletingTableName, TenantDeletingSchema);
-        await t.none(pgp.helpers.insert(records, cs));
+        const cs = buildColumnSet(
+          pgp,
+          deletingTableName,
+          ProducerKeychainDeletingSchema
+        );
+        await t.none(
+          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
+        );
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error inserting into staging table ${stagingDeletingTableName}: ${error}`
+          `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
         );
       }
     },
@@ -95,13 +96,13 @@ export function tenantRepository(conn: DBConnection) {
           tableName,
           deletingTableName,
           ["id"],
-          true,
+          false,
           false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging table ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
+          `Error merging deletion flag from ${stagingDeletingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -115,50 +116,5 @@ export function tenantRepository(conn: DBConnection) {
         );
       }
     },
-
-    async insertTenantSelfcareId(
-      t: ITask<unknown>,
-      pgp: IMain,
-      records: TenantSelfcareIdSchema[]
-    ): Promise<void> {
-      try {
-        const cs = buildColumnSet(
-          pgp,
-          tenantSelfcareUpsertTableName,
-          TenantSelfcareIdSchema
-        );
-        await t.none(pgp.helpers.insert(records, cs));
-        await t.none(
-          generateStagingDeleteQuery(
-            tableName,
-            ["id"],
-            tenantSelfcareUpsertTableName
-          )
-        );
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error inserting into staging table ${stagingTenantSelfcareUpsertTableName}: ${error}`
-        );
-      }
-    },
-
-    async mergeTenantSelfcareId(t: ITask<unknown>): Promise<void> {
-      try {
-        const mergeQuery = generateMergeQuery(
-          TenantSelfcareIdSchema,
-          schemaName,
-          tableName,
-          ["id"],
-          tenantSelfcareUpsertTableName
-        );
-        await t.none(mergeQuery);
-      } catch (error: unknown) {
-        throw genericInternalError(
-          `Error merging staging table ${stagingTenantSelfcareUpsertTableName} into ${schemaName}.${tableName}: ${error}`
-        );
-      }
-    },
   };
 }
-
-export type TenantRepository = ReturnType<typeof tenantRepository>;

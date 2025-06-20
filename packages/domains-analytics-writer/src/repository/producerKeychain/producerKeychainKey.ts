@@ -1,35 +1,35 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
-import { IMain, ITask } from "pg-promise";
+import { ITask, IMain } from "pg-promise";
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import {
   buildColumnSet,
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-import { EserviceTemplateDbTable } from "../../model/db/index.js";
-import { EserviceTemplateVersionDocumentSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionDocument.js";
 
-export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
+import { ProducerKeychainDbTable } from "../../model/db/index.js";
+
+import { ProducerKeychainKeySchema } from "../../model/authorization/producerKeychainKey.js";
+
+export function producerKeychainKeyRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
-  const tableName = EserviceTemplateDbTable.eservice_template_version_document;
+  const tableName = ProducerKeychainDbTable.producer_keychain_key;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
 
   return {
     async insert(
       t: ITask<unknown>,
       pgp: IMain,
-      records: EserviceTemplateVersionDocumentSchema[]
+      records: ProducerKeychainKeySchema[]
     ): Promise<void> {
       try {
-        const cs = buildColumnSet(
-          pgp,
-          tableName,
-          EserviceTemplateVersionDocumentSchema
-        );
+        const cs = buildColumnSet(pgp, tableName, ProducerKeychainKeySchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(generateStagingDeleteQuery(tableName, ["id"]));
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["producerKeychainId", "kid"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -40,15 +40,15 @@ export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
     async merge(t: ITask<unknown>): Promise<void> {
       try {
         const mergeQuery = generateMergeQuery(
-          EserviceTemplateVersionDocumentSchema,
+          ProducerKeychainKeySchema,
           schemaName,
           tableName,
-          ["id"]
+          ["producerKeychainId", "kid"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
-          `Error merging staging into ${schemaName}.${tableName}: ${error}`
+          `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
         );
       }
     },
@@ -65,6 +65,6 @@ export function eserviceTemplateVersionDocumentRepository(conn: DBConnection) {
   };
 }
 
-export type EserviceTemplateVersionDocumentRepository = ReturnType<
-  typeof eserviceTemplateVersionDocumentRepository
+export type ProducerKeychainKeyRepository = ReturnType<
+  typeof producerKeychainKeyRepository
 >;
