@@ -124,7 +124,7 @@ CREATE TABLE domains.eservice_descriptor_attribute (
 
 CREATE TABLE domains.eservice_risk_analysis (
   id VARCHAR(36),
-  eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
+  eservice_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER,
   name VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP NOT NULL,
@@ -132,22 +132,19 @@ CREATE TABLE domains.eservice_risk_analysis (
   risk_analysis_form_version VARCHAR(2048) NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id, eservice_id),
-  UNIQUE (risk_analysis_form_id, eservice_id),
-  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
+  UNIQUE (risk_analysis_form_id, eservice_id)
 );
 
 CREATE TABLE domains.eservice_risk_analysis_answer (
   id VARCHAR(36),
-  eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
+  eservice_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER,
-  risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id),
+  risk_analysis_form_id VARCHAR(36) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   key VARCHAR(2048) NOT NULL,
   value VARCHAR(65535) NOT NULL,
   deleted BOOLEAN,
-  PRIMARY KEY (id, eservice_id),
-  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id),
-  FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)
+  PRIMARY KEY (id, eservice_id)
 );
 
 CREATE TABLE domains.agreement (
@@ -549,6 +546,7 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_risk_analysis (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
   risk_analysis_form_version VARCHAR(2048) NOT NULL,
+  tenant_kind VARCHAR(2048) NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );

@@ -2039,11 +2039,11 @@ paths:
       tags:
         - eservices
       summary: Download an E-Service Descriptor interface
-      description: Download the interface document of an E-Service Descriptor.
+      description: Download the interface document of an E-Service Descriptor
       operationId: downloadEServiceDescriptorInterface
       responses:
         "200":
-          description: "E-Service Descriptor interface retrieved: a multipart containing the file and its metadata."
+          description: E-Service Descriptor interface retrieved, a multipart containing the file and its metadata
           content:
             multipart/form-data:
               schema:
@@ -3112,7 +3112,7 @@ paths:
       tags:
         - purposes
       summary: Activate a Purpose in Draft state
-      description: | 
+      description: |
         Activate a Purpose that is in Draft states
         The new state will be Active if daily calls are under the E-Service threshold, Waiting for Approval otherwise
       operationId: activateDraftPurpose

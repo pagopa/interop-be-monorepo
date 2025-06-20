@@ -1,10 +1,15 @@
-import { authorizationApi, apiGatewayApi } from "pagopa-interop-api-clients";
+import {
+  authorizationApi,
+  apiGatewayApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { M2MAuthData, WithLogger } from "pagopa-interop-commons";
 import {
   ClientJWKKey,
   operationForbidden,
   TenantId,
 } from "pagopa-interop-models";
+import { isAxiosError } from "axios";
 import {
   AuthorizationProcessClient,
   CatalogProcessClient,
@@ -88,7 +93,7 @@ async function isAllowedToGetClient(
     return true;
   }
 
-  const purposes = await Promise.all(
+  const settledPromises = await Promise.allSettled(
     client.purposes.map((purpose) =>
       purposeProcessClient.getPurpose({
         headers,
@@ -98,6 +103,28 @@ async function isAllowedToGetClient(
       })
     )
   );
+
+  settledPromises.forEach((p) => {
+    if (p.status !== "rejected") {
+      return;
+    }
+    /**
+     * There could be purposes which the requester is not allowed to see in the client.
+     * We ignore those purposes and continue the checks only with the ones that are allowed.
+     */
+    const error = p.reason;
+    if (isAxiosError(error) && error.response?.status === 403) {
+      return;
+    }
+    throw error;
+  });
+
+  const purposes = settledPromises
+    .filter(
+      (r): r is PromiseFulfilledResult<purposeApi.Purpose> =>
+        r.status === "fulfilled"
+    )
+    .map((r) => r.value);
 
   const eservices = await Promise.all(
     purposes.map((purpose) =>
