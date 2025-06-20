@@ -24,6 +24,10 @@ import {
   eserviceTemplateNotFound,
   eserviceTemplateNotPublished,
 } from "../../../src/model/errors.js";
+import {
+  eserviceInterfaceDataNotValid,
+  eserviceTemplateInterfaceNotFound,
+} from "../../utils.js";
 
 describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/interface/rest", () => {
   const mockEService = getMockCatalogApiEService();
@@ -64,13 +68,17 @@ describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/in
       error: eserviceTemplateNotPublished(generateId()),
       expectedStatus: 400,
     },
-    {
-      error: eserviceTemplateNotPublished(generateId()),
-      expectedStatus: 400,
-    },
     { error: eserviceIsNotDraft(mockEService.id), expectedStatus: 400 },
     {
       error: eserviceTemplateNotFound(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: eserviceTemplateInterfaceNotFound(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: eserviceInterfaceDataNotValid(),
       expectedStatus: 400,
     },
     {
