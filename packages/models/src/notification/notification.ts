@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { UserId, TenantId } from "../brandedIds.js";
+import { UserId, TenantId, NotificationId } from "../brandedIds.js";
 
 export const Notification = z.object({
-  id: z.string(),
+  id: NotificationId,
   userId: UserId,
   tenantId: TenantId,
   body: z.string(),

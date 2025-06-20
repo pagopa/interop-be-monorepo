@@ -44,7 +44,7 @@ export function inAppNotificationServiceBuilder(
 
       return createListResult(
         notifications.map(({ totalCount: _, ...n }) => fromNotificationSQL(n)),
-        notifications[0].totalCount
+        notifications[0]?.totalCount ?? 0
       );
     },
   };

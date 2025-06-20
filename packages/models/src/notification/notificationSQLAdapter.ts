@@ -14,7 +14,7 @@ export type NotificationSQL = {
 export const fromNotificationSQL = (
   notification: NotificationSQL
 ): Notification => ({
-  id: notification.id,
+  id: unsafeBrandId(notification.id),
   userId: unsafeBrandId(notification.userId),
   tenantId: unsafeBrandId(notification.tenantId),
   body: notification.body,
