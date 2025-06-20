@@ -462,6 +462,47 @@ CREATE TABLE IF NOT EXISTS domains.client_key (
   PRIMARY KEY (client_id, kid)
 );
 
+CREATE TABLE IF NOT EXISTS domains.producer_keychain (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  producer_id VARCHAR(36) NOT NULL,
+  name VARCHAR(2048) NOT NULL,
+  description VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain_user (
+  metadata_version INTEGER NOT NULL,
+  producer_keychain_id VARCHAR(36) NOT NULL REFERENCES domains.producer_keychain (id),
+  user_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (producer_keychain_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain_eservice (
+  metadata_version INTEGER NOT NULL,
+  producer_keychain_id VARCHAR(36) NOT NULL REFERENCES domains.producer_keychain (id),
+  eservice_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (producer_keychain_id, eservice_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain_key (
+  metadata_version INTEGER NOT NULL,
+  producer_keychain_id VARCHAR(36) NOT NULL REFERENCES domains.producer_keychain (id),
+  user_id VARCHAR(36) NOT NULL,
+  kid VARCHAR(2048) NOT NULL,
+  name VARCHAR(2048) NOT NULL,
+  encoded_pem VARCHAR(8192) NOT NULL,
+  "algorithm" VARCHAR(2048) NOT NULL,
+  "use" VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (producer_keychain_id, kid)
+);
+
 CREATE TABLE IF NOT EXISTS domains.eservice_template (
   id VARCHAR(36),
   metadata_version INTEGER NOT NULL,
