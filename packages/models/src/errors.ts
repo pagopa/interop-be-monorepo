@@ -304,6 +304,7 @@ export const commonErrorCodes = {
   invalidSqsMessage: "10023",
   decodeSQSMessageError: "10024",
   pollingMaxRetriesExceeded: "10025",
+  invalidServerUrl: "10026",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -728,5 +729,15 @@ export function pollingMaxRetriesExceeded(
     detail: `Polling exceeded maximum retries (${retries}) with delay ${retryDelayMs}ms`,
     code: "pollingMaxRetriesExceeded",
     title: "Polling max retries exceeded",
+  });
+}
+
+export function invalidServerUrl(
+  resourceId: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for EService or EserviceTemplate with ID ${resourceId} has invalid server URL`,
+    code: "invalidServerUrl",
+    title: "Invalid server URL",
   });
 }

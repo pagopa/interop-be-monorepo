@@ -14,6 +14,7 @@ import {
   invalidInterfaceContentTypeDetected,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
+  invalidServerUrl,
   openapiVersionNotRecognized,
   technology,
   Technology,
@@ -280,7 +281,7 @@ export const extractEServiceUrlsFrom = async (
 ): Promise<string[]> => {
   const fileContent = await file.text();
   try {
-    return match({
+    const serverUrls = match({
       fileType: getInterfaceFileType(file.name),
       technology: tech,
       kind,
@@ -310,6 +311,15 @@ export const extractEServiceUrlsFrom = async (
       .otherwise(() => {
         throw new Error();
       });
+
+    // Validate that all returned strings are valid URLs
+    for (const url of serverUrls) {
+      if (!URL.canParse(url)) {
+        throw invalidServerUrl(resourceId);
+      }
+    }
+
+    return serverUrls;
   } catch (error) {
     throw match(error)
       .with(
