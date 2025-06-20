@@ -267,13 +267,13 @@ export function generateStagingDeleteQuery<
 }
 
 /**
- * Purge obsolete rows in target tables by merging with staging data.
+ * Purge obsolete rows in target tables by deleting based on staging data.
  *
- * This MERGE operation deletes any row in each target table that has the same key as a staging row
+ * This operation deletes any row in each target table that has the same key as a staging row
  * but a lower metadata_version, ensuring outdated records are removed.
  *
  * @param t - The pg-promise transaction object.
- * @param id - The key to match rows on during the delete cascade (typically "id").
+ * @param id - The key to match rows on during the delete.
  * @param targetTableNames - A list of target table names to apply the delete.
  * @param stagingTableName - The name of the staging table containing columns used for deleting condition.
  */
@@ -291,19 +291,18 @@ export async function cleaningTargetTables<
   for (const targetTableName of targetTableNames) {
     const snakeCaseMapper = getColumnNameMapper(targetTableName);
 
-    const onCondition = `${
+    const whereCondition = `${
       config.dbSchemaName
     }.${targetTableName}.${quoteColumn(
       snakeCaseMapper(String(id))
     )} = source.id`;
 
     const deleteQuery = `
-        MERGE INTO ${config.dbSchemaName}.${targetTableName}
-        USING ${stagingTableName}_${config.mergeTableSuffix} AS source
-          ON ${onCondition} AND ${config.dbSchemaName}.${targetTableName}.metadata_version < source.metadata_version
-        WHEN MATCHED THEN
-         DELETE;
-      `.trim();
+    DELETE FROM ${config.dbSchemaName}.${targetTableName}
+    USING ${stagingTableName}_${config.mergeTableSuffix} AS source
+    WHERE ${whereCondition}
+      AND ${config.dbSchemaName}.${targetTableName}.metadata_version < source.metadata_version
+    `.trim();
 
     await t.none(deleteQuery);
   }
