@@ -35,7 +35,7 @@ export function inAppNotificationServiceBuilder(
           and(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
-            ilike(notification.body, `%${q ?? ""}%`)
+            q ? ilike(notification.body, `%${q}%`) : undefined
           )
         )
         .orderBy(desc(notification.createdAt))
