@@ -20,7 +20,7 @@ import {
   toPurposeAggregator,
   toPurposeAggregatorArray,
 } from "./purpose/aggregators.js";
-import { checkMetadataVersion } from "./index.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
