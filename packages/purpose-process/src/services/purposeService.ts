@@ -109,7 +109,6 @@ import {
   isRiskAnalysisFormValid,
   isDeletableVersion,
   purposeIsDraft,
-  reverseValidateAndTransformRiskAnalysis,
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
   isRejectable,
@@ -1623,11 +1622,7 @@ const performUpdatePurpose = async (
           true,
           tenantKind
         )
-      : reverseValidateAndTransformRiskAnalysis(
-          purpose.data.riskAnalysisForm,
-          true,
-          tenantKind
-        );
+      : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {
     ...purpose.data,

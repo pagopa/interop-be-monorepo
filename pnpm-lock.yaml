@@ -40,8 +40,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.1
-        version: 1.6.1
+        specifier: 1.6.4
+        version: 1.6.4
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -485,8 +485,8 @@ importers:
         version: 3.3.0(zod@3.23.8)
     devDependencies:
       '@apidevtools/swagger-parser':
-        specifier: 10.1.0
-        version: 10.1.0(openapi-types@12.1.3)
+        specifier: 10.1.1
+        version: 10.1.1(openapi-types@12.1.3)
       '@pagopa/eslint-config':
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
@@ -500,8 +500,8 @@ importers:
         specifier: 6.9.15
         version: 6.9.15
       handlebars:
-        specifier: 4.7.7
-        version: 4.7.7
+        specifier: 4.7.8
+        version: 4.7.8
       openapi-types:
         specifier: 12.1.3
         version: 12.1.3
@@ -747,8 +747,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/jsonwebtoken':
-        specifier: 9.0.6
-        version: 9.0.6
+        specifier: 9.0.10
+        version: 9.0.10
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1015,8 +1015,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/jsonwebtoken':
-        specifier: 9.0.6
-        version: 9.0.6
+        specifier: 9.0.10
+        version: 9.0.10
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1203,8 +1203,8 @@ importers:
   packages/backend-for-frontend:
     dependencies:
       '@apidevtools/swagger-parser':
-        specifier: 10.1.0
-        version: 10.1.0(openapi-types@12.1.3)
+        specifier: 10.1.1
+        version: 10.1.1(openapi-types@12.1.3)
       '@aws-sdk/client-dynamodb':
         specifier: 3.693.0
         version: 3.693.0
@@ -1324,8 +1324,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.1
-        version: 1.6.1
+        specifier: 1.6.4
+        version: 1.6.4
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -1760,8 +1760,8 @@ importers:
         version: 3.23.8
     devDependencies:
       '@types/jsonwebtoken':
-        specifier: 9.0.6
-        version: 9.0.6
+        specifier: 9.0.10
+        version: 9.0.10
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -1949,8 +1949,8 @@ importers:
   packages/commons:
     dependencies:
       '@apidevtools/swagger-parser':
-        specifier: 10.1.0
-        version: 10.1.0(openapi-types@12.1.3)
+        specifier: 10.1.1
+        version: 10.1.1(openapi-types@12.1.3)
       '@aws-sdk/client-kms':
         specifier: 3.693.0
         version: 3.693.0
@@ -2055,8 +2055,8 @@ importers:
         specifier: 4.17.21
         version: 4.17.21
       '@types/jsonwebtoken':
-        specifier: 9.0.6
-        version: 9.0.6
+        specifier: 9.0.10
+        version: 9.0.10
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -2109,8 +2109,8 @@ importers:
         specifier: 0.5.5
         version: 0.5.5
       '@types/jsonwebtoken':
-        specifier: 9.0.6
-        version: 9.0.6
+        specifier: 9.0.10
+        version: 9.0.10
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
@@ -2383,8 +2383,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.1
-        version: 1.6.1
+        specifier: 1.6.4
+        version: 1.6.4
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -2746,8 +2746,8 @@ importers:
         version: 3.23.8
     devDependencies:
       '@types/jsonwebtoken':
-        specifier: 9.0.6
-        version: 9.0.6
+        specifier: 9.0.10
+        version: 9.0.10
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -2959,8 +2959,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.1
-        version: 1.6.1
+        specifier: 1.6.4
+        version: 1.6.4
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -3577,6 +3577,12 @@ importers:
       express:
         specifier: 4.20.0
         version: 4.20.0
+      form-data-encoder:
+        specifier: 4.1.0
+        version: 4.1.0
+      formdata-node:
+        specifier: 6.0.3
+        version: 6.0.3
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -3853,8 +3859,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/html2json':
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 1.0.4
+        version: 1.0.4
       '@types/lodash.isempty':
         specifier: 4.4.9
         version: 4.4.9
@@ -4207,8 +4213,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.1
-        version: 1.6.1
+        specifier: 1.6.4
+        version: 1.6.4
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -4817,8 +4823,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.6.1
-        version: 1.6.1
+        specifier: 1.6.4
+        version: 1.6.4
       '@protobuf-ts/runtime':
         specifier: 2.9.4
         version: 2.9.4
@@ -5253,8 +5259,9 @@ packages:
       '@faker-js/faker': ^7.0.0 || ^8.0.0
       zod: ^3.21.4
 
-  '@apidevtools/json-schema-ref-parser@9.0.6':
-    resolution: {integrity: sha512-M3YgsLjI0lZxvrpeGVk9Ap032W6TPQkH6pRAZz81Ac3WUNF79VQooAFnp8umjvVzUmD93NkogxEwbSce7qMsUg==}
+  '@apidevtools/json-schema-ref-parser@11.7.2':
+    resolution: {integrity: sha512-4gY54eEGEstClvEkGnwVkTkrx0sqwemEFG5OSRRn3tD91XH0+Q8XIkYIfo7IwEWPpJZwILb9GUXeShtplRc/eA==}
+    engines: {node: '>= 16'}
 
   '@apidevtools/openapi-schemas@2.1.0':
     resolution: {integrity: sha512-Zc1AlqrJlX3SlpupFGpiLi2EbteyP7fXmUOGup6/DnkRgjP9bgMM/ag+n91rsv0U1Gpz0H3VILA/o3bW7Ua6BQ==}
@@ -5263,8 +5270,8 @@ packages:
   '@apidevtools/swagger-methods@3.0.2':
     resolution: {integrity: sha512-QAkD5kK2b1WfjDS/UQn/qQkbwF31uqRjPTrsCs5ZG9BQGAkjwvqGFjjPqAuzac/IYzpPtRzjCP1WrTuAIjMrXg==}
 
-  '@apidevtools/swagger-parser@10.1.0':
-    resolution: {integrity: sha512-9Kt7EuS/7WbMAUv2gSziqjvxwDbFSg3Xeyfuj5laUODX8o/k/CpsAKiQ8W7/R88eXFTMbJYg6+7uAmOWNKmwnw==}
+  '@apidevtools/swagger-parser@10.1.1':
+    resolution: {integrity: sha512-u/kozRnsPO/x8QtKYJOqoGtC4kH6yg1lfYkB9Au0WhYB0FNLpyFusttQtvhlwjtG3rOwiRz4D8DnnXa8iEpIKA==}
     peerDependencies:
       openapi-types: '>=7'
 
@@ -6481,8 +6488,8 @@ packages:
   '@pagopa/eslint-config@3.0.0':
     resolution: {integrity: sha512-eYIPdiuYRbRPR5k0OuteRNqYb0Z2nfJ/lZohejB7ylfBeSDWwkaV8Z19AXP4RymE6oEesyPDZ6i0yNaE9tQrHw==}
 
-  '@pagopa/interop-outbound-models@1.6.1':
-    resolution: {integrity: sha512-bNd8hggBqRynW9zzKqx0dMsFvdTTuZyk05JXQJxlc6rkoWQuucypoNkH5ygSvhu0cQwGEDNHWojdbGubJQApMQ==}
+  '@pagopa/interop-outbound-models@1.6.4':
+    resolution: {integrity: sha512-7FFsV2Eh6mtxjg+PczM3ShnTR99uAWtHwHmXizpNafrKsJP3MYSRMy39yKIk+U0Ashb+7rjn8P2LDFwanOr0JQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -7054,8 +7061,8 @@ packages:
   '@types/fs-extra@9.0.13':
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
 
-  '@types/html2json@1.0.1':
-    resolution: {integrity: sha512-D+cq6HcgfMdrbIpXzxsmJ9mBz9VlyagqaIB9OZVHGrOeyWbwjTLWR2qUGh1w/VZLtG4wy8mp7v4EpJQ1dYqWzw==}
+  '@types/html2json@1.0.4':
+    resolution: {integrity: sha512-lsghOPqISs2oDEbhfqJYxWVWvvcPoBCL0zQuLZwXW4QuVQjacTdgczfhA+TNP+hQJ/YGGlBqBGwlp7jpbpoBdQ==}
 
   '@types/http-errors@2.0.4':
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
@@ -7069,8 +7076,8 @@ packages:
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
 
-  '@types/jsonwebtoken@9.0.6':
-    resolution: {integrity: sha512-/5hndP5dCjloafCXns6SZyESp3Ldq7YjH3zwzwczYnjxIT0Fqzk5ROSYVGfFyczIue7IUEj8hkvLbPoLQ18vQw==}
+  '@types/jsonwebtoken@9.0.10':
+    resolution: {integrity: sha512-asx5hIG9Qmf/1oStypjanR7iKTv0gXQ1Ov/jfrX6kS/EO0OFni8orbmGCn0672NHR3kXHwpAwR+B368ZGN/2rA==}
 
   '@types/lodash.isempty@4.4.9':
     resolution: {integrity: sha512-DPSFfnT2JmZiAWNWOU8IRZws/Ha6zyGF5m06TydfsY+0dVoQqby2J61Na2QU4YtwiZ+moC6cJS6zWYBJq4wBVw==}
@@ -7089,6 +7096,9 @@ packages:
 
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
+
+  '@types/ms@2.1.0':
+    resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
   '@types/multer@1.4.11':
     resolution: {integrity: sha512-svK240gr6LVWvv3YGyhLlA+6LRRWA4mnGIU7RcNmgjBYFl6665wcXrRfxGp5tEPVHUNm5FMcmq7too9bxCwX/w==}
@@ -7329,9 +7339,6 @@ packages:
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
 
-  ajv@8.16.0:
-    resolution: {integrity: sha512-F0twR8U1ZU67JIEtekUcLkXkoO5mMMmgGD8sK/xUFzJ805jxHQl92hImFAqqXMyMYjSPOyUPAwHYhB72g5sTXw==}
-
   ajv@8.17.1:
     resolution: {integrity: sha512-B/gBuNg5SiMTrPkC+A2+cW0RszwxYmn6VYxB/inlBStS5nx6xHIt/ehKRhIMhqusl7a8LjQoZnjCs5vhwxOQ1g==}
 
@@ -7376,9 +7383,6 @@ packages:
 
   arg@4.1.3:
     resolution: {integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==}
-
-  argparse@1.0.10:
-    resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
 
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
@@ -8505,9 +8509,21 @@ packages:
     resolution: {integrity: sha512-PXUUyLqrR2XCWICfv6ukppP96sdFwWbNEnfEMt7jNsISjMsvaLNinAHNDYyvkyU+SZG2BTSbT5NjG+vZslfGTA==}
     engines: {node: '>=14'}
 
+  form-data-encoder@4.1.0:
+    resolution: {integrity: sha512-G6NsmEW15s0Uw9XnCg+33H3ViYRyiM0hMrMhhqQOR8NFc5GhYrI+6I3u7OTw7b91J2g8rtvMBZJDbcGb2YUniw==}
+    engines: {node: '>= 18'}
+
   form-data@4.0.0:
     resolution: {integrity: sha512-ETEklSGi5t0QMZuiXoA/Q6vcnxcLQP5vdugSpuAyi6SVGi2clPPp+xgEhuMaHC+zGgn31Kd235W35f7Hykkaww==}
     engines: {node: '>= 6'}
+
+  form-data@4.0.3:
+    resolution: {integrity: sha512-qsITQPfmvMOSAdeyZ+12I1c+CKSstAFAwu+97zrnWAbIr5u8wfsExUzCesVLC8NgHuRUqNN4Zy6UPWUTRGslcA==}
+    engines: {node: '>= 6'}
+
+  formdata-node@6.0.3:
+    resolution: {integrity: sha512-8e1++BCiTzUno9v5IZ2J6bv4RU+3UKDmqWUQD0MIMVCd9AdhWkO1gw57oo1mNEX1dMq2EGI+FbWz4B92pscSQg==}
+    engines: {node: '>= 18'}
 
   formidable@3.5.2:
     resolution: {integrity: sha512-Jqc1btCy3QzRbJaICGwKcBfGWuLADRerLzDqi2NwSt/UkXLsHJw2TVResiaoBufHVHy9aSgClOHCeJsSsFLTbg==}
@@ -8663,11 +8679,6 @@ packages:
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
-
-  handlebars@4.7.7:
-    resolution: {integrity: sha512-aAcXm5OAfE/8IXkcZvCepKU3VzW1/39Fb5ZuqMtgI/hT8X2YgoMvBY5dLhq/cpOvw7Lk1nK/UF71aLG/ZnVYRA==}
-    engines: {node: '>=0.4.7'}
-    hasBin: true
 
   handlebars@4.7.8:
     resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
@@ -8992,10 +9003,6 @@ packages:
 
   js-tokens@9.0.0:
     resolution: {integrity: sha512-WriZw1luRMlmV3LGJaR6QOJjWwgLUTf89OwT2lUOyjX2dJGBwgmIkbcz+7WFZjrZM635JOIR517++e/67CP9dQ==}
-
-  js-yaml@3.14.1:
-    resolution: {integrity: sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==}
-    hasBin: true
 
   js-yaml@4.1.0:
     resolution: {integrity: sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==}
@@ -10125,9 +10132,6 @@ packages:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
 
-  sprintf-js@1.0.3:
-    resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
-
   sprintf-js@1.1.3:
     resolution: {integrity: sha512-Oo+0REFV59/rz3gfJNKQiBlwfHaSESl1pcGyABQsnnIfWOFt6JNj5gCog2U6MLZ//IGYD+nA8nI+mTShREReaA==}
 
@@ -10799,24 +10803,24 @@ snapshots:
       randexp: 0.5.3
       zod: 3.23.8
 
-  '@apidevtools/json-schema-ref-parser@9.0.6':
+  '@apidevtools/json-schema-ref-parser@11.7.2':
     dependencies:
       '@jsdevtools/ono': 7.1.3
-      call-me-maybe: 1.0.2
-      js-yaml: 3.14.1
+      '@types/json-schema': 7.0.15
+      js-yaml: 4.1.0
 
   '@apidevtools/openapi-schemas@2.1.0': {}
 
   '@apidevtools/swagger-methods@3.0.2': {}
 
-  '@apidevtools/swagger-parser@10.1.0(openapi-types@12.1.3)':
+  '@apidevtools/swagger-parser@10.1.1(openapi-types@12.1.3)':
     dependencies:
-      '@apidevtools/json-schema-ref-parser': 9.0.6
+      '@apidevtools/json-schema-ref-parser': 11.7.2
       '@apidevtools/openapi-schemas': 2.1.0
       '@apidevtools/swagger-methods': 3.0.2
       '@jsdevtools/ono': 7.1.3
-      ajv: 8.16.0
-      ajv-draft-04: 1.0.0(ajv@8.16.0)
+      ajv: 8.17.1
+      ajv-draft-04: 1.0.0(ajv@8.17.1)
       call-me-maybe: 1.0.2
       openapi-types: 12.1.3
 
@@ -12834,7 +12838,7 @@ snapshots:
       - tsutils
       - typescript
 
-  '@pagopa/interop-outbound-models@1.6.1':
+  '@pagopa/interop-outbound-models@1.6.4':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -13719,7 +13723,7 @@ snapshots:
     dependencies:
       '@types/node': 20.14.6
 
-  '@types/html2json@1.0.1': {}
+  '@types/html2json@1.0.4': {}
 
   '@types/http-errors@2.0.4': {}
 
@@ -13729,8 +13733,9 @@ snapshots:
 
   '@types/json5@0.0.29': {}
 
-  '@types/jsonwebtoken@9.0.6':
+  '@types/jsonwebtoken@9.0.10':
     dependencies:
+      '@types/ms': 2.1.0
       '@types/node': 20.14.6
 
   '@types/lodash.isempty@4.4.9':
@@ -13748,6 +13753,8 @@ snapshots:
   '@types/methods@1.1.4': {}
 
   '@types/mime@1.3.5': {}
+
+  '@types/ms@2.1.0': {}
 
   '@types/multer@1.4.11':
     dependencies:
@@ -13822,7 +13829,7 @@ snapshots:
       '@types/cookiejar': 2.1.5
       '@types/methods': 1.1.4
       '@types/node': 20.14.6
-      form-data: 4.0.0
+      form-data: 4.0.3
 
   '@types/supertest@6.0.2':
     dependencies:
@@ -14011,10 +14018,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  ajv-draft-04@1.0.0(ajv@8.16.0):
-    optionalDependencies:
-      ajv: 8.16.0
-
   ajv-draft-04@1.0.0(ajv@8.17.1):
     optionalDependencies:
       ajv: 8.17.1
@@ -14032,13 +14035,6 @@ snapshots:
       fast-deep-equal: 3.1.3
       fast-json-stable-stringify: 2.1.0
       json-schema-traverse: 0.4.1
-      uri-js: 4.4.1
-
-  ajv@8.16.0:
-    dependencies:
-      fast-deep-equal: 3.1.3
-      json-schema-traverse: 1.0.0
-      require-from-string: 2.0.2
       uri-js: 4.4.1
 
   ajv@8.17.1:
@@ -14103,10 +14099,6 @@ snapshots:
       zip-stream: 4.1.1
 
   arg@4.1.3: {}
-
-  argparse@1.0.10:
-    dependencies:
-      sprintf-js: 1.0.3
 
   argparse@2.0.1: {}
 
@@ -15523,11 +15515,23 @@ snapshots:
       cross-spawn: 7.0.3
       signal-exit: 4.1.0
 
+  form-data-encoder@4.1.0: {}
+
   form-data@4.0.0:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       mime-types: 2.1.35
+
+  form-data@4.0.3:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      es-set-tostringtag: 2.1.0
+      hasown: 2.0.2
+      mime-types: 2.1.35
+
+  formdata-node@6.0.3: {}
 
   formidable@3.5.2:
     dependencies:
@@ -15717,15 +15721,6 @@ snapshots:
   graceful-fs@4.2.11: {}
 
   graphemer@1.4.0: {}
-
-  handlebars@4.7.7:
-    dependencies:
-      minimist: 1.2.8
-      neo-async: 2.6.2
-      source-map: 0.6.1
-      wordwrap: 1.0.0
-    optionalDependencies:
-      uglify-js: 3.18.0
 
   handlebars@4.7.8:
     dependencies:
@@ -16040,11 +16035,6 @@ snapshots:
 
   js-tokens@9.0.0: {}
 
-  js-yaml@3.14.1:
-    dependencies:
-      argparse: 1.0.10
-      esprima: 4.0.1
-
   js-yaml@4.1.0:
     dependencies:
       argparse: 2.0.1
@@ -16126,7 +16116,7 @@ snapshots:
   jwks-rsa@3.1.0:
     dependencies:
       '@types/express': 4.17.21
-      '@types/jsonwebtoken': 9.0.6
+      '@types/jsonwebtoken': 9.0.10
       debug: 4.3.5
       jose: 4.15.9
       limiter: 1.1.5
@@ -16507,7 +16497,7 @@ snapshots:
 
   openapi-zod-client@1.18.3:
     dependencies:
-      '@apidevtools/swagger-parser': 10.1.0(openapi-types@12.1.3)
+      '@apidevtools/swagger-parser': 10.1.1(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
       '@zodios/core': 10.9.6(axios@1.8.2)(zod@3.23.8)
       axios: 1.8.2
@@ -17246,8 +17236,6 @@ snapshots:
 
   split2@4.2.0: {}
 
-  sprintf-js@1.0.3: {}
-
   sprintf-js@1.1.3: {}
 
   ssh-remote-port-forward@1.0.4:
@@ -17400,7 +17388,7 @@ snapshots:
       cookiejar: 2.1.4
       debug: 4.3.5
       fast-safe-stringify: 2.1.1
-      form-data: 4.0.0
+      form-data: 4.0.3
       formidable: 3.5.2
       methods: 1.1.2
       mime: 2.6.0

@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -5800,6 +5800,118 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
           content:
             application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/signalhub/update:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Enable/disable SignalHub for an e-service
+      operationId: updateEServiceSignalHubFlag
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing a boolean that describes if SignalHub will be enabled or disabled
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceSignalHubUpdateSeed"
+      responses:
+        "204":
+          description: EService SignalHub flag updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad request
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+
+        "403":
+          description: Forbidden
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService not found
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
@@ -18532,7 +18644,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis created.
@@ -18647,7 +18759,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis updated.
@@ -20189,6 +20301,14 @@ components:
           type: string
       required:
         - name
+    EServiceSignalHubUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+      required:
+        - isSignalHubEnabled
     RejectDelegatedEServiceDescriptorSeed:
       type: object
       additionalProperties: false
@@ -20431,6 +20551,20 @@ components:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
+    EServiceTemplateRiskAnalysisSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+        - riskAnalysisForm
+        - tenantKind
+      properties:
+        name:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysis:
       type: object
       additionalProperties: false
@@ -20447,6 +20581,28 @@ components:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisForm"
+        createdAt:
+          type: string
+          format: date-time
+    EServiceTemplateRiskAnalysis:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - name
+        - riskAnalysisForm
+        - tenantKind
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisForm"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
         createdAt:
           type: string
           format: date-time
@@ -22861,7 +23017,7 @@ components:
         riskAnalysis:
           type: array
           items:
-            $ref: "#/components/schemas/EServiceRiskAnalysis"
+            $ref: "#/components/schemas/EServiceTemplateRiskAnalysis"
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
@@ -22880,6 +23036,7 @@ components:
         - voucherLifespan
         - attributes
         - eserviceTemplate
+        - isAlreadyInstantiated
       properties:
         id:
           type: string
@@ -22916,6 +23073,10 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplateDetails"
+        isAlreadyInstantiated:
+          type: boolean
+        hasRequesterRiskAnalysis:
+          type: boolean
     EServiceTemplateVersionQuotasUpdateSeed:
       type: object
       additionalProperties: false

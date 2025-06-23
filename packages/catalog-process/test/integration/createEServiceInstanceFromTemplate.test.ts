@@ -1,14 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { afterAll, beforeAll, describe, vi, it, expect } from "vitest";
 import {
   decodeProtobufPayload,
-  getMockContext,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getMockAuthData,
+  getMockTenant,
+  getMockValidEServiceTemplateRiskAnalysis,
   readEventByStreamIdAndVersion,
+  getMockEService,
+  getMockAuthData,
   getMockDescriptor,
   getMockDocument,
-  getMockEService,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -18,22 +21,26 @@ import {
   EServiceDescriptorAddedV2,
   EServiceDescriptorDocumentAddedV2,
   EServiceDocumentId,
+  eserviceMode,
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
+  Tenant,
+  tenantKind,
   toEServiceV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { config } from "../../src/config/config.js";
 import {
   catalogService,
   postgresDB,
   readLastEserviceEvent,
   addOneEServiceTemplate,
   fileManager,
+  addOneTenant,
 } from "../integrationUtils.js";
+import { config } from "../../src/config/config.js";
 
 describe("create eService from template", () => {
   const mockEService = getMockEService();
@@ -58,6 +65,12 @@ describe("create eService from template", () => {
       versions: [publishedVersion],
     };
 
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
 
     const eService = await catalogService.createEServiceInstanceFromTemplate(
@@ -143,6 +156,152 @@ describe("create eService from template", () => {
     );
   });
 
+  it("should write on event-store for the creation of an eService in RECEIVE mode from a template when user is a PA", async () => {
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      id: mockEService.producerId,
+      kind: tenantKind.PA,
+    };
+
+    const validEServiceTemplateRiskAnalysisPA1 =
+      getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
+    const validEServiceTemplateRiskAnalysisPA2 =
+      getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
+    const validEServiceTemplateRiskAnalysisPrivate =
+      getMockValidEServiceTemplateRiskAnalysis(tenantKind.PRIVATE);
+
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      mode: eserviceMode.receive,
+      riskAnalysis: [
+        validEServiceTemplateRiskAnalysisPA1,
+        validEServiceTemplateRiskAnalysisPA2,
+        validEServiceTemplateRiskAnalysisPrivate,
+      ],
+      versions: [publishedVersion],
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const result = await catalogService.createEServiceInstanceFromTemplate(
+      eserviceTemplate.id,
+      {},
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    const { tenantKind: _tenantKind, ...validRiskAnalysisPA1 } =
+      validEServiceTemplateRiskAnalysisPA1;
+    const { tenantKind: _tenantKind2, ...validRiskAnalysisPA2 } =
+      validEServiceTemplateRiskAnalysisPA2;
+
+    const expectedEServiceWithDescriptor: EService = {
+      ...mockEService,
+      description: eserviceTemplate.description,
+      name: eserviceTemplate.name,
+      mode: eserviceMode.receive,
+      createdAt: new Date(),
+      id: result.id,
+      isSignalHubEnabled: result.isSignalHubEnabled,
+      isClientAccessDelegable: false,
+      isConsumerDelegable: false,
+      templateId: eserviceTemplate.id,
+      riskAnalysis: [validRiskAnalysisPA1, validRiskAnalysisPA2],
+      descriptors: [
+        {
+          ...mockDescriptor,
+          description: publishedVersion.description,
+          id: result.descriptors[0].id,
+          createdAt: new Date(),
+          serverUrls: [],
+          audience: [],
+          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
+          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          templateVersionRef: { id: publishedVersion.id },
+        },
+      ],
+    };
+
+    expect(result).toEqual(expectedEServiceWithDescriptor);
+  });
+
+  it("should write on event-store for the creation of an eService in RECEIVE mode from a template when user has kind Private", async () => {
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      id: mockEService.producerId,
+      kind: tenantKind.PRIVATE,
+    };
+
+    const validEServiceTemplateRiskAnalysisPA1 =
+      getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
+    const validEServiceTemplateRiskAnalysisPA2 =
+      getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);
+    const validEServiceTemplateRiskAnalysisPrivate =
+      getMockValidEServiceTemplateRiskAnalysis(tenantKind.PRIVATE);
+
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      mode: eserviceMode.receive,
+      riskAnalysis: [
+        validEServiceTemplateRiskAnalysisPA1,
+        validEServiceTemplateRiskAnalysisPA2,
+        validEServiceTemplateRiskAnalysisPrivate,
+      ],
+      versions: [publishedVersion],
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const result = await catalogService.createEServiceInstanceFromTemplate(
+      eserviceTemplate.id,
+      {},
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    const { tenantKind: _tenantKind, ...validRiskAnalysisPrivate } =
+      validEServiceTemplateRiskAnalysisPrivate;
+
+    const expectedEServiceWithDescriptor: EService = {
+      ...mockEService,
+      description: eserviceTemplate.description,
+      name: eserviceTemplate.name,
+      mode: eserviceMode.receive,
+      createdAt: new Date(),
+      id: result.id,
+      isSignalHubEnabled: result.isSignalHubEnabled,
+      isClientAccessDelegable: false,
+      isConsumerDelegable: false,
+      templateId: eserviceTemplate.id,
+      riskAnalysis: [validRiskAnalysisPrivate],
+      descriptors: [
+        {
+          ...mockDescriptor,
+          description: publishedVersion.description,
+          id: result.descriptors[0].id,
+          createdAt: new Date(),
+          serverUrls: [],
+          audience: [],
+          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
+          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          templateVersionRef: { id: publishedVersion.id },
+        },
+      ],
+    };
+
+    expect(result).toEqual(expectedEServiceWithDescriptor);
+  });
+
   it("should write on event-store for the creation of an eService from a template with documents", async () => {
     vi.spyOn(fileManager, "copy");
 
@@ -178,6 +337,11 @@ describe("create eService from template", () => {
       versions: [eserviceTemplatePublishedVersion],
     };
 
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+    await addOneTenant(tenant);
     await addOneEServiceTemplate(eServiceTemplate);
 
     await fileManager.storeBytes(
@@ -402,6 +566,44 @@ describe("create eService from template", () => {
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedDocument2.path);
   });
+
+  it("should throw templateMissingRequiredRiskAnalysis when the template is in receive mode and there are no risk analysis of the requester tenant kind", async () => {
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      id: mockEService.producerId,
+      kind: tenantKind.PA,
+    };
+
+    const validRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PRIVATE
+    );
+
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      mode: eserviceMode.receive,
+      riskAnalysis: [validRiskAnalysis],
+      versions: [publishedVersion],
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      catalogService.createEServiceInstanceFromTemplate(
+        eserviceTemplate.id,
+        {},
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toMatchObject({
+      code: "templateMissingRequiredRiskAnalysis",
+    });
+  });
+
   it("should throw eServiceTemplateNotFound when the template does not exist", async () => {
     await expect(
       catalogService.createEServiceInstanceFromTemplate(

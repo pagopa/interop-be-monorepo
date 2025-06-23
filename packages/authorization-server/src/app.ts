@@ -24,15 +24,16 @@ export async function createApp(service: TokenService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(healthRouter);
-  app.use(contextMiddleware(serviceName, false));
-  app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(
-    await applicationAuditAuthorizationServerEndMiddleware(serviceName, config)
+    "/authorization-server",
+    healthRouter,
+    contextMiddleware(serviceName, false),
+    await applicationAuditBeginMiddleware(serviceName, config),
+    await applicationAuditAuthorizationServerEndMiddleware(serviceName, config),
+    express.urlencoded({ extended: true }),
+    loggerMiddleware(serviceName),
+    authorizationServerRouter(zodiosCtx, service)
   );
-  app.use(express.urlencoded({ extended: true }));
-  app.use(loggerMiddleware(serviceName));
-  app.use(authorizationServerRouter(zodiosCtx, service));
 
   return app;
 }

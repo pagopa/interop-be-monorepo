@@ -6,7 +6,6 @@ import {
   purposeApi,
   tenantApi,
   authorizationApi,
-  m2mGatewayApi,
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
@@ -185,8 +184,10 @@ export function getMockedApiEservice({
 
 export function getMockedApiEserviceDescriptor({
   state,
+  interfaceDoc,
 }: {
   state?: catalogApi.EServiceDescriptorState;
+  interfaceDoc?: catalogApi.EServiceDoc;
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
@@ -196,7 +197,7 @@ export function getMockedApiEserviceDescriptor({
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
     dailyCallsPerConsumer: generateMock(z.number().int().gte(1)),
     dailyCallsTotal: generateMock(z.number().int().gte(1)),
-    interface: generateMock(catalogApi.EServiceDoc),
+    interface: interfaceDoc ?? generateMock(catalogApi.EServiceDoc),
     docs: generateMock(z.array(catalogApi.EServiceDoc)),
     state: state ?? generateMock(catalogApi.EServiceDescriptorState),
     agreementApprovalPolicy: generateMock(catalogApi.AgreementApprovalPolicy),
@@ -221,12 +222,17 @@ export function getMockedApiEServiceTemplate({
     creatorId: generateId(),
     description: generateMock(z.string().length(10)),
     intendedTarget: generateMock(z.string().length(10)),
-    mode: generateMock(m2mGatewayApi.EServiceMode),
+    mode: generateMock(eserviceTemplateApi.EServiceMode),
     name: generateMock(z.string().length(10)),
-    technology: generateMock(m2mGatewayApi.EServiceTechnology),
+    technology: generateMock(eserviceTemplateApi.EServiceTechnology),
     versions: versions ?? [getMockedApiEserviceTemplateVersion()],
     isSignalHubEnabled: generateMock(z.boolean().optional()),
-    riskAnalysis: [getMockedApiRiskAnalysis()],
+    riskAnalysis: [
+      {
+        ...getMockedApiRiskAnalysis(),
+        tenantKind: generateMock(eserviceTemplateApi.TenantKind),
+      },
+    ],
   };
 }
 
@@ -263,7 +269,8 @@ export function getMockedApiEserviceTemplateVersion({
 } = {}): eserviceTemplateApi.EServiceTemplateVersion {
   return {
     id: generateId(),
-    state: state ?? generateMock(m2mGatewayApi.EServiceTemplateVersionState),
+    state:
+      state ?? generateMock(eserviceTemplateApi.EServiceTemplateVersionState),
     voucherLifespan: generateMock(z.number().positive()),
     version: 0,
     attributes: {
