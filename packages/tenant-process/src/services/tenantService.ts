@@ -1102,8 +1102,7 @@ export function tenantServiceBuilder(
 
       const tenant = await retrieveTenant(tenantId, readModelService);
 
-      // needed in case the tenant has more than one mail of the same kind
-      // in the future this can be removed as the tenant can have only one mail of each kind
+      // could be simplified when the tenants will have only one mail of each kind
       const latestMail = getLatestTenantMailOfKind(
         tenant.data.mails,
         mailSeed.kind
