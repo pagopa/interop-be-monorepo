@@ -85,7 +85,7 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
           client: { data: client, metadata },
@@ -147,6 +147,7 @@ const authorizationRouter = (
           ADMIN_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
           API_ROLE,
         ]);

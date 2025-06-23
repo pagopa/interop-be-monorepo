@@ -236,7 +236,11 @@ export function authorizationServiceBuilder(
       }: {
         clientSeed: authorizationApi.ClientSeed;
       },
-      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+      {
+        logger,
+        correlationId,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<{ client: WithMetadata<Client>; showUsers: boolean }> {
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
@@ -304,7 +308,10 @@ export function authorizationServiceBuilder(
         offset: number;
         limit: number;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Client>> {
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
