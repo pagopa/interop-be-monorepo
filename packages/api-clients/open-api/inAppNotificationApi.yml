@@ -84,6 +84,8 @@ paths:
       summary: Mark a list of notifications as read
       description: Mark a list of notifications as read
       operationId: markNotificationsAsRead
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
       requestBody:
         required: true
         content:
@@ -115,6 +117,7 @@ paths:
       description: Mark a notification as read
       operationId: markNotificationAsRead
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - in: path
           name: notificationId
           required: true
