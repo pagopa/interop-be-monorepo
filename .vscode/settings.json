@@ -7,5 +7,6 @@
   "typescript.tsdk": "packages/commons/node_modules/typescript/lib",
   "files.watcherExclude": {
     "**/target": true
-  }
+  },
+  "vitest.disableWorkspaceWarning": true
 }

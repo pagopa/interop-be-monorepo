@@ -19,4 +19,4 @@ export const notification = notificationSchema.table("notification", {
   }).notNull(),
 });
 
-export type Notification = InferSelectModel<typeof notification>;
+export type NotificationDB = InferSelectModel<typeof notification>;
