@@ -9,7 +9,10 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import { toM2MGatewayApiConsumerClient } from "../api/clientApiConverter.js";
+import {
+  toGetClientsApiQueryParams,
+  toM2MGatewayApiConsumerClient,
+} from "../api/clientApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -74,7 +77,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       const {
         data: { results, totalCount },
       } = await clients.authorizationClient.client.getClients({
-        queries: params,
+        queries: toGetClientsApiQueryParams(params),
         headers,
       });
 
