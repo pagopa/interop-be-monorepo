@@ -27,7 +27,7 @@ tags:
       description: Find out more
       url: http://swagger.io
 paths:
-  /notificationTenantConfigs:
+  /tenantNotificationConfigs:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -35,14 +35,46 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Update a tenant notification configuration
-      operationId: updateNotificationTenant
+      summary: Update a tenant's notification configuration
+      operationId: updateTenantNotificationConfig
       requestBody:
         description: A notification config seed
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/NotificationConfigSeed"
+        required: true
+      responses:
+        "204":
+          description: Notification config updated
+        "400":
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /userNotificationConfigs:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update a user's notification configuration
+      operationId: updateUserNotificationConfig
+      requestBody:
+        description: A user notification config seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserNotificationConfigSeed"
         required: true
       responses:
         "204":
@@ -83,6 +115,17 @@ components:
       schema:
         type: string
   schemas:
+    UserNotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - inAppConfig
+        - emailConfig
+      properties:
+        inAppConfig:
+          $ref: "#/components/schemas/NotificationConfigSeed"
+        emailConfig:
+          $ref: "#/components/schemas/NotificationConfigSeed"
     NotificationConfigSeed:
       type: object
       additionalProperties: false

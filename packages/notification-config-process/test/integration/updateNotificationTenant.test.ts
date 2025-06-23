@@ -11,7 +11,7 @@ describe("update tenant notification configuration", () => {
   };
 
   it("should write on event-store for the update of a tenant's notification configuration", async () => {
-    await notificationConfigService.updateNotificationTenant(
+    await notificationConfigService.updateTenantNotificationConfig(
       notificationConfigSeed,
       getMockContext({
         authData: getMockAuthData(tenantId),

@@ -2,23 +2,49 @@
 import { CreateEvent } from "pagopa-interop-commons";
 import {
   CorrelationId,
-  NotificationTenant,
   NotificationConfigEvent,
-  toNotificationTenantV2,
+  toTenantNotificationConfigV2,
+  toUserNotificationConfigV2,
+  TenantNotificationConfig,
+  UserNotificationConfig,
 } from "pagopa-interop-models";
 
-export const toCreateEventNotificationTenantConfigUpdated = (
+export const toCreateEventTenantNotificationConfigUpdated = (
   streamId: string,
   version: number | undefined,
-  notificationTenant: NotificationTenant,
+  tenantNotificationConfig: TenantNotificationConfig,
   correlationId: CorrelationId
 ): CreateEvent<NotificationConfigEvent> => ({
   streamId,
   version,
   event: {
-    type: "NotificationTenantConfigUpdated",
+    type: "TenantNotificationConfigUpdated",
     event_version: 2,
-    data: { notificationTenant: toNotificationTenantV2(notificationTenant) },
+    data: {
+      tenantNotificationConfig: toTenantNotificationConfigV2(
+        tenantNotificationConfig
+      ),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventUserNotificationConfigUpdated = (
+  streamId: string,
+  version: number | undefined,
+  userNotificationConfig: UserNotificationConfig,
+  correlationId: CorrelationId
+): CreateEvent<NotificationConfigEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "UserNotificationConfigUpdated",
+    event_version: 2,
+    data: {
+      userNotificationConfig: toUserNotificationConfigV2(
+        userNotificationConfig
+      ),
+    },
   },
   correlationId,
 });

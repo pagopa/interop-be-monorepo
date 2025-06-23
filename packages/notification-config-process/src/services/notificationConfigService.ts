@@ -8,10 +8,14 @@ import {
 import {
   unsafeBrandId,
   notificationConfigEventToBinaryDataV2,
-  NotificationTenant,
+  TenantNotificationConfig,
+  UserNotificationConfig,
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { toCreateEventNotificationTenantConfigUpdated } from "../model/domain/toEvent.js";
+import {
+  toCreateEventTenantNotificationConfigUpdated,
+  toCreateEventUserNotificationConfigUpdated,
+} from "../model/domain/toEvent.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notificationConfigServiceBuilder(dbInstance: DB) {
@@ -20,7 +24,7 @@ export function notificationConfigServiceBuilder(dbInstance: DB) {
     notificationConfigEventToBinaryDataV2
   );
   return {
-    async updateNotificationTenant(
+    async updateTenantNotificationConfig(
       seed: notificationConfigApi.NotificationConfigSeed,
       {
         authData: { organizationId },
@@ -32,7 +36,7 @@ export function notificationConfigServiceBuilder(dbInstance: DB) {
         `Updating notification configuration for tenant ${organizationId}`
       );
 
-      const notificationTenant: NotificationTenant = {
+      const tenantNotificationConfig: TenantNotificationConfig = {
         id: unsafeBrandId(organizationId), // FIXME replace with separate notification tenant ID
         tenantId: organizationId,
         config: seed,
@@ -40,10 +44,41 @@ export function notificationConfigServiceBuilder(dbInstance: DB) {
 
       const version = undefined; // FIXME use correct version
 
-      const event = toCreateEventNotificationTenantConfigUpdated(
+      const event = toCreateEventTenantNotificationConfigUpdated(
         organizationId,
         version,
-        notificationTenant,
+        tenantNotificationConfig,
+        correlationId
+      );
+      await repository.createEvent(event);
+    },
+
+    async updateUserNotificationConfig(
+      seed: notificationConfigApi.UserNotificationConfigSeed,
+      {
+        authData: { userId, organizationId },
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Updating notification configuration for user ${userId} in tenant ${organizationId}`
+      );
+
+      const userNotificationConfig: UserNotificationConfig = {
+        id: unsafeBrandId(userId), // FIXME replace with separate notification user ID
+        userId,
+        tenantId: organizationId,
+        inAppConfig: seed.inAppConfig,
+        emailConfig: seed.emailConfig,
+      };
+
+      const version = undefined; // FIXME use correct version
+
+      const event = toCreateEventUserNotificationConfigUpdated(
+        organizationId,
+        version,
+        userNotificationConfig,
         correlationId
       );
       await repository.createEvent(event);

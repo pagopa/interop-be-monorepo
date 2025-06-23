@@ -1,5 +1,10 @@
 import z from "zod";
-import { NotificationTenantId, TenantId } from "../brandedIds.js";
+import {
+  TenantNotificationConfigId,
+  TenantId,
+  UserNotificationConfigId,
+  UserId,
+} from "../brandedIds.js";
 
 export const EServiceConsumerNotificationConfig = z.object({
   newEServiceVersionPublished: z.boolean(),
@@ -20,9 +25,18 @@ export const NotificationConfig = z.object({
 });
 export type NotificationConfig = z.infer<typeof NotificationConfig>;
 
-export const NotificationTenant = z.object({
-  id: NotificationTenantId,
+export const TenantNotificationConfig = z.object({
+  id: TenantNotificationConfigId,
   tenantId: TenantId,
   config: NotificationConfig,
 });
-export type NotificationTenant = z.infer<typeof NotificationTenant>;
+export type TenantNotificationConfig = z.infer<typeof TenantNotificationConfig>;
+
+export const UserNotificationConfig = z.object({
+  id: UserNotificationConfigId,
+  userId: UserId,
+  tenantId: TenantId,
+  inAppConfig: NotificationConfig,
+  emailConfig: NotificationConfig,
+});
+export type UserNotificationConfig = z.infer<typeof UserNotificationConfig>;

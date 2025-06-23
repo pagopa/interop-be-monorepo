@@ -16,13 +16,13 @@ describe("API POST /notificationTenantConfigs", () => {
     body: notificationConfigApi.NotificationConfigSeed = notificationConfigSeed
   ) =>
     request(api)
-      .post("/notificationTenantConfigs")
+      .post("/tenantNotificationConfigs")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
   beforeEach(() => {
-    notificationConfigService.updateNotificationTenant = vi
+    notificationConfigService.updateTenantNotificationConfig = vi
       .fn()
       .mockResolvedValue(undefined);
   });

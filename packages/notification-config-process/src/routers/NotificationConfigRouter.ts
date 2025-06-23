@@ -23,12 +23,30 @@ const notificationConfigRouter = (
     .router(notificationConfigApi.processApi.api, {
       validationErrorHandler: zodiosValidationErrorToApiProblem,
     })
-    .post("/notificationTenantConfigs", async (req, res) => {
+    .post("/tenantNotificationConfigs", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
-        await notificationConfigService.updateNotificationTenant(req.body, ctx);
+        await notificationConfigService.updateTenantNotificationConfig(
+          req.body,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/userNotificationConfigs", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+        await notificationConfigService.updateUserNotificationConfig(
+          req.body,
+          ctx
+        );
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);

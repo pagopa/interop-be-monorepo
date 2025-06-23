@@ -14,8 +14,16 @@ message NotificationConfigV2 {
   ConsumerNotificationConfigV2 consumer = 1;
 }
 
-message NotificationTenantV2 {
+message TenantNotificationConfigV2 {
   string id = 1;
   string tenantId = 2;
   NotificationConfigV2 config = 3;
+}
+
+message UserNotificationConfigV2 {
+  string id = 1;
+  string userId = 2;
+  string tenantId = 3;
+  NotificationConfigV2 inAppConfig = 4;
+  NotificationConfigV2 emailConfig = 5;
 }

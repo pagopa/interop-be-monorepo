@@ -4,6 +4,10 @@ package notification.config.v2;
 
 import "v2/notification-config/notification-config.proto";
 
-message NotificationTenantConfigUpdatedV2 {
-  NotificationTenantV2 notificationTenant = 1;
+message TenantNotificationConfigUpdatedV2 {
+  TenantNotificationConfigV2 tenantNotificationConfig = 1;
+}
+
+message UserNotificationConfigUpdatedV2 {
+  UserNotificationConfigV2 userNotificationConfig = 1;
 }

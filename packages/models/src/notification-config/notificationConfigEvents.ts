@@ -1,15 +1,23 @@
 import { z } from "zod";
 import { match } from "ts-pattern";
 
-import { NotificationTenantConfigUpdatedV2 } from "../gen/v2/notification-config/events.js";
+import {
+  TenantNotificationConfigUpdatedV2,
+  UserNotificationConfigUpdatedV2,
+} from "../gen/v2/notification-config/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
 
 export const NotificationConfigEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
-    type: z.literal("NotificationTenantConfigUpdated"),
-    data: protobufDecoder(NotificationTenantConfigUpdatedV2),
+    type: z.literal("TenantNotificationConfigUpdated"),
+    data: protobufDecoder(TenantNotificationConfigUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("UserNotificationConfigUpdated"),
+    data: protobufDecoder(UserNotificationConfigUpdatedV2),
   }),
 ]);
 
@@ -21,8 +29,11 @@ export function notificationConfigEventToBinaryDataV2(
   event: NotificationConfigEventV2
 ): Uint8Array {
   return match(event)
-    .with({ type: "NotificationTenantConfigUpdated" }, ({ data }) =>
-      NotificationTenantConfigUpdatedV2.toBinary(data)
+    .with({ type: "TenantNotificationConfigUpdated" }, ({ data }) =>
+      TenantNotificationConfigUpdatedV2.toBinary(data)
+    )
+    .with({ type: "UserNotificationConfigUpdated" }, ({ data }) =>
+      UserNotificationConfigUpdatedV2.toBinary(data)
     )
     .exhaustive();
 }
