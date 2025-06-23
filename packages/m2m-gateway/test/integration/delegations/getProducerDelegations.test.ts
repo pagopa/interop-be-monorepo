@@ -27,12 +27,12 @@ describe("getProducerDelegations", () => {
 
   const mockApiDelegation1 = getMockWithMetadata(
     getMockedApiDelegation({
-      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
     })
   );
   const mockApiDelegation2 = getMockWithMetadata(
     getMockedApiDelegation({
-      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
     })
   );
 
