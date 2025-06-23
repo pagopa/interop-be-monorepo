@@ -16,7 +16,7 @@ headers {
 
 body:json {
   {
-    "name": "test-client",
+    "name": "{{randomName}}",
     "description": "Test client for M2M gateway",
     "members": ["{{userId1}}", "{{userId2}}"]
   }
@@ -24,4 +24,10 @@ body:json {
 
 vars:post-response {
   clientId: res.body.id
+}
+
+script:pre-request {
+  const random = Math.round(Math.random() * 10000)
+
+  bru.setVar("randomName",`test client ${random}`)
 }
