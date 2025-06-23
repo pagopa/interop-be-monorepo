@@ -13,7 +13,6 @@ import {
   TenantId,
   generateId,
 } from "pagopa-interop-models";
-import { EServiceRiskAnalysis } from "../../api-clients/dist/bffApi.js";
 import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
 
 export const getMockBffApiPurpose = (): bffApi.Purpose & { id: PurposeId } => ({
@@ -157,7 +156,7 @@ export const getMockBffApiEServiceTemplateApiEServiceTemplate =
       z.array(eserviceTemplateApi.EServiceTemplateVersion)
     ),
     riskAnalysis: generateMock(
-      z.array(eserviceTemplateApi.EServiceRiskAnalysis)
+      z.array(eserviceTemplateApi.EServiceTemplateRiskAnalysis)
     ),
     mode: generateMock(eserviceTemplateApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean().optional()),
@@ -172,7 +171,7 @@ export const getMockBffApiEServiceTemplateDetails =
     description: generateMock(z.string()),
     technology: generateMock(bffApi.EServiceTechnology),
     versions: generateMock(z.array(bffApi.CompactEServiceTemplateVersion)),
-    riskAnalysis: generateMock(z.array(EServiceRiskAnalysis)),
+    riskAnalysis: generateMock(z.array(bffApi.EServiceTemplateRiskAnalysis)),
     mode: generateMock(bffApi.EServiceMode),
     isSignalHubEnabled: generateMock(z.boolean()),
     draftVersion: generateMock(
@@ -233,6 +232,8 @@ export const getMockBffApiEServiceTemplateVersionDetails =
     ),
     attributes: generateMock(bffApi.DescriptorAttributes),
     eserviceTemplate: generateMock(bffApi.EServiceTemplateDetails),
+    isAlreadyInstantiated: generateMock(z.boolean()),
+    hasRequesterRiskAnalysis: generateMock(z.boolean().optional()),
   });
 
 export const getMockBffApiCatalogEServiceTemplate =
