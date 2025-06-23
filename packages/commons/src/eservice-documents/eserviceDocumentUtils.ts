@@ -314,7 +314,8 @@ export const extractEServiceUrlsFrom = async (
 
     // Validate that all returned strings are valid URLs
     for (const url of serverUrls) {
-      if (!URL.canParse(url)) {
+      const { success } = z.string().url().safeParse(url);
+      if (!success) {
         throw invalidServerUrl(resourceId);
       }
     }
