@@ -123,6 +123,7 @@ export async function sendCatalogAuthUpdate(
           "EServiceRiskAnalysisUpdated",
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceDescriptionUpdated",
           "EServiceDescriptorAttributesUpdated",
           "EServiceNameUpdated"
