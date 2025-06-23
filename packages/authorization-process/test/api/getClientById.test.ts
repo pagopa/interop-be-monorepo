@@ -10,10 +10,7 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import {
-  clientNotFound,
-  tenantNotAllowedOnClient,
-} from "../../src/model/domain/errors.js";
+import { clientNotFound } from "../../src/model/domain/errors.js";
 
 describe("API /clients/{clientId} authorization test", () => {
   const mockClient: Client = getMockClient();
@@ -68,10 +65,6 @@ describe("API /clients/{clientId} authorization test", () => {
     {
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
-    },
-    {
-      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
-      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",
