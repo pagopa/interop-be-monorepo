@@ -84,6 +84,45 @@ export const getMockReversePurposeSeed = (): bffApi.PurposeEServiceSeed => ({
   dailyCalls: generateMock(z.number().int().min(0)),
 });
 
+export const getMockBffApiPrivacyNotice = (): bffApi.PrivacyNotice => ({
+  id: generateId(),
+  userId: generateId(),
+  consentType: generateMock(bffApi.ConsentType),
+  firstAccept: generateMock(z.boolean()),
+  isUpdated: generateMock(z.boolean()),
+  latestVersionId: generateId(),
+});
+
+export const getMockBffApiCompactUser = (): bffApi.CompactUser => ({
+  userId: generateId(),
+  name: generateMock(z.string()),
+  familyName: generateMock(z.string()),
+});
+
+export const getMockBffApiPublicKey = (): bffApi.PublicKey => ({
+  keyId: generateMock(z.string()),
+  name: generateMock(z.string()),
+  user: getMockBffApiCompactUser(),
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+  isOrphan: generateMock(z.boolean()),
+});
+
+export const getMockBffApiProducerKeychain = (): bffApi.ProducerKeychain => ({
+  id: generateId(),
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+  producer: generateMock(bffApi.CompactOrganization),
+  name: generateMock(z.string()),
+  eservices: generateMock(z.array(bffApi.CompactEService)),
+  description: generateMock(z.string()),
+});
+
+export const getMockBffApiCompactProducerKeychain =
+  (): bffApi.CompactProducerKeychain => ({
+    id: generateId(),
+    name: generateMock(z.string()),
+    hasKeys: generateMock(z.boolean()),
+  });
+
 export const getMockGetSessionTokenReturnType =
   (): GetSessionTokenReturnType => ({
     limitReached: false,
