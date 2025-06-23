@@ -36,7 +36,7 @@
     "vitest": "1.6.1"
   },
   "dependencies": {
-    "@apidevtools/swagger-parser": "10.1.0",
+    "@apidevtools/swagger-parser": "10.1.1",
     "@aws-sdk/client-dynamodb": "3.693.0",
     "@aws-sdk/util-dynamodb": "3.693.0",
     "@xmldom/xmldom": "0.9.6",

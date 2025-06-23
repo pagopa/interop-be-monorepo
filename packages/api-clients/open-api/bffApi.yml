@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -23028,7 +23028,7 @@ components:
         - voucherLifespan
         - attributes
         - eserviceTemplate
-        - canBeInstantiated
+        - isAlreadyInstantiated
       properties:
         id:
           type: string
@@ -23065,7 +23065,9 @@ components:
           $ref: "#/components/schemas/DescriptorAttributes"
         eserviceTemplate:
           $ref: "#/components/schemas/EServiceTemplateDetails"
-        canBeInstantiated:
+        isAlreadyInstantiated:
+          type: boolean
+        hasRequesterRiskAnalysis:
           type: boolean
     EServiceTemplateVersionQuotasUpdateSeed:
       type: object
