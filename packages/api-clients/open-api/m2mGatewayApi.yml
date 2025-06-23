@@ -5393,7 +5393,7 @@ components:
         - purposes
         - users
     ClientSeed:
-      description: Client creation request body
+      description: contains the expected payload for client creation
       type: object
       additionalProperties: false
       properties:
