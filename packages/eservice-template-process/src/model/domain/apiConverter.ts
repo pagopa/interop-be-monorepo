@@ -163,6 +163,7 @@ export const eserviceTemplateToApiEServiceTemplate = (
       singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
       multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
     },
+    tenantKind: riskAnalysis.tenantKind,
   })),
   versions: eserviceTemplate.versions.map(
     eserviceTemplateVersionToApiEServiceTemplateVersion

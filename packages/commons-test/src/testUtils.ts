@@ -98,6 +98,13 @@ import {
   AgreementDocumentV2,
   PurposeV2,
   EserviceAttributes,
+  DPoPProof,
+  DPoPProofPayload,
+  DPoPProofHeader,
+  JWKKeyRS256,
+  JWKKeyES256,
+  Algorithm,
+  algorithm,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -115,6 +122,7 @@ import {
   WithLogger,
   UIClaims,
   M2MAdminAuthData,
+  createJWK,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -686,7 +694,7 @@ export const getMockClientAssertion = async (props?: {
     ...props?.customHeader,
   };
 
-  const jws = await signClientAssertion({
+  const jws = await signJWT({
     payload: actualPayload,
     headers,
     keySet,
@@ -702,22 +710,82 @@ export const getMockClientAssertion = async (props?: {
   };
 };
 
+export const getMockDPoPProof = async (
+  props?: {
+    customPayload?: { [k: string]: unknown };
+    customHeader?: { [k: string]: unknown };
+  },
+  alg: Algorithm = algorithm.ES256
+): Promise<{
+  dpopProofJWS: string;
+  dpopProofJWT: DPoPProof;
+}> => {
+  const { keySet, publicKeyEncodedPem } = generateKeySet(alg);
+
+  const payload: DPoPProofPayload = {
+    htm: "POST",
+    htu: "test/authorization-server/token.oauth2",
+    iat: dateToSeconds(new Date()),
+    jti: generateId(),
+    ...props?.customPayload,
+  };
+
+  const cryptoJWK = createJWK({
+    pemKeyBase64: publicKeyEncodedPem,
+    strictCheck: alg === algorithm.RS256,
+  });
+
+  const jwk = match(alg)
+    .with(algorithm.ES256, () => JWKKeyES256.parse(cryptoJWK))
+    .with(algorithm.RS256, () => JWKKeyRS256.parse(cryptoJWK))
+    .exhaustive();
+
+  const header: DPoPProofHeader = {
+    typ: "dpop+jwt",
+    alg,
+    jwk,
+    ...props?.customHeader,
+  };
+
+  const dpopJWS = await signJWT({
+    payload,
+    headers: header,
+    keySet,
+  });
+
+  return {
+    dpopProofJWS: dpopJWS,
+    dpopProofJWT: {
+      payload,
+      header,
+    },
+  };
+};
+
 export const getMockDescriptorRejectionReason =
   (): DescriptorRejectionReason => ({
     rejectionReason: "Rejection Reason",
     rejectedAt: new Date(),
   });
 
-export const generateKeySet = (): {
+export const generateKeySet = (
+  alg: Algorithm = algorithm.RS256
+): {
   keySet: crypto.KeyPairKeyObjectResult;
   publicKeyEncodedPem: string;
 } => {
-  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
-    "rsa",
-    {
-      modulusLength: 2048,
-    }
-  );
+  const keySet: crypto.KeyPairKeyObjectResult = match(alg)
+    .with(algorithm.RS256, () =>
+      crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      })
+    )
+    .with(algorithm.ES256, () =>
+      crypto.generateKeyPairSync("ec", {
+        namedCurve: "P-256", // This is the curve for ES256
+      })
+    )
+    .exhaustive();
 
   const pemPublicKey = keySet.publicKey
     .export({
@@ -733,7 +801,7 @@ export const generateKeySet = (): {
   };
 };
 
-const signClientAssertion = async ({
+export const signJWT = async ({
   payload,
   headers,
   keySet,
