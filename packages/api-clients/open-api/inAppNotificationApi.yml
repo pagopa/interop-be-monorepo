@@ -35,6 +35,7 @@ paths:
       description: Returns a list of all notifications for the requester
       operationId: getNotifications
       parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
         - in: query
           name: q
           description: Query to filter notifications

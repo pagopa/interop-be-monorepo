@@ -2,6 +2,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import {
   AppContext,
   createListResult,
+  escapeRegExp,
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -35,7 +36,7 @@ export function inAppNotificationServiceBuilder(
           and(
             eq(notification.userId, userId),
             eq(notification.tenantId, organizationId),
-            q ? ilike(notification.body, `%${q}%`) : undefined
+            q ? ilike(notification.body, `%${escapeRegExp(q)}%`) : undefined
           )
         )
         .orderBy(desc(notification.createdAt))

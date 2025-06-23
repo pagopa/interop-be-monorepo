@@ -25,8 +25,17 @@ describe("API GET /notifications", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     inAppNotificationService.getNotifications = vi.fn().mockResolvedValue({
-      results: [],
-      totalCount: 0,
+      results: [
+        {
+          id: generateId(),
+          userId: generateId(),
+          tenantId: generateId(),
+          body: "Notification 1",
+          readAt: new Date(),
+          createdAt: new Date(),
+        },
+      ],
+      totalCount: 1,
     });
   });
 
@@ -44,9 +53,9 @@ describe("API GET /notifications", () => {
       expect(res.status).toBe(200);
       expect(res.body).toEqual({
         results: expect.any(Array),
-        totalCount: 0,
+        totalCount: 1,
       });
-      expect(res.body.results).toHaveLength(0);
+      expect(res.body.results).toHaveLength(1);
     }
   );
 
