@@ -9,6 +9,7 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
+import { toM2MGatewayApiConsumerClient } from "../api/clientApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -47,6 +48,59 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       }
 
       return unsafeBrandId<UserId>(client.data.adminId);
+    },
+    async getClient(
+      clientId: ClientId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Client> {
+      logger.info(`Retrieving client with id ${clientId}`);
+
+      const client = await clients.authorizationClient.client.getClient({
+        params: { clientId },
+        headers,
+      });
+
+      return toM2MGatewayApiConsumerClient(client.data);
+    },
+    async getClients(
+      params: m2mGatewayApi.GetClientsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Clients> {
+      const { limit, offset, name, userIds, consumerId, purposeId } = params;
+      logger.info(
+        `Retrieving clients with name ${name}, consumerId ${consumerId}, purposeId ${purposeId}, userIds ${userIds}, offset ${offset}, limit ${limit}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } = await clients.authorizationClient.client.getClients({
+        queries: params,
+        headers,
+      });
+
+      return {
+        results: results.map(toM2MGatewayApiConsumerClient),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
+    },
+    async createClient(
+      seed: m2mGatewayApi.ClientSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Client> {
+      logger.info(`Creating client with name ${seed.name}`);
+
+      const response =
+        await clients.authorizationClient.client.createConsumerClient(seed, {
+          headers,
+        });
+
+      const polledResource = await pollClient(response, headers);
+
+      return toM2MGatewayApiConsumerClient(polledResource.data);
     },
     async addClientPurpose(
       clientId: ClientId,

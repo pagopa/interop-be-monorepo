@@ -32,6 +32,7 @@ export const errorCodes = {
   eserviceTemplateVersionNotFound: "0017",
   tenantCertifiedAttributeNotFound: "0018",
   eserviceDescriptorInterfaceNotFound: "0019",
+  unexpectedClientKind: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -200,5 +201,15 @@ export function eserviceDescriptorInterfaceNotFound(
     detail: `Interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
     code: "eserviceDescriptorInterfaceNotFound",
     title: "Eservice descriptor interface not found",
+  });
+}
+
+export function unexpectedClientKind(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
+    code: "unexpectedClientKind",
+    title: "Unexpected client kind",
   });
 }
