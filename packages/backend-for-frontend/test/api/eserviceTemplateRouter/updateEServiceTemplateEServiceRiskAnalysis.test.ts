@@ -8,13 +8,14 @@ import {
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiEServiceRiskAnalysisSeed } from "../../mockUtils.js";
-import { EServiceRiskAnalysisSeed } from "../../../../api-clients/dist/bffApi.js";
+import { getMockBffApiEServiceTemplateRiskAnalysisSeed } from "../../mockUtils.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAnalysisId", () => {
-  const mockEServiceRiskAnalysisSeed = getMockBffApiEServiceRiskAnalysisSeed();
+  const mockEServiceTemplateRiskAnalysisSeed =
+    getMockBffApiEServiceTemplateRiskAnalysisSeed();
 
   beforeEach(() => {
     clients.eserviceTemplateProcessClient.updateEServiceTemplateRiskAnalysis =
@@ -25,7 +26,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAn
     token: string,
     eServiceTemplateId: EServiceTemplateId = generateId(),
     riskAnalysisId: string = generateId(),
-    body: EServiceRiskAnalysisSeed = mockEServiceRiskAnalysisSeed
+    body: bffApi.EServiceTemplateRiskAnalysisSeed = mockEServiceTemplateRiskAnalysisSeed
   ) =>
     request(api)
       .post(
@@ -47,14 +48,20 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAn
     { body: {} },
     {
       body: {
-        ...mockEServiceRiskAnalysisSeed,
+        ...mockEServiceTemplateRiskAnalysisSeed,
         extraField: 1,
       },
     },
     {
       body: {
-        ...mockEServiceRiskAnalysisSeed,
+        ...mockEServiceTemplateRiskAnalysisSeed,
         riskAnalysisForm: {},
+      },
+    },
+    {
+      body: {
+        ...mockEServiceTemplateRiskAnalysisSeed,
+        tenantKind: "invalid",
       },
     },
   ])(
@@ -65,7 +72,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/riskAnalysis/:riskAn
         token,
         eServiceTemplateId,
         riskAnalysisId,
-        body as EServiceRiskAnalysisSeed
+        body as bffApi.EServiceTemplateRiskAnalysisSeed
       );
       expect(res.status).toBe(400);
     }

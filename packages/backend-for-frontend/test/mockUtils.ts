@@ -265,10 +265,11 @@ export const getMockBffApiEServiceTemplateVersionQuotasUpdateSeed =
     dailyCallsTotal: generateMock(z.number().gte(1).optional()),
   });
 
-export const getMockBffApiEServiceRiskAnalysisSeed =
-  (): bffApi.EServiceRiskAnalysisSeed => ({
+export const getMockBffApiEServiceTemplateRiskAnalysisSeed =
+  (): bffApi.EServiceTemplateRiskAnalysisSeed => ({
     name: generateMock(z.string()),
     riskAnalysisForm: generateMock(bffApi.RiskAnalysisFormSeed),
+    tenantKind: generateMock(bffApi.TenantKind),
   });
 
 export const getMockBffApiDescriptorAttributesSeed =
