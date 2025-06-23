@@ -4,31 +4,18 @@ import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
-import { api, clients } from "../../vitest.api.setup.js";
+import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiCatalogEService } from "../../mockUtils.js";
 
 describe("API GET /eservices/names/availability", () => {
   const defaultQuery = {
     name: "name",
   };
-  const mockEServices = {
-    results: [
-      getMockBffApiCatalogEService(),
-      getMockBffApiCatalogEService(),
-      getMockBffApiCatalogEService(),
-    ],
-    pagination: {
-      offset: 0,
-      limit: 10,
-      totalCount: 3,
-    },
-  };
 
   beforeEach(() => {
-    clients.catalogProcessClient.getEServices = vi
+    services.catalogService.isEServiceNameAvailable = vi
       .fn()
-      .mockResolvedValue(mockEServices);
+      .mockResolvedValue(true);
   });
 
   const makeRequest = async (
