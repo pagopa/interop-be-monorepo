@@ -126,7 +126,7 @@ describe("getProducerDelegations", () => {
   it("Should throw unexpectedDelegationKind in case the returned delegation has an unexpected kind", async () => {
     const mockBadDelegation = {
       ...mockApiDelegation1.data,
-      kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
     };
     const mockResponse = {
       ...mockDelegationProcessResponse,
