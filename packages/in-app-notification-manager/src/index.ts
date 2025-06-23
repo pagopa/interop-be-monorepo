@@ -6,11 +6,11 @@ import { createApp } from "./app.js";
 import { inAppNotificationServiceBuilder } from "./services/inAppNotificationService.js";
 
 const pool = new pg.Pool({
-  host: config.dbHost,
-  database: config.dbName,
-  user: config.dbUsername,
-  password: config.dbPassword,
-  port: config.dbPort,
+  host: config.inAppNotificationDBHost,
+  database: config.inAppNotificationDBName,
+  user: config.inAppNotificationDBUsername,
+  password: config.inAppNotificationDBPassword,
+  port: config.inAppNotificationDBPort,
 });
 const db = drizzle({ client: pool });
 

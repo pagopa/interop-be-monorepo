@@ -64,6 +64,9 @@ export * from "./eservice-template/protobufConverterToV2.js";
 
 export * from "./application-audit/application-audit.js";
 
+export * from "./notification/notification.js";
+export * from "./notification/notificationSQLAdapter.js";
+
 // Token generation read model
 export * from "./token-generation-readmodel/platform-states-entry.js";
 export * from "./token-generation-readmodel/token-generation-states-entry.js";
