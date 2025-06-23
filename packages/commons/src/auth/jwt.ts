@@ -7,7 +7,7 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "../logging/index.js";
 import { JWTConfig } from "../config/httpServiceConfig.js";
-import { AuthTokenPayload } from "../index.js";
+import { AuthTokenPayload } from "../interop-token/models.js";
 import { buildJwksClients } from "./jwk.js";
 import {
   AuthData,
