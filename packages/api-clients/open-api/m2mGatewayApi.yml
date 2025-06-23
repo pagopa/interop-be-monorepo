@@ -1445,6 +1445,34 @@ paths:
       operationId: getClients
       parameters:
         - in: query
+          name: name
+          description: Filter Clients by name. If not specified, return Clients with any name
+          schema:
+            type: string
+        - in: query
+          name: userIds
+          description: Filter Clients by User IDs. If not specified, return Clients for any User
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - name: consumerId
+          in: query
+          description: Filter Clients by Consumer ID. If not specified, return Clients for any Consumer
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: purposeId
+          in: query
+          description: Filter Clients by Purpose ID. If not specified, return Clients for any Purpose
+          schema:
+            type: string
+            format: uuid
+        - in: query
           name: offset
           description: Pagination starting position
           required: true
@@ -4628,7 +4656,6 @@ components:
         - eserviceId
         - createdAt
         - state
-        - kind
         - submittedAt
     ConsumerDelegations:
       type: object
