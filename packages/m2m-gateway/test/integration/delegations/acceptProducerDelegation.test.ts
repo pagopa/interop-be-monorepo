@@ -96,7 +96,7 @@ describe("acceptProducerDelegation", () => {
       ...mockDelegationProcessResponse,
       data: {
         ...mockDelegationProcessResponse.data,
-        kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+        kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
       },
     };
 
