@@ -229,4 +229,4 @@ export {
   queueManagerSendError,
   queueManagerReceiveError,
 };
-export type { SQSClientConfig, Message };
+export type { SQSClientConfig };
