@@ -500,8 +500,8 @@ importers:
         specifier: 6.9.15
         version: 6.9.15
       handlebars:
-        specifier: 4.7.7
-        version: 4.7.7
+        specifier: 4.7.8
+        version: 4.7.8
       openapi-types:
         specifier: 12.1.3
         version: 12.1.3
@@ -3859,8 +3859,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/html2json':
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 1.0.4
+        version: 1.0.4
       '@types/lodash.isempty':
         specifier: 4.4.9
         version: 4.4.9
@@ -7061,8 +7061,8 @@ packages:
   '@types/fs-extra@9.0.13':
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
 
-  '@types/html2json@1.0.1':
-    resolution: {integrity: sha512-D+cq6HcgfMdrbIpXzxsmJ9mBz9VlyagqaIB9OZVHGrOeyWbwjTLWR2qUGh1w/VZLtG4wy8mp7v4EpJQ1dYqWzw==}
+  '@types/html2json@1.0.4':
+    resolution: {integrity: sha512-lsghOPqISs2oDEbhfqJYxWVWvvcPoBCL0zQuLZwXW4QuVQjacTdgczfhA+TNP+hQJ/YGGlBqBGwlp7jpbpoBdQ==}
 
   '@types/http-errors@2.0.4':
     resolution: {integrity: sha512-D0CFMMtydbJAegzOyHjtiKPLlvnm3iTZyZRSZoLq2mRhDdmLfIWOCYPfQJ4cu2erKghU++QvjcUjp/5h7hESpA==}
@@ -8676,11 +8676,6 @@ packages:
 
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
-
-  handlebars@4.7.7:
-    resolution: {integrity: sha512-aAcXm5OAfE/8IXkcZvCepKU3VzW1/39Fb5ZuqMtgI/hT8X2YgoMvBY5dLhq/cpOvw7Lk1nK/UF71aLG/ZnVYRA==}
-    engines: {node: '>=0.4.7'}
-    hasBin: true
 
   handlebars@4.7.8:
     resolution: {integrity: sha512-vafaFqs8MZkRrSX7sFVUdo3ap/eNiLnb4IakshzvP56X5Nr1iGKAIqdX6tMlm6HcNRIkr6AxO5jFEoJzzpT8aQ==}
@@ -13725,7 +13720,7 @@ snapshots:
     dependencies:
       '@types/node': 20.14.6
 
-  '@types/html2json@1.0.1': {}
+  '@types/html2json@1.0.4': {}
 
   '@types/http-errors@2.0.4': {}
 
@@ -15720,15 +15715,6 @@ snapshots:
   graceful-fs@4.2.11: {}
 
   graphemer@1.4.0: {}
-
-  handlebars@4.7.7:
-    dependencies:
-      minimist: 1.2.8
-      neo-async: 2.6.2
-      source-map: 0.6.1
-      wordwrap: 1.0.0
-    optionalDependencies:
-      uglify-js: 3.18.0
 
   handlebars@4.7.8:
     dependencies:
