@@ -7,7 +7,7 @@ import { notificationConfigService } from "../integrationUtils.js";
 describe("update tenant notification configuration", () => {
   const tenantId: TenantId = generateId();
   const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed = {
-    consumer: { eService: { newEServiceVersionPublished: true } },
+    newEServiceVersionPublished: true,
   };
 
   it("should write on event-store for the update of a tenant's notification configuration", async () => {

@@ -6,22 +6,8 @@ import {
   UserId,
 } from "../brandedIds.js";
 
-export const EServiceConsumerNotificationConfig = z.object({
-  newEServiceVersionPublished: z.boolean(),
-});
-export type EServiceConsumerNotificationConfig = z.infer<
-  typeof EServiceConsumerNotificationConfig
->;
-
-export const ConsumerNotificationConfig = z.object({
-  eService: EServiceConsumerNotificationConfig,
-});
-export type ConsumerNotificationConfig = z.infer<
-  typeof ConsumerNotificationConfig
->;
-
 export const NotificationConfig = z.object({
-  consumer: ConsumerNotificationConfig,
+  newEServiceVersionPublished: z.boolean(),
 });
 export type NotificationConfig = z.infer<typeof NotificationConfig>;
 

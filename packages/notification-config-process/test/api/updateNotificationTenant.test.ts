@@ -8,7 +8,7 @@ import { api, notificationConfigService } from "../vitest.api.setup.js";
 
 describe("API POST /notificationTenantConfigs", () => {
   const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed = {
-    consumer: { eService: { newEServiceVersionPublished: true } },
+    newEServiceVersionPublished: true,
   };
 
   const makeRequest = async (

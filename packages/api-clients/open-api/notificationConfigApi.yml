@@ -130,22 +130,6 @@ components:
       type: object
       additionalProperties: false
       required:
-        - consumer
-      properties:
-        consumer:
-          $ref: "#/components/schemas/ConsumerNotificationConfig"
-    ConsumerNotificationConfig:
-      type: object
-      additionalProperties: false
-      required:
-        - eService
-      properties:
-        eService:
-          $ref: "#/components/schemas/EServiceConsumerNotificationConfig"
-    EServiceConsumerNotificationConfig:
-      type: object
-      additionalProperties: false
-      required:
         - newEServiceVersionPublished
       properties:
         newEServiceVersionPublished:
