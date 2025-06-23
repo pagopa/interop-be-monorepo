@@ -13,24 +13,17 @@ import {
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { tenantServiceBuilder } from "../services/tenantService.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { TenantService } from "../services/tenantService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { makeApiProblem } from "../model/errors.js";
 
 const tenantRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  tenantService: TenantService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const tenantRouter = ctx.router(bffApi.tenantsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const tenantService = tenantServiceBuilder(
-    clients.tenantProcessClient,
-    clients.attributeProcessClient,
-    clients.selfcareV2InstitutionClient
-  );
 
   tenantRouter
     .get("/consumers", async (req, res) => {

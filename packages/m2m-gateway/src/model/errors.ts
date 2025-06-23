@@ -14,7 +14,6 @@ import {
 } from "pagopa-interop-models";
 
 export const errorCodes = {
-  resourcePollingTimeout: "0001",
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
   clientAdminIdNotFound: "0004",
@@ -32,6 +31,7 @@ export const errorCodes = {
   missingPurposeCurrentVersion: "0016",
   eserviceTemplateVersionNotFound: "0017",
   tenantCertifiedAttributeNotFound: "0018",
+  eserviceDescriptorInterfaceNotFound: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -40,16 +40,6 @@ export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
   problemErrorsPassthrough: true,
   forceGenericProblemOn500: true,
 });
-
-export function resourcePollingTimeout(
-  maxAttempts: number
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Resource polling timed out after ${maxAttempts} attempts`,
-    code: "resourcePollingTimeout",
-    title: "Resource polling timeout",
-  });
-}
 
 export function missingMetadata(): ApiError<ErrorCodes> {
   return new ApiError({
@@ -199,5 +189,16 @@ export function tenantCertifiedAttributeNotFound(
     detail: `Certified attribute ${attributeId} not found for tenant ${tenant.id}`,
     code: "tenantCertifiedAttributeNotFound",
     title: "Tenant certified attribute not found",
+  });
+}
+
+export function eserviceDescriptorInterfaceNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorInterfaceNotFound",
+    title: "Eservice descriptor interface not found",
   });
 }

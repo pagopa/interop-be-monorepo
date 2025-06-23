@@ -12,6 +12,7 @@ import {
   EServiceTemplate,
   toEServiceTemplateV2,
   EServiceTemplateAddedV2,
+  generateId,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import {
@@ -118,13 +119,30 @@ describe("create eservice template", () => {
     );
   });
 
+  it("should throw eserviceTemplateDuplicate if an eservice template with the same name with different creator already exists, case insensitive", async () => {
+    await addOneEServiceTemplate({
+      ...mockEServiceTemplate,
+      creatorId: generateId(),
+    });
+    await expect(
+      eserviceTemplateService.createEServiceTemplate(
+        eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
+        getMockContext({
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      eserviceTemplateDuplicate(mockEServiceTemplate.name)
+    );
+  });
+
   it("should throw inconsistentDailyCalls if the version seed has dailyCallsPerConsumer > dailyCallsTotal", async () => {
     await expect(
       eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed({
           ...mockEServiceTemplate,
           versions: [
-            { ...mockVersion, dailyCallsPerConsumer: 1, dailyCallsTotal: 0 },
+            { ...mockVersion, dailyCallsPerConsumer: 2, dailyCallsTotal: 1 },
           ],
         }),
         getMockContext({

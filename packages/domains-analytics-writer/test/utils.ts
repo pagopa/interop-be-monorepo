@@ -18,7 +18,13 @@ import {
   DeletingDbTableConfigMap,
   DomainDbTable,
   DomainDbTableSchemas,
+  EserviceTemplateDbTable,
+  TenantDbPartialTable,
   PurposeDbTable,
+  TenantDbTable,
+  CatalogDbPartialTable,
+  ClientDbTable,
+  ProducerKeychainDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
@@ -77,12 +83,59 @@ export const delegationTables: DelegationDbTable[] = [
   DelegationDbTable.delegation_contract_document,
 ];
 
+export const tenantTables: TenantDbTable[] = [
+  TenantDbTable.tenant,
+  TenantDbTable.tenant_certified_attribute,
+  TenantDbTable.tenant_declared_attribute,
+  TenantDbTable.tenant_feature,
+  TenantDbTable.tenant_mail,
+  TenantDbTable.tenant_verified_attribute,
+  TenantDbTable.tenant_verified_attribute_revoker,
+  TenantDbTable.tenant_verified_attribute_verifier,
+];
+
+export const eserviceTemplateTables: EserviceTemplateDbTable[] = [
+  EserviceTemplateDbTable.eservice_template,
+  EserviceTemplateDbTable.eservice_template_version,
+  EserviceTemplateDbTable.eservice_template_version_attribute,
+  EserviceTemplateDbTable.eservice_template_version_document,
+  EserviceTemplateDbTable.eservice_template_version_interface,
+  EserviceTemplateDbTable.eservice_template_risk_analysis,
+  EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+];
+
+export const clientTables: ClientDbTable[] = [
+  ClientDbTable.client,
+  ClientDbTable.client_purpose,
+  ClientDbTable.client_user,
+  ClientDbTable.client_key,
+];
+
+export const producerKeychainTables: ProducerKeychainDbTable[] = [
+  ProducerKeychainDbTable.producer_keychain,
+  ProducerKeychainDbTable.producer_keychain_eservice,
+  ProducerKeychainDbTable.producer_keychain_user,
+  ProducerKeychainDbTable.producer_keychain_key,
+];
+
+export const partialTables = [
+  TenantDbPartialTable.tenant_self_care_id,
+  CatalogDbPartialTable.descriptor_server_urls,
+];
 export const deletingTables: DeletingDbTable[] = [
+  DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
-  DeletingDbTable.catalog_risk_deleting_table,
-  DeletingDbTable.agreement_deleting_table,
+  DeletingDbTable.catalog_descriptor_interface_deleting_table,
   DeletingDbTable.purpose_deleting_table,
+  DeletingDbTable.tenant_deleting_table,
+  DeletingDbTable.tenant_mail_deleting_table,
+  DeletingDbTable.client_deleting_table,
+  DeletingDbTable.client_purpose_deleting_table,
+  DeletingDbTable.client_user_deleting_table,
+  DeletingDbTable.client_key_deleting_table,
+  DeletingDbTable.producer_keychain_deleting_table,
+  DeletingDbTable.eservice_template_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
@@ -91,21 +144,48 @@ export const domainTables: DomainDbTable[] = [
   ...agreementTables,
   ...purposeTables,
   ...delegationTables,
+  ...tenantTables,
+  ...clientTables,
+  ...producerKeychainTables,
+  ...eserviceTemplateTables,
 ];
 
 export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
   { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
   {
-    name: DeletingDbTable.catalog_risk_deleting_table,
-    columns: ["id", "eserviceId"],
+    name: DeletingDbTable.catalog_descriptor_interface_deleting_table,
+    columns: ["id", "descriptorId", "metadataVersion"],
   },
+  { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+  { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
   {
-    name: DeletingDbTable.agreement_deleting_table,
+    name: DeletingDbTable.tenant_deleting_table,
     columns: ["id"],
   },
   {
-    name: DeletingDbTable.purpose_deleting_table,
+    name: DeletingDbTable.tenant_mail_deleting_table,
+    columns: ["id", "tenantId"],
+  },
+  { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
+  {
+    name: DeletingDbTable.client_user_deleting_table,
+    columns: ["clientId", "userId"],
+  },
+  {
+    name: DeletingDbTable.client_purpose_deleting_table,
+    columns: ["clientId", "purposeId"],
+  },
+  {
+    name: DeletingDbTable.client_key_deleting_table,
+    columns: ["clientId", "kid"],
+  },
+  {
+    name: DeletingDbTable.producer_keychain_deleting_table,
+    columns: ["id"],
+  },
+  {
+    name: DeletingDbTable.eservice_template_deleting_table,
     columns: ["id"],
   },
 ];
@@ -117,6 +197,7 @@ await retryConnection(
   async (db) => {
     const setupDbService = setupDbServiceBuilder(db.conn, config);
     await setupDbService.setupStagingTables(domainTables);
+    await setupDbService.setupPartialStagingTables(partialTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
   },
   genericLogger
@@ -148,7 +229,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
   where: Partial<z.infer<DomainDbTableSchemas[T]>>
-): Promise<z.infer<DomainDbTableSchemas[T]>> {
+): Promise<z.infer<DomainDbTableSchemas[T]> | undefined> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
   const entries = Object.entries(where) as Array<[string, unknown]>;
@@ -157,12 +238,12 @@ export async function getOneFromDb<T extends DomainDbTable>(
     .join(" AND ");
   const values = entries.map(([, v]) => v);
 
-  const row = await db.conn.one(
+  const row = await db.conn.oneOrNone(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
     values
   );
 
-  return camelcaseKeys(row);
+  return row ? camelcaseKeys(row) : undefined;
 }
 
 export async function getManyFromDb<T extends DomainDbTable>(

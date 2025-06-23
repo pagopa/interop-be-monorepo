@@ -16,6 +16,7 @@ export const relationshipStatus = {
   active: "ACTIVE",
   suspended: "SUSPENDED",
   deleted: "DELETED",
+  rejected: "REJECTED",
 } as const;
 export const RelationshipStatus = z.enum([
   Object.values(relationshipStatus)[0],
@@ -24,23 +25,23 @@ export const RelationshipStatus = z.enum([
 export type RelationshipStatus = z.infer<typeof RelationshipStatus>;
 
 const SCUser = z.object({
-  userId: z.string().uuid().optional(),
+  userId: z.string().uuid().nullish(),
   name: z.string(),
   familyName: z.string(),
   email: z.string(),
   role: z.string(),
   productRole: UserRole,
-  relationshipStatus: RelationshipStatus,
-  mobilePhone: z.string().optional(),
+  relationshipStatus: z.string(),
+  mobilePhone: z.string().nullish(),
 });
 
 export const UsersEventPayload = z.object({
   id: z.string(),
   institutionId: z.string().trim().min(1), // Selfcare ID
   productId: z.string().trim().min(1),
-  onboardingTokenId: z.string().optional(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  onboardingTokenId: z.string().nullish(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
   eventType: SelfcareUserEventType,
   user: SCUser,
 });

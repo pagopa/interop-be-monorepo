@@ -7,11 +7,11 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "../logging/index.js";
 import { JWTConfig } from "../config/httpServiceConfig.js";
+import { AuthTokenPayload } from "../index.js";
 import { buildJwksClients } from "./jwk.js";
 import {
   AuthData,
   AuthDataUserInfo,
-  AuthToken,
   getAuthDataFromToken,
   getUserInfoFromAuthData,
 } from "./authData.js";
@@ -31,7 +31,7 @@ export const decodeJwtToken = (
 export const readAuthDataFromJwtToken = (
   token: JwtPayload | string
 ): AuthData => {
-  const authToken = AuthToken.safeParse(token);
+  const authToken = AuthTokenPayload.safeParse(token);
   if (authToken.success === false) {
     throw invalidClaim(authToken.error);
   } else {

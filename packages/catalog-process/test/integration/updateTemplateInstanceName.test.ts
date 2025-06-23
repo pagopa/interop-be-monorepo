@@ -19,7 +19,7 @@ import {
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -111,7 +111,7 @@ describe("updateTemplateInstanceName", () => {
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
-  it("should throw eServiceNameDuplicate if there is another eservice with the same name by the same producer", async () => {
+  it("should throw eServiceNameDuplicateForProducer if there is another eservice with the same name by the same producer", async () => {
     const producerId = generateId<TenantId>();
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.published),
@@ -141,6 +141,42 @@ describe("updateTemplateInstanceName", () => {
         updatedName,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(eServiceNameDuplicate(duplicateName));
+    ).rejects.toThrowError(
+      eServiceNameDuplicateForProducer(duplicateName, eservice.producerId)
+    );
+  });
+  it("should throw eServiceNameDuplicateForProducer if there is another eservice with the same name by the same producer (case insensitive)", async () => {
+    const producerId = generateId<TenantId>();
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId,
+      descriptors: [descriptor],
+    };
+
+    const duplicateName = "eservice duplicate name";
+
+    const eserviceWithSameName: EService = {
+      ...getMockEService(),
+      producerId,
+      name: duplicateName.toUpperCase(),
+    };
+    await addOneEService(eservice);
+
+    await addOneEService(eserviceWithSameName);
+
+    const updatedName = duplicateName;
+    await expect(
+      catalogService.internalUpdateTemplateInstanceName(
+        eservice.id,
+        updatedName,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      eServiceNameDuplicateForProducer(duplicateName, eservice.producerId)
+    );
   });
 });
