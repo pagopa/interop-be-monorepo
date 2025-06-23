@@ -1858,6 +1858,7 @@ components:
             type: string
             format: uuid
           default: []
+          uniqueItems: true
         description:
           type: string
         users:
