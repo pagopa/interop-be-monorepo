@@ -144,7 +144,7 @@ describe("validation test", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0].code).toEqual(
-        clientAssertionInvalidClaims("", "header").code
+        clientAssertionInvalidClaims("{}", "header").code
       );
     });
 
@@ -181,7 +181,7 @@ describe("validation test", async () => {
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors![0].code).toEqual(
-        clientAssertionInvalidClaims("", "payload").code
+        clientAssertionInvalidClaims("{}", "payload").code
       );
     });
 
