@@ -112,7 +112,7 @@ describe("getProducerDelegations", () => {
       mockGet:
         mockInteropBeClients.delegationProcessClient.delegation.getDelegations,
       queries: {
-        kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+        kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
         delegationStates: mockParams.states,
         delegatorIds: mockParams.delegatorIds,
         delegateIds: mockParams.delegateIds,
