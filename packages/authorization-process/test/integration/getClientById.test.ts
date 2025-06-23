@@ -35,8 +35,13 @@ describe("getClientById", async () => {
       getMockContext({ authData: getMockAuthData(organizationId) })
     );
     expect(clientResult).toEqual({
-      data: { client: expectedClient, showUsers: true },
-      metadata: { version: 0 },
+      client: {
+        data: expectedClient,
+        metadata: {
+          version: 0,
+        },
+      },
+      showUsers: true,
     });
   });
   it("should return showUsers to false if the requester is not the client consumer", async () => {
@@ -57,8 +62,13 @@ describe("getClientById", async () => {
       getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
     );
     expect(clientResult).toEqual({
-      data: { client: expectedClient, showUsers: false },
-      metadata: { version: 0 },
+      client: {
+        data: expectedClient,
+        metadata: {
+          version: 0,
+        },
+      },
+      showUsers: false,
     });
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {

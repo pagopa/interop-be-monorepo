@@ -220,19 +220,13 @@ export function authorizationServiceBuilder(
         logger,
         authData,
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<{ client: Client; showUsers: boolean }>> {
+    ): Promise<{ client: WithMetadata<Client>; showUsers: boolean }> {
       logger.info(`Retrieving Client ${clientId}`);
-      const { data: client, metadata } = await retrieveClient(
-        clientId,
-        readModelService
-      );
+      const client = await retrieveClient(clientId, readModelService);
 
       return {
-        data: {
-          client,
-          showUsers: authData.organizationId === client.consumerId,
-        },
-        metadata,
+        client,
+        showUsers: authData.organizationId === client.data.consumerId,
       };
     },
 
@@ -243,7 +237,7 @@ export function authorizationServiceBuilder(
         clientSeed: authorizationApi.ClientSeed;
       },
       { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ client: Client; showUsers: boolean }> {
+    ): Promise<{ client: WithMetadata<Client>; showUsers: boolean }> {
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
@@ -259,12 +253,12 @@ export function authorizationServiceBuilder(
         keys: [],
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventClientAdded(client, correlationId)
       );
 
       return {
-        client,
+        client: { data: client, metadata: { version: event.newVersion } },
         showUsers: true,
       };
     },
@@ -680,12 +674,10 @@ export function authorizationServiceBuilder(
         authData,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<
-      WithMetadata<{
-        client: Client;
-        showUsers: boolean;
-      }>
-    > {
+    ): Promise<{
+      client: WithMetadata<Client>;
+      showUsers: boolean;
+    }> {
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
       );
@@ -766,13 +758,13 @@ export function authorizationServiceBuilder(
       );
 
       return {
-        data: {
-          client: updatedClient,
-          showUsers: true,
+        client: {
+          data: updatedClient,
+          metadata: {
+            version: event.newVersion,
+          },
         },
-        metadata: {
-          version: event.newVersion,
-        },
+        showUsers: true,
       };
     },
 

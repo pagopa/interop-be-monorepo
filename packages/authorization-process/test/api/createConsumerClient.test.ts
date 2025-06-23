@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { generateId, TenantId } from "pagopa-interop-models";
-import { generateToken, getMockClient } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockClient,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { authorizationApi } from "pagopa-interop-api-clients";
@@ -21,9 +25,13 @@ describe("API /clientsConsumer authorization test", () => {
 
   const apiClient = clientToApiClient(mockClient, { showUsers: true });
 
+  const serviceResponse = {
+    client: getMockWithMetadata(mockClient),
+    showUsers: true,
+  };
   authorizationService.createConsumerClient = vi
     .fn()
-    .mockResolvedValue({ client: mockClient, showUsers: true });
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -43,6 +51,9 @@ describe("API /clientsConsumer authorization test", () => {
       const res = await makeRequest(token, clientSeed);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiClient);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.client.metadata.version.toString()
+      );
     }
   );
 

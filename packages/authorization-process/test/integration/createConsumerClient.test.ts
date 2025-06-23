@@ -36,21 +36,22 @@ describe("createConsumerClient", () => {
     members: [organizationId],
   };
   it("should write on event-store for the creation of a consumer client", async () => {
-    const { client } = await authorizationService.createConsumerClient(
-      {
-        clientSeed,
-      },
-      getMockContext({ authData: getMockAuthData(organizationId) })
-    );
+    const createConsumerClientResponse =
+      await authorizationService.createConsumerClient(
+        {
+          clientSeed,
+        },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      );
 
     const writtenEvent = await readLastEventByStreamId(
-      client.id,
+      createConsumerClientResponse.client.data.id,
       '"authorization"',
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: client.id,
+      stream_id: createConsumerClientResponse.client.data.id,
       version: "0",
       type: "ClientAdded",
       event_version: 2,
@@ -62,7 +63,7 @@ describe("createConsumerClient", () => {
     });
 
     const expectedClient: Client = {
-      id: client.id,
+      id: createConsumerClientResponse.client.data.id,
       keys: [],
       name: clientSeed.name,
       createdAt: new Date(),
@@ -74,5 +75,14 @@ describe("createConsumerClient", () => {
     };
 
     expect(writtenPayload.client).toEqual(toClientV2(expectedClient));
+    expect(createConsumerClientResponse).toEqual({
+      client: {
+        data: expectedClient,
+        metadata: {
+          version: 1,
+        },
+      },
+      showUsers: true,
+    });
   });
 });

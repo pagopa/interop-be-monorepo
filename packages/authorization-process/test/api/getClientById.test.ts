@@ -5,6 +5,7 @@ import { Client, ClientId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockClient,
+  getMockWithMetadata,
 } from "pagopa-interop-commons-test/index.js";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
@@ -19,10 +20,13 @@ describe("API /clients/{clientId} authorization test", () => {
 
   const apiClient = clientToApiClient(mockClient, { showUsers: true });
 
-  authorizationService.getClientById = vi.fn().mockResolvedValue({
-    data: { client: mockClient, showUsers: true },
-    metadata: { version: 1 },
-  });
+  const serviceResponse = {
+    client: getMockWithMetadata(mockClient),
+    showUsers: true,
+  };
+  authorizationService.getClientById = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (token: string, clientId: ClientId) =>
     request(api)
@@ -45,7 +49,9 @@ describe("API /clients/{clientId} authorization test", () => {
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiClient);
-      expect(res.headers["x-metadata-version"]).toBe("1");
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.client.metadata.version.toString()
+      );
     }
   );
 

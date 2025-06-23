@@ -87,13 +87,17 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { client, showUsers } =
-          await authorizationService.createConsumerClient(
-            {
-              clientSeed: req.body,
-            },
-            ctx
-          );
+        const {
+          client: { data: client, metadata },
+          showUsers,
+        } = await authorizationService.createConsumerClient(
+          {
+            clientSeed: req.body,
+          },
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -242,8 +246,8 @@ const authorizationRouter = (
         ]);
 
         const {
-          data: { client, showUsers },
-          metadata,
+          client: { data: client, metadata },
+          showUsers,
         } = await authorizationService.getClientById(
           {
             clientId: unsafeBrandId(req.params.clientId),
@@ -490,8 +494,8 @@ const authorizationRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const {
-          data: { client, showUsers },
-          metadata,
+          client: { data: client, metadata },
+          showUsers,
         } = await authorizationService.addClientPurpose(
           {
             clientId: unsafeBrandId(req.params.clientId),
