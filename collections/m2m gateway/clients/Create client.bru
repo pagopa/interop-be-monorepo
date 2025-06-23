@@ -1,0 +1,27 @@
+meta {
+  name: Create client
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{host-m2m-gw}}/clients
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "name": "test-client",
+    "description": "Test client for M2M gateway",
+    "members": ["{{userId1}}", "{{userId2}}"]
+  }
+}
+
+vars:post-response {
+  clientId: res.body.id
+}
