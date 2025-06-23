@@ -79,7 +79,7 @@ describe("createConsumerClient", () => {
       client: {
         data: expectedClient,
         metadata: {
-          version: 1,
+          version: 0,
         },
       },
       showUsers: true,
