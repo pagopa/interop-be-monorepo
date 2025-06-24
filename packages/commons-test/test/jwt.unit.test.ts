@@ -19,12 +19,12 @@ import { invalidClaim, unsafeBrandId } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
   createPayload,
-  createUIPayload,
+  createUserPayload,
   signPayload,
 } from "../src/mockedPayloadForToken.js";
 import { randomSubArray } from "../src/testUtils.js";
 
-const mockUiTokenPaylod = createUIPayload();
+const mockUiTokenPaylod = createUserPayload();
 const expectedUiAuthData: UIAuthData = {
   systemRole: undefined,
   externalId: {
@@ -69,7 +69,7 @@ const expectedSupportAuthData: UIAuthData = {
   systemRole: undefined,
   externalId: {
     origin: "IPA",
-    value: "123456",
+    value: "5N2TR557",
   },
   selfcareId: mockSupportTokenPayload.selfcareId,
   organizationId: mockSupportTokenPayload.organizationId,

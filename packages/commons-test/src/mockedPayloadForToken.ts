@@ -8,13 +8,7 @@ import {
   systemRole,
   userRole,
 } from "pagopa-interop-commons";
-import {
-  ClientId,
-  TenantId,
-  UserId,
-  generateId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { ClientId, TenantId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 const rolePayloadMap = {
@@ -64,7 +58,10 @@ export const mockM2MAdminUserId: UserId = generateId();
 // validate the admin ID in the token against the adminId in the client.
 
 export function createUserPayload(
-  commaSeparatedUserRoles: string
+  commaSeparatedUserRoles: string = [
+    userRole.SECURITY_ROLE,
+    userRole.API_ROLE,
+  ].join(",")
 ): SerializedInteropJwtUIPayload {
   return {
     iss: "dev.interop.pagopa.it",
@@ -83,7 +80,7 @@ export function createUserPayload(
       roles: [
         {
           partyRole: "MANAGER",
-          role: "admin",
+          role: userRole.ADMIN_ROLE,
         },
       ],
       fiscal_code: "15376371009",
@@ -92,7 +89,7 @@ export function createUserPayload(
     "user-roles": commaSeparatedUserRoles,
     organizationId: mockTokenOrganizationId,
     externalId: {
-      value: "123456",
+      value: "5N2TR557",
       origin: "IPA",
     },
     selfcareId: generateId(),
@@ -137,40 +134,6 @@ function createInternalPayload(): SerializedInteropJwtInternalPayload {
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
     role: systemRole.INTERNAL_ROLE,
     sub: "interop.testing",
-  };
-}
-
-export function createUIPayload(): SerializedInteropJwtUIPayload {
-  return {
-    iss: "dev.interop.pagopa.it",
-    externalId: {
-      origin: "IPA",
-      value: "5N2TR557",
-    },
-    "user-roles": [userRole.SECURITY_ROLE, userRole.API_ROLE].join(","),
-    selfcareId: unsafeBrandId("1962d21c-c701-4805-93f6-53a877898756"),
-    organizationId: unsafeBrandId("69e2865e-65ab-4e48-a638-2037a9ee2ee7"),
-    aud: "dev.interop.pagopa.it/ui,interop.pagopa.it/ui",
-    uid: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
-    nbf: 1710841859,
-    organization: {
-      id: unsafeBrandId("1962d21c-c701-4805-93f6-53a877898756"),
-      name: "PagoPA S.p.A.",
-      roles: [
-        {
-          partyRole: "MANAGER",
-          role: userRole.ADMIN_ROLE,
-        },
-      ],
-      fiscal_code: "15376371009",
-      ipaCode: "5N2TR557",
-    },
-    name: "Mario",
-    exp: 1710928259,
-    iat: 1710841859,
-    family_name: "Rossi",
-    jti: "e82bd774-9cac-4885-931b-015b2eb4e9a5",
-    email: "m.rossi@psp.it",
   };
 }
 
