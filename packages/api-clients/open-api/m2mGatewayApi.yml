@@ -2613,8 +2613,8 @@ paths:
             default: []
           explode: false
         - in: query
-          name: name
-          description: Filter Purposes by name. If not specified, return Purposes for any name
+          name: title
+          description: Filter Purposes by title. If not specified, return Purposes for any title
           schema:
             type: string
         - in: query

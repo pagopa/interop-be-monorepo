@@ -15,7 +15,7 @@ export function toGetPurposesApiQueryParams(
     producersIds: [],
     states: params.states,
     excludeDraft: false,
-    name: params.name,
+    name: params.title,
   };
 }
 
