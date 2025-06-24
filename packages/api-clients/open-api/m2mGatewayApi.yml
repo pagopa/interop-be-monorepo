@@ -2614,11 +2614,12 @@ paths:
           explode: false
         - in: query
           name: name
+          description: Filter Purposes by name. If not specified, return Purposes for any name
           schema:
             type: string
         - in: query
           name: consumersIds
-          description: comma separated sequence of consumers IDs
+          description: Filter Purposes by consumer ids. If not specified, return Purposes for any consumer
           schema:
             type: array
             items:
@@ -2628,7 +2629,7 @@ paths:
           explode: false
         - in: query
           name: states
-          description: comma separated sequence of states
+          description: Filter Purposes by states. If not specified, return Purposes for any state
           schema:
             type: array
             items:
