@@ -4070,7 +4070,7 @@ paths:
         - tenants
       summary: Revoke a Certified Attribute from a Tenant
       description: Revoke a Certified Attribute from a Tenant
-      operationId: revokeCertifiedAttributeById
+      operationId: revokeCertifiedAttribute
       responses:
         "200":
           description: Certified Attribute revoked
@@ -4374,7 +4374,7 @@ paths:
         - tenants
       summary: Revoke a Declared Attribute from the requester Tenant
       description: Revoke a Declared Attribute from the requester Tenant
-      operationId: revokeDeclaredAttributeById
+      operationId: revokeDeclaredAttribute
       responses:
         "200":
           description: Declared Attribute revoked
