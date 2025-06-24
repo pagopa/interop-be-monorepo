@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { extractEServiceUrlsFrom } from "pagopa-interop-commons";
+import { retrieveServerUrlsFromAPI } from "pagopa-interop-commons";
 import {
   generateId,
   interfaceExtractingSoapFiledError,
@@ -10,9 +10,7 @@ import {
 } from "pagopa-interop-models";
 import { readFileContent } from "../src/index.js";
 
-describe("extractEServiceUrlsFrom", () => {
-  const eserviceId = generateId();
-
+describe("retrieveServerUrlsFromAPI", () => {
   const mockFile = {
     name: "test.json",
     text: vi.fn().mockResolvedValue(
@@ -27,11 +25,11 @@ describe("extractEServiceUrlsFrom", () => {
   } as unknown as File;
 
   it("should process REST interface with OpenAPI 3.0", async () => {
-    const urls = await extractEServiceUrlsFrom(
+    const urls = await retrieveServerUrlsFromAPI(
       mockFile,
       "INTERFACE",
       technology.rest,
-      "test-resource-id"
+      { id: generateId(), isEserviceTemplate: false }
     );
 
     expect(urls).toBeInstanceOf(Array);
@@ -55,11 +53,11 @@ describe("extractEServiceUrlsFrom", () => {
       ),
     } as unknown as File;
 
-    const result = await extractEServiceUrlsFrom(
+    const result = await retrieveServerUrlsFromAPI(
       swaggerDoc,
       "INTERFACE",
       "Rest",
-      eserviceId
+      { id: generateId(), isEserviceTemplate: false }
     );
     expect(result).toEqual(["http://api.example.com"]);
   });
@@ -73,11 +71,11 @@ describe("extractEServiceUrlsFrom", () => {
         ),
     } as unknown as File;
 
-    const urls = await extractEServiceUrlsFrom(
+    const urls = await retrieveServerUrlsFromAPI(
       yamlDoc,
       "INTERFACE",
       technology.rest,
-      "test-resource-id"
+      { id: generateId(), isEserviceTemplate: false }
     );
 
     expect(urls).toBeInstanceOf(Array);
@@ -91,11 +89,11 @@ describe("extractEServiceUrlsFrom", () => {
       text: vi.fn().mockResolvedValue(soapfileContent),
     } as unknown as File;
 
-    const urls = await extractEServiceUrlsFrom(
+    const urls = await retrieveServerUrlsFromAPI(
       soapDoc,
       "INTERFACE",
       technology.soap,
-      "test-resource-id"
+      { id: generateId(), isEserviceTemplate: false }
     );
 
     expect(urls).toBeInstanceOf(Array);
@@ -113,11 +111,11 @@ describe("extractEServiceUrlsFrom", () => {
       text: vi.fn().mockResolvedValue(soapfileContent),
     } as unknown as File;
 
-    const result = await extractEServiceUrlsFrom(
+    const result = await retrieveServerUrlsFromAPI(
       soapDoc,
       "INTERFACE",
       "Soap",
-      eserviceId
+      { id: generateId(), isEserviceTemplate: false }
     );
     expect(result).toEqual(["http://example1.com", "http://example2.com"]);
   });
@@ -129,11 +127,11 @@ describe("extractEServiceUrlsFrom", () => {
       name: "test.wsdl",
       text: vi.fn().mockResolvedValue(soapfileContent),
     } as unknown as File;
-    const result = await extractEServiceUrlsFrom(
+    const result = await retrieveServerUrlsFromAPI(
       soapDoc,
       "INTERFACE",
       "Soap",
-      eserviceId
+      { id: generateId(), isEserviceTemplate: false }
     );
     expect(result).toEqual(["http://example1.com"]);
   });
@@ -154,7 +152,10 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as File;
 
     await expect(
-      extractEServiceUrlsFrom(soapDoc, "INTERFACE", "Soap", eserviceId)
+      retrieveServerUrlsFromAPI(soapDoc, "INTERFACE", "Soap", {
+        id: generateId(),
+        isEserviceTemplate: false,
+      })
     ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:address"));
   });
   it("should throw an error if there are no operations in WSDL", async () => {
@@ -173,7 +174,10 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as File;
 
     await expect(
-      extractEServiceUrlsFrom(soapDoc, "INTERFACE", "Soap", eserviceId)
+      retrieveServerUrlsFromAPI(soapDoc, "INTERFACE", "Soap", {
+        id: generateId(),
+        isEserviceTemplate: false,
+      })
     ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:operation"));
   });
   it("should throw error for unsupported OpenAPI version", async () => {
@@ -188,19 +192,23 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as File;
 
     await expect(
-      extractEServiceUrlsFrom(invalidDoc, "INTERFACE", "Rest", eserviceId)
+      retrieveServerUrlsFromAPI(invalidDoc, "INTERFACE", "Rest", {
+        id: generateId(),
+        isEserviceTemplate: false,
+      })
     ).rejects.toThrow(openapiVersionNotRecognized("1.0"));
   });
 
   it("should throw error for invalid JSON in REST interface", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
     const invalidDoc = {
       name: "test.json",
       text: vi.fn().mockResolvedValue("invalid json"),
     } as unknown as File;
 
     await expect(
-      extractEServiceUrlsFrom(invalidDoc, "INTERFACE", "Rest", eserviceId)
-    ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
+      retrieveServerUrlsFromAPI(invalidDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
   });
   it("should return an empty array for DOCUMENT kind", async () => {
     const documentDoc = {
@@ -208,26 +216,30 @@ describe("extractEServiceUrlsFrom", () => {
       kind: "DOCUMENT",
     } as unknown as File;
 
-    const urls = await extractEServiceUrlsFrom(
+    const urls = await retrieveServerUrlsFromAPI(
       documentDoc,
       "DOCUMENT",
       technology.rest,
-      "test-resource-id"
+      { id: generateId(), isEserviceTemplate: false }
     );
 
     expect(urls).toEqual([]);
   });
   it("should throw invalidInterfaceFileDetected for unsupported file type", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+
     const unsupportedDoc = {
       ...mockFile,
       name: "unsupported.txt",
     } as unknown as File;
 
     await expect(
-      extractEServiceUrlsFrom(unsupportedDoc, "INTERFACE", "Rest", eserviceId)
-    ).rejects.toThrow(invalidInterfaceFileDetected(eserviceId));
+      retrieveServerUrlsFromAPI(unsupportedDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
   });
   it("should throw an error for invalid server URLs", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+
     const invalidDoc = {
       name: "test.json",
       text: vi.fn().mockResolvedValue(
@@ -239,7 +251,7 @@ describe("extractEServiceUrlsFrom", () => {
     } as unknown as File;
 
     await expect(
-      extractEServiceUrlsFrom(invalidDoc, "INTERFACE", "Rest", eserviceId)
-    ).rejects.toThrow(invalidServerUrl(eserviceId));
+      retrieveServerUrlsFromAPI(invalidDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidServerUrl(resource));
   });
 });
