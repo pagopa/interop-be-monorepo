@@ -4,8 +4,8 @@ import {
   getMockDocument,
   getMockEServiceAttribute,
   getMockEServiceTemplate,
+  getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
-  getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
@@ -59,8 +59,8 @@ describe("E-service template queries", () => {
         ...getMockEServiceTemplate(),
         versions: [version],
         riskAnalysis: [
-          getMockValidRiskAnalysis(tenantKind.PA),
-          getMockValidRiskAnalysis(tenantKind.PRIVATE),
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA),
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PRIVATE),
         ],
         isSignalHubEnabled: true,
       };
@@ -194,8 +194,8 @@ describe("E-service template queries", () => {
         ...getMockEServiceTemplate(),
         versions: [version],
         riskAnalysis: [
-          getMockValidRiskAnalysis(tenantKind.PA),
-          getMockValidRiskAnalysis(tenantKind.PRIVATE),
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA),
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PRIVATE),
         ],
         isSignalHubEnabled: true,
       };
@@ -254,7 +254,9 @@ describe("E-service template queries", () => {
         data: {
           ...getMockEServiceTemplate(),
           versions: [version],
-          riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+          riskAnalysis: [
+            getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA),
+          ],
         },
         metadata: { version: 1 },
       };
@@ -297,7 +299,7 @@ describe("E-service template queries", () => {
             docs: [getMockDocument()],
           },
         ],
-        riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+        riskAnalysis: [getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)],
       };
       await eserviceTemplateReadModelService.upsertEServiceTemplate(
         eserviceTemplate1,
@@ -319,7 +321,7 @@ describe("E-service template queries", () => {
             docs: [getMockDocument()],
           },
         ],
-        riskAnalysis: [getMockValidRiskAnalysis(tenantKind.PA)],
+        riskAnalysis: [getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)],
       };
       await eserviceTemplateReadModelService.upsertEServiceTemplate(
         eserviceTemplate2,

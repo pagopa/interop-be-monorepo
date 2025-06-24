@@ -12,7 +12,7 @@ export const JWTConfig = z
     ACCEPTED_AUDIENCES: z
       .string()
       .transform((s) => s.split(","))
-      .pipe(z.array(z.string())),
+      .pipe(z.array(z.string()).nonempty()),
 
     JWKS_CACHE_MAX_AGE_MILLIS: z.coerce.number().optional(),
   })
