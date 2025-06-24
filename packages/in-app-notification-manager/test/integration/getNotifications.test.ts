@@ -2,12 +2,20 @@ import { describe, it, expect } from "vitest";
 
 import { getMockContext } from "pagopa-interop-commons-test";
 import { getMockAuthData } from "pagopa-interop-commons-test";
-import { generateId, UserId, TenantId } from "pagopa-interop-models";
+import {
+  generateId,
+  UserId,
+  TenantId,
+  fromNotificationSQL,
+} from "pagopa-interop-models";
+import { eq, desc } from "drizzle-orm";
 import {
   addNotifications,
   inAppNotificationService,
   getMockNotification,
 } from "../integrationUtils.js";
+import { notification } from "../../src/db/schema.js";
+import { inAppNotificationDB } from "../integrationUtils.js";
 
 describe("getNotifications", () => {
   const userId: UserId = generateId();
@@ -34,8 +42,18 @@ describe("getNotifications", () => {
         },
       })
     );
-    expect(notifications).toBeDefined();
-    expect(notifications.results).toEqual(notificationsList.slice(0, 5));
+
+    const expectedNotifications = await inAppNotificationDB
+      .select()
+      .from(notification)
+      .where(eq(notification.userId, userId))
+      .orderBy(desc(notification.createdAt))
+      .limit(5)
+      .offset(0);
+
+    expect(notifications.results).toEqual(
+      expectedNotifications.map(fromNotificationSQL)
+    );
     expect(notifications.totalCount).toBe(10);
   });
 
