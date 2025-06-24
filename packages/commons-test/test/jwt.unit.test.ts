@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import jwt from "jsonwebtoken";
 import {
+  decodeJwtToken,
+  genericLogger,
   InternalAuthData,
   InteropJwtCommonPayload,
   InteropJwtMaintenancePayload,
@@ -13,13 +14,15 @@ import {
   SerializedInteropJwtUIPayload,
   systemRole,
   UIAuthData,
+  UserRole,
   userRole,
 } from "pagopa-interop-commons";
-import { invalidClaim, unsafeBrandId } from "pagopa-interop-models";
+import { invalidClaim } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import {
   createPayload,
   createUserPayload,
+  mockM2MAdminUserId,
   signPayload,
 } from "../src/mockedPayloadForToken.js";
 import { randomSubArray } from "../src/testUtils.js";
@@ -34,7 +37,7 @@ const expectedUiAuthData: UIAuthData = {
   selfcareId: mockUiTokenPaylod.selfcareId,
   organizationId: mockUiTokenPaylod.organizationId,
   userId: mockUiTokenPaylod.uid,
-  userRoles: [userRole.SECURITY_ROLE, userRole.API_ROLE],
+  userRoles: mockUiTokenPaylod["user-roles"].split(",") as UserRole[],
 };
 
 const mockM2MTokenPayload: SerializedInteropJwtApiPayload = createPayload(
@@ -77,16 +80,14 @@ const expectedSupportAuthData: UIAuthData = {
   userRoles: [userRole.SUPPORT_ROLE],
 };
 
-const mockM2MAdminTokenPayload: SerializedInteropJwtApiPayload = {
-  ...mockM2MTokenPayload,
-  role: systemRole.M2M_ADMIN_ROLE,
-  adminId: unsafeBrandId("f07ddb8f-17f9-47d4-b31e-35d1ac10e521"),
-};
+const mockM2MAdminTokenPayload: SerializedInteropJwtApiPayload = createPayload(
+  systemRole.M2M_ADMIN_ROLE
+);
 
 const expectedM2MAdminAuthData: M2MAdminAuthData = {
   systemRole: systemRole.M2M_ADMIN_ROLE,
   organizationId: mockM2MAdminTokenPayload.organizationId,
-  userId: mockM2MAdminTokenPayload.adminId,
+  userId: mockM2MAdminUserId,
   clientId: mockM2MAdminTokenPayload.client_id,
 };
 
@@ -95,7 +96,7 @@ const getClaimsName = (token: object): string[] => {
   if (!commonClaims.success) {
     expect.fail(`Invalid token provided for test: ${commonClaims.error}`);
   }
-  // Exclude 'iat' claim as it causes jwt.sign and jwt.decode functions
+  // Exclude 'iat' claim as it causes jwt.sign and decodeJwtToken functions
   // to fail with null values in the test execution context
   return Object.keys(commonClaims.data).filter((c) => c !== "iat");
 };
@@ -103,11 +104,12 @@ const getClaimsName = (token: object): string[] => {
 describe("JWT tests", () => {
   describe("readAuthDataFromJwtToken", () => {
     it("should successfully read data from a UI token with a single user role", async () => {
-      const tokenPayload = jwt.decode(
+      const tokenPayload = decodeJwtToken(
         signPayload({
           ...mockUiTokenPaylod,
           "user-roles": "admin",
-        })
+        }),
+        genericLogger
       );
 
       const expectedUIAuthData: UIAuthData = {
@@ -123,11 +125,12 @@ describe("JWT tests", () => {
     it("should successfully read auth data from a UI token with multiple comma separated user roles", async () => {
       // constant contains a randomically number of user roles picked from the enum UserRole
       const userRoles = randomSubArray(Object.values(userRole));
-      const tokenPayload = jwt.decode(
+      const tokenPayload = decodeJwtToken(
         signPayload({
           ...mockUiTokenPaylod,
           "user-roles": userRoles.join(","),
-        })
+        }),
+        genericLogger
       );
 
       const expectedUIAuthData: UIAuthData = {
@@ -141,11 +144,12 @@ describe("JWT tests", () => {
     });
 
     it("should fail reading auth data from a UI token with invalid user roles", async () => {
-      const tokenPayload = jwt.decode(
+      const tokenPayload = decodeJwtToken(
         signPayload({
           ...mockUiTokenPaylod,
           "user-roles": "api,invalid-role",
-        })
+        }),
+        genericLogger
       );
 
       expect(() => {
@@ -154,11 +158,12 @@ describe("JWT tests", () => {
     });
 
     it("should fail reading auth data from a UI token with empty user roles", async () => {
-      const tokenPayload = jwt.decode(
+      const tokenPayload = decodeJwtToken(
         signPayload({
           ...mockUiTokenPaylod,
           "user-roles": "",
-        })
+        }),
+        genericLogger
       );
 
       expect(() => {
@@ -171,7 +176,10 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a M2M token", async () => {
-      const tokenPayload = jwt.decode(signPayload(mockM2MTokenPayload));
+      const tokenPayload = decodeJwtToken(
+        signPayload(mockM2MTokenPayload),
+        genericLogger
+      );
 
       expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
         expectedM2MAuthData
@@ -179,7 +187,10 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a M2M admin token", async () => {
-      const token = jwt.decode(signPayload(mockM2MAdminTokenPayload));
+      const token = decodeJwtToken(
+        signPayload(mockM2MAdminTokenPayload),
+        genericLogger
+      );
 
       expect(readAuthDataFromJwtToken(token!)).toEqual(
         expectedM2MAdminAuthData
@@ -195,7 +206,9 @@ describe("JWT tests", () => {
           delete invalidToken[claim as keyof typeof invalidToken];
 
           expect(() => {
-            readAuthDataFromJwtToken(jwt.decode(signPayload(invalidToken))!);
+            readAuthDataFromJwtToken(
+              decodeJwtToken(signPayload(invalidToken), genericLogger)!
+            );
           }).toThrowError(`Validation error: Required at "${claim}"`);
         }
       );
@@ -211,7 +224,9 @@ describe("JWT tests", () => {
 
           // eslint-disable-next-line sonarjs/no-identical-functions
           expect(() => {
-            readAuthDataFromJwtToken(jwt.decode(signPayload(invalidToken))!);
+            readAuthDataFromJwtToken(
+              decodeJwtToken(signPayload(invalidToken), genericLogger)!
+            );
           }).toThrowError(`Validation error: Required at "${claim}"`);
         }
       );
@@ -227,7 +242,9 @@ describe("JWT tests", () => {
 
           // eslint-disable-next-line sonarjs/no-identical-functions
           expect(() => {
-            readAuthDataFromJwtToken(jwt.decode(signPayload(invalidToken))!);
+            readAuthDataFromJwtToken(
+              decodeJwtToken(signPayload(invalidToken), genericLogger)!
+            );
           }).toThrowError(`Validation error: Required at "${claim}"`);
         }
       );
@@ -243,7 +260,9 @@ describe("JWT tests", () => {
 
           // eslint-disable-next-line sonarjs/no-identical-functions
           expect(() => {
-            readAuthDataFromJwtToken(jwt.decode(signPayload(invalidToken))!);
+            readAuthDataFromJwtToken(
+              decodeJwtToken(signPayload(invalidToken), genericLogger)!
+            );
           }).toThrowError(`Validation error: Required at "${claim}"`);
         }
       );
@@ -255,11 +274,12 @@ describe("JWT tests", () => {
       mockMaintenanceTokenPayload,
       mockUiTokenPaylod,
     ])("should fail if the 'aud' claim is an empty string", (token) => {
-      const invalidToken = jwt.decode(
+      const invalidToken = decodeJwtToken(
         signPayload({
           ...token,
           aud: "",
-        })
+        }),
+        genericLogger
       );
 
       expect(() => readAuthDataFromJwtToken(invalidToken!)).toThrowError(
@@ -270,7 +290,10 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from an Internal token", async () => {
-      const tokenPayload = jwt.decode(signPayload(mockInternalTokenPayload));
+      const tokenPayload = decodeJwtToken(
+        signPayload(mockInternalTokenPayload),
+        genericLogger
+      );
 
       expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
         expectedInternalAuthData
@@ -278,7 +301,10 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a Maintenance token", async () => {
-      const tokenPayload = jwt.decode(signPayload(mockMaintenanceTokenPayload));
+      const tokenPayload = decodeJwtToken(
+        signPayload(mockMaintenanceTokenPayload),
+        genericLogger
+      );
 
       expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
         expectedMaintenanceAuthData
@@ -286,10 +312,11 @@ describe("JWT tests", () => {
     });
 
     it("should fail when the token is invalid", async () => {
-      const tokenPayload = jwt.decode(
+      const tokenPayload = decodeJwtToken(
         signPayload({
           role: "invalid-role",
-        })
+        }),
+        genericLogger
       );
 
       expect(() => readAuthDataFromJwtToken(tokenPayload!)).toThrowError(
@@ -298,7 +325,10 @@ describe("JWT tests", () => {
     });
 
     it("should successfully read auth data from a Support token", async () => {
-      const tokenPayload = jwt.decode(signPayload(mockSupportTokenPayload));
+      const tokenPayload = decodeJwtToken(
+        signPayload(mockSupportTokenPayload),
+        genericLogger
+      );
 
       expect(readAuthDataFromJwtToken(tokenPayload!)).toEqual(
         expectedSupportAuthData
@@ -306,11 +336,12 @@ describe("JWT tests", () => {
     });
 
     it("should fail reading auth data from a Support token with invalid user roles", async () => {
-      const tokenPayload = jwt.decode(
+      const tokenPayload = decodeJwtToken(
         signPayload({
           ...mockSupportTokenPayload,
           "user-roles": "support,invalid-role",
-        })
+        }),
+        genericLogger
       );
 
       expect(() => {
@@ -319,11 +350,12 @@ describe("JWT tests", () => {
     });
 
     it("should also accept audience as a JSON array", async () => {
-      const tokenPayload = jwt.decode(
+      const tokenPayload = decodeJwtToken(
         signPayload({
           ...mockUiTokenPaylod,
           aud: ["dev.interop.pagopa.it/ui", "interop.pagopa.it/ui"],
-        })
+        }),
+        genericLogger
       );
 
       const authData = readAuthDataFromJwtToken(tokenPayload!);
