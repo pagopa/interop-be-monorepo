@@ -11,11 +11,11 @@ export function toGetPurposesApiQueryParams(
     eservicesIds: params.eserviceIds,
     limit: params.limit,
     offset: params.offset,
-    consumersIds: [],
+    consumersIds: params.consumersIds,
     producersIds: [],
-    states: [],
+    states: params.states,
     excludeDraft: false,
-    name: undefined,
+    name: params.name,
   };
 }
 

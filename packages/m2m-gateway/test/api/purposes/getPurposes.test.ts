@@ -41,6 +41,8 @@ describe("GET /purposes router test", () => {
     offset: 0,
     limit: 10,
     eserviceIds: [],
+    consumersIds: [],
+    states: [],
   };
 
   it.each(authorizedRoles)(
@@ -61,9 +63,11 @@ describe("GET /purposes router test", () => {
   it.each([
     { ...mockQueryParams, offset: -2 },
     { ...mockQueryParams, limit: 100 },
+    { ...mockQueryParams, states: ["invalidState"] },
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, eserviceIds: ["invalidUUID"] },
+    { ...mockQueryParams, consumersIds: ["invalidUUID"] },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
@@ -78,11 +82,7 @@ describe("GET /purposes router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, {
-      offset: 0,
-      limit: 10,
-      eserviceIds: [],
-    });
+    const res = await makeRequest(token, mockQueryParams);
     expect(res.status).toBe(403);
   });
 

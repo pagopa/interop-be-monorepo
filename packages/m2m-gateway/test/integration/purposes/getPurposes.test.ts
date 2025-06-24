@@ -16,6 +16,8 @@ import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.
 
 describe("getPurposes", () => {
   const mockParams: m2mGatewayApi.GetPurposesQueryParams = {
+    consumersIds: [],
+    states: [],
     eserviceIds: [],
     offset: 0,
     limit: 10,
