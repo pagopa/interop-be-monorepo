@@ -2,7 +2,7 @@ import {
   getMockClient,
   getMockKey,
   writeInReadmodel,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelopeV2,
   Client,
@@ -26,14 +26,12 @@ import { clients } from "./utils.js";
 
 describe("Events V2", async () => {
   const mockClient = getMockClient();
-  const mockMessage: AuthorizationEventEnvelopeV2 = {
+  const mockMessage: Omit<AuthorizationEventEnvelopeV2, "type" | "data"> = {
     event_version: 2,
     stream_id: mockClient.id,
     version: 1,
     sequence_num: 1,
     log_date: new Date(),
-    type: "ClientAdded",
-    data: {},
   };
 
   it("ClientAdded", async () => {

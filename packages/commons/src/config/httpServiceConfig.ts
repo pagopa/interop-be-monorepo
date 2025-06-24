@@ -12,7 +12,7 @@ export const JWTConfig = z
     ACCEPTED_AUDIENCES: z
       .string()
       .transform((s) => s.split(","))
-      .pipe(z.array(z.string())),
+      .pipe(z.array(z.string()).nonempty()),
 
     JWKS_CACHE_MAX_AGE_MILLIS: z.coerce.number().optional(),
   })
@@ -27,8 +27,10 @@ export const HTTPServerConfig = z
   .object({
     HOST: APIEndpoint,
     PORT: z.coerce.number().min(1001),
+    KEEP_ALIVE_TIMEOUT_MILLIS: z.coerce.number().default(5000),
   })
   .transform((c) => ({
+    keepAliveTimeout: c.KEEP_ALIVE_TIMEOUT_MILLIS,
     host: c.HOST,
     port: c.PORT,
   }));

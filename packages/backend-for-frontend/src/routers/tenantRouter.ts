@@ -6,26 +6,24 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { AttributeId, TenantId, unsafeBrandId } from "pagopa-interop-models";
-import { tenantServiceBuilder } from "../services/tenantService.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import {
+  AgreementId,
+  AttributeId,
+  TenantId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { TenantService } from "../services/tenantService.js";
 import { fromBffAppContext } from "../utilities/context.js";
-import { emptyErrorMapper } from "../utilities/errorMappers.js";
 import { makeApiProblem } from "../model/errors.js";
 
 const tenantRouter = (
   ctx: ZodiosContext,
-  clients: PagoPAInteropBeClients
+  tenantService: TenantService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const tenantRouter = ctx.router(bffApi.tenantsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const tenantService = tenantServiceBuilder(
-    clients.tenantProcessClient,
-    clients.attributeProcessClient,
-    clients.selfcareV2InstitutionClient
-  );
 
   tenantRouter
     .get("/consumers", async (req, res) => {
@@ -44,8 +42,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving consumers for name ${req.query.q}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -67,8 +64,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving producers for name ${req.query.q}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -91,8 +87,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving tenant certified attributes offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -115,8 +110,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving certified attributes for tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -134,8 +128,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error adding certified attribute ${req.body.id} to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -152,8 +145,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error adding declared attribute ${req.body.id} to requester tenant`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -171,8 +163,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error revoking declared attribute ${req.params.attributeId} to requester tenant`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -192,8 +183,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving declared attributes for tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -213,8 +203,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving verified attributes for tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -232,8 +221,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error verifying verified attribute ${req.body.id} to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -260,8 +248,7 @@ const tenantRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error revoking certified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -290,8 +277,7 @@ const tenantRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error updating expirationDate for verified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -308,9 +294,11 @@ const tenantRouter = (
           const attributeId = unsafeBrandId<AttributeId>(
             req.params.attributeId
           );
+          const agreementId = unsafeBrandId<AgreementId>(req.body.agreementId);
           await tenantService.revokeVerifiedAttribute(
             tenantId,
             attributeId,
+            agreementId,
             ctx
           );
 
@@ -319,8 +307,7 @@ const tenantRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error revoking verified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -338,8 +325,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving tenant with tenantId ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -356,8 +342,7 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error adding mail to tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -374,38 +359,54 @@ const tenantRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting mail ${req.params.mailId} from tenant ${req.params.tenantId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .get(
-      "/tenants",
+    .get("/tenants", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
-
-        try {
-          const result = await tenantService.getTenants(
-            req.query.name,
-            req.query.limit,
-            ctx
-          );
-          return res.status(200).send(bffApi.Tenants.parse(result));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
-            `Error retrieving tenants`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+      try {
+        const result = await tenantService.getTenants(
+          req.query.name,
+          req.query.features,
+          req.query.limit,
+          ctx
+        );
+        return res.status(200).send(bffApi.Tenants.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving tenants`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    );
+    })
+    .post("/tenants/delegatedFeatures/update", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      const tenantId = ctx.authData.organizationId;
+
+      try {
+        await tenantService.updateTenantDelegatedFeatures(
+          tenantId,
+          req.body,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error while updating delegated producer and consumer feature to ${tenantId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return tenantRouter;
 };

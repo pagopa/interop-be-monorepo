@@ -1,0 +1,27 @@
+meta {
+  name: Add new e-service template document
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  eServiceTemplateVersionId: {{eserviceTemplateVersionId}}
+  eServiceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  ~Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  kind: INTERFACE
+  prettyName: asdasd
+  doc: @file(/Users/sandrotaje/Downloads/interface.yaml)
+}

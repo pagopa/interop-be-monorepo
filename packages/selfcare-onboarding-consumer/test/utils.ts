@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { EachMessagePayload } from "kafkajs";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { InteropToken } from "pagopa-interop-commons";
+import { InteropInternalToken } from "pagopa-interop-commons";
 
 export const interopProductName = "test-interop-product";
 export const allowedOrigins = [
   "IPA",
   "ANAC",
   "IVASS",
-  "PDND_INFOCAMERE-PRV",
-  "PDND_INFOCAMERE-SCP",
+  "INFOCAMERE-PRV",
+  "INFOCAMERE-SCP",
+  "INFOCAMERE-PT",
 ];
 
 export const selfcareUpsertTenantMock = (): Promise<tenantApi.ResourceId> =>
@@ -80,10 +81,10 @@ export const selfcareUpsertTenantSeed = {
   name: correctEventPayload.institution.description,
 };
 
-export const generateInternalTokenMock = (): Promise<InteropToken> =>
-  Promise.resolve(interopToken);
+export const generateInternalTokenMock = (): Promise<InteropInternalToken> =>
+  Promise.resolve(interopInternalToken);
 
-export const interopToken: InteropToken = {
+export const interopInternalToken: InteropInternalToken = {
   header: {
     alg: "algorithm",
     use: "use",
@@ -98,7 +99,7 @@ export const interopToken: InteropToken = {
     iat: 0,
     nbf: 0,
     exp: 10,
-    role: "role1",
+    role: "internal",
   },
   serialized: "the-token",
 };

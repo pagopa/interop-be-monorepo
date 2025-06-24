@@ -7,6 +7,7 @@ import {
   RemoveDataPrefix,
   Metadata,
   AttributeCollection,
+  DelegationCollection,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -23,8 +24,15 @@ import {
   descriptorState,
   EServiceId,
   AttributeReadmodel,
+  DelegationReadModel,
   TenantId,
   genericInternalError,
+  Delegation,
+  delegationState,
+  AgreementReadModel,
+  DescriptorReadModel,
+  EServiceReadModel,
+  delegationKind,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -48,7 +56,6 @@ export type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
   consumerIds: TenantId[];
   producerIds: TenantId[];
-  agreeementStates: AgreementState[];
 };
 
 type AgreementDataFields = RemoveDataPrefix<MongoQueryKeys<Agreement>>;
@@ -249,18 +256,40 @@ async function getAttribute(
   return undefined;
 }
 
+async function getDelegation(
+  delegations: DelegationCollection,
+  filter: Filter<{ data: DelegationReadModel }>
+): Promise<Delegation | undefined> {
+  const data = await delegations.findOne(filter, {
+    projection: { data: true },
+  });
+  if (data) {
+    const result = Delegation.safeParse(data.data);
+    if (!result.success) {
+      throw genericInternalError(
+        `Unable to parse delegation item: result ${JSON.stringify(
+          result
+        )} - data ${JSON.stringify(data)} `
+      );
+    }
+    return result.data;
+  }
+  return undefined;
+}
+
 // eslint-disable-next-line max-params
 async function searchTenantsByName(
+  requesterId: TenantId,
   agreements: AgreementCollection,
   tenantName: string | undefined,
   tenantIdField: "producerId" | "consumerId",
   limit: number,
   offset: number
 ): Promise<ListResult<CompactOrganization>> {
-  const aggregationPipeline = getTenantsByNamePipeline(
-    tenantName,
-    tenantIdField
-  );
+  const aggregationPipeline = [
+    ...getAgreementsPipeline(requesterId),
+    ...getTenantsByNamePipeline(tenantName, tenantIdField),
+  ];
 
   const data = await agreements
     .aggregate([...aggregationPipeline, { $skip: offset }, { $limit: limit }], {
@@ -288,107 +317,248 @@ async function searchTenantsByName(
   };
 }
 
+const addProducerDelegationData: Document = {
+  $addFields: {
+    activeProducerDelegations: {
+      $filter: {
+        input: "$delegations",
+        as: "delegation",
+        cond: {
+          $and: [
+            {
+              $eq: ["$$delegation.data.kind", delegationKind.delegatedProducer],
+            },
+            {
+              $eq: ["$$delegation.data.state", agreementState.active],
+            },
+            {
+              $eq: ["$$delegation.data.delegatorId", "$data.producerId"],
+            },
+          ],
+        },
+      },
+    },
+  },
+};
+
+const addConsumerDelegationData: Document = {
+  $addFields: {
+    activeConsumerDelegations: {
+      $filter: {
+        input: "$delegations",
+        as: "delegation",
+        cond: {
+          $and: [
+            {
+              $eq: ["$$delegation.data.kind", delegationKind.delegatedConsumer],
+            },
+            { $eq: ["$$delegation.data.state", delegationState.active] },
+            {
+              $eq: ["$$delegation.data.delegatorId", "$data.consumerId"],
+            },
+          ],
+        },
+      },
+    },
+  },
+};
+
+const addDelegationDataPipeline: Document[] = [
+  {
+    $lookup: {
+      from: "delegations",
+      localField: "data.eserviceId",
+      foreignField: "data.eserviceId",
+      as: "delegations",
+    },
+  },
+  addConsumerDelegationData,
+  addProducerDelegationData,
+];
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function getProducerOrDelegateFilter(producerIds: TenantId[]) {
+  return producerIds && producerIds.length > 0
+    ? [
+        {
+          $match: {
+            $or: [
+              {
+                "data.producerId": {
+                  $in: producerIds,
+                },
+              },
+              {
+                activeProducerDelegations: {
+                  $elemMatch: {
+                    "data.delegateId": { $in: producerIds },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ]
+    : [];
+}
+
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+function getConsumerOrDelegateFilter(consumerIds: TenantId[]) {
+  return consumerIds && consumerIds.length > 0
+    ? [
+        {
+          $match: {
+            $or: [
+              {
+                "data.consumerId": {
+                  $in: consumerIds,
+                },
+              },
+              {
+                activeConsumerDelegations: {
+                  $elemMatch: {
+                    "data.delegateId": {
+                      $in: consumerIds,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        },
+      ]
+    : [];
+}
+
+function applyVisibilityToAgreements(requesterId: TenantId): Document {
+  return {
+    $match: {
+      $or: [
+        {
+          "data.producerId": requesterId,
+        },
+        {
+          "data.consumerId": requesterId,
+        },
+        {
+          activeProducerDelegations: {
+            $elemMatch: {
+              "data.delegateId": requesterId,
+            },
+          },
+        },
+        {
+          activeConsumerDelegations: {
+            $elemMatch: {
+              "data.delegateId": requesterId,
+            },
+          },
+        },
+      ],
+    },
+  };
+}
+
+const getAgreementsPipeline = (
+  requesterId: TenantId,
+  producerIds: TenantId[] = [],
+  consumerIds: TenantId[] = []
+): Document[] => [
+  ...addDelegationDataPipeline,
+  ...getProducerOrDelegateFilter(producerIds),
+  ...getConsumerOrDelegateFilter(consumerIds),
+  applyVisibilityToAgreements(requesterId),
+];
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const agreements = readModelRepository.agreements;
-  const eservices = readModelRepository.eservices;
-  const tenants = readModelRepository.tenants;
-  const attributes = readModelRepository.attributes;
+  const { agreements, eservices, tenants, attributes, delegations } =
+    readModelRepository;
   return {
     async getAgreements(
+      requesterId: TenantId,
       filters: AgreementQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<Agreement>> {
-      const aggregationPipeline = [
-        getAgreementsFilters(filters),
-        {
-          $lookup: {
-            from: "eservices",
-            localField: "data.eserviceId",
-            foreignField: "data.id",
-            as: "eservices",
-          },
-        },
-        {
-          $unwind: "$eservices",
-        },
-        ...(filters.showOnlyUpgradeable
-          ? [
-              {
-                $addFields: {
-                  currentDescriptor: {
-                    $filter: {
-                      input: "$eservices.data.descriptors",
-                      as: "descr",
-                      cond: {
-                        $eq: ["$$descr.id", "$data.descriptorId"],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                $unwind: "$currentDescriptor",
-              },
-              {
-                $addFields: {
-                  upgradableDescriptor: {
-                    $filter: {
-                      input: "$eservices.data.descriptors",
-                      as: "upgradable",
-                      cond: {
-                        $and: [
-                          {
-                            $gt: [
-                              "$$upgradable.publishedAt",
-                              "$currentDescriptor.publishedAt",
-                            ],
-                          },
-                          {
-                            $in: [
-                              "$$upgradable.state",
-                              [
-                                descriptorState.published,
-                                descriptorState.suspended,
-                              ],
-                            ],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-              {
-                $match: {
-                  upgradableDescriptor: { $ne: [] },
-                },
-              },
-            ]
-          : []),
-        {
-          $project: {
-            data: 1,
-            eservices: 1,
-            lowerName: { $toLower: "$eservices.data.name" },
-          },
-        },
-        {
-          $sort: { lowerName: 1 },
-        },
-      ];
+      const { producerId, consumerId, ...otherFilters } = filters;
+      const producerIds = producerId
+        ? Array.isArray(producerId)
+          ? producerId
+          : [producerId]
+        : [];
 
-      const data = await agreements
+      const consumerIds = consumerId
+        ? Array.isArray(consumerId)
+          ? consumerId
+          : [consumerId]
+        : [];
+
+      const agreementsData = await agreements
         .aggregate(
-          [...aggregationPipeline, { $skip: offset }, { $limit: limit }],
-          { allowDiskUse: true }
+          [
+            ...getAgreementsPipeline(requesterId, producerIds, consumerIds),
+            getAgreementsFilters(otherFilters),
+          ],
+          {
+            allowDiskUse: true,
+          }
         )
         .toArray();
 
-      const result = z.array(Agreement).safeParse(data.map((d) => d.data));
+      const eserviceIds = agreementsData.map(
+        (agreement) => agreement.data.eserviceId
+      );
+      const eservicesData = await eservices
+        .find({ "data.id": { $in: eserviceIds } })
+        .toArray();
+
+      const eservicesMap = new Map(
+        eservicesData.map((eservice) => [eservice.data.id, eservice.data])
+      );
+
+      const combinedData: Array<{
+        agreement: AgreementReadModel;
+        eservice: EServiceReadModel;
+      }> = agreementsData.flatMap((agreement) => {
+        const eservice = eservicesMap.get(agreement.data.eserviceId);
+        return eservice ? [{ agreement: agreement.data, eservice }] : [];
+      });
+
+      const filteredData = filters.showOnlyUpgradeable
+        ? combinedData.filter((cb) => {
+            const currentDescriptor = cb.eservice.descriptors.find(
+              (descr) => descr.id === cb.agreement.descriptorId
+            );
+            const upgradableDescriptor = cb.eservice.descriptors.filter(
+              (upgradable: DescriptorReadModel) => {
+                // Since the dates are optional, if they are undefined they are set to a very old date
+                const currentPublishedAt =
+                  currentDescriptor?.publishedAt ?? new Date(0);
+                const upgradablePublishedAt =
+                  upgradable.publishedAt ?? new Date(0);
+                return (
+                  upgradablePublishedAt > currentPublishedAt &&
+                  (upgradable.state === descriptorState.published ||
+                    upgradable.state === descriptorState.suspended)
+                );
+              }
+            );
+            return upgradableDescriptor.length > 0;
+          })
+        : combinedData;
+
+      const data = filteredData
+        .slice(offset, offset + limit)
+        .sort((a, b) =>
+          a.eservice.name
+            .toLowerCase()
+            .localeCompare(b.eservice.name.toLowerCase())
+        );
+
+      const result = z.array(Agreement).safeParse(data.map((d) => d.agreement));
       if (!result.success) {
         throw genericInternalError(
           `Unable to parse agreements items: result ${JSON.stringify(
@@ -399,10 +569,7 @@ export function readModelServiceBuilder(
 
       return {
         results: result.data,
-        totalCount: await ReadModelRepository.getTotalCount(
-          agreements,
-          aggregationPipeline
-        ),
+        totalCount: filteredData.length,
       };
     },
     async getAgreementById(
@@ -482,41 +649,66 @@ export function readModelServiceBuilder(
     async getAttributeById(id: AttributeId): Promise<Attribute | undefined> {
       return getAttribute(attributes, { "data.id": id });
     },
-    async getConsumers(
+    async getAgreementsConsumers(
+      requesterId: TenantId,
       name: string | undefined,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      return searchTenantsByName(agreements, name, "consumerId", limit, offset);
+      return searchTenantsByName(
+        requesterId,
+        agreements,
+        name,
+        "consumerId",
+        limit,
+        offset
+      );
     },
-    async getProducers(
+    async getAgreementsProducers(
+      requesterId: TenantId,
       name: string | undefined,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactOrganization>> {
-      return searchTenantsByName(agreements, name, "producerId", limit, offset);
+      return searchTenantsByName(
+        requesterId,
+        agreements,
+        name,
+        "producerId",
+        limit,
+        offset
+      );
     },
     async getAgreementsEServices(
+      requesterId: TenantId,
       filters: AgreementEServicesQueryFilters,
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
-      const agreementFilter = {
-        ...(filters.consumerIds.length === 0
-          ? undefined
-          : { "data.consumerId": { $in: filters.consumerIds } }),
-        ...(filters.producerIds.length === 0
-          ? undefined
-          : { "data.producerId": { $in: filters.producerIds } }),
-        ...(filters.agreeementStates.length === 0
-          ? undefined
-          : { "data.state": { $in: filters.agreeementStates } }),
-      };
+      const agreementAggregationPipeline = [
+        ...getAgreementsPipeline(
+          requesterId,
+          filters.producerIds,
+          filters.consumerIds
+        ),
+        {
+          $group: {
+            _id: "$data.eserviceId",
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            eserviceId: "$_id",
+          },
+        },
+      ];
 
-      const agreementEservicesIds = await agreements.distinct(
-        "data.eserviceId",
-        agreementFilter
-      );
+      const agreementData = await agreements
+        .aggregate([...agreementAggregationPipeline], { allowDiskUse: true })
+        .toArray();
+
+      const agreementEservicesIds = agreementData.map((d) => d.eserviceId);
 
       const aggregationPipeline = [
         {
@@ -561,6 +753,49 @@ export function readModelServiceBuilder(
           aggregationPipeline
         ),
       };
+    },
+    async getActiveProducerDelegationByEserviceId(
+      eserviceId: EServiceId
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": eserviceId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedProducer,
+      });
+    },
+    async getActiveConsumerDelegationsByEserviceId(
+      eserviceId: EServiceId
+    ): Promise<Delegation[]> {
+      const data = await delegations
+        .find(
+          {
+            "data.eserviceId": eserviceId,
+            "data.state": delegationState.active,
+            "data.kind": delegationKind.delegatedConsumer,
+          },
+          { projection: { data: true } }
+        )
+        .toArray();
+
+      const result = z.array(Delegation).safeParse(data.map((d) => d.data));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse delegation item: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+      return result.data;
+    },
+    async getActiveConsumerDelegationByAgreement(
+      agreement: Pick<Agreement, "consumerId" | "eserviceId">
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.eserviceId": agreement.eserviceId,
+        "data.delegatorId": agreement.consumerId,
+        "data.state": delegationState.active,
+        "data.kind": delegationKind.delegatedConsumer,
+      });
     },
   };
 }

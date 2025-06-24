@@ -1,6 +1,6 @@
 import { ZodiosInstance, ZodiosOptions } from "@zodios/core";
-import { SelfCareConfig } from "pagopa-interop-commons";
-import { selfcareV2ClientApi } from "./index.js";
+import { SelfCareClientConfig } from "pagopa-interop-commons";
+import * as selfcareV2ClientApi from "./generated/selfcareV2ClientApi.js";
 
 const createClientConfig = (selfcareApiKey: string): ZodiosOptions => ({
   axiosConfig: {
@@ -15,7 +15,7 @@ export type SelfcareV2InstitutionClient = ZodiosInstance<
 >;
 
 export const selfcareV2InstitutionClientBuilder = (
-  config: SelfCareConfig
+  config: SelfCareClientConfig
 ): SelfcareV2InstitutionClient =>
   selfcareV2ClientApi.createInstitutionApiClient(
     config.selfcareBaseUrl,
@@ -27,7 +27,7 @@ export type SelfcareV2DelegationClient = ZodiosInstance<
 >;
 
 export const selfcareV2DelegationClientBuilder = (
-  config: SelfCareConfig
+  config: SelfCareClientConfig
 ): SelfcareV2DelegationClient =>
   selfcareV2ClientApi.createDelegationApiClient(
     config.selfcareBaseUrl,
@@ -39,7 +39,7 @@ export type SelfcareV2UsersClient = ZodiosInstance<
 >;
 
 export const selfcareV2UsersClientBuilder = (
-  config: SelfCareConfig
+  config: SelfCareClientConfig
 ): SelfcareV2UsersClient =>
   selfcareV2ClientApi.createUserApiClient(
     config.selfcareBaseUrl,

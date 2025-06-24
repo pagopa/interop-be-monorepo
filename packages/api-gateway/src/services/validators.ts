@@ -3,20 +3,23 @@ import {
   apiGatewayApi,
   attributeRegistryApi,
   catalogApi,
+  delegationApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
-import { operationForbidden, TenantId } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { operationForbidden, TenantId } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { ValidCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,
   attributeNotFoundInRegistry,
   invalidAgreementState,
   missingActivePurposeVersion,
   missingAvailableDescriptor,
+  multipleActiveProducerDelegationsForEservice,
   multipleAgreementForEserviceAndConsumer,
   unexpectedDescriptorState,
 } from "../models/errors.js";
-import { NonDraftCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 
 export function assertAgreementStateNotDraft(
   agreementState: agreementApi.AgreementState,
@@ -69,20 +72,32 @@ export function assertAvailableDescriptorExists(
   }
 }
 
-export function assertNonDraftDescriptor(
+export function assertIsValidDescriptor(
   descriptor: catalogApi.EServiceDescriptor,
-  descriptorId: catalogApi.EServiceDescriptor["id"],
   eserviceId: catalogApi.EService["id"],
   logger: Logger
-): asserts descriptor is NonDraftCatalogApiDescriptor {
-  if (descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT) {
-    throw unexpectedDescriptorState(
-      descriptor.state,
-      eserviceId,
-      descriptorId,
-      logger
-    );
-  }
+): asserts descriptor is ValidCatalogApiDescriptor {
+  match(descriptor.state)
+    .with(
+      catalogApi.EServiceDescriptorState.Values.DRAFT,
+      catalogApi.EServiceDescriptorState.Values.WAITING_FOR_APPROVAL,
+      () => {
+        throw unexpectedDescriptorState(
+          descriptor.state,
+          eserviceId,
+          descriptor.id,
+          logger
+        );
+      }
+    )
+    .with(
+      catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+      catalogApi.EServiceDescriptorState.Values.DEPRECATED,
+      catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVED,
+      () => descriptor
+    )
+    .exhaustive();
 }
 
 export function assertRegistryAttributeExists(
@@ -91,5 +106,32 @@ export function assertRegistryAttributeExists(
 ): asserts registryAttribute is NonNullable<attributeRegistryApi.Attribute> {
   if (!registryAttribute) {
     throw attributeNotFoundInRegistry(attributeId);
+  }
+}
+
+export function assertIsEserviceDelegateProducer(
+  producerDelegation: delegationApi.Delegation | undefined,
+  organizationId: TenantId
+): void {
+  if (
+    !producerDelegation ||
+    producerDelegation.kind !==
+      delegationApi.DelegationKind.Values.DELEGATED_PRODUCER ||
+    producerDelegation.delegateId !== organizationId
+  ) {
+    throw operationForbidden;
+  }
+}
+
+export function assertOnlyOneActiveProducerDelegationForEserviceExists(
+  producerDelegations: delegationApi.Delegations,
+  eserviceId: apiGatewayApi.EService["id"]
+): void {
+  if (
+    producerDelegations.results.filter(
+      (d) => d.kind === delegationApi.DelegationKind.Values.DELEGATED_PRODUCER
+    ).length > 1
+  ) {
+    throw multipleActiveProducerDelegationsForEservice(eserviceId);
   }
 }

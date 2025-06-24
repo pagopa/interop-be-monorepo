@@ -1,7 +1,7 @@
 meta {
   name: Updates a draft descriptor
   type: http
-  seq: 5
+  seq: 34
 }
 
 put {
@@ -17,10 +17,7 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 body:json {
   {

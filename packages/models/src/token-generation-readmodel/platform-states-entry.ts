@@ -1,8 +1,8 @@
 import { z } from "zod";
 import {
+  AgreementId,
   DescriptorId,
   EServiceId,
-  GSIPKConsumerIdEServiceId,
   PlatformStatesAgreementPK,
   PlatformStatesClientPK,
   PlatformStatesEServiceDescriptorPK,
@@ -10,7 +10,9 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "../brandedIds.js";
+import { ClientKindTokenGenStates } from "./commons.js";
 
 export const itemState = {
   active: "ACTIVE",
@@ -50,9 +52,10 @@ export type PlatformStatesPurposeEntry = z.infer<
 
 export const PlatformStatesAgreementEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesAgreementPK,
-  GSIPK_consumerId_eserviceId: GSIPKConsumerIdEServiceId,
-  GSISK_agreementTimestamp: z.string().datetime(),
+  agreementId: AgreementId,
+  agreementTimestamp: z.string().datetime(),
   agreementDescriptorId: DescriptorId,
+  producerId: TenantId,
 });
 export type PlatformStatesAgreementEntry = z.infer<
   typeof PlatformStatesAgreementEntry
@@ -60,8 +63,20 @@ export type PlatformStatesAgreementEntry = z.infer<
 
 export const PlatformStatesClientEntry = PlatformStatesBaseEntry.extend({
   PK: PlatformStatesClientPK,
+  clientKind: ClientKindTokenGenStates,
+  clientConsumerId: TenantId,
   clientPurposesIds: z.array(PurposeId),
+  clientAdminId: UserId.optional(),
 });
 export type PlatformStatesClientEntry = z.infer<
   typeof PlatformStatesClientEntry
+>;
+
+export const PlatformStatesGenericEntry = PlatformStatesCatalogEntry.or(
+  PlatformStatesAgreementEntry
+)
+  .or(PlatformStatesPurposeEntry)
+  .or(PlatformStatesClientEntry);
+export type PlatformStatesGenericEntry = z.infer<
+  typeof PlatformStatesGenericEntry
 >;

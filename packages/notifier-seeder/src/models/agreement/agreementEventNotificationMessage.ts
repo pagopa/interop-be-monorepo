@@ -1,6 +1,6 @@
+import { randomUUID } from "crypto";
 import { AgreementEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { v4 as uuidv4 } from "uuid";
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { AgreementEventNotification } from "./agreementEventNotification.js";
 
@@ -9,7 +9,11 @@ export const eventV2TypeMapper = (
 ): string =>
   match(eventType)
     .with("AgreementAdded", "AgreementUpgraded", () => "agreement_added")
-    .with("AgreementDeleted", () => "agreement_deleted")
+    .with(
+      "AgreementDeleted",
+      "AgreementDeletedByRevokedDelegation",
+      () => "agreement_deleted"
+    )
     .with(
       "DraftAgreementUpdated",
       "AgreementSubmitted",
@@ -25,6 +29,7 @@ export const eventV2TypeMapper = (
       "AgreementRejected",
       "AgreementArchivedByUpgrade",
       "AgreementArchivedByConsumer",
+      "AgreementArchivedByRevokedDelegation",
       () => "agreement_updated"
     )
     .with(
@@ -41,7 +46,7 @@ export const buildAgreementMessage = (
   event: AgreementEventEnvelopeV2,
   agreementEvent: AgreementEventNotification
 ): QueueMessage => ({
-  messageUUID: uuidv4(),
+  messageUUID: randomUUID(),
   eventJournalPersistenceId: event.stream_id,
   eventJournalSequenceNumber: event.version,
   eventTimestamp: Number(event.log_date),

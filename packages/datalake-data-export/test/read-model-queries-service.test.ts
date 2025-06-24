@@ -25,23 +25,25 @@ import {
   getMockTenant,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import {
   agreements,
   eservices,
   purposes,
-  readModelRepository,
+  readModelService,
+  seedAgreements,
   seedCollection,
+  seedEServices,
+  seedPurposes,
+  seedTenants,
   tenants,
 } from "./utils.js";
 
 describe("read-model-queries.service", () => {
-  const readModelService = readModelServiceBuilder(readModelRepository);
-
   describe("getTenants", async () => {
     it("should return all tenants", async () => {
       const tenantsData: Tenant[] = [getMockTenant(), getMockTenant()];
       await seedCollection(tenantsData.map(toReadModelTenant), tenants);
+      await seedTenants(tenantsData);
 
       const result = await readModelService.getTenants();
       expect(result).toHaveLength(tenantsData.length);
@@ -56,6 +58,7 @@ describe("read-model-queries.service", () => {
       const tenantsData: Tenant[] = [getMockTenant(), getMockTenant()];
       delete tenantsData[1].selfcareId;
       await seedCollection(tenantsData.map(toReadModelTenant), tenants);
+      await seedTenants(tenantsData);
 
       const result = await readModelService.getTenants();
       expect(result).toHaveLength(1);
@@ -64,7 +67,9 @@ describe("read-model-queries.service", () => {
 
   describe("getEServices", async () => {
     const validEserviceDescriptorStates = Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.draft
+      (state) =>
+        state !== descriptorState.draft &&
+        state !== descriptorState.waitingForApproval
     );
 
     it("should return all eServices", async () => {
@@ -85,8 +90,9 @@ describe("read-model-queries.service", () => {
             state: randomArrayItem(validEserviceDescriptorStates),
           }))
         ),
-      ].map(toReadModelEService);
-      await seedCollection(eservicesData, eservices);
+      ];
+      await seedCollection(eservicesData.map(toReadModelEService), eservices);
+      await seedEServices(eservicesData);
 
       const result = await readModelService.getEServices();
       expect(result).toHaveLength(eservicesData.length);
@@ -113,9 +119,42 @@ describe("read-model-queries.service", () => {
             },
           },
         ]),
-      ].map(toReadModelEService);
+      ];
 
-      await seedCollection(eservicesData, eservices);
+      await seedCollection(eservicesData.map(toReadModelEService), eservices);
+      await seedEServices(eservicesData);
+
+      const result = await readModelService.getEServices();
+      expect(result).toHaveLength(eservicesData.length);
+      expect(result.at(0)?.descriptors).toHaveLength(1);
+      expect(result.at(0)?.descriptors.at(0)?.state).toEqual("Published");
+    });
+
+    it("should not return waiting for approval descriptors in the e-service", async () => {
+      const eservicesData = [
+        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
+          {
+            ...getMockDescriptor(),
+            id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f2"),
+            version: "2",
+            state: descriptorState.published,
+          },
+          {
+            ...getMockDescriptor(),
+            id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f3"),
+            state: descriptorState.waitingForApproval,
+            version: "1",
+            attributes: {
+              certified: [],
+              verified: [],
+              declared: [],
+            },
+          },
+        ]),
+      ];
+
+      await seedCollection(eservicesData.map(toReadModelEService), eservices);
+      await seedEServices(eservicesData);
 
       const result = await readModelService.getEServices();
       expect(result).toHaveLength(eservicesData.length);
@@ -136,9 +175,10 @@ describe("read-model-queries.service", () => {
         getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
           getMockDescriptor(descriptorState.draft),
         ]),
-      ].map(toReadModelEService);
+      ];
 
-      await seedCollection(eservicesData, eservices);
+      await seedCollection(eservicesData.map(toReadModelEService), eservices);
+      await seedEServices(eservicesData);
 
       const result = await readModelService.getEServices();
       expect(result).toHaveLength(1);
@@ -151,9 +191,10 @@ describe("read-model-queries.service", () => {
           getMockDescriptor(descriptorState.published),
         ]),
         getMockEService(generateId<EServiceId>(), generateId<TenantId>(), []),
-      ].map(toReadModelEService);
+      ];
 
-      await seedCollection(eservicesData, eservices);
+      await seedCollection(eservicesData.map(toReadModelEService), eservices);
+      await seedEServices(eservicesData);
 
       const result = await readModelService.getEServices();
       expect(result).toHaveLength(1);
@@ -178,8 +219,12 @@ describe("read-model-queries.service", () => {
           generateId<TenantId>(),
           randomArrayItem(validAgreementStates)
         ),
-      ].map(toReadModelAgreement);
-      await seedCollection(agreementsData, agreements);
+      ];
+      await seedCollection(
+        agreementsData.map(toReadModelAgreement),
+        agreements
+      );
+      await seedAgreements(agreementsData);
 
       const result = await readModelService.getAgreements();
       expect(result).toHaveLength(agreementsData.length);
@@ -202,9 +247,13 @@ describe("read-model-queries.service", () => {
           generateId<TenantId>(),
           agreementState.draft
         ),
-      ].map(toReadModelAgreement);
+      ];
 
-      await seedCollection(agreementsData, agreements);
+      await seedCollection(
+        agreementsData.map(toReadModelAgreement),
+        agreements
+      );
+      await seedAgreements(agreementsData);
 
       const result = await readModelService.getAgreements();
       expect(result).toHaveLength(1);
@@ -226,9 +275,10 @@ describe("read-model-queries.service", () => {
         getMockPurpose([
           getMockPurposeVersion(randomArrayItem(validPurposeVersionStates)),
         ]),
-      ].map(toReadModelPurpose);
+      ];
 
-      await seedCollection(purposesData, purposes);
+      await seedCollection(purposesData.map(toReadModelPurpose), purposes);
+      await seedPurposes(purposesData);
 
       const result = await readModelService.getPurposes();
       expect(result).toHaveLength(purposesData.length);
@@ -248,9 +298,10 @@ describe("read-model-queries.service", () => {
           getMockPurposeVersion(purposeVersionState.waitingForApproval),
         ]),
         getMockPurpose([getMockPurposeVersion(purposeVersionState.draft)]),
-      ].map(toReadModelPurpose);
+      ];
 
-      await seedCollection(purposesData, purposes);
+      await seedCollection(purposesData.map(toReadModelPurpose), purposes);
+      await seedPurposes(purposesData);
 
       const result = await readModelService.getPurposes();
 
@@ -262,9 +313,11 @@ describe("read-model-queries.service", () => {
       const purposesData = [
         getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
         getMockPurpose(),
-      ].map(toReadModelPurpose);
+      ];
 
-      await seedCollection(purposesData, purposes);
+      await seedCollection(purposesData.map(toReadModelPurpose), purposes);
+      await seedPurposes(purposesData);
+
       const result = await readModelService.getPurposes();
 
       expect(result).toHaveLength(1);

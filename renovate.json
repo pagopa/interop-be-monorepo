@@ -1,12 +1,6 @@
 {
   "extends": [
     "github>pagopa/eng-renovate",
-    ":automergeRequireAllStatusChecks",
-    ":automergeStableNonMajor",
-    ":automergeLinters",
-    ":automergeTesters",
-    ":automergeTypes",
-    ":automergeDigest",
     ":combinePatchMinorReleases",
     ":ignoreUnstable",
     ":rebaseStalePrs",
@@ -39,6 +33,7 @@
   "minor": {
     "enabled": true
   },
+  "npmrc": "save-prefix=\nauto-install-peers=false\nstrict-peer-dependencies=false",
   "patch": {
     "enabled": true
   },

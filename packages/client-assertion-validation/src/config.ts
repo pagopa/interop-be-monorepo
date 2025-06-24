@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const ClientAssertionValidationConfig = z
+export const ClientAssertionValidationConfig = z
   .object({
     CLIENT_ASSERTION_AUDIENCE: z.string(),
   })
@@ -10,4 +10,6 @@ const ClientAssertionValidationConfig = z
     ),
   }));
 
-export const config = ClientAssertionValidationConfig.parse(process.env);
+export type ClientAssertionValidationConfig = z.infer<
+  typeof ClientAssertionValidationConfig
+>;
