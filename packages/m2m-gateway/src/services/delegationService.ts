@@ -37,7 +37,7 @@ export function delegationServiceBuilder(clients: PagoPAInteropBeClients) {
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.ConsumerDelegations> {
       logger.info(
-        `Retrieving consuemr delegations for states ${params.states} delegatorIds ${params.delegatorIds} delegateIds ${params.delegateIds} eserviceIds ${params.eserviceIds} offset ${params.offset} limit ${params.limit}`
+        `Retrieving consumer delegations for states ${params.states} delegatorIds ${params.delegatorIds} delegateIds ${params.delegateIds} eserviceIds ${params.eserviceIds} offset ${params.offset} limit ${params.limit}`
       );
 
       const response =
