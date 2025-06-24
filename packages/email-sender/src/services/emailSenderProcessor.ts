@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 import { genericInternalError } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { delay, EmailManagerSES, Logger } from "pagopa-interop-commons";
@@ -16,8 +17,9 @@ export function emailSenderProcessorBuilder(
       message,
       partition,
     }: EachMessagePayload): Promise<void> {
-      const attempts = 0;
-      while (attempts < config.maxAttempts) {
+      let attempts: number = 0;
+      let sent = false;
+      while (!sent && attempts < config.maxAttempts) {
         try {
           loggerInstance.info(
             `Consuming message for partition ${partition} with offset ${message.offset}`
@@ -39,10 +41,11 @@ export function emailSenderProcessorBuilder(
             html: jsonPayload.body,
           };
 
-          // TODO: try sending email <-- this requires some more info. It's too generic like this
-          loggerInstance.info(`Sending email`);
+          loggerInstance.info(`Sending email: ${jsonPayload}`);
+          attempts++;
           await sesEmailManager.send(mailOptions);
-          loggerInstance.info(`Email sent`);
+          sent = true;
+          loggerInstance.info(`Email sent: ${jsonPayload}`);
         } catch (err) {
           if (err instanceof TooManyRequestsException) {
             await delay(config.retryDelay);
@@ -52,6 +55,11 @@ export function emailSenderProcessorBuilder(
             );
           }
         }
+      }
+      if (!sent) {
+        throw genericInternalError(
+          `Error consuming message in partition ${partition} with offset ${message.offset}. Reson: too many attempts`
+        );
       }
     },
   };
