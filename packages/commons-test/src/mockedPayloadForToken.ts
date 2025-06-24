@@ -51,11 +51,10 @@ export function createPayload<T extends keyof RolePayloadsMap>(
 }
 
 export const generateToken = (role: AuthRole): string =>
-  jwt.sign(createPayload(role), "test-secret");
+  signPayload(createPayload(role));
 
-export const signPayload = (
-  payload: object // for testing purposes, allowing signature of any payload, including invalid ones
-): string => jwt.sign(payload, "test-secret");
+export const signPayload = (payload: object): string =>
+  jwt.sign(payload, "test-secret");
 
 export const mockTokenOrganizationId = generateId<TenantId>();
 export const mockM2MAdminClientId = generateId<ClientId>();
