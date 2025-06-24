@@ -71,7 +71,7 @@ export function inAppNotificationServiceBuilder(
         .returning({ id: notification.id });
 
       if (!updated.length) {
-        throw notificationNotFound();
+        throw notificationNotFound(notificationId);
       }
     },
     markNotificationsAsRead: async (
