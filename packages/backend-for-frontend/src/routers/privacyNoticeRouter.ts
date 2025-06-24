@@ -4,40 +4,21 @@ import {
   ExpressContext,
   ZodiosContext,
   fromAppContext,
-  initFileManager,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { bffApi } from "pagopa-interop-api-clients";
 import { makeApiProblem } from "../model/errors.js";
-import { privacyNoticeServiceBuilder } from "../services/privacyNoticeService.js";
+import { PrivacyNoticeService } from "../services/privacyNoticeService.js";
 import { getPrivacyNoticeErrorMapper } from "../utilities/errorMappers.js";
-import { privacyNoticeStorageServiceBuilder } from "../services/privacyNoticeStorage.js";
-import { config } from "../config/config.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
 const privacyNoticeRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  privacyNoticeService: PrivacyNoticeService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const privacyNoticeRouter = ctx.router(bffApi.privacyNoticesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
-    [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
-    [bffApi.ConsentType.Values.TOS, config.privacyNoticesTosUuid],
-  ]);
-  const privacyNoticeStorage = privacyNoticeStorageServiceBuilder(
-    new DynamoDBClient(),
-    config.privacyNoticesDynamoTableName,
-    config.privacyNoticesUsersDynamoTableName
-  );
-
-  const privacyNoticeService = privacyNoticeServiceBuilder(
-    privacyNoticeStorage,
-    initFileManager(config),
-    consentTypeMap
-  );
 
   privacyNoticeRouter
     .get("/user/consent/:consentType", async (req, res) => {
