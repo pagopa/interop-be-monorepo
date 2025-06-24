@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "{{version}}"
+  version: "v1"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -2701,6 +2701,7 @@ paths:
           type: string
       - in: query
         name: eserviceIds
+        description: comma separated sequence of EService IDs
         schema:
           type: array
           items:
@@ -2714,12 +2715,15 @@ paths:
         schema:
           type: integer
           format: int32
+          minimum: 0
       - in: query
         name: limit
         required: true
         schema:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 50
     get:
       tags:
         - consumerDelegations
@@ -2782,12 +2786,15 @@ paths:
         schema:
           type: integer
           format: int32
+          minimum: 0
       - in: query
         name: limit
         required: true
         schema:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 50
     get:
       tags:
         - consumerDelegations
@@ -14679,6 +14686,7 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: Producer keychain retrieved
@@ -14781,6 +14789,7 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "204":
           description: Producer keychain deleted
@@ -17098,6 +17107,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     delete:
       description: Revokes a producer delegation
       tags:
@@ -17197,6 +17207,7 @@ paths:
         required: true
         schema:
           type: string
+          format: uuid
     delete:
       description: Revokes a consumer delegation
       tags:
