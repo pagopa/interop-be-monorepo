@@ -111,7 +111,7 @@ describe("getAgreements", () => {
         consumersIds: mockQueryParams.consumerIds,
         eservicesIds: mockQueryParams.eserviceIds,
         producersIds: mockQueryParams.producerIds,
-        descriptorsIds: [],
+        descriptorsIds: mockQueryParams.descriptorIds,
         showOnlyUpgradeable: false,
         states: mockQueryParams.states,
         offset: mockQueryParams.offset,
