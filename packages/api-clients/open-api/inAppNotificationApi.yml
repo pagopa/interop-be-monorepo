@@ -69,8 +69,85 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "500":
-          description: Internal Server Error
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/bulk/markAsRead:
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - notification
+      summary: Mark a list of notifications as read
+      description: Mark a list of notifications as read
+      operationId: markNotificationsAsRead
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - ids
+              properties:
+                ids:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "204":
+          description: Notifications marked as read
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /notifications/{notificationId}/markAsRead:
+    post:
+      tags:
+        - notification
+      summary: Mark a notification as read
+      description: Mark a notification as read
+      operationId: markNotificationAsRead
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: path
+          name: notificationId
+          required: true
+          description: ID of Notification
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Notification marked as read
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Notification not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
