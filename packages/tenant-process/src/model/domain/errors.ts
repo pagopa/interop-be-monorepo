@@ -249,7 +249,7 @@ export function attributeAlreadyRevoked(
 }
 export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `mail ${mailId} not found`,
+    detail: `Mail ${mailId} not found`,
     code: "mailNotFound",
     title: "Mail not found",
   });
@@ -257,7 +257,7 @@ export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
 
 export function mailAlreadyExists(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `mail already exists`,
+    detail: `Mail already exists`,
     code: "mailAlreadyExists",
     title: "Mail already exists",
   });
@@ -317,7 +317,7 @@ export function descriptorNotFoundInEservice(
 
 export function notValidMailAddress(address: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `mail address ${address} not valid`,
+    detail: `Mail address ${address} not valid`,
     code: "notValidMailAddress",
     title: "Not valid mail address",
   });
