@@ -18,6 +18,7 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { delegationApi } from "pagopa-interop-api-clients";
+import { eserviceModeToApiEserviceMode } from "../model/domain/apiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder(
@@ -558,7 +559,18 @@ export function readModelServiceBuilder(
         )
         .toArray();
 
-      const result = z.array(delegationApi.CompactEService).safeParse(data);
+      const compactEServices: delegationApi.CompactEService[] = data.map(
+        (item) => ({
+          id: item.id,
+          name: item.name,
+          producerId: item.producerId,
+          mode: eserviceModeToApiEserviceMode(item.mode),
+        })
+      );
+
+      const result = z
+        .array(delegationApi.CompactEService)
+        .safeParse(compactEServices);
 
       if (!result.success) {
         throw genericInternalError(
