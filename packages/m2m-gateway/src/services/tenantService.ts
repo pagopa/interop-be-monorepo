@@ -150,7 +150,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async addCertifiedAttribute(
+    async assignCertifiedAttribute(
       tenantId: TenantId,
       seed: m2mGatewayApi.TenantCertifiedAttributeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -244,7 +244,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async addDeclaredAttribute(
+    async assignDeclaredAttribute(
       seed: m2mGatewayApi.TenantDeclaredAttributeSeed,
       { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
