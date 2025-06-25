@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/agreements?offset=0&limit=10&eservicesIds=["{{eserviceId}}"]&producersIds=["{{tenantId}}"]&consumersIds=["{{tenantId}}"]&states=["DRAFT","ACTIVE"]
+  url: {{host-m2m-gw}}/agreements?offset=0&limit=10&eservicesIds=["{{eserviceId}}"]&producersIds=["{{tenantId}}"]&consumersIds=["{{tenantId}}"]&states=["DRAFT","ACTIVE"]&descriptorIds=["{{descriptorId}}"]
   body: none
   auth: none
 }
@@ -17,7 +17,7 @@ params:query {
   producersIds: ["{{tenantId}}"]
   consumersIds: ["{{tenantId}}"]
   states: ["DRAFT","ACTIVE"]
-  ~descriptorIds: ["{{descriptorId}}"]
+  descriptorIds: ["{{descriptorId}}"]
 }
 
 headers {
