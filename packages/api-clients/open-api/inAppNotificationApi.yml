@@ -69,8 +69,8 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-        "500":
-          description: Internal Server Error
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
@@ -109,6 +109,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /notifications/{notificationId}/markAsRead:
     post:
       tags:
@@ -136,6 +142,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Notification not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:
