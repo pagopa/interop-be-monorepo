@@ -92,7 +92,25 @@ export const notificationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .delete("/notifications/:notificationId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const { notificationId } = req.params;
+        await service.deleteNotification(notificationId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error deleting notification"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return notificationRouter;
 };

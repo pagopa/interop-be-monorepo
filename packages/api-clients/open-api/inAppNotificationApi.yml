@@ -152,6 +152,43 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /notifications/{notificationId}:
+    delete:
+      tags:
+        - notification
+      summary: Delete a notification
+      description: Delete a notification
+      operationId: deleteNotification
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - in: path
+          name: notificationId
+          required: true
+          description: ID of Notification
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Notification deleted
+        "404":
+          description: Notification not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /status:
     get:
       security: []
