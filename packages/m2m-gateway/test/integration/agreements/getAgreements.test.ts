@@ -4,6 +4,7 @@ import {
   getMockedApiAgreement,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
@@ -15,10 +16,14 @@ import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.
 
 describe("getAgreements", () => {
   const mockQueryParams: m2mGatewayApi.GetAgreementsQueryParams = {
-    consumerIds: [],
-    eserviceIds: [],
-    producerIds: [],
-    states: [],
+    consumerIds: [generateId(), generateId()],
+    eserviceIds: [generateId(), generateId()],
+    producerIds: [generateId(), generateId()],
+    descriptorIds: [generateId(), generateId()],
+    states: [
+      m2mGatewayApi.AgreementState.Values.ACTIVE,
+      m2mGatewayApi.AgreementState.Values.SUSPENDED,
+    ],
     offset: 0,
     limit: 10,
   };
