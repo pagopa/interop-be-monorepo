@@ -90,7 +90,7 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-        const certifiedAttribute = await tenantService.addCertifiedAttribute(
+        const certifiedAttribute = await tenantService.assignCertifiedAttribute(
           unsafeBrandId(req.params.tenantId),
           req.body,
           ctx
@@ -169,7 +169,7 @@ const tenantRouter = (
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-        const verifiedAttribute = await tenantService.addVerifiedAttribute(
+        const verifiedAttribute = await tenantService.assignVerifiedAttribute(
           unsafeBrandId(req.params.tenantId),
           req.body,
           ctx
