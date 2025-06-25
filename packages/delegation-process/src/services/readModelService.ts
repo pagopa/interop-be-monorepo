@@ -530,6 +530,7 @@ export function readModelServiceBuilder(
             _id: "$eservice.data.id",
             name: { $first: "$eservice.data.name" },
             producerId: { $first: "$eservice.data.producerId" },
+            mode: { $first: "$eservice.data.mode" },
           },
         },
         {
@@ -538,6 +539,7 @@ export function readModelServiceBuilder(
             id: "$_id",
             name: 1,
             producerId: 1,
+            mode: 1,
           },
         },
         {

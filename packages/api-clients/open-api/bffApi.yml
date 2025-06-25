@@ -20963,6 +20963,7 @@ components:
         - description
         - producer
         - isMine
+        - mode
       properties:
         id:
           type: string
@@ -20979,6 +20980,8 @@ components:
           type: boolean
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
     ClientKind:
       type: string
       enum:
@@ -21136,6 +21139,7 @@ components:
         - id
         - name
         - producer
+        - mode
       properties:
         id:
           type: string
@@ -21144,6 +21148,8 @@ components:
           type: string
         producer:
           $ref: "#/components/schemas/CompactOrganization"
+        mode: 
+          $ref: "#/components/schemas/EServiceMode"
     CompactEServices:
       type: object
       additionalProperties: false

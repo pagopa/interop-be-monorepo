@@ -431,6 +431,7 @@ async function enhancePurpose(
         name: producer.name,
         kind: producer.kind,
       },
+      mode: eservice.mode,
     },
   };
 }

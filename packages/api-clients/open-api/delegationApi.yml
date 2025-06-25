@@ -818,6 +818,7 @@ components:
         - id
         - name
         - producerId
+        - mode
       properties:
         id:
           type: string
@@ -827,6 +828,8 @@ components:
         producerId:
           type: string
           format: uuid
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
     CompactEServices:
       type: object
       additionalProperties: false
@@ -1009,6 +1012,11 @@ components:
           type: string
       required:
         - rejectionReason
+    EServiceMode:
+      type: string
+      enum:
+        - RECEIVE
+        - DELIVER
     Problem:
       properties:
         type:

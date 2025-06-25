@@ -364,6 +364,7 @@ export function readModelServiceBuilderSQL({
             id: eserviceInReadmodelCatalog.id,
             name: eserviceInReadmodelCatalog.name,
             producerId: eserviceInReadmodelCatalog.producerId,
+            mode: eserviceInReadmodelCatalog.mode,
           })
         )
         .from(eserviceInReadmodelCatalog)
@@ -418,10 +419,13 @@ export function readModelServiceBuilderSQL({
         .limit(filters.limit)
         .offset(filters.offset);
 
-      const data: delegationApi.CompactEService[] = queryResult.map((e) => ({
+      const data: Array<
+        Omit<delegationApi.CompactEService, "mode"> & { mode: string }
+      > = queryResult.map((e) => ({
         id: e.id,
         name: e.name,
         producerId: e.producerId,
+        mode: e.mode,
       }));
 
       const result = z.array(delegationApi.CompactEService).safeParse(data);
