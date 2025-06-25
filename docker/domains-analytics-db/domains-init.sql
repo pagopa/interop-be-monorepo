@@ -124,7 +124,7 @@ CREATE TABLE domains.eservice_descriptor_attribute (
 
 CREATE TABLE domains.eservice_risk_analysis (
   id VARCHAR(36),
-  eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
+  eservice_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER,
   name VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP NOT NULL,
@@ -132,22 +132,19 @@ CREATE TABLE domains.eservice_risk_analysis (
   risk_analysis_form_version VARCHAR(2048) NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id, eservice_id),
-  UNIQUE (risk_analysis_form_id, eservice_id),
-  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
+  UNIQUE (risk_analysis_form_id, eservice_id)
 );
 
 CREATE TABLE domains.eservice_risk_analysis_answer (
   id VARCHAR(36),
-  eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
+  eservice_id VARCHAR(36) NOT NULL,
   metadata_version INTEGER,
-  risk_analysis_form_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id),
+  risk_analysis_form_id VARCHAR(36) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   key VARCHAR(2048) NOT NULL,
   value VARCHAR(65535) NOT NULL,
   deleted BOOLEAN,
-  PRIMARY KEY (id, eservice_id),
-  FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id),
-  FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES domains.eservice_risk_analysis (risk_analysis_form_id, eservice_id)
+  PRIMARY KEY (id, eservice_id)
 );
 
 CREATE TABLE domains.agreement (
@@ -463,6 +460,47 @@ CREATE TABLE IF NOT EXISTS domains.client_key (
   deleted_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (client_id, kid)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain (
+  id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  producer_id VARCHAR(36) NOT NULL,
+  name VARCHAR(2048) NOT NULL,
+  description VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain_user (
+  metadata_version INTEGER NOT NULL,
+  producer_keychain_id VARCHAR(36) NOT NULL REFERENCES domains.producer_keychain (id),
+  user_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (producer_keychain_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain_eservice (
+  metadata_version INTEGER NOT NULL,
+  producer_keychain_id VARCHAR(36) NOT NULL REFERENCES domains.producer_keychain (id),
+  eservice_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (producer_keychain_id, eservice_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.producer_keychain_key (
+  metadata_version INTEGER NOT NULL,
+  producer_keychain_id VARCHAR(36) NOT NULL REFERENCES domains.producer_keychain (id),
+  user_id VARCHAR(36) NOT NULL,
+  kid VARCHAR(2048) NOT NULL,
+  name VARCHAR(2048) NOT NULL,
+  encoded_pem VARCHAR(8192) NOT NULL,
+  "algorithm" VARCHAR(2048) NOT NULL,
+  "use" VARCHAR(2048) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (producer_keychain_id, kid)
 );
 
 CREATE TABLE IF NOT EXISTS domains.eservice_template (
