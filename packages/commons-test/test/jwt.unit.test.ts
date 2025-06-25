@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   decodeJwtToken,
@@ -96,10 +97,32 @@ const getClaimsName = (token: object): string[] => {
   if (!commonClaims.success) {
     expect.fail(`Invalid token provided for test: ${commonClaims.error}`);
   }
-  // Exclude 'iat' claim as it causes jwt.sign and decodeJwtToken functions
-  // to fail with null values in the test execution context
-  return Object.keys(commonClaims.data).filter((c) => c !== "iat");
+  return Object.keys(commonClaims.data);
 };
+
+const expectMissingClaimError =
+  (payload: object) =>
+  (claim: string): void => {
+    /*
+     * NOTE: "iat" claim cannot be deleted, it's mandatory for token's signature by
+     * jwt.sign method in method signPayload used to prepare test's inputs,
+     * function "decodeJwtToken" accept signed JWT token as string,
+     * so this test will skipp no check for this case.
+     */
+    if (claim === "iat") {
+      return;
+    }
+
+    const invalidToken = { ...payload };
+    // eslint-disable-next-line fp/no-delete, functional/immutable-data
+    delete invalidToken[claim as keyof typeof invalidToken];
+
+    expect(() => {
+      readAuthDataFromJwtToken(
+        decodeJwtToken(signPayload(invalidToken), genericLogger)!
+      );
+    }).toThrowError(`Validation error: Required at "${claim}"`);
+  };
 
 describe("JWT tests", () => {
   describe("readAuthDataFromJwtToken", () => {
@@ -200,71 +223,28 @@ describe("JWT tests", () => {
     describe("Missing claims in M2M Token", () => {
       it.each(getClaimsName(mockM2MTokenPayload))(
         "should fails if missing common claim %s",
-        (claim) => {
-          const invalidToken = { ...mockM2MTokenPayload };
-          // eslint-disable-next-line fp/no-delete, functional/immutable-data
-          delete invalidToken[claim as keyof typeof invalidToken];
-
-          expect(() => {
-            readAuthDataFromJwtToken(
-              decodeJwtToken(signPayload(invalidToken), genericLogger)!
-            );
-          }).toThrowError(`Validation error: Required at "${claim}"`);
-        }
+        expectMissingClaimError(mockM2MTokenPayload)
       );
     });
 
     describe("Missing claims in Internal Token", () => {
       it.each(getClaimsName(mockInternalTokenPayload))(
         "should fails if missing common claim %s",
-        (claim) => {
-          const invalidToken = { ...mockInternalTokenPayload };
-          // eslint-disable-next-line fp/no-delete, functional/immutable-data
-          delete invalidToken[claim as keyof typeof invalidToken];
-
-          // eslint-disable-next-line sonarjs/no-identical-functions
-          expect(() => {
-            readAuthDataFromJwtToken(
-              decodeJwtToken(signPayload(invalidToken), genericLogger)!
-            );
-          }).toThrowError(`Validation error: Required at "${claim}"`);
-        }
+        expectMissingClaimError(mockInternalTokenPayload)
       );
     });
 
     describe("Missing claims in Maintenance Token", () => {
       it.each(getClaimsName(mockMaintenanceTokenPayload))(
         "should fails if missing common claim %s",
-        (claim) => {
-          const invalidToken = { ...mockMaintenanceTokenPayload };
-          // eslint-disable-next-line fp/no-delete, functional/immutable-data
-          delete invalidToken[claim as keyof typeof invalidToken];
-
-          // eslint-disable-next-line sonarjs/no-identical-functions
-          expect(() => {
-            readAuthDataFromJwtToken(
-              decodeJwtToken(signPayload(invalidToken), genericLogger)!
-            );
-          }).toThrowError(`Validation error: Required at "${claim}"`);
-        }
+        expectMissingClaimError(mockMaintenanceTokenPayload)
       );
     });
 
     describe("Missing claims in UI Token", () => {
       it.each(getClaimsName(mockUiTokenPaylod))(
         "should fails if missing common claim %s",
-        (claim) => {
-          const invalidToken = { ...mockUiTokenPaylod };
-          // eslint-disable-next-line fp/no-delete, functional/immutable-data
-          delete invalidToken[claim as keyof typeof invalidToken];
-
-          // eslint-disable-next-line sonarjs/no-identical-functions
-          expect(() => {
-            readAuthDataFromJwtToken(
-              decodeJwtToken(signPayload(invalidToken), genericLogger)!
-            );
-          }).toThrowError(`Validation error: Required at "${claim}"`);
-        }
+        expectMissingClaimError(mockUiTokenPaylod)
       );
     });
 
