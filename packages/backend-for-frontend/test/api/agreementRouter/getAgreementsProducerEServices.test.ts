@@ -2,7 +2,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { authRole } from "pagopa-interop-commons";
 import { api, clients } from "../../vitest.api.setup.js";
@@ -34,9 +33,6 @@ describe("API GET /producers/agreements/eservices", () => {
       totalCount: 3,
     },
   };
-  const apiCompactEServicesLight = bffApi.CompactEServicesLight.parse(
-    mockCompactEServicesLight
-  );
 
   beforeEach(() => {
     clients.agreementProcessClient.getAgreementsEServices = vi
@@ -59,7 +55,7 @@ describe("API GET /producers/agreements/eservices", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
-    expect(res.body).toEqual(apiCompactEServicesLight);
+    expect(res.body).toEqual(mockCompactEServicesLight);
   });
 
   it.each([
