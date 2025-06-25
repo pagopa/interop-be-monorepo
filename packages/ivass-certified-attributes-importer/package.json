@@ -21,7 +21,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/adm-zip": "0.5.5",
+    "@types/adm-zip": "0.5.7",
     "@types/node": "20.14.6",
     "@types/ssh2-sftp-client": "9.0.4",
     "pagopa-interop-commons-test": "workspace:*",
@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.693.0",
-    "adm-zip": "0.5.15",
+    "adm-zip": "0.5.16",
     "axios": "1.8.2",
     "csv": "6.3.2",
     "dotenv-flow": "4.1.0",
