@@ -6,6 +6,7 @@ import {
   SerializedInteropJwtInternalPayload,
   SerializedInteropJwtUIPayload,
   systemRole,
+  UserRole,
   userRole,
 } from "pagopa-interop-commons";
 import { ClientId, TenantId, UserId, generateId } from "pagopa-interop-models";
@@ -86,10 +87,7 @@ export const mockM2MAdminUserId: UserId = generateId();
 // validate the admin ID in the token against the adminId in the client.
 
 export function createUserPayload(
-  commaSeparatedUserRoles: string = [
-    userRole.SECURITY_ROLE,
-    userRole.API_ROLE,
-  ].join(",")
+  commaSeparatedUserRoles: string
 ): SerializedInteropJwtUIPayload {
   return {
     iss: "dev.interop.pagopa.it",
@@ -105,12 +103,10 @@ export function createUserPayload(
     organization: {
       id: generateId(),
       name: "PagoPA S.p.A.",
-      roles: [
-        {
-          partyRole: "MANAGER",
-          role: userRole.ADMIN_ROLE,
-        },
-      ],
+      roles: commaSeparatedUserRoles.split(",").map((role) => ({
+        partyRole: "MANAGER",
+        role: UserRole.parse(role),
+      })),
       fiscal_code: "15376371009",
       ipaCode: "5N2TR557",
     },

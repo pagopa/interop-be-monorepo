@@ -28,7 +28,9 @@ import {
 } from "../src/mockedPayloadForToken.js";
 import { randomSubArray } from "../src/testUtils.js";
 
-const mockUiTokenPaylod = createUserPayload();
+const mockUiTokenPaylod = createUserPayload(
+  [userRole.SECURITY_ROLE, userRole.API_ROLE].join(",")
+);
 const expectedUiAuthData: UIAuthData = {
   systemRole: undefined,
   externalId: {
