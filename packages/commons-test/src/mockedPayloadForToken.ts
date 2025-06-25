@@ -11,6 +11,21 @@ import {
 import { ClientId, TenantId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
+/**
+ * Maps authentication roles to their corresponding payload creator functions.
+ *
+ * This mapping associates each role defined in {@link AuthRole} with a function
+ * that generates the appropriate serialized JWT payload.
+ * This mapping is used in createPayload function to guarantee that the returned
+ * value have the correct type according to the role passed as argument.
+ *
+ * The TypeScript `satisfies` operator providing type safety ensures that:
+ * - each role in the `AuthRole` type has a corresponding function in this map.
+ * - if a role is added to the `AuthRole` type without a corresponding function in
+ *   this map, a compile-time error will be raised.
+ * - if a role does not have a corresponding function, a compile-time error will be raised
+ * - the return type of the createPayload functions can be inferred correctly
+ */
 const rolePayloadMap = {
   [systemRole.M2M_ROLE]: createM2MPayload,
   [systemRole.M2M_ADMIN_ROLE]: createM2MAdminPayload,
@@ -26,6 +41,19 @@ const rolePayloadMap = {
 
 type RolePayloadsMap = typeof rolePayloadMap;
 
+/**
+ * Creates an JWT payload based on the provided authorization role {@link AuthRole}
+ * and returns a properly typed.
+ *
+ * @template T - The role type which must be a key of RolePayloadsMap
+ * @param {T} role - The authorization role {@link AuthRole} type
+ * @returns {ReturnType<RolePayloadsMap[T]>} - The JWT payload typed in accordance with the function
+ * corresponding to the provided role defined in {@link RolePayloadsMap}.
+ *
+ * @example
+ * Create a payload for a m2m role return value typed as SerializedInteropJwtApiPayload
+ * const mockM2MTokenPayload: SerializedInteropJwtApiPayload = createPayload(systemRole.M2M_ROLE);
+ */
 export function createPayload<T extends keyof RolePayloadsMap>(
   role: T
 ): ReturnType<RolePayloadsMap[T]> {
