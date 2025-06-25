@@ -6,7 +6,7 @@ import {
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
-import { and, eq, ilike, desc, getTableColumns } from "drizzle-orm";
+import { and, eq, ilike, desc, inArray, getTableColumns } from "drizzle-orm";
 import {
   fromNotificationSQL,
   ListResult,
@@ -14,6 +14,7 @@ import {
 } from "pagopa-interop-models";
 import { withTotalCount } from "pagopa-interop-commons";
 import { notification } from "../db/schema.js";
+import { notificationNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationServiceBuilder(
   db: ReturnType<typeof drizzle>
@@ -47,6 +48,55 @@ export function inAppNotificationServiceBuilder(
         notifications.map(({ totalCount: _, ...n }) => fromNotificationSQL(n)),
         notifications[0]?.totalCount ?? 0
       );
+    },
+    markNotificationAsRead: async (
+      notificationId: string,
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> => {
+      logger.info(`Marking notification ${notificationId} as read`);
+
+      const updated = await db
+        .update(notification)
+        .set({ readAt: new Date().toISOString() })
+        .where(
+          and(
+            eq(notification.id, notificationId),
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId)
+          )
+        )
+        .returning({ id: notification.id });
+
+      if (!updated.length) {
+        throw notificationNotFound(notificationId);
+      }
+    },
+    markNotificationsAsRead: async (
+      ids: string[],
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> => {
+      logger.info(`Marking ${ids.length} notifications as read`);
+
+      if (ids.length === 0) {
+        return;
+      }
+
+      await db
+        .update(notification)
+        .set({ readAt: new Date().toISOString() })
+        .where(
+          and(
+            inArray(notification.id, ids),
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId)
+          )
+        );
     },
   };
 }
