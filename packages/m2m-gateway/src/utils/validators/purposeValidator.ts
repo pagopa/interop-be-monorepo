@@ -1,7 +1,9 @@
-import { purposeApi } from "pagopa-interop-api-clients";
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
 import {
   missingPurposeVersionWithState,
   missingPurposeCurrentVersion,
+  purposeAgreementNotFound,
+  multipleActiveAgreementForEserviceAndConsumer,
 } from "../../model/errors.js";
 
 export function assertPurposeVersionExistsWithState(
@@ -20,5 +22,18 @@ export function assertPurposeCurrentVersionExists(
 ): asserts purposeVersion is NonNullable<purposeApi.PurposeVersion> {
   if (!purposeVersion) {
     throw missingPurposeCurrentVersion(purposeId);
+  }
+}
+
+export function assertOnlyOneAgreementForEserviceAndConsumerExists(
+  agreements: agreementApi.Agreement[],
+  purposeId: string,
+  eserviceId: string,
+  consumerId: string
+): asserts agreements is [agreementApi.Agreement] {
+  if (agreements.length === 0) {
+    throw purposeAgreementNotFound(purposeId);
+  } else if (agreements.length > 1) {
+    throw multipleActiveAgreementForEserviceAndConsumer(eserviceId, consumerId);
   }
 }

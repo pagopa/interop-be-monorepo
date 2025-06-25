@@ -1,4 +1,8 @@
-import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  m2mGatewayApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
 import {
   PurposeId,
@@ -20,9 +24,11 @@ import {
 } from "../utils/polling.js";
 import { purposeVersionNotFound } from "../model/errors.js";
 import {
+  assertOnlyOneAgreementForEserviceAndConsumerExists,
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
 } from "../utils/validators/purposeValidator.js";
+import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -362,6 +368,38 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
+    },
+    async getPurposeAgreement(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Retrieving purpose ${purposeId} agreement`);
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const agreements = (
+        await clients.agreementProcessClient.getAgreements({
+          queries: {
+            consumersIds: [purpose.consumerId],
+            eservicesIds: [purpose.eserviceId],
+            states: [
+              agreementApi.AgreementState.Values.ACTIVE,
+              agreementApi.AgreementState.Values.SUSPENDED,
+            ],
+            offset: 0,
+            limit: 2,
+          },
+          headers,
+        })
+      ).data;
+
+      assertOnlyOneAgreementForEserviceAndConsumerExists(
+        agreements.results,
+        purposeId,
+        purpose.eserviceId,
+        purpose.consumerId
+      );
+
+      return toM2MGatewayApiAgreement(agreements.results[0]);
     },
   };
 }
