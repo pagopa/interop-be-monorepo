@@ -33,7 +33,7 @@ describe("API POST /eservices/:eServiceId/name/update", () => {
       .mockResolvedValue(mockEService);
   });
 
-  it("Should return 200 if no error is thrown", async () => {
+  it("Should return 204 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);

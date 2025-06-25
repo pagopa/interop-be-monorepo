@@ -29,7 +29,7 @@ describe("API POST /eservices/:eServiceId/riskAnalysis", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 if no error is thrown", async () => {
+  it("Should return 204 if no error is thrown", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);

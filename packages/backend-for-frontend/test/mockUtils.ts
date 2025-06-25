@@ -9,6 +9,7 @@ import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
   DelegationId,
+  DescriptorId,
   EServiceId,
   EServiceTemplateId,
   PurposeId,
@@ -248,7 +249,7 @@ export const getMockBffApiPresignedUrl = (): bffApi.PresignedUrl => ({
 });
 
 export const getMockCatalogApiEServiceDescriptor =
-  (): catalogApi.EServiceDescriptor => ({
+  (): catalogApi.EServiceDescriptor & { id: DescriptorId } => ({
     id: generateId(),
     version: generateMock(z.string()),
     description: generateMock(z.string().optional()),
