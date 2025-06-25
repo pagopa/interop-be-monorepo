@@ -137,8 +137,7 @@ export function attributeVerificationNotAllowed(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant is not allowed to verify attribute ${attributeId}
-    for tenant ${consumerId}`,
+    detail: `Tenant is not allowed to verify attribute ${attributeId} for tenant ${consumerId}`,
     code: "attributeVerificationNotAllowed",
     title: "Attribute verification is not allowed",
   });
@@ -149,8 +148,7 @@ export function attributeRevocationNotAllowed(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant is not allowed to revoke attribute ${attributeId}
-    for tenant ${consumerId}`,
+    detail: `Tenant is not allowed to revoke attribute ${attributeId} for tenant ${consumerId}`,
     code: "attributeRevocationNotAllowed",
     title: "Attribute revocation is not allowed",
   });
