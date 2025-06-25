@@ -75,13 +75,19 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/documents", 
     },
     {
       error: invalidInterfaceContentTypeDetected(
-        generateId(),
+        { id: generateId(), isEserviceTemplate: false },
         "contentType",
         "REST"
       ),
       expectedStatus: 400,
     },
-    { error: invalidInterfaceFileDetected(generateId()), expectedStatus: 400 },
+    {
+      error: invalidInterfaceFileDetected({
+        id: generateId(),
+        isEserviceTemplate: false,
+      }),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
