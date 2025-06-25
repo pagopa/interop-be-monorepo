@@ -3950,7 +3950,7 @@ paths:
         - tenants
       summary: Assign a Certified Attribute to a Tenant
       description: Assign a Certified Attribute to a Tenant
-      operationId: addCertifiedAttribute
+      operationId: assignCertifiedAttribute
       requestBody:
         content:
           application/json:
@@ -4169,7 +4169,7 @@ paths:
         - tenants
       summary: Assign a Declared Attribute
       description: Assign a Declared Attribute to the requester Tenant
-      operationId: addDeclaredAttribute
+      operationId: assignDeclaredAttribute
       requestBody:
         content:
           application/json:
