@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{host-m2m-gw}}/agreements?offset=0&limit=10
+  url: {{host-m2m-gw}}/agreements?offset=0&limit=10&eservicesIds=["{{eserviceId}}"]&producersIds=["{{tenantId}}"]&consumersIds=["{{tenantId}}"]&states=["DRAFT","ACTIVE"]
   body: none
   auth: none
 }
@@ -13,13 +13,13 @@ get {
 params:query {
   offset: 0
   limit: 10
+  eservicesIds: ["{{eserviceId}}"]
+  producersIds: ["{{tenantId}}"]
+  consumersIds: ["{{tenantId}}"]
+  states: ["DRAFT","ACTIVE"]
   ~descriptorIds: ["{{descriptorId}}"]
-  ~eservicesIds: ["{{eserviceId}}"]
-  ~producersIds: ["{{tenantId}}"]
-  ~consumersIds: ["{{tenantId}}"]
-  ~states: ["DRAFT","ACTIVE"]
 }
 
 headers {
-  Authorization: {{JWT-M2M-ADMIN}}
+  Authorization: {{JWT-M2M}}
 }
