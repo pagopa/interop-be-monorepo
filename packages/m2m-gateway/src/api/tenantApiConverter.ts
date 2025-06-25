@@ -55,7 +55,7 @@ export function toM2MGatewayApiTenantVerifiedAttribute(
   };
 }
 
-export function toTenantApiVerifiedTenantAttribute(
+export function toTenantApiVerifiedTenantAttributeSeed(
   seed: m2mGatewayApi.TenantVerifiedAttributeSeed
 ): tenantApi.VerifiedTenantAttributeSeed {
   return {
