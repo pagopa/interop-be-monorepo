@@ -104,10 +104,10 @@ const expectMissingClaimError =
   (payload: object) =>
   (claim: string): void => {
     /*
-     * NOTE: "iat" claim cannot be deleted, it's mandatory for token's signature by
+     * NOTE: "iat" claim cannot be deleted, it's mandatory for the token signature by
      * jwt.sign method in method signPayload used to prepare test's inputs,
-     * function "decodeJwtToken" accept signed JWT token as string,
-     * so this test will skipp no check for this case.
+     * function "decodeJwtToken" accepts a signed JWT token as string,
+     * so this test will skip the check for this case.
      */
     if (claim === "iat") {
       return;
