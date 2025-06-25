@@ -69,7 +69,7 @@ describe("GET /purposes router test", () => {
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
     { ...mockQueryParams, eserviceIds: ["invalidUUID"] },
-    { ...mockQueryParams, consumersIds: ["invalidUUID"] },
+    { ...mockQueryParams, consumerIds: ["invalidUUID"] },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
