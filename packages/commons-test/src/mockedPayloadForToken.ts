@@ -43,8 +43,7 @@ const rolePayloadMap = {
 type RolePayloadsMap = typeof rolePayloadMap;
 
 /**
- * Creates an JWT payload based on the provided authorization role {@link AuthRole}
- * and returns a properly typed.
+ * Creates and returns a properly typed JWT payload based on the provided authorization role {@link AuthRole}
  *
  * @template T - The role type which must be a key of RolePayloadsMap
  * @param {T} role - The authorization role {@link AuthRole} type
@@ -58,19 +57,7 @@ type RolePayloadsMap = typeof rolePayloadMap;
 export function createPayload<T extends keyof RolePayloadsMap>(
   role: T
 ): ReturnType<RolePayloadsMap[T]> {
-  return match<AuthRole>(role)
-    .with(systemRole.MAINTENANCE_ROLE, () => createMaintenancePayload())
-    .with(systemRole.M2M_ROLE, () => createM2MPayload())
-    .with(systemRole.M2M_ADMIN_ROLE, () => createM2MAdminPayload())
-    .with(systemRole.INTERNAL_ROLE, () => createInternalPayload())
-    .with(
-      userRole.ADMIN_ROLE,
-      userRole.API_ROLE,
-      userRole.SECURITY_ROLE,
-      userRole.SUPPORT_ROLE,
-      (r) => rolePayloadMap[r](r)
-    )
-    .exhaustive() as ReturnType<RolePayloadsMap[T]>;
+  return rolePayloadMap[role](role) as ReturnType<RolePayloadsMap[T]>;
 }
 
 export const generateToken = (role: AuthRole): string =>
