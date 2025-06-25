@@ -216,10 +216,10 @@ describe("SQL Attribute Service - Events V1", () => {
     };
     await handleAttributeMessageV1([delMsg], dbContext);
 
-    const stored = await getManyFromDb(dbContext, AttributeDbTable.attribute, {
+    const stored = await getOneFromDb(dbContext, AttributeDbTable.attribute, {
       id: base.id,
     });
-    expect(stored[0]?.deleted).toBe(true);
+    expect(stored?.deleted).toBe(true);
   });
 
   describe("Merge and check on metadataVersion", () => {
