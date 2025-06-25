@@ -5412,7 +5412,6 @@ components:
         assignedAt:
           type: string
           format: date-time
-        # TODO define schema to expose verifiedAt / revokedAt information
       required:
         - id
         - assignedAt
