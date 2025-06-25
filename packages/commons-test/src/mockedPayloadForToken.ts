@@ -10,7 +10,6 @@ import {
   userRole,
 } from "pagopa-interop-commons";
 import { ClientId, TenantId, UserId, generateId } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 
 /**
  * Maps authentication roles to their corresponding payload creator functions.
