@@ -8,6 +8,7 @@ import {
   toGetTenantsApiQueryParams,
   toM2MGatewayApiTenant,
   toM2MGatewayApiTenantVerifiedAttribute,
+  toTenantApiVerifiedTenantAttribute,
 } from "../api/tenantApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
@@ -244,7 +245,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const response =
         await clients.tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(
-          seed,
+          toTenantApiVerifiedTenantAttribute(seed),
           {
             params: { tenantId },
             headers,

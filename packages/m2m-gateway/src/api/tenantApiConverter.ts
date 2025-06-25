@@ -54,3 +54,13 @@ export function toM2MGatewayApiTenantVerifiedAttribute(
     assignedAt: tenantVerifiedAttribute.assignmentTimestamp,
   };
 }
+
+export function toTenantApiVerifiedTenantAttribute(
+  seed: m2mGatewayApi.TenantVerifiedAttributeSeed
+): tenantApi.VerifiedTenantAttributeSeed {
+  return {
+    id: seed.id,
+    agreementId: seed.agreementId,
+    expirationDate: seed.expiresAt,
+  };
+}
