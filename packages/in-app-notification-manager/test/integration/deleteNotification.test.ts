@@ -14,6 +14,7 @@ import {
   inAppNotificationService,
 } from "../integrationUtils.js";
 import { notification } from "../../src/db/schema.js";
+import { notificationNotFound } from "../../src/model/errors.js";
 
 describe("deleteNotification", () => {
   const userId: UserId = generateId();
@@ -46,5 +47,20 @@ describe("deleteNotification", () => {
       .from(notification)
       .where(eq(notification.id, notificationIdToDelete));
     expect(notifications).toHaveLength(0);
+  });
+
+  it("should throw an error if the notification is not found", async () => {
+    const notificationIdToDelete: NotificationId = generateId();
+    await expect(
+      inAppNotificationService.deleteNotification(
+        notificationIdToDelete,
+        getMockContext({
+          authData: {
+            ...getMockAuthData(tenantId),
+            userId,
+          },
+        })
+      )
+    ).rejects.toThrowError(notificationNotFound(notificationIdToDelete));
   });
 });
