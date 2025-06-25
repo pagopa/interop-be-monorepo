@@ -4521,18 +4521,21 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: the descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
         - name: documentId
           in: path
           description: the document id
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         "200":
           description: EService document retrieved
@@ -20176,17 +20179,18 @@ components:
         voucherLifespan:
           type: integer
           format: int32
-          minimum: 0
+          minimum: 60
+          maximum: 86400
         dailyCallsPerConsumer:
           description: "maximum number of daily calls that this descriptor can afford."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
         dailyCallsTotal:
           description: "total daily calls available for this e-service."
           type: integer
           format: int32
-          minimum: 0
+          minimum: 1
     UpdateEServiceTemplateInstanceDescriptorQuotas:
       required:
         - dailyCallsPerConsumer
