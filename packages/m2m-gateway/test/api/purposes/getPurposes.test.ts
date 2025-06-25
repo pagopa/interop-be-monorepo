@@ -6,6 +6,8 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
+import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
@@ -40,9 +42,9 @@ describe("GET /purposes router test", () => {
   const mockQueryParams: m2mGatewayApi.GetPurposesQueryParams = {
     offset: 0,
     limit: 10,
-    eserviceIds: [],
-    consumersIds: [],
-    states: [],
+    eserviceIds: [generateId()],
+    consumerIds: [generateId()],
+    states: [generateMock(m2mGatewayApi.PurposeVersionState)],
   };
 
   it.each(authorizedRoles)(

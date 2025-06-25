@@ -11,7 +11,7 @@ export function toGetPurposesApiQueryParams(
     eservicesIds: params.eserviceIds,
     limit: params.limit,
     offset: params.offset,
-    consumersIds: params.consumersIds,
+    consumersIds: params.consumerIds,
     producersIds: [],
     states: params.states,
     excludeDraft: false,
