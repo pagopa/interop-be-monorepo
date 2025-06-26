@@ -30,6 +30,26 @@ paths:
   /tenantNotificationConfigs:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve a tenant's notification configuration
+      operationId: getTenantNotificationConfig
+      responses:
+        "200":
+          description: The tenant's notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantNotificationConfig"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -45,8 +65,12 @@ paths:
               $ref: "#/components/schemas/NotificationConfigSeed"
         required: true
       responses:
-        "204":
-          description: Notification config updated
+        "200":
+          description: The tenant's updated notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantNotificationConfig"
         "400":
           description: Invalid input
           content:
@@ -62,6 +86,26 @@ paths:
   /userNotificationConfigs:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve a user's notification configuration
+      operationId: getUserNotificationConfig
+      responses:
+        "200":
+          description: The user's notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserNotificationConfig"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -77,8 +121,12 @@ paths:
               $ref: "#/components/schemas/UserNotificationConfigSeed"
         required: true
       responses:
-        "204":
-          description: Notification config updated
+        "200":
+          description: The user's updated notification configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserNotificationConfig"
         "400":
           description: Invalid input
           content:
@@ -115,6 +163,53 @@ components:
       schema:
         type: string
   schemas:
+    TenantNotificationConfig:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - tenantId
+        - config
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        config:
+          $ref: "#/components/schemas/NotificationConfig"
+    UserNotificationConfig:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - userId
+        - tenantId
+        - inAppConfig
+        - emailConfig
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        inAppConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+        emailConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+    NotificationConfig:
+      type: object
+      additionalProperties: false
+      required:
+        - newEServiceVersionPublished
+      properties:
+        newEServiceVersionPublished:
+          type: boolean
     UserNotificationConfigSeed:
       type: object
       additionalProperties: false
