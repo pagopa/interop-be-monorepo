@@ -528,7 +528,7 @@ export function delegationServiceBuilder(
         delegateId: TenantId;
         eserviceId: EServiceId;
       },
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {
