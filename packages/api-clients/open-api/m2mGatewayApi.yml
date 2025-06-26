@@ -973,7 +973,7 @@ paths:
         - agreements
       summary: Upload an Agreement Consumer Document
       description: Upload a Consumer Document for the specified Agreement
-      operationId: uploadAgreementConsumerDocument
+      operationId: addAgreementConsumerDocument
       requestBody:
         content:
           multipart/form-data:
@@ -981,7 +981,7 @@ paths:
               $ref: "#/components/schemas/FileUploadMultipart"
         required: true
       responses:
-        "200":
+        "201":
           description: Consumer document uploaded successfully
           content:
             application/json:
@@ -2576,7 +2576,7 @@ paths:
         - eservices
       summary: Download an E-Service Descriptor interface
       description: Download the interface document of an E-Service Descriptor
-      operationId: downloadEServiceDescriptorInterface
+      operationId: getEServiceDescriptorInterface
       responses:
         "200":
           description: E-Service Descriptor interface retrieved, a multipart containing the file and its metadata
@@ -5694,9 +5694,10 @@ components:
       additionalProperties: false
       required:
         - id
+        - name
         - prettyName
         - contentType
-        - size
+        - createdAt
       properties:
         id:
           type: string

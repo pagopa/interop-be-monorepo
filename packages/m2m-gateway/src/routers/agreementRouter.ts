@@ -215,7 +215,7 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(200).send(m2mGatewayApi.Document.parse(document));
+        return res.status(201).send(m2mGatewayApi.Document.parse(document));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
