@@ -6,7 +6,6 @@ import {
   AttributeValue,
   DynamoDBClient,
   ScanCommand,
-  ScanCommandOutput,
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import { PlatformStatesGenericEntry } from "pagopa-interop-models";
@@ -31,7 +30,7 @@ export function tokenGenerationReadModelServiceBuilder(
           ConsistentRead: true,
         };
         const commandQuery = new ScanCommand(readInput);
-        const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+        const data = await dynamoDBClient.send(commandQuery);
 
         if (!data.Items) {
           throw genericInternalError(
@@ -79,7 +78,7 @@ export function tokenGenerationReadModelServiceBuilder(
           ConsistentRead: true,
         };
         const commandQuery = new ScanCommand(readInput);
-        const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+        const data = await dynamoDBClient.send(commandQuery);
 
         if (!data.Items) {
           throw genericInternalError(

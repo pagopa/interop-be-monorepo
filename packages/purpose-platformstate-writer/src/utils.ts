@@ -4,12 +4,10 @@ import {
   DeleteItemInput,
   DynamoDBClient,
   GetItemCommand,
-  GetItemCommandOutput,
   GetItemInput,
   PutItemCommand,
   PutItemInput,
   QueryCommand,
-  QueryCommandOutput,
   QueryInput,
   UpdateItemCommand,
   UpdateItemInput,
@@ -99,7 +97,7 @@ export const readPlatformPurposeEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+  const data = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;
@@ -152,7 +150,7 @@ export const readTokenGenStatesEntriesByGSIPKPurposeId = async (
     ExclusiveStartKey: exclusiveStartKey,
   };
   const command = new QueryCommand(input);
-  const data: QueryCommandOutput = await dynamoDBClient.send(command);
+  const data = await dynamoDBClient.send(command);
 
   if (!data.Items) {
     throw genericInternalError(
@@ -500,7 +498,7 @@ export const readAgreementEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+  const data = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;
@@ -531,7 +529,7 @@ export const readCatalogEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+  const data = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;

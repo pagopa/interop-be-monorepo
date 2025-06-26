@@ -15,12 +15,10 @@ import {
   DeleteItemInput,
   DynamoDBClient,
   GetItemCommand,
-  GetItemCommandOutput,
   GetItemInput,
   PutItemCommand,
   PutItemInput,
   QueryCommand,
-  QueryCommandOutput,
   QueryInput,
   UpdateItemCommand,
   UpdateItemInput,
@@ -77,7 +75,7 @@ export const readCatalogEntry = async (
     ConsistentRead: true,
   };
   const command = new GetItemCommand(input);
-  const data: GetItemCommandOutput = await dynamoDBClient.send(command);
+  const data = await dynamoDBClient.send(command);
 
   if (!data.Item) {
     return undefined;
@@ -214,7 +212,7 @@ export const updateDescriptorStateInTokenGenerationStatesTable = async (
       ExclusiveStartKey: exclusiveStartKey,
     };
     const command = new QueryCommand(input);
-    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+    const data = await dynamoDBClient.send(command);
 
     if (!data.Items) {
       throw genericInternalError(
@@ -272,7 +270,7 @@ export const updateDescriptorInfoInTokenGenerationStatesTable = async (
       ExclusiveStartKey: exclusiveStartKey,
     };
     const command = new QueryCommand(input);
-    const data: QueryCommandOutput = await dynamoDBClient.send(command);
+    const data = await dynamoDBClient.send(command);
 
     if (!data.Items) {
       throw genericInternalError(
@@ -330,7 +328,7 @@ export const updateDescriptorVoucherLifespanInTokenGenerationStatesTable =
         ExclusiveStartKey: exclusiveStartKey,
       };
       const command = new QueryCommand(input);
-      const data: QueryCommandOutput = await dynamoDBClient.send(command);
+      const data = await dynamoDBClient.send(command);
 
       if (!data.Items) {
         throw genericInternalError(

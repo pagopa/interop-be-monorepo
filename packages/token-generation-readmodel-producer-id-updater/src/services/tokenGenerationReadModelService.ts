@@ -8,7 +8,6 @@ import {
   AttributeValue,
   DynamoDBClient,
   ScanCommand,
-  ScanCommandOutput,
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
@@ -43,7 +42,7 @@ export function tokenGenerationReadModelServiceBuilder(
           FilterExpression: "attribute_exists(agreementId)",
         };
         const commandQuery = new ScanCommand(readInput);
-        const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+        const data = await dynamoDBClient.send(commandQuery);
 
         if (!data.Items) {
           throw genericInternalError(
@@ -96,7 +95,7 @@ export function tokenGenerationReadModelServiceBuilder(
           FilterExpression: "attribute_exists(agreementId)",
         };
         const commandQuery = new ScanCommand(readInput);
-        const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+        const data = await dynamoDBClient.send(commandQuery);
 
         if (!data.Items) {
           throw genericInternalError(

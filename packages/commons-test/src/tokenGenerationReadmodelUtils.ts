@@ -3,7 +3,6 @@ import {
   PutItemCommand,
   PutItemInput,
   ScanCommand,
-  ScanCommandOutput,
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
@@ -192,7 +191,7 @@ export const readAllTokenGenStatesItems = async (
     TableName: "token-generation-states",
   };
   const commandQuery = new ScanCommand(readInput);
-  const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+  const data = await dynamoDBClient.send(commandQuery);
 
   if (!data.Items) {
     throw genericInternalError(
@@ -223,7 +222,7 @@ export const readAllPlatformStatesItems = async (
     TableName: "platform-states",
   };
   const commandQuery = new ScanCommand(readInput);
-  const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+  const data = await dynamoDBClient.send(commandQuery);
 
   if (!data.Items) {
     throw genericInternalError(
