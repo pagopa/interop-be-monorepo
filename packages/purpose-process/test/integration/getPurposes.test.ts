@@ -14,6 +14,7 @@ import {
   getMockDelegation,
   getMockAuthData,
   getMockContext,
+  getMockEService,
   sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
@@ -23,7 +24,6 @@ import {
   expectSinglePageListResult,
   purposeService,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
 
 describe("getPurposes", async () => {
   const producerId1: TenantId = generateId();

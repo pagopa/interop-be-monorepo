@@ -51,13 +51,12 @@ export const getPurposeStateFromPurposeVersions = (
   }
 };
 
-export const writePlatformPurposeEntry = async (
+export const upsertPlatformStatesPurposeEntry = async (
   dynamoDBClient: DynamoDBClient,
   purposeEntry: PlatformStatesPurposeEntry,
   logger: Logger
 ): Promise<void> => {
   const input: PutItemInput = {
-    ConditionExpression: "attribute_not_exists(PK)",
     Item: {
       PK: {
         S: purposeEntry.PK,
@@ -85,7 +84,7 @@ export const writePlatformPurposeEntry = async (
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
-  logger.info(`Platform-states. Written purpose entry ${purposeEntry.PK}`);
+  logger.info(`Platform-states. Upserted purpose entry ${purposeEntry.PK}`);
 };
 
 export const readPlatformPurposeEntry = async (
@@ -240,6 +239,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
     purposeVersionId: PurposeVersionId,
     logger: Logger
   ): Promise<void> => {
+    // eslint-disable-next-line complexity
     const runPaginatedUpdateQuery = async (
       dynamoDBClient: DynamoDBClient,
       purpose: Purpose,
@@ -306,7 +306,8 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
           (entry.agreementId !== platformAgreementEntry.agreementId ||
             entry.agreementState !== platformAgreementEntry.state ||
             entry.GSIPK_eserviceId_descriptorId !==
-              gsiPKEServiceIdDescriptorId);
+              gsiPKEServiceIdDescriptorId ||
+            entry.producerId !== platformAgreementEntry.producerId);
 
         if (isAgreementMissingInTokenGenStates) {
           logger.info(
@@ -324,6 +325,9 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
               ":agreementState": {
                 S: platformAgreementEntry.state,
               },
+              ":producerId": {
+                S: platformAgreementEntry.producerId,
+              },
               ":gsiPKEServiceIdDescriptorId": {
                 S: gsiPKEServiceIdDescriptorId,
               },
@@ -331,7 +335,8 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
           : {};
         const agreementUpdateExpression = isAgreementMissingInTokenGenStates
           ? `, agreementId = :agreementId, 
-      agreementState = :agreementState, 
+      agreementState = :agreementState,
+      producerId = :producerId,
       GSIPK_eserviceId_descriptorId = :gsiPKEServiceIdDescriptorId`
           : "";
 

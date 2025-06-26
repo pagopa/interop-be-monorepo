@@ -1,33 +1,6 @@
 import pRetry from "p-retry";
 import { AnalyticsSQLDbConfig, DB, Logger } from "pagopa-interop-commons";
-import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { DBContext } from "./db.js";
-
-export type ColumnValue = string | number | Date | undefined | null | boolean;
-
-/**
- * This is a helper function that generates a ColumnSet for bulk operations using pg-promise.
- * It creates a mapping between object properties and corresponding database columns.
- *
- * @param pgp - The pg-promise main instance used to create the ColumnSet.
- * @param mapping - An object that maps column names to functions which extract the corresponding value from a record.
- * @param tableName - The name of the target table for which the ColumnSet is generated.
- * @param schemaName - The name of the target schema for which the ColumnSet is generated.
- * @returns A ColumnSet configured with the specified columns and table details.
- */
-export const buildColumnSet = <T>(
-  pgp: IMain,
-  mapping: Record<string, (record: T) => ColumnValue>,
-  tableName: string
-): ColumnSet<T> => {
-  const columns = Object.entries(mapping).map(([name, initFn]) => ({
-    name,
-    init: ({ source }: IColumnDescriptor<T>) => initFn(source),
-  }));
-  return new pgp.helpers.ColumnSet(columns, {
-    table: { table: tableName },
-  });
-};
 
 /**
  * Attaches an error handler to the current database connection's client.

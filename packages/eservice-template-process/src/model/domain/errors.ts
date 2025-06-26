@@ -6,19 +6,16 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   makeApiProblemBuilder,
-  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
-  eServiceTemplateNotFound: "0001",
-  eServiceTemplateVersionNotFound: "0002",
+  eserviceTemplateNotFound: "0001",
+  eserviceTemplateVersionNotFound: "0002",
   notValidEServiceTemplateVersionState: "0003",
-  eServiceTemplateDuplicate: "0004",
+  eserviceTemplateDuplicate: "0004",
   eserviceTemplateWithoutPublishedVersion: "0005",
   riskAnalysisNameDuplicate: "0006",
   riskAnalysisValidationFailed: "0007",
-  tenantNotFound: "0008",
-  tenantKindNotFound: "0009",
   eserviceTemplateNotInDraftState: "0010",
   eserviceTemplateNotInReceiveMode: "0011",
   inconsistentDailyCalls: "0012",
@@ -34,31 +31,31 @@ export const errorCodes = {
   documentPrettyNameDuplicate: "0022",
   checksumDuplicate: "0023",
   draftEServiceTemplateVersionAlreadyExists: "0024",
-  eServiceDocumentNotFound: "0025",
-  eserviceTemplateDocumentNotFound: "0026",
+  eserviceTemplateDocumentNotFound: "0025",
+  riskAnalysisNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
 
-export function eServiceTemplateNotFound(
+export function eserviceTemplateNotFound(
   eserviceTemplateId: EServiceTemplateId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService Template ${eserviceTemplateId} not found`,
-    code: "eServiceTemplateNotFound",
+    code: "eserviceTemplateNotFound",
     title: "EService Template not found",
   });
 }
 
-export function eServiceTemplateVersionNotFound(
+export function eserviceTemplateVersionNotFound(
   eserviceTemplateId: EServiceTemplateId,
   eserviceTemplateVersionId: EServiceTemplateVersionId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService Template ${eserviceTemplateId} version ${eserviceTemplateVersionId} not found`,
-    code: "eServiceTemplateVersionNotFound",
+    code: "eserviceTemplateVersionNotFound",
     title: "EService Template version not found",
   });
 }
@@ -68,7 +65,7 @@ export function notValidEServiceTemplateVersionState(
   eserviceTemplateVersionState: EServiceTemplateVersionState
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService template version ${eserviceTemplateVersionId} has a not valid status for this operation ${eserviceTemplateVersionState}`,
+    detail: `EService template version ${eserviceTemplateVersionId} is in an invalid state  ${eserviceTemplateVersionState} for this operation`,
     code: "notValidEServiceTemplateVersionState",
     title: "Not valid eservice template version state",
   });
@@ -82,12 +79,12 @@ export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
   });
 }
 
-export function eServiceTemplateDuplicate(
+export function eserviceTemplateDuplicate(
   eserviceTemplateName: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `An EService Template with name ${eserviceTemplateName} already exists`,
-    code: "eServiceTemplateDuplicate",
+    code: "eserviceTemplateDuplicate",
     title: "Duplicated service name",
   });
 }
@@ -153,7 +150,7 @@ export function attributeNotFound(
   });
 }
 
-export function eserviceTemaplateRiskAnalysisNameDuplicate(
+export function eserviceTemplateRiskAnalysisNameDuplicate(
   riskAnalysisName: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
@@ -172,22 +169,6 @@ export function riskAnalysisValidationFailed(
       .join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
-  });
-}
-
-export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} not found`,
-    code: "tenantNotFound",
-    title: "Tenant not found",
-  });
-}
-
-export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant kind for tenant ${tenantId} not found`,
-    code: "tenantKindNotFound",
-    title: "Tenant kind not found",
   });
 }
 
@@ -294,5 +275,16 @@ export function eserviceTemplateDocumentNotFound(
     detail: `Document ${documentId} not found in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
     code: "eserviceTemplateDocumentNotFound",
     title: "Document not found",
+  });
+}
+
+export function riskAnalysisNotFound(
+  eserviceTemplateId: EServiceTemplateId,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found in template ${eserviceTemplateId}`,
+    code: "riskAnalysisNotFound",
+    title: "Risk analysis not found",
   });
 }

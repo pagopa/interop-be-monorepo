@@ -12,6 +12,14 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { PurposeService } from "../services/purposeService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import {
+  getPurposeVersionErrorMapper,
+  suspendPurposeErrorMapper,
+  archivePurposeErrorMapper,
+  approvePurposeErrorMapper,
+  activatePurposeErrorMapper,
+  unsuspendPurposeErrorMapper,
+} from "../utils/errorMappers.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -66,7 +74,17 @@ const purposeRouter = (
     .get("/purposes/:purposeId/versions", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const versions = await purposeService.getPurposeVersions(
+          unsafeBrandId(req.params.purposeId),
+          req.query,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeVersions.parse(versions));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -80,11 +98,21 @@ const purposeRouter = (
     .get("/purposes/:purposeId/versions/:versionId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const version = await purposeService.getPurposeVersion(
+          unsafeBrandId(req.params.purposeId),
+          unsafeBrandId(req.params.versionId),
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.PurposeVersion.parse(version));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getPurposeVersionErrorMapper,
           ctx,
           `Error retrieving purpose ${req.params.purposeId} version ${req.params.versionId}`
         );
@@ -112,7 +140,17 @@ const purposeRouter = (
     .post("/purposes/:purposeId/versions", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const version = await purposeService.createPurposeVersion(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+
+        return res
+          .status(201)
+          .send(m2mGatewayApi.PurposeVersion.parse(version));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -126,11 +164,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/activate", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.activateDraftPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          activatePurposeErrorMapper,
           ctx,
           `Error activating purpose ${req.params.purposeId}`
         );
@@ -140,11 +185,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/approve", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.approvePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          approvePurposeErrorMapper,
           ctx,
           `Error approving purpose ${req.params.purposeId}`
         );
@@ -154,11 +206,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/archive", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.archivePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          archivePurposeErrorMapper,
           ctx,
           `Error archiving purpose ${req.params.purposeId}`
         );
@@ -168,11 +227,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/suspend", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.suspendPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          suspendPurposeErrorMapper,
           ctx,
           `Error suspending purpose ${req.params.purposeId} version`
         );
@@ -182,11 +248,18 @@ const purposeRouter = (
     .post("/purposes/:purposeId/unsuspend", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.unsuspendPurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          unsuspendPurposeErrorMapper,
           ctx,
           `Error unsuspending purpose ${req.params.purposeId}`
         );

@@ -1,24 +1,30 @@
-import { EServiceDescriptorInterfaceSQL } from "pagopa-interop-readmodel-models";
+import { createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
+import { eserviceDescriptorInterfaceInReadmodelCatalog } from "pagopa-interop-readmodel-models";
 
-export const EserviceDescriptorInterfaceSchema = z.object({
-  id: z.string(),
-  eservice_id: z.string(),
-  metadata_version: z.number(),
-  descriptor_id: z.string(),
-  name: z.string(),
-  content_type: z.string(),
-  pretty_name: z.string(),
-  path: z.string(),
-  checksum: z.string(),
-  upload_date: z.string(),
+export const EserviceDescriptorInterfaceSchema = createSelectSchema(
+  eserviceDescriptorInterfaceInReadmodelCatalog
+).extend({
+  deleted: z.boolean().default(false).optional(),
 });
 export type EserviceDescriptorInterfaceSchema = z.infer<
   typeof EserviceDescriptorInterfaceSchema
 >;
 
-export type EserviceDescriptorInterfaceMapping = {
-  [K in keyof EserviceDescriptorInterfaceSchema]: (
-    record: EServiceDescriptorInterfaceSQL
-  ) => EserviceDescriptorInterfaceSchema[K];
-};
+export const EserviceDescriptorInterfaceItemsSchema = z.object({
+  interfaceSQL: EserviceDescriptorInterfaceSchema.optional(),
+});
+export type EserviceDescriptorInterfaceItemsSchema = z.infer<
+  typeof EserviceDescriptorInterfaceSchema
+>;
+
+export const EserviceDescriptorDocumentOrInterfaceDeletingSchema =
+  EserviceDescriptorInterfaceSchema.pick({
+    id: true,
+    descriptorId: true,
+    metadataVersion: true,
+    deleted: true,
+  });
+export type EserviceDescriptorDocumentOrInterfaceDeletingSchema = z.infer<
+  typeof EserviceDescriptorDocumentOrInterfaceDeletingSchema
+>;

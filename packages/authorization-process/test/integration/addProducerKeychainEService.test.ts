@@ -18,8 +18,8 @@ import {
 } from "pagopa-interop-models";
 import {
   eserviceNotFound,
-  organizationNotAllowedOnProducerKeychain,
-  organizationNotAllowedOnEService,
+  tenantNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnEService,
   eserviceAlreadyLinkedToProducerKeychain,
   producerKeychainNotFound,
 } from "../../src/model/domain/errors.js";
@@ -103,7 +103,7 @@ describe("addProducerKeychainEService", async () => {
       )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
-  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer keychain producer", async () => {
+  it("should throw tenantNotAllowedOnProducerKeychain if the requester is not the producer keychain producer", async () => {
     const mockProducerId: TenantId = generateId();
     const mockEServiceId: EServiceId = generateId();
 
@@ -127,7 +127,7 @@ describe("addProducerKeychainEService", async () => {
         getMockContext({ authData: getMockAuthData(mockProducerId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnProducerKeychain(
+      tenantNotAllowedOnProducerKeychain(
         mockProducerId,
         mockProducerKeychain.id
       )
@@ -160,7 +160,7 @@ describe("addProducerKeychainEService", async () => {
       )
     ).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
-  it("should throw organizationNotAllowedOnEService if the requester is not the eservice producer", async () => {
+  it("should throw tenantNotAllowedOnEService if the requester is not the eservice producer", async () => {
     const mockProducerId: TenantId = generateId();
     const mockEServiceId: EServiceId = generateId();
 
@@ -186,7 +186,7 @@ describe("addProducerKeychainEService", async () => {
         getMockContext({ authData: getMockAuthData(mockProducerId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnEService(mockProducerId, mockEService.id)
+      tenantNotAllowedOnEService(mockProducerId, mockEService.id)
     );
   });
   it("should throw eserviceAlreadyLinkedToProducerKeychain if the eservice is already linked to that producer keychain", async () => {

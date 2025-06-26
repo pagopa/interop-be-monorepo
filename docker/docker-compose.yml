@@ -32,7 +32,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
     command: -c 'max_connections=512' -c 'wal_level=logical'
-  
+
   # analytics POSTGRESQL-15
   domains-analytics-sql:
     volumes:
@@ -128,7 +128,7 @@ services:
       - AWS_ACCESS_KEY_ID=local
       - AWS_SECRET_ACCESS_KEY=local
       - AWS_REGION=eu-south-1
-      - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states
+      - TABLES=privacy-notice,privacy-notice-acceptances,platform-states,token-generation-states,dpop-cache
     entrypoint: ./dynamo-migrations.sh
 
   # Web GUI for mongo

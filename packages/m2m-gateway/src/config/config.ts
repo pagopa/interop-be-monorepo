@@ -2,6 +2,7 @@ import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
+  FileManagerConfig,
   RedisRateLimiterConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -31,9 +32,13 @@ export type AgreementProcessServerConfig = z.infer<
 export const CatalogProcessServerConfig = z
   .object({
     CATALOG_PROCESS_URL: APIEndpoint,
+    ESERVICE_DOCUMENTS_CONTAINER: z.string(),
+    ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     catalogProcessUrl: c.CATALOG_PROCESS_URL,
+    eserviceDocumentsContainer: c.ESERVICE_DOCUMENTS_CONTAINER,
+    eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 export type CatalogProcessServerConfig = z.infer<
   typeof CatalogProcessServerConfig
@@ -104,17 +109,18 @@ const M2MGatewayConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(DelegationProcessServerConfig)
   .and(EServiceTemplateProcessServerConfig)
   .and(ApplicationAuditProducerConfig)
+  .and(FileManagerConfig)
   .and(
     z
       .object({
         M2M_GATEWAY_INTERFACE_VERSION: z.string(),
-        DEFAULT_POLLING_INTERVAL_MS: z.coerce.number().default(1000),
-        DEFAULT_POLLING_MAX_ATTEMPTS: z.coerce.number().default(5),
+        DEFAULT_POLLING_RETRY_DELAY: z.coerce.number().default(1000),
+        DEFAULT_POLLING_MAX_RETRIES: z.coerce.number().default(5),
       })
       .transform((c) => ({
         m2mGatewayInterfaceVersion: c.M2M_GATEWAY_INTERFACE_VERSION,
-        defaultPollingIntervalMs: c.DEFAULT_POLLING_INTERVAL_MS,
-        defaultPollingMaxAttempts: c.DEFAULT_POLLING_MAX_ATTEMPTS,
+        defaultPollingRetryDelay: c.DEFAULT_POLLING_RETRY_DELAY,
+        defaultPollingMaxRetries: c.DEFAULT_POLLING_MAX_RETRIES,
       }))
   );
 

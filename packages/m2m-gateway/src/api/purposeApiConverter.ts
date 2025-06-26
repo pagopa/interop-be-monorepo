@@ -1,4 +1,8 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  getPurposeCurrentVersion,
+  sortPurposeVersionsByDate,
+} from "../services/purposeService.js";
 
 export function toGetPurposesApiQueryParams(
   params: m2mGatewayApi.GetPurposesQueryParams
@@ -18,17 +22,9 @@ export function toGetPurposesApiQueryParams(
 export function toM2MGatewayApiPurpose(
   purpose: purposeApi.Purpose
 ): m2mGatewayApi.Purpose {
-  const sortedVersions = [...purpose.versions].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-  );
+  const currentVersion = getPurposeCurrentVersion(purpose);
 
-  const statesToExclude: m2mGatewayApi.PurposeVersionState[] = [
-    m2mGatewayApi.PurposeVersionState.Values.WAITING_FOR_APPROVAL,
-    m2mGatewayApi.PurposeVersionState.Values.REJECTED,
-  ];
-  const currentVersion = sortedVersions.findLast(
-    (v) => !statesToExclude.includes(v.state)
-  );
+  const sortedVersions = sortPurposeVersionsByDate(purpose.versions);
 
   const waitingForApprovalVersion = sortedVersions.findLast(
     (v) =>
@@ -55,8 +51,29 @@ export function toM2MGatewayApiPurpose(
     isFreeOfCharge: purpose.isFreeOfCharge,
     freeOfChargeReason: purpose.freeOfChargeReason,
     delegationId: purpose.delegationId,
-    currentVersion,
-    waitingForApprovalVersion,
-    rejectedVersion,
+    currentVersion: currentVersion
+      ? toM2mGatewayApiPurposeVersion(currentVersion)
+      : undefined,
+    waitingForApprovalVersion: waitingForApprovalVersion
+      ? toM2mGatewayApiPurposeVersion(waitingForApprovalVersion)
+      : undefined,
+    rejectedVersion: rejectedVersion
+      ? toM2mGatewayApiPurposeVersion(rejectedVersion)
+      : undefined,
+  };
+}
+
+export function toM2mGatewayApiPurposeVersion(
+  version: purposeApi.PurposeVersion
+): m2mGatewayApi.PurposeVersion {
+  return {
+    id: version.id,
+    createdAt: version.createdAt,
+    dailyCalls: version.dailyCalls,
+    state: version.state,
+    firstActivationAt: version.firstActivationAt,
+    rejectionReason: version.rejectionReason,
+    suspendedAt: version.suspendedAt,
+    updatedAt: version.updatedAt,
   };
 }

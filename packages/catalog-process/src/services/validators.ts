@@ -1,9 +1,14 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisValidatedForm,
   UIAuthData,
+  hasAtLeastOneSystemRole,
+  hasAtLeastOneUserRole,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  systemRole,
+  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -24,7 +29,7 @@ import {
 import { match } from "ts-pattern";
 import {
   draftDescriptorAlreadyExists,
-  eServiceNameDuplicate,
+  eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
@@ -37,6 +42,7 @@ import {
   eServiceNotAnInstance,
   inconsistentDailyCalls,
   eserviceWithoutValidDescriptors,
+  eserviceTemplateNameConflict,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -64,7 +70,7 @@ export const notActiveDescriptorState: DescriptorState[] = [
   descriptorState.waitingForApproval,
 ];
 
-export const validDescriptorStates: DescriptorState[] = [
+export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.published,
   descriptorState.suspended,
   descriptorState.deprecated,
@@ -88,7 +94,7 @@ export function isActiveDescriptor(descriptor: Descriptor): boolean {
   return !isNotActiveDescriptor(descriptor);
 }
 
-export function isDescriptorUpdatable(descriptor: Descriptor): boolean {
+function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
   return match(descriptor.state)
     .with(
       descriptorState.deprecated,
@@ -264,20 +270,31 @@ export function assertDocumentDeletableDescriptorState(
     .exhaustive();
 }
 
-export async function assertNotDuplicatedEServiceName(
+export async function assertEServiceNameAvailableForProducer(
   name: string,
-  eservice: EService,
+  producerId: TenantId,
   readModelService: ReadModelService
 ): Promise<void> {
-  if (name !== eservice.name) {
-    const eserviceWithSameName =
-      await readModelService.getEServiceByNameAndProducerId({
-        name,
-        producerId: eservice.producerId,
-      });
-    if (eserviceWithSameName !== undefined) {
-      throw eServiceNameDuplicate(name);
-    }
+  const isEServiceNameAvailable =
+    await readModelService.isEServiceNameAvailableForProducer({
+      name,
+      producerId,
+    });
+  if (!isEServiceNameAvailable) {
+    throw eServiceNameDuplicateForProducer(name, producerId);
+  }
+}
+
+export async function assertEServiceNameNotConflictingWithTemplate(
+  name: string,
+  readModelService: ReadModelService
+): Promise<void> {
+  const eserviceTemplateWithSameNameExists =
+    await readModelService.isEServiceNameConflictingWithTemplate({
+      name,
+    });
+  if (eserviceTemplateWithSameNameExists) {
+    throw eserviceTemplateNameConflict(name);
   }
 }
 
@@ -317,15 +334,41 @@ export function assertConsistentDailyCalls({
   }
 }
 
-export function assertDescriptorUpdatable(descriptor: Descriptor): void {
-  if (!isDescriptorUpdatable(descriptor)) {
+export function assertDescriptorUpdatableAfterPublish(
+  descriptor: Descriptor
+): void {
+  if (!isDescriptorUpdatableAfterPublish(descriptor)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
   }
 }
 
-export function assertEServiceUpdatable(eservice: EService): void {
-  const hasValidDescriptor = eservice.descriptors.some(isDescriptorUpdatable);
+export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
+  const hasValidDescriptor = eservice.descriptors.some(
+    isDescriptorUpdatableAfterPublish
+  );
   if (!hasValidDescriptor) {
     throw eserviceWithoutValidDescriptors(eservice.id);
   }
+}
+
+/**
+ * Checks if the user has the roles required to access inactive
+ * descriptors (i.e., DRAFT or WAITING_FOR_APPROVAL).
+ * NOT sufficient to access them; the request must also originate
+ * from the producer tenant or the delegate producer tenant.
+ */
+export function hasRoleToAccessInactiveDescriptors(
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): boolean {
+  return (
+    hasAtLeastOneUserRole(authData, [
+      userRole.ADMIN_ROLE,
+      userRole.API_ROLE,
+      userRole.SUPPORT_ROLE,
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
+  );
 }

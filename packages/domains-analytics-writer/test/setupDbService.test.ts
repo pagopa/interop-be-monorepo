@@ -1,88 +1,61 @@
 import { describe, expect, it, vi, afterAll } from "vitest";
 import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import { config } from "../src/config/config.js";
-import {
-  AttributeDbTable,
-  CatalogDbTable,
-  DeletingDbTable,
-} from "../src/model/db.js";
+import { DbTable } from "../src/model/db/index.js";
 import { setupStagingTablesError } from "../src/model/errors.js";
-import { dbContext, getTablesByName } from "./utils.js";
+import {
+  dbContext,
+  deletingTables,
+  domainTables,
+  getTablesByName,
+  partialTables,
+  setupStagingDeletingTables,
+} from "./utils.js";
 
-describe("Setup DB Service tests for attribute tables", async () => {
+describe("Setup DB Service tests for domain tables", async () => {
   afterAll(() => {
     vi.restoreAllMocks();
   });
-  const attributeTables = [AttributeDbTable.attribute];
 
-  const catalogTables = [
-    CatalogDbTable.eservice,
-    CatalogDbTable.eservice_descriptor,
-    CatalogDbTable.eservice_descriptor_attribute,
-    CatalogDbTable.eservice_descriptor_document,
-    CatalogDbTable.eservice_descriptor_interface,
-    CatalogDbTable.eservice_descriptor_rejection_reason,
-    CatalogDbTable.eservice_descriptor_template_version_ref,
-    CatalogDbTable.eservice_risk_analysis,
-    CatalogDbTable.eservice_risk_analysis_answer,
-  ];
-
-  const stagingTables = [...attributeTables, ...catalogTables];
+  const tablesWithSuffix = (tables: DbTable[]): string[] =>
+    tables.map((t) => `${t}_${config.mergeTableSuffix}`);
 
   const dbService = setupDbServiceBuilder(dbContext.conn, config);
 
-  it("should create staging tables successfully", async () => {
-    await dbService.setupStagingTables(attributeTables);
+  it("should create staging tables for all domains successfully", async () => {
+    await dbService.setupStagingTables(domainTables);
 
-    const expectedTables = attributeTables.map(
-      (t) => `${t}_${config.mergeTableSuffix}`
-    );
+    const expectedTables = tablesWithSuffix(domainTables);
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
     expect(result.length).toBe(expectedTables.length);
+
     const createdTableNames = result.map((row) => row.tablename);
-    expectedTables.forEach((table) => {
-      expect(createdTableNames).toContain(table);
-    });
+    expect(createdTableNames).toEqual(expect.arrayContaining(expectedTables));
   });
 
-  it("should create staging tables successfully for catalog tables", async () => {
-    await dbService.setupStagingTables(catalogTables);
+  it("should create partial staging tables successfully", async () => {
+    await dbService.setupPartialStagingTables(partialTables);
 
-    const expectedTables = catalogTables.map(
-      (t) => `${t}_${config.mergeTableSuffix}`
-    );
+    const expectedTables = tablesWithSuffix(partialTables);
     const result = await getTablesByName(dbContext.conn, expectedTables);
 
-    expect(result.length).toBe(expectedTables.length);
+    expect(result.length).toBe(partialTables.length);
+
     const createdTableNames = result.map((row) => row.tablename);
-    expectedTables.forEach((table) => {
-      expect(createdTableNames).toContain(table);
-    });
+    expect(createdTableNames).toEqual(expect.arrayContaining(expectedTables));
   });
 
-  it("should create staging deleting table successfully", async () => {
-    await dbService.setupStagingDeletingTables([
-      { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
-      { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
-      {
-        name: DeletingDbTable.catalog_risk_deleting_table,
-        columns: ["id", "eservice_id"],
-      },
-    ]);
-    const result = await getTablesByName(dbContext.conn, [
-      `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`,
-      `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`,
-    ]);
-    expect(result.length).toBe(2);
+  it("should create staging deleting tables successfully", async () => {
+    await dbService.setupStagingDeletingTables(setupStagingDeletingTables);
 
-    const tableNames = result.map((t) => t.tablename);
-    expect(tableNames).toStrictEqual(
-      [
-        `${DeletingDbTable.attribute_deleting_table}_${config.mergeTableSuffix}`,
-        `${DeletingDbTable.catalog_deleting_table}_${config.mergeTableSuffix}`,
-      ].sort()
-    );
+    const expectedTables = tablesWithSuffix(deletingTables);
+    const result = await getTablesByName(dbContext.conn, expectedTables);
+
+    expect(result.length).toBe(setupStagingDeletingTables.length);
+
+    const createdTableNames = result.map((row) => row.tablename);
+    expect(createdTableNames).toEqual(expect.arrayContaining(expectedTables));
   });
 
   it("should throw an error if database query fails during staging tables creation", async () => {
@@ -90,7 +63,7 @@ describe("Setup DB Service tests for attribute tables", async () => {
     vi.spyOn(dbContext.conn, "query").mockRejectedValueOnce(mockQueryError);
 
     await expect(
-      dbService.setupStagingTables(stagingTables)
+      dbService.setupStagingTables(domainTables)
     ).rejects.toThrowError(setupStagingTablesError(mockQueryError));
   });
 });

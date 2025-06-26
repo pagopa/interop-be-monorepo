@@ -12,8 +12,10 @@ import {
   AuthorizationEvent,
   Client,
   ClientId,
+  ClientJWKKey,
   Delegation,
   EService,
+  ProducerJWKKey,
   ProducerKeychain,
   ProducerKeychainId,
   Purpose,
@@ -29,8 +31,10 @@ import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
+  clientJWKKeyReadModelServiceBuilder,
   clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
+  producerJWKKeyReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -61,6 +65,7 @@ export const {
   tenants,
   producerKeychains,
   delegations,
+  producerKeys,
 } = readModelRepository;
 
 export const clientReadModelServiceSQL =
@@ -75,6 +80,10 @@ export const producerKeychainReadModelServiceSQL =
   producerKeychainReadModelServiceBuilder(readModelDB);
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
+export const clientJWKKeyReadModelServiceSQL =
+  clientJWKKeyReadModelServiceBuilder(readModelDB);
+export const producerJWKKeyReadModelServiceSQL =
+  producerJWKKeyReadModelServiceBuilder(readModelDB);
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 const readModelServiceSQL = readModelServiceBuilderSQL({
@@ -85,6 +94,8 @@ const readModelServiceSQL = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   producerKeychainReadModelServiceSQL,
   delegationReadModelServiceSQL,
+  clientJWKKeyReadModelServiceSQL,
+  producerJWKKeyReadModelServiceSQL,
 });
 export const readModelService =
   config.featureFlagSQL &&
@@ -118,6 +129,18 @@ export const writeClientInEventstore = async (
   };
 
   await writeInEventstore(eventToWrite, '"authorization"', postgresDB);
+};
+
+export const addOneKey = async (key: ClientJWKKey): Promise<void> => {
+  await writeInReadmodel(key, keys);
+
+  await clientJWKKeyReadModelServiceSQL.upsertClientJWKKey(key, 0);
+};
+
+export const addOneProducerKey = async (key: ProducerJWKKey): Promise<void> => {
+  await writeInReadmodel(key, producerKeys);
+
+  await producerJWKKeyReadModelServiceSQL.upsertProducerJWKKey(key, 0);
 };
 
 export const addOneClient = async (client: Client): Promise<void> => {

@@ -109,7 +109,6 @@ import {
   isRiskAnalysisFormValid,
   isDeletableVersion,
   purposeIsDraft,
-  reverseValidateAndTransformRiskAnalysis,
   validateAndTransformRiskAnalysis,
   assertPurposeIsDraft,
   isRejectable,
@@ -534,8 +533,12 @@ export function purposeServiceBuilder(
         purposeId: PurposeId;
         versionId: PurposeVersionId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<PurposeVersion> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Archiving Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -568,15 +571,20 @@ export function purposeServiceBuilder(
         archivedVersion
       );
 
-      const event = toCreateEventPurposeArchived({
+      const eventToCreate = toCreateEventPurposeArchived({
         purpose: updatedPurpose,
         purposeVersionId: archivedVersion.id,
         version: purpose.metadata.version,
         correlationId,
       });
 
-      await repository.createEvent(event);
-      return archivedVersion;
+      const event = await repository.createEvent(eventToCreate);
+      return {
+        data: archivedVersion,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
     async internalArchivePurposeVersionAfterDelegationRevocation(
       {
@@ -642,8 +650,12 @@ export function purposeServiceBuilder(
         purposeId: PurposeId;
         versionId: PurposeVersionId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<PurposeVersion> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -672,7 +684,7 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const event = match(suspender)
+      const eventToCreate = match(suspender)
         .with(ownership.CONSUMER, () => {
           const updatedPurpose: Purpose = {
             ...replacePurposeVersion(purpose.data, suspendedPurposeVersion),
@@ -699,8 +711,11 @@ export function purposeServiceBuilder(
         })
         .exhaustive();
 
-      await repository.createEvent(event);
-      return suspendedPurposeVersion;
+      const createdEvent = await repository.createEvent(eventToCreate);
+      return {
+        data: suspendedPurposeVersion,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async getPurposes(
       filters: GetPurposesFilters,
@@ -729,8 +744,18 @@ export function purposeServiceBuilder(
     async createPurposeVersion(
       purposeId: PurposeId,
       seed: purposeApi.PurposeVersionSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<PurposeVersion> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        purpose: Purpose;
+        isRiskAnalysisValid: boolean;
+        createdVersionId: PurposeVersionId;
+      }>
+    > {
       logger.info(`Creating Version for Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -772,10 +797,18 @@ export function purposeServiceBuilder(
         );
       }
 
-      const eservice = await retrieveEService(
-        purpose.data.eserviceId,
-        readModelService
-      );
+      const [eservice, tenantKind] = await Promise.all([
+        retrieveEService(purpose.data.eserviceId, readModelService),
+        retrieveTenantKind(authData.organizationId, readModelService),
+      ]);
+
+      const isRiskAnalysisValid = purposeIsDraft(purpose.data)
+        ? isRiskAnalysisFormValid(
+            purpose.data.riskAnalysisForm,
+            false,
+            tenantKind
+          )
+        : true;
 
       // isOverQuota doesn't include dailyCalls of suspended versions, so we don't have to calculate the delta. The delta is needed for active versions because those would be counted again inside isOverQuota
       const deltaDailyCalls =
@@ -808,7 +841,7 @@ export function purposeServiceBuilder(
           updatedAt: new Date(),
         };
 
-        await repository.createEvent(
+        const event = await repository.createEvent(
           toCreateEventNewPurposeVersionWaitingForApproval({
             purpose: updatedPurpose,
             versionId: newPurposeVersion.id,
@@ -817,7 +850,14 @@ export function purposeServiceBuilder(
           })
         );
 
-        return newPurposeVersion;
+        return {
+          data: {
+            purpose: updatedPurpose,
+            isRiskAnalysisValid,
+            createdVersionId: newPurposeVersion.id,
+          },
+          metadata: { version: event.newVersion },
+        };
       }
 
       /**
@@ -853,7 +893,7 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventNewPurposeVersionActivated({
           purpose: updatedPurpose,
           versionId: newPurposeVersion.id,
@@ -862,7 +902,14 @@ export function purposeServiceBuilder(
         })
       );
 
-      return newPurposeVersion;
+      return {
+        data: {
+          purpose: updatedPurpose,
+          isRiskAnalysisValid,
+          createdVersionId: newPurposeVersion.id,
+        },
+        metadata: { version: event.newVersion },
+      };
     },
     async activatePurposeVersion(
       {
@@ -872,8 +919,12 @@ export function purposeServiceBuilder(
         purposeId: PurposeId;
         versionId: PurposeVersionId;
       },
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<PurposeVersion> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<PurposeVersion>> {
       logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -1081,8 +1132,12 @@ export function purposeServiceBuilder(
           throw tenantNotAllowed(authData.organizationId);
         });
 
-      await repository.createEvent(event);
-      return updatedPurposeVersion;
+      const createdEvent = await repository.createEvent(event);
+
+      return {
+        data: updatedPurposeVersion,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async createPurpose(
       purposeSeed: purposeApi.PurposeSeed,
@@ -1433,7 +1488,7 @@ const getOrganizationRole = async ({
 }: {
   purpose: Purpose;
   producerId: TenantId;
-  authData: UIAuthData;
+  authData: UIAuthData | M2MAdminAuthData;
   readModelService: ReadModelService;
 }): Promise<Ownership> => {
   if (
@@ -1567,11 +1622,7 @@ const performUpdatePurpose = async (
           true,
           tenantKind
         )
-      : reverseValidateAndTransformRiskAnalysis(
-          purpose.data.riskAnalysisForm,
-          true,
-          tenantKind
-        );
+      : purpose.data.riskAnalysisForm;
 
   const updatedPurpose: Purpose = {
     ...purpose.data,

@@ -5,7 +5,7 @@ import {
   ReadModelDbConfig,
   EventStoreConfig,
   S3Config,
-  SelfCareConfig,
+  SelfCareClientConfig,
   FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
   ApplicationAuditProducerConfig,
@@ -15,7 +15,7 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(ReadModelDbConfig)
   .and(FileManagerConfig)
   .and(S3Config)
-  .and(SelfCareConfig)
+  .and(SelfCareClientConfig)
   .and(
     z
       .object({
@@ -32,7 +32,6 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(ApplicationAuditProducerConfig);
 
 export type AgreementProcessConfig = z.infer<typeof AgreementProcessConfig>;
-
 export const config: AgreementProcessConfig = AgreementProcessConfig.parse(
   process.env
 );

@@ -1,3 +1,5 @@
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -5,11 +7,21 @@ import {
   ZodiosContext,
   ExpressContext,
   zodiosValidationErrorToApiProblem,
+  validateAuthorization,
+  authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import { FormDataEncoder } from "form-data-encoder";
+import { FormData, File } from "formdata-node";
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import {
+  getEserviceDescriptorErrorMapper,
+  getEserviceDescriptorInterfaceErrorMapper,
+} from "../utils/errorMappers.js";
+
+const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
 const eserviceRouter = (
   ctx: ZodiosContext,
@@ -19,13 +31,16 @@ const eserviceRouter = (
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
 
-  void eserviceService;
-
   eserviceRouter
     .get("/eservices", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const eservices = await eserviceService.getEServices(req.query, ctx);
+
+        return res.status(200).send(m2mGatewayApi.EServices.parse(eservices));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -38,8 +53,16 @@ const eserviceRouter = (
     })
     .get("/eservices/:eserviceId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const eservice = await eserviceService.getEService(
+          unsafeBrandId(req.params.eserviceId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.EService.parse(eservice));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -52,8 +75,19 @@ const eserviceRouter = (
     })
     .get("/eservices/:eserviceId/descriptors", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
       try {
-        return res.status(501).send();
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const descriptors = await eserviceService.getEServiceDescriptors(
+          unsafeBrandId(req.params.eserviceId),
+          req.query,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApi.EServiceDescriptors.parse(descriptors));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -68,14 +102,61 @@ const eserviceRouter = (
       "/eservices/:eserviceId/descriptors/:descriptorId",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
         try {
-          return res.status(501).send();
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const descriptor = await eserviceService.getEServiceDescriptor(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res
+            .status(200)
+            .send(m2mGatewayApi.EServiceDescriptor.parse(descriptor));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            emptyErrorMapper,
+            getEserviceDescriptorErrorMapper,
             ctx,
             `Error retrieving eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/interface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const { file, filename, contentType } =
+            await eserviceService.getEServiceDescriptorInterface(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+
+          const form = new FormData();
+          form.set("file", new File([file], filename, { type: contentType }));
+          form.set("filename", filename);
+          form.set("contentType", contentType);
+
+          const encoder = new FormDataEncoder(form);
+
+          res.writeHead(200, encoder.headers);
+
+          // Stream the multipart body and end the response when done
+          await pipeline(Readable.from(encoder.encode()), res);
+          return res;
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEserviceDescriptorInterfaceErrorMapper,
+            ctx,
+            `Error retrieving interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

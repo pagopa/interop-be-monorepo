@@ -7,7 +7,7 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
   getMockAuthData,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
@@ -27,7 +27,7 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
 import {
-  eServiceTemplateNotFound,
+  eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
 } from "../../src/model/domain/errors.js";
@@ -59,7 +59,8 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       kind: creatorTenantKind,
     };
 
-    const riskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
@@ -113,7 +114,8 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
 
-    const riskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
@@ -135,7 +137,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
   });
   it("should throw operationForbidden if the requester is not the creator", async () => {
     const requesterId = generateId<TenantId>();
@@ -148,7 +150,8 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       kind: creatorTenantKind,
     };
 
-    const riskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
@@ -183,7 +186,8 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       kind: creatorTenantKind,
     };
 
-    const riskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -222,7 +226,8 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       kind: creatorTenantKind,
     };
 
-    const riskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
