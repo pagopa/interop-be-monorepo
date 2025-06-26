@@ -38,7 +38,7 @@
     "@apidevtools/swagger-parser": "10.1.1",
     "@aws-sdk/client-dynamodb": "3.693.0",
     "@aws-sdk/util-dynamodb": "3.693.0",
-    "@xmldom/xmldom": "0.9.6",
+    "@xmldom/xmldom": "0.9.8",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
     "adm-zip": "0.5.16",

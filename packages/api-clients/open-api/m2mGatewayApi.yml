@@ -75,6 +75,17 @@ paths:
             default: []
           explode: false
         - in: query
+          name: descriptorIds
+          description: Filter Agreements by Descriptor IDs. If not specified, return Agreements for any Descriptor
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: eserviceIds
           description: Filter Agreements by E-Service IDs. If not specified, return Agreements for any E-Service
           schema:
