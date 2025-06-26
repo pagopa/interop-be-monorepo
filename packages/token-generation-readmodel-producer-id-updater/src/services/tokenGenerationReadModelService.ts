@@ -27,15 +27,15 @@ export function tokenGenerationReadModelServiceBuilder(
         }
       >
     > {
-      const runPaginatedQuery = async (
-        exclusiveStartKey?: Record<string, AttributeValue>
-      ): Promise<
-        Array<
-          Omit<PlatformStatesAgreementEntry, "producerId"> & {
-            producerId?: TenantId;
-          }
-        >
-      > => {
+      // eslint-disable-next-line functional/no-let
+      let exclusiveStartKey: Record<string, AttributeValue> | undefined;
+      const platformStatesAgreementsResult = new Array<
+        Omit<PlatformStatesAgreementEntry, "producerId"> & {
+          producerId?: TenantId;
+        }
+      >();
+
+      do {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNamePlatform,
           ExclusiveStartKey: exclusiveStartKey,
@@ -70,26 +70,25 @@ export function tokenGenerationReadModelServiceBuilder(
             );
           }
 
-          if (!data.LastEvaluatedKey) {
-            return platformStatesAgreements.data;
-          } else {
-            return [
-              ...platformStatesAgreements.data,
-              ...(await runPaginatedQuery(data.LastEvaluatedKey)),
-            ];
-          }
-        }
-      };
+          // eslint-disable-next-line functional/immutable-data
+          platformStatesAgreementsResult.push(...platformStatesAgreements.data);
 
-      return await runPaginatedQuery();
+          exclusiveStartKey = data.LastEvaluatedKey;
+        }
+      } while (exclusiveStartKey);
+
+      return platformStatesAgreementsResult;
     },
 
     async readAllTokenGenStatesConsumerClients(): Promise<
       TokenGenerationStatesConsumerClient[]
     > {
-      const runPaginatedQuery = async (
-        exclusiveStartKey?: Record<string, AttributeValue>
-      ): Promise<TokenGenerationStatesConsumerClient[]> => {
+      // eslint-disable-next-line functional/no-let
+      let exclusiveStartKey: Record<string, AttributeValue> | undefined;
+      const tokenGenStatesConsumerClients =
+        new Array<TokenGenerationStatesConsumerClient>();
+
+      do {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
           ExclusiveStartKey: exclusiveStartKey,
@@ -120,18 +119,14 @@ export function tokenGenerationReadModelServiceBuilder(
             );
           }
 
-          if (!data.LastEvaluatedKey) {
-            return tokenGenStatesEntries.data;
-          } else {
-            return [
-              ...tokenGenStatesEntries.data,
-              ...(await runPaginatedQuery(data.LastEvaluatedKey)),
-            ];
-          }
-        }
-      };
+          // eslint-disable-next-line functional/immutable-data
+          tokenGenStatesConsumerClients.push(...tokenGenStatesEntries.data);
 
-      return await runPaginatedQuery();
+          exclusiveStartKey = data.LastEvaluatedKey;
+        }
+      } while (exclusiveStartKey);
+
+      return tokenGenStatesConsumerClients;
     },
   };
 }
