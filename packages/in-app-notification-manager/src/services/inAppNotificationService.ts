@@ -98,6 +98,30 @@ export function inAppNotificationServiceBuilder(
           )
         );
     },
+    deleteNotification: async (
+      notificationId: string,
+      {
+        logger,
+        authData: { userId, organizationId },
+      }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> => {
+      logger.info(`Deleting notification ${notificationId}`);
+
+      const deleted = await db
+        .delete(notification)
+        .where(
+          and(
+            eq(notification.id, notificationId),
+            eq(notification.userId, userId),
+            eq(notification.tenantId, organizationId)
+          )
+        )
+        .returning({ id: notification.id });
+
+      if (!deleted.length) {
+        throw notificationNotFound(notificationId);
+      }
+    },
   };
 }
 

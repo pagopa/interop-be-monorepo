@@ -13,7 +13,10 @@ import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { InAppNotificationService } from "../services/inAppNotificationService.js";
 import { makeApiProblem } from "../model/errors.js";
 import { notificationToApiNotification } from "../model/apiConverter.js";
-import { markNotificationAsReadErrorMapper } from "../utilities/errorMappers.js";
+import {
+  markNotificationAsReadErrorMapper,
+  deleteNotificationErrorMapper,
+} from "../utilities/errorMappers.js";
 
 export const notificationRouter = (
   zodiosCtx: ZodiosContext,
@@ -92,7 +95,25 @@ export const notificationRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
-    );
+    )
+    .delete("/notifications/:notificationId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const { notificationId } = req.params;
+        await service.deleteNotification(notificationId, ctx);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          deleteNotificationErrorMapper,
+          ctx,
+          "Error deleting notification"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    });
 
   return notificationRouter;
 };
