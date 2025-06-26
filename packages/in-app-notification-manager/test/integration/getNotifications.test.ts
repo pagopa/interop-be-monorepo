@@ -9,13 +9,13 @@ import {
   fromNotificationSQL,
 } from "pagopa-interop-models";
 import { eq, desc } from "drizzle-orm";
+import { notification } from "pagopa-interop-in-app-notification-db-models";
 import {
   addNotifications,
   inAppNotificationService,
   getMockNotification,
+  inAppNotificationDB,
 } from "../integrationUtils.js";
-import { notification } from "../../src/db/schema.js";
-import { inAppNotificationDB } from "../integrationUtils.js";
 
 describe("getNotifications", () => {
   const userId: UserId = generateId();

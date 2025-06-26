@@ -45,6 +45,7 @@
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-application-audit": "workspace:*",
+    "pagopa-interop-in-app-notification-db-models": "workspace:*",
     "ts-pattern": "5.2.0",
     "zod": "3.23.8",
     "drizzle-kit": "0.30.4"

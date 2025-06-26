@@ -1,15 +1,15 @@
-import { describe, it, expect } from "vitest";
-import { generateId, UserId, TenantId } from "pagopa-interop-models";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { eq } from "drizzle-orm";
+import { notification as notificationTable } from "pagopa-interop-in-app-notification-db-models";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import { generateId, UserId, TenantId } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+import { notificationNotFound } from "../../src/model/errors.js";
 import {
   addNotifications,
   getMockNotification,
   inAppNotificationDB,
   inAppNotificationService,
 } from "../integrationUtils.js";
-import { notification as notificationTable } from "../../src/db/schema.js";
-import { notificationNotFound } from "../../src/model/errors.js";
 
 describe("markNotificationAsRead", () => {
   const userId: UserId = generateId();

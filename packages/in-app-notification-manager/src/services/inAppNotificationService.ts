@@ -1,3 +1,4 @@
+import { and, desc, eq, getTableColumns, ilike, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import {
   AppContext,
@@ -5,15 +6,14 @@ import {
   escapeRegExp,
   UIAuthData,
   WithLogger,
+  withTotalCount,
 } from "pagopa-interop-commons";
-import { and, eq, ilike, desc, inArray, getTableColumns } from "drizzle-orm";
+import { notification } from "pagopa-interop-in-app-notification-db-models";
 import {
   fromNotificationSQL,
   ListResult,
   Notification,
 } from "pagopa-interop-models";
-import { withTotalCount } from "pagopa-interop-commons";
-import { notification } from "../db/schema.js";
 import { notificationNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationServiceBuilder(
