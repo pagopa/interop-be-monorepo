@@ -51,14 +51,14 @@ export function emailSenderProcessorBuilder(
             await delay(config.retryDelayInMillis);
           } else {
             throw genericInternalError(
-              `Error consuming message in partition ${partition} with offset ${message.offset}. Reson: ${err}`
+              `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
             );
           }
         }
       }
       if (!sent) {
         throw genericInternalError(
-          `Error consuming message in partition ${partition} with offset ${message.offset}. Reson: too many attempts`
+          `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: too many attempts`
         );
       }
     },
