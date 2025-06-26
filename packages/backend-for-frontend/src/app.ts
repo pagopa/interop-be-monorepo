@@ -1,3 +1,4 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -15,6 +16,7 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
+import { bffApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
@@ -86,6 +88,11 @@ import {
 } from "./services/tenantService.js";
 import { PagoPAInteropBeClients } from "./clients/clientsProvider.js";
 import { ToolsService, toolsServiceBuilder } from "./services/toolService.js";
+import { privacyNoticeStorageServiceBuilder } from "./services/privacyNoticeStorage.js";
+import {
+  PrivacyNoticeService,
+  privacyNoticeServiceBuilder,
+} from "./services/privacyNoticeService.js";
 
 export type BFFServices = {
   agreementService: AgreementService;
@@ -96,6 +103,7 @@ export type BFFServices = {
   clientService: ClientService;
   delegationService: DelegationService;
   eServiceTemplateService: EServiceTemplateService;
+  privacyNoticeService: PrivacyNoticeService;
   producerKeychainService: ProducerKeychainService;
   purposeService: PurposeService;
   selfcareService: SelfcareService;
@@ -116,6 +124,16 @@ export async function createServices(
   authorizationServiceAllowList: string[]
 ): Promise<BFFServices> {
   const interopTokenGenerator = new InteropTokenGenerator(config);
+
+  const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
+    [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
+    [bffApi.ConsentType.Values.TOS, config.privacyNoticesTosUuid],
+  ]);
+  const privacyNoticeStorage = privacyNoticeStorageServiceBuilder(
+    new DynamoDBClient(),
+    config.privacyNoticesDynamoTableName,
+    config.privacyNoticesUsersDynamoTableName
+  );
 
   return {
     agreementService: agreementServiceBuilder(clients, fileManager),
@@ -155,6 +173,11 @@ export async function createServices(
       clients.attributeProcessClient,
       clients.catalogProcessClient,
       fileManager
+    ),
+    privacyNoticeService: privacyNoticeServiceBuilder(
+      privacyNoticeStorage,
+      fileManager,
+      consentTypeMap
     ),
     producerKeychainService: producerKeychainServiceBuilder(clients),
     purposeService: purposeServiceBuilder(clients, fileManager),
@@ -213,7 +236,7 @@ export async function createApp(
     consumerDelegationRouter(zodiosCtx, services.delegationService),
     delegationRouter(zodiosCtx, services.delegationService),
     eserviceTemplateRouter(zodiosCtx, services.eServiceTemplateService),
-    privacyNoticeRouter(zodiosCtx),
+    privacyNoticeRouter(zodiosCtx, services.privacyNoticeService),
     producerDelegationRouter(zodiosCtx, services.delegationService),
     producerKeychainRouter(zodiosCtx, services.producerKeychainService),
     purposeRouter(zodiosCtx, services.purposeService),

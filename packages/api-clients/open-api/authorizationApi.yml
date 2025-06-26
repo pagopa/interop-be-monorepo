@@ -458,6 +458,7 @@ paths:
         - client
       summary: Set Admin to a Client
       operationId: setAdminToClient
+      description: Sets an admin user to a Client
       requestBody:
         required: true
         description: AdminId to be set to the Client
