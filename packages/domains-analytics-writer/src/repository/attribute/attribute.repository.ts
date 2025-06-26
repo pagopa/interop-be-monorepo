@@ -90,7 +90,9 @@ export function attributeRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["id"],
+          true,
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
