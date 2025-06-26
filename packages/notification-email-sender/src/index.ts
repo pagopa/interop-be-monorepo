@@ -384,5 +384,6 @@ await runConsumer(
     catalogTopic: config.catalogTopic,
     agreementTopic: config.agreementTopic,
     purposeTopic: config.purposeTopic,
-  })
+  }),
+  "notification-email-sender"
 );
