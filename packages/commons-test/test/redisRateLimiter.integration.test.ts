@@ -4,7 +4,7 @@ import { generateId, TenantId } from "pagopa-interop-models";
 import { delay, genericLogger } from "pagopa-interop-commons";
 import { redisRateLimiter } from "./utils.js";
 
-const waitForCounterReset = async (
+const waitCounterReset = async (
   attemptsLeft: number,
   delayMs: number,
   organizationId: TenantId
@@ -22,7 +22,7 @@ const waitForCounterReset = async (
   }
 
   await delay(delayMs);
-  return waitForCounterReset(attemptsLeft - 1, delayMs, organizationId);
+  return waitCounterReset(attemptsLeft - 1, delayMs, organizationId);
 };
 
 describe("Redis rate limiter tests", () => {
@@ -161,7 +161,7 @@ describe("Redis rate limiter tests", () => {
 
     await delay(3000);
 
-    await waitForCounterReset(5, 500, organizationId);
+    await waitCounterReset(5, 500, organizationId);
 
     const newResult = await redisRateLimiter.rateLimitByOrganization(
       organizationId,
