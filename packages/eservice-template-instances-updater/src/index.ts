@@ -58,4 +58,9 @@ async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(config, [config.eserviceTemplateTopic], processMessage);
+await runConsumer(
+  config,
+  [config.eserviceTemplateTopic],
+  processMessage,
+  "eservice-template-instances-updater"
+);
