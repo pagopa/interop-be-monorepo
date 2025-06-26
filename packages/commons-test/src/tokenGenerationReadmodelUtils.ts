@@ -14,7 +14,6 @@ import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
   genericInternalError,
   GSIPKConsumerIdEServiceId,
-  GSIPKEServiceIdDescriptorId,
   PlatformStatesCatalogEntry,
   PlatformStatesGenericEntry,
   TokenGenerationStatesConsumerClient,
@@ -23,7 +22,6 @@ import {
   TokenGenerationStatesGenericClient,
   TokenGenerationStatesApiClient,
   TokenGenStatesConsumerClientGSIAgreement,
-  TokenGenStatesConsumerClientGSIDescriptor,
   PlatformStatesClientEntry,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -253,68 +251,6 @@ export const readAllPlatformStatesItems = async (
     }
     return platformStateEntries.data;
   }
-};
-
-export const readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId = async (
-  gsiPKEServiceIdDescriptorId: GSIPKEServiceIdDescriptorId,
-  dynamoDBClient: DynamoDBClient
-): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
-  const runPaginatedQuery = async (
-    gsiPKEServiceIdDescriptorId: GSIPKEServiceIdDescriptorId,
-    dynamoDBClient: DynamoDBClient,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenStatesConsumerClientGSIDescriptor[]> => {
-    const input: QueryInput = {
-      TableName: "token-generation-states",
-      IndexName: "Descriptor",
-      KeyConditionExpression: `GSIPK_eserviceId_descriptorId = :gsiValue`,
-      ExpressionAttributeValues: {
-        ":gsiValue": { S: gsiPKEServiceIdDescriptorId },
-      },
-      ExclusiveStartKey: exclusiveStartKey,
-    };
-    const command = new QueryCommand(input);
-    const data: QueryCommandOutput = await dynamoDBClient.send(command);
-
-    if (!data.Items) {
-      throw genericInternalError(
-        `Unable to read token state entries: result ${JSON.stringify(data)} `
-      );
-    } else {
-      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
-
-      const tokenGenStatesEntries = z
-        .array(TokenGenStatesConsumerClientGSIDescriptor)
-        .safeParse(unmarshalledItems);
-
-      if (!tokenGenStatesEntries.success) {
-        throw genericInternalError(
-          `Unable to parse token-generation-states entries: result ${JSON.stringify(
-            tokenGenStatesEntries
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-
-      if (!data.LastEvaluatedKey) {
-        return tokenGenStatesEntries.data;
-      } else {
-        return [
-          ...tokenGenStatesEntries.data,
-          ...(await runPaginatedQuery(
-            gsiPKEServiceIdDescriptorId,
-            dynamoDBClient,
-            data.LastEvaluatedKey
-          )),
-        ];
-      }
-    }
-  };
-
-  return await runPaginatedQuery(
-    gsiPKEServiceIdDescriptorId,
-    dynamoDBClient,
-    undefined
-  );
 };
 
 export const readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId = async (
