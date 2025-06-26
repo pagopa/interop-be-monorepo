@@ -1,11 +1,7 @@
 import {
-  AttributeValue,
   DynamoDBClient,
   PutItemCommand,
   PutItemInput,
-  QueryCommand,
-  QueryCommandOutput,
-  QueryInput,
   ScanCommand,
   ScanCommandOutput,
   ScanInput,
@@ -13,7 +9,6 @@ import {
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import {
   genericInternalError,
-  GSIPKConsumerIdEServiceId,
   PlatformStatesCatalogEntry,
   PlatformStatesGenericEntry,
   TokenGenerationStatesConsumerClient,
@@ -21,7 +16,6 @@ import {
   PlatformStatesAgreementEntry,
   TokenGenerationStatesGenericClient,
   TokenGenerationStatesApiClient,
-  TokenGenStatesConsumerClientGSIAgreement,
   PlatformStatesClientEntry,
 } from "pagopa-interop-models";
 import { z } from "zod";
@@ -251,68 +245,6 @@ export const readAllPlatformStatesItems = async (
     }
     return platformStateEntries.data;
   }
-};
-
-export const readTokenGenStatesEntriesByGSIPKConsumerIdEServiceId = async (
-  gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
-  dynamoDBClient: DynamoDBClient
-): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
-  const runPaginatedQuery = async (
-    gsiPKConsumerIdEServiceId: GSIPKConsumerIdEServiceId,
-    dynamoDBClient: DynamoDBClient,
-    exclusiveStartKey?: Record<string, AttributeValue>
-  ): Promise<TokenGenStatesConsumerClientGSIAgreement[]> => {
-    const input: QueryInput = {
-      TableName: "token-generation-states",
-      IndexName: "Agreement",
-      KeyConditionExpression: `GSIPK_consumerId_eserviceId = :gsiValue`,
-      ExpressionAttributeValues: {
-        ":gsiValue": { S: gsiPKConsumerIdEServiceId },
-      },
-      ExclusiveStartKey: exclusiveStartKey,
-    };
-    const command = new QueryCommand(input);
-    const data: QueryCommandOutput = await dynamoDBClient.send(command);
-
-    if (!data.Items) {
-      throw genericInternalError(
-        `Unable to read token state entries: result ${JSON.stringify(data)} `
-      );
-    } else {
-      const unmarshalledItems = data.Items.map((item) => unmarshall(item));
-
-      const tokenGenStatesEntries = z
-        .array(TokenGenStatesConsumerClientGSIAgreement)
-        .safeParse(unmarshalledItems);
-
-      if (!tokenGenStatesEntries.success) {
-        throw genericInternalError(
-          `Unable to parse toke-generation-states entries: result ${JSON.stringify(
-            tokenGenStatesEntries
-          )} - data ${JSON.stringify(data)} `
-        );
-      }
-
-      if (!data.LastEvaluatedKey) {
-        return tokenGenStatesEntries.data;
-      } else {
-        return [
-          ...tokenGenStatesEntries.data,
-          ...(await runPaginatedQuery(
-            gsiPKConsumerIdEServiceId,
-            dynamoDBClient,
-            data.LastEvaluatedKey
-          )),
-        ];
-      }
-    }
-  };
-
-  return await runPaginatedQuery(
-    gsiPKConsumerIdEServiceId,
-    dynamoDBClient,
-    undefined
-  );
 };
 
 export const writePlatformCatalogEntry = async (
