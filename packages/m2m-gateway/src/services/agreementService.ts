@@ -47,11 +47,18 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       queryParams: m2mGatewayApi.GetAgreementsQueryParams,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreements> {
-      const { producerIds, consumerIds, eserviceIds, states, limit, offset } =
-        queryParams;
+      const {
+        producerIds,
+        consumerIds,
+        eserviceIds,
+        descriptorIds,
+        states,
+        limit,
+        offset,
+      } = queryParams;
 
       ctx.logger.info(
-        `Retrieving agreements for producerIds ${producerIds} consumerIds ${consumerIds} eServiceIds ${eserviceIds} states ${states} limit ${limit} offset ${offset}`
+        `Retrieving agreements for producerIds ${producerIds}, consumerIds ${consumerIds}, eServiceIds ${eserviceIds}, descriptorIds ${descriptorIds}, states ${states}, limit ${limit}, offset ${offset}`
       );
 
       const {
