@@ -1212,8 +1212,8 @@ importers:
         specifier: 3.693.0
         version: 3.693.0(@aws-sdk/client-dynamodb@3.693.0)
       '@xmldom/xmldom':
-        specifier: 0.9.6
-        version: 0.9.6
+        specifier: 0.9.8
+        version: 0.9.8
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.8.2)(zod@3.23.8)
@@ -1221,8 +1221,8 @@ importers:
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6(axios@1.8.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
-        specifier: 0.5.15
-        version: 0.5.15
+        specifier: 0.5.16
+        version: 0.5.16
       axios:
         specifier: 1.8.2
         version: 1.8.2
@@ -1282,8 +1282,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/adm-zip':
-        specifier: 0.5.5
-        version: 0.5.5
+        specifier: 0.5.7
+        version: 0.5.7
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -1967,8 +1967,8 @@ importers:
         specifier: 3.693.0
         version: 3.693.0
       '@types/adm-zip':
-        specifier: 0.5.5
-        version: 0.5.5
+        specifier: 0.5.7
+        version: 0.5.7
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.8.2)(zod@3.23.8)
@@ -1976,8 +1976,8 @@ importers:
         specifier: 10.6.1
         version: 10.6.1(@zodios/core@10.9.6(axios@1.8.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
-        specifier: 0.5.15
-        version: 0.5.15
+        specifier: 0.5.16
+        version: 0.5.16
       axios:
         specifier: 1.8.2
         version: 1.8.2
@@ -2106,8 +2106,8 @@ importers:
         specifier: 10.9.0
         version: 10.9.0
       '@types/adm-zip':
-        specifier: 0.5.5
-        version: 0.5.5
+        specifier: 0.5.7
+        version: 0.5.7
       '@types/jsonwebtoken':
         specifier: 9.0.10
         version: 9.0.10
@@ -2118,8 +2118,8 @@ importers:
         specifier: 10.9.6
         version: 10.9.6(axios@1.8.2)(zod@3.23.8)
       adm-zip:
-        specifier: 0.5.15
-        version: 0.5.15
+        specifier: 0.5.16
+        version: 0.5.16
       aws-sdk-client-mock:
         specifier: 4.0.1
         version: 4.0.1
@@ -3352,8 +3352,8 @@ importers:
         specifier: 3.693.0
         version: 3.693.0
       adm-zip:
-        specifier: 0.5.15
-        version: 0.5.15
+        specifier: 0.5.16
+        version: 0.5.16
       axios:
         specifier: 1.8.2
         version: 1.8.2
@@ -3392,8 +3392,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/adm-zip':
-        specifier: 0.5.5
-        version: 0.5.5
+        specifier: 0.5.7
+        version: 0.5.7
       '@types/node':
         specifier: 20.14.6
         version: 20.14.6
@@ -3612,8 +3612,8 @@ importers:
         specifier: 3.0.0
         version: 3.0.0(tsutils@3.21.0(typescript@5.4.5))(typescript@5.4.5)
       '@types/adm-zip':
-        specifier: 0.5.5
-        version: 0.5.5
+        specifier: 0.5.7
+        version: 0.5.7
       '@types/express':
         specifier: 4.17.21
         version: 4.17.21
@@ -7019,8 +7019,8 @@ packages:
   '@tsconfig/strictest@2.0.5':
     resolution: {integrity: sha512-ec4tjL2Rr0pkZ5hww65c+EEPYwxOi4Ryv+0MtjeaSQRJyq322Q27eOQiFbuNgw2hpL4hB1/W/HBGk3VKS43osg==}
 
-  '@types/adm-zip@0.5.5':
-    resolution: {integrity: sha512-YCGstVMjc4LTY5uK9/obvxBya93axZOVOyf2GSUulADzmLhYE45u2nAssCs/fWBs1Ifq5Vat75JTPwd5XZoPJw==}
+  '@types/adm-zip@0.5.7':
+    resolution: {integrity: sha512-DNEs/QvmyRLurdQPChqq0Md4zGvPwHerAJYWk9l2jCbD1VPpnzRJorOdiq4zsw09NFbYnhfsoEhWtxIzXpn2yw==}
 
   '@types/aws-lambda@8.10.148':
     resolution: {integrity: sha512-JL+2cfkY9ODQeE06hOxSFNkafjNk4JRBgY837kpoq1GHDttq2U3BA9IzKOWxS4DLjKoymGB4i9uBrlCkjUl1yg==}
@@ -7265,8 +7265,8 @@ packages:
     resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
     engines: {node: '>=10.0.0'}
 
-  '@xmldom/xmldom@0.9.6':
-    resolution: {integrity: sha512-Su4xcxR0CPGwlDHNmVP09fqET9YxbyDXHaSob6JlBH7L6reTYaeim6zbk9o08UarO0L5GTRo3uzl0D+9lSxmvw==}
+  '@xmldom/xmldom@0.9.8':
+    resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
     engines: {node: '>=14.6'}
 
   '@zodios/core@10.9.6':
@@ -7312,8 +7312,8 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  adm-zip@0.5.15:
-    resolution: {integrity: sha512-jYPWSeOA8EFoZnucrKCNihqBjoEGQSU4HKgHYQgKNEQ0pQF9a/DYuo/+fAxY76k4qe75LUlLWpAM1QWcBMTOKw==}
+  adm-zip@0.5.16:
+    resolution: {integrity: sha512-TGw5yVi4saajsSEgz25grObGHEUaDrniwvA2qwSC060KfqGPdglhvPMA2lPIoxs3PQIItj2iag35fONcQqgUaQ==}
     engines: {node: '>=12.0'}
 
   agent-base@7.1.1:
@@ -13665,7 +13665,7 @@ snapshots:
 
   '@tsconfig/strictest@2.0.5': {}
 
-  '@types/adm-zip@0.5.5':
+  '@types/adm-zip@0.5.7':
     dependencies:
       '@types/node': 20.14.6
 
@@ -13972,7 +13972,7 @@ snapshots:
 
   '@xmldom/xmldom@0.8.10': {}
 
-  '@xmldom/xmldom@0.9.6': {}
+  '@xmldom/xmldom@0.9.8': {}
 
   '@zodios/core@10.9.6(axios@1.8.2)(zod@3.23.8)':
     dependencies:
@@ -14010,7 +14010,7 @@ snapshots:
 
   acorn@8.12.1: {}
 
-  adm-zip@0.5.15: {}
+  adm-zip@0.5.16: {}
 
   agent-base@7.1.1:
     dependencies:
