@@ -986,7 +986,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Agreement"
+                $ref: "#/components/schemas/Document"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5676,6 +5676,32 @@ components:
         prettyName:
           type: string
           description: A human-readable name for the file
+    Document:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - prettyName
+        - contentType
+        - size
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the file
+        name:
+          type: string
+          description: The name of the file
+        prettyName:
+          type: string
+          description: A human-readable name for the file
+        contentType:
+          type: string
+          description: The content type of the file
+        createdAt:
+          type: string
+          format: date-time
+          description: The date and time when the file was uploaded
     Problem:
       properties:
         type:
