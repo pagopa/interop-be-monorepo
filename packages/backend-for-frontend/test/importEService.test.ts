@@ -3,6 +3,7 @@ import fs from "fs";
 import { describe, expect, it, vi } from "vitest";
 import { AuthData } from "pagopa-interop-commons/";
 import {
+  createDummyStub,
   getMockAuthData,
   getMockContext,
   getMockDocument,
@@ -75,12 +76,18 @@ describe("importEService", () => {
     getEServiceById: vi.fn().mockResolvedValue(baseEService),
     createEServiceDocument: vi.fn().mockResolvedValue(getMockDocument()),
   } as unknown as CatalogProcessClient;
-  const mockTenantProcessClient = {} as unknown as TenantProcessClient;
-  const mockAgreementProcessClient = {} as unknown as AgreementProcessClient;
-  const mockAttributeProcessClient = {} as unknown as AttributeProcessClient;
-  const mockDelegationProcessClient = {} as unknown as DelegationProcessClient;
+  const mockTenantProcessClient = createDummyStub<TenantProcessClient>();
+  const mockAgreementProcessClient = createDummyStub<AgreementProcessClient>();
+  const mockAttributeProcessClient = createDummyStub<AttributeProcessClient>();
+  const mockDelegationProcessClient =
+    createDummyStub<DelegationProcessClient>();
   const mockEServiceTemplateProcessClient =
-    {} as unknown as EServiceTemplateProcessClient;
+    createDummyStub<EServiceTemplateProcessClient>();
+
+  const mockPollingFunction = vi.fn(() => Promise.resolve());
+  vi.spyOn(apiUtils, "createPollingByCondition").mockImplementation(
+    () => mockPollingFunction
+  );
 
   const catalogService = catalogServiceBuilder(
     mockCatalogProcessClient,
@@ -92,12 +99,6 @@ describe("importEService", () => {
     fileManager,
     config
   );
-
-  const authData: AuthData = {
-    ...getMockAuthData(),
-    organizationId: tenantId,
-  };
-  const bffMockContext = getBffMockContext(getMockContext({ authData }));
 
   const fileResource: bffApi.FileResource = {
     filename: "test.zip",
@@ -131,10 +132,11 @@ describe("importEService", () => {
   };
   zip.addFile(jsonFilename, Buffer.from(JSON.stringify(configuration)));
 
-  const mockPollingFunction = vi.fn(() => Promise.resolve());
-  vi.spyOn(apiUtils, "createPollingByCondition").mockImplementation(
-    () => mockPollingFunction
-  );
+  const authData: AuthData = {
+    ...getMockAuthData(),
+    organizationId: tenantId,
+  };
+  const bffMockContext = getBffMockContext(getMockContext({ authData }));
 
   describe("success case", () => {
     it("should import eService from url", async () => {

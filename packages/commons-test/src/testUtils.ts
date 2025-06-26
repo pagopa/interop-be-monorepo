@@ -1096,3 +1096,7 @@ export const getMockContextM2M = ({
   logger: genericLogger,
   requestTimestamp: Date.now(),
 });
+
+export function createDummyStub<T>(): T {
+  return {} as T;
+}
