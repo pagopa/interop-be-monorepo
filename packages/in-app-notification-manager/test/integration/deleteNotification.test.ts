@@ -42,11 +42,19 @@ describe("deleteNotification", () => {
         },
       })
     );
-    const notifications = await inAppNotificationDB
+    // Verify the specified notification is deleted
+    const deletedNotification = await inAppNotificationDB
       .select()
       .from(notification)
       .where(eq(notification.id, notificationIdToDelete));
-    expect(notifications).toHaveLength(0);
+    expect(deletedNotification).toHaveLength(0);
+
+    // Verify other notifications still exist
+    const remainingNotifications = await inAppNotificationDB
+      .select()
+      .from(notification);
+    expect(remainingNotifications).toHaveLength(1);
+    expect(remainingNotifications[0].id).not.toBe(notificationIdToDelete);
   });
 
   it("should throw an error if the notification is not found", async () => {
