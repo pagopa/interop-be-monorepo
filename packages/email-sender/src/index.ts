@@ -8,7 +8,7 @@ import { CorrelationId, generateId } from "pagopa-interop-models";
 import { emailSenderProcessorBuilder } from "./services/emailSenderProcessor.js";
 import { config } from "./config/config.js";
 
-const sesEmailsenderData = {
+const sesEmailSenderData = {
   label: config.senderLabel,
   mail: config.senderMail,
 };
@@ -28,7 +28,7 @@ const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
 const processor = emailSenderProcessorBuilder(
   loggerInstance,
   sesEmailManager,
-  sesEmailsenderData
+  sesEmailSenderData
 );
 
 await runConsumer(config, [config.emailTopic], processor.processMessage);
