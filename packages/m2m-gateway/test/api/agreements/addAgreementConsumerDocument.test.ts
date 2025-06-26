@@ -9,7 +9,7 @@ import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 
-describe("POST /agreements router test", () => {
+describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
   const mockFileUpload = {
     fileContent: Buffer.from("test content"),
     filename: "test_document.pdf",
