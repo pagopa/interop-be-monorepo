@@ -21,7 +21,7 @@ const waitForCounterReset = async (
     return Promise.resolve();
   }
 
-  await sleep(delayMs);
+  await delay(delayMs);
   return waitForCounterReset(attemptsLeft - 1, delayMs, organizationId);
 };
 
