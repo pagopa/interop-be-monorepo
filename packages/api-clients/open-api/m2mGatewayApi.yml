@@ -5544,7 +5544,7 @@ components:
         file:
           type: string
           format: binary
-          description: The content of the file
+          description: The file to download
         filename:
           type: string
           description: The name of the file
