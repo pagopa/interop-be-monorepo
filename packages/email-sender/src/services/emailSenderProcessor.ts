@@ -48,7 +48,7 @@ export function emailSenderProcessorBuilder(
           loggerInstance.info(`Email sent: ${jsonPayload}`);
         } catch (err) {
           if (err instanceof TooManyRequestsException) {
-            await delay(config.retryDelay);
+            await delay(config.retryDelayInMillis);
           } else {
             throw genericInternalError(
               `Error consuming message in partition ${partition} with offset ${message.offset}. Reson: ${err}`
