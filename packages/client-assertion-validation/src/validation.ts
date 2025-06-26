@@ -80,7 +80,10 @@ export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined,
   expectedAudiences: string[],
-  logger: Logger
+  logger: Logger,
+  // TODO: delete when FEATURE_FLAG_CLIENT_ASSERTION_STRICT_CLAIMS_VALIDATION is removed
+  featureFlagClientAssertionStrictClaimsValidation: boolean = false
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): ValidationResult<ClientAssertion> => {
   try {
     const decodedPayload = jose.decodeJwt(clientAssertionJws);
@@ -146,6 +149,14 @@ export const verifyClientAssertion = (
             JSON.parse(payloadStrictParseResult.error.message)
           )}`
         );
+
+        if (featureFlagClientAssertionStrictClaimsValidation) {
+          return failedValidation([
+            clientAssertionInvalidClaims(
+              payloadStrictParseResult.error.message
+            ),
+          ]);
+        }
       }
 
       const headerParseResult = ClientAssertionHeader.safeParse(decodedHeader);
@@ -164,6 +175,12 @@ export const verifyClientAssertion = (
             JSON.parse(headerStrictParseResult.error.message)
           )}`
         );
+
+        if (featureFlagClientAssertionStrictClaimsValidation) {
+          return failedValidation([
+            clientAssertionInvalidClaims(headerStrictParseResult.error.message),
+          ]);
+        }
       }
 
       const result: ClientAssertion = {
@@ -230,7 +247,7 @@ export const verifyClientAssertionSignature = async (
     // instead of using the dedicated function from jose.
     // Why:
     // - it's the same function we use to create the public key when adding it to the client
-    // - jose throws and error in case of keys with missing trailing newline, while crypto does not
+    // - jose throws an error in case of keys with missing trailing newline, while crypto does not
     // See keyImport.test.ts
     // See also Jose docs, it accepts crypto KeyObject as well: https://github.com/panva/jose/blob/main/docs/types/types.KeyLike.md
     const publicKey = createPublicKey({ key: key.publicKey });

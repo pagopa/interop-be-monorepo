@@ -1,13 +1,16 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiDelegation,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
 import { api, mockDelegationService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { unexpectedDelegationKind } from "../../../src/model/errors.js";
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
-import { getMockedApiDelegation } from "../../mockUtils.js";
 
 describe("GET /consumerDelegations router test", () => {
   const mockApiDelegation1 = getMockedApiDelegation({
@@ -20,16 +23,16 @@ describe("GET /consumerDelegations router test", () => {
   const mockM2MDelegationsResponse: m2mGatewayApi.ConsumerDelegations = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MGatewayApiConsumerDelegation(mockApiDelegation1.data),
-      toM2MGatewayApiConsumerDelegation(mockApiDelegation2.data),
+      toM2MGatewayApiConsumerDelegation(mockApiDelegation1),
+      toM2MGatewayApiConsumerDelegation(mockApiDelegation2),
     ],
   };
 
   const mockQueryParams: m2mGatewayApi.GetConsumerDelegationsQueryParams = {
     states: ["WAITING_FOR_APPROVAL"],
-    eserviceIds: [],
-    delegateIds: [],
-    delegatorIds: [],
+    eserviceIds: [generateId()],
+    delegateIds: [generateId()],
+    delegatorIds: [generateId()],
     offset: 0,
     limit: 10,
   };
@@ -77,11 +80,14 @@ describe("GET /consumerDelegations router test", () => {
     { ...mockQueryParams, limit: 100 },
     { ...mockQueryParams, offset: "invalidOffset" },
     { ...mockQueryParams, limit: "invalidLimit" },
+    { ...mockQueryParams, eserviceIds: ["invalidId"] },
+    { ...mockQueryParams, delegateIds: ["invalidId"] },
+    { ...mockQueryParams, delegatorIds: ["invalidId"] },
   ])("Should return 400 if passed invalid query params", async (query) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetConsumerDelegationsQueryParams
+      query as m2mGatewayApi.GetConsumerDelegationsQueryParams
     );
 
     expect(res.status).toBe(400);
@@ -118,7 +124,7 @@ describe("GET /consumerDelegations router test", () => {
   it("Should return 500 in case of unexpectedDelegationKind error", async () => {
     mockDelegationService.getConsumerDelegations = vi
       .fn()
-      .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation1.data));
+      .mockRejectedValue(unexpectedDelegationKind(mockApiDelegation1));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockQueryParams);
 

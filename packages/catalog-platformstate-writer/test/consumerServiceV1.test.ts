@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import {
   afterAll,
   afterEach,
@@ -32,11 +31,12 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   readAllTokenGenStatesItems,
+  writePlatformCatalogEntry,
 } from "pagopa-interop-commons-test";
 import { writeTokenGenStatesConsumerClient } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
-import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
+import { readCatalogEntry } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
 describe("V1 events", async () => {
@@ -209,11 +209,7 @@ describe("V1 events", async () => {
             version: 1,
             updatedAt: new Date().toISOString(),
           };
-          await writeCatalogEntry(
-            previousStateEntry,
-            dynamoDBClient,
-            genericLogger
-          );
+          await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
           // token-generation-states
           const tokenGenStatesEntryPK1 =
@@ -332,10 +328,9 @@ describe("V1 events", async () => {
           version: 2,
           updatedAt: new Date().toISOString(),
         };
-        await writeCatalogEntry(
+        await writePlatformCatalogEntry(
           previousCatalogStateEntry,
-          dynamoDBClient,
-          genericLogger
+          dynamoDBClient
         );
 
         // token-generation-states
@@ -440,11 +435,7 @@ describe("V1 events", async () => {
             version: 1,
             updatedAt: new Date().toISOString(),
           };
-          await writeCatalogEntry(
-            previousStateEntry,
-            dynamoDBClient,
-            genericLogger
-          );
+          await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
           // token-generation-states
           const tokenGenStatesEntryPK1 =
@@ -562,11 +553,7 @@ describe("V1 events", async () => {
             updatedAt: new Date().toISOString(),
           };
 
-          await writeCatalogEntry(
-            previousStateEntry,
-            dynamoDBClient,
-            genericLogger
-          );
+          await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
           // token-generation-states
           const tokenGenStatesEntryPK1 =
@@ -711,11 +698,7 @@ describe("V1 events", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =

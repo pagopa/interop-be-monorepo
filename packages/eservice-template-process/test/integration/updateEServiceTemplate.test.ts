@@ -6,10 +6,10 @@ import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getMockValidRiskAnalysis,
   getMockAuthData,
   randomArrayItem,
   readLastEventByStreamId,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -20,12 +20,13 @@ import {
   eserviceTemplateVersionState,
   eserviceMode,
   operationForbidden,
+  tenantKind,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
-  eServiceTemplateDuplicate,
-  eServiceTemplateNotFound,
+  eserviceTemplateDuplicate,
+  eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
 } from "../../src/model/domain/errors.js";
 import {
@@ -182,7 +183,9 @@ describe("update EService template", () => {
   });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
-    const riskAnalysis = getMockValidRiskAnalysis("PA");
+    const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PA
+    );
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [],
@@ -277,7 +280,7 @@ describe("update EService template", () => {
     }
   );
 
-  it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
+  it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
     expect(
       eserviceTemplateService.updateEServiceTemplate(
         mockEServiceTemplate.id,
@@ -286,10 +289,10 @@ describe("update EService template", () => {
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(mockEServiceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
-  it("should throw eServiceTemplateDuplicate if the updated name is already in use, case insensitive", async () => {
+  it("should throw eserviceTemplateDuplicate if the updated name is already in use, case insensitive", async () => {
     const eserviceTemplate1: EServiceTemplate = {
       ...mockEServiceTemplate,
       id: generateId(),
@@ -298,6 +301,7 @@ describe("update EService template", () => {
     const eserviceTemplate2: EServiceTemplate = {
       ...mockEServiceTemplate,
       id: generateId(),
+      creatorId: generateId(),
       name: "eservice name already in use",
       versions: [],
     };
@@ -319,7 +323,7 @@ describe("update EService template", () => {
         })
       )
     ).rejects.toThrowError(
-      eServiceTemplateDuplicate("ESERVICE NAME ALREADY IN USE")
+      eserviceTemplateDuplicate("ESERVICE NAME ALREADY IN USE")
     );
   });
 });

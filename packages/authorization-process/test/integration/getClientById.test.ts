@@ -28,30 +28,38 @@ describe("getClientById", async () => {
     };
     await addOneClient(expectedClient);
 
-    const { client } = await authorizationService.getClientById(
+    const clientResult = await authorizationService.getClientById(
       {
         clientId: expectedClient.id,
       },
       getMockContext({ authData: getMockAuthData(organizationId) })
     );
-    expect(client).toEqual(expectedClient);
+    expect(clientResult).toEqual({
+      data: { client: expectedClient, showUsers: true },
+      metadata: { version: 0 },
+    });
   });
-  it("should get from the readModel the client with the specified Id without users", async () => {
-    const expectedClientWithoutUser: Client = {
+  it("should return showUsers to false if the requester is not the client consumer", async () => {
+    const userId1: UserId = generateId();
+    const userId2: UserId = generateId();
+
+    const expectedClient: Client = {
       ...getMockClient(),
-      users: [],
       consumerId: organizationId,
+      users: [userId1, userId2],
     };
+    await addOneClient(expectedClient);
 
-    await addOneClient(expectedClientWithoutUser);
-
-    const { client } = await authorizationService.getClientById(
+    const clientResult = await authorizationService.getClientById(
       {
-        clientId: expectedClientWithoutUser.id,
+        clientId: expectedClient.id,
       },
-      getMockContext({ authData: getMockAuthData(organizationId) })
+      getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
     );
-    expect(client).toEqual(expectedClientWithoutUser);
+    expect(clientResult).toEqual({
+      data: { client: expectedClient, showUsers: false },
+      metadata: { version: 0 },
+    });
   });
   it("should throw clientNotFound if the client with the specified Id doesn't exist", async () => {
     await addOneClient(getMockClient());

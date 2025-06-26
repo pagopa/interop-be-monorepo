@@ -2,10 +2,8 @@ import {
   ascLower,
   createListResult,
   escapeRegExp,
-  hasAtLeastOneUserRole,
   M2MAuthData,
   UIAuthData,
-  userRole,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -64,9 +62,11 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   tenantInReadmodelTenant,
+  eserviceTemplateInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
 import {
   and,
+  count,
   desc,
   eq,
   exists,
@@ -79,7 +79,10 @@ import {
 } from "drizzle-orm";
 import { match } from "ts-pattern";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
-import { validDescriptorStates } from "./validators.js";
+import {
+  activeDescriptorStates,
+  hasRoleToAccessInactiveDescriptors,
+} from "./validators.js";
 
 const existsValidDescriptor = (
   readmodelDB: DrizzleReturnType
@@ -96,7 +99,7 @@ const existsValidDescriptor = (
           ),
           inArray(
             eserviceDescriptorInReadmodelCatalog.state,
-            validDescriptorStates
+            activeDescriptorStates
           )
         )
       )
@@ -219,11 +222,7 @@ export function readModelServiceBuilderSQL(
                 )
               : undefined,
             // visibility filter
-            hasAtLeastOneUserRole(authData, [
-              userRole.ADMIN_ROLE,
-              userRole.API_ROLE,
-              userRole.SUPPORT_ROLE,
-            ])
+            hasRoleToAccessInactiveDescriptors(authData)
               ? or(
                   existsValidDescriptor(readmodelDB),
                   // the requester is the producer
@@ -392,9 +391,15 @@ export function readModelServiceBuilderSQL(
         )
         .leftJoin(
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          eq(
-            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          and(
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+            ),
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
+            )
           )
         )
         .orderBy(ascLower(eserviceInReadmodelCatalog.name));
@@ -408,19 +413,43 @@ export function readModelServiceBuilderSQL(
         queryResult[0]?.totalCount
       );
     },
-    async getEServiceByNameAndProducerId({
+    async isEServiceNameAvailableForProducer({
       name,
       producerId,
     }: {
       name: string;
       producerId: TenantId;
-    }): Promise<WithMetadata<EService> | undefined> {
-      return await catalogReadModelService.getEServiceByFilter(
-        and(
-          ilike(eserviceInReadmodelCatalog.name, escapeRegExp(name)),
-          eq(eserviceInReadmodelCatalog.producerId, producerId)
+    }): Promise<boolean> {
+      const result = await readmodelDB
+        .select({ count: count() })
+        .from(eserviceInReadmodelCatalog)
+        .where(
+          and(
+            ilike(eserviceInReadmodelCatalog.name, escapeRegExp(name)),
+            eq(eserviceInReadmodelCatalog.producerId, producerId)
+          )
         )
-      );
+        .limit(1);
+
+      return (result[0]?.count ?? 0) === 0;
+    },
+    async isEServiceNameConflictingWithTemplate({
+      name,
+    }: {
+      name: string;
+    }): Promise<boolean> {
+      const result = await readmodelDB
+        .select({ count: count() })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .where(
+          ilike(
+            eserviceTemplateInReadmodelEserviceTemplate.name,
+            escapeRegExp(name)
+          )
+        )
+        .limit(1);
+
+      return (result[0]?.count ?? 0) > 0;
     },
     async getEServiceById(
       id: EServiceId

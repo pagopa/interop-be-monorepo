@@ -15,6 +15,7 @@ import {
   addSomeRandomDelegations,
   getMockAgreement,
   getMockContext,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   tenantKind,
@@ -61,11 +62,7 @@ import {
   addOneEService,
   addOneAgreement,
 } from "../integrationUtils.js";
-import {
-  getMockEService,
-  buildRiskAnalysisSeed,
-  createUpdatedPurpose,
-} from "../mockUtils.js";
+import { buildRiskAnalysisSeed, createUpdatedPurpose } from "../mockUtils.js";
 
 describe("updatePurpose and updateReversePurpose", () => {
   const tenantType = randomArrayItem(Object.values(tenantKind));
@@ -774,30 +771,6 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         purposeForDeliver.id,
         mockPurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(
-      riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
-    );
-  });
-  it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid in updateReversePurpose", async () => {
-    const purposeWithInvalidRiskAnalysis: Purpose = {
-      ...purposeForReceive,
-      riskAnalysisForm: {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        ...purposeForReceive.riskAnalysisForm!,
-        version: "0",
-      },
-    };
-
-    await addOnePurpose(purposeWithInvalidRiskAnalysis);
-    await addOneEService(eServiceReceive);
-    await addOneTenant(tenant);
-
-    expect(
-      purposeService.updateReversePurpose(
-        purposeWithInvalidRiskAnalysis.id,
-        reversePurposeUpdateContent,
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(

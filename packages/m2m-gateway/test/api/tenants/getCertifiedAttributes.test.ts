@@ -1,17 +1,15 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiCertifiedTenantAttribute,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiAttribute } from "../../mockUtils.js";
 import { toM2MGatewayApiTenantCertifiedAttribute } from "../../../src/api/tenantApiConverter.js";
-import {
-  unexpectedAttributeKind,
-  unexpectedUndefinedAttributeOriginOrCode,
-} from "../../../src/model/errors.js";
 
 describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
   const mockQueryParams: m2mGatewayApi.GetCertifiedAttributesQueryParams = {
@@ -19,29 +17,16 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
     limit: 10,
   };
 
-  const mockApiAttribute1 = getMockedApiAttribute();
-  const mockApiAttribute2 = getMockedApiAttribute();
+  const mockTenantAttribute1 = getMockedApiCertifiedTenantAttribute();
 
-  const mockTenantAttribute1: tenantApi.CertifiedTenantAttribute = {
-    id: mockApiAttribute1.data.id,
-    assignmentTimestamp: new Date().toISOString(),
-  };
-
-  const mockTenantAttribute2: tenantApi.CertifiedTenantAttribute = {
-    id: mockApiAttribute2.data.id,
-    assignmentTimestamp: new Date().toISOString(),
-  };
+  const mockTenantAttribute2 = getMockedApiCertifiedTenantAttribute({
+    revoked: true,
+  });
 
   const mockResponse: m2mGatewayApi.TenantCertifiedAttributes = {
     results: [
-      toM2MGatewayApiTenantCertifiedAttribute(
-        mockTenantAttribute1,
-        mockApiAttribute1.data
-      ),
-      toM2MGatewayApiTenantCertifiedAttribute(
-        mockTenantAttribute2,
-        mockApiAttribute2.data
-      ),
+      toM2MGatewayApiTenantCertifiedAttribute(mockTenantAttribute1),
+      toM2MGatewayApiTenantCertifiedAttribute(mockTenantAttribute2),
     ],
     pagination: {
       limit: 10,
@@ -97,7 +82,7 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as unknown as m2mGatewayApi.GetCertifiedAttributesQueryParams
+      query as m2mGatewayApi.GetCertifiedAttributesQueryParams
     );
 
     expect(res.status).toBe(400);
@@ -106,7 +91,11 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
   it.each([
     {
       ...mockResponse,
-      results: [{ ...mockResponse.results[0], name: 0 }],
+      results: [{ ...mockResponse.results[0], id: "invalidId" }],
+    },
+    {
+      ...mockResponse,
+      results: [{ ...mockResponse.results[0], assignedAt: "invalidDate" }],
     },
     {
       ...mockResponse,
@@ -128,15 +117,4 @@ describe("GET /tenants/:tenantId/certifiedAttributes route test", () => {
       expect(res.status).toBe(500);
     }
   );
-
-  it.each([
-    unexpectedAttributeKind(mockApiAttribute1.data),
-    unexpectedUndefinedAttributeOriginOrCode(mockApiAttribute1.data),
-  ])("Should return 500 in case of $code error", async (error) => {
-    mockTenantService.getCertifiedAttributes = vi.fn().mockRejectedValue(error);
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockQueryParams);
-
-    expect(res.status).toBe(500);
-  });
 });

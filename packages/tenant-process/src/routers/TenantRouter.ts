@@ -3,24 +3,14 @@ import { ZodiosRouter } from "@zodios/express";
 import {
   ExpressContext,
   ZodiosContext,
-  initDB,
   zodiosValidationErrorToApiProblem,
   fromAppContext,
-  ReadModelRepository,
   authRole,
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import {
-  agreementReadModelServiceBuilder,
-  attributeReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
-  makeDrizzleConnection,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import {
   apiTenantFeatureTypeToTenantFeatureType,
   toApiTenant,
@@ -52,52 +42,11 @@ import {
   maintenanceTenantUpdatedErrorMapper,
   updateTenantDelegatedFeaturesErrorMapper,
 } from "../utilities/errorMappers.js";
-import { readModelServiceBuilder } from "../services/readModelService.js";
-import { config } from "../config/config.js";
-import { tenantServiceBuilder } from "../services/tenantService.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
-
-const db = makeDrizzleConnection(config);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(db);
-const agreementReadModelServiceSQL = agreementReadModelServiceBuilder(db);
-const attributeReadModelServiceSQL = attributeReadModelServiceBuilder(db);
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(db);
-const delegationReadModelServiceSQL = delegationReadModelServiceBuilder(db);
-
-const readModelRepository = ReadModelRepository.init(config);
-
-const oldReadModelService = readModelServiceBuilder(readModelRepository);
-const readModelServiceSQL = readModelServiceBuilderSQL(
-  db,
-  tenantReadModelServiceSQL,
-  agreementReadModelServiceSQL,
-  attributeReadModelServiceSQL,
-  catalogReadModelServiceSQL,
-  delegationReadModelServiceSQL
-);
-
-const readModelService =
-  config.featureFlagSQL &&
-  config.readModelSQLDbHost &&
-  config.readModelSQLDbPort
-    ? readModelServiceSQL
-    : oldReadModelService;
-
-const tenantService = tenantServiceBuilder(
-  initDB({
-    username: config.eventStoreDbUsername,
-    password: config.eventStoreDbPassword,
-    host: config.eventStoreDbHost,
-    port: config.eventStoreDbPort,
-    database: config.eventStoreDbName,
-    schema: config.eventStoreDbSchema,
-    useSSL: config.eventStoreDbUseSSL,
-  }),
-  readModelService
-);
+import { TenantService } from "../services/tenantService.js";
 
 const tenantsRouter = (
-  ctx: ZodiosContext
+  ctx: ZodiosContext,
+  tenantService: TenantService
 ): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
   const {
     ADMIN_ROLE,

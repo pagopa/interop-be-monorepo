@@ -5,71 +5,46 @@ info:
   version: "2.0.0"
   contact:
     name: API Support
-    url: "http://www.example.com/support"
-    email: support@example.com
-  termsOfService: "http://swagger.io/terms/"
+    url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
+  termsOfService: "https://selfcare.interop.pagopa.it/ui/it/termini-di-servizio"
 servers:
-  - url: "https://api.interop.pagopa.it/v2"
-    description: Production
+  - url: "https://api.uat.interop.pagopa.it/v2"
+    description: UAT environment
 security:
   - bearerAuth: []
 tags:
   - name: clients
     description: Clients routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: attributes
     description: Attributes routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: agreements
     description: Agreements routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: eservices
-    description: EServices routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
+    description: E-Services routes
+  - name: keys
+    description: Keys routes
   - name: purposes
     description: Purposes routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: tenants
     description: Tenants routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: delegations
     description: Delegations routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
   - name: eserviceTemplates
-    description: EService Templates routes
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
+    description: E-Service Templates routes
   - name: health
     description: Verify service status
-    externalDocs:
-      description: Find out more
-      url: "http://swagger.io"
 paths:
   /agreements:
     get:
       tags:
         - agreements
-      description: List agreements
-      summary: List agreements
+      summary: List Agreements
+      description: Retrieve a list of Agreements based on filters
       operationId: getAgreements
       parameters:
         - in: query
           name: states
+          description: Filter Agreements by states. If not specified, return Agreements in any state
           required: false
           schema:
             type: array
@@ -79,6 +54,7 @@ paths:
           explode: false
         - in: query
           name: producerIds
+          description: Filter Agreements by producer IDs. If not specified, return Agreements for any producer
           required: false
           schema:
             type: array
@@ -89,6 +65,7 @@ paths:
           explode: false
         - in: query
           name: consumerIds
+          description: Filter Agreements by consumer IDs. If not specified, return Agreements for any consumer
           required: false
           schema:
             type: array
@@ -99,6 +76,7 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
+          description: Filter Agreements by E-Service IDs. If not specified, return Agreements for any E-Service
           schema:
             type: array
             items:
@@ -108,6 +86,7 @@ paths:
           explode: false
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -115,6 +94,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -138,7 +118,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -151,7 +131,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -164,7 +144,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -177,7 +157,9 @@ paths:
     post:
       tags:
         - agreements
-      description: Creates an agreement
+      summary: Create a new Agreement
+      description: Create a new Agreement in Draft state
+      operationId: createAgreement
       requestBody:
         content:
           application/json:
@@ -201,7 +183,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -214,7 +196,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -227,7 +209,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -240,7 +222,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -253,7 +235,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -267,7 +249,7 @@ paths:
     parameters:
       - name: agreementId
         in: path
-        description: The agreement id
+        description: The ID of the Agreement to retrieve
         required: true
         schema:
           type: string
@@ -275,7 +257,8 @@ paths:
     get:
       tags:
         - agreements
-      description: Get agreement
+      summary: Retrieve an Agreement
+      description: Retrieve an Agreement
       operationId: getAgreement
       responses:
         "200":
@@ -294,7 +277,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -307,7 +290,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -320,7 +303,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -333,7 +316,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -346,7 +329,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -362,12 +345,14 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The ID of the Agreement to approve
         in: path
         required: true
     post:
       tags:
         - agreements
-      summary: Approve Pending Agreement
+      summary: Approve an Agreement in Pending state
+      description: Approve an Agreement that is in Pending state, transitioning it to Active state
       operationId: approveAgreement
       responses:
         "200":
@@ -386,7 +371,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -399,7 +384,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -412,7 +397,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -425,7 +410,20 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -438,7 +436,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -454,13 +452,14 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The ID of the Agreement to reject
         in: path
         required: true
-        description: identifier of the pending agreement to be rejected
     post:
       tags:
         - agreements
-      summary: Reject Agreement
+      summary: Reject an Agreement in Pending state
+      description: Reject an Agreement that is in Pending state, transitioning it to Rejected state
       operationId: rejectAgreement
       requestBody:
         content:
@@ -485,7 +484,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -498,7 +497,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -511,7 +510,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -524,7 +523,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -537,7 +536,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -553,13 +552,14 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The ID of the Agreement to submit
         in: path
         required: true
-        description: identifier of the draft agreement to be submitted
     post:
       tags:
         - agreements
-      summary: Agreement Sumbission
+      summary: Submit an Agreement in Draft state
+      description: Submit an Agreement that is in Draft state, transitioning it to Active state if all requirements are satisfied, to Pending otherwise
       operationId: submitAgreement
       requestBody:
         content:
@@ -585,7 +585,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -598,7 +598,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -611,7 +611,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -624,7 +624,20 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -637,7 +650,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -653,13 +666,16 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The ID of the Agreement to suspend
         in: path
         required: true
-        description: identifier of the pending agreement to be suspended
     post:
       tags:
         - agreements
-      summary: Suspend Agreement
+      summary: Suspend an Agreement in Active or Suspended state
+      description: |
+        Suspend an Agreement that is in Active or Suspended state, transitioning it to Suspended state
+        An Agreement may already be in Suspended state when previously suspended by the consumer or the producer
       operationId: suspendAgreement
       responses:
         "200":
@@ -678,7 +694,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -691,7 +707,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -704,7 +720,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -717,7 +733,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -730,7 +746,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -746,16 +762,20 @@ paths:
           type: string
           format: uuid
         name: agreementId
+        description: The ID of the Agreement to unsuspend
         in: path
         required: true
     post:
       tags:
         - agreements
-      summary: Agreement Unsuspended
+      summary: Unsuspend an Agreement in Suspended state
+      description: |
+        Unsuspend an Agreement that is in Suspended state, transitioning it to Active or Suspended state
+        An Agreement may remain in Suspended state when suspended also by the consumer or the producer
       operationId: unsuspendAgreement
       responses:
         "200":
-          description: Agreement activated
+          description: Agreement unsuspended
           content:
             application/json:
               schema:
@@ -770,7 +790,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -783,7 +803,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -796,7 +816,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -809,7 +829,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -822,7 +842,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -836,7 +856,7 @@ paths:
     parameters:
       - name: agreementId
         in: path
-        description: The identifier of the agreement to update
+        description: The ID of the Agreement to upgrade
         required: true
         schema:
           type: string
@@ -844,8 +864,10 @@ paths:
     post:
       tags:
         - agreements
-      summary: Upgrade the agreement
-      description: Upgrades the agreement with a newer eservice version, if any
+      summary: Upgrade an Agreement
+      description: |
+        Upgrade the Agreement to a newer E-Service version, if available
+        The current Agreement will be archived and a new Agreement will be created, in the same state
       operationId: upgradeAgreement
       responses:
         "200":
@@ -864,7 +886,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -877,7 +899,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -890,7 +912,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -903,7 +925,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -916,7 +938,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -930,12 +952,13 @@ paths:
     get:
       tags:
         - delegations
-      description: List delegations
-      summary: List delegations
+      summary: List Consumer Delegations
+      description: Retrieve a list of Consumer Delegations based on filters
       operationId: getConsumerDelegations
       parameters:
         - in: query
           name: states
+          description: Filter Consumer Delegations by states. If not specified, return Consumer Delegations in any state
           required: false
           schema:
             type: array
@@ -945,6 +968,7 @@ paths:
           explode: false
         - in: query
           name: delegatorIds
+          description: Filter Consumer Delegations by delegator IDs. If not specified, return Consumer Delegations for any delegator
           required: false
           schema:
             type: array
@@ -955,6 +979,7 @@ paths:
           explode: false
         - in: query
           name: delegateIds
+          description: Filter Consumer Delegations by delegate IDs. If not specified, return Consumer Delegations for any delegate
           required: false
           schema:
             type: array
@@ -965,6 +990,7 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
+          description: Filter Consumer Delegations by E-Service IDs. If not specified, return Consumer Delegations for any E-Service
           schema:
             type: array
             items:
@@ -974,6 +1000,7 @@ paths:
           explode: false
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -981,6 +1008,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -989,7 +1017,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Delegations retrieved
+          description: Consumer Delegations retrieved
           content:
             application/json:
               schema:
@@ -1004,7 +1032,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1017,7 +1045,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1030,7 +1058,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1043,7 +1071,8 @@ paths:
     post:
       tags:
         - delegations
-      description: Creates a consumer delegation
+      summary: Create a new Consumer Delegation
+      description: Create a new Consumer Delegation in Waiting for Approval state
       operationId: createConsumerDelegation
       requestBody:
         content:
@@ -1053,7 +1082,7 @@ paths:
         required: true
       responses:
         "201":
-          description: Delegation created
+          description: Consumer Delegation created
           content:
             application/json:
               schema:
@@ -1068,7 +1097,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1081,7 +1110,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1094,7 +1123,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1107,7 +1136,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1120,7 +1149,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1134,7 +1163,7 @@ paths:
     parameters:
       - name: delegationId
         in: path
-        description: The delegation id
+        description: The ID of the Consumer Delegation to accept
         required: true
         schema:
           type: string
@@ -1142,11 +1171,12 @@ paths:
     post:
       tags:
         - delegations
-      description: Accept consumer delegation
+      summary: Accept a Consumer Delegation in Waiting for Approval state
+      description: Accept a Consumer Delegation that is in Waiting for Approval state, transitioning it to Active state
       operationId: acceptConsumerDelegation
       responses:
         "200":
-          description: Delegation updated
+          description: Consumer Delegation accepted
           content:
             application/json:
               schema:
@@ -1161,7 +1191,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1174,7 +1204,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1187,7 +1217,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1200,7 +1230,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1213,13 +1243,13 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1233,8 +1263,12 @@ paths:
     post:
       tags:
         - attributes
-      summary: Create certified attribute
-      description: Create the attribute passed as payload
+      summary: Create a certified Attribute
+      description: |
+        Create a certified Attribute
+        The Attribute must
+          - have a unique name across all Attributes in the Platform
+          - have a unique code across certified Attributes owned by the requester
       operationId: createCertifiedAttribute
       requestBody:
         required: true
@@ -1244,7 +1278,7 @@ paths:
               $ref: "#/components/schemas/CertifiedAttributeSeed"
       responses:
         "201":
-          description: Certified attribute created
+          description: Certified Attribute created
           content:
             application/json:
               schema:
@@ -1259,7 +1293,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1272,7 +1306,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1285,7 +1319,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1298,7 +1332,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1311,7 +1345,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1325,7 +1359,7 @@ paths:
     parameters:
       - name: attributeId
         in: path
-        description: The attribute id
+        description: The ID of the Attribute to retrieve
         required: true
         schema:
           type: string
@@ -1333,7 +1367,8 @@ paths:
     get:
       tags:
         - attributes
-      description: Get certified attribute
+      summary: Retrieve a certified Attribute
+      description: Retrieve a certified Attribute
       operationId: getCertifiedAttribute
       responses:
         "200":
@@ -1352,7 +1387,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1365,7 +1400,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1378,7 +1413,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1391,7 +1426,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1405,7 +1440,7 @@ paths:
     parameters:
       - name: clientId
         in: path
-        description: The client id
+        description: The ID of the Client to link the Purpose to
         required: true
         schema:
           type: string
@@ -1413,7 +1448,10 @@ paths:
     post:
       tags:
         - clients
-      description: Add a purpose to the client
+      summary: Link a Client to a Purpose
+      description: |
+        Link a Client to a Purpose
+        The Purpose must be in Active or Suspended state
       operationId: addClientPurpose
       requestBody:
         content:
@@ -1423,7 +1461,7 @@ paths:
         required: true
       responses:
         "204":
-          description: Purpose added
+          description: Client linked to the Purpose
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -1434,7 +1472,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1447,7 +1485,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1460,7 +1498,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1473,7 +1511,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1486,7 +1524,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1499,7 +1537,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1513,7 +1551,7 @@ paths:
     parameters:
       - name: delegationId
         in: path
-        description: The delegation id
+        description: The ID of the Consumer Delegation to reject
         required: true
         schema:
           type: string
@@ -1521,8 +1559,8 @@ paths:
     post:
       tags:
         - delegations
-      description: Rejects a consumer delegation
-      summary: Consumer delegation rejection
+      summary: Reject a Consumer Delegation in Waiting for Approval state
+      description: Reject a Consumer Delegation that is in Waiting for Approval state, transitioning it to Rejected state
       operationId: rejectConsumerDelegation
       requestBody:
         content:
@@ -1533,7 +1571,7 @@ paths:
         description: Payload for delegation rejection
       responses:
         "200":
-          description: Delegation updated
+          description: Consumer Delegation rejected
           content:
             application/json:
               schema:
@@ -1548,7 +1586,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1561,7 +1599,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1574,7 +1612,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1587,7 +1625,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1600,7 +1638,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1614,12 +1652,13 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservices
+      summary: List E-Services
+      description: Retrieve a list of E-Services based on filters
       operationId: getEServices
       parameters:
         - in: query
-          name: producersIds
-          description: comma separated sequence of producers IDs
+          name: producerIds
+          description: Filter E-Services by producer IDs. If not specified, return E-Services for any producer
           schema:
             type: array
             items:
@@ -1628,8 +1667,8 @@ paths:
             default: []
           explode: false
         - in: query
-          name: templatesIds
-          description: comma separated sequence of template IDs
+          name: templateIds
+          description: Filter E-Services by template IDs. If not specified, return E-Services for any template, and E-Services without a template
           schema:
             type: array
             items:
@@ -1637,21 +1676,26 @@ paths:
               format: uuid
             default: []
           explode: false
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          description: Maximum number of results to return
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
-          description: Eservices retrieved
+          description: E-Services retrieved
           content:
             application/json:
               schema:
@@ -1666,7 +1710,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1679,7 +1723,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1692,7 +1736,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1706,7 +1750,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The eservice id
+        description: The E-Service ID
         required: true
         schema:
           type: string
@@ -1714,11 +1758,12 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservice
-      operationId: getEservice
+      summary: Retrieve an E-Service
+      description: Retrieve an E-Service
+      operationId: getEService
       responses:
         "200":
-          description: Eservice retrieved
+          description: E-Service retrieved
           content:
             application/json:
               schema:
@@ -1733,7 +1778,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1746,7 +1791,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1759,7 +1804,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1772,7 +1817,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1786,7 +1831,7 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The eservice id
+        description: The E-Service ID of the Descriptors to retrieve
         required: true
         schema:
           type: string
@@ -1794,29 +1839,35 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservice descriptors
+      summary: List E-Service Descriptors
+      description: Retrieve a list of E-Service Descriptors based on filters
       operationId: getEServiceDescriptors
       parameters:
         - name: state
           in: query
-          description: The descriptor state
+          description: Filter Descriptors by states. If not specified, return Descriptors in any state
           schema:
             $ref: "#/components/schemas/EServiceDescriptorState"
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          description: Maximum number of results to return
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
-          description: E-Service descriptors retrieved
+          description: E-Service Descriptors retrieved
           content:
             application/json:
               schema:
@@ -1831,7 +1882,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1844,7 +1895,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1857,7 +1908,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1870,7 +1921,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1884,14 +1935,14 @@ paths:
     parameters:
       - name: eserviceId
         in: path
-        description: The eservice id
+        description: The E-Service ID of the Descriptor
         required: true
         schema:
           type: string
           format: uuid
       - name: descriptorId
         in: path
-        description: The descriptor id
+        description: The ID of the Descriptor to retrieve
         required: true
         schema:
           type: string
@@ -1899,11 +1950,12 @@ paths:
     get:
       tags:
         - eservices
-      description: Get eservice descriptor
+      summary: Retrieve an E-Service Descriptor
+      description: Retrieve an E-Service Descriptor
       operationId: getEServiceDescriptor
       responses:
         "200":
-          description: E-Service descriptor retrieved
+          description: E-Service Descriptor retrieved
           content:
             application/json:
               schema:
@@ -1918,7 +1970,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1931,7 +1983,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1944,7 +1996,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1957,7 +2009,111 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/interface:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor for which to download the interface
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eservices
+      summary: Download an E-Service Descriptor interface
+      description: Download the interface document of an E-Service Descriptor
+      operationId: downloadEServiceDescriptorInterface
+      responses:
+        "200":
+          description: E-Service Descriptor interface retrieved, a multipart containing the file and its metadata
+          content:
+            multipart/form-data:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - file
+                  - filename
+                  - contentType
+                properties:
+                  file:
+                    type: string
+                    format: binary
+                    description: The interface document file
+                  filename:
+                    type: string
+                    description: The name of the file
+                  contentType:
+                    type: string
+                    description: The content type of the file
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -1979,10 +2135,12 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      operationId: getEserviceTemplate
+      summary: Retrieve an E-Service Template
+      description: Retrieve an E-Service Template
+      operationId: getEServiceTemplate
       responses:
         "200":
-          description: E-Service template retrieved
+          description: E-Service Template retrieved
           content:
             application/json:
               schema:
@@ -1997,7 +2155,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2010,7 +2168,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2023,7 +2181,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2036,7 +2194,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2050,7 +2208,7 @@ paths:
     parameters:
       - name: templateId
         in: path
-        description: The template id
+        description: The E-Service Template ID of the Versions to retrieve
         required: true
         schema:
           type: string
@@ -2058,35 +2216,39 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      description: Get eservice template versions
+      summary: List E-Service Template Versions
+      description: Retrieve a list of E-Service Template Versions based on filters
       operationId: getEServiceTemplateVersions
       parameters:
         - name: state
           in: query
-          description: The version state
+          description: Filter Versions by states. If not specified, return Versions in any state
           schema:
             $ref: "#/components/schemas/EServiceTemplateVersionState"
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          description: Maximum number of results to return
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
-          description: E-Service template versions retrieved
+          description: E-Service Template Versions retrieved
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/EServiceTemplateVersion"
+                $ref: "#/components/schemas/EServiceTemplateVersions"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2097,7 +2259,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2110,7 +2272,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2123,7 +2285,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2136,7 +2298,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2150,14 +2312,14 @@ paths:
     parameters:
       - name: templateId
         in: path
-        description: The template id
+        description: The E-Service Template ID of the Version
         required: true
         schema:
           type: string
           format: uuid
       - name: versionId
         in: path
-        description: The version id
+        description: The ID of the Version to retrieve
         required: true
         schema:
           type: string
@@ -2165,11 +2327,12 @@ paths:
     get:
       tags:
         - eserviceTemplates
-      description: Get eservice template version
+      summary: Retrieve an E-Service Template Version
+      description: Retrieve an E-Service Template Version
       operationId: getEServiceTemplateVersion
       responses:
         "200":
-          description: E-Service template version retrieved
+          description: E-Service Template Version retrieved
           content:
             application/json:
               schema:
@@ -2184,7 +2347,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2197,7 +2360,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2210,7 +2373,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2223,7 +2386,101 @@ paths:
         "429":
           description: Too Many Requests
           content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /keys/{kid}:
+    get:
+      tags:
+        - keys
+      summary: Retrieve a Key in JWK format
+      description: Retrieve the JWK by kid
+      operationId: getJWKByKid
+      parameters:
+        - name: kid
+          in: path
+          description: The unique identifier of the Key (kid)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Key retrieved
+          content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/Key"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Key not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /producerKeys/{kid}:
+    get:
+      tags:
+        - keys
+      summary: Retrieve a Producer Key in JWK format
+      description: Retrieve the Producer JWK by kid
+      operationId: getProducerJWKByKid
+      parameters:
+        - name: kid
+          in: path
+          description: The unique identifier of the Producer Key (kid)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Producer Key retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKey"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Producer Key not found
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2237,8 +2494,9 @@ paths:
     post:
       tags:
         - purposes
+      summary: Create a new Purpose
+      description: Create a new Purpose in Draft state
       operationId: createPurpose
-      description: Creates a purpose
       requestBody:
         content:
           application/json:
@@ -2262,7 +2520,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2275,7 +2533,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2288,7 +2546,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2301,7 +2559,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2314,7 +2572,7 @@ paths:
         "409":
           description: Name Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2327,7 +2585,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2340,11 +2598,13 @@ paths:
     get:
       tags:
         - purposes
+      summary: List Purposes
+      description: Retrieve a list of Purposes based on filters
       operationId: getPurposes
-      description: List purposes
       parameters:
-        - name: eserviceIds
-          in: query
+        - in: query
+          name: eserviceIds
+          description: Filter Purposes by E-Service IDs. If not specified, return Purposes for any E-Service
           schema:
             type: array
             items:
@@ -2352,17 +2612,17 @@ paths:
               format: uuid
             default: []
           explode: false
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
             format: int32
             minimum: 0
-        - name: limit
-          in: query
-          description: The limit used for pagination
+        - in: query
+          name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -2386,7 +2646,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2399,7 +2659,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2412,7 +2672,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2426,7 +2686,7 @@ paths:
     parameters:
       - name: purposeId
         in: path
-        description: The purpose id
+        description: The ID of the Purpose to retrieve
         required: true
         schema:
           type: string
@@ -2434,8 +2694,9 @@ paths:
     get:
       tags:
         - purposes
+      summary: Retrieve a Purpose
+      description: Retrieve a Purpose
       operationId: getPurpose
-      description: Get purpose
       responses:
         "200":
           description: Purpose retrieved
@@ -2453,7 +2714,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2466,7 +2727,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2479,7 +2740,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2492,7 +2753,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2505,7 +2766,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2519,36 +2780,42 @@ paths:
     parameters:
       - name: purposeId
         in: path
-        description: The Purpose id
+        description: The Purpose ID of the Versions to retrieve
         required: true
         schema:
           type: string
     get:
       tags:
         - purposes
+      summary: List Purpose Versions
+      description: Retrieve a list of Purpose Versions based on filters
       operationId: getPurposeVersions
-      description: Get purpose versions
       parameters:
         - name: state
           in: query
-          description: The version state
+          description: Filter Versions by states. If not specified, return Versions in any state
           schema:
             $ref: "#/components/schemas/PurposeVersionState"
-        - name: offset
-          in: query
-          description: The offset used for pagination
+        - in: query
+          name: offset
+          description: Pagination starting position
+          required: true
           schema:
             type: integer
             format: int32
-        - name: limit
-          in: query
-          description: The limit used for pagination
+            minimum: 0
+        - in: query
+          name: limit
+          description: Maximum number of results to return
+          required: true
           schema:
             type: integer
             format: int32
+            minimum: 1
+            maximum: 50
       responses:
         "200":
-          description: Purpose versions retrieved
+          description: Purpose Versions retrieved
           content:
             application/json:
               schema:
@@ -2563,7 +2830,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2576,7 +2843,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2589,7 +2856,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2602,7 +2869,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2615,7 +2882,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2628,7 +2895,10 @@ paths:
     post:
       tags:
         - purposes
-      summary: Create new version
+      summary: Create a new Purpose Version
+      description: |
+        Create a new Purpose Version to update daily calls
+        The new Version will be created in Active state if daily calls are under the E-Service threshold, in Waiting for Approval otherwise
       operationId: createPurposeVersion
       requestBody:
         content:
@@ -2638,7 +2908,7 @@ paths:
         required: true
       responses:
         "201":
-          description: Purpose version created
+          description: Purpose Version created
           content:
             application/json:
               schema:
@@ -2653,7 +2923,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2666,7 +2936,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2679,7 +2949,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2692,7 +2962,20 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2705,7 +2988,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2719,14 +3002,14 @@ paths:
     parameters:
       - name: purposeId
         in: path
-        description: The purpose id
+        description: The Purpose ID of the Version
         required: true
         schema:
           type: string
           format: uuid
       - name: versionId
         in: path
-        description: The version id
+        description: The ID of the Version to retrieve
         required: true
         schema:
           type: string
@@ -2734,11 +3017,12 @@ paths:
     get:
       tags:
         - purposes
+      summary: Retrieve a Purpose Version
+      description: Retrieve a Purpose Version
       operationId: getPurposeVersion
-      description: Get purpose version
       responses:
         "200":
-          description: Purpose version retrieved
+          description: Purpose Version retrieved
           content:
             application/json:
               schema:
@@ -2753,7 +3037,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2766,7 +3050,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2779,7 +3063,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2792,7 +3076,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2805,7 +3089,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2818,6 +3102,7 @@ paths:
   /purposes/{purposeId}/activate:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to approve
         in: path
         required: true
         schema:
@@ -2826,11 +3111,18 @@ paths:
     post:
       tags:
         - purposes
+      summary: Activate a Purpose in Draft state
+      description: |
+        Activate a Purpose that is in Draft states
+        The new state will be Active if daily calls are under the E-Service threshold, Waiting for Approval otherwise
       operationId: activateDraftPurpose
-      description: Activate Draft Purpose
       responses:
-        "204":
+        "200":
           description: Purpose activated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2841,7 +3133,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2854,7 +3146,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2867,7 +3159,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2880,7 +3172,20 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2893,7 +3198,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2906,6 +3211,7 @@ paths:
   /purposes/{purposeId}/archive:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to archive
         in: path
         required: true
         schema:
@@ -2914,11 +3220,19 @@ paths:
     post:
       tags:
         - purposes
+      summary: Archive a Purpose in Active or Suspended state
+      description: |
+        Archive a Purpose that is in Active or Suspended state, transitioning it to Archived state
+        Existing Waiting for Approval Versions will be deleted
+        The Archived state is not reversible
       operationId: archivePurpose
-      description: Archive Purpose
       responses:
-        "204":
+        "200":
           description: Purpose archived
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2929,7 +3243,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2942,7 +3256,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2955,7 +3269,20 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2968,7 +3295,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2981,7 +3308,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -2994,6 +3321,7 @@ paths:
   /purposes/{purposeId}/approve:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to approve
         in: path
         required: true
         schema:
@@ -3002,11 +3330,16 @@ paths:
     post:
       tags:
         - purposes
+      summary: Approve a Purpose in Waiting for Approval state
+      description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active state
       operationId: approvePurpose
-      description: Approve Waiting for approval Purpose
       responses:
-        "204":
+        "200":
           description: Purpose approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3017,7 +3350,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3030,7 +3363,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3043,7 +3376,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3056,7 +3389,20 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3069,7 +3415,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3082,6 +3428,7 @@ paths:
   /purposes/{purposeId}/suspend:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to suspend
         in: path
         required: true
         schema:
@@ -3090,11 +3437,18 @@ paths:
     post:
       tags:
         - purposes
+      summary: Suspend a Purpose in Active or Suspended state
+      description: |
+        Suspend a Purpose that is in Active or Suspended state, transitioning it to Suspended state
+        A Purpose may already be in Suspended state when previously suspended by the consumer or the producer
       operationId: suspendPurpose
-      description: Suspend Purpose
       responses:
-        "204":
+        "200":
           description: Purpose suspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3105,7 +3459,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3118,7 +3472,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3131,7 +3485,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3144,7 +3498,20 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3157,7 +3524,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3170,6 +3537,7 @@ paths:
   /purposes/{purposeId}/unsuspend:
     parameters:
       - name: purposeId
+        description: The ID of the Purpose to unsuspend
         in: path
         required: true
         schema:
@@ -3178,11 +3546,18 @@ paths:
     post:
       tags:
         - purposes
+      summary: Unsuspend a Purpose in Suspended state
+      description: |
+        Unsuspend a Purpose that is in Suspended state, transitioning it to Active or Suspended state
+        A Purpose may remain in Suspended state when suspended also by the consumer or the producer
       operationId: unsuspendPurpose
-      description: Unsuspend Purpose
       responses:
-        "204":
+        "200":
           description: Purpose unsuspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3193,7 +3568,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3206,7 +3581,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3219,7 +3594,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3232,7 +3607,20 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3245,7 +3633,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3259,19 +3647,31 @@ paths:
     get:
       tags:
         - tenants
+      summary: List Tenants
+      description: Retrieve a list of Tenants based on filters
       operationId: getTenants
-      description: Retrieve Tenants
       parameters:
         - in: query
-          name: externalIdOrigin
+          name: IPACode
           schema:
             type: string
+          description: |
+            IPA code of the Tenant
+            If the Tenant is an AOO, it corresponds to "codice AOO" in IPA
+            If the Tenant is an UO, it corresponds to "codice UO" in IPA
+            Available only for Tenants listed in IPA
+            Mutually exclusive with taxCode
         - in: query
-          name: externalIdValue
+          name: taxCode
           schema:
             type: string
+          description: |
+            Tax code of the Tenant
+            Available only for Tenants not listed in IPA
+            Mutually exclusive with IPACode
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -3279,6 +3679,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -3302,7 +3703,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3315,7 +3716,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3329,7 +3730,7 @@ paths:
     parameters:
       - name: tenantId
         in: path
-        description: Tenant id
+        description: The ID of the Tenant to retrieve
         required: true
         schema:
           type: string
@@ -3337,8 +3738,9 @@ paths:
     get:
       tags:
         - tenants
-      operationId: getTenant
+      summary: Retrieve a Tenant
       description: Retrieve a Tenant
+      operationId: getTenant
       responses:
         "200":
           description: Tenant retrieved
@@ -3356,7 +3758,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3369,7 +3771,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3382,7 +3784,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3396,7 +3798,7 @@ paths:
     parameters:
       - name: tenantId
         in: path
-        description: Tenant id
+        description: The Tenant ID of the Attributes
         required: true
         schema:
           type: string
@@ -3404,11 +3806,13 @@ paths:
     get:
       tags:
         - tenants
+      summary: List Tenant Certified Attributes
+      description: Retrieve a list of Certified Attributes assigned to the Tenant
       operationId: getCertifiedAttributes
-      description: Retrieve certified attributes for a Tenant
       parameters:
         - in: query
           name: offset
+          description: Pagination starting position
           required: true
           schema:
             type: integer
@@ -3416,6 +3820,7 @@ paths:
             minimum: 0
         - in: query
           name: limit
+          description: Maximum number of results to return
           required: true
           schema:
             type: integer
@@ -3424,7 +3829,7 @@ paths:
             maximum: 50
       responses:
         "200":
-          description: Certified attributes retrieved
+          description: Tenant Certified Attributes retrieved
           content:
             application/json:
               schema:
@@ -3439,7 +3844,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3452,7 +3857,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3465,7 +3870,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3478,8 +3883,9 @@ paths:
     post:
       tags:
         - tenants
+      summary: Assign a Certified Attribute to a Tenant
+      description: Assign a Certified Attribute to a Tenant
       operationId: addCertifiedAttribute
-      description: Add a certified attribute to a Tenant
       requestBody:
         content:
           application/json:
@@ -3487,8 +3893,12 @@ paths:
               $ref: "#/components/schemas/TenantCertifiedAttributeSeed"
         required: true
       responses:
-        "204":
-          description: Updated Tenant
+        "200":
+          description: Certified Attribute assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3499,7 +3909,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3512,7 +3922,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3525,7 +3935,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3538,7 +3948,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3551,7 +3961,7 @@ paths:
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3564,7 +3974,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3578,14 +3988,14 @@ paths:
     parameters:
       - name: tenantId
         in: path
-        description: Tenant id
+        description: The Tenant ID of the Attributes
         required: true
         schema:
           type: string
           format: uuid
       - name: attributeId
         in: path
-        description: Attribute id
+        description: The Attribute ID
         required: true
         schema:
           type: string
@@ -3593,11 +4003,16 @@ paths:
     delete:
       tags:
         - tenants
+      summary: Revoke a Certified Attribute from a Tenant
+      description: Revoke a Certified Attribute from a Tenant
       operationId: revokeCertifiedAttributeById
-      description: Revoke a certified attribute to a Tenant
       responses:
-        "204":
+        "200":
           description: Certified Attribute revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3608,7 +4023,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3621,7 +4036,7 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3634,7 +4049,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3647,7 +4062,7 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3660,7 +4075,7 @@ paths:
         "429":
           description: Too Many Requests
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3680,7 +4095,7 @@ paths:
         "200":
           description: Status retrieved
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
           headers:
@@ -3742,7 +4157,7 @@ components:
         - createdAt
     AgreementApprovalPolicy:
       type: string
-      description: EService Descriptor policy for new Agreements approval
+      description: E-Service Descriptor policy for new Agreements approval
       enum:
         - AUTOMATIC
         - MANUAL
@@ -3813,16 +4228,15 @@ components:
       properties:
         id:
           type: string
-          description: uniquely identifies the attribute on the registry
           format: uuid
         code:
           type: string
-          description: identifies the unique code of this attribute on the origin registry
+          description: The identifier of the attribute on the source registry
         description:
           type: string
         origin:
           type: string
-          description: "represents the origin of this attribute (e.g.: IPA)"
+          description: Identifier of the origin of this attribute, e.g. "IPA"
         name:
           type: string
         createdAt:
@@ -3853,7 +4267,7 @@ components:
           type: string
           minLength: 1
           maxLength: 64
-          description: identifies the unique code of this attribute on the registry
+          description: The identifier of the attribute on the source registry
       required:
         - description
         - name
@@ -3979,8 +4393,9 @@ components:
           type: boolean
         isClientAccessDelegable:
           type: boolean
-        template:
-          $ref: "#/components/schemas/EServiceTemplateRef"
+        templateId:
+          type: string
+          format: uuid
       required:
         - id
         - producerId
@@ -4038,8 +4453,9 @@ components:
         archivedAt:
           type: string
           format: date-time
-        templateVersion:
-          $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        templateVersionId:
+          type: string
+          format: uuid
       required:
         - id
         - version
@@ -4067,7 +4483,7 @@ components:
         - pagination
     EServiceDescriptorState:
       type: string
-      description: EService Descriptor State
+      description: E-Service Descriptor State
       enum:
         - DRAFT
         - PUBLISHED
@@ -4077,7 +4493,7 @@ components:
         - WAITING_FOR_APPROVAL
     EServiceMode:
       type: string
-      description: Risk Analysis Mode
+      description: Indicates if the E-Service is intended for receiving or delivering data
       enum:
         - RECEIVE
         - DELIVER
@@ -4100,18 +4516,6 @@ components:
       enum:
         - REST
         - SOAP
-    EServiceTemplateRef:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        instanceLabel:
-          type: string
-          format: uuid
-      required:
-        - id
     EServiceTemplate:
       type: object
       additionalProperties: false
@@ -4130,10 +4534,6 @@ components:
           type: string
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
-        versions:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceTemplateVersion"
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
@@ -4145,18 +4545,8 @@ components:
         - intendedTarget
         - description
         - technology
-        - versions
         - riskAnalysis
         - mode
-    EserviceAttributeSeed:
-      type: object
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
     EServiceTemplateVersion:
       type: object
       additionalProperties: false
@@ -4201,23 +4591,129 @@ components:
         - state
         - creationDate
         - voucherLifespan
-    EServiceTemplateVersionRef:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-      properties:
-        id:
-          type: string
-          format: uuid
     EServiceTemplateVersionState:
       type: string
-      description: EService Descriptor State
+      description: E-Service Template Version State
       enum:
         - DRAFT
         - PUBLISHED
         - DEPRECATED
         - SUSPENDED
+    EServiceTemplateVersions:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersion"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    JWK:
+      description: JSON Web Key
+      type: object
+      additionalProperties: false
+      properties:
+        kty:
+          type: string
+        key_ops:
+          type: array
+          items:
+            type: string
+        use:
+          type: string
+        alg:
+          type: string
+        kid:
+          type: string
+        x5u:
+          type: string
+          minLength: 1
+        x5t:
+          type: string
+        "x5t#S256":
+          type: string
+        x5c:
+          type: array
+          items:
+            type: string
+        crv:
+          type: string
+        x:
+          type: string
+        "y":
+          type: string
+        d:
+          type: string
+        k:
+          type: string
+        "n":
+          type: string
+        e:
+          type: string
+        p:
+          type: string
+        q:
+          type: string
+        dp:
+          type: string
+        dq:
+          type: string
+        qi:
+          type: string
+        oth:
+          uniqueItems: false
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/OtherPrimeInfo"
+      required:
+        - kty
+        - kid
+    OtherPrimeInfo:
+      title: OtherPrimeInfo
+      type: object
+      additionalProperties: false
+      properties:
+        r:
+          type: string
+        d:
+          type: string
+        t:
+          type: string
+      required:
+        - r
+        - d
+        - t
+    Key:
+      description: Key
+      type: object
+      additionalProperties: false
+      properties:
+        clientId:
+          type: string
+          format: uuid
+        jwk:
+          $ref: "#/components/schemas/JWK"
+      required:
+        - clientId
+        - jwk
+    ProducerKey:
+      description: Key
+      type: object
+      additionalProperties: false
+      properties:
+        producerKeychainId:
+          type: string
+          format: uuid
+        jwk:
+          $ref: "#/components/schemas/JWK"
+      required:
+        - producerKeychainId
+        - jwk
     Pagination:
       type: object
       additionalProperties: false
@@ -4225,12 +4721,16 @@ components:
         offset:
           type: integer
           format: int32
+          minimum: 0
         limit:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 50
         totalCount:
           type: integer
           format: int32
+          minimum: 0
       required:
         - offset
         - limit
@@ -4288,9 +4788,6 @@ components:
           $ref: "#/components/schemas/PurposeVersion"
         rejectedVersion:
           $ref: "#/components/schemas/PurposeVersion"
-          description: >
-            Represents the latest version of the purpose when it has been rejected. 
-            This property is present only if the most recent version is in a rejected status.
       required:
         - id
         - eserviceId
@@ -4370,7 +4867,7 @@ components:
           type: string
           format: date-time
         dailyCalls:
-          description: "maximum number of daily calls that this version can perform."
+          description: Maximum number of daily calls performed using this version
           type: integer
           format: int32
           minimum: 0
@@ -4402,7 +4899,7 @@ components:
         - dailyCalls
       properties:
         dailyCalls:
-          description: Maximum number of daily calls that this version can perform
+          description: Maximum number of daily calls performed using this version
           type: integer
           format: int32
           minimum: 0
@@ -4430,7 +4927,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 250
+              maxLength: 500
       required:
         - version
         - answers
@@ -4499,16 +4996,6 @@ components:
         id:
           type: string
           format: uuid
-        code:
-          type: string
-          description: identifies the unique code of this attribute on the origin registry
-        description:
-          type: string
-        origin:
-          type: string
-          description: "represents the origin of this attribute (e.g.: IPA)"
-        name:
-          type: string
         assignedAt:
           type: string
           format: date-time
@@ -4517,10 +5004,6 @@ components:
           format: date-time
       required:
         - id
-        - name
-        - description
-        - code
-        - origin
         - assignedAt
     TenantCertifiedAttributes:
       type: object
@@ -4550,7 +5033,7 @@ components:
           description: URI reference of type definition
           type: string
         status:
-          description: The HTTP status code generated by the origin server for this occurrence of the problem.
+          description: The HTTP status code generated by the origin server for this occurrence of the problem
           example: 503
           exclusiveMaximum: true
           format: int32
@@ -4569,8 +5052,8 @@ components:
           maxLength: 64
           type: string
         detail:
-          description: A human readable explanation of the problem.
-          example: Request took too long to complete.
+          description: A human readable explanation of the problem
+          example: Request took too long to complete
           maxLength: 4096
           pattern: "^.{0,1024}$"
           type: string
@@ -4595,7 +5078,7 @@ components:
           pattern: "^[0-9]{3}-[0-9]{4}$"
           type: string
         detail:
-          description: A human readable explanation specific to this occurrence of the problem.
+          description: A human readable explanation specific to this occurrence of the problem
           example: Parameter not valid
           maxLength: 4096
           pattern: "^.{0,1024}$"
@@ -4622,3 +5105,8 @@ components:
         format: int32
         minimum: 0
       description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

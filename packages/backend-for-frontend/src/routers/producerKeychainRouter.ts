@@ -7,22 +7,18 @@ import {
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
 import { emptyErrorMapper } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { makeApiProblem } from "../model/errors.js";
 import { getProducerKeychainUsersErrorMapper } from "../utilities/errorMappers.js";
-import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
+import { ProducerKeychainService } from "../services/producerKeychainService.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,
-  processClients: PagoPAInteropBeClients
+  producerKeychainService: ProducerKeychainService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const producerKeychainRouter = ctx.router(bffApi.producerKeychainApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const producerKeychainService =
-    producerKeychainServiceBuilder(processClients);
 
   producerKeychainRouter
     .get("/producerKeychains", async (req, res) => {

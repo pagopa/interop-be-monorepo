@@ -1,34 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
+import {
+  getMockedApiDelegation,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   delegationService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiDelegation,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import { unexpectedDelegationKind } from "../../../src/model/errors.js";
 
 describe("getConsumerDelegations", () => {
   const mockParams: m2mGatewayApi.GetConsumerDelegationsQueryParams = {
     states: ["WAITING_FOR_APPROVAL"],
-    eserviceIds: [],
-    delegateIds: [],
-    delegatorIds: [],
+    eserviceIds: [generateId()],
+    delegateIds: [generateId()],
+    delegatorIds: [generateId()],
     offset: 0,
     limit: 10,
   };
 
-  const mockApiDelegation1 = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-  });
-  const mockApiDelegation2 = getMockedApiDelegation({
-    kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
-  });
+  const mockApiDelegation1 = getMockWithMetadata(
+    getMockedApiDelegation({
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+    })
+  );
+  const mockApiDelegation2 = getMockWithMetadata(
+    getMockedApiDelegation({
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+    })
+  );
 
   const mockApiDelegations = [mockApiDelegation1.data, mockApiDelegation2.data];
 

@@ -1,53 +1,28 @@
 /* eslint-disable functional/no-let */
-import { isAxiosError } from "axios";
-import { WithMetadata } from "pagopa-interop-models";
+import { createPollingByCondition } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import { resourcePollingTimeout } from "../model/errors.js";
-import { assertMetadataExists } from "./validators/validators.js";
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import {
+  assertMetadataExists,
+  assertTargetMetadataExists,
+} from "./validators/validators.js";
 
 /**
- * Generic polling function that polls a resource until a condition is met or a timeout occurs.
+ * Generic polling function that polls a fetch call of a resource with metadata
+ * until a condition is met or max retries are exceeded.
  *
- * @param fetchResource - Function that returns a Promise to fetch the resource
- * @returns A function that takes a check function and returns a Promise of the polled resource
+ * @param fetch - Function that returns a Promise that fetches the resource with metadata
+ * @returns A function that takes a condition function and returns a Promise of the polled resource
  */
-export function pollResource<T>(
-  fetchResource: () => Promise<WithMaybeMetadata<NonNullable<T>>>
-) {
-  return async function poll({
-    checkFn,
-    maxAttempts = config.defaultPollingMaxAttempts,
-    intervalMs = config.defaultPollingIntervalMs,
-  }: {
-    checkFn: (polledResource: WithMetadata<NonNullable<T>>) => boolean;
-    maxAttempts?: number;
-    intervalMs?: number;
-  }): Promise<WithMetadata<NonNullable<T>>> {
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        const polledResource = await fetchResource();
-        assertMetadataExists(polledResource);
-        if (checkFn(polledResource)) {
-          return polledResource;
-        }
-      } catch (error: unknown) {
-        // If the error isn't 404, rethrow it immediately
-        if (!isAxiosError(error) || error.response?.status !== 404) {
-          throw error;
-        }
-      }
-
-      // If we got 404 or checkFn failed, wait for the specified interval before retrying
-      await delay(intervalMs);
-    }
-
-    throw resourcePollingTimeout(maxAttempts);
-  };
+export function pollResourceWithMetadata<T>(
+  fetch: () => Promise<WithMaybeMetadata<NonNullable<T>>>
+): ReturnType<
+  typeof createPollingByCondition<WithMaybeMetadata<NonNullable<T>>>
+> {
+  return createPollingByCondition(fetch, {
+    defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+    defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+  });
 }
 
 /**
@@ -60,8 +35,28 @@ export function pollResource<T>(
  */
 export function isPolledVersionAtLeastResponseVersion<T>(
   response: WithMaybeMetadata<NonNullable<T>>
-): (polledResource: WithMetadata<NonNullable<T>>) => boolean {
+): (polledResource: WithMaybeMetadata<NonNullable<T>>) => boolean {
   assertMetadataExists(response);
-  return (polledResource: WithMetadata<NonNullable<T>>) =>
-    polledResource.metadata.version >= response.metadata.version;
+  return (polledResource: WithMaybeMetadata<NonNullable<T>>) => {
+    assertMetadataExists(polledResource);
+    return polledResource.metadata.version >= response.metadata.version;
+  };
+}
+
+/**
+ * Generic check function that verifies if a polled resource's version meets or exceeds a target version.
+ * Use this when only metadata (with a version number) is available rather than a full resource response.
+ * For cases where a complete response object is available, use isPolledVersionAtLeastResponseVersion instead.
+ *
+ * @param metadata - Object containing the target version number to compare against
+ * @returns A function that takes a polled resource and returns true if its version is >= target version
+ */
+export function isPolledVersionAtLeastMetadataTargetVersion(
+  metadata: { version: number } | undefined
+): <T>(polledResource: WithMaybeMetadata<NonNullable<T>>) => boolean {
+  assertTargetMetadataExists(metadata);
+  return <T>(polledResource: WithMaybeMetadata<NonNullable<T>>) => {
+    assertMetadataExists(polledResource);
+    return polledResource.metadata.version >= metadata.version;
+  };
 }

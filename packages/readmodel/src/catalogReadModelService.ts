@@ -124,6 +124,7 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }
+
       /*
         eservice ->1 descriptor ->2 interface
                       descriptor ->3 document
@@ -206,9 +207,15 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
         .leftJoin(
           // 8
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          eq(
-            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          and(
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+            ),
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
+            )
           )
         );
 

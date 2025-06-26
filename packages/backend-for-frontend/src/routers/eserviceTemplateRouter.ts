@@ -4,7 +4,6 @@ import { ZodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
-  FileManager,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
@@ -13,9 +12,8 @@ import {
   toBffCreatedEServiceTemplateVersion,
   toCatalogCreateEServiceTemplateSeed,
 } from "../api/eserviceTemplateApiConverter.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { makeApiProblem } from "../model/errors.js";
-import { eserviceTemplateServiceBuilder } from "../services/eserviceTemplateService.js";
+import { EServiceTemplateService } from "../services/eserviceTemplateService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   bffGetCatalogEServiceTemplateErrorMapper,
@@ -25,23 +23,11 @@ import {
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
-  {
-    eserviceTemplateProcessClient,
-    tenantProcessClient,
-    attributeProcessClient,
-  }: PagoPAInteropBeClients,
-  fileManager: FileManager
+  eserviceTemplateService: EServiceTemplateService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eserviceTemplateRouter = ctx.router(bffApi.eserviceTemplatesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const eserviceTemplateService = eserviceTemplateServiceBuilder(
-    eserviceTemplateProcessClient,
-    tenantProcessClient,
-    attributeProcessClient,
-    fileManager
-  );
 
   eserviceTemplateRouter
     .post("/eservices/templates", async (req, res) => {
@@ -417,7 +403,7 @@ const eserviceTemplateRouter = (
         const { eServiceTemplateId } = req.params;
 
         try {
-          await eserviceTemplateService.createEServiceTemplateEServiceRiskAnalysis(
+          await eserviceTemplateService.createEServiceTemplateRiskAnalysis(
             unsafeBrandId(eServiceTemplateId),
             req.body,
             ctx
@@ -441,7 +427,7 @@ const eserviceTemplateRouter = (
         const { eServiceTemplateId, riskAnalysisId } = req.params;
 
         try {
-          await eserviceTemplateService.updateEServiceTemplateEServiceRiskAnalysis(
+          await eserviceTemplateService.updateEServiceTemplateRiskAnalysis(
             unsafeBrandId(eServiceTemplateId),
             unsafeBrandId(riskAnalysisId),
             req.body,

@@ -1,6 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiDelegation,
+} from "pagopa-interop-commons-test";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { delegationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -8,11 +11,9 @@ import { api, mockDelegationService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingMetadata,
-  resourcePollingTimeout,
   unexpectedDelegationKind,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiConsumerDelegation } from "../../../src/api/delegationApiConverter.js";
-import { getMockedApiDelegation } from "../../mockUtils.js";
 
 describe("POST /consumerDelegations router test", () => {
   const mockDelegationSeed: m2mGatewayApi.DelegationSeed = {
@@ -26,7 +27,7 @@ describe("POST /consumerDelegations router test", () => {
     delegateId: mockDelegationSeed.delegateId,
   });
   const mockM2MDelegationResponse: m2mGatewayApi.ConsumerDelegation =
-    toM2MGatewayApiConsumerDelegation(mockApiDelegation.data);
+    toM2MGatewayApiConsumerDelegation(mockApiDelegation);
 
   const makeRequest = async (
     token: string,
@@ -73,7 +74,7 @@ describe("POST /consumerDelegations router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        body as unknown as m2mGatewayApi.DelegationSeed
+        body as m2mGatewayApi.DelegationSeed
       );
 
       expect(res.status).toBe(400);
@@ -99,8 +100,8 @@ describe("POST /consumerDelegations router test", () => {
 
   it.each([
     missingMetadata(),
-    unexpectedDelegationKind(mockApiDelegation.data),
-    resourcePollingTimeout(3),
+    unexpectedDelegationKind(mockApiDelegation),
+    pollingMaxRetriesExceeded(3, 10),
   ])("Should return 500 in case of $code error", async (error) => {
     mockDelegationService.createConsumerDelegation = vi
       .fn()

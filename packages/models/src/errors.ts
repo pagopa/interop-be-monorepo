@@ -3,6 +3,7 @@ import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { AxiosError, isAxiosError } from "axios";
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
@@ -123,7 +124,7 @@ export function makeApiProblemBuilder<T extends string>(
 ): MakeApiProblemFn<T> {
   const { problemErrorsPassthrough = true, forceGenericProblemOn500 = false } =
     options;
-  const allErrors = { ...errorCodes, ...errors };
+  const allErrors = { ...commonErrorCodes, ...errors };
 
   function retrieveServiceErrorCode(serviceName: string): string {
     const serviceNameParsed = ServiceName.safeParse(serviceName);
@@ -192,22 +193,26 @@ export function makeApiProblemBuilder<T extends string>(
         /* this case is to allow a passthrough of Problem errors, so that
            services that call other interop services can forward Problem errors
            as they are, without the need to explicitly handle them */
-        {
-          response: {
-            status: P.number,
-            data: {
-              type: "about:blank",
-              title: P.string,
+        P.intersection(
+          P.when((e): e is AxiosError<Problem> => isAxiosError(e)),
+          {
+            response: {
+              // Matching also AxiosError content to ensure data matches Problem type
               status: P.number,
-              detail: P.string,
-              errors: P.array({
-                code: P.string,
+              data: {
+                type: "about:blank",
+                title: P.string,
+                status: P.number,
                 detail: P.string,
-              }),
-              correlationId: P.string.optional(),
+                errors: P.array({
+                  code: P.string,
+                  detail: P.string,
+                }),
+                correlationId: P.string.optional(),
+              },
             },
-          },
-        },
+          }
+        ),
         (e) => {
           const receivedProblem: Problem = e.response.data;
           if (problemErrorsPassthrough) {
@@ -218,7 +223,8 @@ export function makeApiProblemBuilder<T extends string>(
 
             if (
               forceGenericProblemOn500 &&
-              receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR
+              (e.response.status === HTTP_STATUS_INTERNAL_SERVER_ERROR ||
+                receivedProblem.status === HTTP_STATUS_INTERNAL_SERVER_ERROR)
             ) {
               logger.warn(
                 `${problemLogString}. forceGenericProblemOn500 is set to true, returning generic problem`
@@ -256,7 +262,7 @@ export function makeApiProblemBuilder<T extends string>(
   };
 }
 
-const errorCodes = {
+export const commonErrorCodes = {
   authenticationSaslFailed: "9000",
   jwtDecodingError: "9001",
   htmlTemplateInterpolationError: "9002",
@@ -293,9 +299,14 @@ const errorCodes = {
   soapFileCreatingError: "10018",
   notAllowedMultipleKeysException: "10019",
   featureFlagNotEnabled: "10020",
+  kafkaApplicationAuditingFailed: "10021",
+  fallbackApplicationAuditingFailed: "10022",
+  invalidSqsMessage: "10023",
+  decodeSQSMessageError: "10024",
+  pollingMaxRetriesExceeded: "10025",
 } as const;
 
-export type CommonErrorCodes = keyof typeof errorCodes;
+export type CommonErrorCodes = keyof typeof commonErrorCodes;
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
@@ -322,6 +333,44 @@ export function missingKafkaMessageDataError(
   return new InternalError({
     code: "missingKafkaMessageData",
     detail: `"Invalid message: missing data '${dataName}' in ${eventType} event"`,
+  });
+}
+
+export function kafkaApplicationAuditingFailed(): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "kafkaApplicationAuditingFailed",
+    detail: "Kafka application auditing failed",
+  });
+}
+
+export function fallbackApplicationAuditingFailed(): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "fallbackApplicationAuditingFailed",
+    detail: `Fallback application auditing failed`,
+  });
+}
+
+export function invalidSqsMessage(
+  messageId: string | undefined,
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    code: "invalidSqsMessage",
+    detail: `Error while validating SQS message for id ${messageId}: ${parseErrorMessage(
+      error
+    )}`,
+  });
+}
+
+export function decodeSQSMessageError(
+  messageId: string | undefined,
+  error: unknown
+): InternalError<CommonErrorCodes> {
+  return new InternalError({
+    detail: `Failed to decode SQS ApplicationAuditEvent message with MessageId: ${messageId}. Error details: ${JSON.stringify(
+      error
+    )}`,
+    code: "decodeSQSMessageError",
   });
 }
 
@@ -361,21 +410,41 @@ export function kafkaMessageProcessError(
     streamId,
     eventType,
     eventVersion,
+    streamVersion,
+    correlationId,
+    serviceName,
   }: {
     offset: string;
     streamId?: string;
     eventType?: string;
     eventVersion?: number;
+    streamVersion?: number;
+    correlationId?: string;
+    serviceName?: string;
   },
   error?: unknown
 ): InternalError<CommonErrorCodes> {
+  const serviceNamePrefix = serviceName ? `[${serviceName}] -` : "";
+  const correlationIdPrefix = correlationId ? `[CID=${correlationId}]` : "";
+  const eventTypePrefix = eventType ? `[ET=${eventType}]` : "";
+  const eventVersionPrefix = eventVersion ? `[EV=${eventVersion}]` : "";
+  const streamVersionPrefix =
+    streamVersion !== undefined ? `[SV=${streamVersion}]` : "";
+  const streamIdPrefix = streamId ? `[SID=${streamId}]` : "";
+  const errorMessage = error ? `${parseErrorMessage(error)}` : "";
+
+  const prefixes = [
+    serviceNamePrefix,
+    correlationIdPrefix,
+    eventTypePrefix,
+    eventVersionPrefix,
+    streamVersionPrefix,
+    streamIdPrefix,
+  ].join(" ");
+
   return new InternalError({
     code: "kafkaMessageProcessError",
-    detail: `Error while handling kafka message from topic : ${topic} - partition ${partition} - offset ${offset}${
-      streamId ? ` - streamId ${streamId}` : ""
-    }${eventType ? ` - eventType ${eventType}` : ""}${
-      eventVersion ? ` - eventVersion ${eventVersion}` : ""
-    }. ${error ? parseErrorMessage(error) : ""}`,
+    detail: `${prefixes} Error handling Kafka message. Topic: ${topic}. Partition number: ${partition}. Offset: ${offset}. Message: ${errorMessage}`,
   });
 }
 
@@ -668,5 +737,16 @@ export function featureFlagNotEnabled(
     detail: `Feature flag ${featureFlag} is not enabled`,
     code: "featureFlagNotEnabled",
     title: "Feature flag not enabled",
+  });
+}
+
+export function pollingMaxRetriesExceeded(
+  retries: number,
+  retryDelayMs: number
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `Polling exceeded maximum retries (${retries}) with delay ${retryDelayMs}ms`,
+    code: "pollingMaxRetriesExceeded",
+    title: "Polling max retries exceeded",
   });
 }

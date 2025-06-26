@@ -2,16 +2,19 @@
 /* eslint-disable functional/immutable-data */
 import {
   AttributeEventEnvelope,
-  AttributeId,
   fromAttributeV1,
   genericInternalError,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { AttributeSQL } from "pagopa-interop-readmodel-models";
 import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
+import {
+  AttributeSchema,
+  AttributeDeletingSchema,
+} from "../../model/attribute/attribute.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAttributeMessageV1(
   messages: AttributeEventEnvelope[],
@@ -19,8 +22,8 @@ export async function handleAttributeMessageV1(
 ): Promise<void> {
   const attributeService = attributeServiceBuilder(dbContext);
 
-  const upsertBatch: AttributeSQL[] = [];
-  const deleteBatch: AttributeId[] = [];
+  const upsertBatch: AttributeSchema[] = [];
+  const deleteBatch: AttributeDeletingSchema[] = [];
 
   for (const message of messages) {
     match(message)
@@ -30,24 +33,35 @@ export async function handleAttributeMessageV1(
             `Attribute can't be missing in the event message`
           );
         }
-        const attributeSql = splitAttributeIntoObjectsSQL(
+        const attribute = splitAttributeIntoObjectsSQL(
           fromAttributeV1(msg.data.attribute),
           msg.version
         );
-        upsertBatch.push(attributeSql);
+        upsertBatch.push(
+          AttributeSchema.parse(
+            attribute satisfies z.input<typeof AttributeSchema>
+          )
+        );
       })
       .with({ type: "MaintenanceAttributeDeleted" }, (msg) => {
-        const attributeId = unsafeBrandId<AttributeId>(msg.data.id);
-        deleteBatch.push(attributeId);
+        deleteBatch.push(
+          AttributeDeletingSchema.parse({
+            id: msg.data.id,
+            deleted: true,
+          } satisfies z.input<typeof AttributeDeletingSchema>)
+        );
       })
       .exhaustive();
   }
 
   if (upsertBatch.length > 0) {
-    await attributeService.upsertBatchAttribute(upsertBatch, dbContext);
+    await attributeService.upsertBatchAttribute(dbContext, upsertBatch);
   }
 
   if (deleteBatch.length > 0) {
-    await attributeService.deleteBatchAttribute(deleteBatch, dbContext);
+    const distinctBatch = distinctByKeys(deleteBatch, AttributeDeletingSchema, [
+      "id",
+    ]);
+    await attributeService.deleteBatchAttribute(dbContext, distinctBatch);
   }
 }

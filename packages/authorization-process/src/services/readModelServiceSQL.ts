@@ -25,14 +25,18 @@ import {
   KeyUse,
   stringToDate,
   genericInternalError,
+  ClientJWKKey,
+  ProducerJWKKey,
 } from "pagopa-interop-models";
 import {
   aggregateClientArray,
   aggregateProducerKeychainArray,
   AgreementReadModelService,
   CatalogReadModelService,
+  ClientJWKKeyReadModelService,
   ClientReadModelService,
   DelegationReadModelService,
+  ProducerJWKKeyReadModelService,
   ProducerKeychainReadModelService,
   PurposeReadModelService,
   toClientAggregatorArray,
@@ -41,11 +45,13 @@ import {
 import {
   agreementInReadmodelAgreement,
   clientInReadmodelClient,
+  clientJwkKeyInReadmodelClientJwkKey,
   clientKeyInReadmodelClient,
   clientPurposeInReadmodelClient,
   clientUserInReadmodelClient,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
+  producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
   producerKeychainKeyInReadmodelProducerKeychain,
@@ -76,6 +82,8 @@ export function readModelServiceBuilderSQL({
   producerKeychainReadModelServiceSQL,
   delegationReadModelServiceSQL,
   agreementReadModelServiceSQL,
+  clientJWKKeyReadModelServiceSQL,
+  producerJWKKeyReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   clientReadModelServiceSQL: ClientReadModelService;
@@ -84,6 +92,8 @@ export function readModelServiceBuilderSQL({
   agreementReadModelServiceSQL: AgreementReadModelService;
   producerKeychainReadModelServiceSQL: ProducerKeychainReadModelService;
   delegationReadModelServiceSQL: DelegationReadModelService;
+  clientJWKKeyReadModelServiceSQL: ClientJWKKeyReadModelService;
+  producerJWKKeyReadModelServiceSQL: ProducerJWKKeyReadModelService;
 }) {
   return {
     async getClientById(
@@ -185,8 +195,15 @@ export function readModelServiceBuilderSQL({
         .from(clientInReadmodelClient)
         .innerJoin(
           clientPurposeInReadmodelClient,
-          eq(clientPurposeInReadmodelClient.purposeId, purposeId)
+          and(
+            eq(
+              clientInReadmodelClient.id,
+              clientPurposeInReadmodelClient.clientId
+            ),
+            eq(clientPurposeInReadmodelClient.purposeId, purposeId)
+          )
         )
+        .where(eq(clientPurposeInReadmodelClient.purposeId, purposeId))
         .groupBy(clientInReadmodelClient.id)
         .as("subquery");
 
@@ -422,6 +439,52 @@ export function readModelServiceBuilderSQL({
           )
         )
       )?.data;
+    },
+    async getClientJWKByKId(
+      kId: ClientJWKKey["kid"]
+    ): Promise<ClientJWKKey | undefined> {
+      const clientKey =
+        await clientJWKKeyReadModelServiceSQL.getClientJWKKeyByFilter(
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, kId)
+        );
+
+      if (!clientKey?.data) {
+        return undefined;
+      }
+
+      const parseResult = ClientJWKKey.safeParse(clientKey.data);
+      if (!parseResult.success) {
+        throw genericInternalError(
+          `Unable to parse client key: result ${JSON.stringify(
+            parseResult
+          )} - data ${JSON.stringify(clientKey)}`
+        );
+      }
+
+      return parseResult.data;
+    },
+    async getProducerJWKByKId(
+      kId: ProducerJWKKey["kid"]
+    ): Promise<ProducerJWKKey | undefined> {
+      const producerKey =
+        await producerJWKKeyReadModelServiceSQL.getProducerJWKKeyByFilter(
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, kId)
+        );
+
+      if (!producerKey?.data) {
+        return undefined;
+      }
+
+      const parseResult = ProducerJWKKey.safeParse(producerKey.data);
+      if (!parseResult.success) {
+        throw genericInternalError(
+          `Unable to parse producer key: result ${JSON.stringify(
+            parseResult
+          )} - data ${JSON.stringify(producerKey)}`
+        );
+      }
+
+      return parseResult.data;
     },
   };
 }

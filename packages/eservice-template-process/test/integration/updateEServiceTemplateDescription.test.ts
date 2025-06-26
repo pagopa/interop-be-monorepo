@@ -18,7 +18,7 @@ import {
 import { expect, describe, it } from "vitest";
 import {
   eserviceTemplateWithoutPublishedVersion,
-  eServiceTemplateNotFound,
+  eserviceTemplateNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -72,7 +72,7 @@ describe("updateEServiceTemplateDescription", () => {
     );
   });
 
-  it("should throw eServiceTemplateNotFound if the eservice template doesn't exist", async () => {
+  it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
     const eserviceTemplate = getMockEServiceTemplate();
     expect(
       eserviceTemplateService.updateEServiceTemplateDescription(
@@ -82,7 +82,7 @@ describe("updateEServiceTemplateDescription", () => {
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
-    ).rejects.toThrowError(eServiceTemplateNotFound(eserviceTemplate.id));
+    ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
   });
   it("should throw operationForbidden if the requester is not the eservice template creator", async () => {
     const eserviceTemplate = getMockEServiceTemplate();
