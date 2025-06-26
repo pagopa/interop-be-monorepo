@@ -1,4 +1,8 @@
-import { AWSSesConfig, KafkaConsumerConfig } from "pagopa-interop-commons";
+import {
+  AWSSesConfig,
+  KafkaConsumerConfig,
+  EmailSenderTopicConfig,
+} from "pagopa-interop-commons";
 import { z } from "zod";
 
 export const SESEmailSenderConfig = z
@@ -18,20 +22,11 @@ export const SESEmailSenderConfig = z
   }));
 export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
-export const EmailTopicConfig = z
-  .object({
-    EMAIL_TOPIC: z.string(),
-  })
-  .transform((c) => ({
-    emailTopic: c.EMAIL_TOPIC,
-  }));
-export type EmailTopicConfig = z.infer<typeof EmailTopicConfig>;
-
 export const EmailSenderConsumerConfig = KafkaConsumerConfig.and(
   SESEmailSenderConfig
 )
   .and(AWSSesConfig)
-  .and(EmailTopicConfig);
+  .and(EmailSenderTopicConfig);
 
 export type EmailSenderConsumerConfig = z.infer<
   typeof EmailSenderConsumerConfig
