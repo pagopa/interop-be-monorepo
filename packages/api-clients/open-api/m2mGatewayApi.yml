@@ -2459,23 +2459,7 @@ paths:
           content:
             multipart/form-data:
               schema:
-                type: object
-                additionalProperties: false
-                required:
-                  - file
-                  - filename
-                  - contentType
-                properties:
-                  file:
-                    type: string
-                    format: binary
-                    description: The interface document file
-                  filename:
-                    type: string
-                    description: The name of the file
-                  contentType:
-                    type: string
-                    description: The content type of the file
+                $ref: "#/components/schemas/FileDownloadMultipart"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5549,6 +5533,24 @@ components:
           format: uuid
       required:
         - id
+    FileDownloadMultipart:
+      type: object
+      additionalProperties: false
+      required:
+        - file
+        - filename
+        - contentType
+      properties:
+        file:
+          type: string
+          format: binary
+          description: The content of the file
+        filename:
+          type: string
+          description: The name of the file
+        contentType:
+          type: string
+          description: The content type of the file
     Problem:
       properties:
         type:
