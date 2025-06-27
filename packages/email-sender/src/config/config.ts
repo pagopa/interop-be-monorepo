@@ -7,14 +7,12 @@ import { z } from "zod";
 
 export const SESEmailSenderConfig = z
   .object({
-    INTEROP_FE_BASE_URL: z.string(),
     SENDER_MAIL: z.string().email(),
     SENDER_LABEL: z.string(),
     RETRY_DELAY_IN_MILLIS: z.coerce.number().int().gte(0),
     MAX_ATTEMPTS: z.coerce.number().int().gte(0),
   })
   .transform((c) => ({
-    interopFeBaseUrl: c.INTEROP_FE_BASE_URL,
     senderMail: c.SENDER_MAIL,
     senderLabel: c.SENDER_LABEL,
     retryDelayInMillis: c.RETRY_DELAY_IN_MILLIS,
