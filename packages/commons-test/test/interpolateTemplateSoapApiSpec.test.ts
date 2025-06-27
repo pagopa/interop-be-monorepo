@@ -3,10 +3,10 @@ import {
   generateId,
   interfaceExtractingInfoError,
 } from "pagopa-interop-models";
-import { interpolateSoapApiSpec } from "pagopa-interop-commons";
+import { interpolateTemplateSoapApiSpec } from "pagopa-interop-commons";
 import { getMockEService, readFileContent } from "../src/index.js";
 
-describe("interpolateSoapApiSpec", async () => {
+describe("interpolateTemplateSoapApiSpec", async () => {
   const eservice = getMockEService();
   const file: string = await readFileContent("interface-test.wsdl");
   const expectedFileContent: string = await readFileContent(
@@ -29,7 +29,7 @@ describe("interpolateSoapApiSpec", async () => {
   };
 
   it("should interpolate SOAP API spec", async () => {
-    const result: File = await interpolateSoapApiSpec(
+    const result: File = await interpolateTemplateSoapApiSpec(
       eservice,
       file,
       interfaceFileInfo,
@@ -66,7 +66,7 @@ describe("interpolateSoapApiSpec", async () => {
     };
 
     await expect(
-      interpolateSoapApiSpec(
+      interpolateTemplateSoapApiSpec(
         eservice,
         file,
         interfaceFileInfo,

@@ -144,7 +144,9 @@ describe("validation test", async () => {
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+      expect(errors![0].code).toEqual(
+        clientAssertionInvalidClaims("{}", "header").code
+      );
     });
 
     // TODO: remove this test when we will only accept valid client assertion claims
@@ -179,7 +181,9 @@ describe("validation test", async () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0].code).toEqual(clientAssertionInvalidClaims("").code);
+      expect(errors![0].code).toEqual(
+        clientAssertionInvalidClaims("{}", "payload").code
+      );
     });
 
     it("ignore unexpected claims in client assertion payload", async () => {
