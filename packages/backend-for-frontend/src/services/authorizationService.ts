@@ -1,37 +1,40 @@
+import { constants } from "http2";
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
-  CustomClaims,
   InteropTokenGenerator,
   Logger,
-  ORGANIZATION,
-  ORGANIZATION_EXTERNAL_ID_CLAIM,
-  ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM,
-  ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM,
-  ORGANIZATION_ID_CLAIM,
   RateLimiter,
   RateLimiterStatus,
-  SELFCARE_ID_CLAIM,
+  SUPPORT_USER_ID,
   SessionClaims,
-  UID,
-  USER_ROLES,
+  UIClaims,
+  UserClaims,
+  UserRole,
   WithLogger,
   userRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { TenantId, invalidClaim, unsafeBrandId } from "pagopa-interop-models";
+import {
+  SelfcareId,
+  TenantId,
+  invalidClaim,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { isAxiosError } from "axios";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
   missingSelfcareId,
   missingUserRolesInIdentityToken,
   tenantLoginNotAllowed,
+  tenantBySelfcareIdNotFound,
 } from "../model/errors.js";
-import { BffAppContext } from "../utilities/context.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
 
-const SUPPORT_USER_ID = "5119b1fa-825a-4297-8c9c-152e055cabca";
+const { HTTP_STATUS_NOT_FOUND } = constants;
 
-type GetSessionTokenReturnType =
+export type GetSessionTokenReturnType =
   | {
       limitReached: true;
       sessionToken: undefined;
@@ -55,9 +58,9 @@ export function authorizationServiceBuilder(
     identityToken: string,
     logger: Logger
   ): Promise<{
-    roles: string;
+    roles: UserRole[];
     sessionClaims: SessionClaims;
-    selfcareId: string;
+    selfcareId: SelfcareId;
   }> => {
     const { decoded } = await verifyJwtToken(identityToken, config, logger);
 
@@ -67,8 +70,8 @@ export function authorizationServiceBuilder(
       throw invalidClaim(error);
     }
 
-    const userRoles: string[] = sessionClaims.organization.roles.map(
-      (r: { role: string }) => r.role
+    const userRoles: UserRole[] = sessionClaims.organization.roles.map(
+      (r: { role: UserRole }) => r.role
     );
 
     if (userRoles.length === 0) {
@@ -76,13 +79,16 @@ export function authorizationServiceBuilder(
     }
 
     return {
-      roles: userRoles.join(","),
+      roles: userRoles,
       sessionClaims,
       selfcareId: sessionClaims.organization.id,
     };
   };
 
-  const assertTenantAllowed = (selfcareId: string, origin: string): void => {
+  const assertTenantAllowed = (
+    selfcareId: SelfcareId,
+    origin: string
+  ): void => {
     if (
       !config.tenantAllowedOrigins.includes(origin) &&
       !allowList.includes(selfcareId)
@@ -91,60 +97,62 @@ export function authorizationServiceBuilder(
     }
   };
 
-  const buildJwtCustomClaims = (
-    roles: string,
-    tenantId: string,
-    selfcareId: string,
-    tenantOrigin: string,
-    tenantExternalId: string
-  ): CustomClaims => ({
-    [USER_ROLES]: roles,
-    [ORGANIZATION_ID_CLAIM]: tenantId,
-    [SELFCARE_ID_CLAIM]: selfcareId,
-    [ORGANIZATION_EXTERNAL_ID_CLAIM]: {
-      [ORGANIZATION_EXTERNAL_ID_ORIGIN_CLAIM]: tenantOrigin,
-      [ORGANIZATION_EXTERNAL_ID_VALUE_CLAIM]: tenantExternalId,
-    },
+  const buildUserClaims = (
+    roles: UserRole[],
+    tenantId: TenantId,
+    selfcareId: SelfcareId,
+    externalId: tenantApi.ExternalId
+  ): UserClaims => ({
+    "user-roles": roles,
+    organizationId: tenantId,
+    selfcareId,
+    externalId,
   });
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const buildSupportClaims = (selfcareId: string, tenant: tenantApi.Tenant) => {
-    const organization = {
-      id: selfcareId,
-      name: tenant.name,
-      roles: [
-        {
-          role: userRole.SUPPORT_ROLE,
-        },
-      ],
-    };
+  const retrieveTenantBySelfcareId = async (
+    selfcareId: string,
+    headers: Headers
+  ): Promise<tenantApi.Tenant> =>
+    tenantProcessClient.selfcare
+      .getTenantBySelfcareId({
+        params: { selfcareId },
+        headers,
+      })
+      .catch((err) => {
+        throw isAxiosError(err) &&
+          err.response?.status === HTTP_STATUS_NOT_FOUND
+          ? tenantBySelfcareIdNotFound(selfcareId)
+          : err;
+      });
 
-    const selfcareClaims = {
-      [ORGANIZATION]: organization,
-      [UID]: SUPPORT_USER_ID,
-    };
-
-    return {
-      ...buildJwtCustomClaims(
-        userRole.SUPPORT_ROLE,
-        tenant.id,
-        selfcareId,
-        tenant.externalId.origin,
-        tenant.externalId.value
-      ),
-      ...selfcareClaims,
-    };
-  };
-
-  const retrieveSupportClaims = (
-    tenant: tenantApi.Tenant
-  ): ReturnType<typeof buildSupportClaims> => {
-    const selfcareId = tenant.selfcareId;
+  const retrieveSupportClaims = ({
+    selfcareId,
+    id,
+    name,
+    externalId,
+  }: tenantApi.Tenant): UIClaims => {
     if (!selfcareId) {
       throw missingSelfcareId(config.pagoPaTenantId);
     }
 
-    return buildSupportClaims(selfcareId, tenant);
+    return {
+      ...buildUserClaims(
+        [userRole.SUPPORT_ROLE],
+        unsafeBrandId(id),
+        unsafeBrandId(selfcareId),
+        externalId
+      ),
+      organization: {
+        id: unsafeBrandId(selfcareId),
+        name,
+        roles: [
+          {
+            role: userRole.SUPPORT_ROLE,
+          },
+        ],
+      },
+      uid: SUPPORT_USER_ID,
+    };
   };
 
   return {
@@ -162,16 +170,10 @@ export function authorizationServiceBuilder(
       const { serialized } =
         await interopTokenGenerator.generateInternalToken();
 
-      const internalHeaders = {
+      const tenantBySelfcareId = await retrieveTenantBySelfcareId(selfcareId, {
         ...headers,
         Authorization: `Bearer ${serialized}`,
-      };
-
-      const tenantBySelfcareId =
-        await tenantProcessClient.selfcare.getTenantBySelfcareId({
-          params: { selfcareId },
-          headers: internalHeaders,
-        });
+      });
       const tenantId = unsafeBrandId<TenantId>(tenantBySelfcareId.id);
 
       assertTenantAllowed(selfcareId, tenantBySelfcareId.externalId.origin);
@@ -188,12 +190,11 @@ export function authorizationServiceBuilder(
         };
       }
 
-      const customClaims = buildJwtCustomClaims(
+      const customClaims = buildUserClaims(
         roles,
         tenantId,
         selfcareId,
-        tenantBySelfcareId.externalId.origin,
-        tenantBySelfcareId.externalId.value
+        tenantBySelfcareId.externalId
       );
 
       const { serialized: sessionToken } =

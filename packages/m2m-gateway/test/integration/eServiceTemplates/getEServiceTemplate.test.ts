@@ -1,19 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { eserviceTemplateApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  getMockedApiEServiceTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiEServiceTemplate,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEserviceTemplate", () => {
-  const mockApiTemplate = getMockedApiEServiceTemplate();
+  const mockApiTemplate = getMockWithMetadata(getMockedApiEServiceTemplate());
 
   const mockGetTemplate = vi.fn().mockResolvedValue(mockApiTemplate);
 
@@ -25,22 +26,6 @@ describe("getEserviceTemplate", () => {
     mockGetTemplate.mockClear();
   });
 
-  const testToM2MEServiceTemplateVersion = (
-    version: eserviceTemplateApi.EServiceTemplateVersion
-  ): m2mGatewayApi.EServiceTemplateVersion => ({
-    id: version.id,
-    state: version.state,
-    version: version.version,
-    voucherLifespan: version.voucherLifespan,
-    agreementApprovalPolicy: version.agreementApprovalPolicy,
-    dailyCallsPerConsumer: version.dailyCallsPerConsumer,
-    dailyCallsTotal: version.dailyCallsTotal,
-    deprecatedAt: version.deprecatedAt,
-    description: version.description,
-    publishedAt: version.publishedAt,
-    suspendedAt: version.suspendedAt,
-  });
-
   it("Should succeed and perform API clients calls", async () => {
     const expectedM2MTemplate: m2mGatewayApi.EServiceTemplate = {
       creatorId: mockApiTemplate.data.creatorId,
@@ -50,9 +35,6 @@ describe("getEserviceTemplate", () => {
       mode: mockApiTemplate.data.mode,
       name: mockApiTemplate.data.name,
       technology: mockApiTemplate.data.technology,
-      versions: mockApiTemplate.data.versions.map(
-        testToM2MEServiceTemplateVersion
-      ),
       isSignalHubEnabled: mockApiTemplate.data.isSignalHubEnabled,
     };
 

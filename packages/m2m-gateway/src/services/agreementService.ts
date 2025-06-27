@@ -6,7 +6,7 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   isPolledVersionAtLeastResponseVersion,
-  pollResource,
+  pollResourceWithMetadata,
 } from "../utils/polling.js";
 import {
   assertAgreementIsPending,
@@ -32,13 +32,14 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       headers,
     });
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollAgreement = (
     response: WithMaybeMetadata<agreementApi.Agreement>,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
-    pollResource(() => retrieveAgreementById(headers, response.data.id))({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
+  ): Promise<WithMaybeMetadata<agreementApi.Agreement>> =>
+    pollResourceWithMetadata(() =>
+      retrieveAgreementById(headers, response.data.id)
+    )({
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
 
   return {
@@ -46,11 +47,18 @@ export function agreementServiceBuilder(clients: PagoPAInteropBeClients) {
       queryParams: m2mGatewayApi.GetAgreementsQueryParams,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreements> {
-      const { producerIds, consumerIds, eserviceIds, states, limit, offset } =
-        queryParams;
+      const {
+        producerIds,
+        consumerIds,
+        eserviceIds,
+        descriptorIds,
+        states,
+        limit,
+        offset,
+      } = queryParams;
 
       ctx.logger.info(
-        `Retrieving agreements for producerIds ${producerIds} consumerIds ${consumerIds} eServiceIds ${eserviceIds} states ${states} limit ${limit} offset ${offset}`
+        `Retrieving agreements for producerIds ${producerIds}, consumerIds ${consumerIds}, eServiceIds ${eserviceIds}, descriptorIds ${descriptorIds}, states ${states}, limit ${limit}, offset ${offset}`
       );
 
       const {

@@ -1,6 +1,9 @@
 /* eslint-disable fp/no-delete */
 import crypto from "crypto";
 import { fail } from "assert";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import { generateMock } from "@anatine/zod-mock";
 import {
   Agreement,
@@ -95,6 +98,13 @@ import {
   AgreementDocumentV2,
   PurposeV2,
   EserviceAttributes,
+  DPoPProof,
+  DPoPProofPayload,
+  DPoPProofHeader,
+  JWKKeyRS256,
+  JWKKeyES256,
+  Algorithm,
+  algorithm,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -110,9 +120,9 @@ import {
   UserRole,
   userRole,
   WithLogger,
+  UIClaims,
   M2MAdminAuthData,
-  CustomClaims,
-  SessionClaims,
+  createJWK,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import * as jose from "jose";
@@ -124,16 +134,18 @@ export function expectPastTimestamp(timestamp: bigint): boolean {
   );
 }
 
+export function randomSubArray<T>(array: T[]): T[] {
+  const count = Math.floor(Math.random() * array.length) + 1;
+  const start = Math.floor(Math.random() * (array.length - count + 1));
+  return array.slice(start, start + count);
+}
+
 export function randomArrayItem<T>(array: T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
 export function randomBoolean(): boolean {
   return Math.random() < 0.5;
-}
-
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export const getTenantCertifierFeatures = (
@@ -683,12 +695,12 @@ export const getMockClientAssertion = async (props?: {
   };
 
   const headers: jose.JWTHeaderParameters = {
-    alg: "RS256",
+    alg: algorithm.RS256,
     kid: "kid",
     ...props?.customHeader,
   };
 
-  const jws = await signClientAssertion({
+  const jws = await signJWT({
     payload: actualPayload,
     headers,
     keySet,
@@ -704,22 +716,82 @@ export const getMockClientAssertion = async (props?: {
   };
 };
 
+export const getMockDPoPProof = async (
+  props?: {
+    customPayload?: { [k: string]: unknown };
+    customHeader?: { [k: string]: unknown };
+  },
+  alg: Algorithm = algorithm.ES256
+): Promise<{
+  dpopProofJWS: string;
+  dpopProofJWT: DPoPProof;
+}> => {
+  const { keySet, publicKeyEncodedPem } = generateKeySet(alg);
+
+  const payload: DPoPProofPayload = {
+    htm: "POST",
+    htu: "test/authorization-server/token.oauth2",
+    iat: dateToSeconds(new Date()),
+    jti: generateId(),
+    ...props?.customPayload,
+  };
+
+  const cryptoJWK = createJWK({
+    pemKeyBase64: publicKeyEncodedPem,
+    strictCheck: alg === algorithm.RS256,
+  });
+
+  const jwk = match(alg)
+    .with(algorithm.ES256, () => JWKKeyES256.parse(cryptoJWK))
+    .with(algorithm.RS256, () => JWKKeyRS256.parse(cryptoJWK))
+    .exhaustive();
+
+  const header: DPoPProofHeader = {
+    typ: "dpop+jwt",
+    alg,
+    jwk,
+    ...props?.customHeader,
+  };
+
+  const dpopJWS = await signJWT({
+    payload,
+    headers: header,
+    keySet,
+  });
+
+  return {
+    dpopProofJWS: dpopJWS,
+    dpopProofJWT: {
+      payload,
+      header,
+    },
+  };
+};
+
 export const getMockDescriptorRejectionReason =
   (): DescriptorRejectionReason => ({
     rejectionReason: "Rejection Reason",
     rejectedAt: new Date(),
   });
 
-export const generateKeySet = (): {
+export const generateKeySet = (
+  alg: Algorithm = algorithm.RS256
+): {
   keySet: crypto.KeyPairKeyObjectResult;
   publicKeyEncodedPem: string;
 } => {
-  const keySet: crypto.KeyPairKeyObjectResult = crypto.generateKeyPairSync(
-    "rsa",
-    {
-      modulusLength: 2048,
-    }
-  );
+  const keySet: crypto.KeyPairKeyObjectResult = match(alg)
+    .with(algorithm.RS256, () =>
+      crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+      })
+    )
+    .with(algorithm.ES256, () =>
+      crypto.generateKeyPairSync("ec", {
+        namedCurve: "P-256", // This is the curve for ES256
+      })
+    )
+    .exhaustive();
 
   const pemPublicKey = keySet.publicKey
     .export({
@@ -735,7 +807,7 @@ export const generateKeySet = (): {
   };
 };
 
-const signClientAssertion = async ({
+export const signJWT = async ({
   payload,
   headers,
   keySet,
@@ -1129,7 +1201,7 @@ export const getMockContextM2MAdmin = ({
 
 export const getMockSessionClaims = (
   roles: UserRole[] = [userRole.ADMIN_ROLE]
-): SessionClaims & CustomClaims => ({
+): UIClaims => ({
   uid: generateId(),
   organization: {
     id: generateId(),
@@ -1139,7 +1211,7 @@ export const getMockSessionClaims = (
   name: "A generic user",
   family_name: "Family name",
   email: "randomEmailforTest@tester.com",
-  "user-roles": roles.join(","),
+  "user-roles": roles,
   organizationId: generateId(),
   selfcareId: generateId(),
   externalId: {
@@ -1152,3 +1224,12 @@ export const getMockWithMetadata = <T>(data: T): WithMetadata<T> => ({
   data,
   metadata: { version: generateMock(z.number().int()) },
 });
+
+export const readFileContent = async (fileName: string): Promise<string> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return htmlTemplateBuffer.toString();
+};

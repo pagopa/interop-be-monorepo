@@ -20,7 +20,7 @@ import {
   RootFilterOperators,
 } from "mongodb";
 import { z } from "zod";
-import { ReadModelDbConfig } from "../index.js";
+import { ReadModelDbConfig } from "../config/readmodelDbConfig.js";
 
 export const Metadata = z.object({ version: z.number() });
 export type Metadata = z.infer<typeof Metadata>;

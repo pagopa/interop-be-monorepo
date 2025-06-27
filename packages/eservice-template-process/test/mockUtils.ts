@@ -1,9 +1,9 @@
 import {
   EServiceTemplate,
-  RiskAnalysis,
   generateId,
   EServiceTemplateVersion,
   TenantId,
+  EServiceTemplateRiskAnalysis,
 } from "pagopa-interop-models";
 import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -15,7 +15,7 @@ import {
   getMockAuthData,
   getMockContextM2M,
   getMockContextM2MAdmin,
-} from "pagopa-interop-commons-test/dist/testUtils.js";
+} from "pagopa-interop-commons-test";
 import {
   eServiceModeToApiEServiceMode,
   eserviceTemplateToApiEServiceTemplate,
@@ -23,12 +23,13 @@ import {
 } from "../src/model/domain/apiConverter.js";
 
 export const buildRiskAnalysisSeed = (
-  riskAnalysis: RiskAnalysis
-): eserviceTemplateApi.EServiceRiskAnalysisSeed => ({
+  riskAnalysis: EServiceTemplateRiskAnalysis
+): eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed => ({
   name: riskAnalysis.name,
   riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
   ),
+  tenantKind: riskAnalysis.tenantKind,
 });
 
 export const eserviceTemplateToApiEServiceTemplateSeed = (
@@ -37,10 +38,13 @@ export const eserviceTemplateToApiEServiceTemplateSeed = (
   const apiEserviceTemplate =
     eserviceTemplateToApiEServiceTemplate(eserviceTemplate);
 
-  return {
+  return eserviceTemplateApi.EServiceTemplateSeed.strip().parse({
     ...apiEserviceTemplate,
-    version: apiEserviceTemplate.versions[0],
-  };
+    version:
+      eserviceTemplateApi.VersionSeedForEServiceTemplateCreation.strip().parse(
+        apiEserviceTemplate.versions[0]
+      ),
+  });
 };
 
 export const eserviceTemplateToApiUpdateEServiceTemplateSeed = (
