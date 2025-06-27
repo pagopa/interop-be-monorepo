@@ -1212,8 +1212,8 @@ importers:
         specifier: 3.693.0
         version: 3.693.0(@aws-sdk/client-dynamodb@3.693.0)
       '@xmldom/xmldom':
-        specifier: 0.9.6
-        version: 0.9.6
+        specifier: 0.9.8
+        version: 0.9.8
       '@zodios/core':
         specifier: 10.9.6
         version: 10.9.6(axios@1.8.2)(zod@3.23.8)
@@ -7268,8 +7268,8 @@ packages:
     resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
     engines: {node: '>=10.0.0'}
 
-  '@xmldom/xmldom@0.9.6':
-    resolution: {integrity: sha512-Su4xcxR0CPGwlDHNmVP09fqET9YxbyDXHaSob6JlBH7L6reTYaeim6zbk9o08UarO0L5GTRo3uzl0D+9lSxmvw==}
+  '@xmldom/xmldom@0.9.8':
+    resolution: {integrity: sha512-p96FSY54r+WJ50FIOsCOjyj/wavs8921hG5+kVMmZgKcvIKxMXHTrjNJvRgWa/zuX3B6t2lijLNFaOyuxUH+2A==}
     engines: {node: '>=14.6'}
 
   '@zodios/core@10.9.6':
@@ -13975,7 +13975,7 @@ snapshots:
 
   '@xmldom/xmldom@0.8.10': {}
 
-  '@xmldom/xmldom@0.9.6': {}
+  '@xmldom/xmldom@0.9.8': {}
 
   '@zodios/core@10.9.6(axios@1.8.2)(zod@3.23.8)':
     dependencies:

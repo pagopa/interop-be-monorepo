@@ -2,6 +2,7 @@
 import { fail } from "assert";
 import { describe, expect, it } from "vitest";
 import {
+  algorithm,
   ClientId,
   clientKindTokenGenStates,
   generateId,
@@ -328,7 +329,7 @@ describe("validation test", async () => {
       const options: jsonwebtoken.SignOptions = {
         header: {
           kid: generateId(),
-          alg: "RS256",
+          alg: algorithm.RS256,
         },
       };
       const jws = jsonwebtoken.sign(
@@ -681,7 +682,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeUndefined();
     });
@@ -697,7 +698,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(
@@ -758,7 +759,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -774,7 +775,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         "not-a-valid-jws",
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -795,7 +796,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         clientAssertionWithWrongSignature,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -811,7 +812,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         "too.many.substrings.in.client.assertion",
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -835,7 +836,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         clientAssertionWithWrongSignature,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -867,7 +868,7 @@ describe("validation test", async () => {
       const { errors } = await verifyClientAssertionSignature(
         jws,
         mockKey,
-        "RS256"
+        algorithm.RS256
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
