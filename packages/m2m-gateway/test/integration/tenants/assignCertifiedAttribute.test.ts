@@ -84,7 +84,7 @@ describe("addCertifiedAttribute", () => {
       revokedAt: mockCertifiedAttribute2.revocationTimestamp,
     };
 
-    const result = await tenantService.addCertifiedAttribute(
+    const result = await tenantService.assignCertifiedAttribute(
       unsafeBrandId(mockTenantProcessResponse.data.id),
       mockTenantCertifiedAttributeSeed,
       getMockM2MAdminAppContext()
@@ -112,7 +112,7 @@ describe("addCertifiedAttribute", () => {
   it("Should throw tenantCertifiedAttributeNotFound in case the attribute is not found in the tenant", async () => {
     const nonExistentAttributeId = generateId();
     await expect(
-      tenantService.addCertifiedAttribute(
+      tenantService.assignCertifiedAttribute(
         unsafeBrandId(mockTenantProcessResponse.data.id),
         { id: nonExistentAttributeId },
         getMockM2MAdminAppContext()
@@ -132,7 +132,7 @@ describe("addCertifiedAttribute", () => {
     });
 
     await expect(
-      tenantService.addCertifiedAttribute(
+      tenantService.assignCertifiedAttribute(
         unsafeBrandId(mockTenantProcessResponse.data.id),
         mockTenantCertifiedAttributeSeed,
         getMockM2MAdminAppContext()
@@ -147,7 +147,7 @@ describe("addCertifiedAttribute", () => {
     });
 
     await expect(
-      tenantService.addCertifiedAttribute(
+      tenantService.assignCertifiedAttribute(
         unsafeBrandId(mockTenantProcessResponse.data.id),
         mockTenantCertifiedAttributeSeed,
         getMockM2MAdminAppContext()
@@ -164,7 +164,7 @@ describe("addCertifiedAttribute", () => {
     );
 
     await expect(
-      tenantService.addCertifiedAttribute(
+      tenantService.assignCertifiedAttribute(
         unsafeBrandId(mockTenantProcessResponse.data.id),
         mockTenantCertifiedAttributeSeed,
         getMockM2MAdminAppContext()
