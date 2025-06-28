@@ -5,7 +5,12 @@ import {
 } from "pagopa-interop-api-clients";
 
 import {
+  attributeInReadmodelAttribute,
+  DrizzleReturnType,
+} from "pagopa-interop-readmodel-models";
+import {
   isPolledVersionAtLeastResponseVersion,
+  new_pollResourceBuilder,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -16,7 +21,10 @@ import { toM2MGatewayApiCertifiedAttribute } from "../api/attributeApiConverter.
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
+export function attributeServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  db: DrizzleReturnType
+) {
   const pollAttribute = (
     response: WithMaybeMetadata<attributeRegistryApi.Attribute>,
     headers: M2MGatewayAppContext["headers"]
@@ -29,6 +37,11 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const new_pollAttribute = new_pollResourceBuilder(
+    db,
+    attributeInReadmodelAttribute
+  );
 
   return {
     async getCertifiedAttribute(
@@ -67,6 +80,26 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiCertifiedAttribute({
         attribute: polledResource.data,
+        logger,
+      });
+    },
+    async new_createCertifiedAttribute(
+      seed: m2mGatewayApi.CertifiedAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.CertifiedAttribute> {
+      logger.info(
+        `Creating certified attribute with code ${seed.code} and name ${seed.name}`
+      );
+
+      const response =
+        await clients.attributeProcessClient.createCertifiedAttribute(seed, {
+          headers,
+        });
+
+      await new_pollAttribute(response);
+
+      return toM2MGatewayApiCertifiedAttribute({
+        attribute: response.data,
         logger,
       });
     },
