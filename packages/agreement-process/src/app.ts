@@ -1,17 +1,17 @@
 import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
+import {
   authenticationMiddleware,
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import healthRouter from "./routers/HealthRouter.js";
-import agreementRouter from "./routers/AgreementRouter.js";
 import { config } from "./config/config.js";
+import agreementRouter from "./routers/AgreementRouter.js";
+import healthRouter from "./routers/HealthRouter.js";
 import { AgreementService } from "./services/agreementService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -21,6 +21,7 @@ export async function createApp(service: AgreementService) {
   const router = agreementRouter(zodiosCtx, service);
 
   const app = zodiosCtx.app();
+  // CI trigger for testing purposes
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
