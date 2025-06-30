@@ -1,44 +1,81 @@
 import crypto from "crypto";
 import { KMSClient, SignCommand, SignCommandInput } from "@aws-sdk/client-kms";
+import {
+  ClientAssertionDigest,
+  ClientId,
+  DescriptorId,
+  EServiceId,
+  generateId,
+  JWKKeyRS256,
+  JWKKeyES256,
+  PurposeId,
+  TenantId,
+  UserId,
+} from "pagopa-interop-models";
+import { systemRole } from "../auth/roles.js";
+import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
+import { dateToSeconds } from "../utils/date.js";
+import { calculateKid } from "../auth/jwk.js";
 import {
-  CustomClaims,
+  InteropApiToken,
+  InteropConsumerToken,
+  InteropInternalToken,
+  InteropJwtApiCommonPayload,
+  InteropJwtApiPayload,
+  InteropJwtConsumerPayload,
   InteropJwtHeader,
-  InteropJwtPayload,
-  InteropToken,
-  SessionClaims,
-  SessionJwtPayload,
-  SessionToken,
+  InteropJwtUIPayload,
+  InteropUIToken,
+  UIClaims,
+  InteropJwtInternalPayload,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
+import {
+  SerializedAuthTokenPayload,
+  toSerializedInteropJwtPayload,
+  toSerializedJwtUIPayload,
+} from "./jwtEncoder.js";
 
 const JWT_HEADER_ALG = "RS256";
+const JWT_HEADER_USE = "sig";
+const JWT_HEADER_TYP = "at+jwt";
 const KMS_SIGNING_ALG = "RSASSA_PKCS1_V1_5_SHA_256";
-const JWT_INTERNAL_ROLE = "internal";
-const JWT_ROLE_CLAIM = "role";
 
 export class InteropTokenGenerator {
   private kmsClient: KMSClient;
 
   constructor(
-    private config: TokenGenerationConfig &
-      Partial<SessionTokenGenerationConfig>
+    private config: Partial<AuthorizationServerTokenGenerationConfig> &
+      Partial<TokenGenerationConfig> &
+      Partial<SessionTokenGenerationConfig>,
+    kmsClient?: KMSClient
   ) {
-    this.kmsClient = new KMSClient();
+    this.kmsClient = kmsClient || new KMSClient();
   }
 
-  public async generateInternalToken(): Promise<InteropToken> {
-    const currentTimestamp = Math.floor(Date.now() / 1000);
+  public async generateInternalToken(): Promise<InteropInternalToken> {
+    const currentTimestamp = dateToSeconds(new Date());
+
+    if (
+      !this.config.kid ||
+      !this.config.issuer ||
+      !this.config.audience ||
+      !this.config.subject ||
+      !this.config.secondsDuration
+    ) {
+      throw Error("TokenGenerationConfig not provided or incomplete");
+    }
 
     const header: InteropJwtHeader = {
       alg: JWT_HEADER_ALG,
-      use: "sig",
-      typ: "at+jwt",
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
       kid: this.config.kid,
     };
 
-    const payload: InteropJwtPayload = {
+    const payload: InteropJwtInternalPayload = {
       jti: crypto.randomUUID(),
       iss: this.config.issuer,
       aud: this.config.audience,
@@ -46,14 +83,14 @@ export class InteropTokenGenerator {
       iat: currentTimestamp,
       nbf: currentTimestamp,
       exp: currentTimestamp + this.config.secondsDuration,
-      [JWT_ROLE_CLAIM]: JWT_INTERNAL_ROLE,
+      role: systemRole.INTERNAL_ROLE,
     };
 
-    const serializedToken = await this.createAndSignToken(
+    const serializedToken = await this.createAndSignToken({
       header,
-      payload,
-      this.config.kid
-    );
+      payload: toSerializedInteropJwtPayload(payload),
+      keyId: this.config.kid,
+    });
 
     return {
       header,
@@ -63,9 +100,9 @@ export class InteropTokenGenerator {
   }
 
   public async generateSessionToken(
-    claims: SessionClaims & CustomClaims,
+    claims: UIClaims,
     jwtDuration?: number
-  ): Promise<SessionToken> {
+  ): Promise<InteropUIToken> {
     if (
       !this.config.generatedKid ||
       !this.config.generatedIssuer ||
@@ -75,18 +112,18 @@ export class InteropTokenGenerator {
       throw Error("SessionTokenGenerationConfig not provided or incomplete");
     }
 
-    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const currentTimestamp = dateToSeconds(new Date());
 
     const header: InteropJwtHeader = {
       alg: JWT_HEADER_ALG,
-      use: "sig",
-      typ: "at+jwt",
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
       kid: this.config.generatedKid,
     };
 
     const duration = jwtDuration ?? this.config.generatedSecondsDuration;
 
-    const payload: SessionJwtPayload = {
+    const payload: InteropJwtUIPayload = {
       jti: crypto.randomUUID(),
       iss: this.config.generatedIssuer,
       aud: this.config.generatedAudience,
@@ -96,11 +133,11 @@ export class InteropTokenGenerator {
       ...claims,
     };
 
-    const serializedToken = await this.createAndSignToken(
+    const serializedToken = await this.createAndSignToken({
       header,
-      payload,
-      this.config.generatedKid
-    );
+      payload: toSerializedJwtUIPayload(payload),
+      keyId: this.config.generatedKid,
+    });
 
     return {
       header,
@@ -109,11 +146,170 @@ export class InteropTokenGenerator {
     };
   }
 
-  private async createAndSignToken(
-    header: InteropJwtHeader,
-    payload: InteropJwtPayload | SessionJwtPayload,
-    keyId: string
-  ): Promise<string> {
+  public async generateInteropApiToken({
+    sub,
+    consumerId,
+    clientAdminId,
+  }: {
+    sub: ClientId;
+    consumerId: TenantId;
+    clientAdminId: UserId | undefined;
+  }): Promise<InteropApiToken> {
+    if (
+      !this.config.generatedInteropTokenKid ||
+      !this.config.generatedInteropTokenIssuer ||
+      !this.config.generatedInteropTokenM2MAudience ||
+      !this.config.generatedInteropTokenM2MDurationSeconds
+    ) {
+      throw Error(
+        "AuthorizationServerTokenGenerationConfig not provided or incomplete"
+      );
+    }
+
+    const currentTimestamp = dateToSeconds(new Date());
+
+    const header: InteropJwtHeader = {
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
+      kid: this.config.generatedInteropTokenKid,
+    };
+
+    const userDataPayload: InteropJwtApiCommonPayload = {
+      jti: generateId(),
+      iss: this.config.generatedInteropTokenIssuer,
+      aud: this.config.generatedInteropTokenM2MAudience,
+      client_id: sub,
+      sub,
+      iat: currentTimestamp,
+      nbf: currentTimestamp,
+      exp:
+        currentTimestamp + this.config.generatedInteropTokenM2MDurationSeconds,
+      organizationId: consumerId,
+    };
+
+    const systemRolePayload = clientAdminId
+      ? {
+          role: systemRole.M2M_ADMIN_ROLE,
+          adminId: clientAdminId,
+        }
+      : {
+          role: systemRole.M2M_ROLE,
+        };
+
+    const payload: InteropJwtApiPayload = {
+      ...userDataPayload,
+      ...systemRolePayload,
+    };
+
+    const serializedToken = await this.createAndSignToken({
+      header,
+      payload: toSerializedInteropJwtPayload(payload),
+      keyId: this.config.generatedInteropTokenKid,
+    });
+
+    return {
+      header,
+      payload,
+      serialized: serializedToken,
+    };
+  }
+
+  public async generateInteropConsumerToken({
+    sub,
+    audience,
+    purposeId,
+    tokenDurationInSeconds,
+    digest,
+    producerId,
+    consumerId,
+    eserviceId,
+    descriptorId,
+    featureFlagImprovedProducerVerificationClaims = false,
+    dpopJWK,
+  }: {
+    sub: ClientId;
+    audience: string[];
+    purposeId: PurposeId;
+    tokenDurationInSeconds: number;
+    digest: ClientAssertionDigest | undefined;
+    producerId: TenantId;
+    consumerId: TenantId;
+    eserviceId: EServiceId;
+    descriptorId: DescriptorId;
+    featureFlagImprovedProducerVerificationClaims: boolean;
+    dpopJWK?: JWKKeyRS256 | JWKKeyES256;
+  }): Promise<InteropConsumerToken> {
+    if (
+      !this.config.generatedInteropTokenKid ||
+      !this.config.generatedInteropTokenIssuer ||
+      !this.config.generatedInteropTokenM2MAudience
+    ) {
+      throw Error(
+        "AuthorizationServerTokenGenerationConfig not provided or incomplete"
+      );
+    }
+
+    const currentTimestamp = dateToSeconds(new Date());
+
+    const header: InteropJwtHeader = {
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
+      kid: this.config.generatedInteropTokenKid,
+    };
+
+    const payload: InteropJwtConsumerPayload = {
+      jti: generateId(),
+      iss: this.config.generatedInteropTokenIssuer,
+      aud: audience,
+      client_id: sub,
+      sub,
+      iat: currentTimestamp,
+      nbf: currentTimestamp,
+      exp: currentTimestamp + tokenDurationInSeconds,
+      purposeId,
+      ...(digest ? { digest } : {}),
+      // TODO: remove featureFlagImprovedProducerVerificationClaims after the feature flag disappears
+      ...(featureFlagImprovedProducerVerificationClaims
+        ? {
+            producerId,
+            consumerId,
+            eserviceId,
+            descriptorId,
+          }
+        : {}),
+      ...(dpopJWK
+        ? {
+            cnf: {
+              jkt: calculateKid(dpopJWK),
+            },
+          }
+        : {}),
+    };
+
+    const serializedToken = await this.createAndSignToken({
+      header,
+      payload: toSerializedInteropJwtPayload(payload),
+      keyId: this.config.generatedInteropTokenKid,
+    });
+
+    return {
+      header,
+      payload,
+      serialized: serializedToken,
+    };
+  }
+
+  private async createAndSignToken({
+    header,
+    payload,
+    keyId,
+  }: {
+    header: InteropJwtHeader;
+    payload: SerializedAuthTokenPayload;
+    keyId: string;
+  }): Promise<string> {
     const serializedToken = `${b64UrlEncode(
       JSON.stringify(header)
     )}.${b64UrlEncode(JSON.stringify(payload))}`;

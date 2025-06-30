@@ -7,6 +7,8 @@ import {
   clientKind,
   keyUse,
   ProducerKeychain,
+  ClientJWKKey,
+  ProducerJWKKey,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -46,6 +48,7 @@ export function clientToApiClientWithKeys(
       purposes: client.purposes,
       kind: clientKindToApiClientKind(client.kind),
       description: client.description,
+      adminId: client.adminId,
     },
     keys: client.keys.map(keyToApiKey),
   };
@@ -64,6 +67,7 @@ export function clientToApiClient(
     purposes: client.purposes,
     kind: clientKindToApiClientKind(client.kind),
     description: client.description,
+    adminId: client.adminId,
   };
 }
 
@@ -98,3 +102,31 @@ export const ApiKeyUseToKeyUse = (kid: authorizationApi.KeyUse): KeyUse =>
     .with("ENC", () => keyUse.enc)
     .with("SIG", () => keyUse.sig)
     .exhaustive();
+
+export const clientJWKToApiClientJWK = (
+  jwk: ClientJWKKey
+): authorizationApi.ClientJWK => ({
+  clientId: jwk.clientId,
+  jwk: {
+    kid: jwk.kid,
+    kty: jwk.kty,
+    alg: jwk.alg,
+    use: jwk.use,
+    e: jwk.e,
+    n: jwk.n,
+  },
+});
+
+export const producerJWKToApiProducerJWK = (
+  jwk: ProducerJWKKey
+): authorizationApi.ProducerJWK => ({
+  producerKeychainId: jwk.producerKeychainId,
+  jwk: {
+    kid: jwk.kid,
+    kty: jwk.kty,
+    alg: jwk.alg,
+    use: jwk.use,
+    e: jwk.e,
+    n: jwk.n,
+  },
+});

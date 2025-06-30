@@ -1,8 +1,18 @@
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
-import { apiGatewayApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  getAllFromPaginated,
+  M2MAuthData,
+  WithLogger,
+} from "pagopa-interop-commons";
+import {
+  apiGatewayApi,
+  purposeApi,
+  catalogApi,
+  delegationApi,
+} from "pagopa-interop-api-clients";
 import {
   AgreementProcessClient,
   CatalogProcessClient,
+  DelegationProcessClient,
   PurposeProcessClient,
 } from "../clients/clientsProvider.js";
 import { ApiGatewayAppContext } from "../utilities/context.js";
@@ -14,6 +24,8 @@ import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import { purposeNotFound } from "../models/errors.js";
 import {
   assertIsEserviceProducer,
+  assertIsEserviceDelegateProducer,
+  assertOnlyOneActiveProducerDelegationForEserviceExists,
   assertOnlyOneAgreementForEserviceAndConsumerExists,
 } from "./validators.js";
 import { getAllAgreements } from "./agreementService.js";
@@ -61,11 +73,33 @@ const retrievePurpose = async (
       });
     });
 
+const retrieveActiveProducerDelegationByEServiceId = async (
+  delegationProcessClient: DelegationProcessClient,
+  headers: ApiGatewayAppContext["headers"],
+  eserviceId: catalogApi.EService["id"]
+): Promise<delegationApi.Delegation | undefined> => {
+  const result = await delegationProcessClient.getDelegations({
+    headers,
+    queries: {
+      eserviceIds: [eserviceId],
+      kind: delegationApi.DelegationKind.Values.DELEGATED_PRODUCER,
+      delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+      limit: 1,
+      offset: 0,
+    },
+  });
+
+  assertOnlyOneActiveProducerDelegationForEserviceExists(result, eserviceId);
+
+  return result.results.at(0);
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   purposeProcessClient: PurposeProcessClient,
   catalogProcessClient: CatalogProcessClient,
-  agreementProcessClient: AgreementProcessClient
+  agreementProcessClient: AgreementProcessClient,
+  delegationProcessClient: DelegationProcessClient
 ) {
   return {
     getPurpose: async (
@@ -73,7 +107,7 @@ export function purposeServiceBuilder(
         logger,
         headers,
         authData: { organizationId },
-      }: WithLogger<ApiGatewayAppContext>,
+      }: WithLogger<ApiGatewayAppContext<M2MAuthData>>,
       purposeId: purposeApi.Purpose["id"]
     ): Promise<apiGatewayApi.Purpose> => {
       logger.info(`Retrieving Purpose ${purposeId}`);
@@ -92,7 +126,18 @@ export function purposeServiceBuilder(
           },
         });
 
-        assertIsEserviceProducer(eservice, organizationId);
+        try {
+          assertIsEserviceProducer(eservice, organizationId);
+        } catch {
+          const producerDelegation =
+            await retrieveActiveProducerDelegationByEServiceId(
+              delegationProcessClient,
+              headers,
+              eservice.id
+            );
+
+          assertIsEserviceDelegateProducer(producerDelegation, organizationId);
+        }
       }
 
       return toApiGatewayPurpose(purpose, logger);

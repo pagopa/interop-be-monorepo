@@ -40,18 +40,21 @@ export const updateTenantVerifiedAttributeErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("verifiedAttributeNotFoundInTenant", () => HTTP_STATUS_NOT_FOUND)
     .with("expirationDateCannotBeInThePast", () => HTTP_STATUS_BAD_REQUEST)
-    .with("organizationNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateVerifiedAttributeExtensionDateErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("verifiedAttributeNotFoundInTenant", () => 404)
-    .with("organizationNotFoundInVerifiers", () => 403)
-    .with("expirationDateNotFoundInVerifier", () => 400)
-    .with("tenantNotFound", () => 404)
-    .otherwise(() => 500);
+    .with(
+      "tenantNotFound",
+      "verifiedAttributeNotFoundInTenant",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("tenantNotFoundInVerifiers", () => HTTP_STATUS_FORBIDDEN)
+    .with("expirationDateNotFoundInVerifier", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const selfcareUpsertTenantErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -96,8 +99,13 @@ export const addDeclaredAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "delegationNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeCertifiedAttributeErrorMapper = (
@@ -136,17 +144,31 @@ export const maintenanceTenantDeletedErrorMapper = (
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const verifyVerifiedAttributeErrorMapper = (
+export const maintenanceTenantUpdatedErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const verifyVerifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("expirationDateCannotBeInThePast", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "agreementNotFound",
+      "eServiceNotFound",
+      "descriptorNotFoundInEservice",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with(
       "verifiedAttributeSelfVerificationNotAllowed",
+      "attributeVerificationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("attributeVerificationNotAllowed", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeVerifiedAttributeErrorMapper = (
@@ -155,6 +177,9 @@ export const revokeVerifiedAttributeErrorMapper = (
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("descriptorNotFoundInEservice", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "verifiedAttributeSelfRevocationNotAllowed",
       "attributeRevocationNotAllowed",
@@ -228,4 +253,12 @@ export const m2mRevokeCertifiedAttributeErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateTenantDelegatedFeaturesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

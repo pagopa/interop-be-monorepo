@@ -37,12 +37,29 @@ export function toFeatureV2(feature: TenantFeature): TenantFeatureV2 {
         },
       },
     }))
+    .with({ type: "DelegatedProducer" }, (feature) => ({
+      sealedValue: {
+        oneofKind: "delegatedProducer",
+        delegatedProducer: {
+          availabilityTimestamp: dateToBigInt(feature.availabilityTimestamp),
+        },
+      },
+    }))
+    .with({ type: "DelegatedConsumer" }, (feature) => ({
+      sealedValue: {
+        oneofKind: "delegatedConsumer",
+        delegatedConsumer: {
+          availabilityTimestamp: dateToBigInt(feature.availabilityTimestamp),
+        },
+      },
+    }))
     .exhaustive();
 }
 
 export function toTenantVerifierV2(verifier: TenantVerifier): TenantVerifierV2 {
   return {
     id: verifier.id,
+    delegationId: verifier.delegationId,
     verificationDate: dateToBigInt(verifier.verificationDate),
     expirationDate: dateToBigInt(verifier.expirationDate),
     extensionDate: dateToBigInt(verifier.extensionDate),
@@ -52,6 +69,7 @@ export function toTenantVerifierV2(verifier: TenantVerifier): TenantVerifierV2 {
 export function toTenantRevokerV2(revoker: TenantRevoker): TenantRevokerV2 {
   return {
     id: revoker.id,
+    delegationId: revoker.delegationId,
     verificationDate: dateToBigInt(revoker.verificationDate),
     expirationDate: dateToBigInt(revoker.expirationDate),
     extensionDate: dateToBigInt(revoker.extensionDate),
@@ -89,6 +107,7 @@ export function toAttributeV2(input: TenantAttribute): TenantAttributeV2 {
           id: attribute.id,
           assignmentTimestamp: dateToBigInt(attribute.assignmentTimestamp),
           revocationTimestamp: dateToBigInt(attribute.revocationTimestamp),
+          delegationId: attribute.delegationId,
         },
       },
     }))

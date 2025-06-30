@@ -1,0 +1,17 @@
+meta {
+  name: Create EService from Template
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-catalog}}/templates/{{eserviceTemplateId}}/eservices
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+

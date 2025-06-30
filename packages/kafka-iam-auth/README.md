@@ -30,21 +30,22 @@ await runConsumer(config, topicName, processMessageHandler);
 ```
 
 ## Local Testing
+
 To simulate Kafaka topic consuming and executing a real SALS authentication with AWS, you need to connect your consumer to specific topic presents in dev environment.
 You must put the following variables in your consumer .env file to simulate the same credential provisioning executed by service in Kubernates pod:
 
 ```bash
 AWS_WEB_IDENTITY_TOKEN_FILE="{TOKE_FILE_PATH}"
 AWS_ROLE_ARN="arn:aws:iam::{ID}:role/interop-be-{SERVICE}-consumer-refactor-dev"
-AWS_REGION="eu-central-1"
+AWS_REGION="eu-south-1"
 AWS_STS_REGIONAL_ENDPOINTS="regional"
-AWS_DEFAULT_REGION="eu-central-1"
+AWS_DEFAULT_REGION="eu-south-1"
 ```
 
 Replace all placeholders {...} with desired configurations.
 
 Token file should contains a valid token retrieved from AWS, by the way all of those variables can be found inspecting pod in dev cluster.
 
-
 ## Credits
+
 This project uses code from the [Original Repository](https://github.com/jmaver-plume/kafkajs-msk-iam-authentication-mechanism), which is licensed under the MIT License. We are grateful to the original authors and contributors for their work.

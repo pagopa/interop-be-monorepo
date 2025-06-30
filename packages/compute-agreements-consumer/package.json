@@ -10,7 +10,7 @@
     "lint:autofix": "eslint . --ext .ts,.tsx --fix",
     "format:check": "prettier --check src",
     "format:write": "prettier --write src",
-    "start": "node --loader ts-node/esm -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
@@ -20,9 +20,8 @@
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
     "@types/node": "20.14.6",
-    "@types/uuid": "9.0.8",
     "prettier": "2.8.8",
-    "ts-node": "10.9.2",
+    "tsx": "4.19.1",
     "typescript": "5.4.5"
   },
   "dependencies": {
@@ -33,7 +32,6 @@
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "ts-pattern": "5.2.0",
-    "uuid": "10.0.0",
     "zod": "3.23.8"
   }
 }

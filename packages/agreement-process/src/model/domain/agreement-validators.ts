@@ -14,9 +14,17 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
+  AgreementStamp,
+  AgreementStamps,
+  delegationKind,
+  Delegation,
+  delegationState,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
-import { AuthData } from "pagopa-interop-commons";
+import {
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
   filterCertifiedAttributes,
@@ -28,15 +36,21 @@ import {
   agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotInExpectedState,
+  agreementStampNotFound,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
   documentChangeNotAllowed,
   missingCertifiedAttributesError,
   notLatestEServiceDescriptor,
-  operationNotAllowed,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
+  tenantIsNotTheDelegateProducer,
+  tenantIsNotTheProducer,
+  tenantNotAllowed,
 } from "./errors.js";
 import {
+  ActiveDelegations,
   CertifiedAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
@@ -81,6 +95,7 @@ export const agreementRejectableStates: AgreementState[] = [
 export const agreementDeletableStates: AgreementState[] = [
   agreementState.draft,
   agreementState.missingCertifiedAttributes,
+  agreementState.pending,
 ];
 
 export const agreementClonableStates: AgreementState[] = [
@@ -116,43 +131,128 @@ export const agreementSubmissionConflictingStates: AgreementState[] = [
 
 export const agreementConsumerDocumentChangeValidStates: AgreementState[] = [
   agreementState.draft,
-  agreementState.pending,
 ];
 
 /* ========= ASSERTIONS ========= */
 
-export const assertRequesterIsConsumer = (
-  agreement: Agreement,
-  authData: AuthData
+const assertRequesterIsConsumer = (
+  consumerId: TenantId,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): void => {
-  if (
-    !authData.userRoles.includes("internal") &&
-    authData.organizationId !== agreement.consumerId
-  ) {
-    throw operationNotAllowed(authData.organizationId);
+  if (authData.organizationId !== consumerId) {
+    throw tenantIsNotTheConsumer(authData.organizationId);
   }
 };
 
-export function assertRequesterIsProducer(
+const assertRequesterIsProducer = (
   agreement: Agreement,
-  authData: AuthData
-): void {
-  if (
-    !authData.userRoles.includes("internal") &&
-    authData.organizationId !== agreement.producerId
-  ) {
-    throw operationNotAllowed(authData.organizationId);
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): void => {
+  if (authData.organizationId !== agreement.producerId) {
+    throw tenantIsNotTheProducer(authData.organizationId);
   }
-}
+};
 
-export const assertRequesterIsConsumerOrProducer = (
+export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
-  authData: AuthData
+  authData: UIAuthData | M2MAdminAuthData,
+  activeDelegations: ActiveDelegations
 ): void => {
   try {
-    assertRequesterIsConsumer(agreement, authData);
-  } catch (error) {
+    assertRequesterCanActAsConsumer(
+      agreement.consumerId,
+      agreement.eserviceId,
+      authData,
+      activeDelegations.consumerDelegation
+    );
+  } catch {
+    try {
+      assertRequesterCanActAsProducer(
+        agreement,
+        authData,
+        activeDelegations.producerDelegation
+      );
+    } catch {
+      throw tenantNotAllowed(authData.organizationId);
+    }
+  }
+};
+
+export const assertRequesterCanRetrieveAgreement = async (
+  agreement: Agreement,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+  readModelService: ReadModelService
+): Promise<void> => {
+  // This validator is for retrieval operations that can be performed by all the tenants involved:
+  // the consumer, the producer, the consumer delegate, and the producer delegate.
+  // Consumers and producers can retrieve agreements even if delegations exist.
+
+  try {
+    assertRequesterIsConsumer(agreement.consumerId, authData);
+  } catch {
+    try {
+      assertRequesterIsProducer(agreement, authData);
+    } catch {
+      try {
+        assertRequesterIsDelegateProducer(
+          agreement,
+          authData,
+          await readModelService.getActiveProducerDelegationByEserviceId(
+            agreement.eserviceId
+          )
+        );
+      } catch {
+        try {
+          assertRequesterIsDelegateConsumer(
+            agreement.consumerId,
+            agreement.eserviceId,
+            authData,
+            await readModelService.getActiveConsumerDelegationByAgreement(
+              agreement
+            )
+          );
+        } catch {
+          throw tenantNotAllowed(authData.organizationId);
+        }
+      }
+    }
+  }
+};
+
+export const assertRequesterCanActAsProducer = (
+  agreement: Agreement,
+  authData: UIAuthData | M2MAdminAuthData,
+  activeProducerDelegation: Delegation | undefined
+): void => {
+  if (!activeProducerDelegation) {
+    // No active producer delegation, the requester is authorized only if they are the producer
     assertRequesterIsProducer(agreement, authData);
+  } else {
+    // Active producer delegation, the requester is authorized only if they are the delegate
+    assertRequesterIsDelegateProducer(
+      agreement,
+      authData,
+      activeProducerDelegation
+    );
+  }
+};
+
+const assertRequesterIsDelegateProducer = (
+  agreement: Agreement,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+  activeProducerDelegation: Delegation | undefined
+): void => {
+  if (
+    activeProducerDelegation?.delegateId !== authData.organizationId ||
+    activeProducerDelegation?.delegatorId !== agreement.producerId ||
+    activeProducerDelegation?.kind !== delegationKind.delegatedProducer ||
+    activeProducerDelegation?.state !== delegationState.active ||
+    activeProducerDelegation?.eserviceId !== agreement.eserviceId
+  ) {
+    throw tenantIsNotTheDelegateProducer(
+      authData.organizationId,
+      activeProducerDelegation?.id
+    );
   }
 };
 
@@ -189,6 +289,46 @@ export const assertActivableState = (agreement: Agreement): void => {
   }
 };
 
+export const assertRequesterIsDelegateConsumer = (
+  consumerId: TenantId,
+  eserviceId: EServiceId,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+  activeConsumerDelegation: Delegation | undefined
+): void => {
+  if (
+    activeConsumerDelegation?.delegateId !== authData.organizationId ||
+    activeConsumerDelegation?.delegatorId !== consumerId ||
+    activeConsumerDelegation?.eserviceId !== eserviceId ||
+    activeConsumerDelegation?.kind !== delegationKind.delegatedConsumer ||
+    activeConsumerDelegation?.state !== delegationState.active
+  ) {
+    throw tenantIsNotTheDelegateConsumer(
+      authData.organizationId,
+      activeConsumerDelegation?.id
+    );
+  }
+};
+
+export const assertRequesterCanActAsConsumer = (
+  consumerId: TenantId,
+  eserviceId: EServiceId,
+  authData: UIAuthData | M2MAdminAuthData,
+  activeConsumerDelegation: Delegation | undefined
+): void => {
+  if (!activeConsumerDelegation) {
+    // No active consumer delegation, the requester is authorized only if they are the consumer
+    assertRequesterIsConsumer(consumerId, authData);
+  } else {
+    // Active consumer delegation, the requester is authorized only if they are the delegate
+    assertRequesterIsDelegateConsumer(
+      consumerId,
+      eserviceId,
+      authData,
+      activeConsumerDelegation
+    );
+  }
+};
+
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
@@ -207,8 +347,15 @@ const validateLatestDescriptor = (
   descriptorId: DescriptorId,
   allowedStates: DescriptorState[]
 ): Descriptor => {
+  const activeDescriptorStates: DescriptorState[] = [
+    descriptorState.archived,
+    descriptorState.deprecated,
+    descriptorState.published,
+    descriptorState.suspended,
+  ];
+
   const recentActiveDescriptors = eservice.descriptors
-    .filter((d) => d.state !== descriptorState.draft)
+    .filter((d) => activeDescriptorStates.includes(d.state))
     .sort((a, b) => Number(b.version) - Number(a.version));
 
   if (
@@ -233,18 +380,18 @@ export const validateCreationOnDescriptor = (
   eservice: EService,
   descriptorId: DescriptorId
 ): Descriptor => {
-  const allowedStatus = [descriptorState.published];
-  return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
+  const allowedState: DescriptorState[] = [descriptorState.published];
+  return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
 export const verifyCreationConflictingAgreements = async (
   organizationId: TenantId,
-  agreement: agreementApi.AgreementPayload,
+  eserviceId: EServiceId,
   readModelService: ReadModelService
 ): Promise<void> => {
   await verifyConflictingAgreements(
     organizationId,
-    unsafeBrandId(agreement.eserviceId),
+    eserviceId,
     agreementCreationConflictingStates,
     readModelService
   );
@@ -280,11 +427,8 @@ export const validateSubmitOnDescriptor = async (
   eservice: EService,
   descriptorId: DescriptorId
 ): Promise<Descriptor> => {
-  const allowedStatus: DescriptorState[] = [
-    descriptorState.published,
-    descriptorState.suspended,
-  ];
-  return validateLatestDescriptor(eservice, descriptorId, allowedStatus);
+  const allowedState: DescriptorState[] = [descriptorState.published];
+  return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
 export const validateActiveOrPendingAgreement = (
@@ -310,19 +454,6 @@ export const verifyConflictingAgreements = async (
 
   if (agreements.length > 0) {
     throw agreementAlreadyExists(consumerId, eserviceId);
-  }
-};
-
-export const verifyConsumerDoesNotActivatePending = (
-  agreement: Agreement,
-  authData: AuthData
-): void => {
-  const activationPendingNotAllowed =
-    agreement.state === agreementState.pending &&
-    agreement.consumerId === authData.organizationId &&
-    agreement.producerId !== agreement.consumerId;
-  if (activationPendingNotAllowed) {
-    throw operationNotAllowed(authData.organizationId);
   }
 };
 
@@ -407,3 +538,14 @@ export const matchingVerifiedAttributes = (
     verifiedAttributes
   ).map((id) => ({ id } as VerifiedAgreementAttribute));
 };
+
+export function assertStampExists<S extends keyof AgreementStamps>(
+  stamps: AgreementStamps,
+  stamp: S
+): asserts stamps is AgreementStamps & {
+  [key in S]: AgreementStamp;
+} {
+  if (!stamps[stamp]) {
+    throw agreementStampNotFound(stamp);
+  }
+}

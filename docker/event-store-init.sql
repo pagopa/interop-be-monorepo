@@ -119,3 +119,41 @@ CREATE TABLE notification_event.producer_keys_events (
 	kid varchar NOT NULL,
 	event_type varchar NOT NULL
 );
+
+create schema delegation;
+CREATE TABLE delegation.events(
+    sequence_num bigserial NOT NULL,
+
+    stream_id uuid NOT NULL,
+    version bigint NOT NULL,
+
+    correlation_id text,
+
+    type text NOT NULL,
+    event_version int NOT NULL,
+    data bytea NOT NULL,
+
+    log_date timestamptz NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (sequence_num),
+    UNIQUE (stream_id, version)
+);
+
+create schema eservice_template;
+CREATE TABLE eservice_template.events(
+    sequence_num bigserial NOT NULL,
+
+    stream_id uuid NOT NULL,
+    version bigint NOT NULL,
+
+    correlation_id text,
+
+    type text NOT NULL,
+    event_version int NOT NULL,
+    data bytea NOT NULL,
+
+    log_date timestamptz NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (sequence_num),
+    UNIQUE (stream_id, version)
+);

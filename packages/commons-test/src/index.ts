@@ -10,3 +10,5 @@ export * from "./protobufConvertersToV1/purposeProtobufConverterToV1.js";
 export * from "./protobufConvertersToV1/agreementProtobufConverterToV1.js";
 export * from "./setupDynamoDBtables.js";
 export * from "./tokenGenerationReadmodelUtils.js";
+export * from "./mockedPayloadForToken.js";
+export * from "./apiMocks.js";

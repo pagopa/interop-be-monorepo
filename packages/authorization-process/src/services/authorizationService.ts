@@ -1,38 +1,42 @@
 import { JsonWebKey } from "crypto";
 import {
+  authorizationEventToBinaryData,
   Client,
   ClientId,
+  clientKind,
+  Delegation,
   Descriptor,
   DescriptorId,
   EService,
   EServiceId,
+  generateId,
   Key,
   ListResult,
+  ProducerKeychain,
+  ProducerKeychainId,
   Purpose,
   PurposeId,
   PurposeVersionState,
-  TenantId,
-  UserId,
-  WithMetadata,
-  authorizationEventToBinaryData,
-  clientKind,
-  generateId,
-  genericInternalError,
-  invalidKey,
   purposeVersionState,
   unsafeBrandId,
-  ProducerKeychain,
-  ProducerKeychainId,
-  CorrelationId,
+  UserId,
+  WithMetadata,
 } from "pagopa-interop-models";
 import {
-  AuthData,
-  DB,
-  Logger,
-  eventRepository,
-  userRoles,
+  AppContext,
+  assertFeatureFlagEnabled,
   calculateKid,
   createJWK,
+  DB,
+  eventRepository,
+  hasAtLeastOneUserRole,
+  InternalAuthData,
+  isUiAuthData,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+  userRole,
+  WithLogger,
 } from "pagopa-interop-commons";
 import {
   authorizationApi,
@@ -40,29 +44,37 @@ import {
 } from "pagopa-interop-api-clients";
 
 import {
-  clientNotFound,
-  descriptorNotFound,
-  eserviceNotFound,
+  clientAdminAlreadyAssignedToUser,
   clientKeyNotFound,
-  noAgreementFoundInRequiredState,
-  noPurposeVersionsFoundInRequiredState,
-  purposeAlreadyLinkedToClient,
-  purposeNotFound,
+  clientNotFound,
   clientUserAlreadyAssigned,
   clientUserIdNotFound,
-  userNotFound,
-  userNotAllowedOnClient,
+  descriptorNotFound,
+  eserviceAlreadyLinkedToProducerKeychain,
+  eserviceNotDelegableForClientAccess,
+  eserviceNotFound,
+  jwkNotFound,
+  producerJwkNotFound,
+  noActiveOrSuspendedAgreementFound,
+  noActiveOrSuspendedPurposeVersionFound,
   producerKeychainNotFound,
-  producerKeyNotFound,
-  userNotAllowedOnProducerKeychain,
   producerKeychainUserAlreadyAssigned,
   producerKeychainUserIdNotFound,
-  eserviceAlreadyLinkedToProducerKeychain,
-  userNotAllowedToDeleteProducerKeychainKey,
+  producerKeyNotFound,
+  purposeAlreadyLinkedToClient,
+  purposeDelegationNotFound,
+  purposeNotFound,
+  userNotAllowedOnClient,
+  userNotAllowedOnProducerKeychain,
   userNotAllowedToDeleteClientKey,
+  userNotAllowedToDeleteProducerKeychainKey,
+  userNotFound,
 } from "../model/domain/errors.js";
 import {
   toCreateEventClientAdded,
+  toCreateEventClientAdminSet,
+  toCreateEventClientAdminRemoved,
+  toCreateEventClientAdminRoleRevoked,
   toCreateEventClientDeleted,
   toCreateEventClientKeyDeleted,
   toCreateEventClientPurposeAdded,
@@ -72,8 +84,8 @@ import {
   toCreateEventKeyAdded,
   toCreateEventProducerKeychainAdded,
   toCreateEventProducerKeychainDeleted,
-  toCreateEventProducerKeychainEServiceRemoved,
   toCreateEventProducerKeychainEServiceAdded,
+  toCreateEventProducerKeychainEServiceRemoved,
   toCreateEventProducerKeychainKeyAdded,
   toCreateEventProducerKeychainKeyDeleted,
   toCreateEventProducerKeychainUserAdded,
@@ -81,22 +93,30 @@ import {
 } from "../model/domain/toEvent.js";
 import {
   ApiKeyUseToKeyUse,
+  clientJWKToApiClientJWK,
   clientToApiClient,
+  producerJWKToApiProducerJWK,
 } from "../model/domain/apiConverter.js";
+import { config } from "../config/config.js";
 import {
   GetClientsFilters,
   GetProducerKeychainsFilters,
   ReadModelService,
 } from "./readModelService.js";
 import {
-  assertOrganizationIsPurposeConsumer,
-  assertUserSelfcareSecurityPrivileges,
-  assertOrganizationIsClientConsumer,
-  assertOrganizationIsProducerKeychainProducer,
   assertClientKeysCountIsBelowThreshold,
-  assertProducerKeychainKeysCountIsBelowThreshold,
-  assertOrganizationIsEServiceProducer,
   assertKeyDoesNotAlreadyExist,
+  assertOrganizationIsClientConsumer,
+  assertOrganizationIsEServiceProducer,
+  assertOrganizationIsProducerKeychainProducer,
+  assertOrganizationIsPurposeConsumer,
+  assertProducerKeychainKeysCountIsBelowThreshold,
+  assertRequesterIsDelegateConsumer,
+  assertUserSelfcareSecurityPrivileges,
+  assertSecurityRoleIsClientMember,
+  assertClientIsConsumer,
+  assertClientIsAPI,
+  assertAdminInClient,
 } from "./validators.js";
 
 const retrieveClient = async (
@@ -130,6 +150,24 @@ const retrievePurpose = async (
     throw purposeNotFound(purposeId);
   }
   return purpose;
+};
+
+const retrievePurposeDelegation = async (
+  purpose: Purpose,
+  readModelService: ReadModelService
+): Promise<Delegation | undefined> => {
+  if (!purpose.delegationId) {
+    return undefined;
+  }
+
+  const delegation = await readModelService.getActiveConsumerDelegationById(
+    purpose.delegationId
+  );
+  if (!delegation) {
+    throw purposeDelegationNotFound(purpose.delegationId);
+  }
+
+  return delegation;
 };
 
 const retrieveDescriptor = (
@@ -172,40 +210,46 @@ export function authorizationServiceBuilder(
   );
 
   return {
-    async getClientById({
-      clientId,
-      organizationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      organizationId: TenantId;
-      logger: Logger;
-    }): Promise<{ client: Client; showUsers: boolean }> {
+    async getClientById(
+      {
+        clientId,
+      }: {
+        clientId: ClientId;
+      },
+      {
+        logger,
+        authData,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<{ client: Client; showUsers: boolean }>> {
       logger.info(`Retrieving Client ${clientId}`);
-      const client = await retrieveClient(clientId, readModelService);
+      const { data: client, metadata } = await retrieveClient(
+        clientId,
+        readModelService
+      );
+
       return {
-        client: client.data,
-        showUsers: organizationId === client.data.consumerId,
+        data: {
+          client,
+          showUsers: authData.organizationId === client.consumerId,
+        },
+        metadata,
       };
     },
 
-    async createConsumerClient({
-      clientSeed,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      clientSeed: authorizationApi.ClientSeed;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<{ client: Client; showUsers: boolean }> {
+    async createConsumerClient(
+      {
+        clientSeed,
+      }: {
+        clientSeed: authorizationApi.ClientSeed;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
-        `Creating CONSUMER client ${clientSeed.name} for consumer ${organizationId}"`
+        `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
       const client: Client = {
         id: generateId(),
-        consumerId: organizationId,
+        consumerId: authData.organizationId,
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
@@ -224,23 +268,20 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async createApiClient({
-      clientSeed,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      clientSeed: authorizationApi.ClientSeed;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<{ client: Client; showUsers: boolean }> {
+    async createApiClient(
+      {
+        clientSeed,
+      }: {
+        clientSeed: authorizationApi.ClientSeed;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(
-        `Creating API client ${clientSeed.name} for consumer ${organizationId}"`
+        `Creating API client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
       const client: Client = {
         id: generateId(),
-        consumerId: organizationId,
+        consumerId: authData.organizationId,
         name: clientSeed.name,
         purposes: [],
         description: clientSeed.description,
@@ -259,25 +300,27 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async getClients({
-      filters,
-      authData,
-      offset,
-      limit,
-      logger,
-    }: {
-      filters: GetClientsFilters;
-      authData: AuthData;
-      offset: number;
-      limit: number;
-      logger: Logger;
-    }): Promise<ListResult<Client>> {
+    async getClients(
+      {
+        filters,
+        offset,
+        limit,
+      }: {
+        filters: GetClientsFilters;
+        offset: number;
+        limit: number;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<ListResult<Client>> {
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
       );
-      const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
-        ? [authData.userId]
-        : filters.userIds;
+
+      const userIds =
+        isUiAuthData(authData) &&
+        hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
+          ? [authData.userId]
+          : filters.userIds;
 
       return await readModelService.getClients(
         { ...filters, userIds },
@@ -287,21 +330,18 @@ export function authorizationServiceBuilder(
         }
       );
     },
-    async deleteClient({
-      clientId,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async deleteClient(
+      {
+        clientId,
+      }: {
+        clientId: ClientId;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(`Deleting client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData, client.data);
 
       await repository.createEvent(
         toCreateEventClientDeleted(
@@ -311,23 +351,20 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeClientUser({
-      clientId,
-      userIdToRemove,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      userIdToRemove: UserId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async removeClientUser(
+      {
+        clientId,
+        userIdToRemove,
+      }: {
+        clientId: ClientId;
+        userIdToRemove: UserId;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(`Removing user ${userIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData, client.data);
 
       if (!client.data.users.includes(userIdToRemove)) {
         throw clientUserIdNotFound(userIdToRemove, clientId);
@@ -347,27 +384,24 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async deleteClientKeyById({
-      clientId,
-      keyIdToRemove,
-      authData,
-      correlationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      keyIdToRemove: string;
-      authData: AuthData;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async deleteClientKeyById(
+      {
+        clientId,
+        keyIdToRemove,
+      }: {
+        clientId: ClientId;
+        keyIdToRemove: string;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(`Removing key ${keyIdToRemove} from client ${clientId}`);
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData, client.data);
 
-      const hasSecurityRole = authData.userRoles.includes(
-        userRoles.SECURITY_ROLE
-      );
+      const hasSecurityRole = hasAtLeastOneUserRole(authData, [
+        userRole.SECURITY_ROLE,
+      ]);
 
       if (hasSecurityRole && !client.data.users.includes(authData.userId)) {
         throw userNotAllowedOnClient(authData.userId, client.data.id);
@@ -403,25 +437,25 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeClientPurpose({
-      clientId,
-      purposeIdToRemove,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      purposeIdToRemove: PurposeId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async removeClientPurpose(
+      {
+        clientId,
+        purposeIdToRemove,
+      }: {
+        clientId: ClientId;
+        purposeIdToRemove: PurposeId;
+      },
+      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(
         `Removing purpose ${purposeIdToRemove} from client ${clientId}`
       );
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      assertClientIsConsumer(client.data);
+
+      assertOrganizationIsClientConsumer(authData, client.data);
 
       // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
       //   throw purposeNotFound(purposeIdToRemove);
@@ -443,15 +477,17 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removePurposeFromClients({
-      purposeIdToRemove,
-      correlationId,
-      logger,
-    }: {
-      purposeIdToRemove: PurposeId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async removePurposeFromClients(
+      {
+        purposeIdToRemove,
+      }: {
+        purposeIdToRemove: PurposeId;
+      },
+      {
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | InternalAuthData>>
+    ): Promise<void> {
       logger.info(`Removing purpose ${purposeIdToRemove} from all clients`);
 
       const clients = await readModelService.getClientsRelatedToPurpose(
@@ -475,18 +511,17 @@ export function authorizationServiceBuilder(
         );
       }
     },
-    async getClientUsers({
-      clientId,
-      organizationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      organizationId: TenantId;
-      logger: Logger;
-    }): Promise<{ users: UserId[]; showUsers: boolean }> {
+    async getClientUsers(
+      {
+        clientId,
+      }: {
+        clientId: ClientId;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<{ users: UserId[]; showUsers: boolean }> {
       logger.info(`Retrieving users of client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData, client.data);
       return {
         users: client.data.users,
         showUsers: true,
@@ -496,18 +531,15 @@ export function authorizationServiceBuilder(
       {
         clientId,
         userIds,
-        authData,
       }: {
         clientId: ClientId;
         userIds: UserId[];
-        authData: AuthData;
       },
-      correlationId: CorrelationId,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<{ client: Client; showUsers: boolean }> {
       logger.info(`Binding client ${clientId} with user ${userIds.join(",")}`);
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(authData.organizationId, client.data);
+      assertOrganizationIsClientConsumer(authData, client.data);
 
       await Promise.all(
         userIds.map((userId) =>
@@ -518,6 +550,7 @@ export function authorizationServiceBuilder(
             selfcareV2InstitutionClient,
             userIdToCheck: userId,
             correlationId,
+            userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
           })
         )
       );
@@ -551,49 +584,133 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async getClientKeys({
-      clientId,
-      userIds,
-      organizationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      userIds: UserId[];
-      organizationId: TenantId;
-      logger: Logger;
-    }): Promise<Key[]> {
-      logger.info(`Retrieving keys for client ${clientId}`);
+    async setAdminToClient(
+      {
+        clientId,
+        adminId,
+      }: {
+        clientId: ClientId;
+        adminId: UserId;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<{ client: Client; showUsers: boolean }> {
+      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
+
+      logger.info(`Set user ${adminId} in client ${clientId} as admin`);
+
+      await assertUserSelfcareSecurityPrivileges({
+        selfcareId: authData.selfcareId,
+        requesterUserId: authData.userId,
+        consumerId: authData.organizationId,
+        userIdToCheck: adminId,
+        selfcareV2InstitutionClient,
+        correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE],
+      });
+
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
-      if (userIds.length > 0) {
-        return client.data.keys.filter((k) => userIds.includes(k.userId));
-      } else {
-        return client.data.keys;
+      assertClientIsAPI(client.data);
+      assertOrganizationIsClientConsumer(authData, client.data);
+
+      const oldAdminId = client.data.adminId;
+      if (oldAdminId && oldAdminId === adminId) {
+        throw clientAdminAlreadyAssignedToUser(clientId, adminId);
       }
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminSet(
+          adminId,
+          updatedClient,
+          client.metadata.version,
+          correlationId,
+          oldAdminId
+        )
+      );
+      return { client: updatedClient, showUsers: true };
     },
-    async addClientPurpose({
-      clientId,
-      seed,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      seed: authorizationApi.PurposeAdditionDetails;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async getClientKeys(
+      {
+        clientId,
+        userIds,
+        offset,
+        limit,
+      }: {
+        clientId: ClientId;
+        userIds: UserId[];
+        offset: number;
+        limit: number;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<ListResult<Key>> {
+      logger.info(
+        `Retrieving keys for client ${clientId}, limit = ${limit}, offset = ${offset}`
+      );
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertSecurityRoleIsClientMember(authData, client.data);
+      assertOrganizationIsClientConsumer(authData, client.data);
+
+      const allKeys = client.data.keys;
+
+      const filteredKeys =
+        userIds && userIds.length > 0
+          ? allKeys.filter((key) => userIds.includes(key.userId))
+          : allKeys;
+
+      return {
+        results: filteredKeys.slice(offset, offset + limit),
+        totalCount: filteredKeys.length,
+      };
+    },
+    async addClientPurpose(
+      {
+        clientId,
+        seed,
+      }: {
+        clientId: ClientId;
+        seed: authorizationApi.PurposeAdditionDetails;
+      },
+      {
+        logger,
+        authData,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{
+        client: Client;
+        showUsers: boolean;
+      }>
+    > {
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
       );
       const purposeId: PurposeId = unsafeBrandId(seed.purposeId);
 
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+
+      assertClientIsConsumer(client.data);
+
+      assertOrganizationIsClientConsumer(authData, client.data);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-      assertOrganizationIsPurposeConsumer(organizationId, purpose);
+      const delegation = await retrievePurposeDelegation(
+        purpose,
+        readModelService
+      );
+
+      const isDelegate =
+        delegation && purpose.consumerId !== authData.organizationId;
+
+      if (isDelegate) {
+        assertRequesterIsDelegateConsumer(authData, purpose, delegation);
+      } else {
+        assertOrganizationIsPurposeConsumer(authData, purpose);
+      }
 
       if (client.data.purposes.includes(purposeId)) {
         throw purposeAlreadyLinkedToClient(purposeId, client.data.id);
@@ -604,13 +721,20 @@ export function authorizationServiceBuilder(
         readModelService
       );
 
+      if (isDelegate && !eservice.isClientAccessDelegable) {
+        throw eserviceNotDelegableForClientAccess(eservice);
+      }
+
       const agreement = await readModelService.getActiveOrSuspendedAgreement(
         eservice.id,
-        organizationId
+        purpose.consumerId
       );
 
       if (agreement === undefined) {
-        throw noAgreementFoundInRequiredState(eservice.id, organizationId);
+        throw noActiveOrSuspendedAgreementFound(
+          eservice.id,
+          purpose.consumerId
+        );
       }
 
       retrieveDescriptor(agreement.descriptorId, eservice);
@@ -624,7 +748,7 @@ export function authorizationServiceBuilder(
       );
 
       if (purposeVersion === undefined) {
-        throw noPurposeVersionsFoundInRequiredState(purpose.id);
+        throw noActiveOrSuspendedPurposeVersionFound(purpose.id);
       }
 
       const updatedClient: Client = {
@@ -632,7 +756,7 @@ export function authorizationServiceBuilder(
         purposes: [...client.data.purposes, purposeId],
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventClientPurposeAdded(
           purposeId,
           updatedClient,
@@ -640,30 +764,34 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+
+      return {
+        data: {
+          client: updatedClient,
+          showUsers: true,
+        },
+        metadata: {
+          version: event.newVersion,
+        },
+      };
     },
 
-    async createKeys({
-      clientId,
-      authData,
-      keysSeeds,
-      correlationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      authData: AuthData;
-      keysSeeds: authorizationApi.KeysSeed;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<{ client: Client; showUsers: boolean }> {
+    async createKey(
+      {
+        clientId,
+        keySeed,
+      }: {
+        clientId: ClientId;
+        keySeed: authorizationApi.KeySeed;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<Key> {
       logger.info(`Creating keys for client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
-      assertOrganizationIsClientConsumer(
-        unsafeBrandId(authData.organizationId),
-        client.data
-      );
+      assertOrganizationIsClientConsumer(authData, client.data);
       assertClientKeysCountIsBelowThreshold(
         clientId,
-        client.data.keys.length + keysSeeds.length
+        client.data.keys.length + 1
       );
       if (!client.data.users.includes(authData.userId)) {
         throw userNotFound(authData.userId, authData.selfcareId);
@@ -676,16 +804,10 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
-      if (keysSeeds.length !== 1) {
-        throw genericInternalError("Wrong number of keys");
-      }
-      const keySeed = keysSeeds[0];
-      const jwk = createJWK(keySeed.key);
-      if (jwk.kty !== "RSA") {
-        throw invalidKey(keySeed.key, "Not an RSA key");
-      }
+      const jwk = createJWK({ pemKeyBase64: keySeed.key });
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
@@ -711,26 +833,24 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return {
-        client: updatedClient,
-        showUsers: true,
-      };
+      return newKey;
     },
-    async getClientKeyById({
-      clientId,
-      kid,
-      organizationId,
-      logger,
-    }: {
-      clientId: ClientId;
-      kid: string;
-      organizationId: TenantId;
-      logger: Logger;
-    }): Promise<Key> {
+    async getClientKeyById(
+      {
+        clientId,
+        kid,
+      }: {
+        clientId: ClientId;
+        kid: string;
+      },
+      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<Key> {
       logger.info(`Retrieving key ${kid} in client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
 
-      assertOrganizationIsClientConsumer(organizationId, client.data);
+      assertSecurityRoleIsClientMember(authData, client.data);
+
+      assertOrganizationIsClientConsumer(authData, client.data);
       const key = client.data.keys.find((key) => key.kid === kid);
 
       if (!key) {
@@ -738,15 +858,16 @@ export function authorizationServiceBuilder(
       }
       return key;
     },
-    async getKeyWithClientByKeyId({
-      clientId,
-      kid,
-      logger,
-    }: {
-      clientId: ClientId;
-      kid: string;
-      logger: Logger;
-    }): Promise<authorizationApi.KeyWithClient> {
+    async getKeyWithClientByKeyId(
+      {
+        clientId,
+        kid,
+      }: {
+        clientId: ClientId;
+        kid: string;
+      },
+      { logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<authorizationApi.KeyWithClient> {
       logger.info(`Getting client ${clientId} and key ${kid}`);
       const client = await retrieveClient(clientId, readModelService);
       const key = client.data.keys.find((key) => key.kid === kid);
@@ -755,7 +876,9 @@ export function authorizationServiceBuilder(
         throw clientKeyNotFound(kid, clientId);
       }
 
-      const jwk: JsonWebKey = createJWK(key.encodedPem);
+      const jwk: JsonWebKey = createJWK({
+        pemKeyBase64: key.encodedPem,
+      });
       const jwkKey = authorizationApi.JWKKey.parse({
         ...jwk,
         kid: key.kid,
@@ -769,24 +892,21 @@ export function authorizationServiceBuilder(
         }),
       };
     },
-    async createProducerKeychain({
-      producerKeychainSeed,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      producerKeychainSeed: authorizationApi.ProducerKeychainSeed;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+    async createProducerKeychain(
+      {
+        producerKeychainSeed,
+      }: {
+        producerKeychainSeed: authorizationApi.ProducerKeychainSeed;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
       logger.info(
-        `Creating producer keychain ${producerKeychainSeed.name} for producer ${organizationId}"`
+        `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
 
       const producerKeychain: ProducerKeychain = {
         id: generateId(),
-        producerId: organizationId,
+        producerId: authData.organizationId,
         name: producerKeychainSeed.name,
         eservices: [],
         description: producerKeychainSeed.description,
@@ -801,25 +921,26 @@ export function authorizationServiceBuilder(
 
       return { producerKeychain, showUsers: true };
     },
-    async getProducerKeychains({
-      filters,
-      authData,
-      offset,
-      limit,
-      logger,
-    }: {
-      filters: GetProducerKeychainsFilters;
-      authData: AuthData;
-      offset: number;
-      limit: number;
-      logger: Logger;
-    }): Promise<ListResult<ProducerKeychain>> {
+    async getProducerKeychains(
+      {
+        filters,
+        offset,
+        limit,
+      }: {
+        filters: GetProducerKeychainsFilters;
+        offset: number;
+        limit: number;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<ListResult<ProducerKeychain>> {
       logger.info(
         `Retrieving producer keychains by name ${filters.name}, userIds ${filters.userIds}, producerId ${filters.producerId}, eserviceId ${filters.eserviceId}`
       );
-      const userIds = authData.userRoles.includes(userRoles.SECURITY_ROLE)
-        ? [authData.userId]
-        : filters.userIds;
+      const userIds =
+        isUiAuthData(authData) &&
+        hasAtLeastOneUserRole(authData, [userRole.SECURITY_ROLE])
+          ? [authData.userId]
+          : filters.userIds;
 
       return await readModelService.getProducerKeychains(
         { ...filters, userIds },
@@ -829,15 +950,14 @@ export function authorizationServiceBuilder(
         }
       );
     },
-    async getProducerKeychainById({
-      producerKeychainId,
-      organizationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      organizationId: TenantId;
-      logger: Logger;
-    }): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
+    async getProducerKeychainById(
+      {
+        producerKeychainId,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+      },
+      { logger, authData }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
       logger.info(`Retrieving Producer Keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
@@ -845,20 +965,17 @@ export function authorizationServiceBuilder(
       );
       return {
         producerKeychain: producerKeychain.data,
-        showUsers: organizationId === producerKeychain.data.producerId,
+        showUsers: authData.organizationId === producerKeychain.data.producerId,
       };
     },
-    async deleteProducerKeychain({
-      producerKeychainId,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async deleteProducerKeychain(
+      {
+        producerKeychainId,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(`Deleting producer keychain ${producerKeychainId}`);
 
       const producerKeychain = await retrieveProducerKeychain(
@@ -866,7 +983,7 @@ export function authorizationServiceBuilder(
         readModelService
       );
       assertOrganizationIsProducerKeychainProducer(
-        organizationId,
+        authData,
         producerKeychain.data
       );
 
@@ -878,15 +995,14 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async getProducerKeychainUsers({
-      producerKeychainId,
-      organizationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      organizationId: TenantId;
-      logger: Logger;
-    }): Promise<UserId[]> {
+    async getProducerKeychainUsers(
+      {
+        producerKeychainId,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<UserId[]> {
       logger.info(
         `Retrieving users of producer keychain ${producerKeychainId}`
       );
@@ -895,7 +1011,7 @@ export function authorizationServiceBuilder(
         readModelService
       );
       assertOrganizationIsProducerKeychainProducer(
-        organizationId,
+        authData,
         producerKeychain.data
       );
       return producerKeychain.data.users;
@@ -904,14 +1020,11 @@ export function authorizationServiceBuilder(
       {
         producerKeychainId,
         userIds,
-        authData,
       }: {
         producerKeychainId: ProducerKeychainId;
         userIds: UserId[];
-        authData: AuthData;
       },
-      correlationId: CorrelationId,
-      logger: Logger
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<{ producerKeychain: ProducerKeychain; showUsers: boolean }> {
       logger.info(
         `Binding producer keychain ${producerKeychainId} with users ${userIds.join(
@@ -923,7 +1036,7 @@ export function authorizationServiceBuilder(
         readModelService
       );
       assertOrganizationIsProducerKeychainProducer(
-        authData.organizationId,
+        authData,
         producerKeychain.data
       );
 
@@ -936,6 +1049,7 @@ export function authorizationServiceBuilder(
             userIdToCheck: userId,
             selfcareV2InstitutionClient,
             correlationId,
+            userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
           })
         )
       );
@@ -969,19 +1083,16 @@ export function authorizationServiceBuilder(
         showUsers: true,
       };
     },
-    async removeProducerKeychainUser({
-      producerKeychainId,
-      userIdToRemove,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      userIdToRemove: UserId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async removeProducerKeychainUser(
+      {
+        producerKeychainId,
+        userIdToRemove,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        userIdToRemove: UserId;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(
         `Removing user ${userIdToRemove} from producer keychain ${producerKeychainId}`
       );
@@ -991,7 +1102,7 @@ export function authorizationServiceBuilder(
         readModelService
       );
       assertOrganizationIsProducerKeychainProducer(
-        organizationId,
+        authData,
         producerKeychain.data
       );
 
@@ -1018,26 +1129,23 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async createProducerKeychainKey({
-      producerKeychainId,
-      authData,
-      keySeed,
-      correlationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      authData: AuthData;
-      keySeed: authorizationApi.KeySeed;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<ProducerKeychain> {
+    async createProducerKeychainKey(
+      {
+        producerKeychainId,
+        keySeed,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        keySeed: authorizationApi.KeySeed;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<Key> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
         readModelService
       );
       assertOrganizationIsProducerKeychainProducer(
-        unsafeBrandId(authData.organizationId),
+        authData,
         producerKeychain.data
       );
       assertProducerKeychainKeysCountIsBelowThreshold(
@@ -1056,14 +1164,10 @@ export function authorizationServiceBuilder(
         selfcareV2InstitutionClient,
         userIdToCheck: authData.userId,
         correlationId,
+        userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
-      const jwk = createJWK(keySeed.key);
-
-      if (jwk.kty !== "RSA") {
-        throw invalidKey(keySeed.key, "Not an RSA key");
-      }
-
+      const jwk = createJWK({ pemKeyBase64: keySeed.key });
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
@@ -1090,21 +1194,18 @@ export function authorizationServiceBuilder(
         )
       );
 
-      return updatedProducerKeychain;
+      return newKey;
     },
-    async removeProducerKeychainKeyById({
-      producerKeychainId,
-      keyIdToRemove,
-      authData,
-      correlationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      keyIdToRemove: string;
-      authData: AuthData;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async removeProducerKeychainKeyById(
+      {
+        producerKeychainId,
+        keyIdToRemove,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        keyIdToRemove: string;
+      },
+      { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(
         `Removing key ${keyIdToRemove} from producer keychain ${producerKeychainId}`
       );
@@ -1114,13 +1215,13 @@ export function authorizationServiceBuilder(
         readModelService
       );
       assertOrganizationIsProducerKeychainProducer(
-        authData.organizationId,
+        authData,
         producerKeychain.data
       );
 
-      const hasSecurityRole = authData.userRoles.includes(
-        userRoles.SECURITY_ROLE
-      );
+      const hasSecurityRole = hasAtLeastOneUserRole(authData, [
+        userRole.SECURITY_ROLE,
+      ]);
 
       if (
         hasSecurityRole &&
@@ -1164,17 +1265,16 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async getProducerKeychainKeys({
-      producerKeychainId,
-      userIds,
-      organizationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      userIds: UserId[];
-      organizationId: TenantId;
-      logger: Logger;
-    }): Promise<Key[]> {
+    async getProducerKeychainKeys(
+      {
+        producerKeychainId,
+        userIds,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        userIds: UserId[];
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<Key[]> {
       logger.info(
         `Retrieving keys for producer keychain ${producerKeychainId}`
       );
@@ -1183,7 +1283,7 @@ export function authorizationServiceBuilder(
         readModelService
       );
       assertOrganizationIsProducerKeychainProducer(
-        organizationId,
+        authData,
         producerKeychain.data
       );
       if (userIds.length > 0) {
@@ -1193,17 +1293,16 @@ export function authorizationServiceBuilder(
       }
       return producerKeychain.data.keys;
     },
-    async getProducerKeychainKeyById({
-      producerKeychainId,
-      kid,
-      organizationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      kid: string;
-      organizationId: TenantId;
-      logger: Logger;
-    }): Promise<Key> {
+    async getProducerKeychainKeyById(
+      {
+        producerKeychainId,
+        kid,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        kid: string;
+      },
+      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+    ): Promise<Key> {
       logger.info(
         `Retrieving key ${kid} in producerKeychain ${producerKeychainId}`
       );
@@ -1213,7 +1312,7 @@ export function authorizationServiceBuilder(
       );
 
       assertOrganizationIsProducerKeychainProducer(
-        organizationId,
+        authData,
         producerKeychain.data
       );
       const key = producerKeychain.data.keys.find((key) => key.kid === kid);
@@ -1223,19 +1322,16 @@ export function authorizationServiceBuilder(
       }
       return key;
     },
-    async addProducerKeychainEService({
-      producerKeychainId,
-      seed,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      seed: authorizationApi.EServiceAdditionDetails;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async addProducerKeychainEService(
+      {
+        producerKeychainId,
+        seed,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        seed: authorizationApi.EServiceAdditionDetails;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(
         `Adding eservice with id ${seed.eserviceId} to producer keychain ${producerKeychainId}`
       );
@@ -1245,11 +1341,11 @@ export function authorizationServiceBuilder(
         readModelService
       );
       assertOrganizationIsProducerKeychainProducer(
-        organizationId,
+        authData,
         producerKeychain.data
       );
       const eservice = await retrieveEService(eserviceId, readModelService);
-      assertOrganizationIsEServiceProducer(organizationId, eservice);
+      assertOrganizationIsEServiceProducer(authData, eservice);
       if (producerKeychain.data.eservices.includes(eserviceId)) {
         throw eserviceAlreadyLinkedToProducerKeychain(
           eserviceId,
@@ -1269,19 +1365,16 @@ export function authorizationServiceBuilder(
         )
       );
     },
-    async removeProducerKeychainEService({
-      producerKeychainId,
-      eserviceIdToRemove,
-      organizationId,
-      correlationId,
-      logger,
-    }: {
-      producerKeychainId: ProducerKeychainId;
-      eserviceIdToRemove: EServiceId;
-      organizationId: TenantId;
-      correlationId: CorrelationId;
-      logger: Logger;
-    }): Promise<void> {
+    async removeProducerKeychainEService(
+      {
+        producerKeychainId,
+        eserviceIdToRemove,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        eserviceIdToRemove: EServiceId;
+      },
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
       logger.info(
         `Removing e-service ${eserviceIdToRemove} from producer keychain ${producerKeychainId}`
       );
@@ -1291,7 +1384,7 @@ export function authorizationServiceBuilder(
         readModelService
       );
       assertOrganizationIsProducerKeychainProducer(
-        organizationId,
+        authData,
         producerKeychain.data
       );
 
@@ -1316,6 +1409,89 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+    },
+    async internalRemoveClientAdmin(
+      clientId: ClientId,
+      adminId: UserId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRoleRevoked(
+          updatedClient,
+          adminId,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async removeClientAdmin(
+      { clientId, adminId }: { clientId: ClientId; adminId: UserId },
+      { correlationId, logger, authData }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<void> {
+      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
+      logger.info(`Removing client admin ${adminId} from client ${clientId}`);
+      const client = await retrieveClient(clientId, readModelService);
+
+      assertOrganizationIsClientConsumer(authData, client.data);
+      assertClientIsAPI(client.data);
+      assertAdminInClient(client.data, adminId);
+
+      const updatedClient: Client = {
+        ...client.data,
+        adminId: undefined,
+      };
+
+      await repository.createEvent(
+        toCreateEventClientAdminRemoved(
+          updatedClient,
+          adminId,
+          client.metadata.version,
+          correlationId
+        )
+      );
+    },
+    async getJWKByKid(
+      kid: string,
+      {
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData | UIAuthData | M2MAuthData>>
+    ): Promise<authorizationApi.ClientJWK> {
+      logger.info(`Retrieving key with id ${kid}`);
+
+      const clientKey = await readModelService.getClientJWKByKId(kid);
+
+      if (!clientKey) {
+        throw jwkNotFound(kid);
+      }
+
+      return clientJWKToApiClientJWK(clientKey);
+    },
+    async getProducerJWKByKid(
+      kid: string,
+      {
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData | UIAuthData | M2MAuthData>>
+    ): Promise<authorizationApi.ProducerJWK> {
+      logger.info(`Retrieving key with id ${kid}`);
+
+      const producerKey = await readModelService.getProducerJWKByKId(kid);
+
+      if (!producerKey) {
+        throw producerJwkNotFound(kid);
+      }
+
+      return producerJWKToApiProducerJWK(producerKey);
     },
   };
 }

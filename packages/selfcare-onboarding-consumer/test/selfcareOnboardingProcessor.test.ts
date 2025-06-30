@@ -1,34 +1,34 @@
 /* eslint-disable prefer-const */
 /* eslint-disable functional/no-let */
-import {
-  vi,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  MockInstance,
-  it,
-  expect,
-} from "vitest";
+import { EachMessagePayload } from "kafkajs";
 import {
   getInteropHeaders,
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
-import { selfcareOnboardingProcessorBuilder } from "../src/services/selfcareOnboardingProcessor.js";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  MockInstance,
+  vi,
+} from "vitest";
 import {
   TenantProcessClient,
   tenantProcessClientBuilder,
 } from "../src/clients/tenantProcessClient.js";
 import { config } from "../src/config/config.js";
+import { selfcareOnboardingProcessorBuilder } from "../src/services/selfcareOnboardingProcessor.js";
 import {
   allowedOrigins,
   correctEventPayload,
   correctInstitutionEventField,
   generateInternalTokenMock,
+  interopInternalToken,
   interopProductName,
-  interopToken,
   kafkaMessagePayload,
   selfcareUpsertTenantMock,
   uuidRegexp,
@@ -179,7 +179,7 @@ describe("Message processor", () => {
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })
@@ -218,7 +218,7 @@ describe("Message processor", () => {
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })
@@ -258,16 +258,16 @@ describe("Message processor", () => {
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })
     );
   });
-  it.each(["SCP", "PRV"])(
+  it.each(["SCP", "PRV", "PT"])(
     "should upsert tenant with institutionType %s correctly",
     async (institutionType) => {
-      const origin = "PDND_INFOCAMERE";
+      const origin = "INFOCAMERE";
 
       const message: EachMessagePayload = {
         ...kafkaMessagePayload,
@@ -299,7 +299,7 @@ describe("Message processor", () => {
         }),
         expect.objectContaining({
           headers: getInteropHeaders({
-            token: interopToken.serialized,
+            token: interopInternalToken.serialized,
             correlationId: expect.stringMatching(uuidRegexp),
           }),
         })
@@ -339,7 +339,7 @@ describe("Message processor", () => {
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })
@@ -379,7 +379,7 @@ describe("Message processor", () => {
       }),
       expect.objectContaining({
         headers: getInteropHeaders({
-          token: interopToken.serialized,
+          token: interopInternalToken.serialized,
           correlationId: expect.stringMatching(uuidRegexp),
         }),
       })

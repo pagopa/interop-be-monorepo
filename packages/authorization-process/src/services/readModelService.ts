@@ -17,6 +17,12 @@ import {
   ClientKind,
   ProducerKeychain,
   ProducerKeychainId,
+  DelegationId,
+  delegationState,
+  delegationKind,
+  Delegation,
+  ClientJWKKey,
+  ProducerJWKKey,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -39,8 +45,16 @@ export type GetProducerKeychainsFilters = {
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { agreements, clients, eservices, purposes, producerKeychains } =
-    readModelRepository;
+  const {
+    agreements,
+    clients,
+    eservices,
+    purposes,
+    producerKeychains,
+    delegations,
+    keys,
+    producerKeys,
+  } = readModelRepository;
 
   return {
     async getClientById(
@@ -399,6 +413,79 @@ export function readModelServiceBuilder(
         return result.data.keys.find((k) => k.kid === kid);
       }
       return undefined;
+    },
+
+    async getActiveConsumerDelegationById(
+      id: DelegationId
+    ): Promise<Delegation | undefined> {
+      const data = await delegations.findOne(
+        {
+          "data.id": id,
+          "data.state": delegationState.active,
+          "data.kind": delegationKind.delegatedConsumer,
+        },
+        {
+          projection: { data: true },
+        }
+      );
+      if (data) {
+        const result = Delegation.safeParse(data.data);
+        if (!result.success) {
+          throw genericInternalError(
+            `Unable to parse delegation item: result ${JSON.stringify(
+              result
+            )} - data ${JSON.stringify(data)} `
+          );
+        }
+        return result.data;
+      }
+      return undefined;
+    },
+    async getClientJWKByKId(
+      kId: ClientJWKKey["kid"]
+    ): Promise<ClientJWKKey | undefined> {
+      const clientKey = await keys.findOne(
+        { "data.kid": kId },
+        { projection: { data: true } }
+      );
+
+      if (!clientKey?.data) {
+        return undefined;
+      }
+
+      const parseResult = ClientJWKKey.safeParse(clientKey.data);
+      if (!parseResult.success) {
+        throw genericInternalError(
+          `Unable to parse client key: result ${JSON.stringify(
+            parseResult
+          )} - data ${JSON.stringify(clientKey)}`
+        );
+      }
+
+      return parseResult.data;
+    },
+    async getProducerJWKByKId(
+      kId: ProducerJWKKey["kid"]
+    ): Promise<ProducerJWKKey | undefined> {
+      const producerKey = await producerKeys.findOne(
+        { "data.kid": kId },
+        { projection: { data: true } }
+      );
+
+      if (!producerKey?.data) {
+        return undefined;
+      }
+
+      const parseResult = ProducerJWKKey.safeParse(producerKey.data);
+      if (!parseResult.success) {
+        throw genericInternalError(
+          `Unable to parse producer key: result ${JSON.stringify(
+            parseResult
+          )} - data ${JSON.stringify(producerKey)}`
+        );
+      }
+
+      return parseResult.data;
     },
   };
 }

@@ -1,0 +1,23 @@
+meta {
+  name: Update delegated producer and consumer features
+  type: http
+  seq: 26
+}
+
+post {
+  url: {{host-tenant}}/tenants/delegatedFeatures/update
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "isDelegatedConsumerFeatureEnabled": false,
+    "isDelegatedProducerFeatureEnabled": false
+  }
+}

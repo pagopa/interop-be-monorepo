@@ -8,9 +8,9 @@ import {
   EServiceId,
   TenantId,
   makeApiProblemBuilder,
-  UserId,
-  SelfcareId,
   AttributeId,
+  Agreement,
+  DelegationId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -20,7 +20,7 @@ export const errorCodes = {
   descriptorNotInExpectedState: "0004",
   eServiceNotFound: "0005",
   contractAlreadyExists: "0006",
-  operationNotAllowed: "0007",
+  tenantNotAllowed: "0007",
   agreementActivationFailed: "0008",
   agreementNotFound: "0009",
   agreementAlreadyExists: "0010",
@@ -29,17 +29,19 @@ export const errorCodes = {
   unexpectedVersionFormat: "0013",
   descriptorNotFound: "0014",
   stampNotFound: "0015",
-  missingUserInfo: "0016",
   documentNotFound: "0017",
   documentsChangeNotAllowed: "0018",
-  selfcareIdNotFound: "0019",
   tenantNotFound: "0020",
   notLatestEServiceDescriptor: "0021",
   attributeNotFound: "0022",
   invalidAttributeStructure: "0023",
   consumerWithNotValidEmail: "0024",
   agreementDocumentAlreadyExists: "0025",
-  userNotFound: "0026",
+  delegationNotFound: "0026",
+  tenantIsNotTheConsumer: "0027",
+  tenantIsNotTheDelegateConsumer: "0028",
+  tenantIsNotTheProducer: "0029",
+  tenantIsNotTheDelegateProducer: "0030",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -91,7 +93,7 @@ export function descriptorNotInExpectedState(
   allowedStates: DescriptorState[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} of EService ${eserviceId} has not status in ${allowedStates.join(
+    detail: `Descriptor ${descriptorId} of EService ${eserviceId} shall have one of the following states ${allowedStates.join(
       ","
     )}`,
     code: "descriptorNotInExpectedState",
@@ -121,10 +123,10 @@ export function agreementAlreadyExists(
   });
 }
 
-export function operationNotAllowed(requesterId: string): ApiError<ErrorCodes> {
+export function tenantNotAllowed(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Operation not allowed by ${requesterId}`,
-    code: "operationNotAllowed",
+    detail: `Tenant ${tenantId} is not allowed to perform the operation`,
+    code: "tenantNotAllowed",
     title: "Operation not allowed",
   });
 }
@@ -220,29 +222,13 @@ export function consumerWithNotValidEmail(
   });
 }
 
-export function agreementStampNotFound(stamp: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Agreement stamp ${stamp} not found`,
-    code: "stampNotFound",
-    title: "Stamp not found",
-  });
-}
-
-export function agreementMissingUserInfo(userId: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Some mandatory info are missing for user ${userId}`,
-    code: "missingUserInfo",
-    title: "Some mandatory info are missing for user",
-  });
-}
-
-export function agreementSelfcareIdNotFound(
-  tenantId: TenantId
+export function agreementStampNotFound(
+  stamp: keyof Agreement["stamps"]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Selfcare id not found for tenant ${tenantId}`,
-    code: "selfcareIdNotFound",
-    title: "Selfcare id not found for tenant",
+    detail: `Agreement ${stamp} stamp not found`,
+    code: "stampNotFound",
+    title: "Stamp not found",
   });
 }
 
@@ -288,17 +274,6 @@ export function documentChangeNotAllowed(
   });
 }
 
-export function userNotFound(
-  selfcareId: SelfcareId,
-  userId: UserId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `User ${userId} not found for selfcare institution ${selfcareId}`,
-    code: "userNotFound",
-    title: "User not found",
-  });
-}
-
 export function attributeNotFound(
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
@@ -306,5 +281,61 @@ export function attributeNotFound(
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
     title: "Attribute not found",
+  });
+}
+
+export function delegationNotFound(
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Delegation ${delegationId} not found`,
+    code: "delegationNotFound",
+    title: "Delegation not found",
+  });
+}
+
+export function tenantIsNotTheConsumer(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the consumer`,
+    code: "tenantIsNotTheConsumer",
+    title: "Tenant not allowed",
+  });
+}
+
+export function tenantIsNotTheDelegateConsumer(
+  tenantId: TenantId,
+  delegationId: DelegationId | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the delegate consumer${
+      delegationId ? ` of delegation ${delegationId}` : ""
+    }`,
+    code: "tenantIsNotTheDelegateConsumer",
+    title: "Tenant not allowed",
+  });
+}
+
+export function tenantIsNotTheProducer(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the producer`,
+    code: "tenantIsNotTheProducer",
+    title: "Tenant not allowed",
+  });
+}
+
+export function tenantIsNotTheDelegateProducer(
+  tenantId: TenantId,
+  delegationId: DelegationId | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation because is not the delegate producer${
+      delegationId ? ` of delegation ${delegationId}` : ""
+    }`,
+    code: "tenantIsNotTheDelegateProducer",
+    title: "Tenant not allowed",
   });
 }

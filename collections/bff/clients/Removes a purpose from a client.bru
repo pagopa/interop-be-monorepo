@@ -1,7 +1,7 @@
 meta {
   name: Removes a purpose from a client
   type: http
-  seq: 1
+  seq: 8
 }
 
 delete {
@@ -17,10 +17,7 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
-  x-correlation-id: {{correlation-id}}
 }
-
-
 
 docs {
   Removes a purpose from a client

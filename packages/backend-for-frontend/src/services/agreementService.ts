@@ -15,7 +15,9 @@ import {
   agreementApi,
   tenantApi,
   attributeRegistryApi,
+  delegationApi,
 } from "pagopa-interop-api-clients";
+import { match, P } from "ts-pattern";
 import {
   AgreementProcessClient,
   PagoPAInteropBeClients,
@@ -27,7 +29,10 @@ import {
   contractNotFound,
 } from "../model/errors.js";
 import { config } from "../config/config.js";
-import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestTenantContactEmail,
+} from "../model/modelMappingUtils.js";
 import {
   toCompactEservice,
   toCompactDescriptor,
@@ -41,6 +46,7 @@ import {
 import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
+import { getTenantById } from "./delegationService.js";
 
 export async function getAllAgreements(
   agreementProcessClient: AgreementProcessClient,
@@ -80,21 +86,19 @@ export function agreementServiceBuilder(
       return { id };
     },
 
-    async getAgreements(
+    async getConsumerAgreements(
       {
         offset,
         limit,
-        producersIds,
         eservicesIds,
-        consumersIds,
+        producersIds,
         states,
         showOnlyUpgradeable,
       }: {
         offset: number;
         limit: number;
-        producersIds: string[];
         eservicesIds: string[];
-        consumersIds: string[];
+        producersIds: string[];
         states: bffApi.AgreementState[];
         showOnlyUpgradeable?: boolean;
       },
@@ -109,23 +113,67 @@ export function agreementServiceBuilder(
             limit,
             showOnlyUpgradeable,
             eservicesIds,
-            consumersIds,
+            consumersIds: [ctx.authData.organizationId],
             producersIds,
             states,
           },
           headers: ctx.headers,
         });
 
-      const agreements = results.map((a) =>
-        enrichAgreementListEntry(a, clients, ctx)
-      );
+      const agreements = await enrichAgreementListEntry(results, clients, ctx);
       return {
         pagination: {
           limit,
           offset,
           totalCount,
         },
-        results: await Promise.all(agreements),
+        results: agreements,
+      };
+    },
+
+    async getProducerAgreements(
+      {
+        offset,
+        limit,
+        eservicesIds,
+        consumersIds,
+        states,
+        showOnlyUpgradeable,
+      }: {
+        offset: number;
+        limit: number;
+        eservicesIds: string[];
+        consumersIds: string[];
+        states: bffApi.AgreementState[];
+        showOnlyUpgradeable?: boolean;
+      },
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreements> {
+      ctx.logger.info("Retrieving agreements");
+
+      const { results, totalCount } =
+        await agreementProcessClient.getAgreements({
+          queries: {
+            producersIds: [ctx.authData.organizationId],
+            offset,
+            limit,
+            showOnlyUpgradeable,
+            eservicesIds,
+            consumersIds,
+            states,
+          },
+          headers: ctx.headers,
+        });
+
+      const agreements = await enrichAgreementListEntry(results, clients, ctx);
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+        results: agreements,
       };
     },
 
@@ -310,13 +358,10 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Updating agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.updateAgreementById(
-        payload,
-        {
-          params: { agreementId },
-          headers: ctx.headers,
-        }
-      );
+      const agreement = await agreementProcessClient.updateAgreement(payload, {
+        params: { agreementId },
+        headers: ctx.headers,
+      });
 
       return enrichAgreement(agreement, clients, ctx);
     },
@@ -326,7 +371,7 @@ export function agreementServiceBuilder(
       ctx: WithLogger<BffAppContext>
     ): Promise<bffApi.Agreement> {
       ctx.logger.info(`Upgrading agreement ${agreementId}`);
-      const agreement = await agreementProcessClient.upgradeAgreementById(
+      const agreement = await agreementProcessClient.upgradeAgreement(
         undefined,
         {
           params: { agreementId },
@@ -374,37 +419,34 @@ export function agreementServiceBuilder(
       return { id: agreement.id };
     },
 
-    async getAgreementsEserviceProducers(
+    async getAgreementsProducerEServices(
       {
         offset,
         limit,
         requesterId,
-        states,
         eServiceName,
       }: {
         offset: number;
         limit: number;
         requesterId: string;
-        states: agreementApi.AgreementState[];
         eServiceName?: string;
       },
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactEServicesLight> {
       logger.info(
-        `Retrieving producer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
+        `Retrieving producer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
       );
 
       if (eServiceName && eServiceName.length < 3) {
         return emptyPagination(offset, limit);
       }
 
-      const eservices = await agreementProcessClient.getAgreementEServices({
+      const eservices = await agreementProcessClient.getAgreementsEServices({
         queries: {
           offset,
           limit,
           eServiceName,
           producersIds: [requesterId],
-          states,
         },
         headers,
       });
@@ -419,7 +461,7 @@ export function agreementServiceBuilder(
       };
     },
 
-    async getAgreementsEserviceConsumers(
+    async getAgreementsConsumerEServices(
       {
         offset,
         limit,
@@ -434,14 +476,14 @@ export function agreementServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ) {
       logger.info(
-        `Retrieving consumer eservices from agreement filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
+        `Retrieving consumer eservices from agreements filtered by eservice name ${eServiceName}, offset ${offset}, limit ${limit}`
       );
 
       if (eServiceName && eServiceName.length < 3) {
         return emptyPagination(offset, limit);
       }
 
-      const eservices = await agreementProcessClient.getAgreementEServices({
+      const eservices = await agreementProcessClient.getAgreementsEServices({
         queries: {
           offset,
           limit,
@@ -461,7 +503,7 @@ export function agreementServiceBuilder(
       };
     },
 
-    async getAgreementProducers(
+    async getAgreementsProducers(
       {
         offset,
         limit,
@@ -469,13 +511,13 @@ export function agreementServiceBuilder(
       }: { offset: number; limit: number; producerName?: string },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
-      logger.info(`Retrieving agreement producers`);
+      logger.info(`Retrieving producers from agreements`);
 
       if (producerName && producerName.length < 3) {
         return emptyPagination(offset, limit);
       }
 
-      const producers = await agreementProcessClient.getAgreementProducers({
+      const producers = await agreementProcessClient.getAgreementsProducers({
         queries: {
           offset,
           limit,
@@ -494,7 +536,7 @@ export function agreementServiceBuilder(
       };
     },
 
-    async getAgreementConsumers(
+    async getAgreementsConsumers(
       {
         offset,
         limit,
@@ -502,13 +544,13 @@ export function agreementServiceBuilder(
       }: { offset: number; limit: number; consumerName?: string },
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CompactOrganizations> {
-      logger.info(`Retrieving agreement consumers`);
+      logger.info(`Retrieving consumers from agreements`);
 
       if (consumerName && consumerName.length < 3) {
         return emptyPagination(offset, limit);
       }
 
-      const consumers = await agreementProcessClient.getAgreementConsumers({
+      const consumers = await agreementProcessClient.getAgreementsConsumers({
         queries: {
           offset,
           limit,
@@ -525,6 +567,20 @@ export function agreementServiceBuilder(
         },
         results: consumers.results.map((c) => toBffCompactOrganization(c)),
       };
+    },
+    async verifyTenantCertifiedAttributes(
+      tenantId: string,
+      eserviceId: string,
+      descriptorId: string,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.HasCertifiedAttributes> {
+      logger.info(
+        `Veryfing tenant ${tenantId} has required certified attributes for descriptor ${descriptorId} of eservice ${eserviceId}`
+      );
+      return await agreementProcessClient.verifyTenantCertifiedAttributes({
+        params: { tenantId, eserviceId, descriptorId },
+        headers,
+      });
     },
   };
 }
@@ -584,33 +640,71 @@ export const getLatestAgreement = async (
 };
 
 async function enrichAgreementListEntry(
-  agreement: agreementApi.Agreement,
+  agreements: agreementApi.Agreement[],
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
-): Promise<bffApi.AgreementListEntry> {
-  const { consumer, producer, eservice } = await getConsumerProducerEservice(
-    agreement,
-    clients,
-    ctx
-  );
+): Promise<bffApi.AgreementListEntry[]> {
+  const cachedTenants = new Map<string, tenantApi.Tenant>();
 
-  const currentDescriptor = getCurrentDescriptor(eservice, agreement);
+  const agreementsResult = [];
+  for (const agreement of agreements) {
+    const { consumer, producer, eservice, delegation } =
+      await getConsumerProducerEserviceDelegation(
+        agreement,
+        clients,
+        ctx,
+        cachedTenants
+      );
+    cachedTenants.set(consumer.id, consumer);
+    cachedTenants.set(producer.id, producer);
 
-  return {
-    id: agreement.id,
-    state: agreement.state,
-    consumer: {
-      id: consumer.id,
-      name: consumer.name,
-      kind: consumer.kind,
-    },
-    eservice: toCompactEservice(eservice, producer),
-    descriptor: toCompactDescriptor(currentDescriptor),
-    canBeUpgraded: isAgreementUpgradable(eservice, agreement),
-    suspendedByConsumer: agreement.suspendedByConsumer,
-    suspendedByProducer: agreement.suspendedByProducer,
-    suspendedByPlatform: agreement.suspendedByPlatform,
-  };
+    const currentDescriptor = getCurrentDescriptor(eservice, agreement);
+
+    const delegate = delegation
+      ? cachedTenants.get(delegation.delegateId) ??
+        (await getTenantById(
+          clients.tenantProcessClient,
+          ctx.headers,
+          delegation.delegateId
+        ))
+      : undefined;
+
+    agreementsResult.push({
+      id: agreement.id,
+      state: agreement.state,
+      consumer: {
+        id: consumer.id,
+        name: consumer.name,
+        kind: consumer.kind,
+      },
+      eservice: toCompactEservice(eservice, producer),
+      descriptor: toCompactDescriptor(currentDescriptor),
+      canBeUpgraded: isAgreementUpgradable(eservice, agreement),
+      suspendedByConsumer: agreement.suspendedByConsumer,
+      suspendedByProducer: agreement.suspendedByProducer,
+      suspendedByPlatform: agreement.suspendedByPlatform,
+      delegation:
+        delegation !== undefined && delegate !== undefined
+          ? {
+              id: delegation.id,
+              delegate: {
+                id: delegation.delegateId,
+                name: delegate.name,
+                kind: delegate.kind,
+                contactMail: getLatestTenantContactEmail(delegate),
+              },
+              delegator: {
+                id: delegation.delegatorId,
+                name: consumer.name,
+                kind: consumer.kind,
+                contactMail: getLatestTenantContactEmail(consumer),
+              },
+            }
+          : undefined,
+    });
+  }
+
+  return agreementsResult;
 }
 
 export async function enrichAgreement(
@@ -618,17 +712,11 @@ export async function enrichAgreement(
   clients: PagoPAInteropBeClients,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Agreement> {
-  const { consumer, producer, eservice } = await getConsumerProducerEservice(
-    agreement,
-    clients,
-    ctx
-  );
+  const { consumer, producer, eservice, delegation } =
+    await getConsumerProducerEserviceDelegation(agreement, clients, ctx);
 
-  const currentDescriptior = getCurrentDescriptor(eservice, agreement);
-
-  const activeDescriptor = eservice.descriptors
-    .toSorted((a, b) => Number(a.version) - Number(b.version))
-    .at(-1);
+  const currentDescriptor = getCurrentDescriptor(eservice, agreement);
+  const activeDescriptor = getLatestActiveDescriptor(eservice);
   const activeDescriptorAttributes = activeDescriptor
     ? descriptorAttributesIds(activeDescriptor)
     : [];
@@ -659,9 +747,30 @@ export async function enrichAgreement(
     consumer.attributes,
     attributes
   );
+
+  const delegationInfo = await match(delegation)
+    .with(P.nullish, () => undefined)
+    .otherwise(async (delegation) => {
+      const tenant = await clients.tenantProcessClient.tenant.getTenant({
+        params: { id: delegation.delegateId },
+        headers: ctx.headers,
+      });
+
+      return {
+        id: delegation.id,
+        delegate: {
+          id: tenant.id,
+          name: tenant.name,
+          kind: tenant.kind,
+          contactMail: getLatestTenantContactEmail(tenant),
+        },
+      };
+    });
+
   return {
     id: agreement.id,
     descriptorId: agreement.descriptorId,
+    delegation: delegationInfo,
     producer: {
       id: agreement.producerId,
       name: producer.name,
@@ -682,7 +791,7 @@ export async function enrichAgreement(
     eservice: {
       id: agreement.eserviceId,
       name: eservice.name,
-      version: currentDescriptior.version,
+      version: currentDescriptor.version,
       activeDescriptor: activeDescriptor
         ? toCompactDescriptor(activeDescriptor)
         : undefined,
@@ -728,38 +837,62 @@ function tenantAttributesIds(tenant: tenantApi.Tenant): string[] {
   );
 }
 
-async function getConsumerProducerEservice(
+async function getConsumerProducerEserviceDelegation(
   agreement: agreementApi.Agreement,
-  { tenantProcessClient, catalogProcessClient }: PagoPAInteropBeClients,
-  { headers }: WithLogger<BffAppContext>
+  {
+    tenantProcessClient,
+    catalogProcessClient,
+    delegationProcessClient,
+  }: PagoPAInteropBeClients,
+  { headers }: WithLogger<BffAppContext>,
+  cachedTenants: Map<string, tenantApi.Tenant> = new Map()
 ): Promise<{
   consumer: tenantApi.Tenant;
   producer: tenantApi.Tenant;
   eservice: catalogApi.EService;
+  delegation: delegationApi.Delegation | undefined;
 }> {
-  const consumerTask = tenantProcessClient.tenant.getTenant({
-    params: { id: agreement.consumerId },
-    headers,
-  });
+  const consumer =
+    cachedTenants.get(agreement.consumerId) ??
+    (await tenantProcessClient.tenant.getTenant({
+      params: { id: agreement.consumerId },
+      headers,
+    }));
 
-  const producerTask = tenantProcessClient.tenant.getTenant({
-    params: { id: agreement.producerId },
-    headers,
-  });
+  const producer =
+    cachedTenants.get(agreement.producerId) ??
+    (await tenantProcessClient.tenant.getTenant({
+      params: { id: agreement.producerId },
+      headers,
+    }));
+
   const eserviceTask = catalogProcessClient.getEServiceById({
     params: { eServiceId: agreement.eserviceId },
     headers,
   });
-  const [consumer, producer, eservice] = await Promise.all([
-    consumerTask,
-    producerTask,
+
+  const delegationTask = delegationProcessClient.delegation.getDelegations({
+    queries: {
+      delegatorIds: [agreement.consumerId],
+      eserviceIds: [agreement.eserviceId],
+      delegationStates: [delegationApi.DelegationState.Values.ACTIVE],
+      kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
+      offset: 0,
+      limit: 1,
+    },
+    headers,
+  });
+
+  const [eservice, delegation] = await Promise.all([
     eserviceTask,
+    delegationTask,
   ]);
 
   return {
     consumer,
     producer,
     eservice,
+    delegation: delegation.results.at(0) ?? undefined,
   };
 }
 
@@ -792,3 +925,5 @@ const emptyPagination = (offset: number, limit: number) => ({
   },
   results: [],
 });
+
+export type AgreementService = ReturnType<typeof agreementServiceBuilder>;

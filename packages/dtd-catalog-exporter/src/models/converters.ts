@@ -1,10 +1,12 @@
 import {
-  type AttributeReadmodel,
-  type EServiceReadModel,
-  type TenantReadModel,
   type EserviceAttributes,
   genericError,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+  EService,
+  Attribute,
+  Tenant,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { getLatestActiveDescriptor } from "../utils/utils.js";
 import {
   PublicEService,
@@ -12,12 +14,14 @@ import {
   PublicEServiceAttributeGroup,
   PublicEServiceAttributes,
   PublicEServiceAttributeSingle,
+  PublicTenant,
+  PublicTenantAttribute,
 } from "./models.js";
 
 export function toPublicEService(
-  eservice: EServiceReadModel,
-  attributesMap: Map<string, AttributeReadmodel>,
-  producersMap: Map<string, TenantReadModel>
+  eservice: EService,
+  attributesMap: Map<string, Attribute>,
+  producersMap: Map<string, Tenant>
 ): PublicEService {
   const activeDescriptor = getLatestActiveDescriptor(eservice);
 
@@ -27,6 +31,16 @@ export function toPublicEService(
     throw genericError(`Producer for e-service ${eservice.id} not found`);
   }
 
+  const { producerFiscalCode, producerIpaCode } = match(producer.externalId)
+    .with({ origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER }, ({ value }) => ({
+      producerIpaCode: value,
+      producerFiscalCode: null,
+    }))
+    .otherwise(({ value }) => ({
+      producerIpaCode: null,
+      producerFiscalCode: value,
+    }));
+
   return {
     id: eservice.id,
     name: eservice.name,
@@ -34,6 +48,8 @@ export function toPublicEService(
     technology: eservice.technology.toUpperCase() as "REST" | "SOAP",
     producerId: producer.id,
     producerName: producer.name,
+    producerFiscalCode,
+    producerIpaCode,
     attributes: toPublicAttributes(activeDescriptor.attributes, attributesMap),
     activeDescriptor: {
       id: activeDescriptor.id,
@@ -45,7 +61,7 @@ export function toPublicEService(
 
 function toPublicAttribute(
   id: string,
-  attributesMap: Map<string, AttributeReadmodel>
+  attributesMap: Map<string, Attribute>
 ): PublicEServiceAttribute {
   const attributeData = attributesMap.get(id);
 
@@ -61,7 +77,7 @@ function toPublicAttribute(
 
 function toPublicAttributesGroup(
   attributesGroup: EserviceAttributes[keyof EserviceAttributes][0],
-  attributesMap: Map<string, AttributeReadmodel>
+  attributesMap: Map<string, Attribute>
 ): PublicEServiceAttributeGroup | PublicEServiceAttributeSingle {
   if (attributesGroup.length === 1) {
     return {
@@ -78,7 +94,7 @@ function toPublicAttributesGroup(
 
 function toPublicAttributes(
   attributes: EserviceAttributes,
-  attributesMap: Map<string, AttributeReadmodel>
+  attributesMap: Map<string, Attribute>
 ): PublicEServiceAttributes {
   const { certified, verified, declared } = attributes;
 
@@ -92,5 +108,43 @@ function toPublicAttributes(
     declared: declared.map((att) =>
       toPublicAttributesGroup(att, attributesMap)
     ),
+  };
+}
+
+function toPublicTenantAttribute(attribute: Attribute): PublicTenantAttribute {
+  return {
+    name: attribute.name,
+    type: attribute.kind,
+  };
+}
+
+export function toPublicTenant(
+  tenant: Tenant,
+  attributesMap: Map<string, Attribute>
+): PublicTenant {
+  const attributes = tenant.attributes.map((attr) => {
+    const attribute = attributesMap.get(attr.id);
+    if (!attribute) {
+      throw genericError(`Attribute with id ${attr.id} not found`);
+    }
+    return attribute;
+  });
+
+  const { fiscalCode, ipaCode } = match(tenant.externalId)
+    .with({ origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER }, ({ value }) => ({
+      ipaCode: value,
+      fiscalCode: null,
+    }))
+    .otherwise(({ value }) => ({
+      ipaCode: null,
+      fiscalCode: value,
+    }));
+
+  return {
+    id: tenant.id,
+    name: tenant.name,
+    fiscalCode,
+    ipaCode,
+    attributes: attributes.map(toPublicTenantAttribute),
   };
 }

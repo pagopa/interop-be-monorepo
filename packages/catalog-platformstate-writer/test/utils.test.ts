@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
-import { fail } from "assert";
 import {
   afterAll,
   afterEach,
@@ -13,7 +12,8 @@ import {
 } from "vitest";
 import {
   PlatformStatesCatalogEntry,
-  TokenGenerationStatesClientPurposeEntry,
+  TokenGenerationStatesConsumerClient,
+  TokenGenStatesConsumerClientGSIDescriptor,
   descriptorState,
   generateId,
   itemState,
@@ -21,18 +21,17 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import {
-  ConditionalCheckFailedException,
-  DynamoDBClient,
-} from "@aws-sdk/client-dynamodb";
-import {
-  getMockTokenStatesClientPurposeEntry,
+  getMockTokenGenStatesConsumerClient,
   buildDynamoDBTables,
   deleteDynamoDBTables,
-  readTokenStateEntriesByEserviceIdAndDescriptorId,
-  readAllTokenStateItems,
-  writeTokenStateEntry,
+  readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId,
+  readAllTokenGenStatesItems,
+  writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
+import { z } from "zod";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -41,17 +40,9 @@ import {
   updateDescriptorStateInTokenGenerationStatesTable,
   writeCatalogEntry,
 } from "../src/utils.js";
-import { config } from "./utils.js";
+import { dynamoDBClient } from "./utils.js";
 
 describe("utils tests", async () => {
-  if (!config) {
-    fail();
-  }
-  const dynamoDBClient = new DynamoDBClient({
-    credentials: { accessKeyId: "key", secretAccessKey: "secret" },
-    region: "eu-central-1",
-    endpoint: `http://localhost:${config.tokenGenerationReadModelDbPort}`,
-  });
   beforeEach(async () => {
     await buildDynamoDBTables(dynamoDBClient);
   });
@@ -78,7 +69,8 @@ describe("utils tests", async () => {
           dynamoDBClient,
           primaryKey,
           itemState.active,
-          1
+          1,
+          genericLogger
         )
       ).rejects.toThrowError(ConditionalCheckFailedException);
       const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
@@ -101,12 +93,17 @@ describe("utils tests", async () => {
       expect(
         await readCatalogEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
+      await writeCatalogEntry(
+        previousCatalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       await updateDescriptorStateInPlatformStatesEntry(
         dynamoDBClient,
         primaryKey,
         itemState.active,
-        2
+        2,
+        genericLogger
       );
 
       const result = await readCatalogEntry(primaryKey, dynamoDBClient);
@@ -135,9 +132,9 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(catalogEntry, dynamoDBClient);
+      await writeCatalogEntry(catalogEntry, dynamoDBClient, genericLogger);
       expect(
-        writeCatalogEntry(catalogEntry, dynamoDBClient)
+        writeCatalogEntry(catalogEntry, dynamoDBClient, genericLogger)
       ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
@@ -157,7 +154,7 @@ describe("utils tests", async () => {
       expect(
         await readCatalogEntry(primaryKey, dynamoDBClient)
       ).toBeUndefined();
-      await writeCatalogEntry(catalogStateEntry, dynamoDBClient);
+      await writeCatalogEntry(catalogStateEntry, dynamoDBClient, genericLogger);
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
         dynamoDBClient
@@ -190,7 +187,11 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
+      await writeCatalogEntry(
+        previousCatalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
         dynamoDBClient
@@ -207,7 +208,7 @@ describe("utils tests", async () => {
         descriptorId: generateId(),
       });
       expect(
-        deleteCatalogEntry(primaryKey, dynamoDBClient)
+        deleteCatalogEntry(primaryKey, dynamoDBClient, genericLogger)
       ).resolves.not.toThrowError();
     });
 
@@ -224,8 +225,12 @@ describe("utils tests", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(previousCatalogStateEntry, dynamoDBClient);
-      await deleteCatalogEntry(primaryKey, dynamoDBClient);
+      await writeCatalogEntry(
+        previousCatalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+      await deleteCatalogEntry(primaryKey, dynamoDBClient, genericLogger);
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
         dynamoDBClient
@@ -252,114 +257,145 @@ describe("utils tests", async () => {
   });
 
   // token-generation-states
-  describe("writeTokenStateEntry", async () => {
+  describe("writeTokenGenStatesEntry", async () => {
     it("should throw error if previous entry exists", async () => {
-      const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
+      const tokenGenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK(
+        {
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        }
+      );
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-      };
-      await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
       expect(
-        writeTokenStateEntry(tokenStateEntry, dynamoDBClient)
+        writeTokenGenStatesConsumerClient(
+          tokenGenStatesConsumerClient,
+          dynamoDBClient
+        )
       ).rejects.toThrowError(ConditionalCheckFailedException);
     });
 
     it("should write if previous entry doesn't exist", async () => {
-      const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
+      const tokenGenStatesEntryPK = makeTokenGenerationStatesClientKidPurposePK(
+        {
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        }
+      );
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const previousTokenStateEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
-          eserviceId_descriptorId,
-          dynamoDBClient
-        );
-      expect(previousTokenStateEntries).toEqual([]);
-      const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-      };
-      await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
-      const retrievedTokenStateEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
-          eserviceId_descriptorId,
-          dynamoDBClient
-        );
+      const previousTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
+      expect(previousTokenGenStatesEntries).toEqual([]);
+      const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient,
+        dynamoDBClient
+      );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
 
-      expect(retrievedTokenStateEntries).toEqual([tokenStateEntry]);
+      expect(retrievedTokenGenStatesEntries).toEqual([
+        tokenGenStatesConsumerClient,
+      ]);
     });
   });
 
-  describe("readTokenStateEntriesByEserviceIdAndDescriptorId", async () => {
+  describe("readTokenGenStatesEntriesByEserviceIdAndDescriptorId", async () => {
     it("should return empty array if entries do not exist", async () => {
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const result = await readTokenStateEntriesByEserviceIdAndDescriptorId(
-        eserviceId_descriptorId,
-        dynamoDBClient
-      );
+      const result =
+        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
+          eserviceId_descriptorId,
+          dynamoDBClient
+        );
       expect(result).toEqual([]);
     });
 
     it("should return entries if they exist (no need for pagination)", async () => {
-      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
+      const tokenGenStatesEntryPK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenStateEntry1: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-      };
-      await writeTokenStateEntry(tokenStateEntry1, dynamoDBClient);
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
 
-      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const tokenStateEntry2: TokenGenerationStatesClientPurposeEntry = {
-        ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
-        descriptorState: itemState.inactive,
-        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-        GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-      };
-      await writeTokenStateEntry(tokenStateEntry2, dynamoDBClient);
+      const tokenGenStatesEntryPK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
 
-      const tokenEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+      const tokenGenStatesConsumerClients =
+        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
 
-      expect(tokenEntries).toEqual(
-        expect.arrayContaining([tokenStateEntry1, tokenStateEntry2])
+      expect(tokenGenStatesConsumerClients).toEqual(
+        expect.arrayContaining([
+          TokenGenStatesConsumerClientGSIDescriptor.parse(
+            tokenGenStatesConsumerClient1
+          ),
+          TokenGenStatesConsumerClientGSIDescriptor.parse(
+            tokenGenStatesConsumerClient2
+          ),
+        ])
       );
     });
 
@@ -371,35 +407,47 @@ describe("utils tests", async () => {
 
       const tokenEntriesLength = 10;
 
-      const writtenEntries: TokenGenerationStatesClientPurposeEntry[] = [];
+      const writtenTokenGenStatesConsumerClients: TokenGenerationStatesConsumerClient[] =
+        [];
       // eslint-disable-next-line functional/no-let
       for (let i = 0; i < tokenEntriesLength; i++) {
-        const tokenStateEntryPK = makeTokenGenerationStatesClientKidPurposePK({
-          clientId: generateId(),
-          kid: `kid ${Math.random()}`,
-          purposeId: generateId(),
-        });
-        const tokenStateEntry: TokenGenerationStatesClientPurposeEntry = {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK),
-          descriptorState: itemState.inactive,
-          descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
-          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
-          publicKey: crypto.randomBytes(100000).toString("hex"),
-        };
-        await writeTokenStateEntry(tokenStateEntry, dynamoDBClient);
+        const tokenGenStatesEntryPK =
+          makeTokenGenerationStatesClientKidPurposePK({
+            clientId: generateId(),
+            kid: `kid ${Math.random()}`,
+            purposeId: generateId(),
+          });
+        const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
+          {
+            ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK),
+            descriptorState: itemState.inactive,
+            descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+            GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+            publicKey: crypto.randomBytes(100000).toString("hex"),
+          };
+        await writeTokenGenStatesConsumerClient(
+          tokenGenStatesConsumerClient,
+          dynamoDBClient
+        );
         // eslint-disable-next-line functional/immutable-data
-        writtenEntries.push(tokenStateEntry);
+        writtenTokenGenStatesConsumerClients.push(tokenGenStatesConsumerClient);
       }
       vi.spyOn(dynamoDBClient, "send");
-      const tokenEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
+      const tokenGenStatesConsumerClients =
+        await readTokenGenStatesEntriesByGSIPKEServiceIdDescriptorId(
           eserviceId_descriptorId,
           dynamoDBClient
         );
 
       expect(dynamoDBClient.send).toHaveBeenCalledTimes(2);
-      expect(tokenEntries).toHaveLength(tokenEntriesLength);
-      expect(tokenEntries).toEqual(expect.arrayContaining(writtenEntries));
+      expect(tokenGenStatesConsumerClients).toHaveLength(tokenEntriesLength);
+      expect(tokenGenStatesConsumerClients).toEqual(
+        expect.arrayContaining(
+          z
+            .array(TokenGenStatesConsumerClientGSIDescriptor)
+            .parse(writtenTokenGenStatesConsumerClients)
+        )
+      );
     });
   });
 
@@ -409,81 +457,91 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenStateEntries = await readAllTokenStateItems(dynamoDBClient);
-      expect(tokenStateEntries).toEqual([]);
+      const tokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient
+      );
+      expect(tokenGenStatesEntries).toEqual([]);
       expect(
         updateDescriptorStateInTokenGenerationStatesTable(
           eserviceId_descriptorId,
           itemState.inactive,
-          dynamoDBClient
+          dynamoDBClient,
+          genericLogger
         )
       ).resolves.not.toThrowError();
-      const tokenStateEntriesAfterUpdate = await readAllTokenStateItems(
+      const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
         dynamoDBClient
       );
-      expect(tokenStateEntriesAfterUpdate).toEqual([]);
+      expect(tokenGenStatesEntriesAfterUpdate).toEqual([]);
     });
 
     it("should update state if previous entries exist", async () => {
-      const tokenStateEntryPK1 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
+      const tokenGenStatesEntryPK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const previousTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
         {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK1),
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
           descriptorState: itemState.inactive,
           descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
-      await writeTokenStateEntry(previousTokenStateEntry1, dynamoDBClient);
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
 
-      const tokenStateEntryPK2 = makeTokenGenerationStatesClientKidPurposePK({
-        clientId: generateId(),
-        kid: `kid ${Math.random()}`,
-        purposeId: generateId(),
-      });
-      const previousTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+      const tokenGenStatesEntryPK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
         {
-          ...getMockTokenStatesClientPurposeEntry(tokenStateEntryPK2),
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
           descriptorState: itemState.inactive,
           descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
           GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
         };
-      await writeTokenStateEntry(previousTokenStateEntry2, dynamoDBClient);
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
       await updateDescriptorStateInTokenGenerationStatesTable(
         eserviceId_descriptorId,
         itemState.active,
+        dynamoDBClient,
+        genericLogger
+      );
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
       );
-      const retrievedTokenStateEntries =
-        await readTokenStateEntriesByEserviceIdAndDescriptorId(
-          eserviceId_descriptorId,
-          dynamoDBClient
-        );
-      const expectedTokenStateEntry1: TokenGenerationStatesClientPurposeEntry =
+      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
-          ...previousTokenStateEntry1,
+          ...tokenGenStatesConsumerClient1,
           descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
-      const expectedTokenStateEntry2: TokenGenerationStatesClientPurposeEntry =
+      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
-          ...previousTokenStateEntry2,
+          ...tokenGenStatesConsumerClient2,
           descriptorState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
 
-      expect(retrievedTokenStateEntries).toHaveLength(2);
-      expect(retrievedTokenStateEntries).toEqual(
+      expect(retrievedTokenGenStatesEntries).toHaveLength(2);
+      expect(retrievedTokenGenStatesEntries).toEqual(
         expect.arrayContaining([
-          expectedTokenStateEntry2,
-          expectedTokenStateEntry1,
+          expectedTokenGenStatesConsumeClient2,
+          expectedTokenGenStatesConsumeClient1,
         ])
       );
     });

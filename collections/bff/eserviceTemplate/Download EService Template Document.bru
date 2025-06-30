@@ -1,0 +1,35 @@
+meta {
+  name: Download EService Template Document
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{host-bff}}/eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceTemplateId: 88747444-4294-471c-b101-eb6df3b54c52
+  eServiceTemplateVersionId: 2a259b63-519f-4ab5-af03-e4dcdfe961c9
+  documentId: 2ec1e496-8534-4100-94f6-59f053830d3c
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  This endpoint retrieves the actual file content of a specific document associated with an e-service template version.
+  
+   The response will contain the binary content of the document with the appropriate Content-Type header.
+  
+   Returns:
+   - The document file content with status 200 on success
+   - Content-Type header will match the document's original content type
+  
+   Possible errors:
+   - 404: Document, template, or version not found
+   - 500: Internal server error
+}

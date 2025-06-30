@@ -1,7 +1,7 @@
 /* eslint-disable max-params */
 import { parse } from "csv/sync";
 import { Logger, RefreshableInteropToken, zipBy } from "pagopa-interop-commons";
-import { CorrelationId } from "pagopa-interop-models";
+import { TenantFeatureCertifier, CorrelationId } from "pagopa-interop-models";
 import {
   AnacAttributes,
   AttributeIdentifiers,
@@ -204,7 +204,7 @@ async function getAttributesIdentifiers(
     anacTenantId
   );
   const certifier = anacTenant.features.find(
-    (f) => f.type === "PersistentCertifier"
+    (f): f is TenantFeatureCertifier => f.type === "PersistentCertifier"
   );
 
   if (!certifier) {

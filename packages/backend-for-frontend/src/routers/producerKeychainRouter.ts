@@ -5,32 +5,20 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import {
-  bffApi,
-  selfcareV2UsersClientBuilder,
-} from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { bffApi } from "pagopa-interop-api-clients";
+import { emptyErrorMapper } from "pagopa-interop-models";
 import { fromBffAppContext } from "../utilities/context.js";
 import { makeApiProblem } from "../model/errors.js";
-import {
-  emptyErrorMapper,
-  getProducerKeychainUsersErrorMapper,
-} from "../utilities/errorMappers.js";
-import { producerKeychainServiceBuilder } from "../services/producerKeychainService.js";
-import { config } from "../config/config.js";
+import { getProducerKeychainUsersErrorMapper } from "../utilities/errorMappers.js";
+import { ProducerKeychainService } from "../services/producerKeychainService.js";
 
 const producerKeychainRouter = (
   ctx: ZodiosContext,
-  processClients: PagoPAInteropBeClients
+  producerKeychainService: ProducerKeychainService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const producerKeychainRouter = ctx.router(bffApi.producerKeychainApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
-
-  const producerKeychainService = producerKeychainServiceBuilder(
-    processClients,
-    selfcareV2UsersClientBuilder(config)
-  );
 
   producerKeychainRouter
     .get("/producerKeychains", async (req, res) => {
@@ -58,8 +46,7 @@ const producerKeychainRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving producer keychains with name = ${
             req.query.q
           }, limit = ${req.query.limit}, offset = ${
@@ -83,8 +70,7 @@ const producerKeychainRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating producer keychain with seed: ${JSON.stringify(
             req.body
           )}`
@@ -108,8 +94,7 @@ const producerKeychainRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving producer keychain with id = ${req.params.producerKeychainId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -128,8 +113,7 @@ const producerKeychainRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error deleting producer keychain with id = ${req.params.producerKeychainId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -152,8 +136,7 @@ const producerKeychainRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error adding EService ${req.body.eserviceId} to producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -176,8 +159,7 @@ const producerKeychainRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error removing EService ${req.params.eserviceId} from producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -198,8 +180,7 @@ const producerKeychainRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error creating producer key in producer keychain ${
             req.params.producerKeychainId
           } with seed: ${JSON.stringify(req.body)}`
@@ -221,8 +202,7 @@ const producerKeychainRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving producer keys in producer keychain ${
             req.params.producerKeychainId
           } for user ids: ${JSON.stringify(req.query.userIds)}`
@@ -246,8 +226,7 @@ const producerKeychainRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving producer key ${req.params.keyId} in producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -271,8 +250,7 @@ const producerKeychainRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error deleting producer key ${req.params.keyId} in producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -293,8 +271,7 @@ const producerKeychainRouter = (
         const errorRes = makeApiProblem(
           error,
           getProducerKeychainUsersErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error retrieving users in producer keychain ${req.params.producerKeychainId}`
         );
         return res.status(errorRes.status).send(errorRes);
@@ -315,8 +292,7 @@ const producerKeychainRouter = (
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
-          ctx.logger,
-          ctx.correlationId,
+          ctx,
           `Error adding users ${req.body.userIds.join(
             ","
           )} to producer keychain ${req.params.producerKeychainId}`
@@ -341,8 +317,7 @@ const producerKeychainRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error removing user ${req.params.userId} from producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);
@@ -366,8 +341,7 @@ const producerKeychainRouter = (
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
-            ctx.logger,
-            ctx.correlationId,
+            ctx,
             `Error retrieving key ${req.params.keyId} for producer keychain ${req.params.producerKeychainId}`
           );
           return res.status(errorRes.status).send(errorRes);

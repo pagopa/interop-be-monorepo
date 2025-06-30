@@ -13,10 +13,10 @@ import {
 } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
 import { z } from "zod";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
-import { dtdCatalogExporterServiceBuilder } from "../src/services/dtdCatalogExporterService.js";
-import { config } from "../src/config/config.js";
 import { PublicEService } from "../src/models/models.js";
+import { dtdCatalogExporterServiceBuilder } from "../src/services/dtdCatalogExporterService.js";
+import { readModelServiceBuilder } from "../src/services/readModelService.js";
+import { config } from "../src/config/config.js";
 
 export const {
   cleanup,
@@ -43,12 +43,12 @@ export const dtdCatalogExporterService = dtdCatalogExporterServiceBuilder({
   loggerInstance: genericLogger,
 });
 
-export const getExportDtdPublicCatalogResult = async (): Promise<
+export const getExportedDtdPublicCatalogFromJson = async (): Promise<
   PublicEService[]
 > => {
   const data = await fileManager.get(
     config.s3Bucket,
-    `${config.dtdCatalogStoragePath}/${config.dtdCatalogFilename}`,
+    `${config.dtdCatalogStoragePath}/${config.dtdCatalogJsonFilename}`,
     genericLogger
   );
 
