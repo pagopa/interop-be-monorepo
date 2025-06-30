@@ -17,6 +17,7 @@ import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
   isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import { purposeVersionNotFound } from "../model/errors.js";
 import {
@@ -67,6 +68,14 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollPurposeUntilDeletion = (
+    purposeId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrievePurposeById(unsafeBrandId(purposeId), headers)
+    );
 
   const pollPurposeById = (
     purposeId: PurposeId,
@@ -362,6 +371,19 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
+    },
+    async deletePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose with id ${purposeId}`);
+
+      await clients.purposeProcessClient.deletePurpose(undefined, {
+        params: { id: purposeId },
+        headers,
+      });
+
+      await pollPurposeUntilDeletion(purposeId, headers);
     },
   };
 }

@@ -1,5 +1,7 @@
 /* eslint-disable functional/no-let */
-import { createPollingByCondition } from "pagopa-interop-commons";
+import { createPollingByCondition, delay } from "pagopa-interop-commons";
+import { isAxiosError } from "axios";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
@@ -23,6 +25,36 @@ export function pollResourceWithMetadata<T>(
     defaultPollingMaxRetries: config.defaultPollingMaxRetries,
     defaultPollingRetryDelay: config.defaultPollingRetryDelay,
   });
+}
+
+/**
+ * Polls a resource by repeatedly calling the provided fetch function until the resource is deleted
+ * (i.e., a 404 Not Found is returned) or the maximum number of retries is exceeded.
+ *
+ * @param fetch - A function that returns a Promise resolving when the resource exists,
+ *                and rejects with a 404 error when the resource is deleted.
+ * @returns  Resolves when the resource is confirmed deleted.
+ */
+export async function pollResourceUntilDeletion(
+  fetch: () => Promise<unknown>
+): Promise<void> {
+  const maxRetries = config.defaultPollingMaxRetries;
+  const retryDelay = config.defaultPollingRetryDelay;
+
+  // eslint-disable-next-line functional/no-let
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      await fetch();
+    } catch (error: unknown) {
+      if (isAxiosError(error) && error.response?.status === 404) {
+        return;
+      }
+      throw error;
+    }
+    await delay(retryDelay);
+  }
+
+  throw pollingMaxRetriesExceeded(maxRetries, retryDelay);
 }
 
 /**
