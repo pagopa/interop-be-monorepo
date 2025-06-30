@@ -24,7 +24,7 @@
       "outputs": ["dist/**"]
     },
     "check": {
-      "dependsOn": ["generate-model", "generate-protobuf"]
+      "dependsOn": ["generate-model", "generate-protobuf", "build"]
     },
     "generate-model": {
       "dependsOn": [],
