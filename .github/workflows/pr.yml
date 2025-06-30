@@ -50,6 +50,7 @@ jobs:
         with:
           run_install: true
       - run: ls -la
+      - run: ls -la .turbo/
       - run: pnpm lint
 
   check:
