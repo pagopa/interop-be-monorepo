@@ -560,7 +560,7 @@ export function eserviceTemplateServiceBuilder(
 
       await verifyAndCreateDocument(
         fileManager,
-        eserviceTemplate.id,
+        { id: eserviceTemplate.id, isEserviceTemplate: true },
         apiTechnologyToTechnology(eserviceTemplate.technology),
         doc.kind,
         doc.doc,

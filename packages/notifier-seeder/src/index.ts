@@ -113,5 +113,6 @@ await runConsumer(
     config.agreementTopic,
     config.authorizationTopic,
   ],
-  processMessage
+  processMessage,
+  "notifier-seeder"
 );

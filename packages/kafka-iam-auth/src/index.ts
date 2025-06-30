@@ -369,7 +369,8 @@ export const initProducer = async (
 export const runConsumer = async (
   config: KafkaConsumerConfig,
   topics: string[],
-  consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>
+  consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>,
+  serviceName?: string
 ): Promise<void> => {
   try {
     const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
@@ -383,7 +384,10 @@ export const runConsumer = async (
           throw kafkaMessageProcessError(
             payload.topic,
             payload.partition,
-            messageInfo,
+            {
+              ...messageInfo,
+              serviceName,
+            },
             e
           );
         }
@@ -402,7 +406,8 @@ export const runBatchConsumer = async (
   baseConsumerConfig: KafkaConsumerConfig,
   batchConsumerConfig: KafkaBatchConsumerConfig,
   topics: string[],
-  consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>
+  consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>,
+  serviceName?: string
 ): Promise<void> => {
   try {
     const consumerRunConfig = (): ConsumerRunConfig => ({
@@ -413,7 +418,10 @@ export const runBatchConsumer = async (
           throw kafkaMessageProcessError(
             payload.batch.topic,
             payload.batch.partition,
-            { offset: payload.batch.lastOffset().toString() },
+            {
+              offset: payload.batch.lastOffset().toString(),
+              serviceName,
+            },
             e
           );
         }
@@ -467,6 +475,8 @@ export function extractBasicMessageInfo(message: KafkaMessage): {
   streamId?: string;
   eventType?: string;
   eventVersion?: number;
+  streamVersion?: number;
+  correlationId?: string;
 } {
   try {
     if (!message.value) {
@@ -474,13 +484,15 @@ export function extractBasicMessageInfo(message: KafkaMessage): {
     }
 
     const rawMessage = JSON.parse(message.value.toString());
-    const dataSource = rawMessage.value?.after || rawMessage;
-
+    const dataSource =
+      rawMessage.value?.after || rawMessage.after || rawMessage;
     return {
       offset: message.offset,
       streamId: dataSource.stream_id || dataSource.streamId || dataSource.id,
       eventType: dataSource.type,
       eventVersion: dataSource.event_version,
+      streamVersion: dataSource.version,
+      correlationId: dataSource.correlation_id,
     };
   } catch {
     return { offset: message.offset };

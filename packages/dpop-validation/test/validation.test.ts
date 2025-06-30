@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { dateToSeconds } from "pagopa-interop-commons";
 import {
   checkDPoPCache,
@@ -26,58 +27,68 @@ import {
   dpopJtiAlreadyCached,
   dpopTypNotFound,
   multipleDPoPProofsError,
+  notYetValidDPoPProof,
 } from "../src/errors.js";
 import { writeDPoPCache } from "../src/utilities/dpopCacheUtils.js";
-import { dynamoDBClient, dpopCacheTable } from "./utils.js";
+import { dpopConfig, dynamoDBClient, dpopCacheTable } from "./utils.js";
 
 describe("DPoP validation tests", async () => {
   describe("verify DPoP proof", () => {
     it("should succeed DPoP claims verification", async () => {
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
+      const { dpopProofJWS } = await getMockDPoPProof();
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeUndefined();
     });
 
     it("should add error if there are invalid claims in the DPoP proof header", async () => {
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+      const { dpopProofJWS } = await getMockDPoPProof({
         customHeader: {
           invalidHeaderProp: "invalidHeaderProp",
         },
       });
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors?.[0].code).toBe(dpopProofInvalidClaims("").code);
+      expect(errors?.[0].code).toBe(
+        dpopProofInvalidClaims("{}", "header").code
+      );
     });
 
     it("should add error if there are invalid claims in the DPoP proof payload", async () => {
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+      const { dpopProofJWS } = await getMockDPoPProof({
         customPayload: {
           invalidPayloadProp: "invalidPayloadProp",
         },
       });
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors?.[0].code).toBe(dpopProofInvalidClaims("").code);
+      expect(errors?.[0].code).toBe(
+        dpopProofInvalidClaims("{}", "payload").code
+      );
     });
 
     it("should not add error if the DPoP proof signature is wrong", async () => {
-      const { dpopProofJWS: dpopProofJWS1, dpopProofJWT } =
-        await getMockDPoPProof();
+      const { dpopProofJWS: dpopProofJWS1 } = await getMockDPoPProof();
       const { dpopProofJWS: dpopProofJWS2 } = await getMockDPoPProof();
 
       const subStrings1 = dpopProofJWS1.split(".");
@@ -86,7 +97,9 @@ describe("DPoP validation tests", async () => {
       const dpopProofWithWrongSignature = `${subStrings1[0]}.${subStrings1[1]}.${subStrings2[2]}`;
       const { errors } = verifyDPoPProof({
         dpopProofJWS: dpopProofWithWrongSignature,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeUndefined();
     });
@@ -94,7 +107,9 @@ describe("DPoP validation tests", async () => {
     it("should add error if the DPoP proof JWT format is invalid", async () => {
       const { errors: errors1 } = verifyDPoPProof({
         dpopProofJWS: "too.many.substrings.in.dpop.proof",
-        expectedDPoPProofHtu: "test",
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors1).toBeDefined();
       expect(errors1).toHaveLength(1);
@@ -102,7 +117,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors: errors2 } = verifyDPoPProof({
         dpopProofJWS: "not a jwt",
-        expectedDPoPProofHtu: "test",
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors2).toBeDefined();
       expect(errors2).toHaveLength(1);
@@ -110,7 +127,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors: errors3 } = verifyDPoPProof({
         dpopProofJWS: "not.a.jwt",
-        expectedDPoPProofHtu: "test",
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors3).toBeDefined();
       expect(errors3).toHaveLength(1);
@@ -120,7 +139,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors: errors4 } = verifyDPoPProof({
         dpopProofJWS: "signature.missing",
-        expectedDPoPProofHtu: "test",
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors4).toBeDefined();
       expect(errors4).toHaveLength(1);
@@ -128,7 +149,7 @@ describe("DPoP validation tests", async () => {
     });
 
     it("should add error if the DPoP proof TYP is not found", async () => {
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+      const { dpopProofJWS } = await getMockDPoPProof({
         customHeader: {
           typ: undefined,
         },
@@ -136,7 +157,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -145,7 +168,7 @@ describe("DPoP validation tests", async () => {
 
     it("should add error if the DPoP proof TYP is invalid", async () => {
       const wrongTyp = "wrong-typ";
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+      const { dpopProofJWS } = await getMockDPoPProof({
         customHeader: {
           typ: wrongTyp,
         },
@@ -153,7 +176,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -161,7 +186,7 @@ describe("DPoP validation tests", async () => {
     });
 
     it("should add error if the DPoP proof HTM is not found", async () => {
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+      const { dpopProofJWS } = await getMockDPoPProof({
         customPayload: {
           htm: undefined,
         },
@@ -169,7 +194,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -178,7 +205,7 @@ describe("DPoP validation tests", async () => {
 
     it("should add error if the DPoP proof HTM is invalid", async () => {
       const wrongHtm = "GET";
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+      const { dpopProofJWS } = await getMockDPoPProof({
         customPayload: {
           htm: wrongHtm,
         },
@@ -186,7 +213,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -202,7 +231,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: "test",
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -219,7 +250,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: "test",
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -227,7 +260,7 @@ describe("DPoP validation tests", async () => {
     });
 
     it("should add error if the DPoP proof IAT is not found", async () => {
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+      const { dpopProofJWS } = await getMockDPoPProof({
         customPayload: {
           iat: undefined,
         },
@@ -235,16 +268,70 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors?.[0].code).toBe(dpopIatNotFound().code);
     });
 
-    it("should add error if the DPoP proof IAT is invalid", async () => {
+    it("should add error if the DPoP proof IAT is greater than the current time + the tolerance (used to accommodate for clock differences between the client and the server)", async () => {
+      const mockDate = new Date();
+      vi.useFakeTimers();
+      vi.setSystemTime(mockDate);
+
+      const futureIat =
+        dateToSeconds(mockDate) +
+        Number(dpopConfig!.dpopIatToleranceSeconds) +
+        1;
+      const { dpopProofJWS } = await getMockDPoPProof({
+        customPayload: {
+          iat: futureIat,
+        },
+      });
+
+      const { errors } = verifyDPoPProof({
+        dpopProofJWS,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
+      });
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors?.[0].code).toBe(
+        notYetValidDPoPProof(
+          futureIat,
+          dateToSeconds(new Date()),
+          dpopConfig!.dpopIatToleranceSeconds
+        ).code
+      );
+
+      vi.useRealTimers();
+    });
+
+    it("should succeed if the current time + the tolerance is greater or equal than the DPoP proof IAT", async () => {
+      const futureIat =
+        dateToSeconds(new Date()) + Number(dpopConfig!.dpopIatToleranceSeconds);
+      const { dpopProofJWS } = await getMockDPoPProof({
+        customPayload: {
+          iat: futureIat,
+        },
+      });
+
+      const { errors } = verifyDPoPProof({
+        dpopProofJWS,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
+      });
+      expect(errors).toBeUndefined();
+    });
+
+    it("should add error if the DPoP proof IAT is expired", async () => {
       const expiredIat = dateToSeconds(new Date()) - 61;
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+      const { dpopProofJWS } = await getMockDPoPProof({
         customPayload: {
           iat: expiredIat,
         },
@@ -252,17 +339,23 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
       expect(errors?.[0].code).toBe(
-        expiredDPoPProof(expiredIat, dateToSeconds(new Date())).code
+        expiredDPoPProof(
+          expiredIat,
+          dateToSeconds(new Date()),
+          dpopConfig!.dpopDurationSeconds
+        ).code
       );
     });
 
     it("should add error if the DPoP proof JTI is not found", async () => {
-      const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof({
+      const { dpopProofJWS } = await getMockDPoPProof({
         customPayload: {
           jti: undefined,
         },
@@ -270,7 +363,9 @@ describe("DPoP validation tests", async () => {
 
       const { errors } = verifyDPoPProof({
         dpopProofJWS,
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -278,11 +373,11 @@ describe("DPoP validation tests", async () => {
     });
 
     it("should add error if the headers contain multiple DPoP proofs", async () => {
-      const { dpopProofJWT } = await getMockDPoPProof();
-
       const { errors } = verifyDPoPProof({
         dpopProofJWS: "dpopProof1, dpopProof2",
-        expectedDPoPProofHtu: dpopProofJWT.payload.htu,
+        expectedDPoPProofHtu: dpopConfig!.dpopHtu,
+        dpopProofIatToleranceSeconds: dpopConfig!.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
@@ -344,6 +439,7 @@ describe("DPoP validation tests", async () => {
         dpopCacheTable,
         dpopProofJti: dpopProofJWT.payload.jti,
         dpopProofIat: dpopProofJWT.payload.iat,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeUndefined();
@@ -357,6 +453,7 @@ describe("DPoP validation tests", async () => {
         dpopCacheTable,
         iat: dpopProofJWT.payload.iat,
         jti: dpopProofJWT.payload.jti,
+        durationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       const { errors } = await checkDPoPCache({
@@ -364,6 +461,7 @@ describe("DPoP validation tests", async () => {
         dpopCacheTable,
         dpopProofJti: dpopProofJWT.payload.jti,
         dpopProofIat: dpopProofJWT.payload.iat,
+        dpopProofDurationSeconds: dpopConfig!.dpopDurationSeconds,
       });
 
       expect(errors).toBeDefined();

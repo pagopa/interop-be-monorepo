@@ -8,7 +8,6 @@ import {
   eventRepository,
   FileManager,
   InternalAuthData,
-  interpolateApiSpec,
   Logger,
   M2MAuthData,
   riskAnalysisValidatedFormToNewRiskAnalysis,
@@ -20,6 +19,7 @@ import {
   assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
   M2MAdminAuthData,
+  interpolateTemplateApiSpec,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -3363,7 +3363,7 @@ async function createOpenApiInterfaceByTemplate(
   }
 
   const documentId = unsafeBrandId<EServiceDocumentId>(randomUUID());
-  const newInterfaceFile = await interpolateApiSpec(
+  const newInterfaceFile = await interpolateTemplateApiSpec(
     eservice,
     Buffer.from(interfaceTemplate).toString(),
     eserviceTemplateInterface,
@@ -3373,7 +3373,7 @@ async function createOpenApiInterfaceByTemplate(
 
   return await verifyAndCreateDocument(
     fileManager,
-    eservice.id,
+    { id: eservice.id, isEserviceTemplate: true },
     eservice.technology,
     "INTERFACE",
     newInterfaceFile,

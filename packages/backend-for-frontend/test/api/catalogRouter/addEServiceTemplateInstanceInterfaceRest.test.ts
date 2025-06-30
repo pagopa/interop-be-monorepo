@@ -83,13 +83,19 @@ describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/in
     },
     {
       error: invalidInterfaceContentTypeDetected(
-        mockEService.id,
+        { id: mockEService.id, isEserviceTemplate: true },
         "contentType",
         "REST"
       ),
       expectedStatus: 400,
     },
-    { error: invalidInterfaceFileDetected(generateId()), expectedStatus: 400 },
+    {
+      error: invalidInterfaceFileDetected({
+        id: generateId(),
+        isEserviceTemplate: true,
+      }),
+      expectedStatus: 400,
+    },
     { error: interfaceExtractingInfoError(), expectedStatus: 400 },
   ])(
     "Should return $expectedStatus for $error.code",

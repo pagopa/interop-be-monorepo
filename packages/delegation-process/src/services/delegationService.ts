@@ -528,7 +528,7 @@ export function delegationServiceBuilder(
         delegateId: TenantId;
         eserviceId: EServiceId;
       },
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {
@@ -560,7 +560,7 @@ export function delegationServiceBuilder(
     },
     async approveProducerDelegation(
       delegationId: DelegationId,
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return approveDelegation(
         delegationId,
@@ -581,7 +581,7 @@ export function delegationServiceBuilder(
     async rejectProducerDelegation(
       delegationId: DelegationId,
       rejectionReason: string,
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return rejectDelegation(
         delegationId,

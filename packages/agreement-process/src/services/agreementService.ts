@@ -749,7 +749,10 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
+      const isSelfConsumer =
+        eservice.producerId === agreementToBeUpgraded.data.consumerId;
+
+      if (!isSelfConsumer) {
         validateCertifiedAttributes({
           descriptor: newDescriptor,
           consumer,
@@ -775,6 +778,8 @@ export function agreementServiceBuilder(
         logger
       );
 
+      const canBeUpgraded = isSelfConsumer || (verifiedValid && declaredValid);
+
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
         newDescriptor,
@@ -782,7 +787,7 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         readModelService,
-        canBeUpgraded: verifiedValid && declaredValid,
+        canBeUpgraded,
         copyFile: fileManager.copy,
         authData,
         activeDelegations,

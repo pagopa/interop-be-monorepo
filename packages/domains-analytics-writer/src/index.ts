@@ -169,5 +169,6 @@ await runBatchConsumer(
     config.authorizationTopic,
     config.eserviceTemplateTopic,
   ],
-  processBatch
+  processBatch,
+  "domains-analytics-writer"
 );

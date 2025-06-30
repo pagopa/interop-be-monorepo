@@ -41,7 +41,7 @@ export function readModelQueriesBuilderSQL(
           feature: tenantFeatureInReadmodelTenant,
         })
         .from(tenantInReadmodelTenant)
-        .innerJoin(
+        .leftJoin(
           tenantCertifiedAttributeInReadmodelTenant,
           and(
             eq(
@@ -97,7 +97,7 @@ export function readModelQueriesBuilderSQL(
           feature: tenantFeatureInReadmodelTenant,
         })
         .from(tenantInReadmodelTenant)
-        .innerJoin(
+        .leftJoin(
           tenantCertifiedAttributeInReadmodelTenant,
           and(
             eq(
