@@ -50,6 +50,8 @@ jobs:
         with:
           run_install: true
       - run: pnpm lint
+        env:
+          TURBO_SCM_BASE: origin/develop
 
   check:
     name: Check
