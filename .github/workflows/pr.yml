@@ -64,29 +64,21 @@ jobs:
 
       - name: Check formatting
         run: |
-          set -euo pipefail
-
           cd "packages/${{ matrix.package }}"
           turbo format:check
 
       - name: Lint
         run: |
-          set -euo pipefail
-
           cd "packages/${{ matrix.package }}"
           turbo lint
 
       - name: Check
         run: |
-          set -euo pipefail
-
           cd "packages/${{ matrix.package }}"
           turbo check
 
       - name: Test
         run: |
-          set -euo pipefail
-
           cd "packages/${{ matrix.package }}"
           turbo test
 
