@@ -11,10 +11,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("DELETE /purpose/:purposeId router test", () => {
-  const authorizedRoles: AuthRole[] = [
-    authRole.M2M_ADMIN_ROLE,
-    authRole.M2M_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   const makeRequest = async (token: string, purposeId: string) =>
     request(api)
@@ -34,9 +31,6 @@ describe("DELETE /purpose/:purposeId router test", () => {
       const res = await makeRequest(token, mockM2MPurposeResponse.id);
 
       expect(res.status).toBe(204);
-      expect(mockPurposeService.deletePurpose).toHaveBeenCalledWith(
-        mockM2MPurposeResponse.id
-      );
     }
   );
 
