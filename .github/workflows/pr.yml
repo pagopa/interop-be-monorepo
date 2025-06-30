@@ -41,6 +41,13 @@ jobs:
         with:
           node-version-file: ./package.json
 
+      - name: Install Turbo (global)
+        run: |
+          set -euo pipefail
+
+          TURBO_VERSION="$(jq -r '.devDependencies.turbo' package.json)"
+          pnpm install add "turbo@$TURBO_VERSION" --global
+
       - name: Restore Turbo cache for ${{ matrix.package }}
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
@@ -49,32 +56,40 @@ jobs:
             packages/${{ matrix.package }}/.turbo
           key: turbo-${{ github.ref_name }}-${{ matrix.package }}
 
-      - name: Extract Turbo package name
-        run: |
-          set -euo pipefail
-          TURBO_PACKAGE_NAME="$(jq -r '.name' packages/${{ matrix.package }}/package.json)"
-          echo "TURBO_PACKAGE_NAME=$TURBO_PACKAGE_NAME" >> "$GITHUB_ENV"
+      # - name: Extract Turbo package name
+      #   run: |
+      #     set -euo pipefail
+      #     TURBO_PACKAGE_NAME="$(jq -r '.name' packages/${{ matrix.package }}/package.json)"
+      #     echo "TURBO_PACKAGE_NAME=$TURBO_PACKAGE_NAME" >> "$GITHUB_ENV"
 
       - name: Check formatting
         run: |
           set -euo pipefail
-          pnpm format:check --filter="$TURBO_PACKAGE_NAME"
+
+          cd "packages/${{ matrix.package }}"
+          turbo format:check
 
       - name: Lint
         run: |
           set -euo pipefail
-          pnpm lint --filter="$TURBO_PACKAGE_NAME"
+
+          cd "packages/${{ matrix.package }}"
+          turbo lint
 
       - name: Check
         run: |
           set -euo pipefail
-          pnpm check --filter="$TURBO_PACKAGE_NAME"
+
+          cd "packages/${{ matrix.package }}"
+          turbo check
 
       - name: Test
         run: |
           set -euo pipefail
-          pnpm test --filter="$TURBO_PACKAGE_NAME"
-      
+
+          cd "packages/${{ matrix.package }}"
+          turbo test
+
   lint-openapi:
     name: Lint Open Api specification
     runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
