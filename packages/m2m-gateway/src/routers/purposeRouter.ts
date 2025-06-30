@@ -290,7 +290,7 @@ const purposeRouter = (
     .patch("/purposes/:purposeId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
-        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
         const purpose = await purposeService.updatePurpose(
           unsafeBrandId(req.params.purposeId),
