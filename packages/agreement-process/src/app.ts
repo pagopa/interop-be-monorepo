@@ -21,7 +21,6 @@ export async function createApp(service: AgreementService) {
   const router = agreementRouter(zodiosCtx, service);
 
   const app = zodiosCtx.app();
-  // CI trigger for testing purposes
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
