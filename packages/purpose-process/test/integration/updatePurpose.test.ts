@@ -188,7 +188,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         isRiskAnalysisValid: true,
       },
       metadata: {
-        version: 0,
+        version: 1,
       },
     });
   });
@@ -250,7 +250,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         isRiskAnalysisValid: true,
       },
       metadata: {
-        version: 0,
+        version: 1,
       },
     });
   });
@@ -306,7 +306,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         isRiskAnalysisValid: true,
       },
       metadata: {
-        version: 0,
+        version: 1,
       },
     });
   });
@@ -386,7 +386,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         isRiskAnalysisValid: true,
       },
       metadata: {
-        version: 0,
+        version: 1,
       },
     });
   });
@@ -460,7 +460,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         isRiskAnalysisValid: true,
       },
       metadata: {
-        version: 0,
+        version: 1,
       },
     });
   });
@@ -584,7 +584,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         isRiskAnalysisValid: true,
       },
       metadata: {
-        version: 0,
+        version: 1,
       },
     });
   });
@@ -701,7 +701,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         isRiskAnalysisValid: true,
       },
       metadata: {
-        version: 0,
+        version: 1,
       },
     });
   });
