@@ -16,9 +16,9 @@ import { getBffMockContext } from "./utils.js";
 
 describe("validateTokenGeneration", () => {
   const MOCK_CLIENT_ID = generateId<ClientId>();
-  const MOCK_CLIENT_ASSERTION = "";
-  const MOCK_CLIENT_ASSERTION_TYPE = "";
-  const MOCK_GRANT_TYPE = "";
+  const MOCK_CLIENT_ASSERTION = "test_client_assertion";
+  const MOCK_CLIENT_ASSERTION_TYPE = "test_client_assertion_type";
+  const MOCK_GRANT_TYPE = "test_grant_type";
   const MOCK_KID = "kid123";
   const MOCK_PURPOSE_ID = generateId<PurposeId>();
   const MOCK_JWT_PAYLOAD = {
