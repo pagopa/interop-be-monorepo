@@ -1,12 +1,14 @@
+/* eslint-disable no-console */
 import {
   initFileManager,
   logger,
   ReadModelRepository,
+  cleanupResources,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
-  makeDrizzleConnection,
+  makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
@@ -14,10 +16,16 @@ import { readModelServiceBuilder } from "./services/readModelService.js";
 import { dtdCatalogExporterServiceBuilder } from "./services/dtdCatalogExporterService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
+const loggerInstance = logger({
+  serviceName: "dtd-catalog-exporter",
+  correlationId: generateId<CorrelationId>(),
+});
+
 const oldReadModelService = readModelServiceBuilder(
   ReadModelRepository.init(config)
 );
-const db = makeDrizzleConnection(config);
+const { connection: db, cleanup: drizzleCleanup } =
+  makeDrizzleConnectionWithCleanup(config);
 const attributeReadModelService = attributeReadModelServiceBuilder(db);
 const tenantReadModelService = tenantReadModelServiceBuilder(db);
 const readModelServiceSQL = readModelServiceBuilderSQL(
@@ -33,16 +41,20 @@ const readModelService =
     ? readModelServiceSQL
     : oldReadModelService;
 
-await dtdCatalogExporterServiceBuilder({
-  readModelService,
-  fileManager: initFileManager(config),
-  loggerInstance: logger({
-    serviceName: "dtd-catalog-exporter",
-    correlationId: generateId<CorrelationId>(),
-  }),
-}).exportDtdData();
+const fileManager = initFileManager(config);
 
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
+async function main(): Promise<void> {
+  try {
+    await dtdCatalogExporterServiceBuilder({
+      readModelService,
+      fileManager,
+      loggerInstance,
+    }).exportDtdData();
+  } catch (error) {
+    loggerInstance.error(error);
+  } finally {
+    await cleanupResources(loggerInstance, drizzleCleanup);
+  }
+}
+
+await main();
