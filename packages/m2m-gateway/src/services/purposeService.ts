@@ -18,11 +18,16 @@ import {
   isPolledVersionAtLeastResponseVersion,
   isPolledVersionAtLeastMetadataTargetVersion,
 } from "../utils/polling.js";
-import { purposeVersionNotFound } from "../model/errors.js";
+import {
+  agreementPurposeNotFound,
+  purposeVersionNotFound,
+  unexpectedMultipleActiveAgreementsForPurpose,
+} from "../model/errors.js";
 import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
 } from "../utils/validators/purposeValidator.js";
+import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -392,6 +397,41 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       const polledResource = await pollPurpose(purposeResponse, headers);
 
       return toM2MGatewayApiPurpose(polledResource.data);
+    },
+    getPurposeAgreement: async (
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Retrieving agreement for purpose with id ${purposeId}`);
+
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const { data: agreements } =
+        await clients.agreementProcessClient.getAgreements({
+          queries: {
+            consumersIds: [purpose.consumerId],
+            eservicesIds: [purpose.eserviceId],
+            states: [
+              m2mGatewayApi.AgreementState.Values.ACTIVE,
+              m2mGatewayApi.AgreementState.Values.SUSPENDED,
+            ],
+            offset: 0,
+            limit: 1,
+          },
+          headers,
+        });
+
+      const agreement = agreements.results.at(0);
+
+      if (!agreement) {
+        throw agreementPurposeNotFound(purposeId);
+      }
+
+      if (agreements.totalCount > 1) {
+        throw unexpectedMultipleActiveAgreementsForPurpose(purposeId);
+      }
+
+      return toM2MGatewayApiAgreement(agreement);
     },
   };
 }

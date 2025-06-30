@@ -1,0 +1,87 @@
+import { describe, it, expect, vi } from "vitest";
+import request from "supertest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { getMockedApiAgreement } from "pagopa-interop-commons-test";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId, PurposeId } from "pagopa-interop-models";
+import { api, mockPurposeService } from "../../vitest.api.setup.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import {
+  agreementPurposeNotFound,
+  unexpectedMultipleActiveAgreementsForPurpose,
+} from "../../../src/model/errors.js";
+import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
+
+describe("GET /purposes/:purposeId/agreement router test", () => {
+  const authorizedRoles: AuthRole[] = [
+    authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
+  const mockM2MAgreement = toM2MGatewayApiAgreement(getMockedApiAgreement());
+
+  const mockPurposeId: PurposeId = generateId();
+
+  const makeRequest = async (token: string, purposeId: string) =>
+    request(api)
+      .get(`${appBasePath}/purposes/${purposeId}/agreement`)
+      .set("Authorization", `Bearer ${token}`)
+      .send();
+
+  it.each(authorizedRoles)(
+    "Should return 200 and perform service calls for user with role %s",
+    async (role) => {
+      mockPurposeService.getPurposeAgreement = vi
+        .fn()
+        .mockResolvedValue(mockM2MAgreement);
+
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockPurposeId);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(
+        expect.objectContaining({ id: mockM2MAgreement.id })
+      );
+      expect(mockPurposeService.getPurposeAgreement).toHaveBeenCalledWith(
+        mockPurposeId,
+        expect.any(Object)
+      );
+    }
+  );
+
+  it("Should return 400 for incorrect value for purpose id", async () => {
+    mockPurposeService.getPurposeAgreement = vi.fn();
+
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token, "INVALID ID");
+    expect(res.status).toBe(400);
+  });
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token, mockPurposeId);
+    expect(res.status).toBe(403);
+  });
+
+  it("Should return 404 in case of agreementPurposeNotFound error", async () => {
+    mockPurposeService.getPurposeAgreement = vi
+      .fn()
+      .mockRejectedValue(agreementPurposeNotFound(mockPurposeId));
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token, mockPurposeId);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 500 in case of unexpectedMultipleActiveAgreementsForPurpose error", async () => {
+    mockPurposeService.getPurposeAgreement = vi
+      .fn()
+      .mockRejectedValue(
+        unexpectedMultipleActiveAgreementsForPurpose(mockPurposeId)
+      );
+    const token = generateToken(authRole.M2M_ROLE);
+    const res = await makeRequest(token, mockPurposeId);
+    expect(res.status).toBe(500);
+  });
+});
