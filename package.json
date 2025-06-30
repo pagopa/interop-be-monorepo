@@ -48,6 +48,7 @@
     "start:notification-email-sender": "turbo start --filter pagopa-interop-notification-email-sender",
     "start:m2m-gateway": "turbo start --filter pagopa-interop-m2m-gateway",
     "start:in-app-notification": "turbo start --filter pagopa-interop-in-app-notification-manager",
+    "start:in-app-notification-dispatcher": "turbo start --filter pagopa-interop-in-app-notification-dispatcher",
     "test": "turbo test",
     "test:integration": "turbo test:integration",
     "test:api": "turbo test:api",
