@@ -75,14 +75,17 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
     },
     {
       error: invalidInterfaceContentTypeDetected(
-        generateId(),
+        { id: generateId(), isEserviceTemplate: true },
         "contentType",
         "technology"
       ),
       expectedStatus: 400,
     },
     {
-      error: invalidInterfaceFileDetected(generateId()),
+      error: invalidInterfaceFileDetected({
+        id: generateId(),
+        isEserviceTemplate: true,
+      }),
       expectedStatus: 400,
     },
   ])(
