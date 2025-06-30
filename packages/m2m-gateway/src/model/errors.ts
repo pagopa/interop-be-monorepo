@@ -31,6 +31,7 @@ export const errorCodes = {
   missingPurposeCurrentVersion: "0016",
   eserviceTemplateVersionNotFound: "0017",
   tenantCertifiedAttributeNotFound: "0018",
+  eserviceDescriptorInterfaceNotFound: "0019",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -188,5 +189,16 @@ export function tenantCertifiedAttributeNotFound(
     detail: `Certified attribute ${attributeId} not found for tenant ${tenant.id}`,
     code: "tenantCertifiedAttributeNotFound",
     title: "Tenant certified attribute not found",
+  });
+}
+
+export function eserviceDescriptorInterfaceNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorInterfaceNotFound",
+    title: "Eservice descriptor interface not found",
   });
 }

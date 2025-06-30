@@ -8,12 +8,3 @@ export const TenantFeatureSchema = createSelectSchema(
   deleted: z.boolean().default(false).optional(),
 });
 export type TenantFeatureSchema = z.infer<typeof TenantFeatureSchema>;
-
-export const TenantFeatureDeletingSchema = TenantFeatureSchema.pick({
-  tenantId: true,
-  kind: true,
-  deleted: true,
-});
-export type TenantFeatureDeletingSchema = z.infer<
-  typeof TenantFeatureDeletingSchema
->;

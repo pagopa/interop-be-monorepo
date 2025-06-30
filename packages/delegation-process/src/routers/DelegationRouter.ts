@@ -185,7 +185,7 @@ const delegationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const { data, metadata } =
           await delegationService.createProducerDelegation(
@@ -217,7 +217,7 @@ const delegationRouter = (
       const { delegationId } = req.params;
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const { data, metadata } =
           await delegationService.approveProducerDelegation(
@@ -247,7 +247,7 @@ const delegationRouter = (
       const { rejectionReason } = req.body;
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const { data, metadata } =
           await delegationService.rejectProducerDelegation(

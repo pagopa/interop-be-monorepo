@@ -97,6 +97,8 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceIsClientAccessDelegableEnabled" }, // CatalogItemV1UpdatedV1
       { type: "EServiceIsClientAccessDelegableDisabled" }, // CatalogItemV1UpdatedV1
       { type: "EServiceNameUpdated" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceSignalHubEnabled" }, // CatalogItemV1UpdatedV1
+      { type: "EServiceSignalHubDisabled" }, // CatalogItemV1UpdatedV1
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),

@@ -1,10 +1,12 @@
 import {
+  EServiceTemplateRiskAnalysis,
   RiskAnalysis,
   RiskAnalysisForm,
   RiskAnalysisFormId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  TenantKind,
   generateId,
 } from "pagopa-interop-models";
 import { DataType } from "./rules/riskAnalysisFormRules.js";
@@ -78,6 +80,21 @@ export function riskAnalysisValidatedFormToNewRiskAnalysis(
     createdAt: new Date(),
     riskAnalysisForm:
       riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+  };
+}
+
+export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
+  validatedForm: RiskAnalysisValidatedForm,
+  name: RiskAnalysis["name"],
+  tenantKind: TenantKind
+): EServiceTemplateRiskAnalysis {
+  return {
+    id: generateId<RiskAnalysisId>(),
+    name,
+    createdAt: new Date(),
+    riskAnalysisForm:
+      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
+    tenantKind,
   };
 }
 

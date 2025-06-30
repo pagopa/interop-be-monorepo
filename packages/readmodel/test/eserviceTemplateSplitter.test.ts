@@ -4,7 +4,7 @@ import {
   getMockEServiceAttribute,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
@@ -30,8 +30,12 @@ describe("E-service template splitter", () => {
     const certifiedAttribute = getMockEServiceAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+    const riskAnalysisPA = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PA
+    );
+    const riskAnalysisPrivate = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PRIVATE
+    );
     const publishedAt = new Date();
     const suspendedAt = new Date();
     const deprecatedAt = new Date();
@@ -58,7 +62,7 @@ describe("E-service template splitter", () => {
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       versions: [version],
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [riskAnalysisPA, riskAnalysisPrivate],
       isSignalHubEnabled,
     };
 
@@ -86,29 +90,31 @@ describe("E-service template splitter", () => {
     };
 
     const expectedRiskAnalysisSQL1: EServiceTemplateRiskAnalysisSQL = {
-      id: riskAnalysis1.id,
+      id: riskAnalysisPA.id,
       metadataVersion: 1,
-      name: riskAnalysis1.name,
-      createdAt: riskAnalysis1.createdAt.toISOString(),
+      name: riskAnalysisPA.name,
+      createdAt: riskAnalysisPA.createdAt.toISOString(),
       eserviceTemplateId: eserviceTemplate.id,
-      riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
-      riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
+      riskAnalysisFormId: riskAnalysisPA.riskAnalysisForm.id,
+      riskAnalysisFormVersion: riskAnalysisPA.riskAnalysisForm.version,
+      tenantKind: riskAnalysisPA.tenantKind,
     };
 
     const expectedRiskAnalysisSQL2: EServiceTemplateRiskAnalysisSQL = {
-      id: riskAnalysis2.id,
+      id: riskAnalysisPrivate.id,
       metadataVersion: 1,
-      name: riskAnalysis2.name,
-      createdAt: riskAnalysis2.createdAt.toISOString(),
+      name: riskAnalysisPrivate.name,
+      createdAt: riskAnalysisPrivate.createdAt.toISOString(),
       eserviceTemplateId: eserviceTemplate.id,
-      riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
-      riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
+      riskAnalysisFormId: riskAnalysisPrivate.riskAnalysisForm.id,
+      riskAnalysisFormVersion: riskAnalysisPrivate.riskAnalysisForm.version,
+      tenantKind: riskAnalysisPrivate.tenantKind,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] =
       generateEServiceTemplateRiskAnalysisAnswersSQL(
         eserviceTemplate.id,
-        [riskAnalysis1, riskAnalysis2],
+        [riskAnalysisPA, riskAnalysisPrivate],
         1
       );
 
@@ -176,8 +182,12 @@ describe("E-service template splitter", () => {
 
   it("should convert an incomplete e-service into e-service SQL objects (undefined -> null)", () => {
     const doc = getMockDocument();
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+    const riskAnalysisPA = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PA
+    );
+    const riskAnalysisPrivate = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PRIVATE
+    );
 
     const version: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -200,7 +210,7 @@ describe("E-service template splitter", () => {
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       versions: [version],
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [riskAnalysisPA, riskAnalysisPrivate],
       isSignalHubEnabled: undefined,
     };
 
@@ -228,29 +238,31 @@ describe("E-service template splitter", () => {
     };
 
     const expectedRiskAnalysisSQL1: EServiceTemplateRiskAnalysisSQL = {
-      id: riskAnalysis1.id,
+      id: riskAnalysisPA.id,
       metadataVersion: 1,
-      name: riskAnalysis1.name,
-      createdAt: riskAnalysis1.createdAt.toISOString(),
+      name: riskAnalysisPA.name,
+      createdAt: riskAnalysisPA.createdAt.toISOString(),
       eserviceTemplateId: eserviceTemplate.id,
-      riskAnalysisFormId: riskAnalysis1.riskAnalysisForm.id,
-      riskAnalysisFormVersion: riskAnalysis1.riskAnalysisForm.version,
+      riskAnalysisFormId: riskAnalysisPA.riskAnalysisForm.id,
+      riskAnalysisFormVersion: riskAnalysisPA.riskAnalysisForm.version,
+      tenantKind: riskAnalysisPA.tenantKind,
     };
 
     const expectedRiskAnalysisSQL2: EServiceTemplateRiskAnalysisSQL = {
-      id: riskAnalysis2.id,
+      id: riskAnalysisPrivate.id,
       metadataVersion: 1,
-      name: riskAnalysis2.name,
-      createdAt: riskAnalysis2.createdAt.toISOString(),
+      name: riskAnalysisPrivate.name,
+      createdAt: riskAnalysisPrivate.createdAt.toISOString(),
       eserviceTemplateId: eserviceTemplate.id,
-      riskAnalysisFormId: riskAnalysis2.riskAnalysisForm.id,
-      riskAnalysisFormVersion: riskAnalysis2.riskAnalysisForm.version,
+      riskAnalysisFormId: riskAnalysisPrivate.riskAnalysisForm.id,
+      riskAnalysisFormVersion: riskAnalysisPrivate.riskAnalysisForm.version,
+      tenantKind: riskAnalysisPrivate.tenantKind,
     };
 
     const expectedRiskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] =
       generateEServiceTemplateRiskAnalysisAnswersSQL(
         eserviceTemplate.id,
-        [riskAnalysis1, riskAnalysis2],
+        [riskAnalysisPA, riskAnalysisPrivate],
         1
       );
 

@@ -36,7 +36,7 @@ export function toBffEServiceTemplateDetails(
     creator: toBffCompactOrganization(creator),
     mode: eserviceTemplate.mode,
     riskAnalysis: eserviceTemplate.riskAnalysis.map(
-      toBffCatalogApiEserviceRiskAnalysis
+      toBffEServiceTemplateApiEServiceTemplateRiskAnalysis
     ),
     versions: eserviceTemplate.versions.map(
       toBffCompactEServiceTemplateVersion
@@ -121,5 +121,14 @@ export function toCatalogCreateEServiceTemplateSeed(
     version: {
       voucherLifespan: 60,
     },
+  };
+}
+
+export function toBffEServiceTemplateApiEServiceTemplateRiskAnalysis(
+  riskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
+): bffApi.EServiceTemplateRiskAnalysis {
+  return {
+    ...toBffCatalogApiEserviceRiskAnalysis(riskAnalysis),
+    tenantKind: riskAnalysis.tenantKind,
   };
 }

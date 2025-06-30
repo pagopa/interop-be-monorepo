@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
-import { GeneratedTokenAuditDetails, generateId } from "pagopa-interop-models";
+import {
+  algorithm,
+  GeneratedTokenAuditDetails,
+  generateId,
+} from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   formatDateyyyyMMdd,
@@ -154,7 +158,7 @@ const getMockAuditDetails = (): GeneratedTokenAuditDetails => ({
   subject: generateId(),
   audience: "uat.interop.pagopa.it",
   purposeId: generateId(),
-  algorithm: "RS256",
+  algorithm: algorithm.RS256,
   clientId: generateId(),
   keyId: generateId(),
   purposeVersionId: generateId(),
@@ -167,7 +171,7 @@ const getMockAuditDetails = (): GeneratedTokenAuditDetails => ({
   clientAssertion: {
     subject: generateId(),
     audience: "uat.interop.pagopa.it",
-    algorithm: "RS256",
+    algorithm: algorithm.RS256,
     keyId: generateId(),
     jwtId: generateId(),
     issuedAt: new Date().getMilliseconds(),

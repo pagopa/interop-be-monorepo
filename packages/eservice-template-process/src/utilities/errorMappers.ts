@@ -63,11 +63,6 @@ export const publishEServiceTemplateVersionErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with(
-      "tenantNotFound",
-      "tenantKindNotFound",
-      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
-    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceTemplateNameErrorMapper = (
@@ -131,11 +126,6 @@ export const createRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("riskAnalysisNameDuplicate", () => HTTP_STATUS_CONFLICT)
-    .with(
-      "tenantNotFound",
-      "tenantKindNotFound",
-      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
-    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const deleteRiskAnalysisErrorMapper = (
@@ -157,8 +147,7 @@ export const updateRiskAnalysisErrorMapper = (
   match(error.code)
     .with(
       "eserviceTemplateNotFound",
-      "tenantNotFound",
-      "tenantKindNotFound",
+      "riskAnalysisNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)

@@ -47,4 +47,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.authorizationTopic], processMessage);
+await runConsumer(
+  config,
+  [config.authorizationTopic],
+  processMessage,
+  "producer-keychain-readmodel-writer-sql"
+);

@@ -44,6 +44,8 @@ import {
   EServiceRiskAnalysisAddedV2,
   EServiceRiskAnalysisDeletedV1,
   EServiceRiskAnalysisDeletedV2,
+  EServiceSignalHubDisabledV2,
+  EServiceSignalHubEnabledV2,
   EServiceUpdatedV1,
   EServiceWithDescriptorsDeletedV1,
   EserviceAttributes,
@@ -1613,6 +1615,86 @@ describe("database test", async () => {
         stream_id: mockEService.id,
         version: 2,
         type: "EServiceNameUpdated",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, eservices);
+      const retrievedEservice = await eservices.findOne({
+        "data.id": mockEService.id,
+      });
+      expect(retrievedEservice?.data).toEqual(
+        toReadModelEService(updatedEService)
+      );
+      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+    });
+
+    it("EServiceSignalHubEnabled", async () => {
+      const publishedDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        interface: getMockDocument(),
+        state: descriptorState.published,
+        publishedAt: new Date(),
+      };
+
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [publishedDescriptor],
+        isSignalHubEnabled: true,
+      };
+      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      const updatedEService: EService = {
+        ...eservice,
+        isSignalHubEnabled: true,
+      };
+      const payload: EServiceSignalHubEnabledV2 = {
+        eservice: toEServiceV2(updatedEService),
+      };
+      const message: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEService.id,
+        version: 2,
+        type: "EServiceSignalHubEnabled",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, eservices);
+      const retrievedEservice = await eservices.findOne({
+        "data.id": mockEService.id,
+      });
+      expect(retrievedEservice?.data).toEqual(
+        toReadModelEService(updatedEService)
+      );
+      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+    });
+
+    it("EServiceSignalHubDisabled", async () => {
+      const publishedDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        interface: getMockDocument(),
+        state: descriptorState.published,
+        publishedAt: new Date(),
+      };
+
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [publishedDescriptor],
+        isSignalHubEnabled: false,
+      };
+      await writeInReadmodel(toReadModelEService(eservice), eservices, 1);
+      const updatedEService: EService = {
+        ...eservice,
+        isSignalHubEnabled: false,
+      };
+      const payload: EServiceSignalHubDisabledV2 = {
+        eservice: toEServiceV2(updatedEService),
+      };
+      const message: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEService.id,
+        version: 2,
+        type: "EServiceSignalHubDisabled",
         event_version: 2,
         data: payload,
         log_date: new Date(),

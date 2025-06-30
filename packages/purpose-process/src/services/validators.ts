@@ -147,29 +147,6 @@ export function validateAndTransformRiskAnalysis(
   };
 }
 
-export function reverseValidateAndTransformRiskAnalysis(
-  riskAnalysisForm: PurposeRiskAnalysisForm | undefined,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind
-): PurposeRiskAnalysisForm | undefined {
-  if (!riskAnalysisForm) {
-    return undefined;
-  }
-
-  const formToValidate =
-    riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
-  const validatedForm = validateRiskAnalysisOrThrow({
-    riskAnalysisForm: formToValidate,
-    schemaOnlyValidation,
-    tenantKind,
-  });
-
-  return {
-    ...riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-    riskAnalysisId: riskAnalysisForm.riskAnalysisId,
-  };
-}
-
 export function assertPurposeIsDraft(purpose: Purpose): void {
   if (!purposeIsDraft(purpose)) {
     throw purposeNotInDraftState(purpose.id);

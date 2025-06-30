@@ -445,6 +445,7 @@ paths:
     get:
       summary: Retrieve a list of agreements
       operationId: getAgreements
+      description: Retrieves a list of agreements with optional filters
       responses:
         "200":
           description: Agreements found
@@ -653,6 +654,7 @@ paths:
         - agreement
       summary: Delete an agreement
       operationId: deleteAgreement
+      description: Deletes an agreement for a given agreementId
       responses:
         "204":
           description: Agreement deleted
@@ -981,6 +983,7 @@ paths:
         - agreement
       summary: Delete an agreement
       operationId: internalDeleteAgreementAfterDelegationRevocation
+      description: Deletes an agreement for a given agreementId
       responses:
         "204":
           description: Agreement deleted

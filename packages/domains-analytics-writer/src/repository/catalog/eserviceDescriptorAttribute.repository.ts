@@ -49,7 +49,7 @@ export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
           EserviceDescriptorAttributeSchema,
           schemaName,
           tableName,
-          ["attributeId"]
+          ["attributeId", "groupId", "descriptorId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

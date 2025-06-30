@@ -685,6 +685,7 @@ export const eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate =
       }).notNull(),
       riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
       riskAnalysisFormVersion: varchar("risk_analysis_form_version").notNull(),
+      tenantKind: varchar("tenant_kind").notNull(),
     },
     (table) => [
       foreignKey({

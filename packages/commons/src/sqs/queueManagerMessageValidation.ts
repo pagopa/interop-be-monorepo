@@ -1,6 +1,6 @@
 import { invalidSqsMessage } from "pagopa-interop-models";
+import { Message } from "@aws-sdk/client-sqs";
 import { Logger } from "../logging/index.js";
-import { Message } from "./index.js";
 
 type EventValidation = "ValidEvent" | "SkipEvent";
 

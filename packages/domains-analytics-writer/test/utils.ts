@@ -22,7 +22,9 @@ import {
   TenantDbPartialTable,
   PurposeDbTable,
   TenantDbTable,
+  CatalogDbPartialTable,
   ClientDbTable,
+  ProducerKeychainDbTable,
 } from "../src/model/db/index.js";
 import { catalogServiceBuilder } from "../src/service/catalogService.js";
 import { attributeServiceBuilder } from "../src/service/attributeService.js";
@@ -109,21 +111,30 @@ export const clientTables: ClientDbTable[] = [
   ClientDbTable.client_key,
 ];
 
-export const partialTables = [TenantDbPartialTable.tenant_self_care_id];
+export const producerKeychainTables: ProducerKeychainDbTable[] = [
+  ProducerKeychainDbTable.producer_keychain,
+  ProducerKeychainDbTable.producer_keychain_eservice,
+  ProducerKeychainDbTable.producer_keychain_user,
+  ProducerKeychainDbTable.producer_keychain_key,
+];
 
+export const partialTables = [
+  TenantDbPartialTable.tenant_self_care_id,
+  CatalogDbPartialTable.descriptor_server_urls,
+];
 export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.agreement_deleting_table,
   DeletingDbTable.attribute_deleting_table,
   DeletingDbTable.catalog_deleting_table,
-  DeletingDbTable.catalog_risk_deleting_table,
+  DeletingDbTable.catalog_descriptor_interface_deleting_table,
   DeletingDbTable.purpose_deleting_table,
   DeletingDbTable.tenant_deleting_table,
   DeletingDbTable.tenant_mail_deleting_table,
-  DeletingDbTable.tenant_feature_deleting_table,
   DeletingDbTable.client_deleting_table,
   DeletingDbTable.client_purpose_deleting_table,
   DeletingDbTable.client_user_deleting_table,
   DeletingDbTable.client_key_deleting_table,
+  DeletingDbTable.producer_keychain_deleting_table,
   DeletingDbTable.eservice_template_deleting_table,
 ];
 
@@ -135,6 +146,7 @@ export const domainTables: DomainDbTable[] = [
   ...delegationTables,
   ...tenantTables,
   ...clientTables,
+  ...producerKeychainTables,
   ...eserviceTemplateTables,
 ];
 
@@ -142,17 +154,11 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   { name: DeletingDbTable.attribute_deleting_table, columns: ["id"] },
   { name: DeletingDbTable.catalog_deleting_table, columns: ["id"] },
   {
-    name: DeletingDbTable.catalog_risk_deleting_table,
-    columns: ["id", "eserviceId"],
+    name: DeletingDbTable.catalog_descriptor_interface_deleting_table,
+    columns: ["id", "descriptorId", "metadataVersion"],
   },
-  {
-    name: DeletingDbTable.agreement_deleting_table,
-    columns: ["id"],
-  },
-  {
-    name: DeletingDbTable.purpose_deleting_table,
-    columns: ["id"],
-  },
+  { name: DeletingDbTable.agreement_deleting_table, columns: ["id"] },
+  { name: DeletingDbTable.purpose_deleting_table, columns: ["id"] },
   {
     name: DeletingDbTable.tenant_deleting_table,
     columns: ["id"],
@@ -160,10 +166,6 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   {
     name: DeletingDbTable.tenant_mail_deleting_table,
     columns: ["id", "tenantId"],
-  },
-  {
-    name: DeletingDbTable.tenant_feature_deleting_table,
-    columns: ["tenantId", "kind"],
   },
   { name: DeletingDbTable.client_deleting_table, columns: ["id"] },
   {
@@ -177,6 +179,10 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
   {
     name: DeletingDbTable.client_key_deleting_table,
     columns: ["clientId", "kid"],
+  },
+  {
+    name: DeletingDbTable.producer_keychain_deleting_table,
+    columns: ["id"],
   },
   {
     name: DeletingDbTable.eservice_template_deleting_table,
@@ -223,7 +229,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
   where: Partial<z.infer<DomainDbTableSchemas[T]>>
-): Promise<z.infer<DomainDbTableSchemas[T]>> {
+): Promise<z.infer<DomainDbTableSchemas[T]> | undefined> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
   const entries = Object.entries(where) as Array<[string, unknown]>;
@@ -232,12 +238,12 @@ export async function getOneFromDb<T extends DomainDbTable>(
     .join(" AND ");
   const values = entries.map(([, v]) => v);
 
-  const row = await db.conn.one(
+  const row = await db.conn.oneOrNone(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
     values
   );
 
-  return camelcaseKeys(row);
+  return row ? camelcaseKeys(row) : undefined;
 }
 
 export async function getManyFromDb<T extends DomainDbTable>(

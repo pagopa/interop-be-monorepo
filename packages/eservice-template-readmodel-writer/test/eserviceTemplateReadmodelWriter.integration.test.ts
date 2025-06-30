@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplate,
   writeInReadmodel,
   getMockEServiceTemplateVersion,
@@ -23,7 +23,6 @@ import {
   EServiceTemplateEventEnvelope,
   EServiceTemplateRiskAnalysisAddedV2,
   EServiceTemplateRiskAnalysisDeletedV2,
-  RiskAnalysis,
   EServiceTemplateDeletedV2,
   toEServiceTemplateV2,
   EServiceTemplateAddedV2,
@@ -33,6 +32,8 @@ import {
   EServiceTemplateDraftVersionUpdatedV2,
   eserviceTemplateVersionState,
   EServiceTemplateNameUpdatedV2,
+  EServiceTemplateRiskAnalysis,
+  tenantKind,
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { eserviceTemplates } from "./utils.js";
@@ -701,7 +702,9 @@ describe("database test", async () => {
         1
       );
 
-      const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
+      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+        tenantKind.PA
+      );
       const updatedEServiceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [mockRiskAnalysis],
@@ -732,7 +735,9 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateRiskAnalysisUpdated", async () => {
-      const mockRiskAnalysis = getMockValidRiskAnalysis("PA");
+      const mockRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+        tenantKind.PA
+      );
       const eserviceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [mockRiskAnalysis],
@@ -743,7 +748,7 @@ describe("database test", async () => {
         1
       );
 
-      const updatedRiskAnalysis: RiskAnalysis = {
+      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
         ...mockRiskAnalysis,
         riskAnalysisForm: {
           ...mockRiskAnalysis.riskAnalysisForm,
@@ -786,7 +791,9 @@ describe("database test", async () => {
     });
 
     it("EServiceTemplateRiskAnalysisDeleted", async () => {
-      const riskAnalysis = getMockValidRiskAnalysis("PA");
+      const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+        tenantKind.PA
+      );
       const eserviceTemplate: EServiceTemplate = {
         ...mockEServiceTemplate,
         riskAnalysis: [riskAnalysis],

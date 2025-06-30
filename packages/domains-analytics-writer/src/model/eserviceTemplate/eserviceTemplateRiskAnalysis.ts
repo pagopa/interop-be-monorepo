@@ -11,12 +11,3 @@ export const EserviceTemplateRiskAnalysisSchema = createSelectSchema(
 export type EserviceTemplateRiskAnalysisSchema = z.infer<
   typeof EserviceTemplateRiskAnalysisSchema
 >;
-
-export const EserviceTemplateRiskAnalysisDeletingSchema =
-  EserviceTemplateRiskAnalysisSchema.pick({
-    id: true,
-    deleted: true,
-  });
-export type EserviceTemplateRiskAnalysisDeletingSchema = z.infer<
-  typeof EserviceTemplateRiskAnalysisDeletingSchema
->;

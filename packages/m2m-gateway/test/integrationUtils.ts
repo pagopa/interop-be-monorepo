@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { AxiosError, AxiosResponse } from "axios";
-import { expect } from "vitest";
+import { afterEach, expect, inject } from "vitest";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
@@ -13,6 +14,14 @@ import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { eserviceServiceBuilder } from "../src/services/eserviceService.js";
 import { keyServiceBuilder } from "../src/services/keyService.js";
 import { m2mTestToken } from "./mockUtils.js";
+
+export const { cleanup, fileManager } = await setupTestContainersVitest(
+  undefined,
+  undefined,
+  inject("fileManagerConfig")
+);
+
+afterEach(cleanup);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function mockPollingResponse<T>(
@@ -110,5 +119,8 @@ export const eserviceTemplateService =
   eserviceTemplateServiceBuilder(mockInteropBeClients);
 export const clientService = clientServiceBuilder(mockInteropBeClients);
 export const agreementService = agreementServiceBuilder(mockInteropBeClients);
-export const eserviceService = eserviceServiceBuilder(mockInteropBeClients);
+export const eserviceService = eserviceServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const keyService = keyServiceBuilder(mockInteropBeClients);

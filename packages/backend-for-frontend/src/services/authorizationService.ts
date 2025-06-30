@@ -34,7 +34,7 @@ import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const { HTTP_STATUS_NOT_FOUND } = constants;
 
-type GetSessionTokenReturnType =
+export type GetSessionTokenReturnType =
   | {
       limitReached: true;
       sessionToken: undefined;

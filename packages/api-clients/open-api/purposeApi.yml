@@ -546,6 +546,7 @@ paths:
       tags:
         - purpose
       summary: Get an Risk Analysis document
+      description: Retrieves a risk analysis document by id
       operationId: getRiskAnalysisDocument
       parameters:
         - name: purposeId

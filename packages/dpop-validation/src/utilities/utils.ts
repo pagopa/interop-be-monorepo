@@ -25,6 +25,7 @@ import {
   dpopTypNotFound,
   invalidDPoPTyp,
   dpopIatNotFound,
+  notYetValidDPoPProof,
 } from "../errors.js";
 
 const EXPECTED_TYP = "dpop+jwt";
@@ -99,15 +100,25 @@ export const validateHtu = (
 };
 
 export const validateIat = (
-  iat: number | undefined
+  iat: number | undefined,
+  toleranceSeconds: number,
+  durationSeconds: number
 ): ValidationResult<number> => {
   if (!iat) {
     return failedValidation([dpopIatNotFound()]);
   }
 
   const currentTime = dateToSeconds(new Date());
-  if (currentTime < iat || currentTime > iat + 60) {
-    return failedValidation([expiredDPoPProof(iat, currentTime)]);
+
+  // There's a tolerance of some seconds to accommodate for clock offsets between the client and the server
+  if (currentTime + toleranceSeconds < iat) {
+    return failedValidation([
+      notYetValidDPoPProof(iat, currentTime, toleranceSeconds),
+    ]);
+  } else if (currentTime > iat + durationSeconds) {
+    return failedValidation([
+      expiredDPoPProof(iat, currentTime, durationSeconds),
+    ]);
   }
 
   return successfulValidation(iat);

@@ -1,6 +1,6 @@
 import { ZodiosInstance, ZodiosOptions } from "@zodios/core";
 import { SelfCareClientConfig } from "pagopa-interop-commons";
-import { selfcareV2ClientApi } from "./index.js";
+import * as selfcareV2ClientApi from "./generated/selfcareV2ClientApi.js";
 
 const createClientConfig = (selfcareApiKey: string): ZodiosOptions => ({
   axiosConfig: {

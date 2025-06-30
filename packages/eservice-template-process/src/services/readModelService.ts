@@ -2,7 +2,6 @@ import {
   EServiceTemplateCollection,
   ReadModelFilter,
   ReadModelRepository,
-  TenantCollection,
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
@@ -14,9 +13,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersionState,
   ListResult,
-  Tenant,
   TenantId,
-  TenantReadModel,
   WithMetadata,
   eserviceTemplateVersionState,
   genericInternalError,
@@ -63,34 +60,9 @@ async function getEServiceTemplate(
   }
 }
 
-async function getTenant(
-  tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
-): Promise<Tenant | undefined> {
-  const data = await tenants.findOne(filter, {
-    projection: { data: true },
-  });
-
-  if (!data) {
-    return undefined;
-  }
-  const result = Tenant.safeParse(data.data);
-
-  if (!result.success) {
-    throw genericInternalError(
-      `Unable to parse tenant item: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
-    );
-  }
-
-  return result.data;
-}
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder({
   eserviceTemplates,
-  tenants,
   attributes,
   eservices,
 }: ReadModelRepository) {
@@ -116,10 +88,6 @@ export function readModelServiceBuilder({
         { limit: 1 }
       );
       return count === 0;
-    },
-
-    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
-      return getTenant(tenants, { "data.id": id });
     },
 
     async getAttributesByIds(

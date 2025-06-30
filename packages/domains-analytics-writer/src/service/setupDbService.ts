@@ -47,7 +47,7 @@ export function setupDbServiceBuilder(
             const snakeCaseMapper = getColumnNameMapper(name);
             const columnDefs = columns
               .map((key) => `${snakeCaseMapper(key)} VARCHAR(255)`)
-              .concat("deleted BOOLEAN NOT NULL")
+              .concat("deleted BOOLEAN")
               .join(",\n  ");
 
             const primaryKey = `PRIMARY KEY (${columns

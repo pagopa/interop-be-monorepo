@@ -2,8 +2,8 @@ import {
   getMockDocument,
   getMockEServiceAttribute,
   getMockEServiceTemplate,
+  getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
-  getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
@@ -20,8 +20,7 @@ describe("E-service template aggregator", () => {
     const certifiedAttribute = getMockEServiceAttribute();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+
     const publishedAt = new Date();
     const suspendedAt = new Date();
     const deprecatedAt = new Date();
@@ -48,7 +47,10 @@ describe("E-service template aggregator", () => {
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       versions: [version],
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [
+        getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA),
+        getMockValidEServiceTemplateRiskAnalysis(tenantKind.PRIVATE),
+      ],
       isSignalHubEnabled,
     };
 
@@ -80,8 +82,6 @@ describe("E-service template aggregator", () => {
 
   it("should convert an incomplete eservice items into an eservice(undefined -> null)", () => {
     const doc = getMockDocument();
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
 
     const version: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -96,7 +96,10 @@ describe("E-service template aggregator", () => {
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       versions: [version],
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [
+        getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA),
+        getMockValidEServiceTemplateRiskAnalysis(tenantKind.PRIVATE),
+      ],
     };
 
     const {

@@ -6,7 +6,7 @@ import {
   TenantRevokerReadModel,
   TenantVerifierReadModel,
   VerifiedTenantAttributeReadModel,
-} from "../index.js";
+} from "../read-models/tenantReadModel.js";
 import {
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,

@@ -16,6 +16,7 @@ import {
   readAllTokenGenStatesItems,
   writePlatformAgreementEntry,
   writePlatformCatalogEntry,
+  writePlatformPurposeEntry,
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
 import {
@@ -51,7 +52,6 @@ import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
   getPurposeStateFromPurposeVersions,
   readPlatformPurposeEntry,
-  writePlatformPurposeEntry,
 } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -282,9 +282,8 @@ describe("integration tests for events V1", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -336,7 +335,7 @@ describe("integration tests for events V1", () => {
       );
     });
 
-    it("should update the entry when incoming version is more recent than existing table entry", async () => {
+    it("should update the platform-states entry when the incoming version is more recent or equal than the existing table entry", async () => {
       const previousEntryVersion = 2;
       const messageVersion = 3;
 
@@ -368,9 +367,8 @@ describe("integration tests for events V1", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -450,9 +448,15 @@ describe("integration tests for events V1", () => {
       const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
         dynamoDBClient
       );
+      const gsiPKConsumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
+        consumerId: purpose.consumerId,
+        eserviceId: purpose.eserviceId,
+      });
+
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
+          GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[1].id,
@@ -461,141 +465,10 @@ describe("integration tests for events V1", () => {
       const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient2,
+          GSIPK_consumerId_eserviceId: gsiPKConsumerIdEServiceId,
           consumerId: purpose.consumerId,
           purposeState: itemState.active,
           purposeVersionId: purposeVersions[1].id,
-          updatedAt: new Date().toISOString(),
-        };
-      expect(retrievedTokenGenStatesEntries).toHaveLength(2);
-      expect(retrievedTokenGenStatesEntries).toEqual(
-        expect.arrayContaining([
-          expectedTokenGenStatesConsumeClient1,
-          expectedTokenGenStatesConsumeClient2,
-        ])
-      );
-    });
-
-    it("should update the entry state to active when the message version is more recent and the entry state is inactive", async () => {
-      const previousEntryVersion = 1;
-      const messageVersion = 2;
-
-      const lastPurposeVersionDate = mockDate;
-      lastPurposeVersionDate.setDate(mockDate.getDate() + 1);
-      const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.archived),
-        {
-          ...getMockPurposeVersion(purposeVersionState.suspended),
-          createdAt: lastPurposeVersionDate,
-        },
-      ];
-      const purpose: Purpose = {
-        ...getMockPurpose(),
-        versions: purposeVersions,
-      };
-      const purposeId = purpose.id;
-      const purposeState = getPurposeStateFromPurposeVersions(purpose.versions);
-
-      // platform-states
-      const purposeEntryPrimaryKey = makePlatformStatesPurposePK(purposeId);
-      const previousStateEntry: PlatformStatesPurposeEntry = {
-        PK: purposeEntryPrimaryKey,
-        state: purposeState,
-        purposeVersionId: purposeVersions[1].id,
-        purposeEserviceId: purpose.eserviceId,
-        purposeConsumerId: purpose.consumerId,
-        version: previousEntryVersion,
-        updatedAt: mockDate.toISOString(),
-      };
-      await writePlatformPurposeEntry(
-        dynamoDBClient,
-        previousStateEntry,
-        genericLogger
-      );
-
-      // token-generation-states
-      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
-        {
-          ...getMockTokenGenStatesConsumerClient(),
-          GSIPK_purposeId: purposeId,
-          purposeState,
-          purposeVersionId: purposeVersions[1].id,
-        };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient1,
-        dynamoDBClient
-      );
-
-      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
-        {
-          ...getMockTokenGenStatesConsumerClient(),
-          GSIPK_purposeId: purposeId,
-          purposeState,
-          purposeVersionId: purposeVersions[1].id,
-        };
-      await writeTokenGenStatesConsumerClient(
-        tokenGenStatesConsumerClient2,
-        dynamoDBClient
-      );
-
-      const updatedPurpose: Purpose = {
-        ...purpose,
-        versions: [
-          purposeVersions[0],
-          {
-            ...purposeVersions[1],
-            state: purposeVersionState.active,
-            suspendedAt: undefined,
-            updatedAt: new Date(),
-          },
-        ],
-      };
-
-      const payload: PurposeVersionActivatedV1 = {
-        purpose: toPurposeV1(updatedPurpose),
-      };
-      const message: PurposeEventEnvelope = {
-        sequence_num: 1,
-        stream_id: purposeId,
-        version: messageVersion,
-        type: "PurposeVersionActivated",
-        event_version: 1,
-        data: payload,
-        log_date: new Date(),
-      };
-
-      await handleMessageV1(message, dynamoDBClient, genericLogger);
-
-      // platform-states
-      const retrievedPlatformPurposeEntry = await readPlatformPurposeEntry(
-        dynamoDBClient,
-        purposeEntryPrimaryKey
-      );
-      const expectedPlatformPurposeEntry: PlatformStatesPurposeEntry = {
-        ...previousStateEntry,
-        state: itemState.active,
-        version: messageVersion,
-        updatedAt: new Date().toISOString(),
-      };
-      expect(retrievedPlatformPurposeEntry).toEqual(
-        expectedPlatformPurposeEntry
-      );
-
-      // token-generation-states
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
-      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
-        {
-          ...tokenGenStatesConsumerClient1,
-          consumerId: purpose.consumerId,
-          purposeState: itemState.active,
-          updatedAt: new Date().toISOString(),
-        };
-      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
-        {
-          ...tokenGenStatesConsumerClient2,
-          consumerId: purpose.consumerId,
-          purposeState: itemState.active,
           updatedAt: new Date().toISOString(),
         };
       expect(retrievedTokenGenStatesEntries).toHaveLength(2);
@@ -813,9 +686,8 @@ describe("integration tests for events V1", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -917,9 +789,8 @@ describe("integration tests for events V1", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states
@@ -1150,9 +1021,8 @@ describe("integration tests for events V1", () => {
         updatedAt: mockDate.toISOString(),
       };
       await writePlatformPurposeEntry(
-        dynamoDBClient,
         previousPlatformPurposeEntry,
-        genericLogger
+        dynamoDBClient
       );
 
       // token-generation-states

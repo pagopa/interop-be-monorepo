@@ -92,7 +92,9 @@ export function eserviceRepository(conn: DBConnection) {
           schemaName,
           tableName,
           deletingTableName,
-          ["id"]
+          ["id"],
+          false,
+          false
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
