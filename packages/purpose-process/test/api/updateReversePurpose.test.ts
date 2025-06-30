@@ -7,8 +7,12 @@ import {
   eserviceMode,
   generateId,
 } from "pagopa-interop-models";
-import { generateToken, getMockPurpose } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockPurpose,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
@@ -38,11 +42,15 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
   const apiResponse = purposeApi.Purpose.parse(
     purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
   );
+  const serviceResponse = getMockWithMetadata({
+    purpose: mockPurpose,
+    isRiskAnalysisValid,
+  });
 
   beforeEach(() => {
     purposeService.updateReversePurpose = vi
       .fn()
-      .mockResolvedValue({ purpose: mockPurpose, isRiskAnalysisValid });
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -56,12 +64,23 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  it("Should return 200 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(apiResponse);
-  });
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
 
   it.each(
     Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)

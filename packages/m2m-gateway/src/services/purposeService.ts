@@ -393,5 +393,23 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       return toM2MGatewayApiPurpose(polledResource.data);
     },
+    async updatePurpose(
+      purposeId: PurposeId,
+      body: m2mGatewayApi.PurposeUpdateContent,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> {
+      logger.info(`Updating purpose ${purposeId}`);
+
+      const { metadata } = await clients.purposeProcessClient.updatePurpose(
+        body,
+        {
+          params: { id: purposeId },
+          headers,
+        }
+      );
+
+      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      return toM2MGatewayApiPurpose(polledPurpose.data);
+    },
   };
 }

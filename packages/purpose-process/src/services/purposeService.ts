@@ -429,8 +429,14 @@ export function purposeServiceBuilder(
     async updatePurpose(
       purposeId: PurposeId,
       purposeUpdateContent: purposeApi.PurposeUpdateContent,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(`Updating Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -448,7 +454,9 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(`Updating Reverse Purpose ${purposeId}`);
       return await performUpdatePurpose(
         purposeId,
@@ -1582,14 +1590,18 @@ const performUpdatePurpose = async (
         mode: "Receive";
         updateContent: purposeApi.ReversePurposeUpdateContent;
       },
-  authData: UIAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelService,
   correlationId: CorrelationId,
   repository: {
-    createEvent: (createEvent: CreateEvent<PurposeEvent>) => Promise<unknown>;
+    createEvent: (
+      createEvent: CreateEvent<PurposeEvent>
+    ) => Promise<{ newVersion: number }>;
   }
+): Promise<
+  WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
   // eslint-disable-next-line max-params
-): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> => {
+> => {
   const purpose = await retrievePurpose(purposeId, readModelService);
   assertPurposeIsDraft(purpose.data);
 
@@ -1656,15 +1668,21 @@ const performUpdatePurpose = async (
     version: purpose.metadata.version,
     correlationId,
   });
-  await repository.createEvent(event);
+
+  const createdEvent = await repository.createEvent(event);
 
   return {
-    purpose: updatedPurpose,
-    isRiskAnalysisValid: isRiskAnalysisFormValid(
-      updatedPurpose.riskAnalysisForm,
-      false,
-      tenantKind
-    ),
+    data: {
+      purpose: updatedPurpose,
+      isRiskAnalysisValid: isRiskAnalysisFormValid(
+        updatedPurpose.riskAnalysisForm,
+        false,
+        tenantKind
+      ),
+    },
+    metadata: {
+      version: createdEvent.newVersion,
+    },
   };
 };
 
