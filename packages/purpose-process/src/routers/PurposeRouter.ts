@@ -158,14 +158,19 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.updateReversePurpose(
-            unsafeBrandId(req.params.id),
-            req.body,
-            ctx
-          );
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.updateReversePurpose(
+          unsafeBrandId(req.params.id),
+          req.body,
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
@@ -221,14 +226,19 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.updatePurpose(
-            unsafeBrandId(req.params.id),
-            req.body,
-            ctx
-          );
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.updatePurpose(
+          unsafeBrandId(req.params.id),
+          req.body,
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
