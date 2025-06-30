@@ -945,9 +945,9 @@ export function catalogServiceBuilder(
         isSignalHubEnabled: config.featureFlagSignalhubWhitelist
           ? isTenantInSignalHubWhitelist(
               authData.organizationId,
-              eservice.data.isSignalHubEnabled
+              eserviceSeed.isSignalHubEnabled
             )
-          : eservice.data.isSignalHubEnabled,
+          : eserviceSeed.isSignalHubEnabled,
         isConsumerDelegable: eserviceSeed.isConsumerDelegable,
         isClientAccessDelegable: match(eserviceSeed.isConsumerDelegable)
           .with(P.nullish, () => undefined)
