@@ -97,7 +97,7 @@ describe("getPurposes", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurposes,
       queries: {
-        eserviceIds: mockParams.eserviceIds,
+        eservicesIds: mockParams.eserviceIds,
         offset: mockParams.offset,
         limit: mockParams.limit,
         consumersIds: [],
