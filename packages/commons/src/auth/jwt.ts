@@ -29,13 +29,13 @@ export const decodeJwtToken = (
 };
 
 export const readAuthDataFromJwtToken = (
-  token: JwtPayload | string
+  payload: JwtPayload | string
 ): AuthData => {
-  const authToken = AuthTokenPayload.safeParse(token);
-  if (authToken.success === false) {
-    throw invalidClaim(authToken.error);
+  const authTokenPayload = AuthTokenPayload.safeParse(payload);
+  if (authTokenPayload.success === false) {
+    throw invalidClaim(authTokenPayload.error);
   } else {
-    return getAuthDataFromToken(authToken.data);
+    return getAuthDataFromToken(authTokenPayload.data);
   }
 };
 

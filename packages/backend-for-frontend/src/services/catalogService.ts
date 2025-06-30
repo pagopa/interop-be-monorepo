@@ -687,7 +687,7 @@ export function catalogServiceBuilder(
 
       await verifyAndCreateDocument(
         fileManager,
-        unsafeBrandId(eService.id),
+        { id: eService.id, isEserviceTemplate: false },
         apiTechnologyToTechnology(eService.technology),
         doc.kind,
         doc.doc,
