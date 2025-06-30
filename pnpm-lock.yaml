@@ -2111,6 +2111,9 @@ importers:
       '@types/jsonwebtoken':
         specifier: 9.0.10
         version: 9.0.10
+      '@types/node':
+        specifier: 20.14.6
+        version: 20.14.6
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
