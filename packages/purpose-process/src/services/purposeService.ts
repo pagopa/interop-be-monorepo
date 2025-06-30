@@ -453,7 +453,11 @@ export function purposeServiceBuilder(
     async updateReversePurpose(
       purposeId: PurposeId,
       reversePurposeUpdateContent: purposeApi.ReversePurposeUpdateContent,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<
       WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
     > {
