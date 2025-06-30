@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { z } from "zod";
+import { generateMock } from "@anatine/zod-mock";
 import { UserNotificationConfig, generateId } from "pagopa-interop-models";
 import {
   generateToken,
@@ -22,6 +24,8 @@ describe("API GET /userNotificationConfigs test", () => {
     tenantId,
     inAppConfig: { newEServiceVersionPublished: true },
     emailConfig: { newEServiceVersionPublished: false },
+    createdAt: generateMock(z.coerce.date()),
+    updatedAt: generateMock(z.coerce.date().optional()),
   };
   const apiResponse: notificationConfigApi.UserNotificationConfig =
     userNotificationConfigToApiUserNotificationConfig(serviceResponse);

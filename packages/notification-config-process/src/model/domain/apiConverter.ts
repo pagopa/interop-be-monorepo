@@ -13,6 +13,8 @@ export function tenantNotificationConfigToApiTenantNotificationConfig(
     config: {
       newEServiceVersionPublished: input.config.newEServiceVersionPublished,
     },
+    createdAt: input.createdAt.toJSON(),
+    updatedAt: input.updatedAt?.toJSON(),
   };
 }
 
@@ -31,5 +33,7 @@ export function userNotificationConfigToApiUserNotificationConfig(
       newEServiceVersionPublished:
         input.emailConfig.newEServiceVersionPublished,
     },
+    createdAt: input.createdAt.toJSON(),
+    updatedAt: input.updatedAt?.toJSON(),
   };
 }

@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { generateMock } from "@anatine/zod-mock";
 import { getMockContext, getMockAuthData } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -19,6 +21,8 @@ describe("getTenantNotificationConfig", () => {
     config: {
       newEServiceVersionPublished: true,
     },
+    createdAt: generateMock(z.coerce.date()),
+    updatedAt: generateMock(z.coerce.date().optional()),
   };
 
   it("should get the tenant's notification config", async () => {

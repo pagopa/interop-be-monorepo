@@ -1,4 +1,5 @@
 import {
+  stringToDate,
   TenantNotificationConfig,
   unsafeBrandId,
   UserNotificationConfig,
@@ -13,6 +14,8 @@ export const aggregateTenantNotificationConfig = ({
   id,
   metadataVersion,
   tenantId,
+  createdAt,
+  updatedAt,
   newEserviceVersionPublished,
   ...rest
 }: TenantNotificationConfigSQL): WithMetadata<TenantNotificationConfig> => {
@@ -22,6 +25,8 @@ export const aggregateTenantNotificationConfig = ({
       id: unsafeBrandId(id),
       tenantId: unsafeBrandId(tenantId),
       config: { newEServiceVersionPublished: newEserviceVersionPublished },
+      createdAt: stringToDate(createdAt),
+      ...(updatedAt ? { updatedAt: stringToDate(updatedAt) } : {}),
     },
     metadata: { version: metadataVersion },
   };
@@ -32,6 +37,8 @@ export const aggregateUserNotificationConfig = ({
   metadataVersion,
   tenantId,
   userId,
+  createdAt,
+  updatedAt,
   newEserviceVersionPublishedInApp,
   newEserviceVersionPublishedEmail,
   ...rest
@@ -48,6 +55,8 @@ export const aggregateUserNotificationConfig = ({
       emailConfig: {
         newEServiceVersionPublished: newEserviceVersionPublishedEmail,
       },
+      createdAt: stringToDate(createdAt),
+      ...(updatedAt ? { updatedAt: stringToDate(updatedAt) } : {}),
     },
     metadata: { version: metadataVersion },
   };

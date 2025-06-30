@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { generateMock } from "@anatine/zod-mock";
 import {
   getMockContext,
   getMockAuthData,
@@ -12,7 +14,7 @@ import {
   UserNotificationConfigUpdatedV2,
   toUserNotificationConfigV2,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
   addOneUserNotificationConfig,
   notificationConfigService,
@@ -27,6 +29,11 @@ describe("updateUserNotificationConfig", () => {
       inAppConfig: { newEServiceVersionPublished: true },
       emailConfig: { newEServiceVersionPublished: false },
     };
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
 
   it("should write on event-store for the first creation of a user's notification configuration", async () => {
     const { id } = await notificationConfigService.updateUserNotificationConfig(
@@ -49,6 +56,7 @@ describe("updateUserNotificationConfig", () => {
       userId,
       tenantId,
       ...userNotificationConfigSeed,
+      createdAt: new Date(),
     });
     expect(writtenPayload.userNotificationConfig).toEqual(
       expectedUserNotificationConfig
@@ -62,6 +70,8 @@ describe("updateUserNotificationConfig", () => {
       tenantId,
       inAppConfig: { newEServiceVersionPublished: false },
       emailConfig: { newEServiceVersionPublished: false },
+      createdAt: generateMock(z.coerce.date()),
+      updatedAt: generateMock(z.coerce.date().optional()),
     };
     addOneUserNotificationConfig(userNotificationConfig);
     const { id } = await notificationConfigService.updateUserNotificationConfig(
@@ -84,6 +94,8 @@ describe("updateUserNotificationConfig", () => {
       userId,
       tenantId,
       ...userNotificationConfigSeed,
+      createdAt: userNotificationConfig.createdAt,
+      updatedAt: new Date(),
     });
     expect(writtenPayload.userNotificationConfig).toEqual(
       expectedUserNotificationConfig

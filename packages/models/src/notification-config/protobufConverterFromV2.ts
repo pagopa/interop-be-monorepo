@@ -4,6 +4,7 @@ import {
   TenantNotificationConfigV2,
   UserNotificationConfigV2,
 } from "../gen/v2/notification-config/notification-config.js";
+import { bigIntToDate } from "../utils.js";
 import {
   NotificationConfig,
   TenantNotificationConfig,
@@ -29,6 +30,8 @@ export const fromTenantNotificationConfigV2 = (
     input.config != null
       ? fromNotificationConfigV2(input.config)
       : defaultNotificationConfig,
+  createdAt: bigIntToDate(input.createdAt),
+  updatedAt: bigIntToDate(input.updatedAt),
 });
 
 export const fromUserNotificationConfigV2 = (
@@ -45,4 +48,6 @@ export const fromUserNotificationConfigV2 = (
     input.emailConfig != null
       ? fromNotificationConfigV2(input.emailConfig)
       : defaultNotificationConfig,
+  createdAt: bigIntToDate(input.createdAt),
+  updatedAt: bigIntToDate(input.updatedAt),
 });

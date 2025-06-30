@@ -1,3 +1,5 @@
+import { z } from "zod";
+import { generateMock } from "@anatine/zod-mock";
 import { getMockContext, getMockAuthData } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -25,6 +27,8 @@ describe("getUserNotificationConfig", () => {
     emailConfig: {
       newEServiceVersionPublished: false,
     },
+    createdAt: generateMock(z.coerce.date()),
+    updatedAt: generateMock(z.coerce.date().optional()),
   };
 
   it("should get the user's notification config", async () => {
