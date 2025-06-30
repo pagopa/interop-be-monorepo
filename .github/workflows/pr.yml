@@ -53,8 +53,12 @@ jobs:
           run_install: true
       - run: pnpm lint
         env:
-          TURBO_LOG_LEVEL: debug
           TURBO_SCM_BASE: origin/develop
+      - name: Print turbo summary
+        run: |
+          # Find latest summary file
+          SUMMARY_FILE=$(ls -t .turbo/runs/*.json | head -n1)
+          cat "$SUMMARY_FILE"
 
   check:
     name: Check
