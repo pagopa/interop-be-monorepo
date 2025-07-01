@@ -108,7 +108,7 @@ export function emailSenderProcessorBuilder(
         loggerInstance.info(
           `Sending email. CorrelationId: ${jsonPayload.correlationId}`
         );
-        await sesEmailManager.send(mailOptions, loggerInstance);
+        await sesEmailManager.send(mailOptions);
         loggerInstance.info(
           `Email sent: ${jsonPayload}. CorrelationId: ${jsonPayload.correlationId}`
         );
