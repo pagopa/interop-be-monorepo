@@ -9,7 +9,7 @@ const sesEmailSenderData = {
 };
 
 const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
-  skipTooManyRequestsError: true,
+  skipTooManyRequestsError: false,
 });
 
 const processor = emailSenderProcessorBuilder(
