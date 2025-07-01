@@ -49,6 +49,7 @@ export const errorCodes = {
   userAlreadyAssignedAsAdmin: "0034",
   jwkNotFound: "0035",
   producerJwkNotFound: "0036",
+  tenantIsNotClientConsumer: "0037",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -60,17 +61,6 @@ export function clientNotFound(clientId: ClientId): ApiError<ErrorCodes> {
     detail: `Client ${clientId} not found`,
     code: "clientNotFound",
     title: "Client not found",
-  });
-}
-
-export function tenantNotAllowedOnClient(
-  tenantId: TenantId,
-  clientId: ClientId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} is not allowed on client ${clientId}`,
-    code: "tenantNotAllowedOnClient",
-    title: "Tenant not allowed on client",
   });
 }
 
@@ -427,5 +417,16 @@ export function producerJwkNotFound(kid: string): ApiError<ErrorCodes> {
     detail: `Producer JWK with kid ${kid} not found`,
     code: "producerJwkNotFound",
     title: "Producer JWK not found",
+  });
+}
+
+export function tenantIsNotClientConsumer(
+  clientId: ClientId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not the consumer of client ${clientId} (i.e., the owner)`,
+    code: "tenantIsNotClientConsumer",
+    title: "Tenant is not the client consumer",
   });
 }

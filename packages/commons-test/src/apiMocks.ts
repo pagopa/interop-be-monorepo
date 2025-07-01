@@ -138,25 +138,27 @@ export function getMockedApiAttribute({
   };
 }
 
-export function getMockedApiClient({
-  kind: paramKind,
-}: {
-  kind?: authorizationApi.ClientKind;
-} = {}): authorizationApi.Client {
-  const kind = paramKind ?? authorizationApi.ClientKind.Values.API;
+export function getMockedApiClientApi(): authorizationApi.APIClient {
   return {
-    kind,
     id: generateId(),
     name: generateMock(z.string()),
     description: generateMock(z.string()),
     createdAt: new Date().toISOString(),
     consumerId: generateId(),
-    purposes: [],
-    users: [],
-    adminId:
-      kind === authorizationApi.ClientKind.Values.API
-        ? generateId()
-        : undefined,
+    users: [generateId(), generateId()],
+    adminId: generateId(),
+  };
+}
+
+export function getMockedApiClientConsumer(): authorizationApi.ConsumerClient {
+  return {
+    id: generateId(),
+    name: generateMock(z.string()),
+    description: generateMock(z.string()),
+    createdAt: new Date().toISOString(),
+    consumerId: generateId(),
+    purposes: [generateId(), generateId()],
+    users: [generateId(), generateId()],
   };
 }
 

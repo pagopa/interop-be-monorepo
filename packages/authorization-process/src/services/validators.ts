@@ -1,3 +1,4 @@
+import { JsonWebKey } from "crypto";
 import {
   M2MAdminAuthData,
   M2MAuthData,
@@ -8,14 +9,17 @@ import {
   UserRole,
 } from "pagopa-interop-commons";
 import {
+  APIClient,
   Client,
   ClientId,
   clientKind,
+  ConsumerClient,
   CorrelationId,
   Delegation,
   delegationKind,
   delegationState,
   EService,
+  genericError,
   ProducerKeychain,
   ProducerKeychainId,
   Purpose,
@@ -26,7 +30,6 @@ import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 import {
   userWithoutSecurityPrivileges,
   tenantNotAllowedOnPurpose,
-  tenantNotAllowedOnClient,
   tenantNotAllowedOnProducerKeychain,
   tooManyKeysPerClient,
   tooManyKeysPerProducerKeychain,
@@ -35,6 +38,7 @@ import {
   securityUserNotMember,
   clientKindNotAllowed,
   clientAdminIdNotFound,
+  tenantIsNotClientConsumer,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -77,7 +81,7 @@ export const assertOrganizationIsClientConsumer = (
   client: Client
 ): void => {
   if (client.consumerId !== authData.organizationId) {
-    throw tenantNotAllowedOnClient(authData.organizationId, client.id);
+    throw tenantIsNotClientConsumer(client.id, authData.organizationId);
   }
 };
 
@@ -176,20 +180,30 @@ export const assertSecurityRoleIsClientMember = (
   }
 };
 
-export const assertClientIsConsumer = (client: Client): void => {
+export function assertClientIsConsumer(
+  client: Client
+): asserts client is ConsumerClient {
   if (client.kind !== clientKind.consumer) {
     throw clientKindNotAllowed(client.id);
   }
-};
+}
 
-export const assertClientIsAPI = (client: Client): void => {
+export function assertClientIsAPI(client: Client): asserts client is APIClient {
   if (client.kind !== clientKind.api) {
     throw clientKindNotAllowed(client.id);
   }
-};
+}
 
 export const assertAdminInClient = (client: Client, adminId: UserId): void => {
   if (client.adminId !== adminId) {
     throw clientAdminIdNotFound(client.id, adminId);
   }
 };
+
+export function assertJwkKtyIsDefined(
+  jwk: JsonWebKey
+): asserts jwk is JsonWebKey & { kty: NonNullable<JsonWebKey["kty"]> } {
+  if (jwk.kty === undefined) {
+    throw genericError("JWK must have a 'kty' property");
+  }
+}

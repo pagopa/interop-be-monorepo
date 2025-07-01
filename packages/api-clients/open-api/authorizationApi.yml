@@ -69,7 +69,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/ConsumerClient"
         "401":
           description: Unauthorized
           content:
@@ -97,7 +97,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/APIClient"
         "401":
           description: Unauthorized
           content:
@@ -295,7 +295,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/ClientOrCompactClient"
         "401":
           description: Unauthorized
           content:
@@ -448,7 +448,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: clientId
         in: path
-        description: ID of the client where to set the admin user
+        description: ID of the API client where to set the admin user
         required: true
         schema:
           type: string
@@ -456,7 +456,7 @@ paths:
     post:
       tags:
         - client
-      summary: Set Admin to a Client
+      summary: Set Admin to an API Client
       operationId: setAdminToClient
       description: Sets an admin user to a Client
       requestBody:
@@ -479,7 +479,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/APIClient"
         "400":
           description: Bad Request
           content:
@@ -880,7 +880,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/ConsumerClient"
         "400":
           description: Bad Request
           content:
@@ -1833,22 +1833,41 @@ components:
       required:
         - name
         - members
-    Client:
-      description: Models Client details
+
+    CompactClient:
       type: object
+      description: |
+        Client with a reduced set of fields, returned in case
+        the caller tenant is not the consumer of the client (i.e., the owner)
       additionalProperties: false
       properties:
         id:
           type: string
           format: uuid
-        name:
-          type: string
         consumerId:
           type: string
           format: uuid
-        adminId:
+      required:
+        - id
+        - consumerId
+
+    ConsumerClient:
+      type: object
+      description: |
+        Consumer client with fields visible to the consumer tenant, returned in case
+        the caller tenant is the consumer of the client (i.e., the owner)
+      additionalProperties: false
+      properties:
+        id:
           type: string
           format: uuid
+        consumerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
         createdAt:
           type: string
           format: date-time
@@ -1858,24 +1877,77 @@ components:
             type: string
             format: uuid
           default: []
-        description:
-          type: string
+          uniqueItems: true
         users:
           type: array
           items:
             type: string
             format: uuid
+          default: []
           uniqueItems: true
-        kind:
-          $ref: "#/components/schemas/ClientKind"
       required:
         - id
-        - name
         - consumerId
+        - name
+        - createdAt
         - purposes
         - users
-        - kind
+
+    APIClient:
+      type: object
+      description: |
+        API client with fields visible to the consumer tenant, returned in case
+        the caller tenant is the consumer of the client (i.e., the owner)
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        consumerId:
+          type: string
+          format: uuid
+        adminId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        users:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+          uniqueItems: true
+      required:
+        - id
+        - consumerId
+        - name
         - createdAt
+        - users
+
+    Client:
+      description: |
+        Client with fields visible to the consumer tenant, returned in case
+        the caller tenant is the consumer of the client (i.e., the owner)
+      oneOf:
+        - $ref: "#/components/schemas/ConsumerClient"
+        - $ref: "#/components/schemas/APIClient"
+
+    ClientOrCompactClient:
+      description: |
+        Client with fields visible to the consumer tenant, returned in case
+        the caller tenant is the consumer of the client (i.e., the owner)
+        or a compact client if the caller tenant is not the consumer of the client
+      oneOf:
+        - $ref: "#/components/schemas/ConsumerClient"
+        - $ref: "#/components/schemas/APIClient"
+        - $ref: "#/components/schemas/CompactClient"
+
     ClientKind:
       type: string
       description: kind of client
@@ -1942,7 +2014,7 @@ components:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/Client"
+            $ref: "#/components/schemas/ClientOrCompactClient"
         totalCount:
           type: integer
           format: int32

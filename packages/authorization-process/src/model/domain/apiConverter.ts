@@ -1,7 +1,12 @@
+import { JsonWebKey } from "crypto";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import {
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
+import {
   Client,
-  ClientKind,
   Key,
   KeyUse,
   clientKind,
@@ -9,21 +14,20 @@ import {
   ProducerKeychain,
   ClientJWKKey,
   ProducerJWKKey,
+  APIClient,
+  ConsumerClient,
+  ClientKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-
-export const clientKindToApiClientKind = (
-  kind: ClientKind
-): authorizationApi.ClientKind =>
-  match<ClientKind, authorizationApi.ClientKind>(kind)
-    .with(clientKind.consumer, () => "CONSUMER")
-    .with(clientKind.api, () => "API")
-    .exhaustive();
+import {
+  assertJwkKtyIsDefined,
+  assertOrganizationIsClientConsumer,
+} from "../../services/validators.js";
 
 export const apiClientKindToClientKind = (
-  kind: authorizationApi.ClientKind
+  kind: "CONSUMER" | "API"
 ): ClientKind =>
-  match<authorizationApi.ClientKind, ClientKind>(kind)
+  match(kind)
     .with("CONSUMER", () => clientKind.consumer)
     .with("API", () => clientKind.api)
     .exhaustive();
@@ -36,36 +40,71 @@ export const keyUseToApiKeyUse = (kid: KeyUse): authorizationApi.KeyUse =>
 
 export function clientToApiClientWithKeys(
   client: Client,
-  { showUsers }: { showUsers: boolean }
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.ClientWithKeys {
   return {
-    client: {
-      id: client.id,
-      name: client.name,
-      consumerId: client.consumerId,
-      users: showUsers ? client.users : [],
-      createdAt: client.createdAt.toJSON(),
-      purposes: client.purposes,
-      kind: clientKindToApiClientKind(client.kind),
-      description: client.description,
-      adminId: client.adminId,
-    },
+    // TODO Maybe also here compact?
+    client: clientToApiClient(client, authData),
     keys: client.keys.map(keyToApiKey),
   };
 }
 
 export function clientToApiClient(
   client: Client,
-  { showUsers }: { showUsers: boolean }
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.Client {
+  assertOrganizationIsClientConsumer(authData, client);
+  return match(client)
+    .with({ kind: clientKind.consumer }, (c) =>
+      clientToApiConsumerClient(c, authData)
+    )
+    .with({ kind: clientKind.api }, (c) => clientToApiAPIClient(c, authData))
+    .exhaustive();
+}
+
+export function clientToApiClientOrCompactClient(
+  client: Client,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): authorizationApi.ClientOrCompactClient {
+  if (authData.organizationId !== client.consumerId) {
+    return {
+      id: client.id,
+      consumerId: client.consumerId,
+    } satisfies authorizationApi.CompactClient;
+  }
+
+  return clientToApiClient(client, authData);
+}
+
+export function clientToApiConsumerClient(
+  client: ConsumerClient,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): authorizationApi.ConsumerClient {
+  assertOrganizationIsClientConsumer(authData, client);
+
   return {
     id: client.id,
     name: client.name,
     consumerId: client.consumerId,
-    users: showUsers ? client.users : [],
     createdAt: client.createdAt.toJSON(),
+    users: client.users,
     purposes: client.purposes,
-    kind: clientKindToApiClientKind(client.kind),
+    description: client.description,
+  };
+}
+
+export function clientToApiAPIClient(
+  client: APIClient,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): authorizationApi.APIClient {
+  assertOrganizationIsClientConsumer(authData, client);
+
+  return {
+    id: client.id,
+    name: client.name,
+    consumerId: client.consumerId,
+    users: client.users,
+    createdAt: client.createdAt.toJSON(),
     description: client.description,
     adminId: client.adminId,
   };
@@ -84,6 +123,31 @@ export function producerKeychainToApiProducerKeychain(
     eservices: producerKeychain.eservices,
     description: producerKeychain.description,
     keys: producerKeychain.keys.map(keyToApiKey),
+  };
+}
+
+export function JsonWebKeyToApiJWKKey(
+  jwk: JsonWebKey,
+  kid: string
+): authorizationApi.JWKKey {
+  assertJwkKtyIsDefined(jwk);
+
+  return {
+    ...jwk,
+    kid,
+    use: "sig",
+  };
+}
+
+export function jwkAndClientToApiKeyWithClient(
+  jwk: JsonWebKey,
+  kid: string,
+  client: Client,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+): authorizationApi.KeyWithClient {
+  return {
+    key: JsonWebKeyToApiJWKKey(jwk, kid),
+    client: clientToApiClient(client, authData),
   };
 }
 

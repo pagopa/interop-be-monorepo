@@ -26,3 +26,9 @@ export const Client = z.object({
 });
 
 export type Client = z.infer<typeof Client>;
+export type ConsumerClient = Client & {
+  kind: Extract<ClientKind, typeof clientKind.consumer>;
+};
+export type APIClient = Client & {
+  kind: Extract<ClientKind, typeof clientKind.api>;
+};
