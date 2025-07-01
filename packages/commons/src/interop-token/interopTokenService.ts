@@ -11,6 +11,7 @@ import {
   PurposeId,
   TenantId,
   UserId,
+  algorithm,
 } from "pagopa-interop-models";
 import { systemRole } from "../auth/roles.js";
 import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
@@ -38,7 +39,7 @@ import {
   toSerializedJwtUIPayload,
 } from "./jwtEncoder.js";
 
-const JWT_HEADER_ALG = "RS256";
+const JWT_HEADER_ALG = algorithm.RS256;
 const JWT_HEADER_USE = "sig";
 const JWT_HEADER_TYP = "at+jwt";
 const KMS_SIGNING_ALG = "RSASSA_PKCS1_V1_5_SHA_256";

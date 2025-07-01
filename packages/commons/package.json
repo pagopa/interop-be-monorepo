@@ -25,10 +25,10 @@
     "@aws-sdk/client-sesv2": "3.693.0",
     "@aws-sdk/client-sqs": "3.693.0",
     "@aws-sdk/s3-request-presigner": "3.693.0",
-    "@types/adm-zip": "0.5.5",
+    "@types/adm-zip": "0.5.7",
     "@zodios/core": "10.9.6",
     "@zodios/express": "10.6.1",
-    "adm-zip": "0.5.15",
+    "adm-zip": "0.5.16",
     "axios": "1.8.2",
     "connection-string": "4.4.0",
     "date-fns": "3.6.0",
@@ -59,8 +59,8 @@
     "@types/jsonwebtoken": "9.0.10",
     "@types/node": "20.14.6",
     "@types/nodemailer": "6.4.17",
-    "cpx2": "7.0.1",
-    "eslint": "8.57.0",
+    "cpx2": "7.0.2",
+    "eslint": "8.57.1",
     "prettier": "2.8.8",
     "typescript": "5.4.5"
   }
