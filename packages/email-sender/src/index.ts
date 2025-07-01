@@ -1,10 +1,5 @@
 import { runConsumer } from "kafka-iam-auth";
-import {
-  EmailManagerSES,
-  initSesMailManager,
-  logger,
-} from "pagopa-interop-commons";
-import { CorrelationId, generateId } from "pagopa-interop-models";
+import { EmailManagerSES, initSesMailManager } from "pagopa-interop-commons";
 import { emailSenderProcessorBuilder } from "./services/emailSenderProcessor.js";
 import { config } from "./config/config.js";
 
@@ -13,22 +8,13 @@ const sesEmailSenderData = {
   mail: config.senderMail,
 };
 
-const correlationId: CorrelationId = generateId();
-
-const loggerInstance = logger({
-  serviceName: "email-sender",
-  correlationId,
-});
-
 const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
-  logger: loggerInstance,
-  skipTooManyRequestsError: false,
+  skipTooManyRequestsError: true,
 });
 
 const processor = emailSenderProcessorBuilder(
-  loggerInstance,
-  sesEmailManager,
-  sesEmailSenderData
+  sesEmailSenderData,
+  sesEmailManager
 );
 
 await runConsumer(config, [config.emailTopic], processor.processMessage);

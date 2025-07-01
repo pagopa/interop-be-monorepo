@@ -18,7 +18,7 @@ export type EmailManagerKind = "PEC" | "SES";
 
 export type EmailManager = {
   kind: EmailManagerKind;
-  send: (params: Mail.Options) => Promise<void>;
+  send: (params: Mail.Options, logger: Logger) => Promise<void>;
 };
 
 export type EmailManagerPEC = EmailManager & {
@@ -35,7 +35,7 @@ export function initPecEmailManager(
 ): EmailManagerPEC {
   return {
     kind: "PEC",
-    send: async (mailOptions: Mail.Options): Promise<void> => {
+    send: async (mailOptions: Mail.Options, _: Logger): Promise<void> => {
       const transporter = nodemailer.createTransport({
         host: config.smtpAddress,
         port: config.smtpPort,
@@ -63,8 +63,7 @@ export function initPecEmailManager(
 export function initSesMailManager(
   awsConfig: AWSSesConfig,
   errorHandlingOptions?: {
-    logger: Logger;
-    skipTooManyRequestsError: boolean;
+    skipTooManyRequestsError: true;
   }
 ): EmailManagerSES {
   const client = new SESv2Client({
@@ -74,7 +73,7 @@ export function initSesMailManager(
 
   return {
     kind: "SES",
-    send: async (mailOptions: Mail.Options): Promise<void> => {
+    send: async (mailOptions: Mail.Options, logger: Logger): Promise<void> => {
       const rawMailData = await new MailComposer(mailOptions).compile().build();
 
       const input: SendEmailCommandInput = {
@@ -101,7 +100,7 @@ export function initSesMailManager(
           - AWS SDK Error Handling: https://aws.amazon.com/blogs/developer/service-error-handling-modular-aws-sdk-js/  
         */
         if (err instanceof TooManyRequestsException) {
-          errorHandlingOptions?.logger.warn(
+          logger.warn(
             `AWS SES error with name ${err.name} was thrown, skipTooManyRequestsError is true so it will not be considered fatal, but the email is NOT sent; Error details: ${err.message}`
           );
           return;

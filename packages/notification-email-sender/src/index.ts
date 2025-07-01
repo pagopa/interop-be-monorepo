@@ -73,22 +73,20 @@ const sesEmailsenderData = {
   mail: config.senderMail,
 };
 
-const buildNotificationEmailSenderService = (
-  logger: Logger
-): NotificationEmailSenderService => {
-  const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
-    logger,
-    skipTooManyRequestsError: true,
-  });
+const buildNotificationEmailSenderService =
+  (): NotificationEmailSenderService => {
+    const sesEmailManager: EmailManagerSES = initSesMailManager(config, {
+      skipTooManyRequestsError: true,
+    });
 
-  return notificationEmailSenderServiceBuilder(
-    sesEmailManager,
-    sesEmailsenderData,
-    readModelService,
-    templateService,
-    interopFeBaseUrl
-  );
-};
+    return notificationEmailSenderServiceBuilder(
+      sesEmailManager,
+      sesEmailsenderData,
+      readModelService,
+      templateService,
+      interopFeBaseUrl
+    );
+  };
 
 export async function handleCatalogMessage(
   decodedMessage: EServiceEventEnvelopeV2,
@@ -371,7 +369,7 @@ function processMessage(topicHandlers: TopicHandlers) {
     );
 
     const notificationEmailSenderService =
-      buildNotificationEmailSenderService(loggerInstance);
+      buildNotificationEmailSenderService();
 
     await handleMessage(notificationEmailSenderService, loggerInstance);
   };
