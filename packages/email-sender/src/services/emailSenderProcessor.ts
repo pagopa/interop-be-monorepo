@@ -43,7 +43,7 @@ export function emailSenderProcessorBuilder(
         });
 
         loggerInstance.info(
-          `Consuming message for partition ${partition} with offset ${message.offset}`
+          `Consuming message for partition ${partition} with offset ${message.offset}. CorrelationId: ${jsonPayload.correlationId}`
         );
 
         const mailOptions: Mail.Options = {
@@ -53,9 +53,13 @@ export function emailSenderProcessorBuilder(
           html: jsonPayload.body,
         };
 
-        loggerInstance.info(`Sending email: ${jsonPayload}`);
+        loggerInstance.info(
+          `Sending email. CorrelationId: ${jsonPayload.correlationId}`
+        );
         await sesEmailManager.send(mailOptions, loggerInstance);
-        loggerInstance.info(`Email sent: ${jsonPayload}`);
+        loggerInstance.info(
+          `Email sent: ${jsonPayload}. CorrelationId: ${jsonPayload.correlationId}`
+        );
       } catch (err) {
         throw genericInternalError(
           `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
