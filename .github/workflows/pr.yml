@@ -53,8 +53,6 @@ jobs:
             ${{ runner.os }}-turbo-lint-
       - name: Print environment variables
         run: env | sort
-      - name: Print Hash cache turbo
-        run: find .turbo/cache -type f -exec sh -c 'for f; do echo "$(md5 -q "$f") $(wc -c < "$f")"; done' sh {} + | sort | md5
       - run: pnpm lint
         env:
           TURBO_SCM_BASE: origin/develop
