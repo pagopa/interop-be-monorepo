@@ -3,6 +3,7 @@
   "ui": "stream",
   "daemon": false,
   "globalDependencies": ["tsconfig.json"],
+  "globalEnv": ["CI"],
   "tasks": {
     "start": {
       "persistent": true,
