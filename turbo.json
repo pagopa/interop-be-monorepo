@@ -50,7 +50,6 @@
     },
     "lint": {
       "dependsOn": ["build"],
-      "cache": true,
       "outputs": [".eslintcache"]
     },
     "lint:autofix": {
