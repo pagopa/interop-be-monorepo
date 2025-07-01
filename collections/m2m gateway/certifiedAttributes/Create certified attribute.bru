@@ -32,18 +32,4 @@ script:pre-request {
 
 docs {
   Creates a new certified attribute.
-  
-  This endpoint allows the creation of certified attributes that can be officially recognized by the platform.
-  Only users with M2M_ADMIN role can create certified attributes.
-  
-  Request body should include:
-  - code: Unique identifier code for the attribute
-  - name: Display name of the attribute
-  - description: Detailed description of the attribute
-  
-  Returns:
-  - 201: Certified attribute created successfully
-  - 400: Invalid request body
-  - 401: Unauthorized
-  - 409: Attribute with same code already exists
 }
