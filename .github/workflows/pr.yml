@@ -51,6 +51,17 @@ jobs:
           key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-lint-
+      - name: Upload .turbo artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: turbo-lint-${{ github.run_id }}
+          path: |
+            .turbo
+            ~/.turbo
+          retention-days: 1
+      - name: Print turbo folder
+        run: ls -la .turbo
+      - run: ls -la .turbo/cache
       - name: Print environment variables
         run: env | sort
       - run: pnpm lint
@@ -60,16 +71,7 @@ jobs:
         run: |
           # Find latest summary file
           SUMMARY_FILE=$(ls -t .turbo/runs/*.json | head -n1)
-          cat "$SUMMARY_FILE"
-
-      - name: Upload .turbo artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: turbo-lint-${{ github.run_id }}
-          path: |
-            .turbo
-            packages/*/.turbo
-          retention-days: 1
+          cat "$SUMMARY_FILE"      
   test:
     name: Test
     runs-on: ubuntu-latest
