@@ -1,9 +1,4 @@
-/* eslint-disable functional/no-let */
-import {
-  CorrelationId,
-  generateId,
-  genericInternalError,
-} from "pagopa-interop-models";
+import { genericInternalError } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { delay, EmailManagerSES, logger } from "pagopa-interop-commons";
 import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
