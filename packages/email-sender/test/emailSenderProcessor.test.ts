@@ -69,6 +69,9 @@ describe("emailSenderProcessor", () => {
       eventPayload: { ...correctEventPayload, correlationId: undefined },
     },
     {
+      eventPayload: { ...correctEventPayload, correlationId: undefined },
+    },
+    {
       eventPayload: { ...correctEventPayload, address: "invalid" },
     },
     {
