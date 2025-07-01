@@ -215,11 +215,7 @@ const purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm = (
             {
               id: unsafeBrandId<RiskAnalysisSingleAnswerId>(a.id),
               key: a.key,
-              ...(a.value
-                ? {
-                    value: a.value[0],
-                  }
-                : undefined),
+              value: a.value.length > 0 ? a.value[0] : undefined,
             },
           ],
           multiAnswers: acc.multiAnswers,
