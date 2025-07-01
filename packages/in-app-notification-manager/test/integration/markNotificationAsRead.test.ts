@@ -1,7 +1,12 @@
 import { eq } from "drizzle-orm";
 import { notification as notificationTable } from "pagopa-interop-in-app-notification-db-models";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
-import { generateId, UserId, TenantId } from "pagopa-interop-models";
+import {
+  generateId,
+  UserId,
+  TenantId,
+  NotificationId,
+} from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { notificationNotFound } from "../../src/model/errors.js";
 import {
@@ -41,7 +46,7 @@ describe("markNotificationAsRead", () => {
   });
 
   it("should throw an error if the notification does not exist", async () => {
-    const notificationId = generateId();
+    const notificationId = generateId<NotificationId>();
     await expect(
       inAppNotificationService.markNotificationAsRead(
         notificationId,
