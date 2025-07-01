@@ -28,7 +28,7 @@ export function toGetAgreementsApiQueryParams(
     consumersIds: params.consumerIds,
     producersIds: params.producerIds,
     eservicesIds: params.eserviceIds,
-    descriptorsIds: [],
+    descriptorsIds: params.descriptorIds,
     showOnlyUpgradeable: false,
     states: params.states,
     limit: params.limit,

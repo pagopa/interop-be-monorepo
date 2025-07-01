@@ -237,6 +237,7 @@ export function tokenServiceBuilder({
           dpopProofJti: dpopProofJWT.payload.jti,
           dpopProofIat: dpopProofJWT.payload.iat,
           dpopCacheTable: config.dpopCacheTable,
+          dpopProofDurationSeconds: config.dpopDurationSeconds,
         });
         if (dpopCacheErrors) {
           throw dpopProofJtiAlreadyUsed(dpopProofJWT.payload.jti);
@@ -544,6 +545,8 @@ const validateDPoPProof = async (
     ? verifyDPoPProof({
         dpopProofJWS: dpopProofHeader,
         expectedDPoPProofHtu: config.dpopHtu,
+        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: config.dpopDurationSeconds,
       })
     : { data: undefined, errors: undefined };
 

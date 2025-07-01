@@ -1233,3 +1233,7 @@ export const readFileContent = async (fileName: string): Promise<string> => {
   const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
   return htmlTemplateBuffer.toString();
 };
+
+export function createDummyStub<T>(): T {
+  return {} as T;
+}
