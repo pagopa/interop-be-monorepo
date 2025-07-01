@@ -92,7 +92,7 @@ export function producerKeychainToApiProducerKeychain(
   };
 }
 
-export function JsonWebKeyToApiJWKKey(
+export function jsonWebKeyToApiJWKKey(
   jwk: JsonWebKey,
   kid: string
 ): authorizationApi.JWKKey {
@@ -112,7 +112,7 @@ export function jwkAndClientToApiKeyWithClient(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.KeyWithClient {
   return {
-    key: JsonWebKeyToApiJWKKey(jwk, kid),
+    key: jsonWebKeyToApiJWKKey(jwk, kid),
     client: clientToApiClient(client, authData),
   };
 }

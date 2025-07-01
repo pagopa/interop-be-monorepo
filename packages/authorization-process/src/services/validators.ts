@@ -36,7 +36,7 @@ import {
   securityUserNotMember,
   clientKindNotAllowed,
   clientAdminIdNotFound,
-  tenantIsNotClientConsumer,
+  tenantNotAllowedOnClient,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { ReadModelService } from "./readModelService.js";
@@ -79,7 +79,7 @@ export const assertOrganizationIsClientConsumer = (
   client: Client
 ): void => {
   if (client.consumerId !== authData.organizationId) {
-    throw tenantIsNotClientConsumer(client.id, authData.organizationId);
+    throw tenantNotAllowedOnClient(authData.organizationId, client.id);
   }
 };
 
