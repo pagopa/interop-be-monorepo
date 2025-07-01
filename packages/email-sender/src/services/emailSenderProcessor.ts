@@ -1,9 +1,4 @@
-/* eslint-disable functional/no-let */
-import {
-  CorrelationId,
-  generateId,
-  genericInternalError,
-} from "pagopa-interop-models";
+import { genericInternalError } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { EmailManagerSES, logger } from "pagopa-interop-commons";
 import Mail from "nodemailer/lib/mailer/index.js";
@@ -25,13 +20,9 @@ export function emailSenderProcessorBuilder(
       const serviceName = "email-sender";
       try {
         if (!message.value) {
-          logger({
-            serviceName,
-            correlationId: generateId<CorrelationId>(),
-          }).warn(
+          throw genericInternalError(
             `Empty message for partition ${partition} with offset ${message.offset}`
           );
-          return;
         }
 
         const jsonPayload: EmailNotificationPayload = JSON.parse(
