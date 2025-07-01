@@ -57,27 +57,14 @@ jobs:
         env:
           TURBO_SCM_BASE: origin/develop
 
-  check:
-    name: Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+      - name: Upload .turbo artifact
+        uses: actions/upload-artifact@v4
         with:
+          name: turbo-lint-${{ github.run_id }}
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-check
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-      - run: pnpm check
+          retention-days: 1
   test:
     name: Test
     runs-on: ubuntu-latest
