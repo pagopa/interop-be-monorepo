@@ -189,7 +189,6 @@ describe("addTenantMail", async () => {
     };
     expect(writtenPayload.tenant).toEqual(toTenantV2(updatedTenant));
   });
-
   it("Should throw tenantNotFound if the tenant doesn't exists", async () => {
     const mockTenant: Tenant = getMockTenant();
 
