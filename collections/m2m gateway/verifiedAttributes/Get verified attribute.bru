@@ -1,11 +1,11 @@
 meta {
-  name: Get certified attribute
+  name: Get verified attribute
   type: http
   seq: 1
 }
 
 get {
-  url: {{host-m2m-gw}}/certifiedAttributes/:attributeId
+  url: {{host-m2m-gw}}/verifiedAttributes/:attributeId
   body: none
   auth: none
 }
@@ -19,13 +19,13 @@ headers {
 }
 
 docs {
-  Retrieves a certified attribute by its ID.
+  Retrieves a verified attribute by its ID. 
   
-  Certified attributes are officially recognized attributes that have been certified by authorized entities.
+  Verified attributes are attributes that have been verified by the platform and are associated with tenants.
   This endpoint requires M2M or M2M_ADMIN role authorization.
   
   Returns:
-  - 200: The certified attribute details
+  - 200: The verified attribute details
   - 404: Attribute not found
   - 401: Unauthorized
 }
