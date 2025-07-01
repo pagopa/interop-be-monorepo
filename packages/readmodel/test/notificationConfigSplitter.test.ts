@@ -4,13 +4,13 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { generateMock } from "@anatine/zod-mock";
 import {
-  TenantNotificationConfig,
-  UserNotificationConfig,
-} from "pagopa-interop-models";
-import {
   TenantNotificationConfigSQL,
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
+import {
+  getMockTenantNotificationConfig,
+  getMockUserNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
@@ -20,7 +20,7 @@ describe("Notification config splitters", () => {
   describe("splitTenantNotificationConfigIntoObjectsSQL", () => {
     it("should convert a TenantNotificationConfig into a TenantNotificationConfig SQL object", () => {
       const tenantNotificationConfig = {
-        ...generateMock(TenantNotificationConfig),
+        ...getMockTenantNotificationConfig(),
         updatedAt: generateMock(z.coerce.date()), // Ensure updatedAt is not undefined
       };
       const tenantNotificationConfigSQL =
@@ -46,7 +46,7 @@ describe("Notification config splitters", () => {
 
     it("should convert undefined into null", () => {
       const tenantNotificationConfig = {
-        ...generateMock(TenantNotificationConfig),
+        ...getMockTenantNotificationConfig(),
         updatedAt: undefined,
       };
       const tenantNotificationConfigSQL =
@@ -74,7 +74,7 @@ describe("Notification config splitters", () => {
   describe("splitUserNotificationConfigIntoObjectsSQL", () => {
     it("should convert a UserNotificationConfig into a UserNotificationConfig SQL object", () => {
       const userNotificationConfig = {
-        ...generateMock(UserNotificationConfig),
+        ...getMockUserNotificationConfig(),
         updatedAt: generateMock(z.coerce.date()), // Ensure updatedAt is not undefined
       };
       const userNotificationConfigSQL =
@@ -100,7 +100,7 @@ describe("Notification config splitters", () => {
 
     it("should convert undefined into null", () => {
       const userNotificationConfig = {
-        ...generateMock(UserNotificationConfig),
+        ...getMockUserNotificationConfig(),
         updatedAt: undefined,
       };
       const userNotificationConfigSQL =

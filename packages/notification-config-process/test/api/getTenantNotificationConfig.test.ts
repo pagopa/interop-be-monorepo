@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { z } from "zod";
-import { generateMock } from "@anatine/zod-mock";
 import { TenantNotificationConfig, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   mockTokenOrganizationId,
+  getMockTenantNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -17,11 +16,8 @@ import { expectedOrganizationId } from "../utils.js";
 describe("API GET /tenantNotificationConfigs test", () => {
   const tenantId = mockTokenOrganizationId;
   const serviceResponse: TenantNotificationConfig = {
-    id: generateId(),
+    ...getMockTenantNotificationConfig(),
     tenantId,
-    config: { newEServiceVersionPublished: true },
-    createdAt: generateMock(z.coerce.date()),
-    updatedAt: generateMock(z.coerce.date().optional()),
   };
   const apiResponse: notificationConfigApi.TenantNotificationConfig =
     tenantNotificationConfigToApiTenantNotificationConfig(serviceResponse);

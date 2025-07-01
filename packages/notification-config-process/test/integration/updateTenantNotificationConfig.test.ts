@@ -1,9 +1,9 @@
-import { z } from "zod";
-import { generateMock } from "@anatine/zod-mock";
 import {
   getMockContext,
   getMockAuthData,
   decodeProtobufPayload,
+  getMockNotificationConfig,
+  getMockTenantNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
@@ -22,9 +22,6 @@ import {
 
 describe("updateTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
-  const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed = {
-    newEServiceVersionPublished: true,
-  };
 
   beforeAll(() => {
     vi.useFakeTimers();
@@ -32,6 +29,8 @@ describe("updateTenantNotificationConfig", () => {
   });
 
   it("should write on event-store for the first creation of a tenant's notification configuration", async () => {
+    const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
+      getMockNotificationConfig();
     const { id } =
       await notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,
@@ -61,13 +60,15 @@ describe("updateTenantNotificationConfig", () => {
 
   it("should write on event-store for the update of a tenant's existing notification configuration", async () => {
     const tenantNotificationConfig: TenantNotificationConfig = {
-      id: generateId(),
+      ...getMockTenantNotificationConfig(),
       tenantId,
-      config: { newEServiceVersionPublished: false },
-      createdAt: generateMock(z.coerce.date()),
-      updatedAt: generateMock(z.coerce.date().optional()),
     };
     addOneTenantNotificationConfig(tenantNotificationConfig);
+    const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
+      {
+        newEServiceVersionPublished:
+          !tenantNotificationConfig.config.newEServiceVersionPublished,
+      };
     const { id } =
       await notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,

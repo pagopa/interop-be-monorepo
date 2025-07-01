@@ -1,6 +1,8 @@
-import { z } from "zod";
-import { generateMock } from "@anatine/zod-mock";
-import { getMockContext, getMockAuthData } from "pagopa-interop-commons-test";
+import {
+  getMockContext,
+  getMockAuthData,
+  getMockTenantNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   TenantId,
@@ -16,13 +18,8 @@ import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.
 describe("getTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
   const tenantNotificationConfig: TenantNotificationConfig = {
-    id: generateId(),
+    ...getMockTenantNotificationConfig(),
     tenantId,
-    config: {
-      newEServiceVersionPublished: true,
-    },
-    createdAt: generateMock(z.coerce.date()),
-    updatedAt: generateMock(z.coerce.date().optional()),
   };
 
   it("should get the tenant's notification config", async () => {

@@ -1,9 +1,9 @@
-import { z } from "zod";
-import { generateMock } from "@anatine/zod-mock";
 import {
   getMockContext,
   getMockAuthData,
   decodeProtobufPayload,
+  getMockNotificationConfig,
+  getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
@@ -24,11 +24,6 @@ import {
 describe("updateUserNotificationConfig", () => {
   const userId: UserId = generateId();
   const tenantId: TenantId = generateId();
-  const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigSeed =
-    {
-      inAppConfig: { newEServiceVersionPublished: true },
-      emailConfig: { newEServiceVersionPublished: false },
-    };
 
   beforeAll(() => {
     vi.useFakeTimers();
@@ -36,6 +31,11 @@ describe("updateUserNotificationConfig", () => {
   });
 
   it("should write on event-store for the first creation of a user's notification configuration", async () => {
+    const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigSeed =
+      {
+        inAppConfig: getMockNotificationConfig(),
+        emailConfig: getMockNotificationConfig(),
+      };
     const { id } = await notificationConfigService.updateUserNotificationConfig(
       userNotificationConfigSeed,
       getMockContext({
@@ -65,15 +65,19 @@ describe("updateUserNotificationConfig", () => {
 
   it("should write on event-store for the update of a user's existing notification configuration", async () => {
     const userNotificationConfig: UserNotificationConfig = {
-      id: generateId(),
+      ...getMockUserNotificationConfig(),
       userId,
       tenantId,
-      inAppConfig: { newEServiceVersionPublished: false },
-      emailConfig: { newEServiceVersionPublished: false },
-      createdAt: generateMock(z.coerce.date()),
-      updatedAt: generateMock(z.coerce.date().optional()),
     };
     addOneUserNotificationConfig(userNotificationConfig);
+    const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigSeed =
+      {
+        inAppConfig: {
+          newEServiceVersionPublished:
+            !userNotificationConfig.inAppConfig.newEServiceVersionPublished,
+        },
+        emailConfig: getMockNotificationConfig(),
+      };
     const { id } = await notificationConfigService.updateUserNotificationConfig(
       userNotificationConfigSeed,
       getMockContext({

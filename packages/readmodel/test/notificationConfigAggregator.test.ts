@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { generateMock } from "@anatine/zod-mock";
 import {
-  TenantNotificationConfig,
-  UserNotificationConfig,
-} from "pagopa-interop-models";
+  getMockTenantNotificationConfig,
+  getMockUserNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   aggregateTenantNotificationConfig,
   aggregateUserNotificationConfig,
@@ -20,7 +20,7 @@ describe("Notification config aggregators", () => {
   describe("aggregateTenantNotificationConfig", () => {
     it("should convert a complete TenantNotificationConfig SQL object into a TenantNotificationConfig", () => {
       const tenantNotificationConfig = {
-        ...generateMock(TenantNotificationConfig),
+        ...getMockTenantNotificationConfig(),
         updatedAt: generateMock(z.coerce.date()), // Ensure updatedAt is not undefined
       };
       const tenantNotificationConfigSQL =
@@ -39,9 +39,8 @@ describe("Notification config aggregators", () => {
 
     it("should convert TenantNotificationConfig SQL objects with null updatedAt into a TenantNotificationConfig without an updatedAt prop", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { updatedAt: _, ...tenantNotificationConfig } = generateMock(
-        TenantNotificationConfig
-      );
+      const { updatedAt: _, ...tenantNotificationConfig } =
+        getMockTenantNotificationConfig();
       const tenantNotificationConfigSQL =
         splitTenantNotificationConfigIntoObjectsSQL(
           tenantNotificationConfig,
@@ -61,7 +60,7 @@ describe("Notification config aggregators", () => {
   describe("aggregateUserNotificationConfig", () => {
     it("should convert a complete UserNotificationConfig SQL object into a UserNotificationConfig", () => {
       const userNotificationConfig = {
-        ...generateMock(UserNotificationConfig),
+        ...getMockUserNotificationConfig(),
         updatedAt: generateMock(z.coerce.date()), // Ensure updatedAt is not undefined
       };
       const userNotificationConfigSQL =
@@ -78,9 +77,8 @@ describe("Notification config aggregators", () => {
 
     it("should convert UserNotificationConfig SQL objects with null updatedAt into a UserNotificationConfig without an updatedAt prop", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { updatedAt: _, ...userNotificationConfig } = generateMock(
-        UserNotificationConfig
-      );
+      const { updatedAt: _, ...userNotificationConfig } =
+        getMockUserNotificationConfig();
       const userNotificationConfigSQL =
         splitUserNotificationConfigIntoObjectsSQL(userNotificationConfig, 1);
       expect(userNotificationConfigSQL.updatedAt).toBeNull();
