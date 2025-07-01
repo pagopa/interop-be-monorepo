@@ -56,7 +56,8 @@ jobs:
         with:
           name: turbo-lint-${{ github.run_id }}
           path: |
-            .turbo/**
+            .turbo
+          include-hidden-files: true
           retention-days: 1
       - name: Print turbo folder
         run: ls -la .turbo
@@ -70,7 +71,7 @@ jobs:
         run: |
           # Find latest summary file
           SUMMARY_FILE=$(ls -t .turbo/runs/*.json | head -n1)
-          cat "$SUMMARY_FILE"      
+          cat "$SUMMARY_FILE"
   test:
     name: Test
     runs-on: ubuntu-latest
