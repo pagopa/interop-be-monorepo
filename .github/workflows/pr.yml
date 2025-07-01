@@ -100,7 +100,7 @@ jobs:
 
   find_dockerfiles:
     name: Find Dockerfiles
-    needs: [formatting, lint, check, test, lint-openapi]
+    needs: [formatting, lint, test, lint-openapi]
     if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     outputs:
