@@ -13,7 +13,6 @@ import {
   getMockAuthData,
   getMockContext,
   getMockTenant,
-  getMockTenantMail,
   readLastEventByStreamId,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
