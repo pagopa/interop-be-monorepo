@@ -90,7 +90,7 @@ export function emailSenderProcessorBuilder(
         });
 
         loggerInstance.info(
-          `Consuming message for partition ${partition} with offset ${message.offset}. CorrelationId: ${jsonPayload.correlationId}`
+          `Consuming message for partition ${partition} with offset ${message.offset}`
         );
 
         const mailOptions: Mail.Options = {
