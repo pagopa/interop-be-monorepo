@@ -186,7 +186,7 @@ export function certifiedEmailSenderServiceBuilder(
         logger.info(
           `Sending certified email for agreement ${agreement.id} activation`
         );
-        await pecEmailManager.send(mailOptions, logger);
+        await pecEmailManager.send(mailOptions);
         logger.info(
           `Certified email sent for agreement ${agreement.id} activation`
         );
