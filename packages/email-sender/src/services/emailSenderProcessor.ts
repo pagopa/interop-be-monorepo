@@ -100,13 +100,9 @@ export function emailSenderProcessorBuilder(
           html: jsonPayload.body,
         };
 
-        loggerInstance.info(
-          `Sending email. CorrelationId: ${jsonPayload.correlationId}`
-        );
+        loggerInstance.info(`Sending email`);
         await sesEmailManager.send(mailOptions);
-        loggerInstance.info(
-          `Email sent: ${jsonPayload}. CorrelationId: ${jsonPayload.correlationId}`
-        );
+        loggerInstance.info(`Email sent: ${jsonPayload}`);
       } catch (err) {
         throw genericInternalError(
           `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
