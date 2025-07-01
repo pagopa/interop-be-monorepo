@@ -14,6 +14,7 @@ import Mail from "nodemailer/lib/mailer/index.js";
 import { Logger } from "../logging/index.js";
 import { PecEmailManagerConfig } from "../config/pecEmailManagerConfig.js";
 import { AWSSesConfig } from "../config/awsSesConfig.js";
+import { delay } from "../utils/delay.js";
 
 export type EmailManagerKind = "PEC" | "SES";
 
@@ -40,9 +41,6 @@ export function initPecEmailManager(
       const transporter = nodemailer.createTransport({
         host: config.smtpAddress,
         port: config.smtpPort,
-        // If true the connection will use TLS when connecting to server.
-        // If false (the default) then TLS is used if server supports the STARTTLS extension.
-        // In most cases set this value to true if you are connecting to port 465. For port 587 or 25 keep it false
         secure:
           config.smtpSecure !== undefined
             ? config.smtpSecure
@@ -52,7 +50,6 @@ export function initPecEmailManager(
           pass: config.smtpPassword,
         },
         tls: {
-          // do not fail on invalid certs
           rejectUnauthorized,
         },
       });
@@ -74,6 +71,9 @@ export function initSesMailManager(
     endpoint: awsConfig.awsSesEndpoint,
   });
 
+  const maxRetries = 5;
+  const initialDelay = 200;
+
   return {
     kind: "SES",
     send: async (mailOptions: Mail.Options): Promise<void> => {
@@ -85,31 +85,37 @@ export function initSesMailManager(
         },
       };
 
-      try {
-        await client.send(new SendEmailCommand(input));
-      } catch (err) {
-        if (!errorHandlingOptions?.skipTooManyRequestsError) {
-          throw err;
+      const attemptSend = async (attempt: number): Promise<void> => {
+        try {
+          await client.send(new SendEmailCommand(input));
+        } catch (err) {
+          if (err instanceof TooManyRequestsException) {
+            if (errorHandlingOptions?.skipTooManyRequestsError) {
+              errorHandlingOptions.logger.warn(
+                `Attempt ${attempt}: TooManyRequestsException encountered and skipped.`
+              );
+              return;
+            }
+            if (attempt < maxRetries) {
+              const waitTime = initialDelay * Math.pow(2, attempt - 1);
+              errorHandlingOptions?.logger.warn(
+                `Attempt ${attempt} failed with TooManyRequestsException. Retrying in ${waitTime}ms...`
+              );
+              await delay(waitTime);
+              return attemptSend(attempt + 1);
+            } else {
+              errorHandlingOptions?.logger.error(
+                `All ${maxRetries} attempts failed. Last error: ${err.message}`
+              );
+              throw err;
+            }
+          } else {
+            throw err;
+          }
         }
+      };
 
-        /*
-          Temporary Hotfix: https://pagopa.atlassian.net/browse/PIN-6514 
-          We want to avoid treating the TooManyRequestsException as a fatal error 
-          when the rate limit is reached with the current configuration.
-          The following statement skips the TooManyRequestsException error thrown by the AWS SES client.
-
-          For more details about the errors and best practices to handle them, refer to:
-          - AWS SES client: https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/Package/-aws-sdk-client-ses/Class/SES/
-          - AWS SDK Error Handling: https://aws.amazon.com/blogs/developer/service-error-handling-modular-aws-sdk-js/  
-        */
-        if (err instanceof TooManyRequestsException) {
-          errorHandlingOptions?.logger.warn(
-            `AWS SES error with name ${err.name} was thrown, skipTooManyRequestsError is true so it will not be considered fatal, but the email is NOT sent; Error details: ${err.message}`
-          );
-          return;
-        }
-        throw err;
-      }
+      return attemptSend(1);
     },
   };
 }
