@@ -56,8 +56,7 @@ jobs:
         with:
           name: turbo-lint-${{ github.run_id }}
           path: |
-            .turbo
-            ~/.turbo
+            .turbo/**
           retention-days: 1
       - name: Print turbo folder
         run: ls -la .turbo
