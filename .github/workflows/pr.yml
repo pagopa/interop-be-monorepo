@@ -56,6 +56,11 @@ jobs:
       - run: pnpm lint
         env:
           TURBO_SCM_BASE: origin/develop
+      - name: Print turbo summary
+        run: |
+          # Find latest summary file
+          SUMMARY_FILE=$(ls -t .turbo/runs/*.json | head -n1)
+          cat "$SUMMARY_FILE"
 
       - name: Upload .turbo artifact
         uses: actions/upload-artifact@v4
