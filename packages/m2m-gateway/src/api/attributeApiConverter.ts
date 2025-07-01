@@ -10,30 +10,32 @@ import {
 } from "../utils/validators/attributeValidators.js";
 import { attributeNotFound } from "../model/errors.js";
 
-export function toM2MGatewayApiCertifiedAttribute({
-  attribute,
-  logger,
-  mapThrownErrorsToNotFound = false,
-}: {
-  attribute: attributeRegistryApi.Attribute;
-  logger: Logger;
-  mapThrownErrorsToNotFound?: boolean;
-}): m2mGatewayApi.CertifiedAttribute {
+function convertAttribute<T>(
+  attribute: attributeRegistryApi.Attribute,
+  attributeKind: attributeRegistryApi.AttributeKind,
+  logger: Logger,
+  mapThrownErrorsToNotFound = false
+): T {
   try {
-    assertAttributeKindIs(
-      attribute,
-      attributeRegistryApi.AttributeKind.Values.CERTIFIED
-    );
-    assertAttributeOriginAndCodeAreDefined(attribute);
+    assertAttributeKindIs(attribute, attributeKind);
 
-    return {
+    const baseFields = {
       id: attribute.id,
-      code: attribute.code,
       description: attribute.description,
-      origin: attribute.origin,
       name: attribute.name,
       createdAt: attribute.creationTime,
     };
+
+    if (attributeKind === attributeRegistryApi.AttributeKind.Values.CERTIFIED) {
+      assertAttributeOriginAndCodeAreDefined(attribute);
+      return {
+        ...baseFields,
+        code: attribute.code,
+        origin: attribute.origin,
+      } as T;
+    }
+
+    return baseFields as T;
   } catch (error) {
     if (mapThrownErrorsToNotFound) {
       logger.warn(
@@ -46,6 +48,23 @@ export function toM2MGatewayApiCertifiedAttribute({
       throw error;
     }
   }
+}
+
+export function toM2MGatewayApiCertifiedAttribute({
+  attribute,
+  logger,
+  mapThrownErrorsToNotFound = false,
+}: {
+  attribute: attributeRegistryApi.Attribute;
+  logger: Logger;
+  mapThrownErrorsToNotFound?: boolean;
+}): m2mGatewayApi.CertifiedAttribute {
+  return convertAttribute<m2mGatewayApi.CertifiedAttribute>(
+    attribute,
+    attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+    logger,
+    mapThrownErrorsToNotFound
+  );
 }
 
 export function toM2MGatewayApiDeclaredAttribute({
@@ -57,30 +76,12 @@ export function toM2MGatewayApiDeclaredAttribute({
   logger: Logger;
   mapThrownErrorsToNotFound?: boolean;
 }): m2mGatewayApi.DeclaredAttribute {
-  try {
-    assertAttributeKindIs(
-      attribute,
-      attributeRegistryApi.AttributeKind.Values.DECLARED
-    );
-
-    return {
-      id: attribute.id,
-      description: attribute.description,
-      name: attribute.name,
-      createdAt: attribute.creationTime,
-    };
-  } catch (error) {
-    if (mapThrownErrorsToNotFound) {
-      logger.warn(
-        `Root cause for "Attribute not found" error: unexpected error while converting attribute: ${
-          error instanceof ApiError ? error.detail : error
-        }`
-      );
-      throw attributeNotFound(attribute);
-    } else {
-      throw error;
-    }
-  }
+  return convertAttribute<m2mGatewayApi.DeclaredAttribute>(
+    attribute,
+    attributeRegistryApi.AttributeKind.Values.DECLARED,
+    logger,
+    mapThrownErrorsToNotFound
+  );
 }
 
 export function toM2MGatewayApiVerifiedAttribute({
@@ -92,28 +93,10 @@ export function toM2MGatewayApiVerifiedAttribute({
   logger: Logger;
   mapThrownErrorsToNotFound?: boolean;
 }): m2mGatewayApi.VerifiedAttribute {
-  try {
-    assertAttributeKindIs(
-      attribute,
-      attributeRegistryApi.AttributeKind.Values.VERIFIED
-    );
-
-    return {
-      id: attribute.id,
-      description: attribute.description,
-      name: attribute.name,
-      createdAt: attribute.creationTime,
-    };
-  } catch (error) {
-    if (mapThrownErrorsToNotFound) {
-      logger.warn(
-        `Root cause for "Attribute not found" error: unexpected error while converting attribute: ${
-          error instanceof ApiError ? error.detail : error
-        }`
-      );
-      throw attributeNotFound(attribute);
-    } else {
-      throw error;
-    }
-  }
+  return convertAttribute<m2mGatewayApi.VerifiedAttribute>(
+    attribute,
+    attributeRegistryApi.AttributeKind.Values.VERIFIED,
+    logger,
+    mapThrownErrorsToNotFound
+  );
 }
