@@ -13,6 +13,7 @@ import {
   fromNotificationSQL,
   ListResult,
   Notification,
+  NotificationId,
 } from "pagopa-interop-models";
 import { notificationNotFound } from "../model/errors.js";
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -50,7 +51,7 @@ export function inAppNotificationServiceBuilder(
       );
     },
     markNotificationAsRead: async (
-      notificationId: string,
+      notificationId: NotificationId,
       {
         logger,
         authData: { userId, organizationId },
@@ -75,7 +76,7 @@ export function inAppNotificationServiceBuilder(
       }
     },
     markNotificationsAsRead: async (
-      ids: string[],
+      ids: NotificationId[],
       {
         logger,
         authData: { userId, organizationId },
@@ -99,7 +100,7 @@ export function inAppNotificationServiceBuilder(
         );
     },
     deleteNotification: async (
-      notificationId: string,
+      notificationId: NotificationId,
       {
         logger,
         authData: { userId, organizationId },

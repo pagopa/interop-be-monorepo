@@ -9,11 +9,11 @@ import {
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { isFeatureFlagEnabled } from "pagopa-interop-commons";
 import { config } from "./config/config.js";
 import healthRouter from "./routers/healthRouter.js";
 import { notificationRouter } from "./routers/notificationRouter.js";
 import { InAppNotificationService } from "./services/inAppNotificationService.js";
+import { notificationConfigFeatureFlagMiddleware } from "./utilities/middlewares.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: InAppNotificationService) {
@@ -26,13 +26,7 @@ export async function createApp(service: InAppNotificationService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use((_, res, next) => {
-    if (isFeatureFlagEnabled(config, "featureFlagNotificationConfig")) {
-      next();
-    } else {
-      res.status(403).send("Feature flag not enabled");
-    }
-  });
+  app.use(notificationConfigFeatureFlagMiddleware);
   app.use(healthRouter);
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));

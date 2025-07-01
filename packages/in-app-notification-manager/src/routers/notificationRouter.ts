@@ -8,7 +8,11 @@ import {
 } from "pagopa-interop-commons";
 import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import {
+  emptyErrorMapper,
+  NotificationId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { InAppNotificationService } from "../services/inAppNotificationService.js";
 import { makeApiProblem } from "../model/errors.js";
@@ -43,10 +47,12 @@ export const notificationRouter = (
           offset,
           ctx
         );
-        return res.status(200).send({
-          results: results.map(notificationToApiNotification),
-          totalCount,
-        });
+        return res.status(200).send(
+          inAppNotificationApi.Notifications.parse({
+            results: results.map(notificationToApiNotification),
+            totalCount,
+          })
+        );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -63,7 +69,10 @@ export const notificationRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
         const { ids } = req.body;
-        await service.markNotificationsAsRead(ids, ctx);
+        await service.markNotificationsAsRead(
+          ids.map(unsafeBrandId<NotificationId>),
+          ctx
+        );
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -83,7 +92,10 @@ export const notificationRouter = (
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
           const { notificationId } = req.params;
-          await service.markNotificationAsRead(notificationId, ctx);
+          await service.markNotificationAsRead(
+            unsafeBrandId(notificationId),
+            ctx
+          );
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
@@ -102,7 +114,7 @@ export const notificationRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
 
         const { notificationId } = req.params;
-        await service.deleteNotification(notificationId, ctx);
+        await service.deleteNotification(unsafeBrandId(notificationId), ctx);
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(

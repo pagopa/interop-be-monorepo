@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: In App Notification Process Manager
+  title: In App Notification Manager
   description: This service is the in app notification manager
   version: "{{version}}"
   contact:
@@ -77,8 +77,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
   /notifications/bulk/markAsRead:
     post:
-      security:
-        - Bearer: []
       tags:
         - notification
       summary: Mark a list of notifications as read
