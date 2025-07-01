@@ -11,14 +11,14 @@ import {
   TooManyRequestsException,
 } from "@aws-sdk/client-sesv2";
 import Mail from "nodemailer/lib/mailer/index.js";
-import { PecEmailManagerConfig, Logger } from "../index.js";
+import { PecEmailManagerConfig } from "../index.js";
 import { AWSSesConfig } from "../config/awsSesConfig.js";
 
 export type EmailManagerKind = "PEC" | "SES";
 
 export type EmailManager = {
   kind: EmailManagerKind;
-  send: (params: Mail.Options, logger: Logger) => Promise<void>;
+  send: (params: Mail.Options) => Promise<void>;
 };
 
 export type EmailManagerPEC = EmailManager & {
@@ -35,7 +35,7 @@ export function initPecEmailManager(
 ): EmailManagerPEC {
   return {
     kind: "PEC",
-    send: async (mailOptions: Mail.Options, _: Logger): Promise<void> => {
+    send: async (mailOptions: Mail.Options): Promise<void> => {
       const transporter = nodemailer.createTransport({
         host: config.smtpAddress,
         port: config.smtpPort,
@@ -73,7 +73,7 @@ export function initSesMailManager(
 
   return {
     kind: "SES",
-    send: async (mailOptions: Mail.Options, logger: Logger): Promise<void> => {
+    send: async (mailOptions: Mail.Options): Promise<void> => {
       const rawMailData = await new MailComposer(mailOptions).compile().build();
 
       const input: SendEmailCommandInput = {
