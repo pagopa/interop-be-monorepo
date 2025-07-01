@@ -11,6 +11,8 @@ import { ClientId, TenantId, UserId, generateId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import jwt from "jsonwebtoken";
 
+export const mockTokenUserId = generateId<UserId>();
+
 export const mockTokenOrganizationId = generateId<TenantId>();
 
 function createUserPayload(
@@ -23,7 +25,7 @@ function createUserPayload(
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
-    uid: generateId(),
+    uid: mockTokenUserId,
     name: "Mario",
     family_name: "Rossi",
     email: "Mario.rossi@psp.it",
