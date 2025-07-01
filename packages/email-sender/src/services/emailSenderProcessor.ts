@@ -90,7 +90,7 @@ export function emailSenderProcessorBuilder(
         );
 
         const loggerInstance = logger({
-          serviceName: "email-sender",
+          serviceName,
           correlationId: jsonPayload.correlationId,
         });
 
