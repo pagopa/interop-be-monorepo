@@ -51,11 +51,12 @@ jobs:
           key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-lint-
+      - name: Print environment variables
+        run: env | sort
       - run: pnpm lint
         env:
           TURBO_SCM_BASE: origin/develop
-      - name: Print environment variables
-        run: env | sort
+
       - name: Print turbo summary
         run: |
           # Find latest summary file
