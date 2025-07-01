@@ -32,6 +32,7 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.INTERNAL_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",
