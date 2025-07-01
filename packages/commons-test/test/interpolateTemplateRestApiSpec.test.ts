@@ -3,10 +3,10 @@ import {
   generateId,
   invalidInterfaceFileDetected,
 } from "pagopa-interop-models";
-import { interpolateOpenApiSpec } from "pagopa-interop-commons";
+import { interpolateTemplateRestApiSpec } from "pagopa-interop-commons";
 import { getMockEService, readFileContent } from "../src/index.js";
 
-describe("interpolateOpenApiSpec", async () => {
+describe("interpolateTemplateRestApiSpec", async () => {
   const eservice = getMockEService();
   const file: string = await readFileContent("test.openapi.3.0.2.json");
   const interfaceFileInfo = {
@@ -25,7 +25,7 @@ describe("interpolateOpenApiSpec", async () => {
   };
 
   it("should interpolate OpenAPI spec", async () => {
-    const result: File = await interpolateOpenApiSpec(
+    const result: File = await interpolateTemplateRestApiSpec(
       eservice,
       file,
       interfaceFileInfo,
@@ -60,7 +60,7 @@ describe("interpolateOpenApiSpec", async () => {
       prettyName: "Test Interface YAML",
     };
 
-    const yamlFile: File = await interpolateOpenApiSpec(
+    const yamlFile: File = await interpolateTemplateRestApiSpec(
       eservice,
       yamlFileString,
       yamlInterfaceFileInfo,
@@ -98,12 +98,17 @@ describe("interpolateOpenApiSpec", async () => {
       prettyName: "Test Interface",
     };
     await expect(
-      interpolateOpenApiSpec(
+      interpolateTemplateRestApiSpec(
         eservice,
         file,
         interfaceFileInfo,
         eserviceInstanceInterfaceData
       )
-    ).rejects.toThrow(invalidInterfaceFileDetected(eservice.id));
+    ).rejects.toThrow(
+      invalidInterfaceFileDetected({
+        id: eservice.id,
+        isEserviceTemplate: true,
+      })
+    );
   });
 });
