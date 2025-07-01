@@ -11,6 +11,7 @@ import {
 import { generateMock } from "@anatine/zod-mock";
 import { generateId } from "pagopa-interop-models";
 import { z } from "zod";
+import { match } from "ts-pattern";
 
 export function getMockedApiPurposeVersion({
   state,
@@ -138,27 +139,31 @@ export function getMockedApiAttribute({
   };
 }
 
-export function getMockedApiClientApi(): authorizationApi.APIClient {
+export function getMockedApiClient({
+  kind: paramKind,
+}: {
+  kind?: authorizationApi.ClientKind;
+} = {}): authorizationApi.Client {
+  const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
+    kind: kind ?? authorizationApi.ClientKind.Values.CONSUMER,
     id: generateId(),
     name: generateMock(z.string()),
     description: generateMock(z.string()),
     createdAt: new Date().toISOString(),
     consumerId: generateId(),
+    purposes: match(kind)
+      .with(authorizationApi.ClientKind.Values.CONSUMER, () => [
+        generateId(),
+        generateId(),
+      ])
+      .with(authorizationApi.ClientKind.Values.API, () => undefined)
+      .exhaustive(),
     users: [generateId(), generateId()],
-    adminId: generateId(),
-  };
-}
-
-export function getMockedApiClientConsumer(): authorizationApi.ConsumerClient {
-  return {
-    id: generateId(),
-    name: generateMock(z.string()),
-    description: generateMock(z.string()),
-    createdAt: new Date().toISOString(),
-    consumerId: generateId(),
-    purposes: [generateId(), generateId()],
-    users: [generateId(), generateId()],
+    adminId: match(kind)
+      .with(authorizationApi.ClientKind.Values.CONSUMER, () => undefined)
+      .with(authorizationApi.ClientKind.Values.API, () => generateId())
+      .exhaustive(),
   };
 }
 

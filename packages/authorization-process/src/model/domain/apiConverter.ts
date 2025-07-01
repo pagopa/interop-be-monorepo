@@ -14,20 +14,23 @@ import {
   ProducerKeychain,
   ClientJWKKey,
   ProducerJWKKey,
-  APIClient,
-  ConsumerClient,
   ClientKind,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  assertJwkKtyIsDefined,
-  assertOrganizationIsClientConsumer,
-} from "../../services/validators.js";
+import { assertJwkKtyIsDefined } from "../../services/validators.js";
+
+export const clientKindToApiClientKind = (
+  kind: ClientKind
+): authorizationApi.ClientKind =>
+  match<ClientKind, authorizationApi.ClientKind>(kind)
+    .with(clientKind.consumer, () => "CONSUMER")
+    .with(clientKind.api, () => "API")
+    .exhaustive();
 
 export const apiClientKindToClientKind = (
-  kind: "CONSUMER" | "API"
+  kind: authorizationApi.ClientKind
 ): ClientKind =>
-  match(kind)
+  match<authorizationApi.ClientKind, ClientKind>(kind)
     .with("CONSUMER", () => clientKind.consumer)
     .with("API", () => clientKind.api)
     .exhaustive();
@@ -43,7 +46,6 @@ export function clientToApiClientWithKeys(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.ClientWithKeys {
   return {
-    // TODO Maybe also here compact?
     client: clientToApiClient(client, authData),
     keys: client.keys.map(keyToApiKey),
   };
@@ -53,61 +55,25 @@ export function clientToApiClient(
   client: Client,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.Client {
-  assertOrganizationIsClientConsumer(authData, client);
-  return match(client)
-    .with({ kind: clientKind.consumer }, (c) =>
-      clientToApiConsumerClient(c, authData)
-    )
-    .with({ kind: clientKind.api }, (c) => clientToApiAPIClient(c, authData))
-    .exhaustive();
-}
-
-export function clientToApiClientOrCompactClient(
-  client: Client,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
-): authorizationApi.ClientOrCompactClient {
   if (authData.organizationId !== client.consumerId) {
     return {
       id: client.id,
       consumerId: client.consumerId,
+      kind: clientKindToApiClientKind(client.kind),
     } satisfies authorizationApi.CompactClient;
   }
 
-  return clientToApiClient(client, authData);
-}
-
-export function clientToApiConsumerClient(
-  client: ConsumerClient,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
-): authorizationApi.ConsumerClient {
-  assertOrganizationIsClientConsumer(authData, client);
-
   return {
     id: client.id,
     name: client.name,
     consumerId: client.consumerId,
-    createdAt: client.createdAt.toJSON(),
     users: client.users,
+    createdAt: client.createdAt.toJSON(),
     purposes: client.purposes,
-    description: client.description,
-  };
-}
-
-export function clientToApiAPIClient(
-  client: APIClient,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
-): authorizationApi.APIClient {
-  assertOrganizationIsClientConsumer(authData, client);
-
-  return {
-    id: client.id,
-    name: client.name,
-    consumerId: client.consumerId,
-    users: client.users,
-    createdAt: client.createdAt.toJSON(),
+    kind: clientKindToApiClientKind(client.kind),
     description: client.description,
     adminId: client.adminId,
-  };
+  } satisfies authorizationApi.FullClient;
 }
 
 export function producerKeychainToApiProducerKeychain(

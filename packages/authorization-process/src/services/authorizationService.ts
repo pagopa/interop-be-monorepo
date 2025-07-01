@@ -1,11 +1,9 @@
 import { JsonWebKey } from "crypto";
 import {
-  APIClient,
   authorizationEventToBinaryData,
   Client,
   ClientId,
   clientKind,
-  ConsumerClient,
   Delegation,
   Descriptor,
   DescriptorId,
@@ -240,11 +238,11 @@ export function authorizationServiceBuilder(
         clientSeed: authorizationApi.ClientSeed;
       },
       { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<ConsumerClient> {
+    ): Promise<Client> {
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
-      const client: ConsumerClient = {
+      const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
         name: clientSeed.name,
@@ -269,11 +267,11 @@ export function authorizationServiceBuilder(
         clientSeed: authorizationApi.ClientSeed;
       },
       { logger, correlationId, authData }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<APIClient> {
+    ): Promise<Client> {
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
-      const client: APIClient = {
+      const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
         name: clientSeed.name,
@@ -578,7 +576,7 @@ export function authorizationServiceBuilder(
         adminId: UserId;
       },
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<APIClient> {
+    ): Promise<Client> {
       assertFeatureFlagEnabled(config, "featureFlagAdminClient");
 
       logger.info(`Set user ${adminId} in client ${clientId} as admin`);
@@ -602,7 +600,7 @@ export function authorizationServiceBuilder(
         throw clientAdminAlreadyAssignedToUser(clientId, adminId);
       }
 
-      const updatedClient: APIClient = {
+      const updatedClient: Client = {
         ...client.data,
         adminId,
       };
@@ -665,7 +663,7 @@ export function authorizationServiceBuilder(
         authData,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<ConsumerClient>> {
+    ): Promise<WithMetadata<Client>> {
       logger.info(
         `Adding purpose with id ${seed.purposeId} to client ${clientId}`
       );
@@ -731,7 +729,7 @@ export function authorizationServiceBuilder(
         throw noActiveOrSuspendedPurposeVersionFound(purpose.id);
       }
 
-      const updatedClient: ConsumerClient = {
+      const updatedClient: Client = {
         ...client.data,
         purposes: [...client.data.purposes, purposeId],
       };

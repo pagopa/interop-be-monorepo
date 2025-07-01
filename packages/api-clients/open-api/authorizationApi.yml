@@ -69,7 +69,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ConsumerClient"
+                $ref: "#/components/schemas/Client"
         "401":
           description: Unauthorized
           content:
@@ -97,7 +97,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/APIClient"
+                $ref: "#/components/schemas/Client"
         "401":
           description: Unauthorized
           content:
@@ -295,7 +295,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ClientOrCompactClient"
+                $ref: "#/components/schemas/Client"
         "401":
           description: Unauthorized
           content:
@@ -479,7 +479,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/APIClient"
+                $ref: "#/components/schemas/Client"
         "400":
           description: Bad Request
           content:
@@ -880,7 +880,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ConsumerClient"
+                $ref: "#/components/schemas/Client"
         "400":
           description: Bad Request
           content:
@@ -1837,8 +1837,8 @@ components:
     CompactClient:
       type: object
       description: |
-        Client with a reduced set of fields, returned in case
-        the caller tenant is not the consumer of the client (i.e., the owner)
+        Models a client with a reduced set of fields: only the fields that are
+        visible to any caller tenant.
       additionalProperties: false
       properties:
         id:
@@ -1847,75 +1847,51 @@ components:
         consumerId:
           type: string
           format: uuid
+        kind:
+          $ref: "#/components/schemas/ClientKind"
       required:
         - id
         - consumerId
-
-    ConsumerClient:
+        - kind
+    FullClient:
       type: object
       description: |
-        Consumer client with fields visible to the consumer tenant, returned in case
-        the caller tenant is the consumer of the client (i.e., the owner)
+        Models a client that can be either a Consumer or an API client.
+        The owner of the client is the consumer tenant, identified by the consumerId.
+        The only fields that are visible to any caller tenant are the ones that are
+        present also in the CompactClient schema. The rest are visible only to the owner tenant.
       additionalProperties: false
       properties:
         id:
-          type: string
-          format: uuid
-        consumerId:
           type: string
           format: uuid
         name:
           type: string
-        description:
+        consumerId:
+          description: |
+            The consumerId is the identifier of the tenant that owns the client.
+            It is the tenant that created the client and has full access to it.
           type: string
+          format: uuid
+        adminId:
+          description: |
+            Id of the admin user associated with the client. Present only for API clients.
+          type: string
+          format: uuid
         createdAt:
           type: string
           format: date-time
         purposes:
+          description: |
+            Ids of the purposes associated with the client. Present only for Consumer clients.
           type: array
           items:
             type: string
             format: uuid
           default: []
-          uniqueItems: true
-        users:
-          type: array
-          items:
-            type: string
-            format: uuid
-          default: []
-          uniqueItems: true
-      required:
-        - id
-        - consumerId
-        - name
-        - createdAt
-        - purposes
-        - users
-
-    APIClient:
-      type: object
-      description: |
-        API client with fields visible to the consumer tenant, returned in case
-        the caller tenant is the consumer of the client (i.e., the owner)
-      additionalProperties: false
-      properties:
-        id:
-          type: string
-          format: uuid
-        consumerId:
-          type: string
-          format: uuid
-        adminId:
-          type: string
-          format: uuid
-        name:
-          type: string
+          ununiqueItems: true
         description:
           type: string
-        createdAt:
-          type: string
-          format: date-time
         users:
           type: array
           items:
@@ -1923,29 +1899,22 @@ components:
             format: uuid
           default: []
           uniqueItems: true
+        kind:
+          $ref: "#/components/schemas/ClientKind"
       required:
         - id
-        - consumerId
         - name
-        - createdAt
+        - consumerId
         - users
-
+        - kind
+        - createdAt
     Client:
       description: |
-        Client with fields visible to the consumer tenant, returned in case
-        the caller tenant is the consumer of the client (i.e., the owner)
+        Models a client that can be either a full client or a compact client based on the caller
+        tenant. In case the caller tenant is the consumer of the client (i.e., the owner), the
+        full client is returned, otherwise a compact client is returned.
       oneOf:
-        - $ref: "#/components/schemas/ConsumerClient"
-        - $ref: "#/components/schemas/APIClient"
-
-    ClientOrCompactClient:
-      description: |
-        Client with fields visible to the consumer tenant, returned in case
-        the caller tenant is the consumer of the client (i.e., the owner)
-        or a compact client if the caller tenant is not the consumer of the client
-      oneOf:
-        - $ref: "#/components/schemas/ConsumerClient"
-        - $ref: "#/components/schemas/APIClient"
+        - $ref: "#/components/schemas/FullClient"
         - $ref: "#/components/schemas/CompactClient"
 
     ClientKind:
@@ -2014,7 +1983,7 @@ components:
         results:
           type: array
           items:
-            $ref: "#/components/schemas/ClientOrCompactClient"
+            $ref: "#/components/schemas/Client"
         totalCount:
           type: integer
           format: int32

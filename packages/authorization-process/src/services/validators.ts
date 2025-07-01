@@ -9,11 +9,9 @@ import {
   UserRole,
 } from "pagopa-interop-commons";
 import {
-  APIClient,
   Client,
   ClientId,
   clientKind,
-  ConsumerClient,
   CorrelationId,
   Delegation,
   delegationKind,
@@ -182,13 +180,15 @@ export const assertSecurityRoleIsClientMember = (
 
 export function assertClientIsConsumer(
   client: Client
-): asserts client is ConsumerClient {
+): asserts client is Client & { kind: typeof clientKind.consumer } {
   if (client.kind !== clientKind.consumer) {
     throw clientKindNotAllowed(client.id);
   }
 }
 
-export function assertClientIsAPI(client: Client): asserts client is APIClient {
+export function assertClientIsAPI(
+  client: Client
+): asserts client is Client & { kind: typeof clientKind.api } {
   if (client.kind !== clientKind.api) {
     throw clientKindNotAllowed(client.id);
   }
