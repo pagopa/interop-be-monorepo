@@ -1,5 +1,9 @@
 /* eslint-disable functional/no-let */
-import { genericInternalError } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  generateId,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { delay, EmailManagerSES, logger } from "pagopa-interop-commons";
 import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
@@ -80,10 +84,33 @@ export function emailSenderProcessorBuilder(
             );
           }
         }
-      }
-      if (!sent) {
+
+        const jsonPayload: EmailNotificationPayload = JSON.parse(
+          message.value.toString()
+        );
+
+        const loggerInstance = logger({
+          serviceName: "email-sender",
+          correlationId: jsonPayload.correlationId,
+        });
+
+        loggerInstance.info(
+          `Consuming message for partition ${partition} with offset ${message.offset}`
+        );
+
+        const mailOptions: Mail.Options = {
+          from: { name: sesSenderData.label, address: sesSenderData.mail },
+          subject: jsonPayload.subject,
+          to: [jsonPayload.address],
+          html: jsonPayload.body,
+        };
+
+        loggerInstance.info(`Sending email: ${jsonPayload}`);
+        await sesEmailManager.send(mailOptions, loggerInstance);
+        loggerInstance.info(`Email sent: ${jsonPayload}`);
+      } catch (err) {
         throw genericInternalError(
-          `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: too many attempts`
+          `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
         );
       }
     },
