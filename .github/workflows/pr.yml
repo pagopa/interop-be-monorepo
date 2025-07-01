@@ -31,11 +31,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-pr-
 
-              - name: Print turbo folder
-
-      - name: Verify cached files
-        run: ls -la .turbo/cache
-
       - name: Print environment variables
         run: env | sort
 
