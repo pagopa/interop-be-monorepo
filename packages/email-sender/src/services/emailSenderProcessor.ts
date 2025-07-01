@@ -22,10 +22,11 @@ export function emailSenderProcessorBuilder(
       message,
       partition,
     }: EachMessagePayload): Promise<void> {
+      const serviceName = "email-sender";
       try {
         if (!message.value) {
           logger({
-            serviceName: "email-sender",
+            serviceName,
             correlationId: generateId<CorrelationId>(),
           }).warn(
             `Empty message for partition ${partition} with offset ${message.offset}`
@@ -38,7 +39,7 @@ export function emailSenderProcessorBuilder(
         );
 
         const loggerInstance = logger({
-          serviceName: "email-sender",
+          serviceName,
           correlationId: jsonPayload.correlationId,
         });
 
