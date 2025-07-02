@@ -10,19 +10,13 @@ import {
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
 import { getMockFile } from "../../mockUtils.js";
+import {
+  testExpectedMultipartResponseFromFile,
+  testMultipartResponseParser,
+} from "../../multipartTestUtils.js";
 
 describe("GET /eservice/:eserviceId/descriptors/:descriptorId/interface router test", () => {
-  const mockFileName = "mockFileName.txt";
-  const mockContentType = "text/plain";
-  const mockFileContent = `This is a mock file content for testing purposes.
-It simulates the content of an Eservice descriptor interface file.
-On multiple lines.`;
-
-  const mockFile = getMockFile({
-    mockFileName,
-    mockContentType,
-    mockFileContent,
-  });
+  const mockFile = getMockFile();
 
   const makeRequest = async (
     token: string,
@@ -35,16 +29,7 @@ On multiple lines.`;
       )
       .set("Authorization", `Bearer ${token}`)
       .buffer(true)
-      .parse((res, done) => {
-        const chunks: Buffer[] = [];
-        res.on("data", (c: Buffer) => chunks.push(c));
-        res.once("end", function () {
-          const buf = Buffer.concat(chunks);
-          res.text = buf.toString("utf8");
-          done(null, res);
-        });
-        res.once("error", done);
-      });
+      .parse(testMultipartResponseParser);
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ROLE,
@@ -61,34 +46,7 @@ On multiple lines.`;
       const res = await makeRequest(token, generateId(), generateId());
 
       expect(res.status).toBe(200);
-      expect(res.headers["content-type"]).toMatch(
-        /^multipart\/form-data;\s*boundary=form-data-encoder-[A-Za-z0-9]+/
-      );
-      const boundary = res.headers["content-type"].match(/boundary=(.*)$/)![1];
-
-      const CRLF = "\r\n";
-      const expectedMultipart = [
-        `--${boundary}`,
-        `Content-Disposition: form-data; name="file"; filename="${mockFileName}"`,
-        `Content-Type: ${mockContentType}`,
-        ``,
-        mockFileContent,
-        `--${boundary}`,
-        `Content-Disposition: form-data; name="filename"`,
-        ``,
-        mockFileName,
-        `--${boundary}`,
-        `Content-Disposition: form-data; name="contentType"`,
-        ``,
-        mockContentType,
-        `--${boundary}--`,
-        CRLF,
-      ].join(CRLF);
-
-      expect(res.text).toEqual(expectedMultipart);
-      expect(res.headers["content-length"]).toBe(
-        Buffer.byteLength(expectedMultipart, "utf8").toString()
-      );
+      await testExpectedMultipartResponseFromFile(mockFile, res);
     }
   );
 
