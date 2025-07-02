@@ -202,6 +202,7 @@ const eservicesRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
+          INTERNAL_ROLE,
         ]);
 
         const eservice = await catalogService.getEServiceById(
