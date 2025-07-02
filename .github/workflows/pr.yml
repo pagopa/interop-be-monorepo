@@ -101,7 +101,7 @@ jobs:
         with:
           run_install: true
 
-      - run: pnpm test -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      - run: pnpm test:ci -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
       - run: pnpm test:old -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
       - run: pnpm test:api -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
       - run: pnpm test:integration -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
