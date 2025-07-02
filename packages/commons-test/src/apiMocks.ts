@@ -146,6 +146,7 @@ export function getMockedApiClient({
 } = {}): authorizationApi.Client {
   const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
+    visibility: authorizationApi.ClientVisibility.Enum.FULL,
     kind: kind ?? authorizationApi.ClientKind.Values.CONSUMER,
     id: generateId(),
     name: generateMock(z.string()),
@@ -157,14 +158,14 @@ export function getMockedApiClient({
         generateId(),
         generateId(),
       ])
-      .with(authorizationApi.ClientKind.Values.API, () => undefined)
+      .with(authorizationApi.ClientKind.Values.API, () => [])
       .exhaustive(),
     users: [generateId(), generateId()],
     adminId: match(kind)
       .with(authorizationApi.ClientKind.Values.CONSUMER, () => undefined)
       .with(authorizationApi.ClientKind.Values.API, () => generateId())
       .exhaustive(),
-  };
+  } satisfies authorizationApi.Client;
 }
 
 export function getMockedApiEservice({

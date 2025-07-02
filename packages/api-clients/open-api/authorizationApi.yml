@@ -1833,6 +1833,9 @@ components:
       required:
         - name
         - members
+    ClientVisibility:
+      type: string
+      enum: [COMPACT, FULL]
     Client:
       description: |
         Models a client that can be either a full client or a compact client based on the caller
@@ -1841,6 +1844,8 @@ components:
       oneOf:
         - $ref: "#/components/schemas/FullClient"
         - $ref: "#/components/schemas/CompactClient"
+      discriminator:
+        propertyName: visibility
     CompactClient:
       type: object
       description: |
@@ -1848,15 +1853,24 @@ components:
         visible to any caller tenant.
       additionalProperties: false
       properties:
+        visibility:
+          allOf:
+            - $ref: "#/components/schemas/ClientVisibility"
+            - type: string
+              enum: [COMPACT]
         id:
           type: string
           format: uuid
         consumerId:
+          description: |
+            The consumerId is the identifier of the tenant that owns the client.
+            It is the tenant that created the client and has full access to it.
           type: string
           format: uuid
         kind:
           $ref: "#/components/schemas/ClientKind"
       required:
+        - visibility
         - id
         - consumerId
         - kind
@@ -1869,6 +1883,11 @@ components:
         present also in the CompactClient schema. The rest are visible only to the owner tenant.
       additionalProperties: false
       properties:
+        visibility:
+          allOf:
+            - $ref: "#/components/schemas/ClientVisibility"
+            - type: string
+              enum: [FULL]
         id:
           type: string
           format: uuid
@@ -1909,9 +1928,11 @@ components:
         kind:
           $ref: "#/components/schemas/ClientKind"
       required:
+        - visibility
         - id
         - name
         - consumerId
+        - purposes
         - users
         - kind
         - createdAt
