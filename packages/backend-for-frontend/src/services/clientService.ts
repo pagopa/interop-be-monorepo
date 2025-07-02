@@ -3,6 +3,7 @@
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
 import { CorrelationId } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   AuthorizationProcessClient,
   PagoPAInteropBeClients,
@@ -14,6 +15,19 @@ import {
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
+
+function getClientUsers(client: authorizationApi.Client): string[] {
+  return match(client)
+    .with(
+      { visibility: authorizationApi.ClientVisibility.Enum.FULL },
+      (c) => c.users
+    )
+    .with(
+      { visibility: authorizationApi.ClientVisibility.Enum.COMPACT },
+      () => []
+    )
+    .exhaustive();
+}
 
 export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
   const { authorizationClient, selfcareV2UserClient } = apiClients;
@@ -201,7 +215,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<bffApi.PublicKeys> {
       logger.info(`Retrieve keys of client ${clientId}`);
 
-      const [{ keys, totalCount }, { users }] = await Promise.all([
+      const [{ keys, totalCount }, client] = await Promise.all([
         authorizationClient.client.getClientKeys({
           params: { clientId },
           queries: { userIds, limit, offset },
@@ -219,7 +233,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
             selfcareV2UserClient,
             k,
             authData.selfcareId,
-            users,
+            getClientUsers(client),
             correlationId
           )
         )
@@ -280,7 +294,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<bffApi.PublicKey> {
       logger.info(`Retrieve key ${keyId} for client ${clientId}`);
 
-      const [key, { users }] = await Promise.all([
+      const [key, client] = await Promise.all([
         authorizationClient.client.getClientKeyById({
           params: { clientId, keyId },
           headers,
@@ -295,7 +309,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
         selfcareV2UserClient,
         key,
         selfcareId,
-        users,
+        getClientUsers(client),
         correlationId
       );
     },
@@ -365,35 +379,60 @@ async function enhanceClient(
   client: authorizationApi.Client,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Client> {
-  const [consumer, admin, ...purposes] = await Promise.all([
-    apiClients.tenantProcessClient.tenant.getTenant({
-      params: { id: client.consumerId },
-      headers: ctx.headers,
-    }),
-    client.adminId
-      ? getSelfcareCompactUserById(
-          apiClients.selfcareV2UserClient,
-          client.adminId,
-          ctx.authData.selfcareId,
-          ctx.correlationId
-        )
-      : Promise.resolve(undefined),
-    ...client.purposes.map((p) => enhancePurpose(apiClients, p, ctx)),
-  ]);
+  return match(client)
+    .with(
+      { visibility: authorizationApi.ClientVisibility.Enum.COMPACT },
+      async (c) => {
+        const consumer = await apiClients.tenantProcessClient.tenant.getTenant({
+          params: { id: c.consumerId },
+          headers: ctx.headers,
+        });
 
-  return {
-    id: client.id,
-    name: client.name,
-    description: client.description,
-    kind: client.kind,
-    createdAt: client.createdAt,
-    consumer: {
-      id: consumer.id,
-      name: consumer.name,
-    },
-    purposes,
-    admin,
-  };
+        return {
+          id: c.id,
+          kind: c.kind,
+          consumer: {
+            id: consumer.id,
+            name: consumer.name,
+          },
+        };
+      }
+    )
+    .with(
+      { visibility: authorizationApi.ClientVisibility.Enum.FULL },
+      async (c) => {
+        const [consumer, admin, ...purposes] = await Promise.all([
+          apiClients.tenantProcessClient.tenant.getTenant({
+            params: { id: client.consumerId },
+            headers: ctx.headers,
+          }),
+          c.adminId
+            ? getSelfcareCompactUserById(
+                apiClients.selfcareV2UserClient,
+                c.adminId,
+                ctx.authData.selfcareId,
+                ctx.correlationId
+              )
+            : Promise.resolve(undefined),
+          ...c.purposes.map((p) => enhancePurpose(apiClients, p, ctx)),
+        ]);
+
+        return {
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          kind: c.kind,
+          createdAt: c.createdAt,
+          consumer: {
+            id: consumer.id,
+            name: consumer.name,
+          },
+          purposes,
+          admin,
+        };
+      }
+    )
+    .exhaustive();
 }
 
 async function enhancePurpose(
