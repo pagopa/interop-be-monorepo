@@ -34,6 +34,15 @@
     "test": {
       "dependsOn": ["build"]
     },
+    "test:ci": {
+      "dependsOn": [
+        "build",
+        "test:old",
+        "test:integration",
+        "test:integration:old",
+        "test:api"
+      ]
+    },
     "test:old": {
       "dependsOn": ["build"]
     },

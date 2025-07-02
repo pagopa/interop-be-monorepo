@@ -60,7 +60,7 @@ jobs:
             .turbo
           include-hidden-files: true
           retention-days: 1
-      
+
       - name: Print turbo cahe folders
         run: ls -la .turbo
       - run: ls -la .turbo/cache
@@ -74,10 +74,15 @@ jobs:
           # Find latest summary file
           SUMMARY_FILE=$(ls -t .turbo/runs/*.json | head -n1)
           cat "$SUMMARY_FILE"
-  
+
   test:
     name: Test
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4, 5]
+        shardTotal: [5]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
@@ -95,7 +100,27 @@ jobs:
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           run_install: true
-      - run: pnpm test
+
+      - run: pnpm test:ci --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+
+      - name: Upload blob report to GitHub Actions Artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.shardIndex }}
+          path: .vitest-reports/*
+          include-hidden-files: true
+          retention-days: 1
+
+      - name: Download blob reports from GitHub Actions Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: .vitest-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Merge reports
+        run: npx vitest --merge-reports
 
   lint-openapi:
     name: Lint Open Api specification
