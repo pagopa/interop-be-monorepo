@@ -1,6 +1,10 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { AgreementId, generateId } from "pagopa-interop-models";
+import {
+  AgreementDocumentId,
+  AgreementId,
+  generateId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -19,6 +23,7 @@ import {
   toM2MGatewayApiDocument,
 } from "../api/agreementApiConverter.js";
 import { config } from "../config/config.js";
+import { downloadDocument } from "../utils/fileDownload.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -286,6 +291,29 @@ export function agreementServiceBuilder(
       await pollAgreementById(agreementId, metadata, headers);
 
       return toM2MGatewayApiDocument(document);
+    },
+    async getAgreementConsumerDocument(
+      agreementId: AgreementId,
+      documentId: AgreementDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<File> {
+      logger.info(
+        `Retrieving consumer document with id ${documentId} for agreement with id ${agreementId}`
+      );
+
+      const { data: document } =
+        await clients.agreementProcessClient.getAgreementConsumerDocument({
+          params: { agreementId, documentId },
+          headers,
+        });
+
+      const stream = await fileManager.get(
+        config.eserviceDocumentsContainer,
+        document.path,
+        logger
+      );
+
+      return downloadDocument(document, stream);
     },
   };
 }
