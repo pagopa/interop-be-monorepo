@@ -1236,8 +1236,8 @@ importers:
         specifier: 4.4.1
         version: 4.4.1
       mime:
-        specifier: 4.0.4
-        version: 4.0.4
+        specifier: 4.0.7
+        version: 4.0.7
       multer:
         specifier: 2.0.1
         version: 2.0.1
@@ -2012,8 +2012,8 @@ importers:
         specifier: 2.2.4
         version: 2.2.4
       mime:
-        specifier: 4.0.4
-        version: 4.0.4
+        specifier: 4.0.7
+        version: 4.0.7
       mongodb:
         specifier: 6.7.0
         version: 6.7.0(@aws-sdk/credential-providers@3.609.0)(socks@2.8.3)
@@ -9320,8 +9320,8 @@ packages:
     engines: {node: '>=4.0.0'}
     hasBin: true
 
-  mime@4.0.4:
-    resolution: {integrity: sha512-v8yqInVjhXyqP6+Kw4fV3ZzeMRqEW6FotRsKXjRS5VMTNIuXsdRoAvklpoRgSqXm6o9VNH4/C0mgedko9DdLsQ==}
+  mime@4.0.7:
+    resolution: {integrity: sha512-2OfDPL+e03E0LrXaGYOtTFIYhiuzep94NSsuhrNULq+stylcJedcHdzHtz0atMUuGwJfFYs0YL5xeC/Ca2x0eQ==}
     engines: {node: '>=16'}
     hasBin: true
 
@@ -16374,7 +16374,7 @@ snapshots:
 
   mime@2.6.0: {}
 
-  mime@4.0.4: {}
+  mime@4.0.7: {}
 
   mimic-fn@4.0.0: {}
 
