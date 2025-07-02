@@ -101,7 +101,7 @@ export function emailSenderProcessorBuilder(
         };
 
         loggerInstance.info(`Sending email`);
-        await sesEmailManager.send(mailOptions);
+        await sesEmailManager.send(mailOptions, loggerInstance);
         loggerInstance.info(`Email sent: ${jsonPayload}`);
       } catch (err) {
         throw genericInternalError(
