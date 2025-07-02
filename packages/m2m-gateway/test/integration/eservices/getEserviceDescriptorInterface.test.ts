@@ -21,9 +21,8 @@ import {
 import { config } from "../../../src/config/config.js";
 
 describe("getEserviceDescriptor", () => {
-  const testFileContent = `This is a mock file content for testing purposes.
-It simulates the content of an Eservice descriptor interface file.
-On multiple lines.`;
+  const testFileContent =
+    "This is a mock file content for testing purposes.\nOn multiple lines.";
 
   const mockInterfaceId = generateId();
   const mockInterfaceName = "interfaceDoc.txt";
