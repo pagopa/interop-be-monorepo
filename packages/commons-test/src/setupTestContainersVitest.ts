@@ -27,8 +27,9 @@ import {
   AnalyticsSQLDbConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
-import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import pg from "pg";
 import { PecEmailManagerConfigTest } from "./testConfig.js";
 
 /**
@@ -211,7 +212,15 @@ export async function setupTestContainersVitest(
   }
 
   if (readModelSQLDbConfig) {
-    readModelDB = makeDrizzleConnection(readModelSQLDbConfig);
+    const pool = new pg.Pool({
+      host: readModelSQLDbConfig?.readModelSQLDbHost,
+      port: readModelSQLDbConfig?.readModelSQLDbPort,
+      database: readModelSQLDbConfig?.readModelSQLDbName,
+      user: readModelSQLDbConfig?.readModelSQLDbUsername,
+      password: readModelSQLDbConfig?.readModelSQLDbPassword,
+      ssl: readModelSQLDbConfig?.readModelSQLDbUseSSL,
+    });
+    readModelDB = drizzle({ client: pool });
   }
 
   if (analyticsSQLDbConfig) {
