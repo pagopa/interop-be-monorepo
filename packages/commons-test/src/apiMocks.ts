@@ -14,14 +14,17 @@ import { z } from "zod";
 
 export function getMockedApiPurposeVersion({
   state,
+  riskAnalysis,
 }: {
   state?: purposeApi.PurposeVersionState;
+  riskAnalysis?: purposeApi.PurposeVersionDocument;
 } = {}): purposeApi.PurposeVersion {
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
     dailyCalls: generateMock(z.number().positive()),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
+    riskAnalysis,
   };
 }
 

@@ -19,7 +19,9 @@ import {
   approvePurposeErrorMapper,
   activatePurposeErrorMapper,
   unsuspendPurposeErrorMapper,
+  getPurposeVersionDocumentErrorMapper,
 } from "../utils/errorMappers.js";
+import { sendFileAsFormData } from "../utils/fileDownload.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -265,7 +267,32 @@ const purposeRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .get(
+      "/purposes/:purposeId/versions/:versionId/document",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const document = await purposeService.getPurposeVersionDocument(
+            unsafeBrandId(req.params.purposeId),
+            unsafeBrandId(req.params.versionId),
+            ctx
+          );
+
+          return sendFileAsFormData(document, res);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getPurposeVersionDocumentErrorMapper,
+            ctx,
+            `Error retrieving document for purpose ${req.params.purposeId} version ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return purposeRouter;
 };

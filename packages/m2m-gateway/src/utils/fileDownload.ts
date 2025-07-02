@@ -1,12 +1,19 @@
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { agreementApi, catalogApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  catalogApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { Response } from "express";
 import { FormDataEncoder } from "form-data-encoder";
 
 export async function downloadDocument(
-  document: catalogApi.EServiceDoc | agreementApi.Document,
+  document:
+    | catalogApi.EServiceDoc
+    | agreementApi.Document
+    | (purposeApi.PurposeVersionDocument & { name: string }),
   fileManager: FileManager,
   bucket: string,
   logger: Logger

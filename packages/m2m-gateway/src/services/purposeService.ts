@@ -1,5 +1,5 @@
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
@@ -18,11 +18,16 @@ import {
   isPolledVersionAtLeastResponseVersion,
   isPolledVersionAtLeastMetadataTargetVersion,
 } from "../utils/polling.js";
-import { purposeVersionNotFound } from "../model/errors.js";
+import {
+  purposeVersionDocumentNotFound,
+  purposeVersionNotFound,
+} from "../model/errors.js";
 import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
 } from "../utils/validators/purposeValidator.js";
+import { downloadDocument } from "../utils/fileDownload.js";
+import { config } from "../config/config.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -46,7 +51,10 @@ export const getPurposeCurrentVersion = (
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
+export function purposeServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
+) {
   const retrievePurposeById = async (
     purposeId: PurposeId,
     headers: M2MGatewayAppContext["headers"]
@@ -362,6 +370,38 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
+    },
+    async getPurposeVersionDocument(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<File> {
+      logger.info(
+        `Retrieving document for version ${versionId} of purpose ${purposeId}`
+      );
+
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const version = purpose.versions.find(
+        (version) => version.id === versionId
+      );
+
+      if (!version) {
+        throw purposeVersionNotFound(purposeId, versionId);
+      }
+
+      if (!version.riskAnalysis) {
+        throw purposeVersionDocumentNotFound(purposeId, versionId);
+      }
+
+      const name = `risk_analysis_${purposeId}_${versionId}.pdf`;
+
+      return downloadDocument(
+        { ...version.riskAnalysis, name },
+        fileManager,
+        config.riskAnalysisDocumentsContainer,
+        logger
+      );
     },
   };
 }
