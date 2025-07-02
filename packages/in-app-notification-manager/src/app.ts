@@ -26,7 +26,7 @@ export async function createApp(service: InAppNotificationService) {
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
   app.disable("x-powered-by");
 
-  app.use(notificationConfigFeatureFlagMiddleware);
+  app.use(notificationConfigFeatureFlagMiddleware());
   app.use(healthRouter);
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
