@@ -3,6 +3,7 @@ import { TenantNotificationConfig, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   mockTokenOrganizationId,
+  getMockTenantNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -15,9 +16,8 @@ import { expectedOrganizationId } from "../utils.js";
 describe("API GET /tenantNotificationConfigs test", () => {
   const tenantId = mockTokenOrganizationId;
   const serviceResponse: TenantNotificationConfig = {
-    id: generateId(),
+    ...getMockTenantNotificationConfig(),
     tenantId,
-    config: { newEServiceVersionPublished: true },
   };
   const apiResponse: notificationConfigApi.TenantNotificationConfig =
     tenantNotificationConfigToApiTenantNotificationConfig(serviceResponse);

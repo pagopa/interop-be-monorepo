@@ -1,4 +1,8 @@
-import { getMockContext, getMockAuthData } from "pagopa-interop-commons-test";
+import {
+  getMockContext,
+  getMockAuthData,
+  getMockUserNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   TenantId,
@@ -16,15 +20,9 @@ describe("getUserNotificationConfig", () => {
   const tenantId: TenantId = generateId();
   const userId: UserId = generateId();
   const userNotificationConfig: UserNotificationConfig = {
-    id: generateId(),
+    ...getMockUserNotificationConfig(),
     userId,
     tenantId,
-    inAppConfig: {
-      newEServiceVersionPublished: true,
-    },
-    emailConfig: {
-      newEServiceVersionPublished: false,
-    },
   };
 
   it("should get the user's notification config", async () => {

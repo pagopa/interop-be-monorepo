@@ -1,6 +1,7 @@
 import {
   TenantNotificationConfig,
   UserNotificationConfig,
+  dateToString,
 } from "pagopa-interop-models";
 import {
   TenantNotificationConfigSQL,
@@ -15,6 +16,8 @@ export const splitTenantNotificationConfigIntoObjectsSQL = (
       newEServiceVersionPublished: newEserviceVersionPublished,
       ...configRest
     },
+    createdAt,
+    updatedAt,
     ...rest
   }: TenantNotificationConfig,
   metadataVersion: number
@@ -25,6 +28,8 @@ export const splitTenantNotificationConfigIntoObjectsSQL = (
     id,
     metadataVersion,
     tenantId,
+    createdAt: dateToString(createdAt),
+    updatedAt: dateToString(updatedAt),
     newEserviceVersionPublished,
   };
 };
@@ -42,6 +47,8 @@ export const splitUserNotificationConfigIntoObjectsSQL = (
       newEServiceVersionPublished: newEserviceVersionPublishedEmail,
       ...emailConfigRest
     },
+    createdAt,
+    updatedAt,
     ...rest
   }: UserNotificationConfig,
   metadataVersion: number
@@ -54,6 +61,8 @@ export const splitUserNotificationConfigIntoObjectsSQL = (
     metadataVersion,
     userId,
     tenantId,
+    createdAt: dateToString(createdAt),
+    updatedAt: dateToString(updatedAt),
     newEserviceVersionPublishedInApp,
     newEserviceVersionPublishedEmail,
   };

@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { describe, expect, it } from "vitest";
-import { generateMock } from "@anatine/zod-mock";
+import { generateId } from "pagopa-interop-models";
 import {
-  TenantNotificationConfig,
-  UserNotificationConfig,
-  generateId,
-} from "pagopa-interop-models";
+  getMockTenantNotificationConfig,
+  getMockUserNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
@@ -16,7 +15,7 @@ import {
 describe("Notification config queries", () => {
   describe("getTenantNotificationConfigByTenantId", () => {
     it("should get a tenant notification config if present", async () => {
-      const tenantNotificationConfig = generateMock(TenantNotificationConfig);
+      const tenantNotificationConfig = getMockTenantNotificationConfig();
       await insertTenantNotificationConfig(tenantNotificationConfig, 1);
 
       const retrievedConfig =
@@ -40,7 +39,7 @@ describe("Notification config queries", () => {
 
   describe("getUserNotificationConfigByUserIdAndTenantId", () => {
     it("should get a user notification config if present", async () => {
-      const userNotificationConfig = generateMock(UserNotificationConfig);
+      const userNotificationConfig = getMockUserNotificationConfig();
       await insertUserNotificationConfig(userNotificationConfig, 1);
 
       const retrievedConfig =

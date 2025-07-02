@@ -86,15 +86,27 @@ export function notificationConfigServiceBuilder(
           organizationId
         );
 
-      const [id, version]: [TenantNotificationConfigId, number | undefined] =
+      const [id, version, createdAt, updatedAt]: [
+        TenantNotificationConfigId,
+        number | undefined,
+        Date,
+        Date | undefined
+      ] =
         existingConfig !== undefined
-          ? [existingConfig.data.id, existingConfig.metadata.version]
-          : [generateId(), undefined];
+          ? [
+              existingConfig.data.id,
+              existingConfig.metadata.version,
+              existingConfig.data.createdAt,
+              new Date(),
+            ]
+          : [generateId(), undefined, new Date(), undefined];
 
       const tenantNotificationConfig: TenantNotificationConfig = {
         id,
         tenantId: organizationId,
         config: seed,
+        createdAt,
+        updatedAt,
       };
 
       const event = toCreateEventTenantNotificationConfigUpdated(
@@ -125,10 +137,20 @@ export function notificationConfigServiceBuilder(
           organizationId
         );
 
-      const [id, version]: [UserNotificationConfigId, number | undefined] =
+      const [id, version, createdAt, updatedAt]: [
+        UserNotificationConfigId,
+        number | undefined,
+        Date,
+        Date | undefined
+      ] =
         existingConfig !== undefined
-          ? [existingConfig.data.id, existingConfig.metadata.version]
-          : [generateId(), undefined];
+          ? [
+              existingConfig.data.id,
+              existingConfig.metadata.version,
+              existingConfig.data.createdAt,
+              new Date(),
+            ]
+          : [generateId(), undefined, new Date(), undefined];
 
       const userNotificationConfig: UserNotificationConfig = {
         id,
@@ -136,6 +158,8 @@ export function notificationConfigServiceBuilder(
         tenantId: organizationId,
         inAppConfig: seed.inAppConfig,
         emailConfig: seed.emailConfig,
+        createdAt,
+        updatedAt,
       };
 
       const event = toCreateEventUserNotificationConfigUpdated(

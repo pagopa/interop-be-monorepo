@@ -2,6 +2,8 @@ import {
   getMockContext,
   getMockAuthData,
   decodeProtobufPayload,
+  getMockNotificationConfig,
+  getMockTenantNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
@@ -11,7 +13,7 @@ import {
   TenantNotificationConfigUpdatedV2,
   toTenantNotificationConfigV2,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
   addOneTenantNotificationConfig,
   notificationConfigService,
@@ -20,11 +22,15 @@ import {
 
 describe("updateTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
-  const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed = {
-    newEServiceVersionPublished: true,
-  };
+
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+  });
 
   it("should write on event-store for the first creation of a tenant's notification configuration", async () => {
+    const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
+      getMockNotificationConfig();
     const { id } =
       await notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,
@@ -45,6 +51,7 @@ describe("updateTenantNotificationConfig", () => {
       id,
       tenantId,
       config: notificationConfigSeed,
+      createdAt: new Date(),
     });
     expect(writtenPayload.tenantNotificationConfig).toEqual(
       expectedTenantNotificationConfig
@@ -53,11 +60,15 @@ describe("updateTenantNotificationConfig", () => {
 
   it("should write on event-store for the update of a tenant's existing notification configuration", async () => {
     const tenantNotificationConfig: TenantNotificationConfig = {
-      id: generateId(),
+      ...getMockTenantNotificationConfig(),
       tenantId,
-      config: { newEServiceVersionPublished: false },
     };
     addOneTenantNotificationConfig(tenantNotificationConfig);
+    const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
+      {
+        newEServiceVersionPublished:
+          !tenantNotificationConfig.config.newEServiceVersionPublished,
+      };
     const { id } =
       await notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,
@@ -78,6 +89,8 @@ describe("updateTenantNotificationConfig", () => {
       id,
       tenantId,
       config: notificationConfigSeed,
+      createdAt: tenantNotificationConfig.createdAt,
+      updatedAt: new Date(),
     });
     expect(writtenPayload.tenantNotificationConfig).toEqual(
       expectedTenantNotificationConfig

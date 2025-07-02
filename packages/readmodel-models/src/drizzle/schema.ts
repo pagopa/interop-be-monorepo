@@ -1705,6 +1705,14 @@ export const tenantNotificationConfigInReadmodelNotificationConfig =
       id: uuid().primaryKey().notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       tenantId: uuid("tenant_id").notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      updatedAt: timestamp("updated_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
       newEserviceVersionPublished: boolean(
         "new_eservice_version_published"
       ).notNull(),
@@ -1726,6 +1734,14 @@ export const userNotificationConfigInReadmodelNotificationConfig =
       metadataVersion: integer("metadata_version").notNull(),
       userId: uuid("user_id").notNull(),
       tenantId: uuid("tenant_id").notNull(),
+      createdAt: timestamp("created_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      updatedAt: timestamp("updated_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
       newEserviceVersionPublishedInApp: boolean(
         "new_eservice_version_published_in_app"
       ).notNull(),

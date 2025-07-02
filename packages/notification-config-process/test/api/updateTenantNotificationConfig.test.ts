@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TenantNotificationConfig, generateId } from "pagopa-interop-models";
 import {
   generateToken,
+  getMockNotificationConfig,
+  getMockTenantNotificationConfig,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -13,11 +15,10 @@ import { expectedOrganizationId } from "../utils.js";
 
 describe("API POST /tenantNotificationConfigs test", () => {
   const tenantId = mockTokenOrganizationId;
-  const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed = {
-    newEServiceVersionPublished: true,
-  };
+  const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
+    getMockNotificationConfig();
   const serviceResponse: TenantNotificationConfig = {
-    id: generateId(),
+    ...getMockTenantNotificationConfig(),
     tenantId,
     config: notificationConfigSeed,
   };

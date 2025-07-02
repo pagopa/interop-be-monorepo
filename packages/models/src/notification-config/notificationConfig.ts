@@ -15,6 +15,8 @@ export const TenantNotificationConfig = z.object({
   id: TenantNotificationConfigId,
   tenantId: TenantId,
   config: NotificationConfig,
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date().optional(),
 });
 export type TenantNotificationConfig = z.infer<typeof TenantNotificationConfig>;
 
@@ -24,5 +26,7 @@ export const UserNotificationConfig = z.object({
   tenantId: TenantId,
   inAppConfig: NotificationConfig,
   emailConfig: NotificationConfig,
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date().optional(),
 });
 export type UserNotificationConfig = z.infer<typeof UserNotificationConfig>;

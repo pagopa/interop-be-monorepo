@@ -170,6 +170,7 @@ components:
         - id
         - tenantId
         - config
+        - createdAt
       properties:
         id:
           type: string
@@ -179,6 +180,12 @@ components:
           format: uuid
         config:
           $ref: "#/components/schemas/NotificationConfig"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     UserNotificationConfig:
       type: object
       additionalProperties: false
@@ -188,6 +195,7 @@ components:
         - tenantId
         - inAppConfig
         - emailConfig
+        - createdAt
       properties:
         id:
           type: string
@@ -202,6 +210,12 @@ components:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
           $ref: "#/components/schemas/NotificationConfig"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
     NotificationConfig:
       type: object
       additionalProperties: false
