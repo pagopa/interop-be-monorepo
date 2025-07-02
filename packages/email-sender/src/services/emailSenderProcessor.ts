@@ -100,9 +100,8 @@ export function emailSenderProcessorBuilder(
           html: jsonPayload.body,
         };
 
-        loggerInstance.info(`Sending email`);
         await sesEmailManager.send(mailOptions, loggerInstance);
-        loggerInstance.info(`Email sent: ${jsonPayload}`);
+        loggerInstance.info(`Email sent`);
       } catch (err) {
         throw genericInternalError(
           `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
