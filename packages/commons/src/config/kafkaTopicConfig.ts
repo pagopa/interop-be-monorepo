@@ -98,10 +98,10 @@ export type ApplicationAuditTopicConfig = z.infer<
 
 export const EmailSenderTopicConfig = z
   .object({
-    EMAIL_TOPIC: z.string(),
+    EMAIL_SENDER_TOPIC: z.string(),
   })
   .transform((c) => ({
-    emailTopic: c.EMAIL_TOPIC,
+    emailSenderTopic: c.EMAIL_SENDER_TOPIC,
   }));
 export type EmailSenderTopicConfig = z.infer<typeof EmailSenderTopicConfig>;
 
