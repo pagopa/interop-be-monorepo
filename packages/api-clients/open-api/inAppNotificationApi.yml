@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: In App Notification Manager
-  description: This service is the in app notification manager
+  description: This service is the in-app notification manager
   version: "{{version}}"
   contact:
     name: API Support
@@ -12,12 +12,12 @@ info:
   x-summary: an x-summary
 servers:
   - url: "/"
-    description: This service is the in app notification manager
+    description: This service is the in-app notification manager
 security:
   - bearerAuth: []
 tags:
   - name: notification
-    description: Implements in app notification manager
+    description: Implements in-app notification manager
     externalDocs:
       description: Find out more
       url: http://swagger.io
