@@ -18,7 +18,7 @@ export type EmailManagerKind = "PEC" | "SES";
 
 export type EmailManager = {
   kind: EmailManagerKind;
-  send: (params: Mail.Options) => Promise<void>;
+  send: (params: Mail.Options, logger: Logger) => Promise<void>;
 };
 
 export type EmailManagerPEC = EmailManager & {
@@ -35,7 +35,7 @@ export function initPecEmailManager(
 ): EmailManagerPEC {
   return {
     kind: "PEC",
-    send: async (mailOptions: Mail.Options): Promise<void> => {
+    send: async (mailOptions: Mail.Options, _: Logger): Promise<void> => {
       const transporter = nodemailer.createTransport({
         host: config.smtpAddress,
         port: config.smtpPort,
@@ -73,7 +73,7 @@ export function initSesMailManager(
 
   return {
     kind: "SES",
-    send: async (mailOptions: Mail.Options): Promise<void> => {
+    send: async (mailOptions: Mail.Options, logger: Logger): Promise<void> => {
       const rawMailData = await new MailComposer(mailOptions).compile().build();
 
       const input: SendEmailCommandInput = {
