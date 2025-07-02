@@ -19,10 +19,11 @@ import {
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
+  getMockWithMetadata,
+  mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientKindNotAllowed,
@@ -36,7 +37,6 @@ import {
   purposeDelegationNotFound,
   purposeNotFound,
 } from "../../src/model/domain/errors.js";
-import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 
 describe("API /clients/{clientId}/purposes authorization test", () => {
   const mockDescriptor: Descriptor = {
@@ -59,22 +59,11 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     versions: [getMockPurposeVersion(purposeVersionState.active)],
   };
 
-  const mockClient: Client = {
-    ...getMockClient(),
-    consumerId: mockConsumerId,
-  };
-
-  authorizationService.addClientPurpose = vi.fn().mockResolvedValue({
-    data: {
-      client: mockClient,
-      showUsers: true,
-    },
-    metadata: { version: 1 },
-  });
-
-  const apiClient = authorizationApi.Client.parse(
-    clientToApiClient(mockClient, { showUsers: true })
-  );
+  const mockClient: Client = getMockClient({ consumerId: mockConsumerId });
+  const serviceResponse = getMockWithMetadata(mockClient);
+  authorizationService.addClientPurpose = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
@@ -92,13 +81,49 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 200 with a compact client for user with role %s and tenant != client consumerId",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiClient);
-      expect(res.headers["x-metadata-version"]).toBe("1");
+      expect(res.body).toEqual({
+        id: mockClient.id,
+        consumerId: mockClient.consumerId,
+        kind: mockClient.kind.toUpperCase(),
+      });
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
+
+  it.each(authorizedRoles)(
+    "Should return 200 with a full client for user with role %s and tenant = client consumerId",
+    async (role) => {
+      const mockClient = getMockClient({
+        consumerId: mockTokenOrganizationId,
+      });
+      const serviceResponse = getMockWithMetadata(mockClient);
+      authorizationService.addClientPurpose = vi
+        .fn()
+        .mockResolvedValueOnce(serviceResponse);
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockClient.id);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        id: mockClient.id,
+        name: mockClient.name,
+        consumerId: mockClient.consumerId,
+        users: mockClient.users,
+        createdAt: mockClient.createdAt.toJSON(),
+        purposes: mockClient.purposes,
+        kind: mockClient.kind.toUpperCase(),
+        description: mockClient.description,
+        adminId: mockClient.adminId,
+      });
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 

@@ -7,11 +7,14 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { generateToken, getMockClient } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import {
+  generateToken,
+  getMockClient,
+  mockTokenOrganizationId,
+} from "pagopa-interop-commons-test";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 import {
   clientNotFound,
   clientUserAlreadyAssigned,
@@ -24,17 +27,12 @@ describe("API /clients/{clientId}/users authorization test", () => {
   const userIds: UserId[] = [generateId()];
   const usersToAdd: UserId[] = [generateId(), generateId()];
 
-  const mockClient: Client = {
-    ...getMockClient(),
+  const mockClient: Client = getMockClient({
     consumerId,
     users: userIds,
-  };
+  });
 
-  const apiClient = clientToApiClient(mockClient, { showUsers: true });
-
-  authorizationService.addClientUsers = vi
-    .fn()
-    .mockResolvedValue({ client: mockClient, showUsers: true });
+  authorizationService.addClientUsers = vi.fn().mockResolvedValue(mockClient);
 
   const makeRequest = async (
     token: string,
@@ -49,12 +47,42 @@ describe("API /clients/{clientId}/users authorization test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 200 with a compact client for user with role %s and tenant != client consumerId",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiClient);
+      expect(res.body).toEqual({
+        id: mockClient.id,
+        consumerId: mockClient.consumerId,
+        kind: mockClient.kind.toUpperCase(),
+      });
+    }
+  );
+
+  it.each(authorizedRoles)(
+    "Should return 200 with a full client for user with role %s and tenant = client consumerId",
+    async (role) => {
+      const mockClient = getMockClient({
+        consumerId: mockTokenOrganizationId,
+      });
+      authorizationService.addClientUsers = vi
+        .fn()
+        .mockResolvedValueOnce(mockClient);
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockClient.id);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        id: mockClient.id,
+        name: mockClient.name,
+        consumerId: mockClient.consumerId,
+        users: mockClient.users,
+        createdAt: mockClient.createdAt.toJSON(),
+        purposes: mockClient.purposes,
+        kind: mockClient.kind.toUpperCase(),
+        description: mockClient.description,
+        adminId: mockClient.adminId,
+      });
     }
   );
 
