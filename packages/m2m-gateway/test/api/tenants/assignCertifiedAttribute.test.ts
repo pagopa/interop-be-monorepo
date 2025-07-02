@@ -34,7 +34,7 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockTenantService.addCertifiedAttribute = vi
+      mockTenantService.assignCertifiedAttribute = vi
         .fn()
         .mockResolvedValue(mockResponse);
 
@@ -68,7 +68,9 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
     missingMetadata(),
     pollingMaxRetriesExceeded(3, 10),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockTenantService.addCertifiedAttribute = vi.fn().mockRejectedValue(error);
+    mockTenantService.assignCertifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, { id: generateId() });
 
@@ -83,7 +85,9 @@ describe("POST /tenants/:tenantId/certifiedAttributes router test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockTenantService.addCertifiedAttribute = vi.fn().mockResolvedValue(resp);
+      mockTenantService.assignCertifiedAttribute = vi
+        .fn()
+        .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, { id: generateId() });
 
