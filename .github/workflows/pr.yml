@@ -101,11 +101,11 @@ jobs:
         with:
           run_install: true
 
-      - run: pnpm test:ci -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-      - run: pnpm test:old -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-      - run: pnpm test:api -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-      - run: pnpm test:integration -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-      - run: pnpm test:integration:old -- --reporter=blob --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      - run: pnpm test:integration -- --reporter=blob --outputFile=reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      # - run: pnpm test:ci -- --reporter=blob --outputFile=reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      # - run: pnpm test:old -- --reporter=blob --outputFile=reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      # - run: pnpm test:api -- --reporter=blob --outputFile=reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      # - run: pnpm test:integration:old -- --reporter=blob --outputFile=reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
 
       - name: Upload blob report to GitHub Actions Artifacts
         if: ${{ !cancelled() }}
