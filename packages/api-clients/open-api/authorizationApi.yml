@@ -1833,7 +1833,14 @@ components:
       required:
         - name
         - members
-
+    Client:
+      description: |
+        Models a client that can be either a full client or a compact client based on the caller
+        tenant. In case the caller tenant is the consumer of the client (i.e., the owner), the
+        full client is returned, otherwise a compact client is returned.
+      oneOf:
+        - $ref: "#/components/schemas/FullClient"
+        - $ref: "#/components/schemas/CompactClient"
     CompactClient:
       type: object
       description: |
@@ -1908,14 +1915,6 @@ components:
         - users
         - kind
         - createdAt
-    Client:
-      description: |
-        Models a client that can be either a full client or a compact client based on the caller
-        tenant. In case the caller tenant is the consumer of the client (i.e., the owner), the
-        full client is returned, otherwise a compact client is returned.
-      oneOf:
-        - $ref: "#/components/schemas/FullClient"
-        - $ref: "#/components/schemas/CompactClient"
 
     ClientKind:
       type: string
