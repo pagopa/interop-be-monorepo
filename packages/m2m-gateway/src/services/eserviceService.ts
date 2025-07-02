@@ -165,13 +165,12 @@ export function eserviceServiceBuilder(
         throw eserviceDescriptorInterfaceNotFound(eserviceId, descriptorId);
       }
 
-      const stream = await fileManager.get(
+      return downloadDocument(
+        descriptor.interface,
+        fileManager,
         config.eserviceDocumentsContainer,
-        descriptor.interface.path,
         logger
       );
-
-      return downloadDocument(descriptor.interface, stream);
     },
   };
 }

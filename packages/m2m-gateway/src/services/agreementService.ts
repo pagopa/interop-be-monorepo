@@ -307,13 +307,12 @@ export function agreementServiceBuilder(
           headers,
         });
 
-      const stream = await fileManager.get(
-        config.eserviceDocumentsContainer,
-        document.path,
+      return downloadDocument(
+        document,
+        fileManager,
+        config.consumerDocumentsContainer,
         logger
       );
-
-      return downloadDocument(document, stream);
     },
   };
 }

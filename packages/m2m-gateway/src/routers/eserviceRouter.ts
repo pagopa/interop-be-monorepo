@@ -1,5 +1,3 @@
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -11,8 +9,6 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { FormDataEncoder } from "form-data-encoder";
-import { FormData } from "formdata-node";
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
@@ -20,6 +16,7 @@ import {
   getEserviceDescriptorErrorMapper,
   getEserviceDescriptorInterfaceErrorMapper,
 } from "../utils/errorMappers.js";
+import { sendFileAsFormData } from "../utils/fileDownload.js";
 
 const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
@@ -138,18 +135,7 @@ const eserviceRouter = (
             ctx
           );
 
-          const form = new FormData();
-          form.set("file", file);
-          form.set("filename", file.name);
-          form.set("contentType", file.type);
-
-          const encoder = new FormDataEncoder(form);
-
-          res.writeHead(200, encoder.headers);
-
-          // Stream the multipart body and end the response when done
-          await pipeline(Readable.from(encoder.encode()), res);
-          return res;
+          return sendFileAsFormData(file, res);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
