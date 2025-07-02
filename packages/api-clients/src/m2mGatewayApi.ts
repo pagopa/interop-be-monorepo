@@ -48,6 +48,11 @@ export type GetConsumerDelegationsQueryParams = QueryParametersByAlias<
   "getConsumerDelegations"
 >;
 
+export type GetProducerDelegationsQueryParams = QueryParametersByAlias<
+  DelegationApi,
+  "getProducerDelegations"
+>;
+
 export type GetEServiceTemplateVersionsQueryParams = QueryParametersByAlias<
   EServiceTemplateApi,
   "getEServiceTemplateVersions"
