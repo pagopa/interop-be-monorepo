@@ -10,6 +10,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { isAxiosError } from "axios";
+import { match } from "ts-pattern";
 import {
   AuthorizationProcessClient,
   CatalogProcessClient,
@@ -93,49 +94,62 @@ async function isAllowedToGetClient(
     return true;
   }
 
-  const settledPromises = await Promise.allSettled(
-    client.purposes.map((purpose) =>
-      purposeProcessClient.getPurpose({
-        headers,
-        params: {
-          id: purpose,
-        },
-      })
+  return match(client)
+    .with(
+      { visibility: authorizationApi.ClientVisibility.Enum.FULL },
+      async (client) => {
+        const settledPromises = await Promise.allSettled(
+          client.purposes.map((purpose) =>
+            purposeProcessClient.getPurpose({
+              headers,
+              params: {
+                id: purpose,
+              },
+            })
+          )
+        );
+
+        settledPromises.forEach((p) => {
+          if (p.status !== "rejected") {
+            return;
+          }
+          /**
+           * There could be purposes which the requester is not allowed to see in the client.
+           * We ignore those purposes and continue the checks only with the ones that are allowed.
+           */
+          const error = p.reason;
+          if (isAxiosError(error) && error.response?.status === 403) {
+            return;
+          }
+          throw error;
+        });
+
+        const purposes = settledPromises
+          .filter(
+            (r): r is PromiseFulfilledResult<purposeApi.Purpose> =>
+              r.status === "fulfilled"
+          )
+          .map((r) => r.value);
+
+        const eservices = await Promise.all(
+          purposes.map((purpose) =>
+            catalogProcessClient.getEServiceById({
+              headers,
+              params: {
+                eServiceId: purpose.eserviceId,
+              },
+            })
+          )
+        );
+
+        return eservices.some(
+          (eservice) => eservice.producerId === requesterId
+        );
+      }
     )
-  );
-
-  settledPromises.forEach((p) => {
-    if (p.status !== "rejected") {
-      return;
-    }
-    /**
-     * There could be purposes which the requester is not allowed to see in the client.
-     * We ignore those purposes and continue the checks only with the ones that are allowed.
-     */
-    const error = p.reason;
-    if (isAxiosError(error) && error.response?.status === 403) {
-      return;
-    }
-    throw error;
-  });
-
-  const purposes = settledPromises
-    .filter(
-      (r): r is PromiseFulfilledResult<purposeApi.Purpose> =>
-        r.status === "fulfilled"
+    .with(
+      { visibility: authorizationApi.ClientVisibility.Enum.COMPACT },
+      () => false
     )
-    .map((r) => r.value);
-
-  const eservices = await Promise.all(
-    purposes.map((purpose) =>
-      catalogProcessClient.getEServiceById({
-        headers,
-        params: {
-          eServiceId: purpose.eserviceId,
-        },
-      })
-    )
-  );
-
-  return eservices.some((eservice) => eservice.producerId === requesterId);
+    .exhaustive();
 }
