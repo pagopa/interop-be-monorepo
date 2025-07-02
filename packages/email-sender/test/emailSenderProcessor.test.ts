@@ -39,6 +39,9 @@ describe("emailSenderProcessor", () => {
 
   it.each([
     {
+      eventPayload: null,
+    },
+    {
       eventPayload: { ...correctEventPayload, subject: undefined },
     },
     {
@@ -66,12 +69,6 @@ describe("emailSenderProcessor", () => {
       expect(mockSESEmailManager.send).toBeCalledTimes(0);
     }
   );
-
-  it("should skip empty message", async () => {
-    const message = kafkaMessagePayloadWithValue(null);
-    await emailSenderProcessor.processMessage(message);
-    expect(mockSESEmailManager.send).toHaveBeenCalledTimes(0);
-  });
 
   it("should throw error when hitting the rate limit of aws ses", async () => {
     const message = kafkaMessagePayload;
