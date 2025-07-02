@@ -16,6 +16,7 @@ import {
   approveAgreementErrorMapper,
   unsuspendAgreementErrorMapper,
 } from "../utils/errorMappers.js";
+import { sendFileAsFormData } from "../utils/fileDownload.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,
@@ -225,7 +226,31 @@ const agreementRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .get(
+      "/agreements/:agreementId/consumerDocuments/:documentId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const file = await agreementService.getAgreementConsumerDocument(
+            unsafeBrandId(req.params.agreementId),
+            unsafeBrandId(req.params.documentId),
+            ctx
+          );
+
+          return sendFileAsFormData(file, res);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error retrieving consumer document with id ${req.params.documentId} for agreement with id ${req.params.agreementId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   return agreementRouter;
 };
