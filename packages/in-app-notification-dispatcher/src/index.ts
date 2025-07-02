@@ -122,47 +122,14 @@ export async function handlePurposeMessage(
   decodedMessage: PurposeEventEnvelopeV2,
   logger: Logger
 ): Promise<void> {
-  await match(decodedMessage)
-    .with(
-      { type: "NewPurposeVersionWaitingForApproval" },
-      async ({ data: { purpose } }) => {
-        if (purpose) {
-          logger.info("NewPurposeVersionWaitingForApproval not implemented");
-        } else {
-          throw missingKafkaMessageDataError("purpose", decodedMessage.type);
-        }
-      }
-    )
-    .with(
-      { type: "PurposeWaitingForApproval" },
-      async ({ data: { purpose } }) => {
-        if (purpose) {
-          logger.info("PurposeWaitingForApproval not implemented");
-        } else {
-          throw missingKafkaMessageDataError("purpose", decodedMessage.type);
-        }
-      }
-    )
-    .with({ type: "PurposeVersionRejected" }, async ({ data: { purpose } }) => {
-      if (purpose) {
-        logger.info("PurposeVersionRejected not implemented");
-      } else {
-        throw missingKafkaMessageDataError("purpose", decodedMessage.type);
-      }
-    })
-    .with(
-      { type: "PurposeVersionActivated" },
-      async ({ data: { purpose } }) => {
-        if (purpose) {
-          logger.info("PurposeVersionActivated not implemented");
-        } else {
-          throw missingKafkaMessageDataError("purpose", decodedMessage.type);
-        }
-      }
-    )
+  match(decodedMessage)
     .with(
       {
         type: P.union(
+          "NewPurposeVersionWaitingForApproval",
+          "PurposeWaitingForApproval",
+          "PurposeVersionRejected",
+          "PurposeVersionActivated",
           "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
@@ -194,31 +161,13 @@ export async function handleAgreementMessage(
   decodedMessage: AgreementEventEnvelopeV2,
   logger: Logger
 ): Promise<void> {
-  await match(decodedMessage)
-    .with({ type: "AgreementActivated" }, async ({ data: { agreement } }) => {
-      if (agreement) {
-        logger.info("AgreementActivated not implemented");
-      } else {
-        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-      }
-    })
-    .with({ type: "AgreementSubmitted" }, async ({ data: { agreement } }) => {
-      if (agreement) {
-        logger.info("AgreementSubmitted not implemented");
-      } else {
-        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-      }
-    })
-    .with({ type: "AgreementRejected" }, async ({ data: { agreement } }) => {
-      if (agreement) {
-        logger.info("AgreementRejected not implemented");
-      } else {
-        throw missingKafkaMessageDataError("agreement", decodedMessage.type);
-      }
-    })
+  match(decodedMessage)
     .with(
       {
         type: P.union(
+          "AgreementActivated",
+          "AgreementSubmitted",
+          "AgreementRejected",
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
