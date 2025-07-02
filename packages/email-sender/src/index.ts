@@ -17,4 +17,4 @@ const processor = emailSenderProcessorBuilder(
   sesEmailManager
 );
 
-await runConsumer(config, [config.emailTopic], processor.processMessage);
+await runConsumer(config, [config.emailSenderTopic], processor.processMessage);
