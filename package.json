@@ -48,7 +48,6 @@
     "start:notification-email-sender": "turbo start --filter pagopa-interop-notification-email-sender",
     "start:m2m-gateway": "turbo start --filter pagopa-interop-m2m-gateway",
     "test": "turbo test test:old test:integration test:integration:old test:api",
-    "test:ci": "turbo test:ci",
     "test:old": "turbo test:old",
     "test:api": "turbo test:api",
     "test:integration": "turbo test:integration",
