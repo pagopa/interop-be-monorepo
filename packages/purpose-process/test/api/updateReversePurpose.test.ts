@@ -64,10 +64,7 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.ADMIN_ROLE,
-    authRole.M2M_ADMIN_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -83,7 +80,7 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
   );
 
   it.each(
-    Object.values(authRole).filter((role) => role !== authRole.ADMIN_ROLE)
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
