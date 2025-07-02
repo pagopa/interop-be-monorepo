@@ -1,5 +1,6 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  InternalAuthData,
   M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisValidatedForm,
@@ -358,7 +359,7 @@ export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
  * from the producer tenant or the delegate producer tenant.
  */
 export function hasRoleToAccessInactiveDescriptors(
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
 ): boolean {
   return (
     hasAtLeastOneUserRole(authData, [
