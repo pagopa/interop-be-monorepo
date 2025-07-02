@@ -33,3 +33,17 @@ export const getMockM2MAdminAppContext = ({
     },
   };
 };
+
+export function getMockFile({
+  mockFileName = "mockFileName.txt",
+  mockContentType = "text/plain",
+  mockFileContent = "This is a mock file content for testing purposes.\nIt simulates the content of an Eservice descriptor interface file.\nOn multiple lines.",
+}: {
+  mockFileName?: string;
+  mockContentType?: string;
+  mockFileContent?: string;
+} = {}): File {
+  return new File([Buffer.from(mockFileContent)], mockFileName, {
+    type: mockContentType,
+  });
+}

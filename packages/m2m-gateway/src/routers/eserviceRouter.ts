@@ -12,7 +12,7 @@ import {
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { FormDataEncoder } from "form-data-encoder";
-import { FormData, File } from "formdata-node";
+import { FormData } from "formdata-node";
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
@@ -132,17 +132,16 @@ const eserviceRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-          const { file, filename, contentType } =
-            await eserviceService.getEServiceDescriptorInterface(
-              unsafeBrandId(req.params.eserviceId),
-              unsafeBrandId(req.params.descriptorId),
-              ctx
-            );
+          const file = await eserviceService.getEServiceDescriptorInterface(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
 
           const form = new FormData();
-          form.set("file", new File([file], filename, { type: contentType }));
-          form.set("filename", filename);
-          form.set("contentType", contentType);
+          form.set("file", file);
+          form.set("filename", file.name);
+          form.set("contentType", file.type);
 
           const encoder = new FormDataEncoder(form);
 

@@ -9,6 +9,7 @@ import {
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
+import { getMockFile } from "../../mockUtils.js";
 
 describe("GET /eservice/:eserviceId/descriptors/:descriptorId/interface router test", () => {
   const mockFileName = "mockFileName.txt";
@@ -17,11 +18,11 @@ describe("GET /eservice/:eserviceId/descriptors/:descriptorId/interface router t
 It simulates the content of an Eservice descriptor interface file.
 On multiple lines.`;
 
-  const mockM2MEserviceDescriptorInterfaceResponse = {
-    file: Buffer.from(mockFileContent),
-    filename: mockFileName,
-    contentType: mockContentType,
-  };
+  const mockFile = getMockFile({
+    mockFileName,
+    mockContentType,
+    mockFileContent,
+  });
 
   const makeRequest = async (
     token: string,
@@ -54,7 +55,7 @@ On multiple lines.`;
     async (role) => {
       mockEserviceService.getEServiceDescriptorInterface = vi
         .fn()
-        .mockResolvedValue(mockM2MEserviceDescriptorInterfaceResponse);
+        .mockResolvedValue(mockFile);
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId(), generateId());

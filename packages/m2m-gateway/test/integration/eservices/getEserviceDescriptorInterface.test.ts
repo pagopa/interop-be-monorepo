@@ -85,11 +85,11 @@ On multiple lines.`;
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual({
-      file: Buffer.from(testFileContent),
-      contentType: mockInterface.contentType,
-      filename: mockInterface.name,
-    });
+    expect(result).toEqual(
+      new File([Buffer.from(testFileContent)], mockInterface.name, {
+        type: mockInterface.contentType,
+      })
+    );
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },
