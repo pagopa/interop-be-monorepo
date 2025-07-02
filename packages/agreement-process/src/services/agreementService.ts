@@ -952,7 +952,10 @@ export function agreementServiceBuilder(
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
     ): Promise<AgreementDocument> {
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`
