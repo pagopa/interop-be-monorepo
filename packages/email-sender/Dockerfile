@@ -13,6 +13,7 @@ COPY .npmrc /app/
 
 COPY ./packages/email-sender/package.json /app/packages/email-sender/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
+COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
 
