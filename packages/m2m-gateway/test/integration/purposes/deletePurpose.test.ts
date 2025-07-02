@@ -1,8 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { getMockedApiPurpose } from "pagopa-interop-commons-test";
 import {
+  getMockedApiPurpose,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
+  expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
+  mockDeletionPollingResponse,
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
@@ -10,30 +15,37 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deletePurpose", () => {
-  const mockApiPurpose = getMockedApiPurpose();
+  const mockApiPurpose = getMockWithMetadata(getMockedApiPurpose());
 
   const mockDeletePurpose = vi.fn();
+  const mockGetPurpose = vi.fn(mockDeletionPollingResponse(mockApiPurpose, 2));
 
   mockInteropBeClients.purposeProcessClient = {
+    getPurpose: mockGetPurpose,
     deletePurpose: mockDeletePurpose,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
     mockDeletePurpose.mockClear();
+    mockGetPurpose.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const result = await purposeService.deletePurpose(
-      unsafeBrandId(mockApiPurpose.id),
+    await purposeService.deletePurpose(
+      unsafeBrandId(mockApiPurpose.data.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(undefined);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.deletePurpose,
-      params: {
-        id: mockApiPurpose.id,
-      },
+      params: { id: mockApiPurpose.data.id },
     });
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
+      params: { id: mockApiPurpose.data.id },
+    });
+    expect(
+      mockInteropBeClients.purposeProcessClient.getPurpose
+    ).toHaveBeenCalledTimes(2);
   });
 });
