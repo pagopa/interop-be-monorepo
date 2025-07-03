@@ -1,6 +1,5 @@
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { agreementApi, catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { Response } from "express";
 import { FormDataEncoder } from "form-data-encoder";
@@ -10,13 +9,14 @@ export type DownloadedDocument = {
   prettyName: string | undefined;
 };
 
+type DocumentData = {
+  path: string;
+  contentType: string;
+  name: string;
+  prettyName?: string;
+};
 export async function downloadDocument(
-  {
-    path,
-    name,
-    contentType,
-    prettyName,
-  }: catalogApi.EServiceDoc | agreementApi.Document,
+  { path, contentType, name, prettyName }: DocumentData,
   fileManager: FileManager,
   bucket: string,
   logger: Logger
