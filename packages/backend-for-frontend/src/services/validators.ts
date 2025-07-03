@@ -12,6 +12,7 @@ import {
   EServiceTemplateId,
   operationForbidden,
   TenantId,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
@@ -230,6 +231,6 @@ export function assertClientVisibilityIsFull(
   visibility: typeof authorizationApi.ClientVisibility.Values.FULL;
 } {
   if (client.visibility !== authorizationApi.ClientVisibility.Values.FULL) {
-    throw operationForbidden;
+    throw unauthorizedError("Tenant is not the owner of the client");
   }
 }

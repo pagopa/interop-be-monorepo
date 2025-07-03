@@ -1846,6 +1846,9 @@ components:
         - $ref: "#/components/schemas/CompactClient"
       discriminator:
         propertyName: visibility
+        mapping:
+          COMPACT: "#/components/schemas/CompactClient"
+          FULL: "#/components/schemas/FullClient"
     CompactClient:
       type: object
       description: |
@@ -1854,10 +1857,8 @@ components:
       additionalProperties: false
       properties:
         visibility:
-          allOf:
-            - $ref: "#/components/schemas/ClientVisibility"
-            - type: string
-              enum: [COMPACT]
+          type: string
+          enum: [COMPACT]
         id:
           type: string
           format: uuid
@@ -1884,10 +1885,8 @@ components:
       additionalProperties: false
       properties:
         visibility:
-          allOf:
-            - $ref: "#/components/schemas/ClientVisibility"
-            - type: string
-              enum: [FULL]
+          type: string
+          enum: [FULL]
         id:
           type: string
           format: uuid
