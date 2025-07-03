@@ -57,7 +57,7 @@ export async function handleCatalogMessage(
       { type: "EServiceDescriptorPublished" },
       async ({ data: { eservice } }) => {
         if (eservice) {
-          logger.info("EServiceDescriptorPublished not implemented");
+          handleEServiceDescriptorPublished(eservice, logger);
         } else {
           throw missingKafkaMessageDataError("eservice", decodedMessage.type);
         }
