@@ -26,7 +26,7 @@ describe("getAgreementConsumerDocument", () => {
   const mockDocument = getMockedApiAgreementDocument({
     id: mockDocumentId,
     name: mockDocumentName,
-    path: `${config.consumerDocumentsPath}/${mockDocumentId}/${mockDocumentName}`,
+    path: `${config.agreementConsumerDocumentsPath}/${mockDocumentId}/${mockDocumentName}`,
   });
 
   const mockAgreementProcessResponse = getMockWithMetadata(mockDocument);
@@ -46,8 +46,8 @@ describe("getAgreementConsumerDocument", () => {
   it("Should succeed, perform API clients calls, and retrieve the file", async () => {
     await fileManager.storeBytes(
       {
-        bucket: config.consumerDocumentsContainer,
-        path: config.consumerDocumentsPath,
+        bucket: config.agreementConsumerDocumentsContainer,
+        path: config.agreementConsumerDocumentsPath,
         resourceId: mockDocument.id,
         name: mockDocument.name,
         content: Buffer.from(testFileContent),
@@ -58,7 +58,7 @@ describe("getAgreementConsumerDocument", () => {
     expect(
       (
         await fileManager.listFiles(
-          config.consumerDocumentsContainer,
+          config.agreementConsumerDocumentsContainer,
           genericLogger
         )
       ).at(0)

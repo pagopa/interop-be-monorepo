@@ -9,18 +9,14 @@ export type DownloadedDocument = {
   prettyName: string | undefined;
 };
 
+type DocumentData = {
+  path: string;
+  contentType: string;
+  name: string;
+  prettyName?: string;
+};
 export async function downloadDocument(
-  {
-    path,
-    contentType,
-    name,
-    prettyName,
-  }: {
-    path: string;
-    contentType: string;
-    name: string;
-    prettyName?: string;
-  },
+  { path, contentType, name, prettyName }: DocumentData,
   fileManager: FileManager,
   bucket: string,
   logger: Logger
