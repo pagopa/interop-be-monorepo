@@ -228,6 +228,15 @@ export const SelfcareProcessConfig = z
   }));
 export type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
 
+export const SwaggerConfig = z
+  .object({
+    BFF_SWAGGER_UI_ENABLED: z.coerce.boolean().default(false),
+  })
+  .transform((c) => ({
+    bffSwaggerUiEnabled: c.BFF_SWAGGER_UI_ENABLED,
+  }));
+export type SwaggerConfig = z.infer<typeof SwaggerConfig>;
+
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
   .and(CatalogProcessServerConfig)
@@ -248,6 +257,7 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(ImportFileConfig)
   .and(InterfaceVersion)
   .and(SelfcareProcessConfig)
+  .and(SwaggerConfig)
   .and(ClientAssertionValidationConfig)
   .and(EServiceTemplateS3Config)
   .and(ApplicationAuditProducerConfig)

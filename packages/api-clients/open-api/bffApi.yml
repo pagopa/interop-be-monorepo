@@ -19878,6 +19878,21 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  "/api-docs":
+    get:
+      security: []
+      tags:
+        - docs
+      summary: Swagger docs endpoint
+      description: Return ok
+      operationId: getDocs
+      responses:
+        "200":
+          description: successful operation
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   "/status":
     get:
       security: []

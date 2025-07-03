@@ -20,6 +20,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import privacyNoticeRouter from "./routers/privacyNoticeRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
+import swaggerRouter from "./routers/swaggerRouter.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
 import authorizationRouter from "./routers/authorizationRouter.js";
@@ -215,6 +216,7 @@ export async function createApp(
   app.use(
     appBasePath,
     healthRouter,
+    swaggerRouter,
     contextMiddleware(serviceName, false),
     await applicationAuditBeginMiddleware(serviceName, config),
     await applicationAuditEndMiddleware(serviceName, config),
