@@ -310,7 +310,7 @@ export function agreementServiceBuilder(
       return downloadDocument(
         document,
         fileManager,
-        config.consumerDocumentsContainer,
+        config.agreementConsumerDocumentsContainer,
         logger
       );
     },
