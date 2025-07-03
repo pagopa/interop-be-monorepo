@@ -100,49 +100,49 @@ jobs:
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           run_install: true
-      
+
       - name: Test integration
-        run: pnpm test:integration -- --watch=false --reporter=blob  --outputFile=./test-output.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        run: pnpm test:integration -- --watch=false --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
       # - run: pnpm test:ci -- --reporter=blob --outputFile=.vitest-reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
       # - run: pnpm test:old -- --reporter=blob --outputFile=.vitest-reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
       # - run: pnpm test:api -- --reporter=blob --outputFile=.vitest-reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
       # - run: pnpm test:integration:old -- --reporter=blob --outputFile=.vitest-reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
 
-      - name: Upload blob report to GitHub Actions Artifacts
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: blob-report-${{ matrix.shardIndex }}
-          path: ./*
-          include-hidden-files: true
-          retention-days: 1
+      # - name: Upload blob report to GitHub Actions Artifacts
+      #   if: ${{ !cancelled() }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: blob-report-${{ matrix.shardIndex }}
+      #     path: ./*
+      #     include-hidden-files: true
+      #     retention-days: 1
 
-  merge-reports:
-    if: ${{ !cancelled() }}
-    needs: [test]
+  # merge-reports:
+  #   if: ${{ !cancelled() }}
+  #   needs: [test]
 
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+  #     - name: Install pnpm
+  #       uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
 
-      - name: Install dependencies
-        run: pnpm i
+  #     - name: Install dependencies
+  #       run: pnpm i
 
-      - name: Download blob reports from GitHub Actions Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: .vitest-reports
-          pattern: blob-report-*
-          merge-multiple: true
+  #     - name: Download blob reports from GitHub Actions Artifacts
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         path: .vitest-reports
+  #         pattern: blob-report-*
+  #         merge-multiple: true
 
-      - name: Merge reports
-        run: npx vitest --merge-reports
+  #     - name: Merge reports
+  #       run: npx vitest --merge-reports
 
   lint-openapi:
     name: Lint Open Api specification
