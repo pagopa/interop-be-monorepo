@@ -6,12 +6,12 @@ meta {
 
 patch {
   url: {{host-m2m-gw}}/purposes/:purposeId
-  body: none
+  body: json
   auth: none
 }
 
 params:path {
-  purposeId: {{purposeId}}
+  purposeId: 5b5b9c15-1cdf-498a-805b-35db2924f085
 }
 
 headers {
@@ -26,7 +26,7 @@ body:json {
       "dailyCalls": 200,
       "freeOfChargeReason": "",
       "riskAnalysisForm": {
-          "version": "3.0",
+          "version": "2.0",
           "answers": {
               "purpose": ["INSTITUTIONAL"],
               "institutionalPurpose": ["Another updated purpose"],
@@ -63,4 +63,3 @@ script:pre-request {
   
   bru.setVar("randomName",`test name ${random}`)
 }
-
