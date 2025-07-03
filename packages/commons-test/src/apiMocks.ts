@@ -139,11 +139,11 @@ export function getMockedApiAttribute({
   };
 }
 
-export function getMockedApiClient({
+export function getMockedApiFullClient({
   kind: paramKind,
 }: {
   kind?: authorizationApi.ClientKind;
-} = {}): authorizationApi.Client {
+} = {}): authorizationApi.FullClient {
   const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
     visibility: authorizationApi.ClientVisibility.Enum.FULL,
@@ -166,6 +166,20 @@ export function getMockedApiClient({
       .with(authorizationApi.ClientKind.Values.API, () => generateId())
       .exhaustive(),
   } satisfies authorizationApi.Client;
+}
+
+export function getMockedApiCompactClient({
+  kind: paramKind,
+}: {
+  kind?: authorizationApi.ClientKind;
+} = {}): authorizationApi.CompactClient {
+  const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
+  return {
+    visibility: authorizationApi.ClientVisibility.Enum.COMPACT,
+    id: generateId(),
+    consumerId: generateId(),
+    kind: kind ?? authorizationApi.ClientKind.Values.CONSUMER,
+  } satisfies authorizationApi.CompactClient;
 }
 
 export function getMockedApiEservice({
