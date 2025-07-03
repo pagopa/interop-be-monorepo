@@ -10,7 +10,6 @@ import {
   delegationState,
   EServiceId,
   EServiceTemplateId,
-  operationForbidden,
   TenantId,
   unauthorizedError,
 } from "pagopa-interop-models";
