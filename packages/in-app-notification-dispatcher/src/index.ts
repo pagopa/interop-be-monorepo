@@ -26,6 +26,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { config } from "./config/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { inAppNotificationServiceBuilderSQL } from "./services/inAppNotificationServiceSQL.js";
 import handleNewEServiceVersionPublished from "./handlers/handleNewEServiceVersionPublished.js";
 
 interface TopicHandlers {
@@ -46,18 +47,18 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
 });
 
-const notificationDB = drizzle({
-  client: new pg.Pool({
+const notificationDB = drizzle(
+  new pg.Pool({
     host: config.inAppNotificationDBHost,
     database: config.inAppNotificationDBName,
     user: config.inAppNotificationDBUsername,
     password: config.inAppNotificationDBPassword,
     port: config.inAppNotificationDBPort,
-  }),
-});
+  })
+);
 
-// const templateService = buildHTMLTemplateService();
-// const interopFeBaseUrl = config.interopFeBaseUrl;
+const inAppNotificationService =
+  inAppNotificationServiceBuilderSQL(notificationDB);
 
 export async function handleCatalogMessage(
   decodedMessage: EServiceEventEnvelopeV2,
@@ -72,7 +73,7 @@ export async function handleCatalogMessage(
             eservice,
             logger,
             readModelService,
-            notificationDB
+            inAppNotificationService
           );
         } else {
           throw missingKafkaMessageDataError("eservice", decodedMessage.type);

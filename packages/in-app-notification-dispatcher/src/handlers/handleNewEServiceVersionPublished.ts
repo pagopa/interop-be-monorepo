@@ -1,19 +1,18 @@
 import { EServiceV2, fromEServiceV2 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
+import { InAppNotificationServiceSQL } from "../services/inAppNotificationServiceSQL.js";
 import { config } from "../config/config.js";
 import {
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
 } from "./handlerCommons.js";
-import { insertNotifications } from "./handlerCommons.js";
 
 export default async function handleNewEServiceVersionPublished(
   eserviceV2Msg: EServiceV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  notificationDB: ReturnType<typeof drizzle>
+  inAppNotificationService: InAppNotificationServiceSQL
 ): Promise<void> {
   logger.info(`New descriptor published for eservice ${eserviceV2Msg.id}`);
 
@@ -45,6 +44,6 @@ export default async function handleNewEServiceVersionPublished(
       })
     );
 
-    await insertNotifications(notifications, notificationDB);
+    await inAppNotificationService.insertNotifications(notifications);
   }
 }
