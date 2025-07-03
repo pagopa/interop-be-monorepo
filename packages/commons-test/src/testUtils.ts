@@ -1230,9 +1230,12 @@ export const getMockSessionClaims = (
   },
 });
 
-export const getMockWithMetadata = <T>(data: T): WithMetadata<T> => ({
+export const getMockWithMetadata = <T>(
+  data: T,
+  version?: number
+): WithMetadata<T> => ({
   data,
-  metadata: { version: generateMock(z.number().int()) },
+  metadata: { version: version ?? generateMock(z.number().int()) },
 });
 
 export const readFileContent = async (fileName: string): Promise<string> => {
