@@ -24,7 +24,6 @@ import {
 } from "pagopa-interop-models";
 import {
   AppContext,
-  assertFeatureFlagEnabled,
   calculateKid,
   createJWK,
   DB,
@@ -97,7 +96,6 @@ import {
   clientToApiClient,
   producerJWKToApiProducerJWK,
 } from "../model/domain/apiConverter.js";
-import { config } from "../config/config.js";
 import {
   GetClientsFilters,
   GetProducerKeychainsFilters,
@@ -594,8 +592,6 @@ export function authorizationServiceBuilder(
       },
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<{ client: Client; showUsers: boolean }> {
-      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
-
       logger.info(`Set user ${adminId} in client ${clientId} as admin`);
 
       await assertUserSelfcareSecurityPrivileges({
@@ -1439,7 +1435,6 @@ export function authorizationServiceBuilder(
       { clientId, adminId }: { clientId: ClientId; adminId: UserId },
       { correlationId, logger, authData }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagAdminClient");
       logger.info(`Removing client admin ${adminId} from client ${clientId}`);
       const client = await retrieveClient(clientId, readModelService);
 
