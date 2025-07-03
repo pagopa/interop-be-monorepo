@@ -16,7 +16,17 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+import {
+  agreementReadModelServiceBuilder,
+  catalogReadModelServiceBuilder,
+  makeDrizzleConnection,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import { drizzle } from "drizzle-orm/node-postgres";
+import pg from "pg";
 import { config } from "./config/config.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import handleNewEServiceVersionPublished from "./handlers/handleNewEServiceVersionPublished.js";
 
 interface TopicHandlers {
   catalogTopic: string;
@@ -24,26 +34,27 @@ interface TopicHandlers {
   purposeTopic: string;
 }
 
-// const readModelDB = makeDrizzleConnection(config);
-// const agreementReadModelServiceSQL =
-//   agreementReadModelServiceBuilder(readModelDB);
-// const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-// const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const readModelDB = makeDrizzleConnection(config);
+const agreementReadModelServiceSQL =
+  agreementReadModelServiceBuilder(readModelDB);
+const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
+const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 
-// const oldReadModelService = readModelServiceBuilder(
-//   ReadModelRepository.init(config)
-// );
-// const readModelServiceSQL = readModelServiceBuilderSQL({
-//   agreementReadModelServiceSQL,
-//   catalogReadModelServiceSQL,
-//   tenantReadModelServiceSQL,
-// });
-// const readModelService =
-//   config.featureFlagSQL &&
-//   config.readModelSQLDbHost &&
-//   config.readModelSQLDbPort
-//     ? readModelServiceSQL
-//     : oldReadModelService;
+const readModelService = readModelServiceBuilderSQL({
+  agreementReadModelServiceSQL,
+  catalogReadModelServiceSQL,
+  tenantReadModelServiceSQL,
+});
+
+const notificationDB = drizzle({
+  client: new pg.Pool({
+    host: config.inAppNotificationDBHost,
+    database: config.inAppNotificationDBName,
+    user: config.inAppNotificationDBUsername,
+    password: config.inAppNotificationDBPassword,
+    port: config.inAppNotificationDBPort,
+  }),
+});
 
 // const templateService = buildHTMLTemplateService();
 // const interopFeBaseUrl = config.interopFeBaseUrl;
@@ -57,7 +68,12 @@ export async function handleCatalogMessage(
       { type: "EServiceDescriptorPublished" },
       async ({ data: { eservice } }) => {
         if (eservice) {
-          handleEServiceDescriptorPublished(eservice, logger);
+          await handleNewEServiceVersionPublished(
+            eservice,
+            logger,
+            readModelService,
+            notificationDB
+          );
         } else {
           throw missingKafkaMessageDataError("eservice", decodedMessage.type);
         }
