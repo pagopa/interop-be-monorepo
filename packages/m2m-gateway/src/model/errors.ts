@@ -32,6 +32,8 @@ export const errorCodes = {
   eserviceTemplateVersionNotFound: "0017",
   tenantCertifiedAttributeNotFound: "0018",
   eserviceDescriptorInterfaceNotFound: "0019",
+  agreementPurposeNotFound: "0020",
+  unexpectedMultipleActiveAgreementsForPurpose: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -200,5 +202,25 @@ export function eserviceDescriptorInterfaceNotFound(
     detail: `Interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
     code: "eserviceDescriptorInterfaceNotFound",
     title: "Eservice descriptor interface not found",
+  });
+}
+
+export function agreementPurposeNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No active agreement found for purpose ${purposeId}`,
+    code: "agreementPurposeNotFound",
+    title: "Agreement for purpose not found",
+  });
+}
+
+export function unexpectedMultipleActiveAgreementsForPurpose(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected multiple active agreements found for purpose ${purposeId}`,
+    code: "unexpectedMultipleActiveAgreementsForPurpose",
+    title: "Unexpected multiple active agreements for purpose",
   });
 }
