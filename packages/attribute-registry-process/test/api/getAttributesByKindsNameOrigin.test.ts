@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
-import { Attribute, generateId, ListResult } from "pagopa-interop-models";
+import {
+  Attribute,
+  attributeKind,
+  generateId,
+  ListResult,
+} from "pagopa-interop-models";
 import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -10,15 +15,11 @@ import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
 
 describe("API /attributes authorization test", () => {
   const attribute1: Attribute = {
-    ...getMockAttribute(),
-    kind: "Declared",
-    name: "attribute1",
+    ...getMockAttribute(attributeKind.declared),
     origin: "IPA",
   };
   const attribute2: Attribute = {
-    ...getMockAttribute(),
-    kind: "Certified",
-    name: "attribute2",
+    ...getMockAttribute(attributeKind.certified),
     origin: "SPC",
   };
 
