@@ -80,13 +80,13 @@ describe("addAgreementConsumerDocument", () => {
     const uuidSimpleRegex = "[a-zA-Z0-9-]+";
     const matchUUID = expect.stringMatching(`^${uuidSimpleRegex}$`);
     const matchExpectedPath = expect.stringMatching(
-      `^${config.consumerDocumentsPath}/${mockGetAgreementResponse.data.id}/${uuidSimpleRegex}/${mockFileUpload.file.name}$`
+      `^${config.agreementConsumerDocumentsPath}/${mockGetAgreementResponse.data.id}/${uuidSimpleRegex}/${mockFileUpload.file.name}$`
     );
 
     expect(fileManager.storeBytes).toHaveBeenCalledWith(
       {
-        bucket: config.consumerDocumentsContainer,
-        path: `${config.consumerDocumentsPath}/${mockGetAgreementResponse.data.id}`,
+        bucket: config.agreementConsumerDocumentsContainer,
+        path: `${config.agreementConsumerDocumentsPath}/${mockGetAgreementResponse.data.id}`,
         resourceId: matchUUID,
         name: mockFileUpload.file.name,
         content: mockFileBuffer,
@@ -96,7 +96,7 @@ describe("addAgreementConsumerDocument", () => {
 
     expect(
       await fileManager.listFiles(
-        config.consumerDocumentsContainer,
+        config.agreementConsumerDocumentsContainer,
         genericLogger
       )
     ).toEqual([matchExpectedPath]);

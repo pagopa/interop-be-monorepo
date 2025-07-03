@@ -257,8 +257,8 @@ export function agreementServiceBuilder(
       const documentId = generateId();
       const storagePath = await fileManager.storeBytes(
         {
-          bucket: config.consumerDocumentsContainer,
-          path: `${config.consumerDocumentsPath}/${agreementId}`,
+          bucket: config.agreementConsumerDocumentsContainer,
+          path: `${config.agreementConsumerDocumentsPath}/${agreementId}`,
           resourceId: documentId,
           name: fileUpload.file.name,
           content: Buffer.from(await fileUpload.file.arrayBuffer()),
