@@ -1,3 +1,4 @@
+/* eslint-disable functional/no-let */
 import { genericInternalError } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { delay, EmailManagerSES, logger } from "pagopa-interop-commons";
@@ -83,28 +84,62 @@ export function emailSenderProcessorBuilder(
         const jsonPayload: EmailNotificationPayload = JSON.parse(
           message.value.toString()
         );
+      }
 
-        const loggerInstance = logger({
-          serviceName,
+      let jsonPayload: EmailNotificationPayload;
+      let loggerInstance: Logger;
+      let mailOptions: Mail.Options;
+      try {
+        jsonPayload = JSON.parse(message.value.toString());
+        loggerInstance = logger({
+          serviceName: "email-sender",
           correlationId: jsonPayload.correlationId,
         });
-
         loggerInstance.info(
           `Consuming message for partition ${partition} with offset ${message.offset}`
         );
-
-        const mailOptions: Mail.Options = {
+        mailOptions = {
           from: { name: sesSenderData.label, address: sesSenderData.mail },
           subject: jsonPayload.subject,
           to: [jsonPayload.address],
           html: jsonPayload.body,
         };
-
-        await sesEmailManager.send(mailOptions, loggerInstance);
-        loggerInstance.info(`Email sent`);
       } catch (err) {
         throw genericInternalError(
           `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
+        );
+      }
+
+      let sent = false;
+      let attempts = 0;
+      while (!sent && attempts < config.maxAttempts) {
+        try {
+          attempts++;
+          await sesEmailManager.send(mailOptions, loggerInstance);
+          sent = true;
+          loggerInstance.info(
+            `Email sent for message in partition ${partition} with offset ${message.offset}.`
+          );
+        } catch (err) {
+          switch (true) {
+            case err instanceof LimitExceededException:
+            case err instanceof TooManyRequestsException:
+            case err instanceof SendingPausedException:
+              await delay(config.retryDelayInMillis);
+              break;
+            default:
+              loggerInstance.warn(
+                `Email sending attempt failed for message in partition ${partition} with offset ${message.offset}. Reason: ${err} `
+              );
+              break;
+          }
+        }
+      }
+
+      if (!sent) {
+        // Exceeded max number of attempts
+        loggerInstance.warn(
+          `Message in partition ${partition} with offset ${message.offset} was consumed, but no email was sent. Exceeded maximum number of attempts.`
         );
       }
     },
