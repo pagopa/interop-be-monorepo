@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import {
-  Client,
-  ClientId,
-  generateId,
-  TenantId,
-  UserId,
-} from "pagopa-interop-models";
+import { Client, ClientId, generateId, UserId } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import {
@@ -21,15 +15,14 @@ import {
   tenantNotAllowedOnClient,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
-import { testToCompactClient, testToFullClient } from "../apiUtils.js";
+import { testToFullClient } from "../apiUtils.js";
 
 describe("API /clients/{clientId}/users authorization test", () => {
-  const consumerId: TenantId = generateId();
   const userIds: UserId[] = [generateId()];
   const usersToAdd: UserId[] = [generateId(), generateId()];
 
   const mockClient: Client = getMockClient({
-    consumerId,
+    consumerId: mockTokenOrganizationId,
     users: userIds,
   });
 
@@ -47,25 +40,10 @@ describe("API /clients/{clientId}/users authorization test", () => {
       .send({ userIds });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
-  it.each(authorizedRoles)(
-    "Should return 200 with a compact client for user with role %s and tenant != client consumerId",
-    async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token, mockClient.id);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(testToCompactClient(mockClient));
-    }
-  );
 
   it.each(authorizedRoles)(
-    "Should return 200 with a full client for user with role %s and tenant = client consumerId",
+    "Should return 200 with a full client for user with role %s",
     async (role) => {
-      const mockClient = getMockClient({
-        consumerId: mockTokenOrganizationId,
-      });
-      authorizationService.addClientUsers = vi
-        .fn()
-        .mockResolvedValueOnce(mockClient);
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);

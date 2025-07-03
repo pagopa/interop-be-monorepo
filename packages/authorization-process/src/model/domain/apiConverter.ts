@@ -46,12 +46,29 @@ export function clientToApiClientWithKeys(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.ClientWithKeys {
   return {
-    client: clientToApiClient(client, authData),
+    client: clientToApiClientWithVisibility(client, authData),
     keys: client.keys.map(keyToApiKey),
   };
 }
 
-export function clientToApiClient(
+export function clientToApiFullVisibilityClient(
+  client: Client
+): authorizationApi.FullClient {
+  return {
+    visibility: authorizationApi.ClientVisibility.Enum.FULL,
+    id: client.id,
+    name: client.name,
+    consumerId: client.consumerId,
+    users: client.users,
+    createdAt: client.createdAt.toJSON(),
+    purposes: client.purposes,
+    kind: clientKindToApiClientKind(client.kind),
+    description: client.description,
+    adminId: client.adminId,
+  };
+}
+
+export function clientToApiClientWithVisibility(
   client: Client,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.Client {
@@ -64,18 +81,7 @@ export function clientToApiClient(
     } satisfies authorizationApi.CompactClient;
   }
 
-  return {
-    visibility: authorizationApi.ClientVisibility.Enum.FULL,
-    id: client.id,
-    name: client.name,
-    consumerId: client.consumerId,
-    users: client.users,
-    createdAt: client.createdAt.toJSON(),
-    purposes: client.purposes,
-    kind: clientKindToApiClientKind(client.kind),
-    description: client.description,
-    adminId: client.adminId,
-  } satisfies authorizationApi.FullClient;
+  return clientToApiFullVisibilityClient(client);
 }
 
 export function producerKeychainToApiProducerKeychain(
@@ -115,7 +121,7 @@ export function jwkAndClientToApiKeyWithClient(
 ): authorizationApi.KeyWithClient {
   return {
     key: jsonWebKeyToApiJWKKey(jwk, kid),
-    client: clientToApiClient(client, authData),
+    client: clientToApiClientWithVisibility(client, authData),
   };
 }
 

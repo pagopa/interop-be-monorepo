@@ -7,7 +7,13 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { ClientId, generateId, TenantId, UserId } from "pagopa-interop-models";
+import {
+  ClientId,
+  clientKind,
+  generateId,
+  TenantId,
+  UserId,
+} from "pagopa-interop-models";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientAdminAlreadyAssignedToUser,
@@ -15,10 +21,13 @@ import {
   clientNotFound,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
-import { testToCompactClient, testToFullClient } from "../apiUtils.js";
+import { testToFullClient } from "../apiUtils.js";
 
 describe("API POST /clients/{clientId}/admin test", () => {
-  const mockClient = getMockClient();
+  const mockClient = getMockClient({
+    kind: clientKind.api,
+    consumerId: mockTokenOrganizationId,
+  });
   const adminSeed = generateId<UserId>();
   const makeRequest = async (
     token: string,
@@ -38,25 +47,10 @@ describe("API POST /clients/{clientId}/admin test", () => {
   });
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
-  it.each(authorizedRoles)(
-    "Should return 200 with a compact client for user with role %s and tenant != client consumerId",
-    async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token, mockClient.id, adminSeed);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(testToCompactClient(mockClient));
-    }
-  );
 
   it.each(authorizedRoles)(
-    "Should return 200 with a full client for user with role %s and tenant = client consumerId",
+    "Should return 200 with a full client for user with role %s",
     async (role) => {
-      const mockClient = getMockClient({
-        consumerId: mockTokenOrganizationId,
-      });
-      authorizationService.setAdminToClient = vi
-        .fn()
-        .mockResolvedValueOnce(mockClient);
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id, adminSeed);
       expect(res.status).toBe(200);

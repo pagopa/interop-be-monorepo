@@ -14,7 +14,7 @@ import {
   clientNotFound,
   clientKeyNotFound,
 } from "../../src/model/domain/errors.js";
-import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
+import { clientToApiClientWithVisibility } from "../../src/model/domain/apiConverter.js";
 import { addOneClient, authorizationService } from "../integrationUtils.js";
 
 describe("getKeyWithClientByKeyId", async () => {
@@ -53,7 +53,9 @@ describe("getKeyWithClientByKeyId", async () => {
         getMockContext({})
       );
     expect(jwkKey).toEqual(expectedJwkKey);
-    expect(client).toEqual(clientToApiClient(mockClient, { showUsers: false }));
+    expect(client).toEqual(
+      clientToApiClientWithVisibility(mockClient, { showUsers: false })
+    );
   });
 
   it("should throw clientNotFound if the client doesn't exist", async () => {

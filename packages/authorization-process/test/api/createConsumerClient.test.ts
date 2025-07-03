@@ -10,7 +10,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { testToCompactClient, testToFullClient } from "../apiUtils.js";
+import { testToFullClient } from "../apiUtils.js";
 
 describe("API /clientsConsumer authorization test", () => {
   const organizationId: TenantId = generateId();
@@ -23,6 +23,7 @@ describe("API /clientsConsumer authorization test", () => {
 
   const mockClient = getMockClient({
     kind: clientKind.consumer,
+    consumerId: mockTokenOrganizationId,
   });
 
   authorizationService.createConsumerClient = vi
@@ -40,25 +41,10 @@ describe("API /clientsConsumer authorization test", () => {
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
-  it.each(authorizedRoles)(
-    "Should return 200 with a compact client for user with role %s and tenant != client consumerId",
-    async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token, clientSeed);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(testToCompactClient(mockClient));
-    }
-  );
 
   it.each(authorizedRoles)(
-    "Should return 200 with a full client for user with role %s and tenant = client consumerId",
+    "Should return 200 with a full client for user with role %s",
     async (role) => {
-      const mockClient = getMockClient({
-        consumerId: mockTokenOrganizationId,
-      });
-      authorizationService.createConsumerClient = vi
-        .fn()
-        .mockResolvedValueOnce(mockClient);
       const token = generateToken(role);
       const res = await makeRequest(token, clientSeed);
       expect(res.status).toBe(200);

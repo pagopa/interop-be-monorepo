@@ -38,7 +38,7 @@ import {
   purposeDelegationNotFound,
   purposeNotFound,
 } from "../../src/model/domain/errors.js";
-import { testToCompactClient, testToFullClient } from "../apiUtils.js";
+import { testToFullClient } from "../apiUtils.js";
 
 describe("API /clients/{clientId}/purposes authorization test", () => {
   const mockDescriptor: Descriptor = {
@@ -63,7 +63,7 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
 
   const mockClient: Client = getMockClient({
     kind: clientKind.consumer,
-    consumerId: mockConsumerId,
+    consumerId: mockTokenOrganizationId,
   });
   const serviceResponse = getMockWithMetadata(mockClient);
   authorizationService.addClientPurpose = vi
@@ -86,28 +86,8 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 200 with a compact client for user with role %s and tenant != client consumerId",
+    "Should return 200 with a full client for user with role %s",
     async (role) => {
-      const token = generateToken(role);
-      const res = await makeRequest(token, mockClient.id);
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual(testToCompactClient(mockClient));
-      expect(res.headers["x-metadata-version"]).toBe(
-        serviceResponse.metadata.version.toString()
-      );
-    }
-  );
-
-  it.each(authorizedRoles)(
-    "Should return 200 with a full client for user with role %s and tenant = client consumerId",
-    async (role) => {
-      const mockClient = getMockClient({
-        consumerId: mockTokenOrganizationId,
-      });
-      const serviceResponse = getMockWithMetadata(mockClient);
-      authorizationService.addClientPurpose = vi
-        .fn()
-        .mockResolvedValueOnce(serviceResponse);
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
