@@ -116,7 +116,9 @@ export const getMockAuthorizationApiKey = (): authorizationApi.Key => ({
   createdAt: generateMock(z.string().datetime({ offset: true })),
 });
 
-export const getMockAuthorizationApiClient = (): authorizationApi.Client => ({
+export const getMockAuthorizationApiClient = (): authorizationApi.Client & {
+  id: ClientId;
+} => ({
   id: generateId(),
   name: generateMock(z.string()),
   consumerId: generateId(),
