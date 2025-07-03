@@ -9,7 +9,7 @@ import {
   retrieveTenant,
 } from "./handlerCommons.js";
 
-export default async function handleNewEServiceVersionPublished(
+export async function handleNewEServiceVersionPublished(
   eserviceV2Msg: EServiceV2,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
