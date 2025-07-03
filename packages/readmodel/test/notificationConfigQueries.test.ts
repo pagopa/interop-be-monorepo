@@ -9,14 +9,19 @@ import {
 import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
-  notificationConfigReadModelService,
-} from "./notificationConfigUtils.js";
+} from "../src/testUtils.js";
+import { notificationConfigReadModelService } from "./notificationConfigUtils.js";
+import { readModelDB } from "./utils.js";
 
 describe("Notification config queries", () => {
   describe("getTenantNotificationConfigByTenantId", () => {
     it("should get a tenant notification config if present", async () => {
       const tenantNotificationConfig = getMockTenantNotificationConfig();
-      await insertTenantNotificationConfig(tenantNotificationConfig, 1);
+      await insertTenantNotificationConfig(
+        readModelDB,
+        tenantNotificationConfig,
+        1
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -40,7 +45,11 @@ describe("Notification config queries", () => {
   describe("getUserNotificationConfigByUserIdAndTenantId", () => {
     it("should get a user notification config if present", async () => {
       const userNotificationConfig = getMockUserNotificationConfig();
-      await insertUserNotificationConfig(userNotificationConfig, 1);
+      await insertUserNotificationConfig(
+        readModelDB,
+        userNotificationConfig,
+        1
+      );
 
       const retrievedConfig =
         await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(

@@ -19,6 +19,19 @@ module.exports = {
     "max-lines-per-function": "off",
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/no-use-before-define": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: [
+          {
+            // To allow these imports in tests, set `"no-restricted-imports": "off"`
+            // in the .eslintrc.json file in the test directory
+            group: ["*/testUtils", "*/testUtils/*"],
+            message: "testUtils can only be imported in tests",
+          },
+        ],
+      },
+    ],
   },
   ignorePatterns: [
     ".eslintrc.cjs",
