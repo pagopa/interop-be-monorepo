@@ -68,7 +68,6 @@ export function emailSenderProcessorBuilder(
           switch (true) {
             case err instanceof LimitExceededException:
             case err instanceof TooManyRequestsException:
-            case err instanceof SendingPausedException:
               await delay(config.retryDelayInMillis);
               break;
             default:
