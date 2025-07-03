@@ -20,7 +20,7 @@ import { authorizationApi } from "pagopa-interop-api-clients";
 import { AuthorizationService } from "../services/authorizationService.js";
 import {
   apiClientKindToClientKind,
-  clientToApiClientWithVisibility,
+  clientToApiClient,
   clientToApiClientWithKeys,
   clientToApiFullVisibilityClient,
   jwkAndClientToApiKeyWithClient,
@@ -215,7 +215,7 @@ const authorizationRouter = (
         return res.status(200).send(
           authorizationApi.Clients.parse({
             results: clients.results.map((client) =>
-              clientToApiClientWithVisibility(client, ctx.authData)
+              clientToApiClient(client, ctx.authData)
             ),
             totalCount: clients.totalCount,
           })
@@ -250,7 +250,7 @@ const authorizationRouter = (
           .status(200)
           .send(
             authorizationApi.Client.parse(
-              clientToApiClientWithVisibility(client, ctx.authData)
+              clientToApiClient(client, ctx.authData)
             )
           );
       } catch (error) {

@@ -46,7 +46,7 @@ export function clientToApiClientWithKeys(
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.ClientWithKeys {
   return {
-    client: clientToApiClientWithVisibility(client, authData),
+    client: clientToApiClient(client, authData),
     keys: client.keys.map(keyToApiKey),
   };
 }
@@ -68,7 +68,7 @@ export function clientToApiFullVisibilityClient(
   };
 }
 
-export function clientToApiClientWithVisibility(
+export function clientToApiClient(
   client: Client,
   authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): authorizationApi.Client {
@@ -121,7 +121,7 @@ export function jwkAndClientToApiKeyWithClient(
 ): authorizationApi.KeyWithClient {
   return {
     key: jsonWebKeyToApiJWKKey(jwk, kid),
-    client: clientToApiClientWithVisibility(client, authData),
+    client: clientToApiClient(client, authData),
   };
 }
 
