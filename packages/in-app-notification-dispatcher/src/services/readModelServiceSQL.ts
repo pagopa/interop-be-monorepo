@@ -5,7 +5,9 @@ import {
   EServiceId,
   Tenant,
   TenantId,
+  UserId,
   agreementState,
+  generateId,
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
@@ -46,6 +48,16 @@ export function readModelServiceBuilderSQL({
           )
         )
       ).map((agreement) => agreement.data);
+    },
+    async getUserNotificationConfigsByTenantIds(
+      tenantIds: TenantId[],
+      _notificationName: "newEServiceVersionPublished"
+    ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+      // TODO: retrieve info from readmodel
+      return tenantIds.map((tenantId) => ({
+        userId: generateId<UserId>(),
+        tenantId,
+      }));
     },
   };
 }

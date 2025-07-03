@@ -4,8 +4,8 @@ import {
   ReadModelDbConfig,
   PurposeTopicConfig,
   CatalogTopicConfig,
-  FeatureFlagSQLConfig,
   ReadModelSQLDbConfig,
+  InAppNotificationDBConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -15,8 +15,13 @@ export const InAppNotificationDispatcherConfig = KafkaConsumerConfig.and(
   .and(AgreementTopicConfig)
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
-  .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional());
+  .and(InAppNotificationDBConfig)
+  .and(ReadModelSQLDbConfig)
+  .and(
+    z
+      .object({ INTEROP_FE_BASE_URL: z.string() })
+      .transform((c) => ({ interopFeBaseUrl: c.INTEROP_FE_BASE_URL }))
+  );
 
 export type InAppNotificationDispatcherConfig = z.infer<
   typeof InAppNotificationDispatcherConfig
