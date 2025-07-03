@@ -103,10 +103,18 @@ jobs:
 
       - name: Test integration
         run: pnpm test:integration -- --watch=false --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-      # - run: pnpm test:ci -- --reporter=blob --outputFile=.vitest-reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-      # - run: pnpm test:old -- --reporter=blob --outputFile=.vitest-reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-      # - run: pnpm test:api -- --reporter=blob --outputFile=.vitest-reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
-      # - run: pnpm test:integration:old -- --reporter=blob --outputFile=.vitest-reports/blob-${{ matrix.shardIndex }}.json --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+    
+      - name: Test unit
+        run: pnpm test:ci -- --watch=false --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+    
+      - name: Test API 
+        run: pnpm test:api -- --watch=false --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      
+      - name: Test unit old
+        run: pnpm test:old -- --watch=false --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+      
+      - name: Test integration old
+        run: pnpm test:integration:old -- --watch=false --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
 
       # - name: Upload blob report to GitHub Actions Artifacts
       #   if: ${{ !cancelled() }}
