@@ -312,6 +312,12 @@ export async function setupTestContainersVitest(
       await readModelDB?.execute(
         "TRUNCATE TABLE readmodel_eservice_template.eservice_template CASCADE"
       );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_notification_config.tenant_notification_config CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_notification_config.user_notification_config CASCADE"
+      );
 
       if (fileManagerConfig && fileManager) {
         const s3OriginalBucket =
