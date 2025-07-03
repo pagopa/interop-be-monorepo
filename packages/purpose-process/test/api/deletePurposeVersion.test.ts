@@ -25,7 +25,9 @@ describe("API DELETE /purposes/{purposeId}/versions/{versionId} test", () => {
   };
 
   beforeEach(() => {
-    purposeService.deletePurposeVersion = vi.fn().mockResolvedValue(metadata);
+    purposeService.deletePurposeVersion = vi
+      .fn()
+      .mockResolvedValue({ metadata });
   });
 
   const makeRequest = async (
