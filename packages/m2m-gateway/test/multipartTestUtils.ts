@@ -1,5 +1,6 @@
 import request from "supertest";
 import { expect } from "vitest";
+import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
 export function testMultipartResponseParser(
   res: request.Response,
@@ -15,8 +16,8 @@ export function testMultipartResponseParser(
   res.once("error", done);
 }
 
-export async function testExpectedMultipartResponseFromFile(
-  file: File,
+export async function testExpectedMultipartResponse(
+  { file, prettyName }: DownloadedDocument,
   res: request.Response
 ) {
   const content = await file.text();
@@ -40,6 +41,14 @@ export async function testExpectedMultipartResponseFromFile(
     `Content-Disposition: form-data; name="contentType"`,
     ``,
     file.type,
+    ...(prettyName
+      ? [
+          `--${boundary}`,
+          `Content-Disposition: form-data; name="prettyName"`,
+          ``,
+          prettyName,
+        ]
+      : []),
     `--${boundary}--`,
     CRLF,
   ].join(CRLF);

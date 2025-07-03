@@ -23,7 +23,7 @@ import {
   toM2MGatewayApiDocument,
 } from "../api/agreementApiConverter.js";
 import { config } from "../config/config.js";
-import { downloadDocument } from "../utils/fileDownload.js";
+import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -296,7 +296,7 @@ export function agreementServiceBuilder(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<File> {
+    ): Promise<DownloadedDocument> {
       logger.info(
         `Retrieving consumer document with id ${documentId} for agreement with id ${agreementId}`
       );

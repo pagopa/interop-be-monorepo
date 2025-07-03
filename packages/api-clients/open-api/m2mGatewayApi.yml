@@ -5776,6 +5776,9 @@ components:
         contentType:
           type: string
           description: The content type of the file
+        prettyName:
+          type: string
+          description: A human-readable name for the file
     FileUploadMultipart:
       type: object
       additionalProperties: false

@@ -82,11 +82,13 @@ describe("getEserviceDescriptor", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(
-      new File([Buffer.from(testFileContent)], mockInterface.name, {
+    const expectedServiceResponse = {
+      file: new File([Buffer.from(testFileContent)], mockInterface.name, {
         type: mockInterface.contentType,
-      })
-    );
+      }),
+      prettyName: mockInterface.prettyName,
+    };
+    expect(result).toEqual(expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },

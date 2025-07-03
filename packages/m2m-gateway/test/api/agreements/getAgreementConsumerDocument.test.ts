@@ -4,15 +4,15 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockFile } from "../../mockUtils.js";
+import { getMockDownloadedDocument } from "../../mockUtils.js";
 import {
-  testExpectedMultipartResponseFromFile,
+  testExpectedMultipartResponse,
   testMultipartResponseParser,
 } from "../../multipartTestUtils.js";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 
 describe("GET /agreements/:agreementId/consumerDocuments/:documentId router test", () => {
-  const mockFile = getMockFile();
+  const mockDownloadedDoc = getMockDownloadedDocument();
 
   const makeRequest = async (
     token: string,
@@ -36,13 +36,13 @@ describe("GET /agreements/:agreementId/consumerDocuments/:documentId router test
     async (role) => {
       mockAgreementService.getAgreementConsumerDocument = vi
         .fn()
-        .mockResolvedValue(mockFile);
+        .mockResolvedValue(mockDownloadedDoc);
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId(), generateId());
 
       expect(res.status).toBe(200);
-      await testExpectedMultipartResponseFromFile(mockFile, res);
+      await testExpectedMultipartResponse(mockDownloadedDoc, res);
     }
   );
 

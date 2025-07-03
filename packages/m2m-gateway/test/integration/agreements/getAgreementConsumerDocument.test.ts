@@ -14,6 +14,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
+import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 
 describe("getAgreementConsumerDocument", () => {
   const testFileContent =
@@ -69,11 +70,13 @@ describe("getAgreementConsumerDocument", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(
-      new File([Buffer.from(testFileContent)], mockDocument.name, {
+    const expectedServiceResponse: DownloadedDocument = {
+      file: new File([Buffer.from(testFileContent)], mockDocument.name, {
         type: mockDocument.contentType,
-      })
-    );
+      }),
+      prettyName: mockDocument.prettyName,
+    };
+    expect(result).toEqual(expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.agreementProcessClient
