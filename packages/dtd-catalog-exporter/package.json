@@ -24,7 +24,7 @@
     "dotenv-flow": "4.1.0",
     "drizzle-orm": "0.39.3",
     "mongodb": "6.7.0",
-    "octokit": "4.1.2",
+    "octokit": "4.1.4",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-models": "workspace:*",
