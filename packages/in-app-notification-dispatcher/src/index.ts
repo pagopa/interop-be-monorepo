@@ -24,10 +24,14 @@ import {
 } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+
+// Config & Services
 import { config } from "./config/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { inAppNotificationServiceBuilderSQL } from "./services/inAppNotificationServiceSQL.js";
-import handleNewEServiceVersionPublished from "./handlers/handleNewEServiceVersionPublished.js";
+
+// Handlers
+import * as handlers from "./handlers/index.js";
 
 interface TopicHandlers {
   catalogTopic: string;
@@ -69,7 +73,7 @@ export async function handleCatalogMessage(
       { type: "EServiceDescriptorPublished" },
       async ({ data: { eservice } }) => {
         if (eservice) {
-          await handleNewEServiceVersionPublished(
+          await handlers.handleNewEServiceVersionPublished(
             eservice,
             logger,
             readModelService,
