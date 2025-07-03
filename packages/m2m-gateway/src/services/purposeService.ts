@@ -363,5 +363,20 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
     },
+    async deletePurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting version ${versionId} of purpose ${purposeId}`);
+
+      const { metadata } =
+        await clients.purposeProcessClient.deletePurposeVersion(undefined, {
+          params: { purposeId, versionId },
+          headers,
+        });
+
+      await pollPurposeById(purposeId, metadata, headers);
+    },
   };
 }
