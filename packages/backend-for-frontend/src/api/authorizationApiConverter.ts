@@ -1,8 +1,8 @@
 import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
 import { CorrelationId } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import { getSelfcareCompactUserById } from "../services/selfcareService.js";
 import { SelfcareV2UserClient } from "../clients/clientsProvider.js";
+import { assertClientVisibilityIsFull } from "../services/validators.js";
 
 export const toBffApiCompactProducerKeychain = (
   input: authorizationApi.ProducerKeychain
@@ -17,32 +17,22 @@ export const toBffApiCompactClient = async (
   { client, keys }: authorizationApi.ClientWithKeys,
   selfcareId: string,
   correlationId: CorrelationId
-): Promise<bffApi.CompactClient> =>
-  match(client)
-    .with(
-      { visibility: authorizationApi.ClientVisibility.Enum.FULL },
-      async (client) => ({
-        hasKeys: keys.length > 0,
-        id: client.id,
-        name: client.name,
-        admin: client.adminId
-          ? await getSelfcareCompactUserById(
-              selfcareClient,
-              client.adminId,
-              selfcareId,
-              correlationId
-            )
-          : undefined,
-      })
-    )
-    .with(
-      { visibility: authorizationApi.ClientVisibility.Enum.COMPACT },
-      () => ({
-        hasKeys: keys.length > 0,
-        id: client.id,
-      })
-    )
-    .exhaustive();
+): Promise<bffApi.CompactClient> => {
+  assertClientVisibilityIsFull(client);
+  return {
+    hasKeys: keys.length > 0,
+    id: client.id,
+    name: client.name,
+    admin: client.adminId
+      ? await getSelfcareCompactUserById(
+          selfcareClient,
+          client.adminId,
+          selfcareId,
+          correlationId
+        )
+      : undefined,
+  };
+};
 
 export function toAuthorizationKeySeed(
   seed: bffApi.KeySeed

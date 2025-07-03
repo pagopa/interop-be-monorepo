@@ -1,6 +1,7 @@
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
 import {
   agreementApi,
+  authorizationApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
@@ -9,6 +10,7 @@ import {
   delegationState,
   EServiceId,
   EServiceTemplateId,
+  operationForbidden,
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -219,5 +221,15 @@ export function assertEServiceNotTemplateInstance(
   const templateId = eservice.templateId;
   if (templateId !== undefined) {
     throw templateInstanceNotAllowed(eservice.id, templateId);
+  }
+}
+
+export function assertClientVisibilityIsFull(
+  client: authorizationApi.Client
+): asserts client is authorizationApi.Client & {
+  visibility: typeof authorizationApi.ClientVisibility.Values.FULL;
+} {
+  if (client.visibility !== authorizationApi.ClientVisibility.Values.FULL) {
+    throw operationForbidden;
   }
 }
