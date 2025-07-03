@@ -3,7 +3,7 @@ ARG NODE_REGISTRY="docker.io"
 
 FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as build
 
-RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+RUN npm install -g corepack@0.31.0 && corepack enable
 
 WORKDIR /app
 COPY package.json /app/
@@ -26,17 +26,17 @@ COPY ./packages/models /app/packages/models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 
 RUN pnpm build && \
-    rm -rf /app/node_modules/.modules.yaml && \
-    rm -rf /app/node_modules/.cache && \
-    mkdir /out && \
-    cp -a --parents -t /out \
-      node_modules packages/authorization-platformstate-writer/node_modules \
-      package*.json packages/authorization-platformstate-writer/package*.json \
-      packages/commons \
-      packages/models \
-      packages/kafka-iam-auth \
-      packages/authorization-platformstate-writer/dist && \
-    find /out -exec touch -h --date=@0 {} \;
+  rm -rf /app/node_modules/.modules.yaml && \
+  rm -rf /app/node_modules/.cache && \
+  mkdir /out && \
+  cp -a --parents -t /out \
+  node_modules packages/authorization-platformstate-writer/node_modules \
+  package*.json packages/authorization-platformstate-writer/package*.json \
+  packages/commons \
+  packages/models \
+  packages/kafka-iam-auth \
+  packages/authorization-platformstate-writer/dist && \
+  find /out -exec touch -h --date=@0 {} \;
 
 FROM ${NODE_REGISTRY}/node:20.14.0-slim@sha256:5e8ac65a0231d76a388683d07ca36a9769ab019a85d85169fe28e206f7a3208e as final 
 
