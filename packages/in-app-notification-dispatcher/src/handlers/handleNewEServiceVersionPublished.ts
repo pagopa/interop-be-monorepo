@@ -3,6 +3,7 @@ import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { InAppNotificationServiceSQL } from "../services/inAppNotificationServiceSQL.js";
 import { config } from "../config/config.js";
+import { inAppTemplates } from "../templates/inAppTemplates.js";
 import {
   retrieveLatestPublishedDescriptor,
   retrieveTenant,
@@ -35,11 +36,13 @@ export default async function handleNewEServiceVersionPublished(
         "newEServiceVersionPublished"
       );
 
+    const body = inAppTemplates.newEServiceVersionPublished(eservice.name);
+
     const notifications = userNotificationConfigs.map(
       ({ userId, tenantId }) => ({
         userId,
         tenantId,
-        body: `Gentile aderente, ti informiamo che per l'e-service <strong>${eservice.name}</strong>, è stata pubblicata una nuova versione. Pertanto, ti consigliamo di procedere all'aggiornamento dell'e-service alla versione più recente.`,
+        body,
         deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${descriptor.id}`,
       })
     );
