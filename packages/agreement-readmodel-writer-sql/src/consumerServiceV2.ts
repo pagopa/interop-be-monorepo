@@ -4,7 +4,7 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ReadModelService } from "./agreementWriterService.js";
+import { ReadModelService } from "./readModelService.js";
 
 export async function handleMessageV2(
   message: AgreementEventEnvelopeV2,
