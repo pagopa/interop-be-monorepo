@@ -3,6 +3,7 @@ import { DescriptorId, generateId, unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
+  getMockedApiEserviceDoc,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
@@ -26,14 +27,11 @@ describe("getEserviceDescriptor", () => {
 
   const mockInterfaceId = generateId();
   const mockInterfaceName = "interfaceDoc.txt";
-  const mockInterface = {
+  const mockInterface = getMockedApiEserviceDoc({
     id: mockInterfaceId,
     name: mockInterfaceName,
-    contentType: "text/plain",
-    prettyName: "Interface Document",
     path: `${config.eserviceDocumentsPath}/${mockInterfaceId}/${mockInterfaceName}`,
-    checksum: "mock-checksum",
-  };
+  });
   const mockCatalogProcessResponseDescriptor = getMockedApiEserviceDescriptor({
     interfaceDoc: mockInterface,
   });
@@ -84,11 +82,13 @@ describe("getEserviceDescriptor", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(
-      new File([Buffer.from(testFileContent)], mockInterface.name, {
+    const expectedServiceResponse = {
+      file: new File([Buffer.from(testFileContent)], mockInterface.name, {
         type: mockInterface.contentType,
-      })
-    );
+      }),
+      prettyName: mockInterface.prettyName,
+    };
+    expect(result).toEqual(expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },

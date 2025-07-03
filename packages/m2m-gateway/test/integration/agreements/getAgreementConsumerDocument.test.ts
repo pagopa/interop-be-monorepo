@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AgreementId, generateId, unsafeBrandId } from "pagopa-interop-models";
-import { getMockWithMetadata } from "pagopa-interop-commons-test";
+import {
+  getMockWithMetadata,
+  getMockedApiAgreementDocument,
+} from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   agreementService,
@@ -11,6 +14,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
+import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 
 describe("getAgreementConsumerDocument", () => {
   const testFileContent =
@@ -18,15 +22,12 @@ describe("getAgreementConsumerDocument", () => {
 
   const mockAgreementId = generateId<AgreementId>();
   const mockDocumentId = generateId();
-  const mockDocumentName = "interfaceDoc.txt";
-  const mockDocument = {
+  const mockDocumentName = "consumerDoc.txt";
+  const mockDocument = getMockedApiAgreementDocument({
     id: mockDocumentId,
     name: mockDocumentName,
-    contentType: "text/plain",
-    prettyName: "Interface Document",
     path: `${config.consumerDocumentsPath}/${mockDocumentId}/${mockDocumentName}`,
-    checksum: "mock-checksum",
-  };
+  });
 
   const mockAgreementProcessResponse = getMockWithMetadata(mockDocument);
   const mockGetAgreementConsumerDocument = vi
@@ -69,11 +70,13 @@ describe("getAgreementConsumerDocument", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(
-      new File([Buffer.from(testFileContent)], mockDocument.name, {
+    const expectedServiceResponse: DownloadedDocument = {
+      file: new File([Buffer.from(testFileContent)], mockDocument.name, {
         type: mockDocument.contentType,
-      })
-    );
+      }),
+      prettyName: mockDocument.prettyName,
+    };
+    expect(result).toEqual(expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.agreementProcessClient

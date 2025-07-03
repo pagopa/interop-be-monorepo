@@ -16,7 +16,7 @@ import {
   getEserviceDescriptorErrorMapper,
   getEserviceDescriptorInterfaceErrorMapper,
 } from "../utils/errorMappers.js";
-import { sendFileAsFormData } from "../utils/fileDownload.js";
+import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
@@ -135,7 +135,7 @@ const eserviceRouter = (
             ctx
           );
 
-          return sendFileAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(file, res);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

@@ -1,37 +1,52 @@
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import {
-  agreementApi,
-  catalogApi,
-  purposeApi,
-} from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { Response } from "express";
 import { FormDataEncoder } from "form-data-encoder";
 
+export type DownloadedDocument = {
+  file: File;
+  prettyName: string | undefined;
+};
+
 export async function downloadDocument(
-  document:
-    | catalogApi.EServiceDoc
-    | agreementApi.Document
-    | (purposeApi.PurposeVersionDocument & { name: string }),
+  {
+    path,
+    contentType,
+    name,
+    prettyName,
+  }: {
+    path: string;
+    contentType: string;
+    name: string;
+    prettyName?: string;
+  },
   fileManager: FileManager,
   bucket: string,
   logger: Logger
-): Promise<File> {
-  const fileContent = await fileManager.get(bucket, document.path, logger);
-  return new File([fileContent], document.name, {
-    type: document.contentType,
+): Promise<DownloadedDocument> {
+  const fileContent = await fileManager.get(bucket, path, logger);
+  const file = new File([fileContent], name, {
+    type: contentType,
   });
+  return {
+    file,
+    prettyName,
+  };
 }
 
-export async function sendFileAsFormData(
-  file: File,
+export async function sendDownloadedDocumentAsFormData(
+  { file, prettyName }: DownloadedDocument,
   res: Response
 ): Promise<Response> {
   const form = new FormData();
   form.set("file", file);
   form.set("filename", file.name);
   form.set("contentType", file.type);
+
+  if (prettyName) {
+    form.set("prettyName", prettyName);
+  }
 
   const encoder = new FormDataEncoder(form);
 

@@ -3,6 +3,7 @@ import { CorrelationId, TenantId, generateId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { M2MGatewayAppContext } from "../src/utils/context.js";
+import { DownloadedDocument } from "../src/utils/fileDownload.js";
 
 export const m2mTestToken = generateMock(z.string().base64());
 
@@ -34,16 +35,21 @@ export const getMockM2MAdminAppContext = ({
   };
 };
 
-export function getMockFile({
+export function getMockDownloadedDocument({
   mockFileName = "mockFileName.txt",
   mockContentType = "text/plain",
   mockFileContent = "This is a mock file content for testing purposes.\nIt simulates the content of an Eservice descriptor interface file.\nOn multiple lines.",
+  prettyName = "Mock File Name",
 }: {
   mockFileName?: string;
   mockContentType?: string;
   mockFileContent?: string;
-} = {}): File {
-  return new File([Buffer.from(mockFileContent)], mockFileName, {
-    type: mockContentType,
-  });
+  prettyName?: string;
+} = {}): DownloadedDocument {
+  return {
+    file: new File([Buffer.from(mockFileContent)], mockFileName, {
+      type: mockContentType,
+    }),
+    prettyName,
+  };
 }

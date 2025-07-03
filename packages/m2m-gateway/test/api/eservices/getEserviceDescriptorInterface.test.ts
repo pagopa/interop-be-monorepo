@@ -9,14 +9,14 @@ import {
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
-import { getMockFile } from "../../mockUtils.js";
+import { getMockDownloadedDocument } from "../../mockUtils.js";
 import {
-  testExpectedMultipartResponseFromFile,
+  testExpectedMultipartResponse,
   testMultipartResponseParser,
 } from "../../multipartTestUtils.js";
 
 describe("GET /eservices/:eserviceId/descriptors/:descriptorId/interface router test", () => {
-  const mockFile = getMockFile();
+  const mockDownloadedDoc = getMockDownloadedDocument();
 
   const makeRequest = async (
     token: string,
@@ -40,13 +40,13 @@ describe("GET /eservices/:eserviceId/descriptors/:descriptorId/interface router 
     async (role) => {
       mockEserviceService.getEServiceDescriptorInterface = vi
         .fn()
-        .mockResolvedValue(mockFile);
+        .mockResolvedValue(mockDownloadedDoc);
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId(), generateId());
 
       expect(res.status).toBe(200);
-      await testExpectedMultipartResponseFromFile(mockFile, res);
+      await testExpectedMultipartResponse(mockDownloadedDoc, res);
     }
   );
 
