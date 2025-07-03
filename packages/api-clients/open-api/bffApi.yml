@@ -11101,7 +11101,6 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/AttributeKind"
-            default: []
           required: true
           explode: false
       responses:
