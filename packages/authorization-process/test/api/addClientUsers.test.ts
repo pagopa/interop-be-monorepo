@@ -21,6 +21,7 @@ import {
   tenantNotAllowedOnClient,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
+import { testToCompactClient, testToFullClient } from "../apiUtils.js";
 
 describe("API /clients/{clientId}/users authorization test", () => {
   const consumerId: TenantId = generateId();
@@ -52,11 +53,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({
-        id: mockClient.id,
-        consumerId: mockClient.consumerId,
-        kind: mockClient.kind.toUpperCase(),
-      });
+      expect(res.body).toEqual(testToCompactClient(mockClient));
     }
   );
 
@@ -72,17 +69,7 @@ describe("API /clients/{clientId}/users authorization test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({
-        id: mockClient.id,
-        name: mockClient.name,
-        consumerId: mockClient.consumerId,
-        users: mockClient.users,
-        createdAt: mockClient.createdAt.toJSON(),
-        purposes: mockClient.purposes,
-        kind: mockClient.kind.toUpperCase(),
-        description: mockClient.description,
-        adminId: mockClient.adminId,
-      });
+      expect(res.body).toEqual(testToFullClient(mockClient));
     }
   );
 

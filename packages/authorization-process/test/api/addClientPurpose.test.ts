@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   Client,
   ClientId,
+  clientKind,
   Descriptor,
   descriptorState,
   generateId,
@@ -37,6 +38,7 @@ import {
   purposeDelegationNotFound,
   purposeNotFound,
 } from "../../src/model/domain/errors.js";
+import { testToCompactClient, testToFullClient } from "../apiUtils.js";
 
 describe("API /clients/{clientId}/purposes authorization test", () => {
   const mockDescriptor: Descriptor = {
@@ -59,7 +61,10 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     versions: [getMockPurposeVersion(purposeVersionState.active)],
   };
 
-  const mockClient: Client = getMockClient({ consumerId: mockConsumerId });
+  const mockClient: Client = getMockClient({
+    kind: clientKind.consumer,
+    consumerId: mockConsumerId,
+  });
   const serviceResponse = getMockWithMetadata(mockClient);
   authorizationService.addClientPurpose = vi
     .fn()
@@ -86,11 +91,7 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({
-        id: mockClient.id,
-        consumerId: mockClient.consumerId,
-        kind: mockClient.kind.toUpperCase(),
-      });
+      expect(res.body).toEqual(testToCompactClient(mockClient));
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );
@@ -110,17 +111,7 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual({
-        id: mockClient.id,
-        name: mockClient.name,
-        consumerId: mockClient.consumerId,
-        users: mockClient.users,
-        createdAt: mockClient.createdAt.toJSON(),
-        purposes: mockClient.purposes,
-        kind: mockClient.kind.toUpperCase(),
-        description: mockClient.description,
-        adminId: mockClient.adminId,
-      });
+      expect(res.body).toEqual(testToFullClient(mockClient));
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );

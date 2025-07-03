@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateId, TenantId } from "pagopa-interop-models";
-import { generateToken, getMockClient } from "pagopa-interop-commons-test";
+import { clientKind, generateId, TenantId } from "pagopa-interop-models";
+import {
+  generateToken,
+  getMockClient,
+  mockTokenOrganizationId,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
+import { testToCompactClient, testToFullClient } from "../apiUtils.js";
 
 describe("API /clientsConsumer authorization test", () => {
   const organizationId: TenantId = generateId();
@@ -17,13 +21,13 @@ describe("API /clientsConsumer authorization test", () => {
     members: [organizationId],
   };
 
-  const mockClient = getMockClient();
-
-  const apiClient = clientToApiClient(mockClient, { showUsers: true });
+  const mockClient = getMockClient({
+    kind: clientKind.consumer,
+  });
 
   authorizationService.createConsumerClient = vi
     .fn()
-    .mockResolvedValue({ client: mockClient, showUsers: true });
+    .mockResolvedValue(mockClient);
 
   const makeRequest = async (
     token: string,
@@ -37,12 +41,28 @@ describe("API /clientsConsumer authorization test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 200 with a compact client for user with role %s and tenant != client consumerId",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, clientSeed);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiClient);
+      expect(res.body).toEqual(testToCompactClient(mockClient));
+    }
+  );
+
+  it.each(authorizedRoles)(
+    "Should return 200 with a full client for user with role %s and tenant = client consumerId",
+    async (role) => {
+      const mockClient = getMockClient({
+        consumerId: mockTokenOrganizationId,
+      });
+      authorizationService.createConsumerClient = vi
+        .fn()
+        .mockResolvedValueOnce(mockClient);
+      const token = generateToken(role);
+      const res = await makeRequest(token, clientSeed);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(testToFullClient(mockClient));
     }
   );
 
