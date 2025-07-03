@@ -1,6 +1,9 @@
 import { z } from "zod";
 import { KafkaProducerConfig } from "./producerServiceConfig.js";
 import { ApplicationAuditTopicConfig } from "./kafkaTopicConfig.js";
+import { ApplicationAuditFallbackSQSProducerConfig } from "./applicationAuditFallbackSQSProducerConfig.js";
+import { LoggerConfig } from "./loggerConfig.js";
+import { FeatureFlagApplicationAuditStrictConfig } from "./featureFlagsConfig.js";
 
 export const ApplicationAuditProducerConfig = z
   .object({
@@ -14,7 +17,10 @@ export const ApplicationAuditProducerConfig = z
     podName: c.POD_NAME,
   }))
   .and(KafkaProducerConfig)
-  .and(ApplicationAuditTopicConfig);
+  .and(ApplicationAuditTopicConfig)
+  .and(ApplicationAuditFallbackSQSProducerConfig)
+  .and(FeatureFlagApplicationAuditStrictConfig)
+  .and(LoggerConfig);
 
 export type ApplicationAuditProducerConfig = z.infer<
   typeof ApplicationAuditProducerConfig

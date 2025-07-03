@@ -108,8 +108,8 @@ export const retrieveEserviceById = async (
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function delegationServiceBuilder(
-  readModelService: ReadModelService,
   dbInstance: DB,
+  readModelService: ReadModelService,
   pdfGenerator: PDFGenerator,
   fileManager: FileManager
 ) {
@@ -528,7 +528,7 @@ export function delegationServiceBuilder(
         delegateId: TenantId;
         eserviceId: EServiceId;
       },
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return createDelegation(
         {
@@ -560,7 +560,7 @@ export function delegationServiceBuilder(
     },
     async approveProducerDelegation(
       delegationId: DelegationId,
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return approveDelegation(
         delegationId,
@@ -581,7 +581,7 @@ export function delegationServiceBuilder(
     async rejectProducerDelegation(
       delegationId: DelegationId,
       rejectionReason: string,
-      ctx: WithLogger<AppContext<UIAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Delegation>> {
       return rejectDelegation(
         delegationId,
@@ -682,3 +682,5 @@ export function delegationServiceBuilder(
     },
   };
 }
+
+export type DelegationService = ReturnType<typeof delegationServiceBuilder>;

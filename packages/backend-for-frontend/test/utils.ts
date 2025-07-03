@@ -1,8 +1,15 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { inject, afterEach } from "vitest";
-import { FileManager } from "pagopa-interop-commons";
+import {
+  AppContext,
+  FileManager,
+  genericLogger,
+  UIAuthData,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
+  ApiError,
   Descriptor,
   EService,
   EServiceTemplate,
@@ -14,9 +21,11 @@ import {
 } from "../src/services/eserviceTemplateService.js";
 import {
   AttributeProcessClient,
+  CatalogProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
+import { BffAppContext } from "../src/utilities/context.js";
 
 export const { cleanup, readModelRepository, postgresDB, fileManager } =
   await setupTestContainersVitest(
@@ -31,12 +40,14 @@ export const createEServiceTeamplateService = (
   eserviceProcessTemplateClient: EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
+  catalogProcessClient: CatalogProcessClient,
   fileManager: FileManager
 ): EServiceTemplateService =>
   eserviceTemplateServiceBuilder(
     eserviceProcessTemplateClient,
     tenantProcessClient,
     attributeProcessClient,
+    catalogProcessClient,
     fileManager
   );
 
@@ -84,3 +95,40 @@ export const toEserviceCatalogProcessMock = (
     },
   ],
 });
+
+export const getBffMockContext = (
+  ctx: AppContext<UIAuthData>
+): WithLogger<BffAppContext> => ({
+  ...ctx,
+  headers: {
+    "X-Correlation-Id": ctx.correlationId,
+    Authorization: "authorization",
+    "X-Forwarded-For": "x-forwarded-for",
+  },
+  logger: genericLogger,
+});
+
+const catalogErrorCodes = {
+  eserviceTemplateInterfaceNotFound: "0035",
+  eserviceTemplateInterfaceDataNotValid: "0036",
+};
+export type CatalogErrorCodes = keyof typeof catalogErrorCodes;
+
+export function eserviceTemplateInterfaceNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<CatalogErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
+    code: "eserviceTemplateInterfaceNotFound",
+    title: "EService template interface document not found",
+  });
+}
+
+export function eserviceInterfaceDataNotValid(): ApiError<CatalogErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface data not valid`,
+    code: "eserviceTemplateInterfaceDataNotValid",
+    title: "EService template interface data not valid",
+  });
+}

@@ -20,7 +20,7 @@ export type GetEServicesQueryParams = QueryParametersByAlias<
 
 export type GetEServiceDescriptorsQueryParams = QueryParametersByAlias<
   EServiceApi,
-  "getEServiceDescriptor"
+  "getEServiceDescriptors"
 >;
 
 export type GetPurposesQueryParams = QueryParametersByAlias<
@@ -46,6 +46,11 @@ export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
 export type GetConsumerDelegationsQueryParams = QueryParametersByAlias<
   DelegationApi,
   "getConsumerDelegations"
+>;
+
+export type GetProducerDelegationsQueryParams = QueryParametersByAlias<
+  DelegationApi,
+  "getProducerDelegations"
 >;
 
 export type GetEServiceTemplateVersionsQueryParams = QueryParametersByAlias<

@@ -40,6 +40,7 @@ import {
   EServiceId,
   Tenant,
   TenantId,
+  VerifiedTenantAttribute,
   agreementState,
   attributeKind,
   delegationKind,
@@ -61,8 +62,8 @@ import {
   eServiceNotFound,
   missingCertifiedAttributesError,
   noNewerDescriptor,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
   unexpectedVersionFormat,
@@ -229,11 +230,13 @@ describe("upgrade Agreement", () => {
         await uploadDocument(agreementId, doc.id, doc.name);
       }
 
-      const returnedAgreement = await agreementService.upgradeAgreement(
+      const upgradeAgreementResponse = await agreementService.upgradeAgreement(
         agreement.id,
         getMockContext({ authData })
       );
-      const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
+      const newAgreementId = unsafeBrandId<AgreementId>(
+        upgradeAgreementResponse.data.id
+      );
 
       const actualAgreementArchivedEvent = await readAgreementEventByVersion(
         agreement.id,
@@ -335,7 +338,233 @@ describe("upgrade Agreement", () => {
       };
 
       expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
-      expect(actualAgreementUpgraded).toEqual(returnedAgreement);
+      expect(upgradeAgreementResponse).toEqual({
+        data: actualAgreementUpgraded,
+        metadata: { version: 0 },
+      });
+
+      for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
+        const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
+
+        expect(
+          await fileManager.listFiles(config.s3Bucket, genericLogger)
+        ).toContainEqual(expectedUploadedDocumentPath);
+      }
+    }
+  );
+
+  it.each(
+    Object.values([
+      requesterIs.consumer,
+      requesterIs.delegateConsumer,
+      requesterIs.producer,
+      // ^ Producer can upgrade because it's the same as the consumer
+    ])
+  )(
+    "Requester === %s, should succeed with invalid Verified and Declared attributes when consumer and producer are the same",
+    async (requesterIs) => {
+      const producerAndConsumerId = generateId<TenantId>();
+      const verifiedAttribute = getMockAttribute(attributeKind.verified);
+      const invalidVerifiedTenantAttribute: VerifiedTenantAttribute = {
+        ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
+        verifiedBy: [
+          {
+            id: producerAndConsumerId,
+            verificationDate: new Date(),
+            expirationDate: addDays(new Date(), 30),
+            extensionDate: new Date(), // invalid because of this
+          },
+        ],
+        revokedBy: [],
+      };
+
+      const declaredAttribute = getMockAttribute(attributeKind.declared);
+      const invalidDeclaredTenantAttribute = {
+        ...getMockDeclaredTenantAttribute(declaredAttribute.id),
+        revocationTimestamp: new Date(),
+      };
+
+      const certifiedAttribute = getMockAttribute(attributeKind.certified);
+      const validCertifiedTenantAttribute = {
+        ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
+        revocationTimestamp: undefined,
+      };
+
+      const invalidAttribute = randomArrayItem([
+        invalidDeclaredTenantAttribute,
+        invalidVerifiedTenantAttribute,
+      ]);
+
+      const producerAndConsumer = getMockTenant(producerAndConsumerId, [
+        invalidVerifiedTenantAttribute,
+        validCertifiedTenantAttribute,
+        invalidDeclaredTenantAttribute,
+      ]);
+
+      await addOneTenant(producerAndConsumer);
+      await addOneAttribute(certifiedAttribute);
+      await addOneAttribute(verifiedAttribute);
+      await addOneAttribute(declaredAttribute);
+
+      const newPublishedDescriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        version: "2",
+        attributes: {
+          certified: [
+            [getMockEServiceAttribute(validCertifiedTenantAttribute.id)],
+          ],
+          declared: [
+            invalidAttribute.id === invalidDeclaredTenantAttribute.id
+              ? [getMockEServiceAttribute(invalidDeclaredTenantAttribute.id)]
+              : [],
+          ],
+          verified: [
+            invalidAttribute.id === invalidVerifiedTenantAttribute.id
+              ? [getMockEServiceAttribute(invalidVerifiedTenantAttribute.id)]
+              : [],
+          ],
+        },
+      };
+
+      const currentDescriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        state: descriptorState.deprecated,
+        version: "1",
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerAndConsumer.id,
+        descriptors: [newPublishedDescriptor, currentDescriptor],
+      };
+      await addOneEService(eservice);
+
+      const agreementId: AgreementId = generateId<AgreementId>();
+
+      const docsNumber = Math.floor(Math.random() * 10) + 1;
+      const agreementConsumerDocuments = Array.from(
+        { length: docsNumber },
+        () => getMockConsumerDocument(agreementId)
+      );
+
+      const agreement: Agreement = {
+        ...getMockAgreement(
+          eservice.id,
+          producerAndConsumer.id,
+          randomArrayItem(agreementUpgradableStates)
+        ),
+        id: agreementId,
+        producerId: eservice.producerId,
+        descriptorId: currentDescriptor.id,
+        createdAt: new Date(),
+        consumerDocuments: agreementConsumerDocuments,
+        suspendedByConsumer: randomBoolean(),
+        suspendedByProducer: randomBoolean(),
+        stamps: {
+          submission: getRandomPastStamp(),
+          activation: getRandomPastStamp(),
+          suspensionByConsumer: getRandomPastStamp(),
+          suspensionByProducer: getRandomPastStamp(),
+        },
+        contract: getMockContract(
+          agreementId,
+          producerAndConsumer.id,
+          producerAndConsumer.id
+        ),
+        suspendedAt: new Date(),
+      };
+      await addOneAgreement(agreement);
+
+      const { authData, consumerDelegation, delegateConsumer } =
+        authDataAndDelegationsFromRequesterIs(requesterIs, agreement);
+
+      await addSomeRandomDelegations(agreement, addOneDelegation);
+      await addDelegationsAndDelegates({
+        producerDelegation: undefined,
+        delegateProducer: undefined,
+        consumerDelegation,
+        delegateConsumer,
+      });
+      for (const doc of agreementConsumerDocuments) {
+        await uploadDocument(agreementId, doc.id, doc.name);
+      }
+
+      const upgradeAgreementResponse = await agreementService.upgradeAgreement(
+        agreement.id,
+        getMockContext({ authData })
+      );
+      const newAgreementId = unsafeBrandId<AgreementId>(
+        upgradeAgreementResponse.data.id
+      );
+
+      expect(newAgreementId).toBeDefined();
+      const actualAgreementUpgradedEvent = await readAgreementEventByVersion(
+        newAgreementId,
+        0
+      );
+
+      expect(actualAgreementUpgradedEvent).toMatchObject({
+        type: "AgreementUpgraded",
+        event_version: 2,
+        version: "0",
+        stream_id: newAgreementId,
+      });
+
+      const actualAgreementUpgraded: Agreement = fromAgreementV2(
+        decodeProtobufPayload({
+          messageType: AgreementUpgradedV2,
+          payload: actualAgreementUpgradedEvent.data,
+        }).agreement!
+      );
+
+      const contractDocumentId = actualAgreementUpgraded.contract!.id;
+      const contractCreatedAt = actualAgreementUpgraded.contract!.createdAt;
+      const contractDocumentName = `${producerAndConsumer.id}_${
+        producerAndConsumer.id
+      }_${formatDateyyyyMMddHHmmss(contractCreatedAt)}_agreement_contract.pdf`;
+
+      const expectedContract = {
+        id: contractDocumentId,
+        contentType: "application/pdf",
+        createdAt: contractCreatedAt,
+        path: `${config.agreementContractsPath}/${actualAgreementUpgraded.id}/${contractDocumentId}/${contractDocumentName}`,
+        prettyName: "Richiesta di fruizione",
+        name: contractDocumentName,
+      };
+
+      const expectedUpgradedAgreement = {
+        ...agreement,
+        id: newAgreementId,
+        descriptorId: newPublishedDescriptor.id,
+        createdAt: agreement.createdAt,
+        stamps: {
+          ...agreement.stamps,
+          upgrade: {
+            who: authData.userId,
+            when: new Date(),
+            delegationId: consumerDelegation?.id,
+          },
+        },
+        verifiedAttributes: [],
+        certifiedAttributes: [{ id: validCertifiedTenantAttribute.id }],
+        declaredAttributes: [],
+        consumerDocuments: agreementConsumerDocuments.map<AgreementDocument>(
+          (doc, i) => ({
+            ...doc,
+            id: actualAgreementUpgraded?.consumerDocuments[i].id,
+            path: actualAgreementUpgraded?.consumerDocuments[i].path,
+          })
+        ),
+        contract: expectedContract,
+        suspendedByPlatform: undefined,
+        updatedAt: undefined,
+        rejectionReason: undefined,
+      };
+
+      expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
+      expect(upgradeAgreementResponse).toEqual({
+        data: actualAgreementUpgraded,
+        metadata: { version: 0 },
+      });
 
       for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
         const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -485,12 +714,13 @@ describe("upgrade Agreement", () => {
           }
 
           vi.spyOn(pdfGenerator, "generate");
-          const returnedAgreement = await agreementService.upgradeAgreement(
-            agreement.id,
-            getMockContext({ authData })
-          );
+          const upgradeAgreementResponse =
+            await agreementService.upgradeAgreement(
+              agreement.id,
+              getMockContext({ authData })
+            );
           const newAgreementId = unsafeBrandId<AgreementId>(
-            returnedAgreement.id
+            upgradeAgreementResponse.data.id
           );
 
           const actualAgreementArchivedEvent =
@@ -590,7 +820,10 @@ describe("upgrade Agreement", () => {
           };
 
           expect(actualAgreementUpgraded).toEqual(expectedUpgradedAgreement);
-          expect(actualAgreementUpgraded).toEqual(returnedAgreement);
+          expect(upgradeAgreementResponse).toEqual({
+            data: actualAgreementUpgraded,
+            metadata: { version: 0 },
+          });
 
           for (const agreementDoc of expectedUpgradedAgreement.consumerDocuments) {
             const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -808,11 +1041,13 @@ describe("upgrade Agreement", () => {
         await uploadDocument(agreementId, doc.id, doc.name);
       }
 
-      const returnedAgreement = await agreementService.upgradeAgreement(
+      const upgradeAgreementResponse = await agreementService.upgradeAgreement(
         agreement.id,
         getMockContext({ authData })
       );
-      const newAgreementId = unsafeBrandId<AgreementId>(returnedAgreement.id);
+      const newAgreementId = unsafeBrandId<AgreementId>(
+        upgradeAgreementResponse.data.id
+      );
 
       expect(newAgreementId).toBeDefined();
       const actualAgreementCreatedEvent = await readAgreementEventByVersion(
@@ -861,7 +1096,10 @@ describe("upgrade Agreement", () => {
       };
 
       expect(actualCreatedAgreement).toEqual(expectedCreatedAgreement);
-      expect(actualCreatedAgreement).toEqual(returnedAgreement);
+      expect(upgradeAgreementResponse).toEqual({
+        data: actualCreatedAgreement,
+        metadata: { version: 0 },
+      });
 
       for (const agreementDoc of expectedCreatedAgreement.consumerDocuments) {
         const expectedUploadedDocumentPath = `${config.consumerDocumentsPath}/${newAgreementId}/${agreementDoc.id}/${agreementDoc.name}`;
@@ -887,7 +1125,7 @@ describe("upgrade Agreement", () => {
     ).rejects.toThrowError(agreementNotFound(agreementId));
   });
 
-  it("should throw an organizationIsNotTheConsumer error when the requester is not the consumer", async () => {
+  it("should throw an tenantIsNotTheConsumer error when the requester is not the consumer", async () => {
     const authData = getMockAuthData();
 
     const agreement: Agreement = getMockAgreement(
@@ -902,12 +1140,10 @@ describe("upgrade Agreement", () => {
         agreement.id,
         getMockContext({ authData })
       )
-    ).rejects.toThrowError(
-      organizationIsNotTheConsumer(authData.organizationId)
-    );
+    ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
   });
 
-  it("should throw an organizationIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
+  it("should throw an tenantIsNotTheDelegateConsumer error when the requester is the consumer but there is an active consumer delegation", async () => {
     const authData = getMockAuthData();
     const agreement = {
       ...getMockAgreement(),
@@ -930,10 +1166,7 @@ describe("upgrade Agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
-      organizationIsNotTheDelegateConsumer(
-        authData.organizationId,
-        delegation.id
-      )
+      tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
     );
   });
 

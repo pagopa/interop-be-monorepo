@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiAttribute,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
 import {
@@ -7,15 +10,14 @@ import {
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockAttributeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   missingMetadata,
-  resourcePollingTimeout,
   unexpectedAttributeKind,
   unexpectedUndefinedAttributeOriginOrCode,
 } from "../../../src/model/errors.js";
-import { getMockedApiAttribute } from "../../mockUtils.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("POST /certifiedAttributes router test", () => {
@@ -31,7 +33,7 @@ describe("POST /certifiedAttributes router test", () => {
 
   const mockM2MCertifiedAttributeResponse: m2mGatewayApi.CertifiedAttribute =
     toM2MGatewayApiCertifiedAttribute({
-      attribute: mockApiCertifiedAttribute.data,
+      attribute: mockApiCertifiedAttribute,
       logger: genericLogger,
     });
 
@@ -46,7 +48,7 @@ describe("POST /certifiedAttributes router test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       mockAttributeService.createCertifiedAttribute = vi
         .fn()
@@ -55,7 +57,7 @@ describe("POST /certifiedAttributes router test", () => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockCertifiedAttributeSeed);
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MCertifiedAttributeResponse);
     }
   );
@@ -79,7 +81,7 @@ describe("POST /certifiedAttributes router test", () => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        body as unknown as m2mGatewayApi.CertifiedAttributeSeed
+        body as m2mGatewayApi.CertifiedAttributeSeed
       );
 
       expect(res.status).toBe(400);
@@ -105,9 +107,9 @@ describe("POST /certifiedAttributes router test", () => {
 
   it.each([
     missingMetadata(),
-    unexpectedAttributeKind(mockApiCertifiedAttribute.data),
-    unexpectedUndefinedAttributeOriginOrCode(mockApiCertifiedAttribute.data),
-    resourcePollingTimeout(3),
+    unexpectedAttributeKind(mockApiCertifiedAttribute),
+    unexpectedUndefinedAttributeOriginOrCode(mockApiCertifiedAttribute),
+    pollingMaxRetriesExceeded(3, 10),
   ])("Should return 500 in case of $code error", async (error) => {
     mockAttributeService.createCertifiedAttribute = vi
       .fn()

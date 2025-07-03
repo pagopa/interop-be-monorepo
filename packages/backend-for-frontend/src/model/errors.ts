@@ -42,7 +42,7 @@ export const errorCodes = {
   activeAgreementByEserviceAndConsumerNotFound: "0037",
   purposeIdNotFoundInClientAssertion: "0038",
   delegationNotFound: "0039",
-  organizationNotAllowed: "0040",
+  tenantNotAllowed: "0040",
   cannotGetKeyWithClient: "0041",
   clientAssertionPublicKeyNotFound: "0042",
   eserviceDelegated: "0043",
@@ -59,6 +59,7 @@ export const errorCodes = {
   missingUserRolesInIdentityToken: "0054",
   noVersionInEServiceTemplate: "0055",
   templateInstanceNotAllowed: "0056",
+  tenantBySelfcareIdNotFound: "0057",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -160,6 +161,16 @@ export function tenantNotFound(tenantId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
+    title: "Tenant not found",
+  });
+}
+
+export function tenantBySelfcareIdNotFound(
+  selfcareId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant with Selfcare ID ${selfcareId} not found`,
+    code: "tenantBySelfcareIdNotFound",
     title: "Tenant not found",
   });
 }
@@ -286,7 +297,7 @@ export function notValidDescriptor(
   state: string
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Descriptor ${descriptorId} has a not valid status for this operation ${state}`,
+    detail: `Descriptor ${descriptorId} is in an invalid state ${state} for this operation`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
   });
@@ -356,11 +367,11 @@ export function clientAssertionPublicKeyNotFound(
   });
 }
 
-export function organizationNotAllowed(clientId: string): ApiError<ErrorCodes> {
+export function tenantNotAllowed(clientId: string): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Organization not allowed for client ${clientId}`,
-    code: "organizationNotAllowed",
-    title: "Organization not allowed",
+    detail: `Tenant not allowed for client ${clientId}`,
+    code: "tenantNotAllowed",
+    title: "Tenant not allowed",
   });
 }
 

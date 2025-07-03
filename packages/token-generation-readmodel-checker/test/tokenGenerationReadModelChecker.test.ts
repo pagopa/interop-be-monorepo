@@ -161,6 +161,7 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
+        producerId: generateId(),
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -479,6 +480,7 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement1.descriptorId,
+        producerId: agreement1.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -495,6 +497,7 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement2.descriptorId,
+        producerId: agreement2.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -551,6 +554,7 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement1.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
+        producerId: generateId(),
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -567,6 +571,7 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement2.stamps.activation!.when.toISOString(),
         agreementDescriptorId: generateId(),
+        producerId: generateId(),
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -612,6 +617,7 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -697,6 +703,7 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };
@@ -738,6 +745,7 @@ describe("Token Generation Read Model Checker tests", () => {
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           agreement.stamps.activation!.when.toISOString(),
         agreementDescriptorId: agreement.descriptorId,
+        producerId: agreement.producerId,
         version: 1,
         updatedAt: new Date().toISOString(),
       };

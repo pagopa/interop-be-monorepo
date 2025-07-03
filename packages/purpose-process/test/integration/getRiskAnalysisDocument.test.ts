@@ -9,6 +9,7 @@ import {
   getMockAgreement,
   getMockAuthData,
   getMockContext,
+  getMockEService,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -31,7 +32,7 @@ import {
   purposeNotFound,
   purposeVersionNotFound,
   purposeVersionDocumentNotFound,
-  organizationNotAllowed,
+  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 import {
@@ -42,7 +43,6 @@ import {
   addOneTenant,
   addOneAgreement,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
 
 describe("getRiskAnalysisDocument", () => {
   it("should get the purpose version document (consumer)", async () => {
@@ -487,7 +487,7 @@ describe("getRiskAnalysisDocument", () => {
       )
     );
   });
-  it("should throw organizationNotAllowed if the requester is not the producer nor the consumer nor the delegate", async () => {
+  it("should throw tenantNotAllowed if the requester is not the producer nor the consumer nor the delegate", async () => {
     const randomTenantId: TenantId = generateId();
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
@@ -511,12 +511,12 @@ describe("getRiskAnalysisDocument", () => {
         documentId: mockDocument.id,
         ctx: getMockContext({ authData: getMockAuthData(randomTenantId) }),
       })
-    ).rejects.toThrowError(organizationNotAllowed(randomTenantId));
+    ).rejects.toThrowError(tenantNotAllowed(randomTenantId));
   });
   it.each(
     Object.values(delegationState).filter((s) => s !== delegationState.active)
   )(
-    "should throw organizationNotAllowed if the requester is the delegate but the delegation is in %s state",
+    "should throw tenantNotAllowed if the requester is the delegate but the delegation is in %s state",
     async (delegationState) => {
       const mockDocument = getMockPurposeVersionDocument();
       const mockEService = getMockEService();
@@ -550,7 +550,7 @@ describe("getRiskAnalysisDocument", () => {
           documentId: mockDocument.id,
           ctx: getMockContext({ authData: getMockAuthData(delegateId) }),
         })
-      ).rejects.toThrowError(organizationNotAllowed(delegateId));
+      ).rejects.toThrowError(tenantNotAllowed(delegateId));
     }
   );
 });

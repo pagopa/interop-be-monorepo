@@ -1,15 +1,16 @@
 import { constants } from "http2";
-import { randomUUID } from "crypto";
 import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
 } from "@zodios/express";
 import {
+  ClientId,
   CorrelationId,
   generateId,
   makeApiProblemBuilder,
   missingHeader,
   SpanId,
+  TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { AuthData } from "../auth/authData.js";
@@ -22,6 +23,11 @@ export type AppContext<A extends AuthData = AuthData> = {
   correlationId: CorrelationId;
   spanId: SpanId;
   requestTimestamp: number;
+};
+
+export type AuthServerAppContext = AppContext & {
+  clientId?: ClientId;
+  organizationId?: TenantId;
 };
 
 export const zodiosCtx = zodiosContext();
@@ -68,8 +74,11 @@ export const contextMiddleware =
       }
 
       setCtx(correlationIdHeader);
+      res.header("X-Correlation-Id", correlationIdHeader);
     } else {
-      setCtx(randomUUID());
+      const correlationId = generateId<CorrelationId>();
+      setCtx(correlationId);
+      res.header("X-Correlation-Id", correlationId);
     }
 
     return next();

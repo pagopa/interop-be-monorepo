@@ -83,8 +83,6 @@ import {
 } from "./validators.js";
 import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
-export type CatalogService = ReturnType<typeof catalogServiceBuilder>;
-
 export const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
@@ -580,6 +578,25 @@ export function catalogServiceBuilder(
         },
       });
     },
+
+    updateEServiceSignalHubFlag: async (
+      { headers, logger }: WithLogger<BffAppContext>,
+      eServiceId: EServiceId,
+      signalhubActivateSeed: bffApi.EServiceSignalHubUpdateSeed
+    ): Promise<void> => {
+      logger.info(
+        `Update signalhub flag for E-Service with id = ${eServiceId} to ${signalhubActivateSeed.isSignalHubEnabled}`
+      );
+      await catalogProcessClient.updateEServiceSignalHubFlag(
+        signalhubActivateSeed,
+        {
+          headers,
+          params: {
+            eServiceId,
+          },
+        }
+      );
+    },
     createEService: async (
       eServiceSeed: bffApi.EServiceSeed,
       { headers, logger }: WithLogger<BffAppContext>
@@ -670,7 +687,7 @@ export function catalogServiceBuilder(
 
       await verifyAndCreateDocument(
         fileManager,
-        unsafeBrandId(eService.id),
+        { id: eService.id, isEserviceTemplate: false },
         apiTechnologyToTechnology(eService.technology),
         doc.kind,
         doc.doc,
@@ -868,9 +885,6 @@ export function catalogServiceBuilder(
           id: requesterId,
         },
       });
-      if (!requesterTenant) {
-        throw tenantNotFound(requesterId);
-      }
 
       const delegationTenantsSet = await getTenantsFromDelegation(
         tenantProcessClient,
@@ -1543,7 +1557,9 @@ export function catalogServiceBuilder(
       const eservice = await catalogProcessClient.createEService(eserviceSeed, {
         headers,
       });
-      await pollEServiceById((result) => result.descriptors.length > 0);
+      await pollEServiceById({
+        condition: (result) => result.descriptors.length > 0,
+      });
 
       for (const riskAnalysis of importedEservice.riskAnalysis) {
         try {
@@ -1564,7 +1580,9 @@ export function catalogServiceBuilder(
             },
           });
         }
-        await pollEServiceById((result) => result.riskAnalysis.length > 0);
+        await pollEServiceById({
+          condition: (result) => result.riskAnalysis.length > 0,
+        });
       }
 
       const createEserviceDocumentRequest = async (
@@ -1612,11 +1630,12 @@ export function catalogServiceBuilder(
           context.logger
         );
       }
-      await pollEServiceById((result) =>
-        result.descriptors.some(
-          (d) => d.id === descriptor.id && d.interface !== undefined
-        )
-      );
+      await pollEServiceById({
+        condition: (result) =>
+          result.descriptors.some(
+            (d) => d.id === descriptor.id && d.interface !== undefined
+          ),
+      });
 
       for (const doc of importedEservice.descriptor.docs) {
         await verifyAndCreateImportedDocument(
@@ -1631,13 +1650,14 @@ export function catalogServiceBuilder(
           config.eserviceDocumentsPath,
           context.logger
         );
-        await pollEServiceById((result) =>
-          result.descriptors.some(
-            (d) =>
-              d.id === descriptor.id &&
-              d.docs.some((d) => d.prettyName === doc.prettyName)
-          )
-        );
+        await pollEServiceById({
+          condition: (result) =>
+            result.descriptors.some(
+              (d) =>
+                d.id === descriptor.id &&
+                d.docs.some((d) => d.prettyName === doc.prettyName)
+            ),
+        });
       }
 
       return {
@@ -1867,7 +1887,18 @@ export function catalogServiceBuilder(
         })
       );
 
-      return !eservices.some(
+      const eserviceTemplates = await getAllFromPaginated((offset, limit) =>
+        eserviceTemplateProcessClient.getEServiceTemplates({
+          headers,
+          queries: {
+            limit,
+            offset,
+            name,
+          },
+        })
+      );
+
+      return ![...eserviceTemplates, ...eservices].some(
         (e) => e.name.toLowerCase() === name.toLowerCase()
       );
     },
@@ -1890,3 +1921,5 @@ export function catalogServiceBuilder(
     },
   };
 }
+
+export type CatalogService = ReturnType<typeof catalogServiceBuilder>;

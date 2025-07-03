@@ -13,7 +13,7 @@ import {
   toProducerKeychainV2,
 } from "pagopa-interop-models";
 import {
-  organizationNotAllowedOnProducerKeychain,
+  tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -77,7 +77,7 @@ describe("delete producer keychain", () => {
       producerKeychainNotFound(notExistingProducerKeychain.id)
     );
   });
-  it("should throw organizationNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
+  it("should throw tenantNotAllowedOnProducerKeychain if the requester is not the producer", async () => {
     const mockProducer1 = getMockTenant();
     const mockProducer2 = getMockTenant();
     const mockProducerKeychain: ProducerKeychain = {
@@ -95,7 +95,7 @@ describe("delete producer keychain", () => {
         getMockContext({ authData: getMockAuthData(mockProducer2.id) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnProducerKeychain(
+      tenantNotAllowedOnProducerKeychain(
         mockProducer2.id,
         mockProducerKeychain.id
       )

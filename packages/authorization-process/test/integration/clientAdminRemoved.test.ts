@@ -17,7 +17,7 @@ import {
   clientAdminIdNotFound,
   clientKindNotAllowed,
   clientNotFound,
-  organizationNotAllowedOnClient,
+  tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
 import {
   addOneClient,
@@ -49,7 +49,7 @@ describe("clientAdminRemoved", () => {
       event_version: 2,
     });
   });
-  it("should throw organizationNotAllowedOnClient if the requester is not the consumer", async () => {
+  it("should throw tenantNotAllowedOnClient if the requester is not the consumer", async () => {
     const organizationId: TenantId = generateId();
     const mockClient: Client = {
       ...getMockClient(),
@@ -63,7 +63,7 @@ describe("clientAdminRemoved", () => {
         getMockContext({ authData: getMockAuthData(organizationId) })
       )
     ).rejects.toThrowError(
-      organizationNotAllowedOnClient(organizationId, mockClient.id)
+      tenantNotAllowedOnClient(organizationId, mockClient.id)
     );
   });
   it("should throw clientNotFound if the client does not exist", async () => {

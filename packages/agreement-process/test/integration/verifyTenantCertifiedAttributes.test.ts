@@ -21,8 +21,8 @@ import {
 import {
   descriptorNotFound,
   eServiceNotFound,
-  organizationIsNotTheConsumer,
-  organizationIsNotTheDelegateConsumer,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -96,7 +96,7 @@ describe("Verify Tenant Certified Attributes", () => {
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
     });
-    it("should throw organizationIsNotTheDelegateConsumer when organizationId is not the delegate", async () => {
+    it("should throw tenantIsNotTheDelegateConsumer when organizationId is not the delegate", async () => {
       const authData = getMockAuthData();
       const delegation = {
         ...mockDelegation,
@@ -116,10 +116,7 @@ describe("Verify Tenant Certified Attributes", () => {
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
-        organizationIsNotTheDelegateConsumer(
-          authData.organizationId,
-          delegation.id
-        )
+        tenantIsNotTheDelegateConsumer(authData.organizationId, delegation.id)
       );
     });
   });
@@ -139,7 +136,7 @@ describe("Verify Tenant Certified Attributes", () => {
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
     });
-    it("should throw organizationIsNotTheConsumer when organizationId !== tenantId", async () => {
+    it("should throw tenantIsNotTheConsumer when organizationId !== tenantId", async () => {
       const authData = getMockAuthData();
 
       await expect(
@@ -151,9 +148,7 @@ describe("Verify Tenant Certified Attributes", () => {
           },
           getMockContext({ authData })
         )
-      ).rejects.toThrowError(
-        organizationIsNotTheConsumer(authData.organizationId)
-      );
+      ).rejects.toThrowError(tenantIsNotTheConsumer(authData.organizationId));
     });
     it("should return true if the consumer is the producer even if the tenant has invalid certified attributes", async () => {
       const tenant: Tenant = {

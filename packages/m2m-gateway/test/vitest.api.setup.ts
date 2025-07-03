@@ -52,6 +52,8 @@ import {
   readAuthDataFromJwtToken,
   decodeJwtToken,
   AppContext,
+  rateLimiterMiddleware,
+  RateLimiter,
 } from "pagopa-interop-commons";
 import { mockM2MAdminUserId } from "pagopa-interop-commons-test";
 import { createApp } from "../src/app.js";
@@ -63,6 +65,18 @@ import { EserviceService } from "../src/services/eserviceService.js";
 import { EserviceTemplateService } from "../src/services/eserviceTemplateService.js";
 import { PurposeService } from "../src/services/purposeService.js";
 import { TenantService } from "../src/services/tenantService.js";
+import { KeyService } from "../src/services/keyService.js";
+
+export const mockRateLimiter: RateLimiter = {
+  rateLimitByOrganization: vi.fn().mockResolvedValue({
+    limitReached: false,
+    maxRequests: 100,
+    rateInterval: 1000,
+    remainingRequests: 99,
+  }),
+  getCountByOrganization: vi.fn(),
+  getBurstCountByOrganization: vi.fn(),
+};
 
 export const mockGetClientAdminId = vi
   .fn()
@@ -74,24 +88,32 @@ beforeEach(() => {
 
 export const mockClientService = {
   getClientAdminId: mockGetClientAdminId,
-} as ClientService;
+} as unknown as ClientService;
 // ^ Mocking getClientAdminId here to make the m2m auth data validation middleware
 // pass in all the api tests
 
 export const mockDelegationService = {} as DelegationService;
-export const mockTenantService = {} as TenantService;
+export const mockPurposeService = {} as PurposeService;
+export const mockTenantService = {
+  getTenant: vi.fn(),
+} as unknown as TenantService;
 export const mockAttributeService = {} as AttributeService;
+export const mockEServiceTemplateService = {} as EserviceTemplateService;
+export const mockAgreementService = {} as AgreementService;
+export const mockEserviceService = {} as EserviceService;
+export const mockKeyService = {} as KeyService;
 
 export const api = await createApp(
   {
-    agreementService: {} as AgreementService,
+    agreementService: mockAgreementService,
     attributeService: mockAttributeService,
     clientService: mockClientService,
     delegationService: mockDelegationService,
-    eserviceService: {} as EserviceService,
-    eserviceTemplateService: {} as EserviceTemplateService,
-    purposeService: {} as PurposeService,
+    eserviceTemplateService: mockEServiceTemplateService,
+    eserviceService: mockEserviceService,
+    purposeService: mockPurposeService,
     tenantService: mockTenantService,
+    keyService: mockKeyService,
   },
-  (_req, _res, next): void => next()
+  rateLimiterMiddleware(mockRateLimiter)
 );

@@ -7,6 +7,7 @@ import {
   getMockDelegation,
   getMockDescriptor,
   getMockDocument,
+  getMockEService,
   getMockPurpose,
   getMockTenant,
   getMockValidRiskAnalysis,
@@ -42,7 +43,7 @@ import {
   eServiceModeNotAllowed,
   eserviceRiskAnalysisNotFound,
   missingFreeOfChargeReason,
-  organizationIsNotTheConsumer,
+  tenantIsNotTheConsumer,
   riskAnalysisValidationFailed,
   tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
@@ -55,7 +56,7 @@ import {
   purposeService,
   readLastPurposeEvent,
 } from "../integrationUtils.js";
-import { getMockEService } from "../mockUtils.js";
+import { getMockReversePurposeSeed } from "../mockUtils.js";
 
 describe("createReversePurpose", () => {
   it("should write in event-store for the creation of a reverse purpose", async () => {
@@ -88,16 +89,11 @@ describe("createReversePurpose", () => {
       state: agreementState.active,
     };
 
-    const reversePurposeSeed: purposeApi.EServicePurposeSeed = {
-      eServiceId: mockEService.id,
-      consumerId: consumer.id,
-      riskAnalysisId: mockRiskAnalysis.id,
-      title: "test purpose title",
-      description: "test purpose description",
-      isFreeOfCharge: true,
-      freeOfChargeReason: "test",
-      dailyCalls: 1,
-    };
+    const reversePurposeSeed = getMockReversePurposeSeed(
+      mockEService.id,
+      consumer.id,
+      mockRiskAnalysis.id
+    );
 
     await addOneEService(mockEService);
     await addOneTenant(producer);
@@ -404,7 +400,7 @@ describe("createReversePurpose", () => {
 
     vi.useRealTimers();
   });
-  it("should throw organizationIsNotTheConsumer if the requester is not the consumer", async () => {
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const consumer = { ...getMockTenant(), kind: tenantKind.PA };
     const producer: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
 
@@ -452,7 +448,7 @@ describe("createReversePurpose", () => {
         reversePurposeSeed,
         getMockContext({ authData: getMockAuthData(producer.id) })
       )
-    ).rejects.toThrowError(organizationIsNotTheConsumer(producer.id));
+    ).rejects.toThrowError(tenantIsNotTheConsumer(producer.id));
   });
   it("should throw eserviceModeNotAllowed if the eservice is in deliver mode", async () => {
     const consumer = getMockTenant();
