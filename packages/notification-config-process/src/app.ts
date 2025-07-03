@@ -13,6 +13,7 @@ import notificationConfigRouter from "./routers/NotificationConfigRouter.js";
 import healthRouter from "./routers/HealthRouter.js";
 import { config } from "./config/config.js";
 import { NotificationConfigService } from "./services/notificationConfigService.js";
+import { notificationConfigFeatureFlagMiddleware } from "./utilities/middlewares.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function createApp(service: NotificationConfigService) {
@@ -27,6 +28,7 @@ export async function createApp(service: NotificationConfigService) {
   app.disable("x-powered-by");
 
   app.use(healthRouter);
+  app.use(notificationConfigFeatureFlagMiddleware());
   app.use(contextMiddleware(serviceName));
   app.use(await applicationAuditBeginMiddleware(serviceName, config));
   app.use(await applicationAuditEndMiddleware(serviceName, config));
