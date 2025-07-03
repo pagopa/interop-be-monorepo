@@ -84,15 +84,14 @@ On multiple lines.`;
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(
-      new File(
-        [Buffer.from(testFileContent)],
-        `risk_analysis_${mockPurposeProcessResponse.data.id}_${mockApiPurposeVersion.id}.pdf`,
-        {
-          type: mockPurposeVersionDocument.contentType,
-        }
-      )
-    );
+    const expectedServiceResponse = {
+      file: new File([Buffer.from(testFileContent)], `riskAnalysis.txt`, {
+        type: mockPurposeVersionDocument.contentType,
+      }),
+      prettyName: undefined,
+    };
+
+    expect(result).toEqual(expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
       params: { id: mockPurposeProcessResponse.data.id },

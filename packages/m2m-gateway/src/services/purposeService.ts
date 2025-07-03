@@ -1,3 +1,4 @@
+import { basename } from "path";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
@@ -26,7 +27,7 @@ import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
 } from "../utils/validators/purposeValidator.js";
-import { downloadDocument } from "../utils/fileDownload.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
@@ -375,7 +376,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<File> {
+    ): Promise<DownloadedDocument> {
       logger.info(
         `Retrieving document for version ${versionId} of purpose ${purposeId}`
       );
@@ -394,7 +395,7 @@ export function purposeServiceBuilder(
         throw purposeVersionDocumentNotFound(purposeId, versionId);
       }
 
-      const name = `risk_analysis_${purposeId}_${versionId}.pdf`;
+      const name = basename(version.riskAnalysis.path);
 
       return downloadDocument(
         { ...version.riskAnalysis, name },

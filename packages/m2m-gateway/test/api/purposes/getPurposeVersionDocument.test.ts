@@ -9,14 +9,14 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
-import { getMockFile } from "../../mockUtils.js";
+import { getMockDownloadedDocument } from "../../mockUtils.js";
 import {
-  testExpectedMultipartResponseFromFile,
+  testExpectedMultipartResponse,
   testMultipartResponseParser,
 } from "../../multipartTestUtils.js";
 
 describe("GET /purposes/:purposeId/versions/:versionId/document router test", () => {
-  const mockFile = getMockFile();
+  const mockDownloadedDocument = getMockDownloadedDocument();
 
   const makeRequest = async (
     token: string,
@@ -41,13 +41,13 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
     async (role) => {
       mockPurposeService.getPurposeVersionDocument = vi
         .fn()
-        .mockResolvedValue(mockFile);
+        .mockResolvedValue(mockDownloadedDocument);
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId(), generateId());
 
       expect(res.status).toBe(200);
-      await testExpectedMultipartResponseFromFile(mockFile, res);
+      await testExpectedMultipartResponse(mockDownloadedDocument, res);
     }
   );
 

@@ -21,7 +21,7 @@ import {
   unsuspendPurposeErrorMapper,
   getPurposeVersionDocumentErrorMapper,
 } from "../utils/errorMappers.js";
-import { sendFileAsFormData } from "../utils/fileDownload.js";
+import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -281,7 +281,7 @@ const purposeRouter = (
             ctx
           );
 
-          return sendFileAsFormData(document, res);
+          return sendDownloadedDocumentAsFormData(document, res);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
