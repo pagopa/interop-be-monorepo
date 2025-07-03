@@ -20393,10 +20393,7 @@ components:
           type: string
           format: date-time
     Client:
-      description: |
-        Models client details.
-        In case the caller tenant is the consumer of the client (i.e., the owner), the
-        all details are visible, otherwise only the id, consumer and kind are visible.
+      description: Models Client details
       type: object
       additionalProperties: false
       properties:
@@ -20422,8 +20419,12 @@ components:
           $ref: "#/components/schemas/ClientKind"
       required:
         - id
+        - organization
         - consumer
+        - name
+        - purposes
         - kind
+        - createdAt
     ClientPurpose:
       type: object
       additionalProperties: false
@@ -21628,6 +21629,7 @@ components:
           $ref: "#/components/schemas/CompactUser"
       required:
         - id
+        - name
         - hasKeys
     ProducerKeychainSeed:
       description: Producer keychain creation request body

@@ -68,9 +68,9 @@ export function tenantNotAllowedOnClient(
   clientId: ClientId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Tenant ${tenantId} is not the consumer owner of client ${clientId}`,
+    detail: `Tenant ${tenantId} is not allowed on client ${clientId}`,
     code: "tenantNotAllowedOnClient",
-    title: "Tenant is not the client consumer",
+    title: "Tenant not allowed on client",
   });
 }
 
