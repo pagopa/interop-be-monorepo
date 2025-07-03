@@ -4,6 +4,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { ApiError } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
   assertAttributeKindIs,
   assertAttributeOriginAndCodeAreDefined,
@@ -26,16 +27,16 @@ function convertAttribute<T>(
       createdAt: attribute.creationTime,
     };
 
-    if (attributeKind === attributeRegistryApi.AttributeKind.Values.CERTIFIED) {
-      assertAttributeOriginAndCodeAreDefined(attribute);
-      return {
-        ...baseFields,
-        code: attribute.code,
-        origin: attribute.origin,
-      } as T;
-    }
-
-    return baseFields as T;
+    return match(attributeKind)
+      .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED, () => {
+        assertAttributeOriginAndCodeAreDefined(attribute);
+        return {
+          ...baseFields,
+          code: attribute.code,
+          origin: attribute.origin,
+        } as T;
+      })
+      .otherwise(() => baseFields as T);
   } catch (error) {
     if (mapThrownErrorsToNotFound) {
       logger.warn(
