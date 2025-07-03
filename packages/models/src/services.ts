@@ -35,5 +35,5 @@ export const serviceErrorCode: Record<ServiceName, string> = {
   [serviceName.DELEGATION_PROCESS]: "010",
   [serviceName.ESERVICE_TEMPLATE_PROCESS]: "011",
   [serviceName.M2M_GATEWAY]: "012",
-  [serviceName.NOTIFICATION_CONFIG_PROCESS]: "013",
+  [serviceName.NOTIFICATION_CONFIG_PROCESS]: "014",
 };
