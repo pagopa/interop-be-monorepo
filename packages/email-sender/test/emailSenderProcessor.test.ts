@@ -1,6 +1,9 @@
 import { describe, beforeAll, vi, afterEach, it, expect } from "vitest";
 import { EmailManagerSES } from "pagopa-interop-commons";
-import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
+import {
+  LimitExceededException,
+  TooManyRequestsException,
+} from "@aws-sdk/client-sesv2";
 import { emailSenderProcessorBuilder } from "../src/services/emailSenderProcessor.js";
 import {
   correctEventPayload,
@@ -70,7 +73,20 @@ describe("emailSenderProcessor", () => {
     }
   );
 
-  it("should throw error when hitting the rate limit of aws ses", async () => {
+  it("should log a warn and retry to send the email when hitting the rate limit of aws ses", async () => {
+    const message = kafkaMessagePayload;
+    // eslint-disable-next-line functional/immutable-data
+    mockSESEmailManager.send = vi.fn().mockRejectedValueOnce(
+      new LimitExceededException({
+        message: "message",
+        $metadata: {},
+      })
+    );
+    await emailSenderProcessor.processMessage(message);
+    expect(mockSESEmailManager.send).toHaveBeenCalledTimes(2);
+  });
+
+  it("should log a warn when hitting the rate limit of aws ses", async () => {
     const message = kafkaMessagePayload;
     // eslint-disable-next-line functional/immutable-data
     mockSESEmailManager.send = vi.fn().mockRejectedValue(
@@ -79,8 +95,7 @@ describe("emailSenderProcessor", () => {
         $metadata: {},
       })
     );
-    await expect(() =>
-      emailSenderProcessor.processMessage(message)
-    ).rejects.toThrowError();
+    await emailSenderProcessor.processMessage(message);
+    expect(mockSESEmailManager.send).toHaveBeenCalledTimes(10);
   });
 });

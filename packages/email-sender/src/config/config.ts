@@ -20,15 +20,10 @@ export const SESEmailSenderConfig = z
   }));
 export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
-export const EmailSenderConfig = KafkaConsumerConfig.and(
-  SESEmailSenderConfig
-)
+export const EmailSenderConfig = KafkaConsumerConfig.and(SESEmailSenderConfig)
   .and(AWSSesConfig)
   .and(EmailSenderTopicConfig);
 
-export type EmailSenderConfig = z.infer<
-  typeof EmailSenderConfig
->;
+export type EmailSenderConfig = z.infer<typeof EmailSenderConfig>;
 
-export const config: EmailSenderConfig =
-  EmailSenderConfig.parse(process.env);
+export const config: EmailSenderConfig = EmailSenderConfig.parse(process.env);

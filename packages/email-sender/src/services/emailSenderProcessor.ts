@@ -1,8 +1,15 @@
+/* eslint-disable functional/no-let */
 import { genericInternalError } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
-import { EmailManagerSES, logger } from "pagopa-interop-commons";
+import { delay, EmailManagerSES, Logger, logger } from "pagopa-interop-commons";
 import Mail from "nodemailer/lib/mailer/index.js";
+import {
+  LimitExceededException,
+  SendingPausedException,
+  TooManyRequestsException,
+} from "@aws-sdk/client-sesv2";
 import { EmailNotificationPayload } from "../model/emailNotificationPayload.js";
+import { config } from "../config/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function emailSenderProcessorBuilder(
@@ -17,39 +24,66 @@ export function emailSenderProcessorBuilder(
       message,
       partition,
     }: EachMessagePayload): Promise<void> {
-      const serviceName = "email-sender";
-      try {
-        if (!message.value) {
-          throw genericInternalError(
-            `Empty message for partition ${partition} with offset ${message.offset}`
-          );
-        }
-
-        const jsonPayload: EmailNotificationPayload = JSON.parse(
-          message.value.toString()
+      if (!message.value) {
+        throw genericInternalError(
+          `Empty message for partition ${partition} with offset ${message.offset}`
         );
+      }
 
-        const loggerInstance = logger({
-          serviceName,
+      let jsonPayload: EmailNotificationPayload;
+      let loggerInstance: Logger;
+      let mailOptions: Mail.Options;
+      try {
+        jsonPayload = JSON.parse(message.value.toString());
+        loggerInstance = logger({
+          serviceName: "email-sender",
           correlationId: jsonPayload.correlationId,
         });
-
         loggerInstance.info(
           `Consuming message for partition ${partition} with offset ${message.offset}`
         );
-
-        const mailOptions: Mail.Options = {
+        mailOptions = {
           from: { name: sesSenderData.label, address: sesSenderData.mail },
           subject: jsonPayload.subject,
           to: [jsonPayload.address],
           html: jsonPayload.body,
         };
-
-        await sesEmailManager.send(mailOptions, loggerInstance);
-        loggerInstance.info(`Email sent`);
       } catch (err) {
         throw genericInternalError(
           `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
+        );
+      }
+
+      let sent = false;
+      let attempts = 0;
+      while (!sent && attempts < config.maxAttempts) {
+        try {
+          attempts++;
+          await sesEmailManager.send(mailOptions, loggerInstance);
+          sent = true;
+          loggerInstance.info(
+            `Email sent for message in partition ${partition} with offset ${message.offset}.`
+          );
+        } catch (err) {
+          switch (true) {
+            case err instanceof LimitExceededException:
+            case err instanceof TooManyRequestsException:
+            case err instanceof SendingPausedException:
+              await delay(config.retryDelayInMillis);
+              break;
+            default:
+              loggerInstance.warn(
+                `Email sending attempt failed for message in partition ${partition} with offset ${message.offset}. Reason: ${err} `
+              );
+              break;
+          }
+        }
+      }
+
+      if (!sent) {
+        // Exceeded max number of attempts
+        loggerInstance.warn(
+          `Message in partition ${partition} with offset ${message.offset} was consumed, but no email was sent. Exceeded maximum number of attempts.`
         );
       }
     },
