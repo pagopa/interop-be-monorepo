@@ -44,13 +44,13 @@ describe("createConsumerClient", () => {
     );
 
     const writtenEvent = await readLastEventByStreamId(
-      createConsumerClientResponse.client.data.id,
+      client.id,
       '"authorization"',
       postgresDB
     );
 
     expect(writtenEvent).toMatchObject({
-      stream_id: createConsumerClientResponse.client.data.id,
+      stream_id: client.id,
       version: "0",
       type: "ClientAdded",
       event_version: 2,
@@ -62,7 +62,7 @@ describe("createConsumerClient", () => {
     });
 
     const expectedClient: Client = {
-      id: createConsumerClientResponse.client.data.id,
+      id: client.id,
       keys: [],
       name: clientSeed.name,
       createdAt: new Date(),

@@ -128,7 +128,6 @@ describe("addClientPurpose", async () => {
       metadata: {
         version: 1,
       },
-      showUsers: true,
     });
   });
 
@@ -219,7 +218,6 @@ describe("addClientPurpose", async () => {
       metadata: {
         version: 1,
       },
-      showUsers: true,
     });
   });
 
@@ -310,7 +308,6 @@ describe("addClientPurpose", async () => {
       metadata: {
         version: 1,
       },
-      showUsers: true,
     });
   });
 
