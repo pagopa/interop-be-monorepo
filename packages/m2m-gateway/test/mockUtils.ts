@@ -40,13 +40,16 @@ export function getMockDownloadedDocument({
   mockContentType = "text/plain",
   mockFileContent = "This is a mock file content for testing purposes.\nIt simulates the content of an Eservice descriptor interface file.\nOn multiple lines.",
   prettyName = "Mock File Name",
+  id = generateId(),
 }: {
+  id?: string;
   mockFileName?: string;
   mockContentType?: string;
   mockFileContent?: string;
   prettyName?: string;
 } = {}): DownloadedDocument {
   return {
+    id,
     file: new File([Buffer.from(mockFileContent)], mockFileName, {
       type: mockContentType,
     }),

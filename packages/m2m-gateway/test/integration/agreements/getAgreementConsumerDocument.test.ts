@@ -64,13 +64,14 @@ describe("getAgreementConsumerDocument", () => {
       ).at(0)
     ).toEqual(mockDocument.path);
 
-    const result = await agreementService.getAgreementConsumerDocument(
+    const result = await agreementService.downloadAgreementConsumerDocument(
       mockAgreementId,
       unsafeBrandId(mockDocument.id),
       getMockM2MAdminAppContext()
     );
 
     const expectedServiceResponse: DownloadedDocument = {
+      id: mockDocument.id,
       file: new File([Buffer.from(testFileContent)], mockDocument.name, {
         type: mockDocument.contentType,
       }),

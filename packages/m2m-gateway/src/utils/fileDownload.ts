@@ -5,18 +5,20 @@ import { Response } from "express";
 import { FormDataEncoder } from "form-data-encoder";
 
 export type DownloadedDocument = {
+  id: string;
   file: File;
   prettyName: string | undefined;
 };
 
 type DocumentData = {
   path: string;
+  id: string;
   contentType: string;
   name: string;
   prettyName?: string;
 };
 export async function downloadDocument(
-  { path, contentType, name, prettyName }: DocumentData,
+  { id, path, contentType, name, prettyName }: DocumentData,
   fileManager: FileManager,
   bucket: string,
   logger: Logger
@@ -26,19 +28,21 @@ export async function downloadDocument(
     type: contentType,
   });
   return {
+    id,
     file,
     prettyName,
   };
 }
 
 export async function sendDownloadedDocumentAsFormData(
-  { file, prettyName }: DownloadedDocument,
+  { id, file, prettyName }: DownloadedDocument,
   res: Response
 ): Promise<Response> {
   const form = new FormData();
   form.set("file", file);
   form.set("filename", file.name);
   form.set("contentType", file.type);
+  form.set("id", id);
 
   if (prettyName) {
     form.set("prettyName", prettyName);

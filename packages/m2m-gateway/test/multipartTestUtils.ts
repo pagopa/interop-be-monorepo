@@ -17,7 +17,7 @@ export function testMultipartResponseParser(
 }
 
 export async function testExpectedMultipartResponse(
-  { file, prettyName }: DownloadedDocument,
+  { id, file, prettyName }: DownloadedDocument,
   res: request.Response
 ) {
   const content = await file.text();
@@ -41,6 +41,10 @@ export async function testExpectedMultipartResponse(
     `Content-Disposition: form-data; name="contentType"`,
     ``,
     file.type,
+    `--${boundary}`,
+    `Content-Disposition: form-data; name="id"`,
+    ``,
+    id,
     ...(prettyName
       ? [
           `--${boundary}`,

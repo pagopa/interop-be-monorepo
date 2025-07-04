@@ -973,7 +973,7 @@ paths:
         - agreements
       summary: Upload an Agreement Consumer Document
       description: Upload a Consumer Document for the specified Agreement
-      operationId: addAgreementConsumerDocument
+      operationId: uploadAgreementConsumerDocument
       requestBody:
         content:
           multipart/form-data:
@@ -1091,9 +1091,9 @@ paths:
     get:
       tags:
         - agreements
-      summary: Retrieve an Agreement Consumer Document
-      description: Retrieve a specific Consumer Document for the specified Agreement
-      operationId: getAgreementConsumerDocument
+      summary: Download an Agreement Consumer Document
+      description: Download a specific Consumer Document for the specified Agreement
+      operationId: downloadAgreementConsumerDocument
       responses:
         "200":
           description: Consumer document retrieved, a multipart containing the file and its metadata
@@ -2677,7 +2677,7 @@ paths:
         - eservices
       summary: Download an E-Service Descriptor interface
       description: Download the interface document of an E-Service Descriptor
-      operationId: getEServiceDescriptorInterface
+      operationId: downloadEServiceDescriptorInterface
       responses:
         "200":
           description: E-Service Descriptor interface retrieved, a multipart containing the file and its metadata
@@ -5866,6 +5866,7 @@ components:
         - file
         - filename
         - contentType
+        - id
       properties:
         file:
           type: string
@@ -5877,6 +5878,10 @@ components:
         contentType:
           type: string
           description: The content type of the file
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the file
         prettyName:
           type: string
           description: A human-readable name for the file

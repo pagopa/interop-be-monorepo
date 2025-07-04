@@ -53,7 +53,7 @@ export const getEserviceDescriptorErrorMapper = (
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getEserviceDescriptorInterfaceErrorMapper = (
+export const downloadEServiceDescriptorInterfaceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
