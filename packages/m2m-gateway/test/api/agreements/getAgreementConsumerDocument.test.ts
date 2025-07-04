@@ -3,29 +3,25 @@ import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId } from "pagopa-interop-models";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  eserviceDescriptorInterfaceNotFound,
-  eserviceDescriptorNotFound,
-} from "../../../src/model/errors.js";
 import { getMockDownloadedDocument } from "../../mockUtils.js";
 import {
   testExpectedMultipartResponse,
   testMultipartResponseParser,
 } from "../../multipartTestUtils.js";
+import { api, mockAgreementService } from "../../vitest.api.setup.js";
 
-describe("GET /eservices/:eserviceId/descriptors/:descriptorId/interface router test", () => {
+describe("GET /agreements/:agreementId/consumerDocuments/:documentId router test", () => {
   const mockDownloadedDoc = getMockDownloadedDocument();
 
   const makeRequest = async (
     token: string,
-    eserviceId: string,
-    descriptorId: string
+    agreementId: string,
+    documentId: string
   ) =>
     request(api)
       .get(
-        `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/interface`
+        `${appBasePath}/agreements/${agreementId}/consumerDocuments/${documentId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .buffer(true)
@@ -38,7 +34,7 @@ describe("GET /eservices/:eserviceId/descriptors/:descriptorId/interface router 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.downloadEServiceDescriptorInterface = vi
+      mockAgreementService.downloadAgreementConsumerDocument = vi
         .fn()
         .mockResolvedValue(mockDownloadedDoc);
 
@@ -58,30 +54,17 @@ describe("GET /eservices/:eserviceId/descriptors/:descriptorId/interface router 
     expect(res.status).toBe(403);
   });
 
-  it("Should return 400 if passed an invalid eservice id", async () => {
+  it("Should return 400 if passed an invalid agreement id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "invalidId", generateId());
 
     expect(res.status).toBe(400);
   });
 
-  it("Should return 400 if passed an invalid descriptor id", async () => {
+  it("Should return 400 if passed an invalid document id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, generateId(), "invalidId");
 
     expect(res.status).toBe(400);
-  });
-
-  it.each([
-    eserviceDescriptorNotFound(generateId(), generateId()),
-    eserviceDescriptorInterfaceNotFound(generateId(), generateId()),
-  ])("Should return 404 in case of $code error", async (error) => {
-    mockEserviceService.downloadEServiceDescriptorInterface = vi
-      .fn()
-      .mockRejectedValue(error);
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, generateId(), generateId());
-
-    expect(res.status).toBe(404);
   });
 });
