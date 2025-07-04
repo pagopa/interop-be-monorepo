@@ -105,6 +105,9 @@ import {
   JWKKeyES256,
   Algorithm,
   algorithm,
+  NotificationConfig,
+  TenantNotificationConfig,
+  UserNotificationConfig,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -1240,3 +1243,26 @@ export const readFileContent = async (fileName: string): Promise<string> => {
 export function createDummyStub<T>(): T {
   return {} as T;
 }
+
+export const getMockNotificationConfig = (): NotificationConfig => ({
+  newEServiceVersionPublished: generateMock(z.boolean()),
+});
+
+export const getMockTenantNotificationConfig =
+  (): TenantNotificationConfig => ({
+    id: generateId(),
+    tenantId: generateId(),
+    config: getMockNotificationConfig(),
+    createdAt: generateMock(z.coerce.date()),
+    updatedAt: generateMock(z.coerce.date().optional()),
+  });
+
+export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
+  id: generateId(),
+  userId: generateId(),
+  tenantId: generateId(),
+  inAppConfig: getMockNotificationConfig(),
+  emailConfig: getMockNotificationConfig(),
+  createdAt: generateMock(z.coerce.date()),
+  updatedAt: generateMock(z.coerce.date().optional()),
+});
