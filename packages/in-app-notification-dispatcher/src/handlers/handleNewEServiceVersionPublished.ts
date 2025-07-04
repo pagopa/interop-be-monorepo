@@ -15,7 +15,9 @@ export async function handleNewEServiceVersionPublished(
   readModelService: ReadModelServiceSQL,
   inAppNotificationService: InAppNotificationServiceSQL
 ): Promise<void> {
-  logger.info(`New descriptor published for eservice ${eserviceV2Msg.id}`);
+  logger.info(
+    `Sending in-app notification for new descriptor published eservice ${eserviceV2Msg.id}`
+  );
 
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptor = retrieveLatestPublishedDescriptor(eservice);
