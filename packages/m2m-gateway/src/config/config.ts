@@ -21,9 +21,14 @@ export type TenantProcessServerConfig = z.infer<
 export const AgreementProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
+    AGREEMENT_CONSUMER_DOCUMENTS_PATH: z.string(),
+    AGREEMENT_CONSUMER_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
     agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
+    agreementConsumerDocumentsPath: c.AGREEMENT_CONSUMER_DOCUMENTS_PATH,
+    agreementConsumerDocumentsContainer:
+      c.AGREEMENT_CONSUMER_DOCUMENTS_CONTAINER,
   }));
 export type AgreementProcessServerConfig = z.infer<
   typeof AgreementProcessServerConfig

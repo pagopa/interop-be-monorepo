@@ -50,3 +50,44 @@ export function createPollingByCondition<T>(
     throw pollingMaxRetriesExceeded(maxRetries, retryDelay);
   };
 }
+
+/**
+ * Polls a resource by repeatedly calling the provided fetch function until the resource is deleted
+ * (i.e., a 404 Not Found is returned) or the maximum number of retries is exceeded.
+ *
+ * @param fetch - A function that returns a Promise resolving when the resource exists,
+ *                and rejects with a 404 error when the resource is deleted.
+ * @returns  Resolves when the resource is confirmed deleted.
+ */
+export function createPollingUntilDeletion(
+  fetch: () => Promise<unknown>,
+  config?: {
+    defaultPollingMaxRetries: number;
+    defaultPollingRetryDelay: number;
+  }
+) {
+  return async function poll({
+    maxRetries = config?.defaultPollingMaxRetries ||
+      DEFAULT_POLLING_MAX_RETRIES,
+    retryDelay = config?.defaultPollingRetryDelay ||
+      DEFAULT_POLLING_RETRY_DELAY,
+  }: {
+    maxRetries?: number;
+    retryDelay?: number;
+  }): Promise<void> {
+    // eslint-disable-next-line functional/no-let
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        await fetch();
+      } catch (error: unknown) {
+        if (isAxiosError(error) && error.response?.status === 404) {
+          return;
+        }
+        throw error;
+      }
+      await delay(retryDelay);
+    }
+
+    throw pollingMaxRetriesExceeded(maxRetries, retryDelay);
+  };
+}

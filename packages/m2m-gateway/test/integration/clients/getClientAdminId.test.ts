@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
-  getMockedApiClient,
   getMockWithMetadata,
+  getMockedApiCompactClient,
+  getMockedApiFullClient,
 } from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
@@ -16,13 +17,19 @@ import { clientAdminIdNotFound } from "../../../src/model/errors.js";
 
 describe("getClientAdminId", () => {
   const mockAuthProcessResponseWithAdminId = getMockWithMetadata(
-    getMockedApiClient({
+    getMockedApiFullClient({
       kind: authorizationApi.ClientKind.Values.API,
     })
   );
 
   const mockAuthProcessResponseWithoutAdminId = getMockWithMetadata(
-    getMockedApiClient({
+    getMockedApiFullClient({
+      kind: authorizationApi.ClientKind.Values.CONSUMER,
+    })
+  );
+
+  const mockAuthProcessResponseCompact = getMockWithMetadata(
+    getMockedApiCompactClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
@@ -68,6 +75,23 @@ describe("getClientAdminId", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
       params: { clientId: mockAuthProcessResponseWithoutAdminId.data.id },
+    });
+  });
+
+  it("Should throw clientAdminIdNotFound if the client is compact", async () => {
+    mockGetClient.mockResolvedValueOnce(mockAuthProcessResponseCompact);
+    await expect(
+      clientService.getClientAdminId(
+        unsafeBrandId(mockAuthProcessResponseCompact.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      clientAdminIdNotFound(mockAuthProcessResponseCompact.data)
+    );
+
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.authorizationClient.client.getClient,
+      params: { clientId: mockAuthProcessResponseCompact.data.id },
     });
   });
 });

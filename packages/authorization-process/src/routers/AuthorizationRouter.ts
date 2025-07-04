@@ -22,6 +22,8 @@ import {
   apiClientKindToClientKind,
   clientToApiClient,
   clientToApiClientWithKeys,
+  clientToApiFullVisibilityClient,
+  jwkAndClientToApiKeyWithClient,
   keyToApiKey,
   producerKeychainToApiProducerKeychain,
 } from "../model/domain/apiConverter.js";
@@ -87,18 +89,17 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { client, showUsers } =
-          await authorizationService.createConsumerClient(
-            {
-              clientSeed: req.body,
-            },
-            ctx
-          );
+        const client = await authorizationService.createConsumerClient(
+          {
+            clientSeed: req.body,
+          },
+          ctx
+        );
         return res
           .status(200)
           .send(
-            authorizationApi.Client.parse(
-              clientToApiClient(client, { showUsers })
+            authorizationApi.FullClient.parse(
+              clientToApiFullVisibilityClient(client)
             )
           );
       } catch (error) {
@@ -116,18 +117,17 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { client, showUsers } =
-          await authorizationService.createApiClient(
-            {
-              clientSeed: req.body,
-            },
-            ctx
-          );
+        const client = await authorizationService.createApiClient(
+          {
+            clientSeed: req.body,
+          },
+          ctx
+        );
         return res
           .status(200)
           .send(
-            authorizationApi.Client.parse(
-              clientToApiClient(client, { showUsers })
+            authorizationApi.FullClient.parse(
+              clientToApiFullVisibilityClient(client)
             )
           );
       } catch (error) {
@@ -169,9 +169,7 @@ const authorizationRouter = (
         return res.status(200).send(
           authorizationApi.ClientsWithKeys.parse({
             results: clients.results.map((client) =>
-              clientToApiClientWithKeys(client, {
-                showUsers: ctx.authData.organizationId === client.consumerId,
-              })
+              clientToApiClientWithKeys(client, ctx.authData)
             ),
             totalCount: clients.totalCount,
           })
@@ -217,9 +215,7 @@ const authorizationRouter = (
         return res.status(200).send(
           authorizationApi.Clients.parse({
             results: clients.results.map((client) =>
-              clientToApiClient(client, {
-                showUsers: ctx.authData.organizationId === client.consumerId,
-              })
+              clientToApiClient(client, ctx.authData)
             ),
             totalCount: clients.totalCount,
           })
@@ -241,22 +237,20 @@ const authorizationRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const {
-          data: { client, showUsers },
-          metadata,
-        } = await authorizationService.getClientById(
-          {
-            clientId: unsafeBrandId(req.params.clientId),
-          },
-          ctx
-        );
+        const { data: client, metadata } =
+          await authorizationService.getClientById(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+            },
+            ctx
+          );
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
             authorizationApi.Client.parse(
-              clientToApiClient(client, { showUsers })
+              clientToApiClient(client, ctx.authData)
             )
           );
       } catch (error) {
@@ -293,7 +287,7 @@ const authorizationRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { users } = await authorizationService.getClientUsers(
+        const users = await authorizationService.getClientUsers(
           {
             clientId: unsafeBrandId(req.params.clientId),
           },
@@ -334,7 +328,7 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { client, showUsers } = await authorizationService.addClientUsers(
+        const client = await authorizationService.addClientUsers(
           {
             clientId: unsafeBrandId(req.params.clientId),
             userIds: req.body.userIds.map(unsafeBrandId<UserId>),
@@ -344,8 +338,8 @@ const authorizationRouter = (
         return res
           .status(200)
           .send(
-            authorizationApi.Client.parse(
-              clientToApiClient(client, { showUsers })
+            authorizationApi.FullClient.parse(
+              clientToApiFullVisibilityClient(client)
             )
           );
       } catch (error) {
@@ -359,19 +353,18 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { client, showUsers } =
-          await authorizationService.setAdminToClient(
-            {
-              clientId: unsafeBrandId(req.params.clientId),
-              adminId: unsafeBrandId(req.body.adminId),
-            },
-            ctx
-          );
+        const client = await authorizationService.setAdminToClient(
+          {
+            clientId: unsafeBrandId(req.params.clientId),
+            adminId: unsafeBrandId(req.body.adminId),
+          },
+          ctx
+        );
         return res
           .status(200)
           .send(
-            authorizationApi.Client.parse(
-              clientToApiClient(client, { showUsers })
+            authorizationApi.FullClient.parse(
+              clientToApiFullVisibilityClient(client)
             )
           );
       } catch (error) {
@@ -489,23 +482,21 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const {
-          data: { client, showUsers },
-          metadata,
-        } = await authorizationService.addClientPurpose(
-          {
-            clientId: unsafeBrandId(req.params.clientId),
-            seed: req.body,
-          },
-          ctx
-        );
+        const { data: client, metadata } =
+          await authorizationService.addClientPurpose(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              seed: req.body,
+            },
+            ctx
+          );
 
         setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
-            authorizationApi.Client.parse(
-              clientToApiClient(client, { showUsers })
+            authorizationApi.FullClient.parse(
+              clientToApiFullVisibilityClient(client)
             )
           );
       } catch (error) {
@@ -1024,7 +1015,7 @@ const authorizationRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { key: jwkKey, client } =
+        const { jwk, kid, client } =
           await authorizationService.getKeyWithClientByKeyId(
             {
               clientId: unsafeBrandId(req.params.clientId),
@@ -1032,12 +1023,13 @@ const authorizationRouter = (
             },
             ctx
           );
-        return res.status(200).send(
-          authorizationApi.KeyWithClient.parse({
-            key: jwkKey,
-            client,
-          })
-        );
+        return res
+          .status(200)
+          .send(
+            authorizationApi.KeyWithClient.parse(
+              jwkAndClientToApiKeyWithClient(jwk, kid, client, ctx.authData)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

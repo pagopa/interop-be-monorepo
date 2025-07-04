@@ -476,6 +476,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
     .with(
       "unauthorizedError",
       "featureFlagNotEnabled",
+      "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)

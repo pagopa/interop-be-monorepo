@@ -6,7 +6,6 @@ import {
   AttributeValue,
   DynamoDBClient,
   ScanCommand,
-  ScanCommandOutput,
   ScanInput,
 } from "@aws-sdk/client-dynamodb";
 import { PlatformStatesGenericEntry } from "pagopa-interop-models";
@@ -20,16 +19,18 @@ export function tokenGenerationReadModelServiceBuilder(
 ) {
   return {
     async readAllPlatformStatesItems(): Promise<PlatformStatesGenericEntry[]> {
-      const runPaginatedQuery = async (
-        exclusiveStartKey?: Record<string, AttributeValue>
-      ): Promise<PlatformStatesGenericEntry[]> => {
+      // eslint-disable-next-line functional/no-let
+      let exclusiveStartKey: Record<string, AttributeValue> | undefined;
+      const platformStatesResult = new Array<PlatformStatesGenericEntry>();
+
+      do {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNamePlatform,
           ExclusiveStartKey: exclusiveStartKey,
           ConsistentRead: true,
         };
         const commandQuery = new ScanCommand(readInput);
-        const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+        const data = await dynamoDBClient.send(commandQuery);
 
         if (!data.Items) {
           throw genericInternalError(
@@ -40,45 +41,44 @@ export function tokenGenerationReadModelServiceBuilder(
         } else {
           const unmarshalledItems = data.Items.map((item) => unmarshall(item));
 
-          const platformStateEntries = z
+          const platformStatesEntries = z
             .array(PlatformStatesGenericEntry)
             .safeParse(unmarshalledItems);
 
-          if (!platformStateEntries.success) {
+          if (!platformStatesEntries.success) {
             throw genericInternalError(
               `Unable to parse platform-states entries: result ${JSON.stringify(
-                platformStateEntries
+                platformStatesEntries
               )} - data ${JSON.stringify(data)} `
             );
           }
 
-          if (!data.LastEvaluatedKey) {
-            return platformStateEntries.data;
-          } else {
-            return [
-              ...platformStateEntries.data,
-              ...(await runPaginatedQuery(data.LastEvaluatedKey)),
-            ];
-          }
-        }
-      };
+          // eslint-disable-next-line functional/immutable-data
+          platformStatesResult.push(...platformStatesEntries.data);
 
-      return await runPaginatedQuery();
+          exclusiveStartKey = data.LastEvaluatedKey;
+        }
+      } while (exclusiveStartKey);
+
+      return platformStatesResult;
     },
 
     async readAllTokenGenerationStatesItems(): Promise<
       TokenGenerationStatesGenericClient[]
     > {
-      const runPaginatedQuery = async (
-        exclusiveStartKey?: Record<string, AttributeValue>
-      ): Promise<TokenGenerationStatesGenericClient[]> => {
+      // eslint-disable-next-line functional/no-let
+      let exclusiveStartKey: Record<string, AttributeValue> | undefined;
+      const tokenGenStatesResult =
+        new Array<TokenGenerationStatesGenericClient>();
+
+      do {
         const readInput: ScanInput = {
           TableName: config.tokenGenerationReadModelTableNameTokenGeneration,
           ExclusiveStartKey: exclusiveStartKey,
           ConsistentRead: true,
         };
         const commandQuery = new ScanCommand(readInput);
-        const data: ScanCommandOutput = await dynamoDBClient.send(commandQuery);
+        const data = await dynamoDBClient.send(commandQuery);
 
         if (!data.Items) {
           throw genericInternalError(
@@ -101,18 +101,14 @@ export function tokenGenerationReadModelServiceBuilder(
             );
           }
 
-          if (!data.LastEvaluatedKey) {
-            return tokenGenStatesEntries.data;
-          } else {
-            return [
-              ...tokenGenStatesEntries.data,
-              ...(await runPaginatedQuery(data.LastEvaluatedKey)),
-            ];
-          }
-        }
-      };
+          // eslint-disable-next-line functional/immutable-data
+          tokenGenStatesResult.push(...tokenGenStatesEntries.data);
 
-      return await runPaginatedQuery();
+          exclusiveStartKey = data.LastEvaluatedKey;
+        }
+      } while (exclusiveStartKey);
+
+      return tokenGenStatesResult;
     },
   };
 }

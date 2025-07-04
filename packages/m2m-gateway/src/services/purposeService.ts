@@ -75,7 +75,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
   ): Promise<void> =>
     pollResourceUntilDeletion(() =>
       retrievePurposeById(unsafeBrandId(purposeId), headers)
-    );
+    )({});
 
   const pollPurposeById = (
     purposeId: PurposeId,

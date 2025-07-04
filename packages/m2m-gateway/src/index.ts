@@ -21,7 +21,7 @@ const clients = getInteropBeClients();
 const fileManager = initFileManager(config);
 
 const services: M2MGatewayServices = {
-  agreementService: agreementServiceBuilder(clients),
+  agreementService: agreementServiceBuilder(clients, fileManager),
   attributeService: attributeServiceBuilder(clients),
   clientService: clientServiceBuilder(clients),
   delegationService: delegationServiceBuilder(clients),
