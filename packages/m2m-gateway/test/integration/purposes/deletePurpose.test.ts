@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import {
   getMockedApiPurpose,
   getMockWithMetadata,
@@ -13,6 +16,7 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { config } from "../../../src/config/config.js";
 
 describe("deletePurpose", () => {
   const mockApiPurpose = getMockWithMetadata(getMockedApiPurpose());
@@ -47,5 +51,29 @@ describe("deletePurpose", () => {
     expect(
       mockInteropBeClients.purposeProcessClient.getPurpose
     ).toHaveBeenCalledTimes(2);
+  });
+
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
+    mockGetPurpose.mockImplementation(
+      mockDeletionPollingResponse(
+        mockApiPurpose,
+        config.defaultPollingMaxRetries + 1
+      )
+    );
+
+    await expect(
+      purposeService.deletePurpose(
+        unsafeBrandId(mockApiPurpose.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
+    );
+    expect(mockGetPurpose).toHaveBeenCalledTimes(
+      config.defaultPollingMaxRetries
+    );
   });
 });
