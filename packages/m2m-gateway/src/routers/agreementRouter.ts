@@ -203,6 +203,28 @@ const agreementRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .post("/agreements/:agreementId/consumerDocuments", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        const document = await agreementService.addAgreementConsumerDocument(
+          unsafeBrandId(req.params.agreementId),
+          req.body,
+          ctx
+        );
+
+        return res.status(201).send(m2mGatewayApi.Document.parse(document));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error adding consumer document to agreement with id ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return agreementRouter;
