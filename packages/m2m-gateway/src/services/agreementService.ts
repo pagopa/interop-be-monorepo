@@ -19,9 +19,11 @@ import {
 } from "../utils/validators/agreementValidators.js";
 import {
   toGetAgreementsApiQueryParams,
+  toGetPurposesApiQueryParamsForAgreement,
   toM2MGatewayApiAgreement,
   toM2MGatewayApiDocument,
 } from "../api/agreementApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 
@@ -111,6 +113,37 @@ export function agreementServiceBuilder(
       );
 
       return toM2MGatewayApiAgreement(agreement);
+    },
+    async getAgreementPurposes(
+      agreementId: AgreementId,
+      { limit, offset }: m2mGatewayApi.GetAgreementPurposesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purposes> {
+      logger.info(`Retrieving purposes for agreement ${agreementId}`);
+
+      const { data: agreement } = await retrieveAgreementById(
+        headers,
+        agreementId
+      );
+
+      const {
+        data: { results, totalCount },
+      } = await clients.purposeProcessClient.getPurposes({
+        queries: toGetPurposesApiQueryParamsForAgreement(agreement, {
+          limit,
+          offset,
+        }),
+        headers,
+      });
+
+      return {
+        results: results.map(toM2MGatewayApiPurpose),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
     },
     async createAgreement(
       seed: agreementApi.AgreementPayload,
