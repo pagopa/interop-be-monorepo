@@ -1,23 +1,33 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateToken, getMockedApiClient } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiCompactClient,
+  getMockedApiFullClient,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { unexpectedClientKind } from "../../../src/model/errors.js";
-import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
+import { toM2MGatewayApiClient } from "../../../src/api/clientApiConverter.js";
 
 describe("GET /clients/:clientId route test", () => {
-  const mockClient = getMockedApiClient({
-    kind: authorizationApi.ClientKind.Values.CONSUMER,
-  });
+  const mockM2MFullClientResponse = toM2MGatewayApiClient(
+    getMockedApiFullClient({
+      kind: authorizationApi.ClientKind.Values.CONSUMER,
+    })
+  );
 
-  const mockM2MClientResponse: m2mGatewayApi.Client =
-    toM2MGatewayApiConsumerClient(mockClient);
+  const mockM2MCompactClientResponse = toM2MGatewayApiClient(
+    getMockedApiCompactClient({
+      kind: authorizationApi.ClientKind.Values.CONSUMER,
+    })
+  );
 
-  const makeRequest = async (token: string, clientId: string = mockClient.id) =>
+  const makeRequest = async (token: string, clientId: string = generateId()) =>
     request(api)
       .get(`${appBasePath}/clients/${clientId}`)
       .set("Authorization", `Bearer ${token}`);
@@ -28,17 +38,32 @@ describe("GET /clients/:clientId route test", () => {
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 and perform service calls for user with role %s",
+    "Should return 200 with compact client and perform service calls for user with role %s",
     async (role) => {
       mockClientService.getClient = vi
         .fn()
-        .mockResolvedValue(mockM2MClientResponse);
+        .mockResolvedValue(mockM2MCompactClientResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const res = await makeRequest(token, mockM2MCompactClientResponse.id);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MClientResponse);
+      expect(res.body).toEqual(mockM2MCompactClientResponse);
+    }
+  );
+
+  it.each(authorizedRoles)(
+    "Should return 200 with full client and perform service calls for user with role %s",
+    async (role) => {
+      mockClientService.getClient = vi
+        .fn()
+        .mockResolvedValue(mockM2MFullClientResponse);
+
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockM2MFullClientResponse.id);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockM2MFullClientResponse);
     }
   );
 
@@ -53,7 +78,7 @@ describe("GET /clients/:clientId route test", () => {
   it("Should return 400 for incorrect value for client id", async () => {
     mockClientService.getClient = vi
       .fn()
-      .mockResolvedValue(mockM2MClientResponse);
+      .mockResolvedValue(mockM2MCompactClientResponse);
 
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token, "INVALID ID");
@@ -61,9 +86,14 @@ describe("GET /clients/:clientId route test", () => {
   });
 
   it.each([
-    { ...mockM2MClientResponse, kind: "INVALID_KIND" },
-    { ...mockM2MClientResponse, invalidParam: "invalidValue" },
-    { ...mockM2MClientResponse, createdAt: undefined },
+    { ...mockM2MCompactClientResponse, kind: "INVALID_KIND" },
+    { ...mockM2MCompactClientResponse, invalidParam: "invalidValue" },
+    { ...mockM2MCompactClientResponse, id: undefined },
+    { ...mockM2MCompactClientResponse, consumerId: undefined },
+    { ...mockM2MFullClientResponse, kind: "INVALID_KIND" },
+    { ...mockM2MFullClientResponse, invalidParam: "invalidValue" },
+    { ...mockM2MFullClientResponse, id: undefined },
+    { ...mockM2MFullClientResponse, createdAt: undefined },
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
@@ -78,7 +108,7 @@ describe("GET /clients/:clientId route test", () => {
   it("Should return 500 in case of unexpectedClientKind error", async () => {
     mockClientService.getClient = vi
       .fn()
-      .mockRejectedValue(unexpectedClientKind(mockClient));
+      .mockRejectedValue(unexpectedClientKind(getMockedApiFullClient()));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 
