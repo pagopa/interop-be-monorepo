@@ -5765,6 +5765,7 @@ components:
         - file
         - filename
         - contentType
+        - id
       properties:
         file:
           type: string
@@ -5776,6 +5777,10 @@ components:
         contentType:
           type: string
           description: The content type of the file
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier of the file
         prettyName:
           type: string
           description: A human-readable name for the file

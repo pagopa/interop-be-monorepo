@@ -71,6 +71,7 @@ describe("getAgreementConsumerDocument", () => {
     );
 
     const expectedServiceResponse: DownloadedDocument = {
+      id: mockDocument.id,
       file: new File([Buffer.from(testFileContent)], mockDocument.name, {
         type: mockDocument.contentType,
       }),

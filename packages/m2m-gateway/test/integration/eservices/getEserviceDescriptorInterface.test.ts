@@ -83,6 +83,7 @@ describe("getEserviceDescriptor", () => {
     );
 
     const expectedServiceResponse = {
+      id: mockInterface.id,
       file: new File([Buffer.from(testFileContent)], mockInterface.name, {
         type: mockInterface.contentType,
       }),
