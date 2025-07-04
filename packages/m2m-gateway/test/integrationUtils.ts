@@ -118,7 +118,10 @@ export const attributeService = attributeServiceBuilder(mockInteropBeClients);
 export const eserviceTemplateService =
   eserviceTemplateServiceBuilder(mockInteropBeClients);
 export const clientService = clientServiceBuilder(mockInteropBeClients);
-export const agreementService = agreementServiceBuilder(mockInteropBeClients);
+export const agreementService = agreementServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const eserviceService = eserviceServiceBuilder(
   mockInteropBeClients,
   fileManager
