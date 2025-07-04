@@ -1,6 +1,10 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { AgreementId, generateId } from "pagopa-interop-models";
+import {
+  AgreementDocumentId,
+  AgreementId,
+  generateId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -19,6 +23,7 @@ import {
   toM2MGatewayApiDocument,
 } from "../api/agreementApiConverter.js";
 import { config } from "../config/config.js";
+import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -245,7 +250,7 @@ export function agreementServiceBuilder(
       return toM2MGatewayApiAgreement(polledResource.data);
     },
 
-    async addAgreementConsumerDocument(
+    async uploadAgreementConsumerDocument(
       agreementId: AgreementId,
       fileUpload: m2mGatewayApi.FileUploadMultipart,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -286,6 +291,28 @@ export function agreementServiceBuilder(
       await pollAgreementById(agreementId, metadata, headers);
 
       return toM2MGatewayApiDocument(document);
+    },
+    async downloadAgreementConsumerDocument(
+      agreementId: AgreementId,
+      documentId: AgreementDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving consumer document with id ${documentId} for agreement with id ${agreementId}`
+      );
+
+      const { data: document } =
+        await clients.agreementProcessClient.getAgreementConsumerDocument({
+          params: { agreementId, documentId },
+          headers,
+        });
+
+      return downloadDocument(
+        document,
+        fileManager,
+        config.agreementConsumerDocumentsContainer,
+        logger
+      );
     },
   };
 }
