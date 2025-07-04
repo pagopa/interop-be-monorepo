@@ -26,10 +26,6 @@ describe("API /clientsConsumer authorization test", () => {
     consumerId: mockTokenOrganizationId,
   });
 
-  const serviceResponse = {
-    client: getMockWithMetadata(mockClient),
-    showUsers: true,
-  };
   authorizationService.createConsumerClient = vi
     .fn()
     .mockResolvedValue(mockClient);
