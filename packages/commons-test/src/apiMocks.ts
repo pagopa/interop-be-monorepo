@@ -323,13 +323,45 @@ export function getMockedApiCertifiedTenantAttribute({
   };
 }
 
-export function getMockedApiAgreementDocument(): agreementApi.Document {
+export function getMockedApiAgreementDocument({
+  id = generateId(),
+  name = "doc.txt",
+  path = `mock/path/${id}/doc.txt`,
+  contentType = "text/plain",
+}: {
+  id?: string;
+  name?: string;
+  path?: string;
+  contentType?: string;
+} = {}): agreementApi.Document {
   return {
-    id: generateId(),
-    prettyName: generateMock(z.string()),
-    name: `${generateMock(z.string())}.pdf`,
-    contentType: "application/pdf",
+    id,
+    name,
+    contentType,
+    prettyName: "Interface Document",
+    path,
     createdAt: new Date().toISOString(),
-    path: `/${generateMock(z.string())}/${generateMock(z.string())}.pdf`,
+  };
+}
+
+export function getMockedApiEserviceDoc({
+  id = generateId(),
+  name = "doc.txt",
+  path = `mock/path/${id}/doc.txt`,
+  contentType = "text/plain",
+}: {
+  id?: string;
+  name?: string;
+  path?: string;
+  contentType?: string;
+} = {}): catalogApi.EServiceDoc {
+  return {
+    id,
+    name,
+    contentType,
+    prettyName: "Interface Document",
+    path,
+    checksum: "mock-checksum",
+    contacts: generateMock(catalogApi.DescriptorInterfaceContacts),
   };
 }
