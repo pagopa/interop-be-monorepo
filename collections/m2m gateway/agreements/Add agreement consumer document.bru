@@ -1,0 +1,25 @@
+meta {
+  name: Add agreement consumer document
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-m2m-gw}}/agreements/:agreementId/consumerDocuments
+  body: multipartForm
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+  Content-Type: multipart/form-data
+}
+
+body:multipart-form {
+  file: @file()
+  prettyName: Test File
+}
