@@ -1,17 +1,17 @@
 import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
+import {
   authenticationMiddleware,
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import healthRouter from "./routers/HealthRouter.js";
-import agreementRouter from "./routers/AgreementRouter.js";
 import { config } from "./config/config.js";
+import agreementRouter from "./routers/AgreementRouter.js";
+import healthRouter from "./routers/HealthRouter.js";
 import { AgreementService } from "./services/agreementService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

@@ -23,42 +23,34 @@
       "dependsOn": ["generate-model", "generate-protobuf", "^build"],
       "outputs": ["dist/**"]
     },
-    "check": {
-      "dependsOn": ["generate-model", "generate-protobuf", "^build", "^check"],
-      "outputs": ["dist/**"]
-    },
     "generate-model": {
-      "dependsOn": ["^generate-model"],
+      "dependsOn": [],
       "outputs": ["src/generated/**"]
     },
     "generate-protobuf": {
-      "dependsOn": ["^generate-protobuf"],
+      "dependsOn": [],
       "outputs": ["src/gen/**"]
     },
     "test": {
-      "dependsOn": [
-        "build",
-        "^test",
-        "^test:old",
-        "test:integration",
-        "test:integration:old",
-        "test:api"
-      ]
+      "dependsOn": ["build"]
+    },
+    "test:ci": {
+      "dependsOn": ["build"]
     },
     "test:old": {
-      "dependsOn": ["build", "^test:old", "test:integration:old"]
+      "dependsOn": ["build"]
     },
     "test:integration:old": {
-      "dependsOn": ["build", "^test:integration:old"]
+      "dependsOn": ["build"]
     },
     "test:integration": {
-      "dependsOn": ["build", "^test:integration"]
+      "dependsOn": ["build"]
     },
     "test:api": {
-      "dependsOn": ["build", "^test:api"]
+      "dependsOn": ["build"]
     },
     "lint": {
-      "dependsOn": ["build", "^lint"],
+      "dependsOn": ["build"],
       "outputs": [".eslintcache"]
     },
     "lint:autofix": {
@@ -66,7 +58,7 @@
       "outputs": ["dist"]
     },
     "lint:openapi": {
-      "dependsOn": ["^lint:openapi"],
+      "dependsOn": [],
       "cache": false
     },
     "format:check": {},
