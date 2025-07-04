@@ -373,7 +373,16 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const purposeResponse =
         await clients.purposeProcessClient.createPurposeFromEService(
-          { ...purposeSeed, eServiceId: purposeSeed.eserviceId },
+          {
+            consumerId: purposeSeed.consumerId,
+            eServiceId: purposeSeed.eserviceId,
+            dailyCalls: purposeSeed.dailyCalls,
+            description: purposeSeed.description,
+            isFreeOfCharge: purposeSeed.isFreeOfCharge,
+            riskAnalysisId: purposeSeed.riskAnalysisId,
+            title: purposeSeed.title,
+            freeOfChargeReason: purposeSeed.freeOfChargeReason,
+          },
           {
             headers,
           }
