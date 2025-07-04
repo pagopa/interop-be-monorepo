@@ -1,4 +1,5 @@
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import { assertClientKindIs } from "../utils/validators/delegationValidators.js";
 
 export function toGetClientsApiQueryParams(
@@ -14,17 +15,44 @@ export function toGetClientsApiQueryParams(
     offset: params.offset,
   };
 }
-export function toM2MGatewayApiConsumerClient(
+
+export function toM2MGatewayApiFullClient(
+  client: authorizationApi.FullClient
+): m2mGatewayApi.FullClient {
+  assertClientKindIs(client, authorizationApi.ClientKind.Values.CONSUMER);
+
+  return {
+    visibility: client.visibility,
+    id: client.id,
+    name: client.name,
+    createdAt: client.createdAt,
+    consumerId: client.consumerId,
+    description: client.description,
+  };
+}
+
+export function toM2MGatewayApiClient(
   client: authorizationApi.Client
 ): m2mGatewayApi.Client {
   assertClientKindIs(client, authorizationApi.ClientKind.Values.CONSUMER);
-  return {
-    id: client.id,
-    consumerId: client.consumerId,
-    name: client.name,
-    createdAt: client.createdAt,
-    description: client.description,
-    purposes: client.purposes,
-    users: client.users,
-  };
+
+  return match(client)
+    .with(
+      {
+        visibility: authorizationApi.ClientVisibility.Values.COMPACT,
+      },
+      (client) =>
+        ({
+          visibility: client.visibility,
+          id: client.id,
+          consumerId: client.consumerId,
+        } satisfies m2mGatewayApi.CompactClient)
+    )
+    .with(
+      {
+        visibility: authorizationApi.ClientVisibility.Values.FULL,
+      },
+      (client) => toM2MGatewayApiFullClient(client)
+    )
+    .exhaustive();
 }

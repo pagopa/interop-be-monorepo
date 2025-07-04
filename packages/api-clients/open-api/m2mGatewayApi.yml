@@ -2291,84 +2291,6 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-    post:
-      tags:
-        - clients
-      summary: Create a new Client
-      description: Create a new Client in Active state
-      operationId: createClient
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ClientSeed"
-        required: true
-      responses:
-        "201":
-          description: Client created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Client"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "429":
-          description: Too Many Requests
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
   /clients/{clientId}:
     parameters:
       - name: clientId
@@ -5322,6 +5244,92 @@ components:
         - description
         - name
         - code
+    ClientVisibility:
+      type: string
+      enum: [COMPACT, FULL]
+    Client:
+      description: |
+        Models a client that can be either a full client or a compact client based on the caller
+        tenant. In case the caller tenant is the consumer of the client (i.e., the owner), the
+        full client is returned, otherwise a compact client is returned.
+      oneOf:
+        - $ref: "#/components/schemas/FullClient"
+        - $ref: "#/components/schemas/CompactClient"
+      discriminator:
+        propertyName: visibility
+        mapping:
+          COMPACT: "#/components/schemas/CompactClient"
+          FULL: "#/components/schemas/FullClient"
+    CompactClient:
+      type: object
+      description: |
+        Models a client with a reduced set of fields: only the fields that are
+        visible to any caller tenant.
+      additionalProperties: false
+      properties:
+        visibility:
+          type: string
+          enum: [COMPACT]
+        id:
+          type: string
+          format: uuid
+        consumerId:
+          description: |
+            The consumerId is the identifier of the tenant that owns the client.
+            It is the tenant that created the client and has full access to it.
+          type: string
+          format: uuid
+      required:
+        - visibility
+        - id
+        - consumerId
+    FullClient:
+      type: object
+      description: |
+        Models a client with all fields visible to the owner tenant.
+        The owner of the client is the consumer tenant, identified by the consumerId.
+        The only fields that are visible to any caller tenant are the ones that are
+        present also in the CompactClient schema. The rest are visible only to the owner tenant.
+      additionalProperties: false
+      properties:
+        visibility:
+          type: string
+          enum: [FULL]
+        id:
+          type: string
+          format: uuid
+        consumerId:
+          description: |
+            The consumerId is the identifier of the tenant that owns the client.
+            It is the tenant that created the client and has full access to it.
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - visibility
+        - id
+        - consumerId
+        - name
+        - createdAt
+    Clients:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Client"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     ClientAddPurpose:
       type: object
       additionalProperties: false

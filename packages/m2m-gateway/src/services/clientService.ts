@@ -12,7 +12,7 @@ import {
 } from "../utils/polling.js";
 import {
   toGetClientsApiQueryParams,
-  toM2MGatewayApiConsumerClient,
+  toM2MGatewayApiClient,
 } from "../api/clientApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
@@ -76,7 +76,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         headers,
       });
 
-      return toM2MGatewayApiConsumerClient(client.data);
+      return toM2MGatewayApiClient(client.data);
     },
     async getClients(
       params: m2mGatewayApi.GetClientsQueryParams,
@@ -95,7 +95,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       return {
-        results: results.map(toM2MGatewayApiConsumerClient),
+        results: results.map(toM2MGatewayApiClient),
         pagination: {
           limit,
           offset,
