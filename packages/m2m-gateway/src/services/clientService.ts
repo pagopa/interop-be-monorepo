@@ -103,21 +103,6 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         },
       };
     },
-    async createClient(
-      seed: m2mGatewayApi.ClientSeed,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Client> {
-      logger.info(`Creating client with name ${seed.name}`);
-
-      const response =
-        await clients.authorizationClient.client.createConsumerClient(seed, {
-          headers,
-        });
-
-      const polledResource = await pollClient(response, headers);
-
-      return toM2MGatewayApiConsumerClient(polledResource.data);
-    },
     async addClientPurpose(
       clientId: ClientId,
       seed: m2mGatewayApi.ClientAddPurpose,

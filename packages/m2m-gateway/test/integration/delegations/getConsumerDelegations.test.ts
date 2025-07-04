@@ -25,6 +25,7 @@ describe("getConsumerDelegations", () => {
   const mockApiDelegation1 = getMockedApiDelegation({
     kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
   });
+
   const mockApiDelegation2 = getMockedApiDelegation({
     kind: delegationApi.DelegationKind.Values.DELEGATED_CONSUMER,
   });
