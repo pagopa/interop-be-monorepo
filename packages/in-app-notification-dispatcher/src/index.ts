@@ -11,8 +11,10 @@ import {
   generateId,
   genericInternalError,
   missingKafkaMessageDataError,
+  Notification,
   PurposeEventEnvelopeV2,
   PurposeEventV2,
+  toNotificationSQL,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -67,17 +69,16 @@ const inAppNotificationService =
 export async function handleCatalogMessage(
   decodedMessage: EServiceEventEnvelopeV2,
   logger: Logger
-): Promise<void> {
-  await match(decodedMessage)
+): Promise<Notification[]> {
+  return await match(decodedMessage)
     .with(
       { type: "EServiceDescriptorPublished" },
       async ({ data: { eservice } }) => {
         if (eservice) {
-          await handlers.handleNewEServiceVersionPublished(
+          return await handlers.handleNewEServiceVersionPublished(
             eservice,
             logger,
-            readModelService,
-            inAppNotificationService
+            readModelService
           );
         } else {
           throw missingKafkaMessageDataError("eservice", decodedMessage.type);
@@ -134,6 +135,7 @@ export async function handleCatalogMessage(
         logger.info(
           `No need to send an in-app notification for ${decodedMessage.type} message`
         );
+        return [];
       }
     )
     .exhaustive();
@@ -142,8 +144,8 @@ export async function handleCatalogMessage(
 export async function handlePurposeMessage(
   decodedMessage: PurposeEventEnvelopeV2,
   logger: Logger
-): Promise<void> {
-  match(decodedMessage)
+): Promise<Notification[]> {
+  return match(decodedMessage)
     .with(
       {
         type: P.union(
@@ -173,6 +175,7 @@ export async function handlePurposeMessage(
         logger.info(
           `No need to send an in-app notification for ${decodedMessage.type} message`
         );
+        return [];
       }
     )
     .exhaustive();
@@ -181,8 +184,8 @@ export async function handlePurposeMessage(
 export async function handleAgreementMessage(
   decodedMessage: AgreementEventEnvelopeV2,
   logger: Logger
-): Promise<void> {
-  match(decodedMessage)
+): Promise<Notification[]> {
+  return match(decodedMessage)
     .with(
       {
         type: P.union(
@@ -213,6 +216,7 @@ export async function handleAgreementMessage(
         logger.info(
           `No need to send an in-app notification for ${decodedMessage.type} message`
         );
+        return [];
       }
     )
     .exhaustive();
@@ -271,7 +275,10 @@ function processMessage(topicHandlers: TopicHandlers) {
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
     );
 
-    await handleMessage(loggerInstance);
+    const notifications = await handleMessage(loggerInstance);
+    await inAppNotificationService.insertNotifications(
+      notifications.map(toNotificationSQL)
+    );
   };
 }
 
