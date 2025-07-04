@@ -23,3 +23,4 @@ export * from "./applicationAuditFallbackSQSConsumerConfig.js";
 export * from "./applicationAuditFallbackSQSProducerConfig.js";
 export * from "./analyticsSQLDbConfig.js";
 export * from "./dpopConfig.js";
+export * from "./inAppNotificationDBConfig.js";
