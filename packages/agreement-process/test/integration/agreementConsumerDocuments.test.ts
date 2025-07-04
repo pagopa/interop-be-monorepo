@@ -337,7 +337,7 @@ describe("agreement consumer document", () => {
 
       const expectedConsumerDocument = {
         ...consumerDocument,
-        createdAt: returnedConsumerDocument.createdAt,
+        createdAt: returnedConsumerDocument.data.createdAt,
       };
 
       const expectedAgreement = {
@@ -356,20 +356,9 @@ describe("agreement consumer document", () => {
         documentId: consumerDocument.id,
       });
 
-      expect({
-        agreement: sortAgreementV2(actualConsumerDocument.agreement),
-        documentId: actualConsumerDocument.documentId,
-      }).toEqual({
-        agreement: sortAgreementV2(
-          toAgreementV2({
-            ...agreement,
-            consumerDocuments: [
-              ...agreement.consumerDocuments,
-              returnedConsumerDocument,
-            ],
-          })
-        ),
-        documentId: returnedConsumerDocument.id,
+      expect(returnedConsumerDocument).toEqual({
+        data: expectedConsumerDocument,
+        metadata: { version: 1 },
       });
     });
 
@@ -408,7 +397,7 @@ describe("agreement consumer document", () => {
 
       const expectedConsumerDocument = {
         ...consumerDocument,
-        createdAt: returnedConsumerDocument.createdAt,
+        createdAt: returnedConsumerDocument.data.createdAt,
       };
 
       const expectedAgreement = {
@@ -427,20 +416,9 @@ describe("agreement consumer document", () => {
         documentId: consumerDocument.id,
       });
 
-      expect({
-        agreement: sortAgreementV2(actualConsumerDocument.agreement),
-        documentId: actualConsumerDocument.documentId,
-      }).toEqual({
-        agreement: sortAgreementV2(
-          toAgreementV2({
-            ...agreement,
-            consumerDocuments: [
-              ...agreement.consumerDocuments,
-              returnedConsumerDocument,
-            ],
-          })
-        ),
-        documentId: returnedConsumerDocument.id,
+      expect(returnedConsumerDocument).toEqual({
+        data: expectedConsumerDocument,
+        metadata: { version: 1 },
       });
     });
 
