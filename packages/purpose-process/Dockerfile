@@ -1,7 +1,7 @@
 #default value for compatibility
 ARG NODE_REGISTRY="docker.io"
 
-FROM ${NODE_REGISTRY}/node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as build
+FROM ${NODE_REGISTRY}/node:20.19.3@sha256:68d27797e56fa39248e0372b1017075c11f3a81b5baa2daa7d23af4b3f8f6918 as build
 
 RUN npm install -g corepack@0.31.0 && corepack enable
 
@@ -50,7 +50,7 @@ RUN pnpm build && \
   packages/purpose-process/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
-FROM ${NODE_REGISTRY}/node:20.14.0@sha256:02cd2205818f121c13612721876f28c18bd50148bb8af532ea121c96ffcb59bf as final 
+FROM ${NODE_REGISTRY}/node:20.19.3@sha256:68d27797e56fa39248e0372b1017075c11f3a81b5baa2daa7d23af4b3f8f6918 as final 
 
 # Install dependencies for Puppeteer
 RUN apt-get update && \
