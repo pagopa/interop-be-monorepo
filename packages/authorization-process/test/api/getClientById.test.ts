@@ -5,24 +5,23 @@ import { Client, ClientId, generateId } from "pagopa-interop-models";
 import {
   generateToken,
   getMockClient,
+  getMockWithMetadata,
+  mockTokenOrganizationId,
 } from "pagopa-interop-commons-test/index.js";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
   clientNotFound,
   tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
+import { testToCompactClient, testToFullClient } from "../apiUtils.js";
 
 describe("API /clients/{clientId} authorization test", () => {
   const mockClient: Client = getMockClient();
-
-  const apiClient = clientToApiClient(mockClient, { showUsers: true });
-
-  authorizationService.getClientById = vi.fn().mockResolvedValue({
-    data: { client: mockClient, showUsers: true },
-    metadata: { version: 1 },
-  });
+  const serviceResponse = getMockWithMetadata(mockClient);
+  authorizationService.getClientById = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (token: string, clientId: ClientId) =>
     request(api)
@@ -39,13 +38,35 @@ describe("API /clients/{clientId} authorization test", () => {
     authRole.SUPPORT_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 200 with a compact client for user with role %s and tenant != client consumerId",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id);
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(apiClient);
-      expect(res.headers["x-metadata-version"]).toBe("1");
+      expect(res.body).toEqual(testToCompactClient(mockClient));
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
+
+  it.each(authorizedRoles)(
+    "Should return 200 with a full client for user with role %s and tenant = client consumerId",
+    async (role) => {
+      const mockClient = getMockClient({
+        consumerId: mockTokenOrganizationId,
+      });
+      const serviceResponse = getMockWithMetadata(mockClient);
+      authorizationService.getClientById = vi
+        .fn()
+        .mockResolvedValueOnce(serviceResponse);
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockClient.id);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(testToFullClient(mockClient));
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
