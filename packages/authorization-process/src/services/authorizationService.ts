@@ -244,7 +244,7 @@ export function authorizationServiceBuilder(
         keys: [],
       };
 
-      const event = await repository.createEvent(
+      await repository.createEvent(
         toCreateEventClientAdded(client, correlationId)
       );
 
