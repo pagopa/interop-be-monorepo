@@ -4,36 +4,39 @@ import {
 } from "pagopa-interop-api-clients";
 import { ApiError } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
 import {
   assertAttributeKindIs,
   assertAttributeOriginAndCodeAreDefined,
 } from "../utils/validators/attributeValidators.js";
 import { attributeNotFound } from "../model/errors.js";
 
-export function toM2MGatewayApiCertifiedAttribute({
-  attribute,
-  logger,
-  mapThrownErrorsToNotFound = false,
-}: {
-  attribute: attributeRegistryApi.Attribute;
-  logger: Logger;
-  mapThrownErrorsToNotFound?: boolean;
-}): m2mGatewayApi.CertifiedAttribute {
+function convertAttribute<T>(
+  attribute: attributeRegistryApi.Attribute,
+  attributeKind: attributeRegistryApi.AttributeKind,
+  logger: Logger,
+  mapThrownErrorsToNotFound = false
+): T {
   try {
-    assertAttributeKindIs(
-      attribute,
-      attributeRegistryApi.AttributeKind.Values.CERTIFIED
-    );
-    assertAttributeOriginAndCodeAreDefined(attribute);
+    assertAttributeKindIs(attribute, attributeKind);
 
-    return {
+    const baseFields = {
       id: attribute.id,
-      code: attribute.code,
       description: attribute.description,
-      origin: attribute.origin,
       name: attribute.name,
       createdAt: attribute.creationTime,
     };
+
+    return match(attributeKind)
+      .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED, () => {
+        assertAttributeOriginAndCodeAreDefined(attribute);
+        return {
+          ...baseFields,
+          code: attribute.code,
+          origin: attribute.origin,
+        } as T;
+      })
+      .otherwise(() => baseFields as T);
   } catch (error) {
     if (mapThrownErrorsToNotFound) {
       logger.warn(
@@ -46,4 +49,55 @@ export function toM2MGatewayApiCertifiedAttribute({
       throw error;
     }
   }
+}
+
+export function toM2MGatewayApiCertifiedAttribute({
+  attribute,
+  logger,
+  mapThrownErrorsToNotFound = false,
+}: {
+  attribute: attributeRegistryApi.Attribute;
+  logger: Logger;
+  mapThrownErrorsToNotFound?: boolean;
+}): m2mGatewayApi.CertifiedAttribute {
+  return convertAttribute<m2mGatewayApi.CertifiedAttribute>(
+    attribute,
+    attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+    logger,
+    mapThrownErrorsToNotFound
+  );
+}
+
+export function toM2MGatewayApiDeclaredAttribute({
+  attribute,
+  logger,
+  mapThrownErrorsToNotFound = false,
+}: {
+  attribute: attributeRegistryApi.Attribute;
+  logger: Logger;
+  mapThrownErrorsToNotFound?: boolean;
+}): m2mGatewayApi.DeclaredAttribute {
+  return convertAttribute<m2mGatewayApi.DeclaredAttribute>(
+    attribute,
+    attributeRegistryApi.AttributeKind.Values.DECLARED,
+    logger,
+    mapThrownErrorsToNotFound
+  );
+}
+
+export function toM2MGatewayApiVerifiedAttribute({
+  attribute,
+  logger,
+  mapThrownErrorsToNotFound = false,
+}: {
+  attribute: attributeRegistryApi.Attribute;
+  logger: Logger;
+  mapThrownErrorsToNotFound?: boolean;
+}): m2mGatewayApi.VerifiedAttribute {
+  return convertAttribute<m2mGatewayApi.VerifiedAttribute>(
+    attribute,
+    attributeRegistryApi.AttributeKind.Values.VERIFIED,
+    logger,
+    mapThrownErrorsToNotFound
+  );
 }
