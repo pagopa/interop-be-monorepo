@@ -406,24 +406,30 @@ export const getMockAgreementDocument = (): AgreementDocument => ({
 });
 
 export const getMockClient = ({
-  consumerId,
-  users,
+  consumerId = generateId<TenantId>(),
+  users = [],
   kind = clientKind.consumer,
+  purposes = [],
+  keys = [],
+  adminId = undefined,
 }: {
   consumerId?: TenantId;
   users?: UserId[];
   kind?: ClientKind;
+  purposes?: PurposeId[];
+  keys?: Key[];
+  adminId?: UserId;
 } = {}): Client => ({
   id: generateId(),
-  consumerId: consumerId ?? generateId(),
+  consumerId,
   name: "Test client",
-  purposes: [generateId<PurposeId>()],
+  purposes,
   description: "Client description",
-  users: users ?? [generateId<UserId>()],
-  kind: kind ?? clientKind.consumer,
+  users,
+  kind,
   createdAt: new Date(),
-  keys: [getMockKey()],
-  adminId: generateId<UserId>(),
+  keys,
+  ...(adminId ? { adminId } : {}),
 });
 
 export const getMockProducerKeychain = (): ProducerKeychain => ({
