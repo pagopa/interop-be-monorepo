@@ -218,15 +218,7 @@ export function authorizationServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Client>> {
       logger.info(`Retrieving Client ${clientId}`);
-      const { data: client, metadata } = await retrieveClient(
-        clientId,
-        readModelService
-      );
-
-      return {
-        data: client,
-        metadata,
-      };
+      return await retrieveClient(clientId, readModelService);
     },
 
     async createConsumerClient(
@@ -297,7 +289,10 @@ export function authorizationServiceBuilder(
         offset: number;
         limit: number;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Client>> {
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`

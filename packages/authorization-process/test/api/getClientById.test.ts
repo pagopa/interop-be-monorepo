@@ -84,10 +84,6 @@ describe("API /clients/{clientId} authorization test", () => {
       error: clientNotFound(mockClient.id),
       expectedStatus: 404,
     },
-    {
-      error: tenantNotAllowedOnClient(generateId(), mockClient.id),
-      expectedStatus: 403,
-    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
