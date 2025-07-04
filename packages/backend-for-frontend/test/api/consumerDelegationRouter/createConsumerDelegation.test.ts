@@ -12,7 +12,6 @@ import {
   getMockBffApiDelegationSeed,
   getMockDelegationApiDelegation,
 } from "../../mockUtils.js";
-import { DelegationSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /consumers/delegations", () => {
   const mockDelegationSeed = getMockBffApiDelegationSeed();
@@ -50,7 +49,7 @@ describe("API POST /consumers/delegations", () => {
     { body: { ...mockDelegationSeed, eserviceId: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, body as DelegationSeed);
+    const res = await makeRequest(token, body as bffApi.DelegationSeed);
     expect(res.status).toBe(400);
   });
 });

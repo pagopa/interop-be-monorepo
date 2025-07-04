@@ -9,10 +9,10 @@ import {
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiUpdateEServiceTemplateVersionDocumentSeed } from "../../mockUtils.js";
-import { UpdateEServiceTemplateVersionDocumentSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId/documents/:documentId/update", () => {
   const mockUpdateEServiceTemplateVersionDocumentSeed =
@@ -29,7 +29,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
     eServiceTemplateId: EServiceTemplateId = generateId(),
     eServiceTemplateVersionId: EServiceTemplateVersionId = generateId(),
     documentId: EServiceDocumentId = generateId(),
-    body: UpdateEServiceTemplateVersionDocumentSeed = mockUpdateEServiceTemplateVersionDocumentSeed
+    body: bffApi.UpdateEServiceTemplateVersionDocumentSeed = mockUpdateEServiceTemplateVersionDocumentSeed
   ) =>
     request(api)
       .post(
@@ -82,7 +82,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
         eServiceTemplateId,
         eServiceTemplateVersionId,
         documentId,
-        body as UpdateEServiceTemplateVersionDocumentSeed
+        body as bffApi.UpdateEServiceTemplateVersionDocumentSeed
       );
       expect(res.status).toBe(400);
     }

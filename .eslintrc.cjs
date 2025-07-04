@@ -19,6 +19,12 @@ module.exports = {
     "max-lines-per-function": "off",
     "@typescript-eslint/naming-convention": "off",
     "@typescript-eslint/no-use-before-define": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        patterns: ["**/dist/**"],
+      },
+    ],
   },
   ignorePatterns: [
     ".eslintrc.cjs",
