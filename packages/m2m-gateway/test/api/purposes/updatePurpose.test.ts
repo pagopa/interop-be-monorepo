@@ -15,7 +15,7 @@ import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js"
 describe("PATCH /purposes/:purposeId router test", () => {
   const mockPurpose: purposeApi.Purpose = getMockedApiPurpose();
 
-  const mockPurposeUpdateContent: m2mGatewayApi.PurposeUpdateContent = {
+  const mockPurposeUpdateSeed: m2mGatewayApi.PurposeUpdateSeed = {
     dailyCalls: mockPurpose.versions[0].dailyCalls,
     description: mockPurpose.description,
     isFreeOfCharge: mockPurpose.isFreeOfCharge,
@@ -29,7 +29,7 @@ describe("PATCH /purposes/:purposeId router test", () => {
   const makeRequest = async (
     token: string,
     purposeId: string,
-    body: m2mGatewayApi.PurposeUpdateContent
+    body: m2mGatewayApi.PurposeUpdateSeed
   ) =>
     request(api)
       .patch(`${appBasePath}/purposes/${purposeId}`)
@@ -48,7 +48,7 @@ describe("PATCH /purposes/:purposeId router test", () => {
       const res = await makeRequest(
         token,
         mockPurpose.id,
-        mockPurposeUpdateContent
+        mockPurposeUpdateSeed
       );
 
       expect(res.status).toBe(200);
@@ -60,24 +60,20 @@ describe("PATCH /purposes/:purposeId router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(
-      token,
-      mockPurpose.id,
-      mockPurposeUpdateContent
-    );
+    const res = await makeRequest(token, mockPurpose.id, mockPurposeUpdateSeed);
     expect(res.status).toBe(403);
   });
 
   it.each([
     { invalidParam: "invalidValue" },
-    { ...mockPurposeUpdateContent, extraParam: -1 },
-    { ...mockPurposeUpdateContent, description: "short" },
+    { ...mockPurposeUpdateSeed, extraParam: -1 },
+    { ...mockPurposeUpdateSeed, description: "short" },
   ])("Should return 400 if passed invalid delegation seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
       mockPurpose.id,
-      body as m2mGatewayApi.PurposeUpdateContent
+      body as m2mGatewayApi.PurposeUpdateSeed
     );
 
     expect(res.status).toBe(400);
@@ -91,7 +87,7 @@ describe("PATCH /purposes/:purposeId router test", () => {
       const res = await makeRequest(
         token,
         mockPurpose.id,
-        mockPurposeUpdateContent
+        mockPurposeUpdateSeed
       );
 
       expect(res.status).toBe(500);
@@ -110,7 +106,7 @@ describe("PATCH /purposes/:purposeId router test", () => {
       const res = await makeRequest(
         token,
         mockPurpose.id,
-        mockPurposeUpdateContent
+        mockPurposeUpdateSeed
       );
 
       expect(res.status).toBe(500);

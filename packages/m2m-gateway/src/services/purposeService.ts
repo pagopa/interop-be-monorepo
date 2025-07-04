@@ -395,7 +395,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async updatePurpose(
       purposeId: PurposeId,
-      body: m2mGatewayApi.PurposeUpdateContent,
+      body: m2mGatewayApi.PurposeUpdateSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(`Updating purpose ${purposeId}`);

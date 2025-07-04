@@ -27,7 +27,7 @@ describe("updatePurpose", () => {
     getMockedApiPurpose()
   );
 
-  const mockPurposeUpdateContent: m2mGatewayApi.PurposeUpdateContent = {
+  const mockPurposeUpdateSeed: m2mGatewayApi.PurposeUpdateSeed = {
     dailyCalls: mockPurposeProcessGetResponse.data.versions[0].dailyCalls,
     description: mockPurposeProcessGetResponse.data.description,
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
@@ -79,14 +79,14 @@ describe("updatePurpose", () => {
 
     const result = await purposeService.updatePurpose(
       purposeId,
-      mockPurposeUpdateContent,
+      mockPurposeUpdateSeed,
       mockAppContext
     );
 
     expect(result).toEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.purposeProcessClient.updatePurpose,
-      body: mockPurposeUpdateContent,
+      body: mockPurposeUpdateSeed,
       params: { id: expectedM2MPurpose.id },
     });
     expectApiClientGetToHaveBeenCalledWith({
@@ -112,7 +112,7 @@ describe("updatePurpose", () => {
     await expect(
       purposeService.updatePurpose(
         purposeId,
-        mockPurposeUpdateContent,
+        mockPurposeUpdateSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -127,7 +127,7 @@ describe("updatePurpose", () => {
     await expect(
       purposeService.updatePurpose(
         purposeId,
-        mockPurposeUpdateContent,
+        mockPurposeUpdateSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -144,7 +144,7 @@ describe("updatePurpose", () => {
     await expect(
       purposeService.updatePurpose(
         purposeId,
-        mockPurposeUpdateContent,
+        mockPurposeUpdateSeed,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
