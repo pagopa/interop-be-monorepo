@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
-import { getMockedApiClient } from "pagopa-interop-commons-test";
+import {
+  getMockedApiCompactClient,
+  getMockedApiFullClient,
+} from "pagopa-interop-commons-test";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
@@ -23,28 +26,40 @@ describe("getClients", () => {
     offset: 0,
     limit: 10,
   };
-
-  const mockClient1 = getMockedApiClient({
+  const mockFullClient1 = getMockedApiFullClient({
     kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
-  const mockClient2 = getMockedApiClient({
+  const mockFullClient2 = getMockedApiFullClient({
     kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
 
-  const mockClients = [mockClient1, mockClient2];
+  const mockFullClients = [mockFullClient1, mockFullClient2];
 
-  const mockAuthorizationProcessResponse: WithMaybeMetadata<authorizationApi.Clients> =
+  const mockFullClientsResponse: WithMaybeMetadata<authorizationApi.Clients> = {
+    data: {
+      results: mockFullClients,
+      totalCount: mockFullClients.length,
+    },
+    metadata: undefined,
+  };
+
+  const mockGetClients = vi.fn();
+
+  const mockCompactClient1 = getMockedApiCompactClient({
+    kind: authorizationApi.ClientKind.Values.CONSUMER,
+  });
+  const mockCompactClient2 = getMockedApiCompactClient({
+    kind: authorizationApi.ClientKind.Values.CONSUMER,
+  });
+  const mockCompactClients = [mockCompactClient1, mockCompactClient2];
+  const mockCompactClientsResponse: WithMaybeMetadata<authorizationApi.Clients> =
     {
       data: {
-        results: mockClients,
-        totalCount: mockClients.length,
+        results: mockCompactClients,
+        totalCount: mockCompactClients.length,
       },
       metadata: undefined,
     };
-
-  const mockGetClients = vi
-    .fn()
-    .mockResolvedValue(mockAuthorizationProcessResponse);
 
   mockInteropBeClients.authorizationClient = {
     client: {
@@ -57,31 +72,74 @@ describe("getClients", () => {
     mockGetClients.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
+  it("Should succeed with full clients and perform API clients calls", async () => {
+    mockGetClients.mockResolvedValueOnce(mockFullClientsResponse);
+
     const m2mClientResponse1: m2mGatewayApi.Client = {
-      id: mockClient1.id,
-      consumerId: mockClient1.consumerId,
-      name: mockClient1.name,
-      createdAt: mockClient1.createdAt,
-      description: mockClient1.description,
-      purposes: mockClient1.purposes,
-      users: mockClient1.users,
+      visibility: m2mGatewayApi.ClientVisibility.Values.FULL,
+      id: mockFullClient1.id,
+      consumerId: mockFullClient1.consumerId,
+      name: mockFullClient1.name,
+      createdAt: mockFullClient1.createdAt,
+      description: mockFullClient1.description,
     };
     const m2mClientResponse2: m2mGatewayApi.Client = {
-      id: mockClient2.id,
-      consumerId: mockClient2.consumerId,
-      name: mockClient2.name,
-      createdAt: mockClient2.createdAt,
-      description: mockClient2.description,
-      purposes: mockClient2.purposes,
-      users: mockClient2.users,
+      visibility: m2mGatewayApi.ClientVisibility.Values.FULL,
+      id: mockFullClient2.id,
+      consumerId: mockFullClient2.consumerId,
+      name: mockFullClient2.name,
+      createdAt: mockFullClient2.createdAt,
+      description: mockFullClient2.description,
     };
 
     const m2mClientsResponse: m2mGatewayApi.Clients = {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
-        totalCount: mockAuthorizationProcessResponse.data.totalCount,
+        totalCount: mockFullClientsResponse.data.totalCount,
+      },
+      results: [m2mClientResponse1, m2mClientResponse2],
+    };
+
+    const result = await clientService.getClients(
+      mockParams,
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result).toEqual(m2mClientsResponse);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.authorizationClient.client.getClients,
+      queries: {
+        kind: authorizationApi.ClientKind.Values.CONSUMER,
+        consumerId: mockParams.consumerId,
+        userIds: mockParams.userIds,
+        name: mockParams.name,
+        purposeId: mockParams.purposeId,
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+      },
+    });
+  });
+
+  it("Should succeed with compact clients and perform API clients calls", async () => {
+    mockGetClients.mockResolvedValueOnce(mockCompactClientsResponse);
+
+    const m2mClientResponse1: m2mGatewayApi.CompactClient = {
+      visibility: m2mGatewayApi.ClientVisibility.Values.COMPACT,
+      id: mockCompactClient1.id,
+      consumerId: mockCompactClient1.consumerId,
+    };
+    const m2mClientResponse2: m2mGatewayApi.CompactClient = {
+      visibility: m2mGatewayApi.ClientVisibility.Values.COMPACT,
+      id: mockCompactClient2.id,
+      consumerId: mockCompactClient2.consumerId,
+    };
+
+    const m2mClientsResponse: m2mGatewayApi.Clients = {
+      pagination: {
+        limit: mockParams.limit,
+        offset: mockParams.offset,
+        totalCount: mockCompactClientsResponse.data.totalCount,
       },
       results: [m2mClientResponse1, m2mClientResponse2],
     };
@@ -107,26 +165,44 @@ describe("getClients", () => {
   });
 
   it("Should throw unexpectedClientKind in case the returned client has an unexpected kind", async () => {
-    const mockBadClient = {
-      ...mockClient1,
+    const mockBadClientCompact = {
+      ...mockCompactClient1,
       kind: authorizationApi.ClientKind.Values.API,
     };
-    const mockResponse = {
-      ...mockAuthorizationProcessResponse,
+    const mockResponseCompact = {
+      ...mockCompactClientsResponse,
       data: {
-        ...mockAuthorizationProcessResponse.data,
+        ...mockCompactClientsResponse.data,
         results: [
-          ...mockAuthorizationProcessResponse.data.results,
-          mockBadClient,
+          ...mockCompactClientsResponse.data.results,
+          mockBadClientCompact,
         ],
       },
     };
 
     mockInteropBeClients.authorizationClient.client.getClients =
-      mockGetClients.mockResolvedValueOnce(mockResponse);
+      mockGetClients.mockResolvedValueOnce(mockResponseCompact);
 
     await expect(
       clientService.getClients(mockParams, getMockM2MAdminAppContext())
-    ).rejects.toThrowError(unexpectedClientKind(mockBadClient));
+    ).rejects.toThrowError(unexpectedClientKind(mockBadClientCompact));
+
+    const mockBadClientFull = {
+      ...mockFullClient1,
+      kind: authorizationApi.ClientKind.Values.API,
+    };
+    const mockResponseFull = {
+      ...mockFullClientsResponse,
+      data: {
+        ...mockFullClientsResponse.data,
+        results: [...mockFullClientsResponse.data.results, mockBadClientFull],
+      },
+    };
+
+    mockInteropBeClients.authorizationClient.client.getClients =
+      mockGetClients.mockResolvedValueOnce(mockResponseFull);
+    await expect(
+      clientService.getClients(mockParams, getMockM2MAdminAppContext())
+    ).rejects.toThrowError(unexpectedClientKind(mockBadClientFull));
   });
 });
