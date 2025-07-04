@@ -83,8 +83,14 @@ describe("createReversePurpose", () => {
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromEService,
       body: {
-        ...mockEServicePurposeSeed,
+        consumerId: mockEServicePurposeSeed.consumerId,
+        dailyCalls: mockEServicePurposeSeed.dailyCalls,
+        description: mockEServicePurposeSeed.description,
         eServiceId: mockEServicePurposeSeed.eserviceId,
+        freeOfChargeReason: mockEServicePurposeSeed.freeOfChargeReason,
+        isFreeOfCharge: mockEServicePurposeSeed.isFreeOfCharge,
+        riskAnalysisId: mockEServicePurposeSeed.riskAnalysisId,
+        title: mockEServicePurposeSeed.title,
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
