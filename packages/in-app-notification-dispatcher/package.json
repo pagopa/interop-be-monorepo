@@ -24,7 +24,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.14.6",
+    "@types/node": "20.19.3",
     "cpx2": "7.0.2",
     "axios": "1.8.2",
     "pagopa-interop-commons-test": "workspace:*",
