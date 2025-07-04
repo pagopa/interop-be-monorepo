@@ -35,7 +35,7 @@ import { inAppNotificationServiceBuilderSQL } from "./services/inAppNotification
 // Handlers
 import * as handlers from "./handlers/index.js";
 
-interface TopicHandlers {
+interface TopicNames {
   catalogTopic: string;
   agreementTopic: string;
   purposeTopic: string;
@@ -222,9 +222,9 @@ export async function handleAgreementMessage(
     .exhaustive();
 }
 
-function processMessage(topicHandlers: TopicHandlers) {
+function processMessage(topicNames: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
-    const { catalogTopic, agreementTopic, purposeTopic } = topicHandlers;
+    const { catalogTopic, agreementTopic, purposeTopic } = topicNames;
 
     const { decodedMessage, handleMessage } = match(messagePayload.topic)
       .with(catalogTopic, () => {
