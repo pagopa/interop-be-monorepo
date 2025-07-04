@@ -81,6 +81,7 @@ const main = async () => {
           );
         },
         withAlias: true,
+        shouldExportAllSchemas: true,
         shouldExportAllTypes: true,
         groupStrategy: "tag",
         strictObjects: true,
