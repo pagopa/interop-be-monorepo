@@ -1,5 +1,8 @@
 /* eslint-disable functional/no-let */
-import { createPollingByCondition } from "pagopa-interop-commons";
+import {
+  createPollingByCondition,
+  createPollingUntilDeletion,
+} from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
@@ -20,6 +23,15 @@ export function pollResourceWithMetadata<T>(
   typeof createPollingByCondition<WithMaybeMetadata<NonNullable<T>>>
 > {
   return createPollingByCondition(fetch, {
+    defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+    defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+  });
+}
+
+export function pollResourceUntilDeletion(
+  fetch: () => Promise<unknown>
+): ReturnType<typeof createPollingUntilDeletion> {
+  return createPollingUntilDeletion(fetch, {
     defaultPollingMaxRetries: config.defaultPollingMaxRetries,
     defaultPollingRetryDelay: config.defaultPollingRetryDelay,
   });

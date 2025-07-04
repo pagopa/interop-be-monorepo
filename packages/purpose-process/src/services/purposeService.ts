@@ -464,7 +464,11 @@ export function purposeServiceBuilder(
     },
     async deletePurpose(
       purposeId: PurposeId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting Purpose ${purposeId}`);
 
