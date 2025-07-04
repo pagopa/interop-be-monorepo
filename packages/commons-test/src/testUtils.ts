@@ -105,6 +105,7 @@ import {
   JWKKeyES256,
   Algorithm,
   algorithm,
+  ClientKind,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -404,16 +405,31 @@ export const getMockAgreementDocument = (): AgreementDocument => ({
   createdAt: new Date(),
 });
 
-export const getMockClient = (): Client => ({
+export const getMockClient = ({
+  consumerId = generateId<TenantId>(),
+  users = [],
+  kind = clientKind.consumer,
+  purposes = [],
+  keys = [],
+  adminId = undefined,
+}: {
+  consumerId?: TenantId;
+  users?: UserId[];
+  kind?: ClientKind;
+  purposes?: PurposeId[];
+  keys?: Key[];
+  adminId?: UserId;
+} = {}): Client => ({
   id: generateId(),
-  consumerId: generateId(),
+  consumerId,
   name: "Test client",
-  purposes: [],
+  purposes,
   description: "Client description",
-  users: [],
-  kind: clientKind.consumer,
+  users,
+  kind,
   createdAt: new Date(),
-  keys: [],
+  keys,
+  ...(adminId ? { adminId } : {}),
 });
 
 export const getMockProducerKeychain = (): ProducerKeychain => ({
