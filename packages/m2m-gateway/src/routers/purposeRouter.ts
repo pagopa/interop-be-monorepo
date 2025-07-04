@@ -265,6 +265,28 @@ const purposeRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .delete("/purposes/:purposeId/versions/:versionId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.deletePurposeVersion(
+          unsafeBrandId(req.params.purposeId),
+          unsafeBrandId(req.params.versionId),
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeVersionErrorMapper,
+          ctx,
+          `Error deleting purpose ${req.params.purposeId} version ${req.params.versionId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return purposeRouter;
