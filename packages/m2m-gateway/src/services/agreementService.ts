@@ -250,7 +250,7 @@ export function agreementServiceBuilder(
       return toM2MGatewayApiAgreement(polledResource.data);
     },
 
-    async addAgreementConsumerDocument(
+    async uploadAgreementConsumerDocument(
       agreementId: AgreementId,
       fileUpload: m2mGatewayApi.FileUploadMultipart,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -292,7 +292,7 @@ export function agreementServiceBuilder(
 
       return toM2MGatewayApiDocument(document);
     },
-    async getAgreementConsumerDocument(
+    async downloadAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>

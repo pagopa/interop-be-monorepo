@@ -38,7 +38,7 @@ describe("GET /eservices/:eserviceId/descriptors/:descriptorId/interface router 
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.getEServiceDescriptorInterface = vi
+      mockEserviceService.downloadEServiceDescriptorInterface = vi
         .fn()
         .mockResolvedValue(mockDownloadedDoc);
 
@@ -76,7 +76,7 @@ describe("GET /eservices/:eserviceId/descriptors/:descriptorId/interface router 
     eserviceDescriptorNotFound(generateId(), generateId()),
     eserviceDescriptorInterfaceNotFound(generateId(), generateId()),
   ])("Should return 404 in case of $code error", async (error) => {
-    mockEserviceService.getEServiceDescriptorInterface = vi
+    mockEserviceService.downloadEServiceDescriptorInterface = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

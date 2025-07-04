@@ -34,7 +34,7 @@ describe("GET /agreements/:agreementId/consumerDocuments/:documentId router test
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockAgreementService.getAgreementConsumerDocument = vi
+      mockAgreementService.downloadAgreementConsumerDocument = vi
         .fn()
         .mockResolvedValue(mockDownloadedDoc);
 

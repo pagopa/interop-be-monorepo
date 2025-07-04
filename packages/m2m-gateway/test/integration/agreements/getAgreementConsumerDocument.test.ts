@@ -64,7 +64,7 @@ describe("getAgreementConsumerDocument", () => {
       ).at(0)
     ).toEqual(mockDocument.path);
 
-    const result = await agreementService.getAgreementConsumerDocument(
+    const result = await agreementService.downloadAgreementConsumerDocument(
       mockAgreementId,
       unsafeBrandId(mockDocument.id),
       getMockM2MAdminAppContext()

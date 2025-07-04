@@ -71,7 +71,7 @@ describe("addAgreementConsumerDocument", () => {
 
     vi.spyOn(fileManager, "storeBytes");
 
-    const result = await agreementService.addAgreementConsumerDocument(
+    const result = await agreementService.uploadAgreementConsumerDocument(
       unsafeBrandId(mockGetAgreementResponse.data.id),
       mockFileUpload,
       getMockM2MAdminAppContext()
@@ -130,7 +130,7 @@ describe("addAgreementConsumerDocument", () => {
     });
 
     await expect(
-      agreementService.addAgreementConsumerDocument(
+      agreementService.uploadAgreementConsumerDocument(
         unsafeBrandId(mockGetAgreementResponse.data.id),
         mockFileUpload,
         getMockM2MAdminAppContext()
@@ -145,7 +145,7 @@ describe("addAgreementConsumerDocument", () => {
     });
 
     await expect(
-      agreementService.addAgreementConsumerDocument(
+      agreementService.uploadAgreementConsumerDocument(
         unsafeBrandId(mockGetAgreementResponse.data.id),
         mockFileUpload,
         getMockM2MAdminAppContext()
@@ -162,7 +162,7 @@ describe("addAgreementConsumerDocument", () => {
     );
 
     await expect(
-      agreementService.addAgreementConsumerDocument(
+      agreementService.uploadAgreementConsumerDocument(
         unsafeBrandId(mockGetAgreementResponse.data.id),
         mockFileUpload,
         getMockM2MAdminAppContext()

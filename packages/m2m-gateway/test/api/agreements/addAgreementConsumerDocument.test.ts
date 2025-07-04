@@ -58,7 +58,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
     "Should return 201 and perform service calls for user with role %s",
     async (role) => {
       const agreementId = generateId();
-      mockAgreementService.addAgreementConsumerDocument = vi
+      mockAgreementService.uploadAgreementConsumerDocument = vi
         .fn()
         .mockResolvedValue(mockM2MAgreementDocumentResponse);
 
@@ -68,7 +68,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
       expect(res.status).toBe(201);
       expect(res.body).toEqual(mockM2MAgreementDocumentResponse);
       expect(
-        mockAgreementService.addAgreementConsumerDocument
+        mockAgreementService.uploadAgreementConsumerDocument
       ).toHaveBeenCalledWith(
         agreementId,
         {
@@ -95,7 +95,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
   });
 
   it("Should return 400 for incorrect value for agreement id", async () => {
-    mockAgreementService.addAgreementConsumerDocument = vi
+    mockAgreementService.uploadAgreementConsumerDocument = vi
       .fn()
       .mockResolvedValue(mockM2MAgreementDocumentResponse);
 
@@ -125,7 +125,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
   it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
     "Should return 500 in case of $code error",
     async (error) => {
-      mockAgreementService.addAgreementConsumerDocument = vi
+      mockAgreementService.uploadAgreementConsumerDocument = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -148,7 +148,7 @@ describe("POST /agreements/:agreementId/consumerDocuments router test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockAgreementService.addAgreementConsumerDocument = vi
+      mockAgreementService.uploadAgreementConsumerDocument = vi
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

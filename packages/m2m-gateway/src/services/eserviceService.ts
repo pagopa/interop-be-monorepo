@@ -146,7 +146,7 @@ export function eserviceServiceBuilder(
         results: paginatedDescriptors.map(toM2MGatewayApiEServiceDescriptor),
       };
     },
-    async getEServiceDescriptorInterface(
+    async downloadEServiceDescriptorInterface(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>

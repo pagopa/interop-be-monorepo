@@ -76,7 +76,7 @@ describe("getEserviceDescriptor", () => {
       ).at(0)
     ).toEqual(mockInterface.path);
 
-    const result = await eserviceService.getEServiceDescriptorInterface(
+    const result = await eserviceService.downloadEServiceDescriptorInterface(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
       unsafeBrandId(mockCatalogProcessResponseDescriptor.id),
       getMockM2MAdminAppContext()
@@ -99,7 +99,7 @@ describe("getEserviceDescriptor", () => {
   it("Should throw eserviceDescriptorNotFound in case the returned eservice has no descriptor with the given id", async () => {
     const nonExistingDescriptorId = generateId<DescriptorId>();
     await expect(
-      eserviceService.getEServiceDescriptorInterface(
+      eserviceService.downloadEServiceDescriptorInterface(
         unsafeBrandId(mockCatalogProcessResponse.data.id),
         nonExistingDescriptorId,
         getMockM2MAdminAppContext()
@@ -126,7 +126,7 @@ describe("getEserviceDescriptor", () => {
       },
     });
     await expect(
-      eserviceService.getEServiceDescriptorInterface(
+      eserviceService.downloadEServiceDescriptorInterface(
         unsafeBrandId(mockCatalogProcessResponse.data.id),
         unsafeBrandId(mockCatalogProcessResponseDescriptor.id),
         getMockM2MAdminAppContext()

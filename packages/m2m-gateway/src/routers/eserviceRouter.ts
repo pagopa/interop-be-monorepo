@@ -14,7 +14,7 @@ import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getEserviceDescriptorErrorMapper,
-  getEserviceDescriptorInterfaceErrorMapper,
+  downloadEServiceDescriptorInterfaceErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -129,17 +129,18 @@ const eserviceRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-          const file = await eserviceService.getEServiceDescriptorInterface(
-            unsafeBrandId(req.params.eserviceId),
-            unsafeBrandId(req.params.descriptorId),
-            ctx
-          );
+          const file =
+            await eserviceService.downloadEServiceDescriptorInterface(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
 
           return sendDownloadedDocumentAsFormData(file, res);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEserviceDescriptorInterfaceErrorMapper,
+            downloadEServiceDescriptorInterfaceErrorMapper,
             ctx,
             `Error retrieving interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );

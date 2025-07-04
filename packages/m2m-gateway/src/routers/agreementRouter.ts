@@ -210,7 +210,7 @@ const agreementRouter = (
 
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-        const document = await agreementService.addAgreementConsumerDocument(
+        const document = await agreementService.uploadAgreementConsumerDocument(
           unsafeBrandId(req.params.agreementId),
           req.body,
           ctx
@@ -233,7 +233,7 @@ const agreementRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-          const file = await agreementService.getAgreementConsumerDocument(
+          const file = await agreementService.downloadAgreementConsumerDocument(
             unsafeBrandId(req.params.agreementId),
             unsafeBrandId(req.params.documentId),
             ctx
