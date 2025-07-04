@@ -85,6 +85,7 @@ On multiple lines.`;
     );
 
     const expectedServiceResponse = {
+      id: mockRiskAnalysisId,
       file: new File([Buffer.from(testFileContent)], `riskAnalysis.txt`, {
         type: mockPurposeVersionDocument.contentType,
       }),
