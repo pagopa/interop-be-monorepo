@@ -66,18 +66,21 @@ describe("PATCH /purposes/:purposeId router test", () => {
 
   it.each([
     { invalidParam: "invalidValue" },
-    { ...mockPurposeUpdateSeed, extraParam: -1 },
-    { ...mockPurposeUpdateSeed, description: "short" },
-  ])("Should return 400 if passed invalid delegation seed", async (body) => {
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      mockPurpose.id,
-      body as m2mGatewayApi.PurposeUpdateSeed
-    );
+    { ...mockPurposeUpdateContent, extraParam: -1 },
+    { ...mockPurposeUpdateContent, description: "short" },
+  ])(
+    "Should return 400 if passed invalid purpose update seed",
+    async (body) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockPurpose.id,
+        body as m2mGatewayApi.PurposeUpdateSeed
+      );
 
-    expect(res.status).toBe(400);
-  });
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
     "Should return 500 in case of $code error",

@@ -5938,7 +5938,7 @@ components:
     PurposeUpdateSeed:
       type: object
       additionalProperties: false
-      description: contains the expected payload for purpose update.
+      description: contains the expected payload for purpose update
       properties:
         title:
           type: string
@@ -5955,7 +5955,7 @@ components:
         riskAnalysisForm:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
         dailyCalls:
-          description: "maximum number of daily calls that this version can perform."
+          description: maximum number of daily calls that this version can perform
           type: integer
           format: int32
           minimum: 0
