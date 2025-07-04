@@ -372,7 +372,7 @@ export function purposeServiceBuilder(
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
     },
-    async getPurposeVersionDocument(
+    async downloadPurposeVersionDocument(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>

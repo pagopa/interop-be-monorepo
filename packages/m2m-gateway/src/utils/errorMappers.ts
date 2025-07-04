@@ -106,7 +106,7 @@ export const unsuspendPurposeErrorMapper = (
     .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getPurposeVersionDocumentErrorMapper = (
+export const downloadPurposeVersionDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

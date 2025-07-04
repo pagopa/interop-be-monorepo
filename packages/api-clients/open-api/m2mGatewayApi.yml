@@ -4309,9 +4309,9 @@ paths:
     get:
       tags:
         - purposes
-      summary: Retrieve a Purpose Document
-      description: Retrieve a specific Document for the specified Purpose version
-      operationId: getPurposeVersionDocument
+      summary: Download a Purpose Document
+      description: Download a specific Document for the specified Purpose version
+      operationId: downloadPurposeVersionDocument
       responses:
         "200":
           description: Purpose version document retrieved, a multipart containing the file and its metadata

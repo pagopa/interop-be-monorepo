@@ -19,7 +19,7 @@ import {
   approvePurposeErrorMapper,
   activatePurposeErrorMapper,
   unsuspendPurposeErrorMapper,
-  getPurposeVersionDocumentErrorMapper,
+  downloadPurposeVersionDocumentErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -275,7 +275,7 @@ const purposeRouter = (
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-          const document = await purposeService.getPurposeVersionDocument(
+          const document = await purposeService.downloadPurposeVersionDocument(
             unsafeBrandId(req.params.purposeId),
             unsafeBrandId(req.params.versionId),
             ctx
@@ -285,7 +285,7 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getPurposeVersionDocumentErrorMapper,
+            downloadPurposeVersionDocumentErrorMapper,
             ctx,
             `Error retrieving document for purpose ${req.params.purposeId} version ${req.params.versionId}`
           );
