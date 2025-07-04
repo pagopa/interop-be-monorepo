@@ -1914,7 +1914,7 @@ components:
             type: string
             format: uuid
           default: []
-          ununiqueItems: true
+          uniqueItems: true
         description:
           type: string
         users:
