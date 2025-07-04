@@ -9,6 +9,7 @@ import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
 
 describe("GET /purposes/:purposeId/versions router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -38,7 +39,7 @@ describe("GET /purposes/:purposeId/versions router test", () => {
 
   const mockM2MPurposesResponse: m2mGatewayApi.PurposeVersions = {
     pagination: { offset: 0, limit: 10, totalCount: 1 },
-    results: [mockApiPurposeVersion2],
+    results: [toM2mGatewayApiPurposeVersion(mockApiPurposeVersion2)],
   };
 
   const mockParams: m2mGatewayApi.GetPurposeVersionsQueryParams = {
