@@ -72,7 +72,7 @@ describe("PATCH /purposes/:purposeId router test", () => {
     { invalidParam: "invalidValue" },
     { ...mockPurposeUpdateContent, extraParam: -1 },
     { ...mockPurposeUpdateContent, description: "short" },
-  ])("Should return 400 if passed invalid delegation seed", async (body) => {
+  ])("Should return 400 if passed invalid purpose update seed", async (body) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
