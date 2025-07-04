@@ -164,7 +164,7 @@ export function eserviceServiceBuilder(
         throw eserviceDescriptorInterfaceNotFound(eserviceId, descriptorId);
       }
 
-      const { path, contentType, prettyName } = descriptor.interface;
+      const { path, contentType, name } = descriptor.interface;
 
       const stream = await fileManager.get(
         config.eserviceDocumentsContainer,
@@ -172,7 +172,7 @@ export function eserviceServiceBuilder(
         logger
       );
 
-      return { file: Buffer.from(stream), contentType, filename: prettyName };
+      return { file: Buffer.from(stream), contentType, filename: name };
     },
   };
 }

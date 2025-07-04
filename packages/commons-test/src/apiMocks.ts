@@ -300,3 +300,14 @@ export function getMockedApiCertifiedTenantAttribute({
     revocationTimestamp: revoked ? new Date().toISOString() : undefined,
   };
 }
+
+export function getMockedApiAgreementDocument(): agreementApi.Document {
+  return {
+    id: generateId(),
+    prettyName: generateMock(z.string()),
+    name: `${generateMock(z.string())}.pdf`,
+    contentType: "application/pdf",
+    createdAt: new Date().toISOString(),
+    path: `/${generateMock(z.string())}/${generateMock(z.string())}.pdf`,
+  };
+}

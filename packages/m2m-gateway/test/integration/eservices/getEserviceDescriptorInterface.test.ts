@@ -88,7 +88,7 @@ On multiple lines.`;
     expect(result).toEqual({
       file: Buffer.from(testFileContent),
       contentType: mockInterface.contentType,
-      filename: mockInterface.prettyName,
+      filename: mockInterface.name,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
