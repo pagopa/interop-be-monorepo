@@ -1,6 +1,7 @@
 import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
 import { WithLogger } from "pagopa-interop-commons";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { clientAdminIdNotFound } from "../model/errors.js";
@@ -41,16 +42,28 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<UserId> {
       logger.info(`Retrieving client with id ${clientId} to get its adminId`);
 
-      const client = await clients.authorizationClient.client.getClient({
-        params: { clientId },
-        headers,
-      });
+      const { data: client } =
+        await clients.authorizationClient.client.getClient({
+          params: { clientId },
+          headers,
+        });
 
-      if (client.data.adminId === undefined) {
-        throw clientAdminIdNotFound(client.data);
+      const adminId = match(client)
+        .with(
+          { visibility: authorizationApi.ClientVisibility.Enum.FULL },
+          (c) => c.adminId
+        )
+        .with(
+          { visibility: authorizationApi.ClientVisibility.Enum.COMPACT },
+          () => undefined
+        )
+        .exhaustive();
+
+      if (adminId === undefined) {
+        throw clientAdminIdNotFound(client);
       }
 
-      return unsafeBrandId<UserId>(client.data.adminId);
+      return unsafeBrandId<UserId>(adminId);
     },
     async getClient(
       clientId: ClientId,

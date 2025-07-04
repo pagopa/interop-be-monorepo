@@ -72,7 +72,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/FullClient"
         "401":
           description: Unauthorized
           content:
@@ -100,7 +100,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/FullClient"
         "401":
           description: Unauthorized
           content:
@@ -420,7 +420,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/FullClient"
         "400":
           description: Bad Request
           content:
@@ -451,7 +451,7 @@ paths:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - name: clientId
         in: path
-        description: ID of the client where to set the admin user
+        description: ID of the API client where to set the admin user
         required: true
         schema:
           type: string
@@ -459,7 +459,7 @@ paths:
     post:
       tags:
         - client
-      summary: Set Admin to a Client
+      summary: Set Admin to an API Client
       operationId: setAdminToClient
       description: Sets an admin user to a Client
       requestBody:
@@ -482,7 +482,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/FullClient"
         "400":
           description: Bad Request
           content:
@@ -883,7 +883,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Client"
+                $ref: "#/components/schemas/FullClient"
         "400":
           description: Bad Request
           content:
@@ -1836,26 +1836,82 @@ components:
       required:
         - name
         - members
+    ClientVisibility:
+      type: string
+      enum: [COMPACT, FULL]
     Client:
-      description: Models Client details
+      description: |
+        Models a client that can be either a full client or a compact client based on the caller
+        tenant. In case the caller tenant is the consumer of the client (i.e., the owner), the
+        full client is returned, otherwise a compact client is returned.
+      oneOf:
+        - $ref: "#/components/schemas/FullClient"
+        - $ref: "#/components/schemas/CompactClient"
+      discriminator:
+        propertyName: visibility
+        mapping:
+          COMPACT: "#/components/schemas/CompactClient"
+          FULL: "#/components/schemas/FullClient"
+    CompactClient:
       type: object
+      description: |
+        Models a client with a reduced set of fields: only the fields that are
+        visible to any caller tenant.
       additionalProperties: false
       properties:
+        visibility:
+          type: string
+          enum: [COMPACT]
+        id:
+          type: string
+          format: uuid
+        consumerId:
+          description: |
+            The consumerId is the identifier of the tenant that owns the client.
+            It is the tenant that created the client and has full access to it.
+          type: string
+          format: uuid
+        kind:
+          $ref: "#/components/schemas/ClientKind"
+      required:
+        - visibility
+        - id
+        - consumerId
+        - kind
+    FullClient:
+      type: object
+      description: |
+        Models a client that can be either a Consumer or an API client.
+        The owner of the client is the consumer tenant, identified by the consumerId.
+        The only fields that are visible to any caller tenant are the ones that are
+        present also in the CompactClient schema. The rest are visible only to the owner tenant.
+      additionalProperties: false
+      properties:
+        visibility:
+          type: string
+          enum: [FULL]
         id:
           type: string
           format: uuid
         name:
           type: string
         consumerId:
+          description: |
+            The consumerId is the identifier of the tenant that owns the client.
+            It is the tenant that created the client and has full access to it.
           type: string
           format: uuid
         adminId:
+          description: |
+            Id of the admin user associated with the client. Present only for API clients.
           type: string
           format: uuid
         createdAt:
           type: string
           format: date-time
         purposes:
+          description: |
+            Ids of the purposes associated with the client. Present only for Consumer clients.
           type: array
           items:
             type: string
@@ -1869,10 +1925,12 @@ components:
           items:
             type: string
             format: uuid
+          default: []
           uniqueItems: true
         kind:
           $ref: "#/components/schemas/ClientKind"
       required:
+        - visibility
         - id
         - name
         - consumerId
@@ -1880,6 +1938,7 @@ components:
         - users
         - kind
         - createdAt
+
     ClientKind:
       type: string
       description: kind of client

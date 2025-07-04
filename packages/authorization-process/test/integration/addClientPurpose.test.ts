@@ -124,11 +124,9 @@ describe("addClientPurpose", async () => {
       client: toClientV2(expectedClient),
     });
     expect(addClientPurposeResponse).toEqual({
-      client: {
-        data: expectedClient,
-        metadata: {
-          version: 1,
-        },
+      data: expectedClient,
+      metadata: {
+        version: 1,
       },
       showUsers: true,
     });
@@ -217,11 +215,9 @@ describe("addClientPurpose", async () => {
       client: toClientV2(expectedClient),
     });
     expect(addClientPurposeResponse).toEqual({
-      client: {
-        data: expectedClient,
-        metadata: {
-          version: 1,
-        },
+      data: expectedClient,
+      metadata: {
+        version: 1,
       },
       showUsers: true,
     });
@@ -310,11 +306,9 @@ describe("addClientPurpose", async () => {
     });
 
     expect(addClientPurposeResponse).toEqual({
-      client: {
-        data: expectedClient,
-        metadata: {
-          version: 1,
-        },
+      data: expectedClient,
+      metadata: {
+        version: 1,
       },
       showUsers: true,
     });
