@@ -1,23 +1,18 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
-import { decodeKafkaMessage, logger, Logger } from "pagopa-interop-commons";
+import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import {
-  AgreementEventEnvelopeV2,
   AgreementEventV2,
   CorrelationId,
-  EServiceEventEnvelopeV2,
   EServiceEventV2,
   generateId,
   genericInternalError,
-  missingKafkaMessageDataError,
-  Notification,
-  PurposeEventEnvelopeV2,
   PurposeEventV2,
   toNotificationSQL,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
+import { match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -31,9 +26,9 @@ import pg from "pg";
 import { config } from "./config/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { inAppNotificationServiceBuilderSQL } from "./services/inAppNotificationServiceSQL.js";
+import { handleEvent } from "./handlers/eventHandler.js";
 
 // Handlers
-import * as handlers from "./handlers/index.js";
 
 interface TopicNames {
   catalogTopic: string;
@@ -66,197 +61,20 @@ const notificationDB = drizzle(
 const inAppNotificationService =
   inAppNotificationServiceBuilderSQL(notificationDB);
 
-export async function handleCatalogMessage(
-  decodedMessage: EServiceEventEnvelopeV2,
-  logger: Logger
-): Promise<Notification[]> {
-  return await match(decodedMessage)
-    .with(
-      { type: "EServiceDescriptorPublished" },
-      async ({ data: { eservice } }) => {
-        if (eservice) {
-          return await handlers.handleNewEServiceVersionPublished(
-            eservice,
-            logger,
-            readModelService
-          );
-        } else {
-          throw missingKafkaMessageDataError("eservice", decodedMessage.type);
-        }
-      }
-    )
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorActivated",
-          "EServiceDescriptorApprovedByDelegator",
-          "EServiceDescriptorSuspended",
-          "EServiceDescriptorArchived",
-          "EServiceDescriptorQuotasUpdated",
-          "EServiceDescriptorAgreementApprovalPolicyUpdated",
-          "EServiceAdded",
-          "EServiceCloned",
-          "EServiceDeleted",
-          "DraftEServiceUpdated",
-          "EServiceDescriptorAdded",
-          "EServiceDraftDescriptorDeleted",
-          "EServiceDraftDescriptorUpdated",
-          "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorDocumentUpdated",
-          "EServiceDescriptorDocumentDeleted",
-          "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
-          "EServiceDescriptorInterfaceDeleted",
-          "EServiceRiskAnalysisAdded",
-          "EServiceRiskAnalysisUpdated",
-          "EServiceRiskAnalysisDeleted",
-          "EServiceDescriptorAttributesUpdated",
-          "EServiceDescriptionUpdated",
-          "EServiceNameUpdated",
-          "EServiceDescriptorSubmittedByDelegate",
-          "EServiceDescriptorRejectedByDelegator",
-          "EServiceIsConsumerDelegableEnabled",
-          "EServiceIsConsumerDelegableDisabled",
-          "EServiceIsClientAccessDelegableEnabled",
-          "EServiceIsClientAccessDelegableDisabled",
-          "EServiceIsClientAccessDelegableDisabled",
-          "EServiceNameUpdatedByTemplateUpdate",
-          "EServiceDescriptionUpdatedByTemplateUpdate",
-          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
-          "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
-          "EServiceDescriptorDocumentAddedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
-          "EServiceSignalHubEnabled",
-          "EServiceSignalHubDisabled"
-        ),
-      },
-      () => {
-        logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
-        );
-        return [];
-      }
-    )
-    .exhaustive();
-}
-
-export async function handlePurposeMessage(
-  decodedMessage: PurposeEventEnvelopeV2,
-  logger: Logger
-): Promise<Notification[]> {
-  return match(decodedMessage)
-    .with(
-      {
-        type: P.union(
-          "NewPurposeVersionWaitingForApproval",
-          "PurposeWaitingForApproval",
-          "PurposeVersionRejected",
-          "PurposeVersionActivated",
-          "DraftPurposeDeleted",
-          "WaitingForApprovalPurposeDeleted",
-          "PurposeAdded",
-          "DraftPurposeUpdated",
-          "PurposeActivated",
-          "PurposeArchived",
-          "PurposeVersionOverQuotaUnsuspended",
-          "PurposeVersionSuspendedByConsumer",
-          "PurposeVersionSuspendedByProducer",
-          "PurposeVersionUnsuspendedByConsumer",
-          "PurposeVersionUnsuspendedByProducer",
-          "WaitingForApprovalPurposeVersionDeleted",
-          "NewPurposeVersionActivated",
-          "PurposeCloned",
-          "PurposeDeletedByRevokedDelegation",
-          "PurposeVersionArchivedByRevokedDelegation"
-        ),
-      },
-      () => {
-        logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
-        );
-        return [];
-      }
-    )
-    .exhaustive();
-}
-
-export async function handleAgreementMessage(
-  decodedMessage: AgreementEventEnvelopeV2,
-  logger: Logger
-): Promise<Notification[]> {
-  return match(decodedMessage)
-    .with(
-      {
-        type: P.union(
-          "AgreementActivated",
-          "AgreementSubmitted",
-          "AgreementRejected",
-          "AgreementAdded",
-          "AgreementDeleted",
-          "DraftAgreementUpdated",
-          "AgreementUnsuspendedByProducer",
-          "AgreementUnsuspendedByConsumer",
-          "AgreementUnsuspendedByPlatform",
-          "AgreementArchivedByConsumer",
-          "AgreementArchivedByUpgrade",
-          "AgreementUpgraded",
-          "AgreementSuspendedByProducer",
-          "AgreementSuspendedByConsumer",
-          "AgreementSuspendedByPlatform",
-          "AgreementConsumerDocumentAdded",
-          "AgreementConsumerDocumentRemoved",
-          "AgreementSetDraftByPlatform",
-          "AgreementSetMissingCertifiedAttributesByPlatform",
-          "AgreementDeletedByRevokedDelegation",
-          "AgreementArchivedByRevokedDelegation"
-        ),
-      },
-      () => {
-        logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
-        );
-        return [];
-      }
-    )
-    .exhaustive();
-}
-
 function processMessage(topicNames: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     const { catalogTopic, agreementTopic, purposeTopic } = topicNames;
 
-    const { decodedMessage, handleMessage } = match(messagePayload.topic)
-      .with(catalogTopic, () => {
-        const decodedMessage = decodeKafkaMessage(
-          messagePayload.message,
-          EServiceEventV2
-        );
-
-        const handleMessage = handleCatalogMessage.bind(null, decodedMessage);
-
-        return { decodedMessage, handleMessage };
-      })
-      .with(agreementTopic, () => {
-        const decodedMessage = decodeKafkaMessage(
-          messagePayload.message,
-          AgreementEventV2
-        );
-
-        const handleMessage = handleAgreementMessage.bind(null, decodedMessage);
-
-        return { decodedMessage, handleMessage };
-      })
-      .with(purposeTopic, () => {
-        const decodedMessage = decodeKafkaMessage(
-          messagePayload.message,
-          PurposeEventV2
-        );
-
-        const handleMessage = handlePurposeMessage.bind(null, decodedMessage);
-
-        return { decodedMessage, handleMessage };
-      })
+    const decodedMessage = match(messagePayload.topic)
+      .with(catalogTopic, () =>
+        decodeKafkaMessage(messagePayload.message, EServiceEventV2)
+      )
+      .with(agreementTopic, () =>
+        decodeKafkaMessage(messagePayload.message, AgreementEventV2)
+      )
+      .with(purposeTopic, () =>
+        decodeKafkaMessage(messagePayload.message, PurposeEventV2)
+      )
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
@@ -271,11 +89,16 @@ function processMessage(topicNames: TopicNames) {
         ? unsafeBrandId<CorrelationId>(decodedMessage.correlation_id)
         : generateId<CorrelationId>(),
     });
+
     loggerInstance.info(
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
     );
 
-    const notifications = await handleMessage(loggerInstance);
+    const notifications = await handleEvent(
+      decodedMessage,
+      loggerInstance,
+      readModelService
+    );
     await inAppNotificationService.insertNotifications(
       notifications.map(toNotificationSQL)
     );
