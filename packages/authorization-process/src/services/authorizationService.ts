@@ -444,10 +444,6 @@ export function authorizationServiceBuilder(
 
       assertOrganizationIsClientConsumer(authData, client.data);
 
-      // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
-      //   throw purposeNotFound(purposeIdToRemove);
-      // }
-
       const updatedClient: Client = {
         ...client.data,
         purposes: client.data.purposes.filter(
