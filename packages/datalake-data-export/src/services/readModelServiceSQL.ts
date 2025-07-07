@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   agreementState,
+  delegationState,
   descriptorState,
+  eserviceTemplateVersionState,
   purposeVersionState,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
+  delegationContractDocumentInReadmodelDelegation,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
   DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -15,6 +20,9 @@ import {
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
+  eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
@@ -22,18 +30,24 @@ import {
 } from "pagopa-interop-readmodel-models";
 import {
   aggregateAgreementArray,
+  aggregateDelegationsArray,
   aggregateEserviceArray,
+  aggregateEServiceTemplateArray,
   aggregatePurposeArray,
   aggregateTenantArray,
   toAgreementAggregatorArray,
+  toDelegationAggregatorArray,
   toEServiceAggregatorArray,
+  toEServiceTemplateAggregatorArray,
   toPurposeAggregatorArray,
   toTenantAggregatorArray,
 } from "pagopa-interop-readmodel";
 import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
 import {
   ExportedAgreement,
+  ExportedDelegation,
   ExportedEService,
+  ExportedEServiceTemplate,
   ExportedPurpose,
   ExportedTenant,
 } from "../config/models/models.js";
@@ -209,6 +223,97 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
 
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult)).map(
         (purpose) => ExportedPurpose.parse(purpose.data)
+      );
+    },
+    async getDelegations(): Promise<ExportedDelegation[]> {
+      const queryResult = await readModelDB
+        .select({
+          delegation: delegationInReadmodelDelegation,
+          delegationStamp: delegationStampInReadmodelDelegation,
+          delegationContractDocument:
+            delegationContractDocumentInReadmodelDelegation,
+        })
+        .from(delegationInReadmodelDelegation)
+        .leftJoin(
+          delegationStampInReadmodelDelegation,
+          eq(
+            delegationInReadmodelDelegation.id,
+            delegationStampInReadmodelDelegation.delegationId
+          )
+        )
+        .where(
+          ne(
+            delegationInReadmodelDelegation.state,
+            delegationState.waitingForApproval
+          )
+        );
+
+      return aggregateDelegationsArray(
+        toDelegationAggregatorArray(queryResult)
+      ).map((delegation) => ExportedDelegation.parse(delegation.data));
+    },
+    async getEServiceTemplates(): Promise<ExportedEServiceTemplate[]> {
+      const subquery = readModelDB
+        .select({
+          id: eserviceTemplateInReadmodelEserviceTemplate.id,
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .innerJoin(
+          eserviceTemplateInReadmodelEserviceTemplate,
+          and(
+            eq(
+              eserviceTemplateInReadmodelEserviceTemplate.id,
+              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+            ),
+            ne(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+              eserviceTemplateVersionState.draft
+            )
+          )
+        )
+        .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
+        .as("subquery");
+
+      const queryResult = await readModelDB
+        .select({
+          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
+          eserviceTemplateVersion:
+            eserviceTemplateVersionInReadmodelEserviceTemplate,
+          eserviceTemplateVersionDocument:
+            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+        })
+        .from(eserviceTemplateInReadmodelEserviceTemplate)
+        .innerJoin(
+          subquery,
+          eq(eserviceTemplateInReadmodelEserviceTemplate.id, subquery.id)
+        )
+        .innerJoin(
+          eserviceTemplateVersionInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
+          )
+        )
+        .where(
+          and(
+            ne(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+              eserviceTemplateVersionState.draft
+            )
+          )
+        );
+
+      return aggregateEServiceTemplateArray(
+        toEServiceTemplateAggregatorArray(queryResult)
+      ).map((eserviceTemplate) =>
+        ExportedEServiceTemplate.parse(eserviceTemplate.data)
       );
     },
   };
