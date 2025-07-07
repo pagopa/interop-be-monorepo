@@ -8,7 +8,7 @@ import {
   TenantId,
   TenantNotificationConfig,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   addOneTenantNotificationConfig,
   notificationConfigService,
@@ -22,8 +22,13 @@ describe("getTenantNotificationConfig", () => {
     tenantId,
   };
 
-  it("should get the tenant's notification config", async () => {
+  beforeAll(async () => {
     await addOneTenantNotificationConfig(tenantNotificationConfig);
+    // Extra config to check that the correct one is returned
+    await addOneTenantNotificationConfig(getMockTenantNotificationConfig());
+  });
+
+  it("should get the tenant's notification config", async () => {
     const result = await notificationConfigService.getTenantNotificationConfig(
       getMockContext({
         authData: getMockAuthData(tenantId),
