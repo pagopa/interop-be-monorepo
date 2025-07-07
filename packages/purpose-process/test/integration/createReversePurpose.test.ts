@@ -405,10 +405,16 @@ describe("createReversePurpose", () => {
       },
     };
 
+    expect(createReversePurposeResponse).toEqual({
+      data: {
+        purpose: expectedPurpose,
+        isRiskAnalysisValid,
+      },
+      metadata: { version: 0 },
+    });
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
