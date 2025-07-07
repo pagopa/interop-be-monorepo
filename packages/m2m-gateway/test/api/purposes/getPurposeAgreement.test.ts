@@ -7,7 +7,7 @@ import { generateId, PurposeId } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  agreementPurposeNotFound,
+  purposeAgreementNotFound,
   unexpectedMultipleActiveAgreementsForPurpose,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
@@ -65,10 +65,10 @@ describe("GET /purposes/:purposeId/agreement router test", () => {
     expect(res.status).toBe(403);
   });
 
-  it("Should return 404 in case of agreementPurposeNotFound error", async () => {
+  it("Should return 404 in case of purposeAgreementNotFound error", async () => {
     mockPurposeService.getPurposeAgreement = vi
       .fn()
-      .mockRejectedValue(agreementPurposeNotFound(mockPurposeId));
+      .mockRejectedValue(purposeAgreementNotFound(mockPurposeId));
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token, mockPurposeId);
     expect(res.status).toBe(404);

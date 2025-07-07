@@ -19,7 +19,7 @@ import {
   isPolledVersionAtLeastMetadataTargetVersion,
 } from "../utils/polling.js";
 import {
-  agreementPurposeNotFound,
+  purposeAgreementNotFound,
   purposeVersionNotFound,
   unexpectedMultipleActiveAgreementsForPurpose,
 } from "../model/errors.js";
@@ -424,7 +424,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       const agreement = agreements.results.at(0);
 
       if (!agreement) {
-        throw agreementPurposeNotFound(purposeId);
+        throw purposeAgreementNotFound(purposeId);
       }
 
       if (agreements.totalCount > 1) {

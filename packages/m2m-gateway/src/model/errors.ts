@@ -32,7 +32,7 @@ export const errorCodes = {
   eserviceTemplateVersionNotFound: "0017",
   tenantCertifiedAttributeNotFound: "0018",
   eserviceDescriptorInterfaceNotFound: "0019",
-  agreementPurposeNotFound: "0020",
+  purposeAgreementNotFound: "0020",
   unexpectedMultipleActiveAgreementsForPurpose: "0021",
 };
 
@@ -205,12 +205,12 @@ export function eserviceDescriptorInterfaceNotFound(
   });
 }
 
-export function agreementPurposeNotFound(
+export function purposeAgreementNotFound(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `No active agreement found for purpose ${purposeId}`,
-    code: "agreementPurposeNotFound",
+    code: "purposeAgreementNotFound",
     title: "Agreement for purpose not found",
   });
 }

@@ -13,7 +13,7 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
-  agreementPurposeNotFound,
+  purposeAgreementNotFound,
   unexpectedMultipleActiveAgreementsForPurpose,
 } from "../../../src/model/errors.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -92,7 +92,7 @@ describe("getPurposeAgreement", () => {
     });
   });
 
-  it("Should throw agreementPurposeNotFound if no agreement is found", async () => {
+  it("Should throw purposeAgreementNotFound if no agreement is found", async () => {
     mockInteropBeClients.agreementProcessClient.getAgreements = vi
       .fn()
       .mockResolvedValue({
@@ -104,7 +104,7 @@ describe("getPurposeAgreement", () => {
         mockPurposeId,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toEqual(agreementPurposeNotFound(mockPurposeId));
+    ).rejects.toEqual(purposeAgreementNotFound(mockPurposeId));
   });
 
   it("Should throw unexpectedMultipleActiveAgreementsForPurpose if more than one agreement is found", async () => {

@@ -110,5 +110,5 @@ export const getPurposeAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementPurposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("purposeAgreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
