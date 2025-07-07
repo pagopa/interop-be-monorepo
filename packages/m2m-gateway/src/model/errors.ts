@@ -33,7 +33,6 @@ export const errorCodes = {
   tenantCertifiedAttributeNotFound: "0018",
   eserviceDescriptorInterfaceNotFound: "0019",
   purposeAgreementNotFound: "0020",
-  unexpectedMultipleActiveAgreementsForPurpose: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -212,15 +211,5 @@ export function purposeAgreementNotFound(
     detail: `No active agreement found for purpose ${purposeId}`,
     code: "purposeAgreementNotFound",
     title: "Agreement for purpose not found",
-  });
-}
-
-export function unexpectedMultipleActiveAgreementsForPurpose(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Unexpected multiple active agreements found for purpose ${purposeId}`,
-    code: "unexpectedMultipleActiveAgreementsForPurpose",
-    title: "Unexpected multiple active agreements for purpose",
   });
 }

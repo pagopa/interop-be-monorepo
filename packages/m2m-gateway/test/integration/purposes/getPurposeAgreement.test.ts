@@ -12,20 +12,13 @@ import {
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import {
-  purposeAgreementNotFound,
-  unexpectedMultipleActiveAgreementsForPurpose,
-} from "../../../src/model/errors.js";
+import { purposeAgreementNotFound } from "../../../src/model/errors.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
 describe("getPurposeAgreement", () => {
   const mockPurposeId: PurposeId = generateId();
   const mockPurpose = getMockWithMetadata(getMockedApiPurpose());
   const mockApiAgreement = getMockedApiAgreement({
-    eserviceId: mockPurpose.data.eserviceId,
-    consumerId: mockPurpose.data.consumerId,
-  });
-  const mockApiAgreement2 = getMockedApiAgreement({
     eserviceId: mockPurpose.data.eserviceId,
     consumerId: mockPurpose.data.consumerId,
   });
@@ -105,25 +98,5 @@ describe("getPurposeAgreement", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toEqual(purposeAgreementNotFound(mockPurposeId));
-  });
-
-  it("Should throw unexpectedMultipleActiveAgreementsForPurpose if more than one agreement is found", async () => {
-    mockInteropBeClients.agreementProcessClient.getAgreements = vi
-      .fn()
-      .mockResolvedValue({
-        data: {
-          results: [mockApiAgreement, mockApiAgreement2],
-          totalCount: 2,
-        },
-      });
-
-    await expect(
-      purposeService.getPurposeAgreement(
-        mockPurposeId,
-        getMockM2MAdminAppContext()
-      )
-    ).rejects.toEqual(
-      unexpectedMultipleActiveAgreementsForPurpose(mockPurposeId)
-    );
   });
 });

@@ -21,7 +21,6 @@ import {
 import {
   purposeAgreementNotFound,
   purposeVersionNotFound,
-  unexpectedMultipleActiveAgreementsForPurpose,
 } from "../model/errors.js";
 import {
   assertPurposeCurrentVersionExists,
@@ -425,10 +424,6 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       if (!agreement) {
         throw purposeAgreementNotFound(purposeId);
-      }
-
-      if (agreements.totalCount > 1) {
-        throw unexpectedMultipleActiveAgreementsForPurpose(purposeId);
       }
 
       return toM2MGatewayApiAgreement(agreement);
