@@ -156,4 +156,5 @@ export const ExportedEServiceTemplate = EServiceTemplate.pick({
 } satisfies StrictPick<EServiceTemplate>).and(
   z.object({ versions: z.array(ExportedEServiceTemplateVersion) })
 );
+
 export type ExportedEServiceTemplate = z.infer<typeof ExportedEServiceTemplate>;
