@@ -4,11 +4,12 @@ import {
   RefreshableInteropToken,
   getInteropHeaders,
   logger,
+  cleanupResources,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
   attributeReadModelServiceBuilder,
-  makeDrizzleConnection,
+  makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { config } from "./config/config.js";
@@ -33,86 +34,90 @@ const loggerInstance = logger({
 
 loggerInstance.info("Starting ipa-certified-attributes-importer");
 
-try {
-  const readModelDB = makeDrizzleConnection(config);
-  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-  const attributeReadModelServiceSQL =
-    attributeReadModelServiceBuilder(readModelDB);
+const { connection: readModelDB, cleanup: drizzleCleanup } =
+  makeDrizzleConnectionWithCleanup(config);
 
-  const oldReadModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-  const readModelServiceSQL = readModelServiceBuilderSQL({
-    readModelDB,
-    attributeReadModelServiceSQL,
-    tenantReadModelServiceSQL,
-  });
-  const readModelService =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelServiceSQL
-      : oldReadModelService;
+async function main(): Promise<void> {
+  try {
+    const tenantReadModelServiceSQL =
+      tenantReadModelServiceBuilder(readModelDB);
+    const attributeReadModelServiceSQL =
+      attributeReadModelServiceBuilder(readModelDB);
 
-  const tokenGenerator = new InteropTokenGenerator(config);
-  const refreshableToken = new RefreshableInteropToken(tokenGenerator);
-  await refreshableToken.init();
+    const oldReadModelService = readModelServiceBuilder(
+      ReadModelRepository.init(config)
+    );
+    const readModelServiceSQL = readModelServiceBuilderSQL({
+      readModelDB,
+      attributeReadModelServiceSQL,
+      tenantReadModelServiceSQL,
+    });
+    const readModelService =
+      config.featureFlagSQL &&
+      config.readModelSQLDbHost &&
+      config.readModelSQLDbPort
+        ? readModelServiceSQL
+        : oldReadModelService;
 
-  loggerInstance.info("Getting registry data");
+    const tokenGenerator = new InteropTokenGenerator(config);
+    const refreshableToken = new RefreshableInteropToken(tokenGenerator);
+    await refreshableToken.init();
 
-  const registryData = await getRegistryData();
+    loggerInstance.info("Getting registry data");
 
-  loggerInstance.info("Getting Platform data");
+    const registryData = await getRegistryData();
 
-  const attributes = await readModelService.getAttributes();
-  const tenants = await readModelService.getIPATenants();
+    loggerInstance.info("Getting Platform data");
 
-  const tenantUpsertData = getTenantUpsertData(registryData, tenants);
+    const attributes = await readModelService.getAttributes();
+    const tenants = await readModelService.getIPATenants();
 
-  loggerInstance.info("Creating new attributes");
+    const tenantUpsertData = getTenantUpsertData(registryData, tenants);
 
-  const newAttributes = getNewAttributes(
-    registryData,
-    tenantUpsertData,
-    attributes
-  );
+    loggerInstance.info("Creating new attributes");
 
-  const token = (await refreshableToken.get()).serialized;
-  const headers = getInteropHeaders({ token, correlationId });
-  await createNewAttributes(
-    newAttributes,
-    readModelService,
-    headers,
-    loggerInstance
-  );
+    const newAttributes = getNewAttributes(
+      registryData,
+      tenantUpsertData,
+      attributes
+    );
 
-  loggerInstance.info("Assigning new attributes");
+    const token = (await refreshableToken.get()).serialized;
+    const headers = getInteropHeaders({ token, correlationId });
+    await createNewAttributes(
+      newAttributes,
+      readModelService,
+      headers,
+      loggerInstance
+    );
 
-  const attributesToAssign = await getAttributesToAssign(
-    tenants,
-    attributes,
-    tenantUpsertData,
-    loggerInstance
-  );
+    loggerInstance.info("Assigning new attributes");
 
-  await assignNewAttributes(attributesToAssign, headers, loggerInstance);
+    const attributesToAssign = await getAttributesToAssign(
+      tenants,
+      attributes,
+      tenantUpsertData,
+      loggerInstance
+    );
 
-  loggerInstance.info("Revoking attributes");
+    await assignNewAttributes(attributesToAssign, headers, loggerInstance);
 
-  const attributesToRevoke = await getAttributesToRevoke(
-    tenantUpsertData,
-    tenants,
-    attributes
-  );
+    loggerInstance.info("Revoking attributes");
 
-  await revokeAttributes(attributesToRevoke, headers, loggerInstance);
+    const attributesToRevoke = await getAttributesToRevoke(
+      tenantUpsertData,
+      tenants,
+      attributes
+    );
 
-  loggerInstance.info("IPA certified attributes import completed");
-} catch (error) {
-  loggerInstance.error(error);
+    await revokeAttributes(attributesToRevoke, headers, loggerInstance);
+
+    loggerInstance.info("IPA certified attributes import completed");
+  } catch (error) {
+    loggerInstance.error(error);
+  } finally {
+    await cleanupResources(loggerInstance, drizzleCleanup);
+  }
 }
 
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
+await main();

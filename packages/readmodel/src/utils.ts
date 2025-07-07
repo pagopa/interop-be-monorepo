@@ -25,6 +25,44 @@ export const makeDrizzleConnection = (
   return drizzle({ client: pool });
 };
 
+// Store pools for cleanup
+const drizzlePools: pg.Pool[] = [];
+export const makeDrizzleConnectionWithCleanup = (
+  readModelSQLDbConfig: ReadModelSQLDbConfig
+): { connection: DrizzleReturnType; cleanup: () => Promise<void> } => {
+  const pool = new pg.Pool({
+    host: readModelSQLDbConfig.readModelSQLDbHost,
+    port: readModelSQLDbConfig.readModelSQLDbPort,
+    database: readModelSQLDbConfig.readModelSQLDbName,
+    user: readModelSQLDbConfig.readModelSQLDbUsername,
+    password: readModelSQLDbConfig.readModelSQLDbPassword,
+    ssl: readModelSQLDbConfig.readModelSQLDbUseSSL
+      ? { rejectUnauthorized: false }
+      : undefined,
+  });
+
+  // eslint-disable-next-line functional/immutable-data
+  drizzlePools.push(pool);
+
+  return {
+    connection: drizzle({ client: pool }),
+    cleanup: async (): Promise<void> => {
+      await pool.end();
+      const index = drizzlePools.indexOf(pool);
+      if (index > -1) {
+        // eslint-disable-next-line functional/immutable-data
+        drizzlePools.splice(index, 1);
+      }
+    },
+  };
+};
+
+export const cleanupAllDrizzleConnections = async (): Promise<void> => {
+  await Promise.all(drizzlePools.map((pool) => pool.end()));
+  // eslint-disable-next-line functional/immutable-data
+  drizzlePools.length = 0;
+};
+
 export const makeUniqueKey = (ids: string[]): string => ids.join("#");
 
 /**

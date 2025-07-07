@@ -1,5 +1,9 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { logger, ReadModelRepository } from "pagopa-interop-commons";
+import {
+  logger,
+  ReadModelRepository,
+  cleanupResources,
+} from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { addProducerIdToTokenGenReadModel } from "./utils/utils.js";
 import { config } from "./configs/config.js";
@@ -12,30 +16,34 @@ const loggerInstance = logger({
 });
 
 async function main(): Promise<void> {
-  loggerInstance.info(
-    "Script to populate producerId in the token generation read model started."
-  );
-
-  loggerInstance.info("> Connecting to database...");
-  const readModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-  loggerInstance.info("> Connected to database!\n");
-
-  const { platformStatesUpdateCount, tokenGenStatesUpdateCount } =
-    await addProducerIdToTokenGenReadModel(
-      dynamoDBClient,
-      readModelService,
-      loggerInstance
+  try {
+    loggerInstance.info(
+      "Script to populate producerId in the token generation read model started."
     );
 
-  loggerInstance.info(
-    `Script to populate producerId in the token generation read model ended.
-Platform-states: updated ${platformStatesUpdateCount} records.
-Token-generation-states: updated ${tokenGenStatesUpdateCount} records.`
-  );
+    loggerInstance.info("> Connecting to database...");
+    const readModelService = readModelServiceBuilder(
+      ReadModelRepository.init(config)
+    );
+    loggerInstance.info("> Connected to database!\n");
+
+    const { platformStatesUpdateCount, tokenGenStatesUpdateCount } =
+      await addProducerIdToTokenGenReadModel(
+        dynamoDBClient,
+        readModelService,
+        loggerInstance
+      );
+
+    loggerInstance.info(
+      `Script to populate producerId in the token generation read model ended.
+  Platform-states: updated ${platformStatesUpdateCount} records.
+  Token-generation-states: updated ${tokenGenStatesUpdateCount} records.`
+    );
+  } catch (error) {
+    loggerInstance.error(error);
+  } finally {
+    await cleanupResources(loggerInstance);
+  }
 }
 
 await main();
-
-process.exit(0);

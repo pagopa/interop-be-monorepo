@@ -3,9 +3,10 @@ import {
   initSesMailManager,
   logger,
   withExecutionTime,
+  cleanupResources,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
 import { config } from "./configs/config.js";
 import { toCSV, toCsvDataRow } from "./utils/helpersUtils.js";
 import { CSV_FILENAME, MAIL_BODY, MAIL_SUBJECT } from "./configs/constants.js";
@@ -16,64 +17,65 @@ const loggerInstance = logger({
   serviceName: "pn-consumers",
   correlationId: generateId<CorrelationId>(),
 });
+loggerInstance.info("Program started.\n");
+
+loggerInstance.info("> Connecting to database...");
+
+const { connection: readModelDB, cleanup: drizzleCleanup } =
+  makeDrizzleConnectionWithCleanup(config);
 
 async function main(): Promise<void> {
-  loggerInstance.info("Program started.\n");
+  try {
+    const oldReadModelService = readModelServiceBuilder(
+      ReadModelRepository.init(config)
+    );
+    const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+    const readModelService =
+      config.featureFlagSQL &&
+      config.readModelSQLDbHost &&
+      config.readModelSQLDbPort
+        ? readModelServiceSQL
+        : oldReadModelService;
 
-  loggerInstance.info("> Connecting to database...");
+    loggerInstance.info("> Connected to database!\n");
 
-  const readModelDB = makeDrizzleConnection(config);
+    loggerInstance.info("> Getting data...");
 
-  const oldReadModelService = readModelServiceBuilder(
-    ReadModelRepository.init(config)
-  );
-  const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-  const readModelService =
-    config.featureFlagSQL &&
-    config.readModelSQLDbHost &&
-    config.readModelSQLDbPort
-      ? readModelServiceSQL
-      : oldReadModelService;
+    const purposes = await readModelService.getSENDPurposes(
+      config.pnEserviceId,
+      config.comuniELoroConsorziEAssociazioniAttributeId
+    );
 
-  loggerInstance.info("> Connected to database!\n");
+    if (purposes.length === 0) {
+      loggerInstance.info("> No purposes data found.");
+      return;
+    }
 
-  loggerInstance.info("> Getting data...");
+    const csv = toCSV(purposes.map((p) => toCsvDataRow(p, loggerInstance)));
 
-  const purposes = await readModelService.getSENDPurposes(
-    config.pnEserviceId,
-    config.comuniELoroConsorziEAssociazioniAttributeId
-  );
+    loggerInstance.info("> Data csv produced!\n");
 
-  if (purposes.length === 0) {
-    loggerInstance.info("> No purposes data found.");
-    return;
+    loggerInstance.info("> Sending emails...");
+
+    const mailer = initSesMailManager(config);
+
+    await mailer.send({
+      from: {
+        name: config.reportSenderLabel,
+        address: config.reportSenderMail,
+      },
+      to: config.mailRecipients,
+      subject: MAIL_SUBJECT,
+      html: MAIL_BODY,
+      attachments: [{ filename: CSV_FILENAME, content: csv }],
+    });
+
+    loggerInstance.info("> Success!\n");
+  } catch (error) {
+    loggerInstance.error(error);
+  } finally {
+    await cleanupResources(loggerInstance, drizzleCleanup);
   }
-
-  const csv = toCSV(purposes.map((p) => toCsvDataRow(p, loggerInstance)));
-
-  loggerInstance.info("> Data csv produced!\n");
-
-  loggerInstance.info("> Sending emails...");
-
-  const mailer = initSesMailManager(config);
-
-  await mailer.send({
-    from: {
-      name: config.reportSenderLabel,
-      address: config.reportSenderMail,
-    },
-    to: config.mailRecipients,
-    subject: MAIL_SUBJECT,
-    html: MAIL_BODY,
-    attachments: [{ filename: CSV_FILENAME, content: csv }],
-  });
-
-  loggerInstance.info("> Success!\n");
 }
 
 await withExecutionTime(main, loggerInstance);
-
-process.exit(0);
-// process.exit() should not be required.
-// however, something in this script hangs on exit.
-// TODO figure out why and remove this workaround.
