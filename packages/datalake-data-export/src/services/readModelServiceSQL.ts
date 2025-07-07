@@ -21,8 +21,12 @@ import {
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
+  eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
@@ -281,6 +285,14 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             eserviceTemplateVersionInReadmodelEserviceTemplate,
           eserviceTemplateVersionDocument:
             eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          eserviceTemplateInterface:
+            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+          eserviceTemplateRiskAnalysis:
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+          eserviceTemplateRiskAnalysisAnswer:
+            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+          eserviceTemplateVersionAttribute:
+            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .innerJoin(
