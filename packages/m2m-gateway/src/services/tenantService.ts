@@ -14,10 +14,13 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import {
-  tenantCertifiedAttributeNotFound,
-  tenantDeclaredAttributeNotFound,
-} from "../model/errors.js";
+import { tenantCertifiedAttributeNotFound } from "../model/errors.js";
+
+function retrieveDeclaredAttributes(
+  tenant: tenantApi.Tenant
+): tenantApi.DeclaredTenantAttribute[] {
+  return tenant.attributes.map((v) => v.declared).filter(isDefined);
+}
 
 function retrieveCertifiedAttributes(
   tenant: tenantApi.Tenant
@@ -38,27 +41,6 @@ function retrieveCertifiedAttribute(
   }
 
   return certifiedAttribute;
-}
-
-function retrieveDeclaredAttributes(
-  tenant: tenantApi.Tenant
-): tenantApi.DeclaredTenantAttribute[] {
-  return tenant.attributes.map((v) => v.declared).filter(isDefined);
-}
-
-function retrieveDeclaredAttribute(
-  tenant: tenantApi.Tenant,
-  attributeId: tenantApi.DeclaredTenantAttribute["id"]
-): tenantApi.DeclaredTenantAttribute {
-  const declaredAttribute = retrieveDeclaredAttributes(tenant).find(
-    (declaredAttribute) => declaredAttribute.id === attributeId
-  );
-
-  if (!declaredAttribute) {
-    throw tenantDeclaredAttributeNotFound(tenant, attributeId);
-  }
-
-  return declaredAttribute;
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
@@ -118,6 +100,48 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       return toM2MGatewayApiTenant(tenant);
+    },
+    async getDeclaredAttributes(
+      tenantId: TenantId,
+      {
+        delegationId,
+        limit,
+        offset,
+      }: m2mGatewayApi.GetTenantDeclaredAttributesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttributes> {
+      logger.info(`Retrieving tenant ${tenantId} declared attributes`);
+
+      const { data: tenant } =
+        await clients.tenantProcessClient.tenant.getTenant({
+          params: { id: tenantId },
+          headers,
+        });
+
+      const declaredAttributes = retrieveDeclaredAttributes(tenant);
+
+      const filteredDeclaredAttributes = delegationId
+        ? declaredAttributes.filter(
+            (declaredAttribute) =>
+              declaredAttribute.delegationId === delegationId
+          )
+        : declaredAttributes;
+
+      const paginatedDeclaredAttributes = filteredDeclaredAttributes.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results: paginatedDeclaredAttributes.map(
+          toM2MGatewayApiTenantDeclaredAttribute
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: filteredDeclaredAttributes.length,
+        },
+      };
     },
     async getCertifiedAttributes(
       tenantId: TenantId,
@@ -201,99 +225,6 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       return toM2MGatewayApiTenantCertifiedAttribute(certifiedAttribute);
-    },
-    async getDeclaredAttributes(
-      tenantId: TenantId,
-      {
-        delegationId,
-        limit,
-        offset,
-      }: m2mGatewayApi.GetTenantDeclaredAttributesQueryParams,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantDeclaredAttributes> {
-      logger.info(`Retrieving tenant ${tenantId} declared attributes`);
-
-      const { data: tenant } =
-        await clients.tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
-          headers,
-        });
-
-      const declaredAttributes = retrieveDeclaredAttributes(tenant);
-
-      const filteredDeclaredAttributes = delegationId
-        ? declaredAttributes.filter(
-            (declaredAttribute) =>
-              declaredAttribute.delegationId === delegationId
-          )
-        : declaredAttributes;
-
-      const paginatedDeclaredAttributes = filteredDeclaredAttributes.slice(
-        offset,
-        offset + limit
-      );
-
-      return {
-        results: paginatedDeclaredAttributes.map(
-          toM2MGatewayApiTenantDeclaredAttribute
-        ),
-        pagination: {
-          limit,
-          offset,
-          totalCount: filteredDeclaredAttributes.length,
-        },
-      };
-    },
-    async assignDeclaredAttribute(
-      seed: m2mGatewayApi.TenantDeclaredAttributeSeed,
-      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
-      logger.info(
-        `Assigning declared attribute ${seed.id} to tenant ${
-          authData.organizationId
-        }${seed.delegationId ? " with delegation " + seed.delegationId : ""}`
-      );
-
-      const response =
-        await clients.tenantProcessClient.tenantAttribute.addDeclaredAttribute(
-          seed,
-          {
-            headers,
-          }
-        );
-
-      const { data: polledTenant } = await pollTenant(response, headers);
-      const declaredAttribute = retrieveDeclaredAttribute(
-        polledTenant,
-        seed.id
-      );
-
-      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
-    },
-    async revokeDeclaredAttribute(
-      attributeId: AttributeId,
-      { logger, headers, authData }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
-      logger.info(
-        `Revoking declared attribute ${attributeId} from tenant ${authData.organizationId}`
-      );
-
-      const response =
-        await clients.tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
-          undefined,
-          {
-            params: { attributeId },
-            headers,
-          }
-        );
-
-      const { data: polledTenant } = await pollTenant(response, headers);
-      const declaredAttribute = retrieveDeclaredAttribute(
-        polledTenant,
-        attributeId
-      );
-
-      return toM2MGatewayApiTenantDeclaredAttribute(declaredAttribute);
     },
   };
 }
