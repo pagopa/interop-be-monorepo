@@ -725,7 +725,6 @@ const tenantsRouter = (
             },
             ctx
           );
-
           return res
             .status(200)
             .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
@@ -755,7 +754,6 @@ const tenantsRouter = (
             },
             ctx
           );
-
           return res
             .status(200)
             .send(tenantApi.Tenant.parse(toApiTenant(tenant)));

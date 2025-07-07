@@ -767,11 +767,7 @@ export function tenantServiceBuilder(
         agreementId: AgreementId;
         expirationDate?: string;
       },
-      {
-        authData,
-        logger,
-        correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Verifying attribute ${attributeId} to tenant ${tenantId} for agreement ${agreementId}`
@@ -866,11 +862,7 @@ export function tenantServiceBuilder(
         attributeId: AttributeId;
         agreementId: AgreementId;
       },
-      {
-        logger,
-        authData,
-        correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<Tenant> {
       logger.info(
         `Revoking verified attribute ${attributeId} to tenant ${tenantId}`
