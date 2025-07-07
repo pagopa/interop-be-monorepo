@@ -283,7 +283,7 @@ const purposeRouter = (
           error,
           getPurposeVersionErrorMapper,
           ctx,
-          `Error deleting purpose ${req.params.purposeId} version ${req.params.versionId}`
+          `Error deleting version ${req.params.versionId} of purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

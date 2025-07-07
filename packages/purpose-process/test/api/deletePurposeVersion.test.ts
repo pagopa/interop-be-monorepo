@@ -46,7 +46,7 @@ describe("API DELETE /purposes/{purposeId}/versions/{versionId} test", () => {
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 204 for user with role %s",
     async () => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token);
