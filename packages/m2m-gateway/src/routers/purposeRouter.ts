@@ -287,7 +287,7 @@ const purposeRouter = (
             error,
             downloadPurposeVersionDocumentErrorMapper,
             ctx,
-            `Error retrieving document for purpose ${req.params.purposeId} version ${req.params.versionId}`
+            `Error retrieving document for purpose ${req.params.purposeId} with version ${req.params.versionId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
