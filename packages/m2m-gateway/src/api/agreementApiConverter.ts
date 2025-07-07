@@ -1,4 +1,8 @@
-import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  m2mGatewayApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 
 export function toM2MGatewayApiAgreement(
   agreement: agreementApi.Agreement
@@ -45,5 +49,21 @@ export function toM2MGatewayApiDocument(
     prettyName: document.prettyName,
     createdAt: document.createdAt,
     contentType: document.contentType,
+  };
+}
+
+export function toGetPurposesApiQueryParamsForAgreement(
+  agreement: agreementApi.Agreement,
+  params: m2mGatewayApi.GetAgreementPurposesQueryParams
+): purposeApi.GetPurposesQueryParams {
+  return {
+    limit: params.limit,
+    offset: params.offset,
+    eservicesIds: [agreement.eserviceId],
+    consumersIds: [agreement.consumerId],
+    producersIds: [],
+    states: [],
+    excludeDraft: false,
+    name: undefined,
   };
 }
