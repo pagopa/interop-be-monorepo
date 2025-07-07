@@ -3469,6 +3469,34 @@ paths:
             default: []
           explode: false
         - in: query
+          name: title
+          description: Filter Purposes by title. If not specified, return Purposes for any title
+          schema:
+            type: string
+        - in: query
+          name: consumerIds
+          description: Filter Purposes by consumer ids. If not specified, return Purposes for any consumer
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: states
+          description: >
+            Filter Purposes by states. If not specified, return Purposes for any state.
+            If "ARCHIVED" is included in the filter, only Purposes where all
+            their versions are in the "ARCHIVED" state will be returned,
+            excluding those that have versions in other states.
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/PurposeVersionState"
+            default: []
+          explode: false
+        - in: query
           name: offset
           description: Pagination starting position
           required: true
