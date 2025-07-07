@@ -3,7 +3,7 @@ import { unsafeBrandId } from "pagopa-interop-models";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
-  getMockedApiCompactClient,
+  getMockedApiPartialClient,
   getMockedApiFullClient,
 } from "pagopa-interop-commons-test";
 import {
@@ -22,8 +22,8 @@ describe("getClient", () => {
     })
   );
 
-  const mockCompactClientFromProcess = getMockWithMetadata(
-    getMockedApiCompactClient({
+  const mockPartialClientFromProcess = getMockWithMetadata(
+    getMockedApiPartialClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
@@ -41,24 +41,23 @@ describe("getClient", () => {
     mockGetClient.mockClear();
   });
 
-  it("Should succeed with compact client and perform API clients calls", async () => {
-    mockGetClient.mockResolvedValue(mockCompactClientFromProcess);
+  it("Should succeed with partial client and perform API clients calls", async () => {
+    mockGetClient.mockResolvedValue(mockPartialClientFromProcess);
 
     const m2mClientResponse: m2mGatewayApi.Client = {
-      id: mockCompactClientFromProcess.data.id,
-      consumerId: mockCompactClientFromProcess.data.consumerId,
-      visibility: m2mGatewayApi.ClientVisibility.Values.COMPACT,
+      id: mockPartialClientFromProcess.data.id,
+      consumerId: mockPartialClientFromProcess.data.consumerId,
     };
 
     const result = await clientService.getClient(
-      unsafeBrandId(mockCompactClientFromProcess.data.id),
+      unsafeBrandId(mockPartialClientFromProcess.data.id),
       getMockM2MAdminAppContext()
     );
 
     expect(result).toEqual(m2mClientResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
-      params: { clientId: mockCompactClientFromProcess.data.id },
+      params: { clientId: mockPartialClientFromProcess.data.id },
     });
   });
 
@@ -68,7 +67,6 @@ describe("getClient", () => {
     const m2mFullClientResponse: m2mGatewayApi.FullClient = {
       id: mockFullClientFromProcess.data.id,
       consumerId: mockFullClientFromProcess.data.consumerId,
-      visibility: m2mGatewayApi.ClientVisibility.Values.FULL,
       name: mockFullClientFromProcess.data.name,
       description: mockFullClientFromProcess.data.description,
       createdAt: mockFullClientFromProcess.data.createdAt,
@@ -88,9 +86,9 @@ describe("getClient", () => {
 
   it("Should throw unexpectedClientKind in case the returned client has an unexpected kind", async () => {
     const mockResponse = {
-      ...mockCompactClientFromProcess,
+      ...mockPartialClientFromProcess,
       data: {
-        ...mockCompactClientFromProcess.data,
+        ...mockPartialClientFromProcess.data,
         kind: authorizationApi.ClientKind.Values.API,
       },
     };
@@ -99,7 +97,7 @@ describe("getClient", () => {
 
     await expect(
       clientService.getClient(
-        unsafeBrandId(mockCompactClientFromProcess.data.id),
+        unsafeBrandId(mockPartialClientFromProcess.data.id),
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(unexpectedClientKind(mockResponse.data));

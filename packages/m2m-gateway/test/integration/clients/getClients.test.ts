@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import {
-  getMockedApiCompactClient,
+  getMockedApiPartialClient,
   getMockedApiFullClient,
 } from "pagopa-interop-commons-test";
 import { generateMock } from "@anatine/zod-mock";
@@ -45,18 +45,18 @@ describe("getClients", () => {
 
   const mockGetClients = vi.fn();
 
-  const mockCompactClient1 = getMockedApiCompactClient({
+  const mockPartialClient1 = getMockedApiPartialClient({
     kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
-  const mockCompactClient2 = getMockedApiCompactClient({
+  const mockPartialClient2 = getMockedApiPartialClient({
     kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
-  const mockCompactClients = [mockCompactClient1, mockCompactClient2];
-  const mockCompactClientsResponse: WithMaybeMetadata<authorizationApi.Clients> =
+  const mockPartialClients = [mockPartialClient1, mockPartialClient2];
+  const mockPartialClientsResponse: WithMaybeMetadata<authorizationApi.Clients> =
     {
       data: {
-        results: mockCompactClients,
-        totalCount: mockCompactClients.length,
+        results: mockPartialClients,
+        totalCount: mockPartialClients.length,
       },
       metadata: undefined,
     };
@@ -75,16 +75,14 @@ describe("getClients", () => {
   it("Should succeed with full clients and perform API clients calls", async () => {
     mockGetClients.mockResolvedValueOnce(mockFullClientsResponse);
 
-    const m2mClientResponse1: m2mGatewayApi.Client = {
-      visibility: m2mGatewayApi.ClientVisibility.Values.FULL,
+    const m2mClientResponse1: m2mGatewayApi.FullClient = {
       id: mockFullClient1.id,
       consumerId: mockFullClient1.consumerId,
       name: mockFullClient1.name,
       createdAt: mockFullClient1.createdAt,
       description: mockFullClient1.description,
     };
-    const m2mClientResponse2: m2mGatewayApi.Client = {
-      visibility: m2mGatewayApi.ClientVisibility.Values.FULL,
+    const m2mClientResponse2: m2mGatewayApi.FullClient = {
       id: mockFullClient2.id,
       consumerId: mockFullClient2.consumerId,
       name: mockFullClient2.name,
@@ -121,25 +119,23 @@ describe("getClients", () => {
     });
   });
 
-  it("Should succeed with compact clients and perform API clients calls", async () => {
-    mockGetClients.mockResolvedValueOnce(mockCompactClientsResponse);
+  it("Should succeed with partial clients and perform API clients calls", async () => {
+    mockGetClients.mockResolvedValueOnce(mockPartialClientsResponse);
 
-    const m2mClientResponse1: m2mGatewayApi.CompactClient = {
-      visibility: m2mGatewayApi.ClientVisibility.Values.COMPACT,
-      id: mockCompactClient1.id,
-      consumerId: mockCompactClient1.consumerId,
+    const m2mClientResponse1: m2mGatewayApi.PartialClient = {
+      id: mockPartialClient1.id,
+      consumerId: mockPartialClient1.consumerId,
     };
-    const m2mClientResponse2: m2mGatewayApi.CompactClient = {
-      visibility: m2mGatewayApi.ClientVisibility.Values.COMPACT,
-      id: mockCompactClient2.id,
-      consumerId: mockCompactClient2.consumerId,
+    const m2mClientResponse2: m2mGatewayApi.PartialClient = {
+      id: mockPartialClient2.id,
+      consumerId: mockPartialClient2.consumerId,
     };
 
     const m2mClientsResponse: m2mGatewayApi.Clients = {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
-        totalCount: mockCompactClientsResponse.data.totalCount,
+        totalCount: mockPartialClientsResponse.data.totalCount,
       },
       results: [m2mClientResponse1, m2mClientResponse2],
     };
@@ -165,27 +161,27 @@ describe("getClients", () => {
   });
 
   it("Should throw unexpectedClientKind in case the returned client has an unexpected kind", async () => {
-    const mockBadClientCompact = {
-      ...mockCompactClient1,
+    const mockBadClientPartial = {
+      ...mockPartialClient1,
       kind: authorizationApi.ClientKind.Values.API,
     };
-    const mockResponseCompact = {
-      ...mockCompactClientsResponse,
+    const mockResponsePartial = {
+      ...mockPartialClientsResponse,
       data: {
-        ...mockCompactClientsResponse.data,
+        ...mockPartialClientsResponse.data,
         results: [
-          ...mockCompactClientsResponse.data.results,
-          mockBadClientCompact,
+          ...mockPartialClientsResponse.data.results,
+          mockBadClientPartial,
         ],
       },
     };
 
     mockInteropBeClients.authorizationClient.client.getClients =
-      mockGetClients.mockResolvedValueOnce(mockResponseCompact);
+      mockGetClients.mockResolvedValueOnce(mockResponsePartial);
 
     await expect(
       clientService.getClients(mockParams, getMockM2MAdminAppContext())
-    ).rejects.toThrowError(unexpectedClientKind(mockBadClientCompact));
+    ).rejects.toThrowError(unexpectedClientKind(mockBadClientPartial));
 
     const mockBadClientFull = {
       ...mockFullClient1,

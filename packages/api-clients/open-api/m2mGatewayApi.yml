@@ -5244,32 +5244,21 @@ components:
         - description
         - name
         - code
-    ClientVisibility:
-      type: string
-      enum: [COMPACT, FULL]
     Client:
       description: |
-        Models a client that can be either a full client or a compact client based on the caller
+        Models a client that can be either a full client or a partial client based on the caller
         tenant. In case the caller tenant is the consumer of the client (i.e., the owner), the
-        full client is returned, otherwise a compact client is returned.
+        full client is returned, otherwise a partial client is returned.
       oneOf:
         - $ref: "#/components/schemas/FullClient"
-        - $ref: "#/components/schemas/CompactClient"
-      discriminator:
-        propertyName: visibility
-        mapping:
-          COMPACT: "#/components/schemas/CompactClient"
-          FULL: "#/components/schemas/FullClient"
-    CompactClient:
+        - $ref: "#/components/schemas/PartialClient"
+    PartialClient:
       type: object
       description: |
         Models a client with a reduced set of fields: only the fields that are
         visible to any caller tenant.
       additionalProperties: false
       properties:
-        visibility:
-          type: string
-          enum: [COMPACT]
         id:
           type: string
           format: uuid
@@ -5280,7 +5269,6 @@ components:
           type: string
           format: uuid
       required:
-        - visibility
         - id
         - consumerId
     FullClient:
@@ -5289,12 +5277,9 @@ components:
         Models a client with all fields visible to the owner tenant.
         The owner of the client is the consumer tenant, identified by the consumerId.
         The only fields that are visible to any caller tenant are the ones that are
-        present also in the CompactClient schema. The rest are visible only to the owner tenant.
+        present also in the PartialClient schema. The rest are visible only to the owner tenant.
       additionalProperties: false
       properties:
-        visibility:
-          type: string
-          enum: [FULL]
         id:
           type: string
           format: uuid
@@ -5312,7 +5297,6 @@ components:
           type: string
           format: date-time
       required:
-        - visibility
         - id
         - consumerId
         - name

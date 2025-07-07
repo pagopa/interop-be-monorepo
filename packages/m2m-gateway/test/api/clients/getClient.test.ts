@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
-  getMockedApiCompactClient,
+  getMockedApiPartialClient,
   getMockedApiFullClient,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -21,8 +21,8 @@ describe("GET /clients/:clientId route test", () => {
     })
   );
 
-  const mockM2MCompactClientResponse = toM2MGatewayApiClient(
-    getMockedApiCompactClient({
+  const mockM2MPartialClientResponse = toM2MGatewayApiClient(
+    getMockedApiPartialClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
@@ -38,17 +38,17 @@ describe("GET /clients/:clientId route test", () => {
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 with compact client and perform service calls for user with role %s",
+    "Should return 200 with partial client and perform service calls for user with role %s",
     async (role) => {
       mockClientService.getClient = vi
         .fn()
-        .mockResolvedValue(mockM2MCompactClientResponse);
+        .mockResolvedValue(mockM2MPartialClientResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockM2MCompactClientResponse.id);
+      const res = await makeRequest(token, mockM2MPartialClientResponse.id);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(mockM2MCompactClientResponse);
+      expect(res.body).toEqual(mockM2MPartialClientResponse);
     }
   );
 
@@ -78,7 +78,7 @@ describe("GET /clients/:clientId route test", () => {
   it("Should return 400 for incorrect value for client id", async () => {
     mockClientService.getClient = vi
       .fn()
-      .mockResolvedValue(mockM2MCompactClientResponse);
+      .mockResolvedValue(mockM2MPartialClientResponse);
 
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(token, "INVALID ID");
@@ -86,10 +86,10 @@ describe("GET /clients/:clientId route test", () => {
   });
 
   it.each([
-    { ...mockM2MCompactClientResponse, kind: "INVALID_KIND" },
-    { ...mockM2MCompactClientResponse, invalidParam: "invalidValue" },
-    { ...mockM2MCompactClientResponse, id: undefined },
-    { ...mockM2MCompactClientResponse, consumerId: undefined },
+    { ...mockM2MPartialClientResponse, kind: "INVALID_KIND" },
+    { ...mockM2MPartialClientResponse, invalidParam: "invalidValue" },
+    { ...mockM2MPartialClientResponse, id: undefined },
+    { ...mockM2MPartialClientResponse, consumerId: undefined },
     { ...mockM2MFullClientResponse, kind: "INVALID_KIND" },
     { ...mockM2MFullClientResponse, invalidParam: "invalidValue" },
     { ...mockM2MFullClientResponse, id: undefined },

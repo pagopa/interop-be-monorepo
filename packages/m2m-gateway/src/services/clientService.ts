@@ -50,11 +50,11 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const adminId = match(client)
         .with(
-          { visibility: authorizationApi.ClientVisibility.Enum.FULL },
+          { visibility: authorizationApi.Visibility.Enum.FULL },
           (c) => c.adminId
         )
         .with(
-          { visibility: authorizationApi.ClientVisibility.Enum.COMPACT },
+          { visibility: authorizationApi.Visibility.Enum.PARTIAL },
           () => undefined
         )
         .exhaustive();

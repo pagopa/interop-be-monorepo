@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
-  getMockedApiCompactClient,
+  getMockedApiPartialClient,
   getMockedApiFullClient,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -16,16 +16,16 @@ import { unexpectedClientKind } from "../../../src/model/errors.js";
 import { toM2MGatewayApiClient } from "../../../src/api/clientApiConverter.js";
 
 describe("GET /clients router test", () => {
-  const m2mCompactClientsResponse: m2mGatewayApi.Clients = {
+  const m2mPartialClientsResponse: m2mGatewayApi.Clients = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
       toM2MGatewayApiClient(
-        getMockedApiCompactClient({
+        getMockedApiPartialClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
       ),
       toM2MGatewayApiClient(
-        getMockedApiCompactClient({
+        getMockedApiPartialClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
       ),
@@ -91,17 +91,17 @@ describe("GET /clients router test", () => {
   );
 
   it.each(authorizedRoles)(
-    "Should return 200 with compact clients and perform service calls for user with role %s",
+    "Should return 200 with partial clients and perform service calls for user with role %s",
     async (role) => {
       mockClientService.getClients = vi
         .fn()
-        .mockResolvedValue(m2mCompactClientsResponse);
+        .mockResolvedValue(m2mPartialClientsResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token, mockQueryParams);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(m2mCompactClientsResponse);
+      expect(res.body).toEqual(m2mPartialClientsResponse);
       expect(mockClientService.getClients).toHaveBeenCalledWith(
         mockQueryParams,
         expect.any(Object)
@@ -137,13 +137,13 @@ describe("GET /clients router test", () => {
 
   it.each([
     {
-      ...m2mCompactClientsResponse,
+      ...m2mPartialClientsResponse,
       results: [
-        { ...m2mCompactClientsResponse.results[0], kind: "invalidKind" },
+        { ...m2mPartialClientsResponse.results[0], kind: "invalidKind" },
       ],
     },
     {
-      ...m2mCompactClientsResponse,
+      ...m2mPartialClientsResponse,
       pagination: {
         offset: "invalidOffset",
         limit: "invalidLimit",
@@ -176,7 +176,7 @@ describe("GET /clients router test", () => {
   it("Should return 500 in case of unexpectedClientKind error", async () => {
     mockClientService.getClients = vi
       .fn()
-      .mockRejectedValue(unexpectedClientKind(getMockedApiCompactClient()));
+      .mockRejectedValue(unexpectedClientKind(getMockedApiPartialClient()));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockQueryParams);
 

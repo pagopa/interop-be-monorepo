@@ -22,7 +22,6 @@ export function toM2MGatewayApiFullClient(
   assertClientKindIs(client, authorizationApi.ClientKind.Values.CONSUMER);
 
   return {
-    visibility: client.visibility,
     id: client.id,
     name: client.name,
     createdAt: client.createdAt,
@@ -39,18 +38,17 @@ export function toM2MGatewayApiClient(
   return match(client)
     .with(
       {
-        visibility: authorizationApi.ClientVisibility.Values.COMPACT,
+        visibility: authorizationApi.Visibility.Values.PARTIAL,
       },
       (client) =>
         ({
-          visibility: client.visibility,
           id: client.id,
           consumerId: client.consumerId,
-        } satisfies m2mGatewayApi.CompactClient)
+        } satisfies m2mGatewayApi.PartialClient)
     )
     .with(
       {
-        visibility: authorizationApi.ClientVisibility.Values.FULL,
+        visibility: authorizationApi.Visibility.Values.FULL,
       },
       (client) => toM2MGatewayApiFullClient(client)
     )
