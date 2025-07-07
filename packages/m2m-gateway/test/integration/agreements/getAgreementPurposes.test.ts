@@ -1,24 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { getMockedApiPurpose } from "pagopa-interop-commons-test";
 import {
+  getMockWithMetadata,
+  getMockedApiAgreement,
+  getMockedApiPurpose,
+} from "pagopa-interop-commons-test";
+import { unsafeBrandId } from "pagopa-interop-models";
+import {
+  agreementService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
-  purposeService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
-describe("getPurposes", () => {
-  const mockParams: m2mGatewayApi.GetPurposesQueryParams = {
-    consumerIds: [],
-    states: [],
-    eserviceIds: [],
+describe("getAgreementPurposes", () => {
+  const mockParams: m2mGatewayApi.GetAgreementPurposesQueryParams = {
     offset: 0,
     limit: 10,
   };
 
+  const mockApiAgreement = getMockWithMetadata(getMockedApiAgreement());
   const mockApiPurpose1 = getMockedApiPurpose();
   const mockApiPurpose2 = getMockedApiPurpose();
 
@@ -32,14 +35,21 @@ describe("getPurposes", () => {
     metadata: undefined,
   };
 
-  const mockGetPurposes = vi.fn().mockResolvedValue(mockPurposeProcessResponse);
+  const mockGetAgreement = vi.fn().mockResolvedValue(mockApiAgreement);
+  const mockGetAgreementPurposes = vi
+    .fn()
+    .mockResolvedValue(mockPurposeProcessResponse);
 
   mockInteropBeClients.purposeProcessClient = {
-    getPurposes: mockGetPurposes,
+    getPurposes: mockGetAgreementPurposes,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
+  mockInteropBeClients.agreementProcessClient = {
+    getAgreementById: mockGetAgreement,
+  } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
+
   beforeEach(() => {
-    mockGetPurposes.mockClear();
+    mockGetAgreementPurposes.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -81,7 +91,7 @@ describe("getPurposes", () => {
       waitingForApprovalVersion: undefined,
     };
 
-    const m2mPurposeResponse: m2mGatewayApi.Purposes = {
+    const m2mPurposesResponse: m2mGatewayApi.Purposes = {
       pagination: {
         limit: mockParams.limit,
         offset: mockParams.offset,
@@ -90,19 +100,26 @@ describe("getPurposes", () => {
       results: [expectedM2MPurpose1, expectedM2MPurpose2],
     };
 
-    const result = await purposeService.getPurposes(
+    const result = await agreementService.getAgreementPurposes(
+      unsafeBrandId(mockApiAgreement.data.id),
       mockParams,
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mPurposeResponse);
+    expect(result).toEqual(m2mPurposesResponse);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,
+      params: {
+        agreementId: mockApiAgreement.data.id,
+      },
+    });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.purposeProcessClient.getPurposes,
       queries: {
-        eservicesIds: mockParams.eserviceIds,
         offset: mockParams.offset,
         limit: mockParams.limit,
-        consumersIds: [],
+        consumersIds: [mockApiAgreement.data.consumerId],
+        eservicesIds: [mockApiAgreement.data.eserviceId],
         producersIds: [],
         states: [],
         excludeDraft: false,
