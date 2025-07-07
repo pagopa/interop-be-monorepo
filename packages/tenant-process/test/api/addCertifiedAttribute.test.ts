@@ -86,7 +86,7 @@ describe("API POST /tenants/{tenantId}/attributes/certified test", () => {
     },
     {
       error: certifiedAttributeAlreadyAssigned(generateId(), generateId()),
-      expectedStatus: 409,
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

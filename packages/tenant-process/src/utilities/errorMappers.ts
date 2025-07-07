@@ -88,13 +88,11 @@ export const addCertifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "attributeDoesNotBelongToCertifier",
-      "tenantIsNotACertifier",
-      () => HTTP_STATUS_FORBIDDEN
-    )
-    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("attributeDoesNotBelongToCertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addDeclaredAttributeErrorMapper = (
@@ -127,7 +125,8 @@ export const revokeDeclaredAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getCertifiedAttributesErrorMapper = (
