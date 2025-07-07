@@ -82,9 +82,9 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       params: m2mGatewayApi.GetClientsQueryParams,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Clients> {
-      const { limit, offset, name, userIds, consumerId, purposeId } = params;
+      const { limit, offset, name, consumerId } = params;
       logger.info(
-        `Retrieving clients with name ${name}, consumerId ${consumerId}, purposeId ${purposeId}, userIds ${userIds}, offset ${offset}, limit ${limit}`
+        `Retrieving clients with name ${name}, consumerId ${consumerId}, offset ${offset}, limit ${limit}`
       );
 
       const {

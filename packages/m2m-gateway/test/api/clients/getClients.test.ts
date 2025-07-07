@@ -13,18 +13,18 @@ import { z } from "zod";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { unexpectedClientKind } from "../../../src/model/errors.js";
-import { toM2MGatewayApiClient } from "../../../src/api/clientApiConverter.js";
+import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
 
 describe("GET /clients router test", () => {
   const m2mPartialClientsResponse: m2mGatewayApi.Clients = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MGatewayApiClient(
+      toM2MGatewayApiConsumerClient(
         getMockedApiPartialClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
       ),
-      toM2MGatewayApiClient(
+      toM2MGatewayApiConsumerClient(
         getMockedApiPartialClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
@@ -35,12 +35,12 @@ describe("GET /clients router test", () => {
   const m2mFullClientsResponse: m2mGatewayApi.Clients = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MGatewayApiClient(
+      toM2MGatewayApiConsumerClient(
         getMockedApiFullClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
       ),
-      toM2MGatewayApiClient(
+      toM2MGatewayApiConsumerClient(
         getMockedApiFullClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
@@ -50,9 +50,7 @@ describe("GET /clients router test", () => {
 
   const mockQueryParams: m2mGatewayApi.GetClientsQueryParams = {
     consumerId: generateId(),
-    userIds: [generateId()],
     name: generateMock(z.string()),
-    purposeId: generateId(),
     offset: 0,
     limit: 10,
   };

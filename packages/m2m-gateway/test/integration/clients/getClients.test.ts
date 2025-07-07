@@ -20,9 +20,7 @@ import { unexpectedClientKind } from "../../../src/model/errors.js";
 describe("getClients", () => {
   const mockParams: m2mGatewayApi.GetClientsQueryParams = {
     consumerId: generateId(),
-    userIds: [generateId()],
     name: generateMock(z.string()),
-    purposeId: generateId(),
     offset: 0,
     limit: 10,
   };
@@ -110,11 +108,11 @@ describe("getClients", () => {
       queries: {
         kind: authorizationApi.ClientKind.Values.CONSUMER,
         consumerId: mockParams.consumerId,
-        userIds: mockParams.userIds,
         name: mockParams.name,
-        purposeId: mockParams.purposeId,
         offset: mockParams.offset,
         limit: mockParams.limit,
+        userIds: [],
+        purposeId: undefined,
       },
     });
   });
@@ -151,11 +149,11 @@ describe("getClients", () => {
       queries: {
         kind: authorizationApi.ClientKind.Values.CONSUMER,
         consumerId: mockParams.consumerId,
-        userIds: mockParams.userIds,
         name: mockParams.name,
-        purposeId: mockParams.purposeId,
         offset: mockParams.offset,
         limit: mockParams.limit,
+        userIds: [],
+        purposeId: undefined,
       },
     });
   });

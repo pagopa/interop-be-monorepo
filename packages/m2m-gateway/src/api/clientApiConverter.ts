@@ -9,10 +9,10 @@ export function toGetClientsApiQueryParams(
     kind: authorizationApi.ClientKind.Values.CONSUMER,
     consumerId: params.consumerId,
     name: params.name,
-    userIds: params.userIds,
-    purposeId: params.purposeId,
     limit: params.limit,
     offset: params.offset,
+    userIds: [],
+    purposeId: undefined,
   };
 }
 

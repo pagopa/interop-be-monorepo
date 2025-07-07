@@ -12,16 +12,16 @@ import { generateId } from "pagopa-interop-models";
 import { api, mockClientService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { unexpectedClientKind } from "../../../src/model/errors.js";
-import { toM2MGatewayApiClient } from "../../../src/api/clientApiConverter.js";
+import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
 
 describe("GET /clients/:clientId route test", () => {
-  const mockM2MFullClientResponse = toM2MGatewayApiClient(
+  const mockM2MFullClientResponse = toM2MGatewayApiConsumerClient(
     getMockedApiFullClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
 
-  const mockM2MPartialClientResponse = toM2MGatewayApiClient(
+  const mockM2MPartialClientResponse = toM2MGatewayApiConsumerClient(
     getMockedApiPartialClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
