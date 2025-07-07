@@ -6,6 +6,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  toGetAgreementsApiQueryParamsForPurpose,
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
   toM2mGatewayApiPurposeVersion,
@@ -407,16 +408,7 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const { data: agreements } =
         await clients.agreementProcessClient.getAgreements({
-          queries: {
-            consumersIds: [purpose.consumerId],
-            eservicesIds: [purpose.eserviceId],
-            states: [
-              m2mGatewayApi.AgreementState.Values.ACTIVE,
-              m2mGatewayApi.AgreementState.Values.SUSPENDED,
-            ],
-            offset: 0,
-            limit: 1,
-          },
+          queries: toGetAgreementsApiQueryParamsForPurpose(purpose),
           headers,
         });
 

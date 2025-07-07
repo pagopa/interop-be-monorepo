@@ -36,9 +36,7 @@ describe("GET /purposes/:purposeId/agreement router test", () => {
       const res = await makeRequest(token, mockPurposeId);
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(
-        expect.objectContaining({ id: mockM2MAgreement.id })
-      );
+      expect(res.body).toEqual(mockM2MAgreement);
       expect(mockPurposeService.getPurposeAgreement).toHaveBeenCalledWith(
         mockPurposeId,
         expect.any(Object)
