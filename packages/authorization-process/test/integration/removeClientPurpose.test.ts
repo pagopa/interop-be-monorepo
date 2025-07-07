@@ -41,13 +41,14 @@ describe("remove client purpose", () => {
 
     await addOneClient(mockClient);
 
-    await authorizationService.removeClientPurpose(
-      {
-        clientId: mockClient.id,
-        purposeIdToRemove,
-      },
-      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
-    );
+    const removeClientPurposeResponse =
+      await authorizationService.removeClientPurpose(
+        {
+          clientId: mockClient.id,
+          purposeIdToRemove,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -63,9 +64,19 @@ describe("remove client purpose", () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient = {
+      ...mockClient,
+      purposes: [purposeIdToNotRemove],
+    };
     expect(writtenPayload).toEqual({
       purposeId: purposeIdToRemove,
-      client: toClientV2({ ...mockClient, purposes: [purposeIdToNotRemove] }),
+      client: toClientV2(expectedClient),
+    });
+    expect(removeClientPurposeResponse).toEqual({
+      data: expectedClient,
+      metadata: {
+        version: 1,
+      },
     });
   });
   it("should throw clientNotFound if the client doesn't exist", async () => {

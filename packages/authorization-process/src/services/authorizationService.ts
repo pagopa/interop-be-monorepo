@@ -432,8 +432,12 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         purposeIdToRemove: PurposeId;
       },
-      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        correlationId,
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Client>> {
       logger.info(
         `Removing purpose ${purposeIdToRemove} from client ${clientId}`
       );
@@ -451,7 +455,7 @@ export function authorizationServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventClientPurposeRemoved(
           updatedClient,
           purposeIdToRemove,
@@ -459,6 +463,13 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+
+      return {
+        data: updatedClient,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async removePurposeFromClients(
       {
