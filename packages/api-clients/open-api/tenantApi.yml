@@ -901,6 +901,7 @@ paths:
       tags:
         - tenant
       summary: Deletes a tenant
+      description: Deletes the specified tenant
       operationId: maintenanceTenantDelete
       responses:
         "204":
@@ -929,6 +930,7 @@ paths:
         - tenant
       summary: Updates a tenant
       operationId: maintenanceTenantUpdate
+      description: Updates the specified tenant by its ID
       responses:
         "204":
           description: Tenant Updated
@@ -998,6 +1000,7 @@ paths:
       tags:
         - tenant
       summary: Delete a tenant mail
+      description: Deletes a mail from the specified tenant
       operationId: deleteTenantMail
       responses:
         "204":
@@ -1028,6 +1031,7 @@ paths:
       tags:
         - tenant
       summary: Add a tenant mail
+      description: Adds a mail to the specified tenant
       operationId: addTenantMail
       requestBody:
         required: true
@@ -1063,6 +1067,7 @@ paths:
       tags:
         - tenant
       summary: Update delegated producer and consumer feature to tenant caller
+      description: Updates delegated producer and consumer features for the calling tenant
       operationId: updateTenantDelegatedFeatures
       requestBody:
         required: true

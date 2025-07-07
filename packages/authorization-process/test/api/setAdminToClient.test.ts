@@ -1,21 +1,33 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { generateToken, getMockClient } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockClient,
+  mockTokenOrganizationId,
+} from "pagopa-interop-commons-test";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { ClientId, generateId, TenantId, UserId } from "pagopa-interop-models";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  ClientId,
+  clientKind,
+  generateId,
+  TenantId,
+  UserId,
+} from "pagopa-interop-models";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { clientToApiClient } from "../../src/model/domain/apiConverter.js";
 import {
   clientAdminAlreadyAssignedToUser,
   clientKindNotAllowed,
   clientNotFound,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
+import { testToFullClient } from "../apiUtils.js";
 
 describe("API POST /clients/{clientId}/admin test", () => {
-  const mockClient = getMockClient();
+  const mockClient = getMockClient({
+    kind: clientKind.api,
+    consumerId: mockTokenOrganizationId,
+  });
   const adminSeed = generateId<UserId>();
   const makeRequest = async (
     token: string,
@@ -28,22 +40,23 @@ describe("API POST /clients/{clientId}/admin test", () => {
       .set("X-Correlation-Id", generateId())
       .send({ adminId });
 
-  const apiResponse = authorizationApi.Client.parse(
-    clientToApiClient(mockClient, { showUsers: false })
-  );
-
   beforeEach(() => {
     authorizationService.setAdminToClient = vi
       .fn()
-      .mockResolvedValue({ client: mockClient, showUsers: true });
+      .mockResolvedValue(mockClient);
   });
 
-  it("Should return 200 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(apiResponse);
-  });
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+
+  it.each(authorizedRoles)(
+    "Should return 200 with a full client for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token, mockClient.id, adminSeed);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(testToFullClient(mockClient));
+    }
+  );
 
   it.each([
     {
