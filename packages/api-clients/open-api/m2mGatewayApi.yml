@@ -4406,8 +4406,8 @@ paths:
     post:
       tags:
         - purposes
-      summary: Create a new e-service Purpose
-      description: Create a new purpose for an e-service in receive mode
+      summary: Create a new E-Service Purpose
+      description: Create a new purpose for an E-Service in receive mode
       operationId: createReversePurpose
       requestBody:
         content:
@@ -4417,7 +4417,7 @@ paths:
         required: true
       responses:
         "201":
-          description: EService Purpose created
+          description: E-Service Purpose created
           content:
             application/json:
               schema:
@@ -4457,19 +4457,6 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "403":
           description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
-        "404":
-          description: Not Found
           content:
             application/problem+json:
               schema:
@@ -5377,7 +5364,7 @@ components:
           format: int32
           minimum: 1
         dailyCallsTotal:
-          description: "total daily calls available for this e-service."
+          description: "total daily calls available for this E-Service."
           type: integer
           format: int32
           minimum: 1
@@ -5516,7 +5503,7 @@ components:
           format: int32
           minimum: 1
         dailyCallsTotal:
-          description: "total daily calls available for this e-service."
+          description: "total daily calls available for this E-Service."
           type: integer
           format: int32
           minimum: 1
