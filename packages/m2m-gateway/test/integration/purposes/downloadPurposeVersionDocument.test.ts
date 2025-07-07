@@ -29,11 +29,13 @@ describe("downloadPurposeVersionDocument", () => {
 It simulates the content of a Purpose version document file.
 On multiple lines.`;
 
+  const mockFileName = "riskAnalysis.txt";
+
   const mockRiskAnalysisId = generateId();
   const mockPurposeVersionDocument = {
     id: mockRiskAnalysisId,
     contentType: "text/plain",
-    path: `${config.riskAnalysisDocumentsPath}/${mockRiskAnalysisId}/riskAnalysis.txt`,
+    path: `${config.riskAnalysisDocumentsPath}/${mockRiskAnalysisId}/${mockFileName}`,
     createdAt: new Date().toISOString(),
   };
 
@@ -63,7 +65,7 @@ On multiple lines.`;
         bucket: config.riskAnalysisDocumentsContainer,
         path: config.riskAnalysisDocumentsPath,
         resourceId: mockRiskAnalysisId,
-        name: "riskAnalysis.txt",
+        name: mockFileName,
         content: Buffer.from(testFileContent),
       },
       genericLogger
@@ -86,7 +88,7 @@ On multiple lines.`;
 
     const expectedServiceResponse = {
       id: mockRiskAnalysisId,
-      file: new File([Buffer.from(testFileContent)], `riskAnalysis.txt`, {
+      file: new File([Buffer.from(testFileContent)], mockFileName, {
         type: mockPurposeVersionDocument.contentType,
       }),
       prettyName: undefined,
