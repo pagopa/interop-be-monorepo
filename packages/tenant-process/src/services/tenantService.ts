@@ -451,7 +451,6 @@ export function tenantServiceBuilder(
           correlationId
         )
       );
-
       return updatedTenant;
     },
 
