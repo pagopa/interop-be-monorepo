@@ -8,7 +8,6 @@ import {
   Logger,
   M2MAdminAuthData,
   M2MAuthData,
-  Metadata,
   PDFGenerator,
   RiskAnalysisFormRules,
   UIAuthData,
@@ -344,7 +343,7 @@ export function purposeServiceBuilder(
         authData,
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<{ metadata: Metadata }> {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -379,6 +378,7 @@ export function purposeServiceBuilder(
       );
 
       return {
+        data: updatedPurpose,
         metadata: { version: event.newVersion },
       };
     },

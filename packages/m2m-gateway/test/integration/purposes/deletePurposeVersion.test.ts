@@ -28,13 +28,12 @@ describe("deletePurposeVersion", () => {
     })
   );
 
-  const mockDeletePurposeVersion = vi.fn().mockResolvedValue({
-    data: {
+  const mockDeletePurposeVersion = vi.fn().mockResolvedValue(
+    getMockWithMetadata({
       purpose: mockApiPurpose.data,
       createdVersionId: mockApiPurposeVersion.id,
-    },
-    metadata: { version: 0 },
-  });
+    })
+  );
   const mockGetPurpose = vi.fn(mockPollingResponse(mockApiPurpose, 2));
 
   mockInteropBeClients.purposeProcessClient = {
