@@ -8,17 +8,13 @@ import {
   toGetTenantsApiQueryParams,
   toM2MGatewayApiTenant,
   toM2MGatewayApiTenantVerifiedAttribute,
-  toTenantApiVerifiedTenantAttributeSeed,
 } from "../api/tenantApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import {
-  tenantCertifiedAttributeNotFound,
-  tenantVerifiedAttributeNotFound,
-} from "../model/errors.js";
+import { tenantCertifiedAttributeNotFound } from "../model/errors.js";
 
 function retrieveCertifiedAttributes(
   tenant: tenantApi.Tenant
@@ -45,21 +41,6 @@ function retrieveVerifiedAttributes(
   tenant: tenantApi.Tenant
 ): tenantApi.VerifiedTenantAttribute[] {
   return tenant.attributes.map((v) => v.verified).filter(isDefined);
-}
-
-function retrieveVerifiedAttribute(
-  tenant: tenantApi.Tenant,
-  attributeId: tenantApi.VerifiedTenantAttribute["id"]
-): tenantApi.VerifiedTenantAttribute {
-  const verifiedAttribute = retrieveVerifiedAttributes(tenant).find(
-    (verifiedAttribute) => verifiedAttribute.id === attributeId
-  );
-
-  if (!verifiedAttribute) {
-    throw tenantVerifiedAttributeNotFound(tenant, attributeId);
-  }
-
-  return verifiedAttribute;
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
@@ -233,60 +214,6 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount: verifiedAttributes.length,
         },
       };
-    },
-    async assignVerifiedAttribute(
-      tenantId: TenantId,
-      seed: m2mGatewayApi.TenantVerifiedAttributeSeed,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantVerifiedAttribute> {
-      logger.info(
-        `Assigning verified attribute ${seed.id} to tenant ${tenantId}`
-      );
-
-      const response =
-        await clients.tenantProcessClient.tenantAttribute.verifyVerifiedAttribute(
-          toTenantApiVerifiedTenantAttributeSeed(seed),
-          {
-            params: { tenantId },
-            headers,
-          }
-        );
-
-      const { data: polledTenant } = await pollTenant(response, headers);
-
-      const verifiedAttribute = retrieveVerifiedAttribute(
-        polledTenant,
-        seed.id
-      );
-
-      return toM2MGatewayApiTenantVerifiedAttribute(verifiedAttribute);
-    },
-    async revokeVerifiedAttribute(
-      tenantId: TenantId,
-      attributeId: AttributeId,
-      revocationPayload: m2mGatewayApi.TenantVerifiedAttributeRevocation,
-      { logger, headers }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.TenantVerifiedAttribute> {
-      logger.info(
-        `Revoking verified attribute ${attributeId} from tenant ${tenantId}`
-      );
-
-      const response =
-        await clients.tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
-          revocationPayload,
-          {
-            params: { tenantId, attributeId },
-            headers,
-          }
-        );
-
-      const { data: polledTenant } = await pollTenant(response, headers);
-      const verifiedAttribute = retrieveVerifiedAttribute(
-        polledTenant,
-        attributeId
-      );
-
-      return toM2MGatewayApiTenantVerifiedAttribute(verifiedAttribute);
     },
   };
 }

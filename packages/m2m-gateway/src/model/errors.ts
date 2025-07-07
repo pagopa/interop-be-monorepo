@@ -32,7 +32,6 @@ export const errorCodes = {
   eserviceTemplateVersionNotFound: "0017",
   tenantCertifiedAttributeNotFound: "0018",
   eserviceDescriptorInterfaceNotFound: "0019",
-  tenantVerifiedAttributeNotFound: "0020",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -190,17 +189,6 @@ export function tenantCertifiedAttributeNotFound(
     detail: `Certified attribute ${attributeId} not found for tenant ${tenant.id}`,
     code: "tenantCertifiedAttributeNotFound",
     title: "Tenant certified attribute not found",
-  });
-}
-
-export function tenantVerifiedAttributeNotFound(
-  tenant: tenantApi.Tenant,
-  attributeId: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Verified attribute ${attributeId} not found for tenant ${tenant.id}`,
-    code: "tenantVerifiedAttributeNotFound",
-    title: "Tenant verified attribute not found",
   });
 }
 
