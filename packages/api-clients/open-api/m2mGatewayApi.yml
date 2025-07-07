@@ -5246,26 +5246,21 @@ components:
         - code
     Client:
       description: |
-        Models a client that can be either a full client or a partial client based on the caller
-        tenant. In case the caller tenant is the consumer of the client (i.e., the owner), the
-        full client is returned, otherwise a partial client is returned.
+        Models a Client with field visibility based on the requester's permissions.
+        Only the Client owner has access to all fields.
       oneOf:
         - $ref: "#/components/schemas/FullClient"
         - $ref: "#/components/schemas/PartialClient"
     PartialClient:
       type: object
-      description: |
-        Models a client with a reduced set of fields: only the fields that are
-        visible to any caller tenant.
+      description: Models a Client with restricted field visibility
       additionalProperties: false
       properties:
         id:
           type: string
           format: uuid
         consumerId:
-          description: |
-            The consumerId is the identifier of the tenant that owns the client.
-            It is the tenant that created the client and has full access to it.
+          description: Tenant ID of the Client owner
           type: string
           format: uuid
       required:
@@ -5273,20 +5268,14 @@ components:
         - consumerId
     FullClient:
       type: object
-      description: |
-        Models a client with all fields visible to the owner tenant.
-        The owner of the client is the consumer tenant, identified by the consumerId.
-        The only fields that are visible to any caller tenant are the ones that are
-        present also in the PartialClient schema. The rest are visible only to the owner tenant.
+      description: Models a Client with unrestricted field visibility
       additionalProperties: false
       properties:
         id:
           type: string
           format: uuid
         consumerId:
-          description: |
-            The consumerId is the identifier of the tenant that owns the client.
-            It is the tenant that created the client and has full access to it.
+          description: Tenant ID of the Client owner
           type: string
           format: uuid
         name:

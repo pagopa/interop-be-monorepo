@@ -16,7 +16,7 @@ export function toGetClientsApiQueryParams(
   };
 }
 
-export function toM2MGatewayApiFullClient(
+export function toM2MGatewayApiConsumerFullClient(
   client: authorizationApi.FullClient
 ): m2mGatewayApi.FullClient {
   assertClientKindIs(client, authorizationApi.ClientKind.Values.CONSUMER);
@@ -30,7 +30,7 @@ export function toM2MGatewayApiFullClient(
   };
 }
 
-export function toM2MGatewayApiClient(
+export function toM2MGatewayApiConsumerClient(
   client: authorizationApi.Client
 ): m2mGatewayApi.Client {
   assertClientKindIs(client, authorizationApi.ClientKind.Values.CONSUMER);
@@ -50,7 +50,7 @@ export function toM2MGatewayApiClient(
       {
         visibility: authorizationApi.Visibility.Values.FULL,
       },
-      (client) => toM2MGatewayApiFullClient(client)
+      (client) => toM2MGatewayApiConsumerFullClient(client)
     )
     .exhaustive();
 }
