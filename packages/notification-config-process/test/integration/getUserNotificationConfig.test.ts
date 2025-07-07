@@ -9,7 +9,7 @@ import {
   UserId,
   UserNotificationConfig,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import {
   addOneUserNotificationConfig,
   notificationConfigService,
@@ -25,8 +25,13 @@ describe("getUserNotificationConfig", () => {
     tenantId,
   };
 
-  it("should get the user's notification config", async () => {
+  beforeAll(async () => {
     await addOneUserNotificationConfig(userNotificationConfig);
+    // Extra config to check that the correct one is returned
+    await addOneUserNotificationConfig(getMockUserNotificationConfig());
+  });
+
+  it("should get the user's notification config", async () => {
     const result = await notificationConfigService.getUserNotificationConfig(
       getMockContext({
         authData: getMockAuthData(tenantId, userId),

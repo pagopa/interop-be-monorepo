@@ -25,9 +25,11 @@ describe("updateUserNotificationConfig", () => {
   const userId: UserId = generateId();
   const tenantId: TenantId = generateId();
 
-  beforeAll(() => {
+  beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
+    // Extra config to check that the correct one is updated
+    await addOneUserNotificationConfig(getMockUserNotificationConfig());
   });
 
   it("should write on event-store for the first creation of a user's notification configuration", async () => {
