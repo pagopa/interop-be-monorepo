@@ -13,6 +13,11 @@ export type GetAgreementsQueryParams = QueryParametersByAlias<
   "getAgreements"
 >;
 
+export type GetAgreementPurposesQueryParams = QueryParametersByAlias<
+  AgreementApi,
+  "getAgreementPurposes"
+>;
+
 export type GetEServicesQueryParams = QueryParametersByAlias<
   EServiceApi,
   "getEServices"
@@ -51,6 +56,11 @@ export type GetVerifiedAttributesQueryParams = QueryParametersByAlias<
 export type GetConsumerDelegationsQueryParams = QueryParametersByAlias<
   DelegationApi,
   "getConsumerDelegations"
+>;
+
+export type GetProducerDelegationsQueryParams = QueryParametersByAlias<
+  DelegationApi,
+  "getProducerDelegations"
 >;
 
 export type GetEServiceTemplateVersionsQueryParams = QueryParametersByAlias<
