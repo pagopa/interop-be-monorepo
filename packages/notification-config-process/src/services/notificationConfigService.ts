@@ -86,20 +86,20 @@ export function notificationConfigServiceBuilder(
           organizationId
         );
 
-      const [id, version, createdAt, updatedAt]: [
-        TenantNotificationConfigId,
-        number | undefined,
-        Date,
-        Date | undefined
-      ] =
+      const { id, version, createdAt, updatedAt } =
         existingConfig !== undefined
-          ? [
-              existingConfig.data.id,
-              existingConfig.metadata.version,
-              existingConfig.data.createdAt,
-              new Date(),
-            ]
-          : [generateId(), undefined, new Date(), undefined];
+          ? {
+              id: existingConfig.data.id,
+              version: existingConfig.metadata.version,
+              createdAt: existingConfig.data.createdAt,
+              updatedAt: new Date(),
+            }
+          : {
+              id: generateId<TenantNotificationConfigId>(),
+              version: undefined,
+              createdAt: new Date(),
+              updatedAt: undefined,
+            };
 
       const tenantNotificationConfig: TenantNotificationConfig = {
         id,
@@ -137,20 +137,20 @@ export function notificationConfigServiceBuilder(
           organizationId
         );
 
-      const [id, version, createdAt, updatedAt]: [
-        UserNotificationConfigId,
-        number | undefined,
-        Date,
-        Date | undefined
-      ] =
+      const { id, version, createdAt, updatedAt } =
         existingConfig !== undefined
-          ? [
-              existingConfig.data.id,
-              existingConfig.metadata.version,
-              existingConfig.data.createdAt,
-              new Date(),
-            ]
-          : [generateId(), undefined, new Date(), undefined];
+          ? {
+              id: existingConfig.data.id,
+              version: existingConfig.metadata.version,
+              createdAt: existingConfig.data.createdAt,
+              updatedAt: new Date(),
+            }
+          : {
+              id: generateId<UserNotificationConfigId>(),
+              version: undefined,
+              createdAt: new Date(),
+              updatedAt: undefined,
+            };
 
       const userNotificationConfig: UserNotificationConfig = {
         id,
