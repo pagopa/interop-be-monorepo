@@ -714,20 +714,17 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE]);
 
-          const { data: tenant, metadata } =
-            await tenantService.verifyVerifiedAttribute(
-              {
-                tenantId: unsafeBrandId(req.params.tenantId),
-                attributeId: unsafeBrandId(req.body.id),
-                agreementId: unsafeBrandId(req.body.agreementId),
-                expirationDate: req.body.expirationDate,
-              },
-              ctx
-            );
-
-          setMetadataVersionHeader(res, metadata);
+          const tenant = await tenantService.verifyVerifiedAttribute(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              attributeId: unsafeBrandId(req.body.id),
+              agreementId: unsafeBrandId(req.body.agreementId),
+              expirationDate: req.body.expirationDate,
+            },
+            ctx
+          );
 
           return res
             .status(200)
@@ -748,19 +745,17 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE]);
 
-          const { data: tenant, metadata } =
-            await tenantService.revokeVerifiedAttribute(
-              {
-                tenantId: unsafeBrandId(req.params.tenantId),
-                attributeId: unsafeBrandId(req.params.attributeId),
-                agreementId: unsafeBrandId(req.body.agreementId),
-              },
-              ctx
-            );
+          const tenant = await tenantService.revokeVerifiedAttribute(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              attributeId: unsafeBrandId(req.params.attributeId),
+              agreementId: unsafeBrandId(req.body.agreementId),
+            },
+            ctx
+          );
 
-          setMetadataVersionHeader(res, metadata);
           return res
             .status(200)
             .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
