@@ -21,7 +21,6 @@ import {
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
-  eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
@@ -278,7 +277,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         .select({
           eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
           version: eserviceTemplateVersionInReadmodelEserviceTemplate,
-          document: eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          document: sql<null>`NULL`,
           interface: sql<null>`NULL`,
           riskAnalysis: sql<null>`NULL`,
           riskAnalysisAnswer: sql<null>`NULL`,
@@ -294,13 +293,6 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
             eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .leftJoin(
-          eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
           )
         )
         .where(
