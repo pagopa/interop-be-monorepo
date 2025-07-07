@@ -21,12 +21,8 @@ import {
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-  eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
-  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
@@ -281,18 +277,12 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       const queryResult = await readModelDB
         .select({
           eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
-          eserviceTemplateVersion:
-            eserviceTemplateVersionInReadmodelEserviceTemplate,
-          eserviceTemplateVersionDocument:
-            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          eserviceTemplateInterface:
-            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          eserviceTemplateRiskAnalysis:
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-          eserviceTemplateRiskAnalysisAnswer:
-            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-          eserviceTemplateVersionAttribute:
-            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
+          version: eserviceTemplateVersionInReadmodelEserviceTemplate,
+          document: eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
+          interface: sql<null>`NULL`,
+          riskAnalysis: sql<null>`NULL`,
+          riskAnalysisAnswer: sql<null>`NULL`,
+          attribute: sql<null>`NULL`,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .innerJoin(
