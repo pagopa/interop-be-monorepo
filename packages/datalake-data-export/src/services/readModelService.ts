@@ -2,7 +2,9 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
 import {
   AgreementState,
+  DelegationState,
   DescriptorState,
+  EServiceTemplateVersionState,
   PurposeVersionState,
 } from "pagopa-interop-models";
 import {
@@ -10,12 +12,21 @@ import {
   ExportedEService,
   ExportedPurpose,
   ExportedTenant,
+  ExportedDelegation,
+  ExportedEServiceTemplate,
 } from "../config/models/models.js";
 
 export function readModelServiceBuilder(
   readModelRepository: ReadModelRepository
 ) {
-  const { eservices, purposes, tenants, agreements } = readModelRepository;
+  const {
+    eservices,
+    purposes,
+    tenants,
+    agreements,
+    delegations,
+    eserviceTemplates,
+  } = readModelRepository;
 
   return {
     async getTenants(): Promise<ExportedTenant[]> {
@@ -93,6 +104,49 @@ export function readModelServiceBuilder(
           ],
         })
         .map(({ data }) => ExportedPurpose.parse(data))
+        .toArray();
+    },
+    async getDelegations(): Promise<ExportedDelegation[]> {
+      return delegations
+        .find({
+          // TODO COSA CONTROLLARE???
+          "data.state": { $ne: "WaitingForApproval" satisfies DelegationState },
+        })
+        .map(({ data }) => ExportedDelegation.parse(data))
+        .toArray();
+    },
+
+    async getEServiceTemplates(): Promise<ExportedEServiceTemplate[]> {
+      return eserviceTemplates
+        .find({
+          $or: [
+            {
+              "data.versions.1": { $exists: true },
+            },
+            {
+              "data.versions": {
+                $size: 1,
+                $elemMatch: {
+                  state: {
+                    $in: [
+                      "Deprecated",
+                      "Published",
+                      "Suspended",
+                    ] satisfies EServiceTemplateVersionState[],
+                  },
+                },
+              },
+            },
+          ],
+        })
+        .map(({ data }) =>
+          ExportedEServiceTemplate.parse({
+            ...data,
+            versions: data.versions.filter(
+              (version) => version.state !== "Draft"
+            ),
+          })
+        )
         .toArray();
     },
   };

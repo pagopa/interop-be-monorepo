@@ -6,6 +6,9 @@ import {
   Purpose,
   PurposeVersion,
   Tenant,
+  Delegation,
+  EServiceTemplate,
+  EServiceTemplateVersion,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -13,7 +16,9 @@ export type ExportedCollection =
   | "tenants"
   | "eservices"
   | "agreements"
-  | "purposes";
+  | "purposes"
+  | "delegations"
+  | "eserviceTemplates";
 
 /**
  * The pick method used to extract the fields from the original type is not
@@ -111,3 +116,44 @@ export const ExportedPurpose = Purpose.pick({
   z.object({ versions: z.array(ExportedPurposeVersion) })
 );
 export type ExportedPurpose = z.infer<typeof ExportedPurpose>;
+
+export const ExportedDelegation = Delegation.pick({
+  id: true,
+  delegateId: true,
+  delegatorId: true,
+  eserviceId: true,
+  createdAt: true,
+  updatedAt: true,
+  state: true,
+  kind: true,
+  stamps: true,
+} satisfies StrictPick<Delegation>);
+export type ExportedDelegation = z.infer<typeof ExportedDelegation>;
+
+const ExportedEServiceTemplateVersion = EServiceTemplateVersion.pick({
+  id: true,
+  version: true,
+  state: true,
+  publishedAt: true,
+  voucherLifespan: true,
+  description: true,
+  dailyCallsPerConsumer: true,
+  dailyCallsTotal: true,
+  interface: true,
+  agreementApprovalPolicy: true,
+});
+
+export const ExportedEServiceTemplate = EServiceTemplate.pick({
+  id: true,
+  creatorId: true,
+  intendedTarget: true,
+  createdAt: true,
+  name: true,
+  description: true,
+  technology: true,
+  mode: true,
+  isSignalHubEnabled: true,
+} satisfies StrictPick<EServiceTemplate>).and(
+  z.object({ versions: z.array(ExportedEServiceTemplateVersion) })
+);
+export type ExportedEServiceTemplate = z.infer<typeof ExportedEServiceTemplate>;
