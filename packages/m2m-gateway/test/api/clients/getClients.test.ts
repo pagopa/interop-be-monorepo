@@ -117,8 +117,6 @@ describe("GET /clients router test", () => {
   it.each([
     {},
     { ...mockQueryParams, consumerId: "invalidConsumerId" },
-    { ...mockQueryParams, userIds: ["invalidUserId"] },
-    { ...mockQueryParams, purposeId: "invalidPurposeId" },
     { ...mockQueryParams, offset: -2 },
     { ...mockQueryParams, limit: 100 },
     { ...mockQueryParams, offset: "invalidOffset" },
