@@ -15,7 +15,7 @@ import {
 export const fromNotificationConfigV2 = (
   input: NotificationConfigV2
 ): NotificationConfig => ({
-  newEServiceVersionPublished: input.newEServiceVersionPublished,
+  ...input,
 });
 
 export const fromTenantNotificationConfigV2 = (
