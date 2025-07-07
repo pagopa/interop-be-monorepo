@@ -3539,7 +3539,7 @@ paths:
       tags:
         - purposes
       summary: Delete Purpose
-      description: Delete Purpose. Only purposes with one version in Draft or WaitingForApproval state can be deleted
+      description: Delete Purpose. Only purposes with one version can be deleted. The version must be in Draft or WaitingForApproval state
       operationId: deletePurpose
       responses:
         "204":
