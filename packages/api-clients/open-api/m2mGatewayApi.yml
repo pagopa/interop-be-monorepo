@@ -4422,7 +4422,7 @@ paths:
       tags:
         - purposes
       summary: Download a Purpose Document
-      description: Download a specific Document for the specified Purpose version
+      description: Download the Document for the specified Purpose version
       operationId: downloadPurposeVersionDocument
       responses:
         "200":
