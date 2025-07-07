@@ -553,9 +553,6 @@ paths:
         required: true
       responses:
         "200":
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           description: Updated Tenant
           content:
             application/json:
@@ -590,9 +587,6 @@ paths:
       description: Revokes a Declared attribute to the requesting Tenant
       responses:
         "200":
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           description: Updated Tenant
           content:
             application/json:
