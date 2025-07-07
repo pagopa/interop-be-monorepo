@@ -36,14 +36,17 @@ describe("updateUserNotificationConfig", () => {
         inAppConfig: getMockNotificationConfig(),
         emailConfig: getMockNotificationConfig(),
       };
-    const { id } = await notificationConfigService.updateUserNotificationConfig(
-      userNotificationConfigSeed,
-      getMockContext({
-        authData: getMockAuthData(tenantId, userId),
-      })
+    const serviceReturnValue =
+      await notificationConfigService.updateUserNotificationConfig(
+        userNotificationConfigSeed,
+        getMockContext({
+          authData: getMockAuthData(tenantId, userId),
+        })
+      );
+    const writtenEvent = await readLastNotificationConfigEvent(
+      serviceReturnValue.id
     );
-    const writtenEvent = await readLastNotificationConfigEvent(id);
-    expect(writtenEvent.stream_id).toBe(id);
+    expect(writtenEvent.stream_id).toBe(serviceReturnValue.id);
     expect(writtenEvent.version).toBe("0");
     expect(writtenEvent.type).toBe("UserNotificationConfigUpdated");
     expect(writtenEvent.event_version).toBe(2);
@@ -51,15 +54,16 @@ describe("updateUserNotificationConfig", () => {
       messageType: UserNotificationConfigUpdatedV2,
       payload: writtenEvent.data,
     });
-    const expectedUserNotificationConfig = toUserNotificationConfigV2({
-      id,
+    const expectedUserNotificationConfig = {
+      id: serviceReturnValue.id,
       userId,
       tenantId,
       ...userNotificationConfigSeed,
       createdAt: new Date(),
-    });
+    };
+    expect(serviceReturnValue).toEqual(expectedUserNotificationConfig);
     expect(writtenPayload.userNotificationConfig).toEqual(
-      expectedUserNotificationConfig
+      toUserNotificationConfigV2(expectedUserNotificationConfig)
     );
   });
 
@@ -78,14 +82,17 @@ describe("updateUserNotificationConfig", () => {
         },
         emailConfig: getMockNotificationConfig(),
       };
-    const { id } = await notificationConfigService.updateUserNotificationConfig(
-      userNotificationConfigSeed,
-      getMockContext({
-        authData: getMockAuthData(tenantId, userId),
-      })
+    const serviceReturnValue =
+      await notificationConfigService.updateUserNotificationConfig(
+        userNotificationConfigSeed,
+        getMockContext({
+          authData: getMockAuthData(tenantId, userId),
+        })
+      );
+    const writtenEvent = await readLastNotificationConfigEvent(
+      serviceReturnValue.id
     );
-    const writtenEvent = await readLastNotificationConfigEvent(id);
-    expect(writtenEvent.stream_id).toBe(id);
+    expect(writtenEvent.stream_id).toBe(serviceReturnValue.id);
     expect(writtenEvent.version).toBe("1");
     expect(writtenEvent.type).toBe("UserNotificationConfigUpdated");
     expect(writtenEvent.event_version).toBe(2);
@@ -93,16 +100,17 @@ describe("updateUserNotificationConfig", () => {
       messageType: UserNotificationConfigUpdatedV2,
       payload: writtenEvent.data,
     });
-    const expectedUserNotificationConfig = toUserNotificationConfigV2({
-      id,
+    const expectedUserNotificationConfig = {
+      id: serviceReturnValue.id,
       userId,
       tenantId,
       ...userNotificationConfigSeed,
       createdAt: userNotificationConfig.createdAt,
       updatedAt: new Date(),
-    });
+    };
+    expect(serviceReturnValue).toEqual(expectedUserNotificationConfig);
     expect(writtenPayload.userNotificationConfig).toEqual(
-      expectedUserNotificationConfig
+      toUserNotificationConfigV2(expectedUserNotificationConfig)
     );
   });
 });

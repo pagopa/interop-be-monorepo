@@ -31,15 +31,17 @@ describe("updateTenantNotificationConfig", () => {
   it("should write on event-store for the first creation of a tenant's notification configuration", async () => {
     const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
       getMockNotificationConfig();
-    const { id } =
+    const serviceReturnValue =
       await notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,
         getMockContext({
           authData: getMockAuthData(tenantId),
         })
       );
-    const writtenEvent = await readLastNotificationConfigEvent(id);
-    expect(writtenEvent.stream_id).toBe(id);
+    const writtenEvent = await readLastNotificationConfigEvent(
+      serviceReturnValue.id
+    );
+    expect(writtenEvent.stream_id).toBe(serviceReturnValue.id);
     expect(writtenEvent.version).toBe("0");
     expect(writtenEvent.type).toBe("TenantNotificationConfigUpdated");
     expect(writtenEvent.event_version).toBe(2);
@@ -47,14 +49,15 @@ describe("updateTenantNotificationConfig", () => {
       messageType: TenantNotificationConfigUpdatedV2,
       payload: writtenEvent.data,
     });
-    const expectedTenantNotificationConfig = toTenantNotificationConfigV2({
-      id,
+    const expectedTenantNotificationConfig = {
+      id: serviceReturnValue.id,
       tenantId,
       config: notificationConfigSeed,
       createdAt: new Date(),
-    });
+    };
+    expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
     expect(writtenPayload.tenantNotificationConfig).toEqual(
-      expectedTenantNotificationConfig
+      toTenantNotificationConfigV2(expectedTenantNotificationConfig)
     );
   });
 
@@ -69,15 +72,17 @@ describe("updateTenantNotificationConfig", () => {
         newEServiceVersionPublished:
           !tenantNotificationConfig.config.newEServiceVersionPublished,
       };
-    const { id } =
+    const serviceReturnValue =
       await notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,
         getMockContext({
           authData: getMockAuthData(tenantId),
         })
       );
-    const writtenEvent = await readLastNotificationConfigEvent(id);
-    expect(writtenEvent.stream_id).toBe(id);
+    const writtenEvent = await readLastNotificationConfigEvent(
+      serviceReturnValue.id
+    );
+    expect(writtenEvent.stream_id).toBe(serviceReturnValue.id);
     expect(writtenEvent.version).toBe("1");
     expect(writtenEvent.type).toBe("TenantNotificationConfigUpdated");
     expect(writtenEvent.event_version).toBe(2);
@@ -85,15 +90,16 @@ describe("updateTenantNotificationConfig", () => {
       messageType: TenantNotificationConfigUpdatedV2,
       payload: writtenEvent.data,
     });
-    const expectedTenantNotificationConfig = toTenantNotificationConfigV2({
-      id,
+    const expectedTenantNotificationConfig = {
+      id: serviceReturnValue.id,
       tenantId,
       config: notificationConfigSeed,
       createdAt: tenantNotificationConfig.createdAt,
       updatedAt: new Date(),
-    });
+    };
+    expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
     expect(writtenPayload.tenantNotificationConfig).toEqual(
-      expectedTenantNotificationConfig
+      toTenantNotificationConfigV2(expectedTenantNotificationConfig)
     );
   });
 });
