@@ -1,4 +1,5 @@
 import { unsafeBrandId } from "../brandedIds.js";
+import { genericError } from "../errors.js";
 import {
   NotificationConfigV2,
   TenantNotificationConfigV2,
@@ -11,43 +12,53 @@ import {
   UserNotificationConfig,
 } from "./notificationConfig.js";
 
-export const defaultNotificationConfig: NotificationConfig = {
-  newEServiceVersionPublished: false,
-};
-
 export const fromNotificationConfigV2 = (
   input: NotificationConfigV2
 ): NotificationConfig => ({
-  newEServiceVersionPublished: input.newEServiceVersionPublished,
+  ...input,
 });
 
 export const fromTenantNotificationConfigV2 = (
   input: TenantNotificationConfigV2
-): TenantNotificationConfig => ({
-  id: unsafeBrandId(input.id),
-  tenantId: unsafeBrandId(input.tenantId),
-  config:
-    input.config != null
-      ? fromNotificationConfigV2(input.config)
-      : defaultNotificationConfig,
-  createdAt: bigIntToDate(input.createdAt),
-  updatedAt: bigIntToDate(input.updatedAt),
-});
+): TenantNotificationConfig => {
+  if (!input.config) {
+    throw genericError(
+      `Error while deserializing TenantNotificationConfigV2 (${input.id}): missing config`
+    );
+  }
+
+  return {
+    ...input,
+    id: unsafeBrandId(input.id),
+    tenantId: unsafeBrandId(input.tenantId),
+    config: fromNotificationConfigV2(input.config),
+    createdAt: bigIntToDate(input.createdAt),
+    updatedAt: bigIntToDate(input.updatedAt),
+  };
+};
 
 export const fromUserNotificationConfigV2 = (
   input: UserNotificationConfigV2
-): UserNotificationConfig => ({
-  id: unsafeBrandId(input.id),
-  userId: unsafeBrandId(input.userId),
-  tenantId: unsafeBrandId(input.tenantId),
-  inAppConfig:
-    input.inAppConfig != null
-      ? fromNotificationConfigV2(input.inAppConfig)
-      : defaultNotificationConfig,
-  emailConfig:
-    input.emailConfig != null
-      ? fromNotificationConfigV2(input.emailConfig)
-      : defaultNotificationConfig,
-  createdAt: bigIntToDate(input.createdAt),
-  updatedAt: bigIntToDate(input.updatedAt),
-});
+): UserNotificationConfig => {
+  if (!input.inAppConfig) {
+    throw genericError(
+      `Error while deserializing UserNotificationConfigV2 (${input.id}): missing inAppConfig`
+    );
+  }
+  if (!input.emailConfig) {
+    throw genericError(
+      `Error while deserializing UserNotificationConfigV2 (${input.id}): missing emailConfig`
+    );
+  }
+
+  return {
+    ...input,
+    id: unsafeBrandId(input.id),
+    userId: unsafeBrandId(input.userId),
+    tenantId: unsafeBrandId(input.tenantId),
+    inAppConfig: fromNotificationConfigV2(input.inAppConfig),
+    emailConfig: fromNotificationConfigV2(input.emailConfig),
+    createdAt: bigIntToDate(input.createdAt),
+    updatedAt: bigIntToDate(input.updatedAt),
+  };
+};
