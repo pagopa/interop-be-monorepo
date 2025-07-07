@@ -1,6 +1,10 @@
 import { FileManager, WithLogger } from "pagopa-interop-commons";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { AgreementId, generateId } from "pagopa-interop-models";
+import {
+  AgreementDocumentId,
+  AgreementId,
+  generateId,
+} from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
@@ -15,10 +19,13 @@ import {
 } from "../utils/validators/agreementValidators.js";
 import {
   toGetAgreementsApiQueryParams,
+  toGetPurposesApiQueryParamsForAgreement,
   toM2MGatewayApiAgreement,
   toM2MGatewayApiDocument,
 } from "../api/agreementApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { config } from "../config/config.js";
+import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -106,6 +113,37 @@ export function agreementServiceBuilder(
       );
 
       return toM2MGatewayApiAgreement(agreement);
+    },
+    async getAgreementPurposes(
+      agreementId: AgreementId,
+      { limit, offset }: m2mGatewayApi.GetAgreementPurposesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purposes> {
+      logger.info(`Retrieving purposes for agreement ${agreementId}`);
+
+      const { data: agreement } = await retrieveAgreementById(
+        headers,
+        agreementId
+      );
+
+      const {
+        data: { results, totalCount },
+      } = await clients.purposeProcessClient.getPurposes({
+        queries: toGetPurposesApiQueryParamsForAgreement(agreement, {
+          limit,
+          offset,
+        }),
+        headers,
+      });
+
+      return {
+        results: results.map(toM2MGatewayApiPurpose),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
     },
     async createAgreement(
       seed: agreementApi.AgreementPayload,
@@ -245,7 +283,7 @@ export function agreementServiceBuilder(
       return toM2MGatewayApiAgreement(polledResource.data);
     },
 
-    async addAgreementConsumerDocument(
+    async uploadAgreementConsumerDocument(
       agreementId: AgreementId,
       fileUpload: m2mGatewayApi.FileUploadMultipart,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -286,6 +324,28 @@ export function agreementServiceBuilder(
       await pollAgreementById(agreementId, metadata, headers);
 
       return toM2MGatewayApiDocument(document);
+    },
+    async downloadAgreementConsumerDocument(
+      agreementId: AgreementId,
+      documentId: AgreementDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving consumer document with id ${documentId} for agreement with id ${agreementId}`
+      );
+
+      const { data: document } =
+        await clients.agreementProcessClient.getAgreementConsumerDocument({
+          params: { agreementId, documentId },
+          headers,
+        });
+
+      return downloadDocument(
+        document,
+        fileManager,
+        config.agreementConsumerDocumentsContainer,
+        logger
+      );
     },
   };
 }

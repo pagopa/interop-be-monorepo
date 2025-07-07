@@ -156,7 +156,12 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+            M2M_ROLE,
+          ]);
 
           const document = await agreementService.getAgreementConsumerDocument(
             unsafeBrandId(req.params.agreementId),
