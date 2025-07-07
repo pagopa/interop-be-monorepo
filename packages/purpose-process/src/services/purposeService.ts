@@ -1499,15 +1499,6 @@ const getOrganizationRole = async ({
   }
 
   try {
-    assertRequesterCanActAsProducer(
-      { id: purpose.eserviceId, producerId },
-      authData,
-      await readModelService.getActiveProducerDelegationByEserviceId(
-        purpose.eserviceId
-      )
-    );
-    return ownership.PRODUCER;
-  } catch {
     try {
       assertRequesterCanActAsConsumer(
         purpose,
@@ -1518,6 +1509,15 @@ const getOrganizationRole = async ({
     } catch {
       throw tenantNotAllowed(authData.organizationId);
     }
+  } catch {
+    assertRequesterCanActAsProducer(
+      { id: purpose.eserviceId, producerId },
+      authData,
+      await readModelService.getActiveProducerDelegationByEserviceId(
+        purpose.eserviceId
+      )
+    );
+    return ownership.PRODUCER;
   }
 };
 
