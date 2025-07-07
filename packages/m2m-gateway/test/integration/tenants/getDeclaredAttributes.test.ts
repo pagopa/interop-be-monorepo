@@ -57,6 +57,7 @@ describe("getDeclaredAttributes", () => {
     id: attribute.id,
     assignedAt: attribute.assignmentTimestamp,
     revokedAt: attribute.revocationTimestamp,
+    delegationId: attribute.delegationId,
   });
 
   const m2mDeclaredAttributeResponse1 = testToM2MGatewayApiDeclaredAttribute(
