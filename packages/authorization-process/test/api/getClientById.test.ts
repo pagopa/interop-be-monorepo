@@ -10,10 +10,7 @@ import {
 } from "pagopa-interop-commons-test/index.js";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import {
-  clientNotFound,
-  tenantNotAllowedOnClient,
-} from "../../src/model/domain/errors.js";
+import { clientNotFound } from "../../src/model/domain/errors.js";
 import { testToCompactClient, testToFullClient } from "../apiUtils.js";
 
 describe("API /clients/{clientId} authorization test", () => {
