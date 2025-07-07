@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
 import {
   Tenant,
-  attributeKind,
   generateId,
   tenantAttributeType,
   tenantKind,
@@ -25,13 +24,7 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API DELETE /m2m/origin/{origin}/externalId/{externalId}/attributes/{code} test", () => {
-  const certifierId = generateId();
-  const mockAttribute = {
-    ...getMockAttribute(),
-    kind: attributeKind.certified,
-    origin: certifierId,
-    code: generateId(),
-  };
+  const mockAttribute = { ...getMockAttribute(), code: generateId() };
   const targetTenant: Tenant = {
     ...getMockTenant(),
     kind: tenantKind.PA,

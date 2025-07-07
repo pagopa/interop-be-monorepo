@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import {
-  attributeKind,
-  tenantAttributeType,
-  tenantKind,
-} from "pagopa-interop-models";
+import { tenantAttributeType, tenantKind } from "pagopa-interop-models";
 import {
   generateId,
   Tenant,
@@ -52,7 +48,6 @@ describe("revokeCertifiedAttributeById", async () => {
 
   const attribute: Attribute = {
     ...getMockAttribute(),
-    kind: attributeKind.certified,
     origin: getTenantOneCertifierFeature(requesterTenant).certifierId,
   };
 

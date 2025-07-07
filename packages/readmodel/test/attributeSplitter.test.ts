@@ -8,8 +8,8 @@ describe("Attribute Splitter", () => {
   it("should convert an Attribute into an AttributeSQL", () => {
     const mockAttribute: Attribute = {
       ...getMockAttribute(),
-      origin: "alfa",
       code: "beta",
+      origin: "alfa",
     };
     const attributeSQL = splitAttributeIntoObjectsSQL(mockAttribute, 1);
     const expectedAttributeSQL: AttributeSQL = {

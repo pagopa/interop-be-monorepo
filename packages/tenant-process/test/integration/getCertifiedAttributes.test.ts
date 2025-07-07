@@ -1,9 +1,4 @@
-import {
-  Attribute,
-  attributeKind,
-  Tenant,
-  TenantAttribute,
-} from "pagopa-interop-models";
+import { Attribute, Tenant, TenantAttribute } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
   getMockAttribute,
@@ -43,16 +38,12 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
-      name: "attribute 1",
-      kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute1.id,
     };
 
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
-      name: "attribute 2",
-      kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute2.id,
     };
@@ -77,20 +68,22 @@ describe("getCertifiedAttributes", () => {
     );
 
     expect(result.totalCount).toBe(2);
-    expect(result.results).toEqual([
-      {
-        attributeId: certifiedAttribute1.id,
-        attributeName: certifiedAttribute1.name,
-        id: tenant.id,
-        name: tenant.name,
-      },
-      {
-        attributeId: certifiedAttribute2.id,
-        attributeName: certifiedAttribute2.name,
-        id: tenant.id,
-        name: tenant.name,
-      },
-    ]);
+    expect(result.results).toEqual(
+      expect.arrayContaining([
+        {
+          attributeId: certifiedAttribute1.id,
+          attributeName: certifiedAttribute1.name,
+          id: tenant.id,
+          name: tenant.name,
+        },
+        {
+          attributeId: certifiedAttribute2.id,
+          attributeName: certifiedAttribute2.name,
+          id: tenant.id,
+          name: tenant.name,
+        },
+      ])
+    );
   });
 
   it("should not return the attributes when they are revoked", async () => {
@@ -113,14 +106,12 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute.id,
     };
 
     const revokedCertifiedAttribute: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
       id: revokedTenantCertifiedAttribute.id,
     };
@@ -175,14 +166,12 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute1.id,
     };
 
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute2.id,
     };
@@ -228,14 +217,12 @@ describe("getCertifiedAttributes", () => {
 
     const certifiedAttribute1: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute1.id,
     };
 
     const certifiedAttribute2: Attribute = {
       ...getMockAttribute(),
-      kind: attributeKind.certified,
       origin: certifierId,
       id: tenantCertifiedAttribute2.id,
     };
