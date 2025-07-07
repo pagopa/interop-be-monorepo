@@ -32,6 +32,8 @@ describe("updatePurpose", () => {
     description: mockPurposeProcessGetResponse.data.description,
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
     title: mockPurposeProcessGetResponse.data.title,
+    freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
+    riskAnalysisForm: mockPurposeProcessGetResponse.data.riskAnalysisForm,
   };
 
   const mockUpdatePurpose = vi

@@ -400,15 +400,12 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Purpose> {
       logger.info(`Updating purpose ${purposeId}`);
 
-      const { metadata } = await clients.purposeProcessClient.updatePurpose(
-        body,
-        {
-          params: { id: purposeId },
-          headers,
-        }
-      );
+      const res = await clients.purposeProcessClient.updatePurpose(body, {
+        params: { id: purposeId },
+        headers,
+      });
 
-      const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
+      const polledPurpose = await pollPurpose(res, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
     },
   };

@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiPurpose,
+  getMockedRiskAnalysisFormSeed,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -21,6 +22,7 @@ describe("PATCH /purposes/:purposeId router test", () => {
     isFreeOfCharge: mockPurpose.isFreeOfCharge,
     freeOfChargeReason: mockPurpose.freeOfChargeReason,
     title: mockPurpose.title,
+    riskAnalysisForm: getMockedRiskAnalysisFormSeed(),
   };
 
   const mockM2MPurpose: m2mGatewayApi.Purpose =

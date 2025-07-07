@@ -365,3 +365,15 @@ export function getMockedApiEserviceDoc({
     contacts: generateMock(catalogApi.DescriptorInterfaceContacts),
   };
 }
+
+export function getMockedRiskAnalysisFormSeed(): purposeApi.RiskAnalysisFormSeed {
+  return {
+    version: "2.0",
+    answers: {
+      purpose: ["INSTITUTIONAL"],
+      institutionalPurpose: ["test answer"],
+      usesPersonalData: ["NO"],
+      usesThirdPartyPersonalData: ["NO"],
+    },
+  };
+}
