@@ -3388,7 +3388,11 @@ paths:
           explode: false
         - in: query
           name: states
-          description: Filter Purposes by states. If not specified, return Purposes for any state
+          description: >
+            Filter Purposes by states. If not specified, return Purposes for any state.
+            If "ARCHIVED" is included in the filter, only Purposes where all
+            their versions are in the "ARCHIVED" state will be returned,
+            excluding those that have versions in other states.
           schema:
             type: array
             items:
