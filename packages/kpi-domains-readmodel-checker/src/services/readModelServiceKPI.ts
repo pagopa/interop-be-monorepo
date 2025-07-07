@@ -1,14 +1,10 @@
-import { eq } from "drizzle-orm";
-import { ascLower } from "pagopa-interop-commons";
 import {
   Agreement,
   Attribute,
   Client,
-  ClientJWKKey,
   Delegation,
   EService,
   EServiceTemplate,
-  ProducerJWKKey,
   ProducerKeychain,
   Purpose,
   Tenant,
@@ -17,269 +13,192 @@ import {
 import {
   aggregateAttributeArray,
   aggregateEserviceArray,
-  toEServiceAggregatorArray,
   aggregateTenantArray,
-  toPurposeAggregatorArray,
   aggregatePurposeArray,
   aggregateAgreementArray,
-  toAgreementAggregatorArray,
   aggregateClientArray,
-  toClientAggregatorArray,
-  aggregateClientJWKKeyArray,
   aggregateProducerKeychainArray,
-  toProducerKeychainAggregatorArray,
-  aggregateProducerJWKKeyArray,
   aggregateDelegationsArray,
-  toDelegationAggregatorArray,
   aggregateEServiceTemplateArray,
-  toEServiceTemplateAggregatorArray,
 } from "pagopa-interop-readmodel";
+import { z } from "zod";
+import { IConnected, IMain } from "pg-promise";
+import { IClient } from "pg-promise/typescript/pg-subset.js";
+import camelcaseKeys from "camelcase-keys";
+import { config } from "../configs/config.js";
+import { TenantDbTable } from "../model/db/tenant.js";
+import { AgreementDbTable } from "../model/db/agreement.js";
+import { AttributeDbTable } from "../model/db/attribute.js";
 import {
-  agreementAttributeInReadmodelAgreement,
-  agreementConsumerDocumentInReadmodelAgreement,
-  agreementContractInReadmodelAgreement,
-  agreementInReadmodelAgreement,
-  agreementStampInReadmodelAgreement,
-  attributeInReadmodelAttribute,
-  clientInReadmodelClient,
-  clientJwkKeyInReadmodelClientJwkKey,
-  clientKeyInReadmodelClient,
-  clientPurposeInReadmodelClient,
-  clientUserInReadmodelClient,
-  delegationContractDocumentInReadmodelDelegation,
-  delegationInReadmodelDelegation,
-  delegationStampInReadmodelDelegation,
-  DrizzleReturnType,
-  eserviceDescriptorAttributeInReadmodelCatalog,
-  eserviceDescriptorDocumentInReadmodelCatalog,
-  eserviceDescriptorInReadmodelCatalog,
-  eserviceDescriptorInterfaceInReadmodelCatalog,
-  eserviceDescriptorRejectionReasonInReadmodelCatalog,
-  eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-  eserviceInReadmodelCatalog,
-  eserviceRiskAnalysisAnswerInReadmodelCatalog,
-  eserviceRiskAnalysisInReadmodelCatalog,
-  eserviceTemplateInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-  eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-  eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-  eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-  eserviceTemplateVersionInReadmodelEserviceTemplate,
-  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-  producerJwkKeyInReadmodelProducerJwkKey,
-  producerKeychainEserviceInReadmodelProducerKeychain,
-  producerKeychainInReadmodelProducerKeychain,
-  producerKeychainKeyInReadmodelProducerKeychain,
-  producerKeychainUserInReadmodelProducerKeychain,
-  purposeInReadmodelPurpose,
-  purposeRiskAnalysisAnswerInReadmodelPurpose,
-  purposeRiskAnalysisFormInReadmodelPurpose,
-  purposeVersionDocumentInReadmodelPurpose,
-  purposeVersionInReadmodelPurpose,
-  tenantCertifiedAttributeInReadmodelTenant,
-  TenantCertifiedAttributeSQL,
-  tenantDeclaredAttributeInReadmodelTenant,
-  TenantDeclaredAttributeSQL,
-  tenantFeatureInReadmodelTenant,
-  TenantFeatureSQL,
-  tenantInReadmodelTenant,
-  tenantMailInReadmodelTenant,
-  TenantMailSQL,
-  TenantSQL,
-  tenantVerifiedAttributeInReadmodelTenant,
-  tenantVerifiedAttributeRevokerInReadmodelTenant,
-  TenantVerifiedAttributeRevokerSQL,
-  TenantVerifiedAttributeSQL,
-  tenantVerifiedAttributeVerifierInReadmodelTenant,
-  TenantVerifiedAttributeVerifierSQL,
-} from "pagopa-interop-readmodel-models";
+  ClientDbTable,
+  ProducerKeychainDbTable,
+} from "../model/db/authorization.js";
+import { CatalogDbTable } from "../model/db/catalog.js";
+import { DelegationDbTable } from "../model/db/delegation.js";
+import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
+import { PurposeDbTable } from "../model/db/purpose.js";
+import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
+
+export type DBConnection = IConnected<unknown, IClient>;
+export type DBContext = {
+  conn: DBConnection;
+  pgp: IMain;
+};
+
+export async function getManyFromDb<T extends DomainDbTable>(
+  db: DBContext,
+  tableName: T
+  // where: Partial<z.infer<DomainDbTableSchemas[T]>>
+): Promise<Array<z.infer<DomainDbTableSchemas[T]>>> {
+  const rows = await db.conn.any(
+    `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE NOT COALESCE(deleted, false)`
+  );
+
+  return rows.map((row) => camelcaseKeys(row));
+}
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilderKPI(readModelDB: DrizzleReturnType) {
+export function readModelServiceBuilderKPI(dbContext: DBContext) {
   return {
     async getAllAttributes(): Promise<Array<WithMetadata<Attribute>>> {
-      const res = await readModelDB
-        .select()
-        .from(attributeInReadmodelAttribute);
+      const res = await getManyFromDb(dbContext, AttributeDbTable.attribute);
 
       return aggregateAttributeArray(res);
     },
 
     async getAllEServices(): Promise<Array<WithMetadata<EService>>> {
-      const queryResult = await readModelDB
-        .select({
-          eservice: eserviceInReadmodelCatalog,
-          descriptor: eserviceDescriptorInReadmodelCatalog,
-          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
-          document: eserviceDescriptorDocumentInReadmodelCatalog,
-          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
-          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
-          riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateVersionRef:
-            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-        })
-        .from(eserviceInReadmodelCatalog)
-        .leftJoin(
-          // 1
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          // 2
-          eserviceDescriptorInterfaceInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          // 3
-          eserviceDescriptorDocumentInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          // 4
-          eserviceDescriptorAttributeInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          // 5
-          eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          // 6
-          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          // 7
-          eserviceRiskAnalysisInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceRiskAnalysisInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          // 8
-          eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          eq(
-            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-          )
-        );
+      const eservicesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice
+      );
+      const descriptorsSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor
+      );
+      const interfacesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_interface
+      );
+      const documentsSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_document
+      );
+      const attributesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_attribute
+      );
+      const rejectionReasonsSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_rejection_reason
+      );
+      const riskAnalysesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_risk_analysis
+      );
+      const riskAnalysisAnswersSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_risk_analysis_answer
+      );
+      const templateVersionRefsSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_template_version_ref
+      );
 
-      return aggregateEserviceArray(toEServiceAggregatorArray(queryResult));
+      return aggregateEserviceArray({
+        eservicesSQL,
+        descriptorsSQL: descriptorsSQL.map((d) => ({
+          ...d,
+          audience: JSON.parse(d.audience),
+          serverUrls: JSON.parse(d.serverUrls),
+        })),
+        interfacesSQL,
+        documentsSQL,
+        attributesSQL,
+        rejectionReasonsSQL,
+        riskAnalysesSQL,
+        riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.map((ra) => ({
+          ...ra,
+          value: JSON.parse(ra.value),
+        })),
+        templateVersionRefsSQL,
+      });
     },
 
     async getAllEServiceTemplates(): Promise<
       Array<WithMetadata<EServiceTemplate>>
     > {
-      const queryResult = await readModelDB
-        .select({
-          eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
-          version: eserviceTemplateVersionInReadmodelEserviceTemplate,
-          interface:
-            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          document: eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          attribute:
-            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-          riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-          riskAnalysisAnswer:
-            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-        })
-        .from(eserviceTemplateInReadmodelEserviceTemplate)
-        .leftJoin(
-          // 1
-          eserviceTemplateVersionInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .leftJoin(
-          // 2
-          eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          // 3
-          eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          // 4
-          eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
-            eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId
-          )
-        )
-        .leftJoin(
-          // 5
-          eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateInReadmodelEserviceTemplate.id,
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId
-          )
-        )
-        .leftJoin(
-          // 6
-          eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
-          eq(
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
-            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
-          )
-        );
-
-      return aggregateEServiceTemplateArray(
-        toEServiceTemplateAggregatorArray(queryResult)
+      const eserviceTemplatesSQL = await getManyFromDb(
+        dbContext,
+        EserviceTemplateDbTable.eservice_template
       );
+      const riskAnalysesSQL = await getManyFromDb(
+        dbContext,
+        EserviceTemplateDbTable.eservice_template_risk_analysis
+      );
+      const riskAnalysisAnswersSQL = await getManyFromDb(
+        dbContext,
+        EserviceTemplateDbTable.eservice_template_risk_analysis_answer
+      );
+      const versionsSQL = await getManyFromDb(
+        dbContext,
+        EserviceTemplateDbTable.eservice_template_version
+      );
+      const attributesSQL = await getManyFromDb(
+        dbContext,
+        EserviceTemplateDbTable.eservice_template_version_attribute
+      );
+      const interfacesSQL = await getManyFromDb(
+        dbContext,
+        EserviceTemplateDbTable.eservice_template_version_interface
+      );
+      const documentsSQL = await getManyFromDb(
+        dbContext,
+        EserviceTemplateDbTable.eservice_template_version_document
+      );
+      return aggregateEServiceTemplateArray({
+        eserviceTemplatesSQL,
+        riskAnalysesSQL,
+        riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.map((ra) => ({
+          ...ra,
+          value: JSON.parse(ra.value),
+        })),
+        versionsSQL,
+        attributesSQL,
+        interfacesSQL,
+        documentsSQL,
+      });
     },
 
     async getAllTenants(): Promise<Array<WithMetadata<Tenant>>> {
-      const [
-        tenantsSQL,
-        mailsSQL,
-        certifiedAttributesSQL,
-        declaredAttributesSQL,
-        verifiedAttributesSQL,
-        verifiedAttributeVerifiersSQL,
-        verifiedAttributeRevokersSQL,
-        featuresSQL,
-      ] = await Promise.all([
-        readTenantsSQL(readModelDB),
-        readTenantMailsSQL(readModelDB),
-        readTenantCertifiedAttributesSQL(readModelDB),
-        readTenantDeclaredAttributesSQL(readModelDB),
-        readTenantVerifiedAttributesSQL(readModelDB),
-        readTenantVerifiedAttributeVerifiersSQL(readModelDB),
-        readTenantVerifiedAttributeRevokersSQL(readModelDB),
-        readTenantFeaturesSQL(readModelDB),
-      ]);
-
+      const tenantsSQL = await getManyFromDb(dbContext, TenantDbTable.tenant);
+      const mailsSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_mail
+      );
+      const certifiedAttributesSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_certified_attribute
+      );
+      const declaredAttributesSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_declared_attribute
+      );
+      const verifiedAttributesSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_verified_attribute
+      );
+      const verifiedAttributeVerifiersSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_verified_attribute_verifier
+      );
+      const verifiedAttributeRevokersSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_verified_attribute_revoker
+      );
+      const featuresSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_feature
+      );
       return aggregateTenantArray({
         tenantsSQL,
         mailsSQL,
@@ -293,270 +212,137 @@ export function readModelServiceBuilderKPI(readModelDB: DrizzleReturnType) {
     },
 
     async getAllPurposes(): Promise<Array<WithMetadata<Purpose>>> {
-      const queryResult = await readModelDB
-        .select({
-          purpose: purposeInReadmodelPurpose,
-          purposeRiskAnalysisForm: purposeRiskAnalysisFormInReadmodelPurpose,
-          purposeRiskAnalysisAnswer:
-            purposeRiskAnalysisAnswerInReadmodelPurpose,
-          purposeVersion: purposeVersionInReadmodelPurpose,
-          purposeVersionDocument: purposeVersionDocumentInReadmodelPurpose,
-        })
-        .from(purposeInReadmodelPurpose)
-        .leftJoin(
-          // 1
-          purposeRiskAnalysisFormInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeRiskAnalysisFormInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          // 2
-          purposeRiskAnalysisAnswerInReadmodelPurpose,
-          eq(
-            purposeRiskAnalysisFormInReadmodelPurpose.id,
-            purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
-          )
-        )
-        .leftJoin(
-          // 3
-          purposeVersionInReadmodelPurpose,
-          eq(
-            purposeInReadmodelPurpose.id,
-            purposeVersionInReadmodelPurpose.purposeId
-          )
-        )
-        .leftJoin(
-          // 4
-          purposeVersionDocumentInReadmodelPurpose,
-          eq(
-            purposeVersionInReadmodelPurpose.id,
-            purposeVersionDocumentInReadmodelPurpose.purposeVersionId
-          )
-        );
+      const purposesSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose
+      );
+      const riskAnalysisFormsSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_form
+      );
+      const riskAnalysisAnswersSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_answer
+      );
+      const versionsSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version
+      );
+      const versionDocumentsSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_version_document
+      );
 
-      return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
+      return aggregatePurposeArray({
+        purposesSQL,
+        riskAnalysisFormsSQL,
+        riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.map((ra) => ({
+          ...ra,
+          value: JSON.parse(ra.value!),
+        })),
+        versionsSQL,
+        versionDocumentsSQL,
+      });
     },
 
     async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {
-      const queryResult = await readModelDB
-        .select({
-          agreement: agreementInReadmodelAgreement,
-          stamp: agreementStampInReadmodelAgreement,
-          attribute: agreementAttributeInReadmodelAgreement,
-          consumerDocument: agreementConsumerDocumentInReadmodelAgreement,
-          contract: agreementContractInReadmodelAgreement,
-        })
-        .from(agreementInReadmodelAgreement)
-        .leftJoin(
-          // 1
-          agreementStampInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementStampInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          // 2
-          agreementAttributeInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementAttributeInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          // 3
-          agreementConsumerDocumentInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementConsumerDocumentInReadmodelAgreement.agreementId
-          )
-        )
-        .leftJoin(
-          // 4
-          agreementContractInReadmodelAgreement,
-          eq(
-            agreementInReadmodelAgreement.id,
-            agreementContractInReadmodelAgreement.agreementId
-          )
-        );
+      const agreementsSQL = await getManyFromDb(
+        dbContext,
+        AgreementDbTable.agreement
+      );
+      const stampsSQL = await getManyFromDb(
+        dbContext,
+        AgreementDbTable.agreement_stamp
+      );
+      const consumerDocumentsSQL = await getManyFromDb(
+        dbContext,
+        AgreementDbTable.agreement_consumer_document
+      );
+      const contractsSQL = await getManyFromDb(
+        dbContext,
+        AgreementDbTable.agreement_contract
+      );
+      const attributesSQL = await getManyFromDb(
+        dbContext,
+        AgreementDbTable.agreement_attribute
+      );
 
-      return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));
+      return aggregateAgreementArray({
+        agreementsSQL,
+        stampsSQL,
+        consumerDocumentsSQL,
+        contractsSQL,
+        attributesSQL,
+      });
     },
 
     async getAllClients(): Promise<Array<WithMetadata<Client>>> {
-      const queryResult = await readModelDB
-        .select({
-          client: clientInReadmodelClient,
-          clientUser: clientUserInReadmodelClient,
-          clientPurpose: clientPurposeInReadmodelClient,
-          clientKey: clientKeyInReadmodelClient,
-        })
-        .from(clientInReadmodelClient)
-        .leftJoin(
-          // 1
-          clientUserInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientUserInReadmodelClient.clientId)
-        )
-        .leftJoin(
-          // 2
-          clientPurposeInReadmodelClient,
-          eq(
-            clientInReadmodelClient.id,
-            clientPurposeInReadmodelClient.clientId
-          )
-        )
-        .leftJoin(
-          // 3
-          clientKeyInReadmodelClient,
-          eq(clientInReadmodelClient.id, clientKeyInReadmodelClient.clientId)
-        );
+      const clientsSQL = await getManyFromDb(dbContext, ClientDbTable.client);
+      const usersSQL = await getManyFromDb(
+        dbContext,
+        ClientDbTable.client_user
+      );
+      const purposesSQL = await getManyFromDb(
+        dbContext,
+        ClientDbTable.client_purpose
+      );
+      const keysSQL = await getManyFromDb(dbContext, ClientDbTable.client_key);
 
-      return aggregateClientArray(toClientAggregatorArray(queryResult));
-    },
-
-    async getAllClientJWKKeys(): Promise<Array<WithMetadata<ClientJWKKey>>> {
-      const queryResult = await readModelDB
-        .select()
-        .from(clientJwkKeyInReadmodelClientJwkKey);
-
-      return aggregateClientJWKKeyArray(queryResult);
+      return aggregateClientArray({
+        clientsSQL,
+        usersSQL,
+        purposesSQL,
+        keysSQL,
+      });
     },
 
     async getAllProducerKeychains(): Promise<
       Array<WithMetadata<ProducerKeychain>>
     > {
-      /*
-        producer_keychain -> 1 producer_keychain_user
-                          -> 2 producer_keychain_eservice
-                          -> 3 producer_keychain_key
-      */
-      const queryResult = await readModelDB
-        .select({
-          producerKeychain: producerKeychainInReadmodelProducerKeychain,
-          producerKeychainUser: producerKeychainUserInReadmodelProducerKeychain,
-          producerKeychainEService:
-            producerKeychainEserviceInReadmodelProducerKeychain,
-          producerKeychainKey: producerKeychainKeyInReadmodelProducerKeychain,
-        })
-        .from(producerKeychainInReadmodelProducerKeychain)
-        .leftJoin(
-          // 1
-          producerKeychainUserInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainUserInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .leftJoin(
-          // 2
-          producerKeychainEserviceInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId
-          )
-        )
-        .leftJoin(
-          // 3
-          producerKeychainKeyInReadmodelProducerKeychain,
-          eq(
-            producerKeychainInReadmodelProducerKeychain.id,
-            producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
-          )
-        );
-
-      return aggregateProducerKeychainArray(
-        toProducerKeychainAggregatorArray(queryResult)
+      const producerKeychainsSQL = await getManyFromDb(
+        dbContext,
+        ProducerKeychainDbTable.producer_keychain
       );
-    },
+      const usersSQL = await getManyFromDb(
+        dbContext,
+        ProducerKeychainDbTable.producer_keychain_user
+      );
+      const eservicesSQL = await getManyFromDb(
+        dbContext,
+        ProducerKeychainDbTable.producer_keychain_eservice
+      );
+      const keysSQL = await getManyFromDb(
+        dbContext,
+        ProducerKeychainDbTable.producer_keychain_key
+      );
 
-    async getAllProducerJWKKeys(): Promise<
-      Array<WithMetadata<ProducerJWKKey>>
-    > {
-      const queryResult = await readModelDB
-        .select()
-        .from(producerJwkKeyInReadmodelProducerJwkKey);
-
-      return aggregateProducerJWKKeyArray(queryResult);
+      return aggregateProducerKeychainArray({
+        producerKeychainsSQL,
+        usersSQL,
+        eservicesSQL,
+        keysSQL,
+      });
     },
 
     async getAllDelegations(): Promise<Array<WithMetadata<Delegation>>> {
-      const queryResult = await readModelDB
-        .select({
-          delegation: delegationInReadmodelDelegation,
-          delegationStamp: delegationStampInReadmodelDelegation,
-          delegationContractDocument:
-            delegationContractDocumentInReadmodelDelegation,
-        })
-        .from(delegationInReadmodelDelegation)
-        .leftJoin(
-          // 1
-          delegationStampInReadmodelDelegation,
-          eq(
-            delegationInReadmodelDelegation.id,
-            delegationStampInReadmodelDelegation.delegationId
-          )
-        )
-        .leftJoin(
-          // 2
-          delegationContractDocumentInReadmodelDelegation,
-          eq(
-            delegationInReadmodelDelegation.id,
-            delegationContractDocumentInReadmodelDelegation.delegationId
-          )
-        );
-
-      return aggregateDelegationsArray(
-        toDelegationAggregatorArray(queryResult)
+      const delegationsSQL = await getManyFromDb(
+        dbContext,
+        DelegationDbTable.delegation
       );
+      const contractDocumentsSQL = await getManyFromDb(
+        dbContext,
+        DelegationDbTable.delegation_contract_document
+      );
+      const stampsSQL = await getManyFromDb(
+        dbContext,
+        DelegationDbTable.delegation_stamp
+      );
+
+      return aggregateDelegationsArray({
+        delegationsSQL,
+        contractDocumentsSQL,
+        stampsSQL,
+      });
     },
   };
 }
-
-const readTenantsSQL = async (
-  readModelDB: DrizzleReturnType
-): Promise<TenantSQL[]> =>
-  await readModelDB
-    .select()
-    .from(tenantInReadmodelTenant)
-    .orderBy(ascLower(tenantInReadmodelTenant.name));
-
-const readTenantMailsSQL = async (
-  readModelDB: DrizzleReturnType
-): Promise<TenantMailSQL[]> =>
-  await readModelDB.select().from(tenantMailInReadmodelTenant);
-
-const readTenantCertifiedAttributesSQL = async (
-  readModelDB: DrizzleReturnType
-): Promise<TenantCertifiedAttributeSQL[]> =>
-  await readModelDB.select().from(tenantCertifiedAttributeInReadmodelTenant);
-
-const readTenantDeclaredAttributesSQL = async (
-  readModelDB: DrizzleReturnType
-): Promise<TenantDeclaredAttributeSQL[]> =>
-  await readModelDB.select().from(tenantDeclaredAttributeInReadmodelTenant);
-
-const readTenantVerifiedAttributesSQL = async (
-  readModelDB: DrizzleReturnType
-): Promise<TenantVerifiedAttributeSQL[]> =>
-  await readModelDB.select().from(tenantVerifiedAttributeInReadmodelTenant);
-
-const readTenantVerifiedAttributeVerifiersSQL = async (
-  readModelDB: DrizzleReturnType
-): Promise<TenantVerifiedAttributeVerifierSQL[]> =>
-  await readModelDB
-    .select()
-    .from(tenantVerifiedAttributeVerifierInReadmodelTenant);
-
-const readTenantVerifiedAttributeRevokersSQL = async (
-  readModelDB: DrizzleReturnType
-): Promise<TenantVerifiedAttributeRevokerSQL[]> =>
-  await readModelDB
-    .select()
-    .from(tenantVerifiedAttributeRevokerInReadmodelTenant);
-
-const readTenantFeaturesSQL = async (
-  readModelDB: DrizzleReturnType
-): Promise<TenantFeatureSQL[]> =>
-  await readModelDB.select().from(tenantFeatureInReadmodelTenant);

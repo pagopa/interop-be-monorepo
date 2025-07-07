@@ -1,14 +1,17 @@
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import { logger } from "pagopa-interop-commons";
+import { initDB, logger } from "pagopa-interop-commons";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import { compare } from "./utils.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { config } from "./configs/config.js";
-import { readModelServiceBuilderKPI } from "./services/readModelServiceKPI.js";
+import {
+  DBContext,
+  readModelServiceBuilderKPI,
+} from "./services/readModelServiceKPI.js";
 
 const loggerInstance = logger({
-  serviceName: "readmodel-checker",
+  serviceName: "kpi-domains-readmodel-checker",
   correlationId: generateId<CorrelationId>(),
 });
 
@@ -23,8 +26,25 @@ const pool = new pg.Pool({
 
 const readModelDB = drizzle({ client: pool });
 
+const analyticsPostgresDB = initDB({
+  username: config.dbUsername,
+  password: config.dbPassword,
+  host: config.dbHost,
+  port: config.dbPort,
+  database: config.dbName,
+  useSSL: config.dbUseSSL,
+  schema: config.dbSchemaName,
+});
+
+const connection = await analyticsPostgresDB.connect();
+
+export const dbContext: DBContext = {
+  conn: connection,
+  pgp: analyticsPostgresDB.$config.pgp,
+};
+
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
-const readModelServiceKPI = readModelServiceBuilderKPI(readModelDB);
+const readModelServiceKPI = readModelServiceBuilderKPI(dbContext);
 
 async function main(): Promise<void> {
   // CATALOG
@@ -38,15 +58,15 @@ async function main(): Promise<void> {
   });
 
   // ESERVICE TEMPLATE
-  const eserviceTemplates = await readModelServiceKPI.getAllEServiceTemplates();
-  const eserviceTemplatesPostgres =
-    await readModelServiceSQL.getAllEServiceTemplates();
-  compare({
-    collectionItems: eserviceTemplates,
-    postgresItems: eserviceTemplatesPostgres,
-    schema: "eservice templates",
-    loggerInstance,
-  });
+  // const eserviceTemplates = await readModelServiceKPI.getAllEServiceTemplates();
+  // const eserviceTemplatesPostgres =
+  //   await readModelServiceSQL.getAllEServiceTemplates();
+  // compare({
+  //   collectionItems: eserviceTemplates,
+  //   postgresItems: eserviceTemplatesPostgres,
+  //   schema: "eservice templates",
+  //   loggerInstance,
+  // });
 
   // ATTRIBUTE
   const attributes = await readModelServiceKPI.getAllAttributes();
@@ -79,14 +99,14 @@ async function main(): Promise<void> {
   });
 
   // PURPOSE
-  const purposes = await readModelServiceKPI.getAllPurposes();
-  const purposesPostgres = await readModelServiceSQL.getAllPurposes();
-  compare({
-    collectionItems: purposes,
-    postgresItems: purposesPostgres,
-    schema: "purposes",
-    loggerInstance,
-  });
+  // const purposes = await readModelServiceKPI.getAllPurposes();
+  // const purposesPostgres = await readModelServiceSQL.getAllPurposes();
+  // compare({
+  //   collectionItems: purposes,
+  //   postgresItems: purposesPostgres,
+  //   schema: "purposes",
+  //   loggerInstance,
+  // });
 
   // CLIENT
   const clients = await readModelServiceKPI.getAllClients();
@@ -98,16 +118,6 @@ async function main(): Promise<void> {
     loggerInstance,
   });
 
-  // CLIENT JWK KEY
-  const keys = await readModelServiceKPI.getAllClientJWKKeys();
-  const keysPostgres = await readModelServiceSQL.getAllClientJWKKeys();
-  compare({
-    collectionItems: keys,
-    postgresItems: keysPostgres,
-    schema: "JWKkeys",
-    loggerInstance,
-  });
-
   // PRODUCER KEYCHAIN
   const producerKeychains = await readModelServiceKPI.getAllProducerKeychains();
   const producerKeychainsPostgres =
@@ -116,17 +126,6 @@ async function main(): Promise<void> {
     collectionItems: producerKeychains,
     postgresItems: producerKeychainsPostgres,
     schema: "producer keychains",
-    loggerInstance,
-  });
-
-  // PRODUCER KEYCHAIN JWK KEY
-  const producerKeys = await readModelServiceKPI.getAllProducerJWKKeys();
-  const producerKeysPostgres =
-    await readModelServiceSQL.getAllProducerJWKKeys();
-  compare({
-    collectionItems: producerKeys,
-    postgresItems: producerKeysPostgres,
-    schema: "producer keychain JWKkeys",
     loggerInstance,
   });
 

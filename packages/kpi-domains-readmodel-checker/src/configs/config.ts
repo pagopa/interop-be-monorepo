@@ -1,15 +1,16 @@
 import {
+  AnalyticsSQLDbConfig,
   LoggerConfig,
-  ReadModelDbConfig,
   ReadModelSQLDbConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const ReadModelCheckerConfig =
-  LoggerConfig.and(ReadModelDbConfig).and(ReadModelSQLDbConfig);
+const KpiDomainsReadModelCheckerConfig =
+  LoggerConfig.and(ReadModelSQLDbConfig).and(AnalyticsSQLDbConfig);
 
-export type ReadModelCheckerConfig = z.infer<typeof ReadModelCheckerConfig>;
+export type KpiDomainsReadModelCheckerConfig = z.infer<
+  typeof KpiDomainsReadModelCheckerConfig
+>;
 
-export const config: ReadModelCheckerConfig = ReadModelCheckerConfig.parse(
-  process.env
-);
+export const config: KpiDomainsReadModelCheckerConfig =
+  KpiDomainsReadModelCheckerConfig.parse(process.env);
