@@ -411,12 +411,8 @@ export function tenantServiceBuilder(
 
     async revokeDeclaredAttribute(
       { attributeId }: { attributeId: AttributeId },
-      {
-        authData,
-        logger,
-        correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<Tenant>> {
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<Tenant> {
       logger.info(
         `Revoking declared attribute ${attributeId} to tenant ${authData.organizationId}`
       );
@@ -447,7 +443,7 @@ export function tenantServiceBuilder(
         ),
       };
 
-      const createdEvent = await repository.createEvent(
+      await repository.createEvent(
         toCreateEventTenantDeclaredAttributeRevoked(
           requesterTenant.metadata.version,
           updatedTenant,
@@ -456,10 +452,7 @@ export function tenantServiceBuilder(
         )
       );
 
-      return {
-        data: updatedTenant,
-        metadata: { version: createdEvent.newVersion },
-      };
+      return updatedTenant;
     },
 
     async addCertifiedAttribute(
@@ -566,12 +559,8 @@ export function tenantServiceBuilder(
       {
         tenantAttributeSeed,
       }: { tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed },
-      {
-        authData,
-        logger,
-        correlationId,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<WithMetadata<Tenant>> {
+      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<Tenant> {
       const { tenant, delegationId } = await match(
         tenantAttributeSeed.delegationId
       )
@@ -641,7 +630,7 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const createdEvent = await repository.createEvent(
+      await repository.createEvent(
         toCreateEventTenantDeclaredAttributeAssigned(
           tenant.metadata.version,
           updatedTenant,
@@ -650,10 +639,7 @@ export function tenantServiceBuilder(
         )
       );
 
-      return {
-        data: updatedTenant,
-        metadata: { version: createdEvent.newVersion },
-      };
+      return updatedTenant;
     },
 
     async revokeCertifiedAttributeById(
