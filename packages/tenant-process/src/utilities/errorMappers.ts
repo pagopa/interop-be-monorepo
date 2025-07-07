@@ -89,13 +89,10 @@ export const addCertifiedAttributeErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "tenantIsNotACertifier",
-      "attributeDoesNotBelongToCertifier",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_CONFLICT)
+    .with("attributeDoesNotBelongToCertifier", () => HTTP_STATUS_FORBIDDEN)
+    .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addDeclaredAttributeErrorMapper = (
@@ -178,14 +175,11 @@ export const revokeVerifiedAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with(
-      "tenantNotFound",
-      "agreementNotFound",
-      "eServiceNotFound",
-      "descriptorNotFoundInEservice",
-      () => HTTP_STATUS_NOT_FOUND
-    )
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("descriptorNotFoundInEservice", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "verifiedAttributeSelfRevocationNotAllowed",
       "attributeRevocationNotAllowed",
