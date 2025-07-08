@@ -82,7 +82,7 @@ describe("GET /clients/:clientId/purposes router test", () => {
     const res = await makeRequest(
       token,
       generateId(),
-      query as m2mGatewayApi.GetPurposesQueryParams
+      query as m2mGatewayApi.GetClientPurposesQueryParams
     );
 
     expect(res.status).toBe(400);
