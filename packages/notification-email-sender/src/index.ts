@@ -150,7 +150,9 @@ export async function handleCatalogMessage(
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
           "EServiceDescriptorDocumentAddedByTemplateUpdate",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceSignalHubEnabled",
+          "EServiceSignalHubDisabled"
         ),
       },
       () => {
@@ -382,5 +384,6 @@ await runConsumer(
     catalogTopic: config.catalogTopic,
     agreementTopic: config.agreementTopic,
     purposeTopic: config.purposeTopic,
-  })
+  }),
+  "notification-email-sender"
 );

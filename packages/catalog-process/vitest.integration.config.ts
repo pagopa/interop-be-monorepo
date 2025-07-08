@@ -26,6 +26,5 @@ export default defineConfig({
     mockReset: true,
     reporters: ["default"],
     env: { FEATURE_FLAG_SQL: "false" },
-    watch: false,
   },
 });

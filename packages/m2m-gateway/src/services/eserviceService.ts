@@ -1,5 +1,5 @@
-import { WithLogger } from "pagopa-interop-commons";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
+import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { DescriptorId, EServiceId } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -8,12 +8,55 @@ import {
   toM2MGatewayApiEService,
   toM2MGatewayApiEServiceDescriptor,
 } from "../api/eserviceApiConverter.js";
-import { eserviceDescriptorNotFound } from "../model/errors.js";
+import {
+  eserviceDescriptorInterfaceNotFound,
+  eserviceDescriptorNotFound,
+} from "../model/errors.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { config } from "../config/config.js";
+import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
+export function eserviceServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
+) {
+  const retrieveEServiceById = async (
+    headers: M2MGatewayAppContext["headers"],
+    eserviceId: EServiceId
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
+    await clients.catalogProcessClient.getEServiceById({
+      params: {
+        eServiceId: eserviceId,
+      },
+      headers,
+    });
+
+  const retrieveEServiceDescriptorById = async (
+    headers: M2MGatewayAppContext["headers"],
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId
+  ): Promise<WithMaybeMetadata<catalogApi.EServiceDescriptor>> => {
+    const { data: eservice, metadata } =
+      await clients.catalogProcessClient.getEServiceById({
+        params: { eServiceId: eserviceId },
+        headers,
+      });
+
+    const descriptor = eservice.descriptors.find((e) => e.id === descriptorId);
+
+    if (!descriptor) {
+      throw eserviceDescriptorNotFound(eservice.id, descriptorId);
+    }
+
+    return {
+      data: descriptor,
+      metadata,
+    };
+  };
+
   return {
     async getEService(
       eserviceId: EServiceId,
@@ -21,12 +64,12 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.EService> {
       logger.info(`Retrieving eservice with id ${eserviceId}`);
 
-      const response = await clients.catalogProcessClient.getEServiceById({
-        params: { eServiceId: eserviceId },
+      const { data: eservice } = await retrieveEServiceById(
         headers,
-      });
+        eserviceId
+      );
 
-      return toM2MGatewayApiEService(response.data);
+      return toM2MGatewayApiEService(eservice);
     },
     async getEServices(
       params: m2mGatewayApi.GetEServicesQueryParams,
@@ -36,20 +79,20 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
         `Retrieving eservices with producerIds ${params.producerIds} templateIds ${params.templateIds} offset ${params.offset} limit ${params.limit}`
       );
 
-      const response = await clients.catalogProcessClient.getEServices({
+      const {
+        data: { results, totalCount },
+      } = await clients.catalogProcessClient.getEServices({
         queries: toGetEServicesQueryParams(params),
         headers,
       });
 
-      const results = response.data.results.map(toM2MGatewayApiEService);
-
       return {
+        results: results.map(toM2MGatewayApiEService),
         pagination: {
           limit: params.limit,
           offset: params.offset,
-          totalCount: response.data.totalCount,
+          totalCount,
         },
-        results,
       };
     },
     async getEServiceDescriptor(
@@ -61,19 +104,11 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
         `Retrieving eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
 
-      const { data: eservice } =
-        await clients.catalogProcessClient.getEServiceById({
-          params: { eServiceId: eserviceId },
-          headers,
-        });
-
-      const descriptor = eservice.descriptors.find(
-        (e) => e.id === descriptorId
+      const { data: descriptor } = await retrieveEServiceDescriptorById(
+        headers,
+        eserviceId,
+        descriptorId
       );
-
-      if (!descriptor) {
-        throw eserviceDescriptorNotFound(eservice.id, descriptorId);
-      }
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
@@ -110,6 +145,32 @@ export function eserviceServiceBuilder(clients: PagoPAInteropBeClients) {
         },
         results: paginatedDescriptors.map(toM2MGatewayApiEServiceDescriptor),
       };
+    },
+    async downloadEServiceDescriptorInterface(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving interface for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const { data: descriptor } = await retrieveEServiceDescriptorById(
+        headers,
+        eserviceId,
+        descriptorId
+      );
+
+      if (!descriptor.interface) {
+        throw eserviceDescriptorInterfaceNotFound(eserviceId, descriptorId);
+      }
+
+      return downloadDocument(
+        descriptor.interface,
+        fileManager,
+        config.eserviceDocumentsContainer,
+        logger
+      );
     },
   };
 }

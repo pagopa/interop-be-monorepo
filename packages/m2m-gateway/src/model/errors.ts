@@ -11,10 +11,10 @@ import {
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
   PurposeId,
+  PurposeVersionId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
-  resourcePollingTimeout: "0001",
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",
   clientAdminIdNotFound: "0004",
@@ -32,6 +32,9 @@ export const errorCodes = {
   missingPurposeCurrentVersion: "0016",
   eserviceTemplateVersionNotFound: "0017",
   tenantCertifiedAttributeNotFound: "0018",
+  eserviceDescriptorInterfaceNotFound: "0019",
+  purposeVersionDocumentNotFound: "0020",
+  unexpectedClientKind: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -40,16 +43,6 @@ export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
   problemErrorsPassthrough: true,
   forceGenericProblemOn500: true,
 });
-
-export function resourcePollingTimeout(
-  maxAttempts: number
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Resource polling timed out after ${maxAttempts} attempts`,
-    code: "resourcePollingTimeout",
-    title: "Resource polling timeout",
-  });
-}
 
 export function missingMetadata(): ApiError<ErrorCodes> {
   return new ApiError({
@@ -199,5 +192,37 @@ export function tenantCertifiedAttributeNotFound(
     detail: `Certified attribute ${attributeId} not found for tenant ${tenant.id}`,
     code: "tenantCertifiedAttributeNotFound",
     title: "Tenant certified attribute not found",
+  });
+}
+
+export function eserviceDescriptorInterfaceNotFound(
+  eserviceId: string,
+  descriptorId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
+    code: "eserviceDescriptorInterfaceNotFound",
+    title: "Eservice descriptor interface not found",
+  });
+}
+
+export function purposeVersionDocumentNotFound(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document for version ${versionId} of purpose ${purposeId} not found`,
+    code: "purposeVersionDocumentNotFound",
+    title: "Purpose version document not found",
+  });
+}
+
+export function unexpectedClientKind(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
+    code: "unexpectedClientKind",
+    title: "Unexpected client kind",
   });
 }

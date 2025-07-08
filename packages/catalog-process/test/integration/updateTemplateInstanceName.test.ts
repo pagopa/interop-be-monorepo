@@ -145,4 +145,38 @@ describe("updateTemplateInstanceName", () => {
       eServiceNameDuplicateForProducer(duplicateName, eservice.producerId)
     );
   });
+  it("should throw eServiceNameDuplicateForProducer if there is another eservice with the same name by the same producer (case insensitive)", async () => {
+    const producerId = generateId<TenantId>();
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(descriptorState.published),
+      interface: getMockDocument(),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId,
+      descriptors: [descriptor],
+    };
+
+    const duplicateName = "eservice duplicate name";
+
+    const eserviceWithSameName: EService = {
+      ...getMockEService(),
+      producerId,
+      name: duplicateName.toUpperCase(),
+    };
+    await addOneEService(eservice);
+
+    await addOneEService(eserviceWithSameName);
+
+    const updatedName = duplicateName;
+    await expect(
+      catalogService.internalUpdateTemplateInstanceName(
+        eservice.id,
+        updatedName,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      eServiceNameDuplicateForProducer(duplicateName, eservice.producerId)
+    );
+  });
 });

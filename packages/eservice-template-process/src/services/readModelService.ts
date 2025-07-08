@@ -2,7 +2,6 @@ import {
   EServiceTemplateCollection,
   ReadModelFilter,
   ReadModelRepository,
-  TenantCollection,
   UIAuthData,
   M2MAuthData,
   M2MAdminAuthData,
@@ -14,9 +13,7 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersionState,
   ListResult,
-  Tenant,
   TenantId,
-  TenantReadModel,
   WithMetadata,
   eserviceTemplateVersionState,
   genericInternalError,
@@ -63,34 +60,9 @@ async function getEServiceTemplate(
   }
 }
 
-async function getTenant(
-  tenants: TenantCollection,
-  filter: Filter<WithId<WithMetadata<TenantReadModel>>>
-): Promise<Tenant | undefined> {
-  const data = await tenants.findOne(filter, {
-    projection: { data: true },
-  });
-
-  if (!data) {
-    return undefined;
-  }
-  const result = Tenant.safeParse(data.data);
-
-  if (!result.success) {
-    throw genericInternalError(
-      `Unable to parse tenant item: result ${JSON.stringify(
-        result
-      )} - data ${JSON.stringify(data)} `
-    );
-  }
-
-  return result.data;
-}
-
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilder({
   eserviceTemplates,
-  tenants,
   attributes,
   eservices,
 }: ReadModelRepository) {
@@ -101,24 +73,21 @@ export function readModelServiceBuilder({
       return getEServiceTemplate(eserviceTemplates, { "data.id": id });
     },
 
-    async getEServiceTemplateByNameAndCreatorId({
+    async isEServiceTemplateNameAvailable({
       name,
-      creatorId,
     }: {
       name: string;
-      creatorId: TenantId;
-    }): Promise<WithMetadata<EServiceTemplate> | undefined> {
-      return getEServiceTemplate(eserviceTemplates, {
-        "data.name": {
-          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-          $options: "i",
+    }): Promise<boolean> {
+      const count = await eserviceTemplates.countDocuments(
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
+            $options: "i",
+          },
         },
-        "data.creatorId": creatorId,
-      });
-    },
-
-    async getTenantById(id: TenantId): Promise<Tenant | undefined> {
-      return getTenant(tenants, { "data.id": id });
+        { limit: 1 }
+      );
+      return count === 0;
     },
 
     async getAttributesByIds(
@@ -254,10 +223,16 @@ export function readModelServiceBuilder({
         .map(({ data }) => data.producerId)
         .toArray();
 
-      const data = await eservices.countDocuments({
-        "data.name": newName,
-        "data.producerId": { $in: instanceProducerIds },
-      });
+      const data = await eservices.countDocuments(
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(newName)}$$`,
+            $options: "i",
+          },
+          "data.producerId": { $in: instanceProducerIds },
+        },
+        { limit: 1 }
+      );
 
       return data > 0;
     },

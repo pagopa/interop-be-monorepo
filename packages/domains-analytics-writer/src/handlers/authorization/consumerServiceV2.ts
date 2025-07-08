@@ -2,10 +2,14 @@
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
+  fromProducerKeychainV2,
   genericInternalError,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { splitClientIntoObjectsSQL } from "pagopa-interop-readmodel";
+import {
+  splitClientIntoObjectsSQL,
+  splitProducerKeychainIntoObjectsSQL,
+} from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { authorizationServiceBuilder } from "../../service/authorizationService.js";
@@ -13,6 +17,11 @@ import {
   ClientItemsSchema,
   ClientDeletingSchema,
 } from "../../model/authorization/client.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
+import {
+  ProducerKeychainItemsSchema,
+  ProducerKeychainDeletingSchema,
+} from "../../model/authorization/producerKeychain.js";
 
 export async function handleAuthorizationEventMessageV2(
   messages: AuthorizationEventEnvelopeV2[],
@@ -22,6 +31,8 @@ export async function handleAuthorizationEventMessageV2(
 
   const upsertClientBatch: ClientItemsSchema[] = [];
   const deleteClientBatch: ClientDeletingSchema[] = [];
+  const upsertProducerKeychainBatch: ProducerKeychainItemsSchema[] = [];
+  const deleteProducerKeychainBatch: ProducerKeychainDeletingSchema[] = [];
 
   for (const message of messages) {
     await match(message)
@@ -42,7 +53,6 @@ export async function handleAuthorizationEventMessageV2(
         },
         async (msg) => {
           const clientV2 = msg.data.client;
-
           if (!clientV2) {
             throw genericInternalError(
               "Client can't be missing in event message"
@@ -72,11 +82,18 @@ export async function handleAuthorizationEventMessageV2(
           } satisfies z.input<typeof ClientDeletingSchema>)
         );
       })
+      .with({ type: "ProducerKeychainDeleted" }, async (msg) => {
+        deleteProducerKeychainBatch.push(
+          ProducerKeychainDeletingSchema.parse({
+            id: msg.data.producerKeychainId,
+            deleted: true,
+          } satisfies z.input<typeof ProducerKeychainDeletingSchema>)
+        );
+      })
       .with(
         {
           type: P.union(
             "ProducerKeychainAdded",
-            "ProducerKeychainDeleted",
             "ProducerKeychainKeyAdded",
             "ProducerKeychainKeyDeleted",
             "ProducerKeychainUserAdded",
@@ -85,7 +102,28 @@ export async function handleAuthorizationEventMessageV2(
             "ProducerKeychainEServiceRemoved"
           ),
         },
-        () => Promise.resolve()
+        async (msg) => {
+          const producerKeychain = msg.data.producerKeychain;
+          if (!producerKeychain) {
+            throw genericInternalError(
+              "producerKeychain can't be missing in event message"
+            );
+          }
+
+          const splitResult = splitProducerKeychainIntoObjectsSQL(
+            fromProducerKeychainV2(producerKeychain),
+            message.version
+          );
+
+          upsertProducerKeychainBatch.push(
+            ProducerKeychainItemsSchema.parse({
+              producerKeychainSQL: splitResult.producerKeychainSQL,
+              usersSQL: splitResult.usersSQL,
+              eservicesSQL: splitResult.eservicesSQL,
+              keysSQL: splitResult.keysSQL,
+            } satisfies z.input<typeof ProducerKeychainItemsSchema>)
+          );
+        }
       )
       .exhaustive();
   }
@@ -95,6 +133,25 @@ export async function handleAuthorizationEventMessageV2(
   }
 
   if (deleteClientBatch.length > 0) {
-    await authorizationService.deleteClientBatch(dbContext, deleteClientBatch);
+    const distinctBatch = distinctByKeys(
+      deleteClientBatch,
+      ClientDeletingSchema,
+      ["id"]
+    );
+    await authorizationService.deleteClientBatch(dbContext, distinctBatch);
+  }
+
+  if (upsertProducerKeychainBatch.length > 0) {
+    await authorizationService.upsertProducerKeychainBatch(
+      dbContext,
+      upsertProducerKeychainBatch
+    );
+  }
+
+  if (deleteProducerKeychainBatch.length > 0) {
+    await authorizationService.deleteProducerKeychainBatch(
+      dbContext,
+      deleteProducerKeychainBatch
+    );
   }
 }

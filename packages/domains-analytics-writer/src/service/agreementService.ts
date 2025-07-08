@@ -11,7 +11,10 @@ import { agreementAttributeRepo } from "../repository/agreement/agreementAttribu
 import { agreementConsumerDocumentRepo } from "../repository/agreement/agreementConsumerDocument.repository.js";
 import { agreementContractRepo } from "../repository/agreement/agreementContract.repository.js";
 import { agreementStampRepo } from "../repository/agreement/agreementStamp.repository.js";
-import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 import {
   AgreementDeletingSchema,
   AgreementItemsSchema,
@@ -89,6 +92,20 @@ export function agreementServiceBuilder(db: DBContext) {
         await attributeRepository.merge(t);
         await docRepository.merge(t);
         await contractRepository.merge(t);
+      });
+
+      await dbContext.conn.tx(async (t) => {
+        await cleaningTargetTables(
+          t,
+          "agreementId",
+          [
+            AgreementDbTable.agreement_stamp,
+            AgreementDbTable.agreement_attribute,
+            AgreementDbTable.agreement_consumer_document,
+            AgreementDbTable.agreement_contract,
+          ],
+          AgreementDbTable.agreement
+        );
       });
 
       genericLogger.info(
@@ -174,7 +191,9 @@ export function agreementServiceBuilder(db: DBContext) {
         )) {
           await agreementRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for agreement ids: ${batch.join(", ")}`
+            `Staging deletion inserted for agreement ids: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 
@@ -212,9 +231,9 @@ export function agreementServiceBuilder(db: DBContext) {
         )) {
           await docRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for agreement document ids: ${batch.join(
-              ", "
-            )}`
+            `Staging deletion inserted for agreement document ids: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 

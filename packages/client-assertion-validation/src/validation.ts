@@ -76,6 +76,7 @@ export const validateRequestParameters = (
   return failedValidation([assertionTypeError, grantTypeError]);
 };
 
+// eslint-disable-next-line complexity
 export const verifyClientAssertion = (
   clientAssertionJws: string,
   clientId: string | undefined,
@@ -133,38 +134,25 @@ export const verifyClientAssertion = (
       !algErrors &&
       !digestErrors
     ) {
+      const headerParseResult = ClientAssertionHeader.safeParse(decodedHeader);
       const payloadParseResult =
         ClientAssertionPayload.safeParse(decodedPayload);
-      if (!payloadParseResult.success) {
-        return failedValidation([
-          clientAssertionInvalidClaims(payloadParseResult.error.message),
-        ]);
-      }
-
-      const payloadStrictParseResult =
-        ClientAssertionPayloadStrict.safeParse(decodedPayload);
-      if (!payloadStrictParseResult.success) {
-        logger.warn(
-          `[CLIENTID=${validatedSub}] Invalid claims in client assertion payload: ${JSON.stringify(
-            JSON.parse(payloadStrictParseResult.error.message)
-          )}`
-        );
-
-        if (featureFlagClientAssertionStrictClaimsValidation) {
-          return failedValidation([
-            clientAssertionInvalidClaims(
-              payloadStrictParseResult.error.message
-            ),
-          ]);
-        }
-      }
-
-      const headerParseResult = ClientAssertionHeader.safeParse(decodedHeader);
-
-      if (!headerParseResult.success) {
-        return failedValidation([
-          clientAssertionInvalidClaims(headerParseResult.error.message),
-        ]);
+      const parsingErrors = [
+        !headerParseResult.success
+          ? clientAssertionInvalidClaims(
+              headerParseResult.error.message,
+              "header"
+            )
+          : undefined,
+        !payloadParseResult.success
+          ? clientAssertionInvalidClaims(
+              payloadParseResult.error.message,
+              "payload"
+            )
+          : undefined,
+      ].filter(Boolean);
+      if (parsingErrors.length > 0) {
+        return failedValidation(parsingErrors);
       }
 
       const headerStrictParseResult =
@@ -175,12 +163,37 @@ export const verifyClientAssertion = (
             JSON.parse(headerStrictParseResult.error.message)
           )}`
         );
+      }
 
-        if (featureFlagClientAssertionStrictClaimsValidation) {
-          return failedValidation([
-            clientAssertionInvalidClaims(headerStrictParseResult.error.message),
-          ]);
-        }
+      const payloadStrictParseResult =
+        ClientAssertionPayloadStrict.safeParse(decodedPayload);
+      if (!payloadStrictParseResult.success) {
+        logger.warn(
+          `[CLIENTID=${validatedSub}] Invalid claims in client assertion payload: ${JSON.stringify(
+            JSON.parse(payloadStrictParseResult.error.message)
+          )}`
+        );
+      }
+
+      const strictParsingErrors = [
+        featureFlagClientAssertionStrictClaimsValidation &&
+        !headerStrictParseResult.success
+          ? clientAssertionInvalidClaims(
+              headerStrictParseResult.error.message,
+              "header"
+            )
+          : undefined,
+        featureFlagClientAssertionStrictClaimsValidation &&
+        !payloadStrictParseResult.success
+          ? clientAssertionInvalidClaims(
+              payloadStrictParseResult.error.message,
+              "payload"
+            )
+          : undefined,
+      ].filter(Boolean);
+
+      if (strictParsingErrors.length > 0) {
+        return failedValidation(strictParsingErrors);
       }
 
       const result: ClientAssertion = {
@@ -247,7 +260,7 @@ export const verifyClientAssertionSignature = async (
     // instead of using the dedicated function from jose.
     // Why:
     // - it's the same function we use to create the public key when adding it to the client
-    // - jose throws and error in case of keys with missing trailing newline, while crypto does not
+    // - jose throws an error in case of keys with missing trailing newline, while crypto does not
     // See keyImport.test.ts
     // See also Jose docs, it accepts crypto KeyObject as well: https://github.com/panva/jose/blob/main/docs/types/types.KeyLike.md
     const publicKey = createPublicKey({ key: key.publicKey });

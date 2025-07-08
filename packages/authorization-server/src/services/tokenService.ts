@@ -1,3 +1,4 @@
+import { IncomingHttpHeaders } from "http";
 import {
   validateClientKindAndPlatformState,
   validateRequestParameters,
@@ -26,6 +27,7 @@ import {
   CorrelationId,
   ClientKindTokenGenStates,
   ClientId,
+  DPoPProof,
 } from "pagopa-interop-models";
 import {
   DynamoDBClient,
@@ -51,6 +53,11 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import { initProducer } from "kafka-iam-auth";
+import {
+  checkDPoPCache,
+  verifyDPoPProof,
+  verifyDPoPProofSignature,
+} from "pagopa-interop-dpop-validation";
 import { config } from "../config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -61,19 +68,26 @@ import {
   kafkaAuditingFailed,
   tokenGenerationStatesEntryNotFound,
   platformStateValidationFailed,
+  dpopProofValidationFailed,
+  dpopProofSignatureValidationFailed,
+  unexpectedDPoPProofForAPIToken,
+  dpopProofJtiAlreadyUsed,
 } from "../model/domain/errors.js";
+import { HttpDPoPHeader } from "../model/domain/models.js";
 
-export type GenerateTokenReturnType =
+export type GeneratedTokenData =
   | {
       limitReached: true;
       token: undefined;
       rateLimitedTenantId: TenantId;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+      isDPoP: boolean;
     }
   | {
       limitReached: false;
       token: InteropConsumerToken | InteropApiToken;
       rateLimiterStatus: Omit<RateLimiterStatus, "limitReached">;
+      isDPoP?: boolean;
     };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -92,31 +106,41 @@ export function tokenServiceBuilder({
 }) {
   return {
     async generateToken(
-      request: authorizationServerApi.AccessTokenRequest,
+      headers: IncomingHttpHeaders & HttpDPoPHeader,
+      body: authorizationServerApi.AccessTokenRequest,
       { logger, correlationId }: WithLogger<AuthServerAppContext>,
       setCtxClientId: (clientId: ClientId) => void,
       setCtxOrganizationId: (organizationId: TenantId) => void
-    ): Promise<GenerateTokenReturnType> {
-      logger.info(`[CLIENTID=${request.client_id}] Token requested`);
+    ): Promise<GeneratedTokenData> {
+      logger.info(`[CLIENTID=${body.client_id}] Token requested`);
 
+      // DPoP proof validation
+      const { dpopProofJWS, dpopProofJWT } = await validateDPoPProof(
+        headers.DPoP,
+        body.client_id,
+        logger
+      );
+
+      // Request body parameters validation
       const { errors: parametersErrors } = validateRequestParameters({
-        client_assertion: request.client_assertion,
-        client_assertion_type: request.client_assertion_type,
-        grant_type: request.grant_type,
-        client_id: request.client_id,
+        client_assertion: body.client_assertion,
+        client_assertion_type: body.client_assertion_type,
+        grant_type: body.grant_type,
+        client_id: body.client_id,
       });
 
       if (parametersErrors) {
         throw clientAssertionRequestValidationFailed(
-          request.client_id,
+          body.client_id,
           parametersErrors.map((error) => error.detail).join(", ")
         );
       }
 
-      const { data: jwt, errors: clientAssertionErrors } =
+      // Client assertion validation
+      const { data: clientAssertionJWT, errors: clientAssertionErrors } =
         verifyClientAssertion(
-          request.client_assertion,
-          request.client_id,
+          body.client_assertion,
+          body.client_id,
           config.clientAssertionAudience,
           logger,
           isFeatureFlagEnabled(
@@ -127,19 +151,19 @@ export function tokenServiceBuilder({
 
       if (clientAssertionErrors) {
         throw clientAssertionValidationFailed(
-          request.client_id,
+          body.client_id,
           clientAssertionErrors.map((error) => error.detail).join(", ")
         );
       }
 
-      const clientId = jwt.payload.sub;
-      const kid = jwt.header.kid;
-      const purposeId = jwt.payload.purposeId;
+      const clientId = clientAssertionJWT.payload.sub;
+      const kid = clientAssertionJWT.header.kid;
+      const purposeId = clientAssertionJWT.payload.purposeId;
 
       setCtxClientId(clientId);
 
       logTokenGenerationInfo({
-        validatedJwt: jwt,
+        validatedJwt: clientAssertionJWT,
         clientKind: undefined,
         tokenJti: undefined,
         message: "Client assertion validated",
@@ -159,35 +183,41 @@ export function tokenServiceBuilder({
       setCtxOrganizationId(key.consumerId);
 
       logTokenGenerationInfo({
-        validatedJwt: jwt,
+        validatedJwt: clientAssertionJWT,
         clientKind: key.clientKind,
         tokenJti: undefined,
         message: "Key retrieved",
         logger,
       });
 
+      if (key.clientKind === clientKindTokenGenStates.api && dpopProofJWS) {
+        throw unexpectedDPoPProofForAPIToken(key.GSIPK_clientId);
+      }
+
       const { errors: clientAssertionSignatureErrors } =
         await verifyClientAssertionSignature(
-          request.client_assertion,
+          body.client_assertion,
           key,
-          jwt.header.alg
+          clientAssertionJWT.header.alg
         );
 
       if (clientAssertionSignatureErrors) {
         throw clientAssertionSignatureValidationFailed(
-          request.client_id,
+          body.client_id,
           clientAssertionSignatureErrors.map((error) => error.detail).join(", ")
         );
       }
 
+      // Platform states validation
       const { errors: platformStateErrors } =
-        validateClientKindAndPlatformState(key, jwt);
+        validateClientKindAndPlatformState(key, clientAssertionJWT);
       if (platformStateErrors) {
         throw platformStateValidationFailed(
           platformStateErrors.map((error) => error.detail).join(", ")
         );
       }
 
+      // Rate limit check
       const { limitReached, ...rateLimiterStatus } =
         await redisRateLimiter.rateLimitByOrganization(key.consumerId, logger);
       if (limitReached) {
@@ -196,7 +226,22 @@ export function tokenServiceBuilder({
           token: undefined,
           rateLimitedTenantId: key.consumerId,
           rateLimiterStatus,
+          isDPoP: dpopProofJWT !== undefined,
         };
+      }
+
+      // Check if the cache contains the DPoP proof
+      if (dpopProofJWT) {
+        const { errors: dpopCacheErrors } = await checkDPoPCache({
+          dynamoDBClient,
+          dpopProofJti: dpopProofJWT.payload.jti,
+          dpopProofIat: dpopProofJWT.payload.iat,
+          dpopCacheTable: config.dpopCacheTable,
+          dpopProofDurationSeconds: config.dpopDurationSeconds,
+        });
+        if (dpopCacheErrors) {
+          throw dpopProofJtiAlreadyUsed(dpopProofJWT.payload.jti);
+        }
       }
 
       return await match(key)
@@ -207,12 +252,13 @@ export function tokenServiceBuilder({
               deconstructGSIPK_eserviceId_descriptorId(
                 key.GSIPK_eserviceId_descriptorId
               );
+
             const token = await tokenGenerator.generateInteropConsumerToken({
-              sub: jwt.payload.sub,
+              sub: clientAssertionJWT.payload.sub,
               audience: key.descriptorAudience,
               purposeId: key.GSIPK_purposeId,
               tokenDurationInSeconds: key.descriptorVoucherLifespan,
-              digest: jwt.payload.digest || undefined,
+              digest: clientAssertionJWT.payload.digest || undefined,
               producerId: key.producerId,
               consumerId: key.consumerId,
               eserviceId,
@@ -222,20 +268,22 @@ export function tokenServiceBuilder({
                   config,
                   "featureFlagImprovedProducerVerificationClaims"
                 ),
+              dpopJWK: dpopProofJWT?.header.jwk,
             });
 
             await publishAudit({
               producer,
               generatedToken: token,
               key,
-              clientAssertion: jwt,
+              clientAssertion: clientAssertionJWT,
+              dpop: dpopProofJWT,
               correlationId,
               fileManager,
               logger,
             });
 
             logTokenGenerationInfo({
-              validatedJwt: jwt,
+              validatedJwt: clientAssertionJWT,
               clientKind: key.clientKind,
               tokenJti: token.payload.jti,
               message: "Token generated",
@@ -246,18 +294,19 @@ export function tokenServiceBuilder({
               limitReached: false as const,
               token,
               rateLimiterStatus,
+              isDPoP: dpopProofJWT !== undefined,
             };
           }
         )
         .with({ clientKind: clientKindTokenGenStates.api }, async (key) => {
           const token = await tokenGenerator.generateInteropApiToken({
-            sub: jwt.payload.sub,
+            sub: clientAssertionJWT.payload.sub,
             consumerId: key.consumerId,
             clientAdminId: key.adminId,
           });
 
           logTokenGenerationInfo({
-            validatedJwt: jwt,
+            validatedJwt: clientAssertionJWT,
             clientKind: key.clientKind,
             tokenJti: token.payload.jti,
             message: "Token generated",
@@ -328,6 +377,7 @@ export const publishAudit = async ({
   generatedToken,
   key,
   clientAssertion,
+  dpop,
   correlationId,
   fileManager,
   logger,
@@ -336,6 +386,7 @@ export const publishAudit = async ({
   generatedToken: InteropConsumerToken;
   key: FullTokenGenerationStatesConsumerClient;
   clientAssertion: ClientAssertion;
+  dpop: DPoPProof | undefined;
   correlationId: CorrelationId;
   fileManager: FileManager;
   logger: Logger;
@@ -371,6 +422,19 @@ export const publishAudit = async ({
       keyId: clientAssertion.header.kid,
       subject: clientAssertion.payload.sub,
     },
+    ...(dpop
+      ? {
+          dpop: {
+            typ: dpop.header.typ,
+            alg: dpop.header.alg,
+            jwk: dpop.header.jwk,
+            htm: dpop.payload.htm,
+            htu: dpop.payload.htu,
+            iat: secondsToMilliseconds(dpop.payload.iat),
+            jti: dpop.payload.jti,
+          },
+        }
+      : {}),
   };
 
   try {
@@ -386,7 +450,7 @@ export const publishAudit = async ({
       throw kafkaAuditingFailed();
     }
   } catch (e) {
-    logger.error("main auditing flow failed, going through fallback");
+    logger.error("Main auditing flow failed, going through fallback");
     await fallbackAudit(messageBody, fileManager, logger);
   }
 };
@@ -413,7 +477,7 @@ export const fallbackAudit = async (
       },
       logger
     );
-    logger.info("auditing succeeded through fallback");
+    logger.info("Auditing succeeded through fallback");
   } catch (err) {
     logger.error(`Auditing fallback failed: ${err}`);
     throw fallbackAuditFailed(messageBody.clientId);
@@ -467,4 +531,50 @@ export const logTokenGenerationInfo = ({
   const tokenType = `[TYPE=${clientKind}]`;
   const jti = `[JTI=${tokenJti}]`;
   logger.info(`${clientId}${kid}${purposeId}${tokenType}${jti} - ${message}`);
+};
+
+const validateDPoPProof = async (
+  dpopProofHeader: string | undefined,
+  clientId: string | undefined,
+  logger: Logger
+): Promise<{
+  dpopProofJWS: string | undefined;
+  dpopProofJWT: DPoPProof | undefined;
+}> => {
+  const { data, errors: dpopProofErrors } = dpopProofHeader
+    ? verifyDPoPProof({
+        dpopProofJWS: dpopProofHeader,
+        expectedDPoPProofHtu: config.dpopHtu,
+        dpopProofIatToleranceSeconds: config.dpopIatToleranceSeconds,
+        dpopProofDurationSeconds: config.dpopDurationSeconds,
+      })
+    : { data: undefined, errors: undefined };
+
+  if (dpopProofErrors) {
+    throw dpopProofValidationFailed(
+      clientId,
+      dpopProofErrors.map((error) => error.detail).join(", ")
+    );
+  }
+
+  const dpopProofJWT = data?.dpopProofJWT;
+  const dpopProofJWS = data?.dpopProofJWS;
+
+  if (dpopProofJWT && dpopProofJWS) {
+    const { errors: dpopProofSignatureErrors } = await verifyDPoPProofSignature(
+      dpopProofJWS,
+      dpopProofJWT.header.jwk
+    );
+
+    if (dpopProofSignatureErrors) {
+      throw dpopProofSignatureValidationFailed(
+        clientId,
+        dpopProofSignatureErrors.map((error) => error.detail).join(", ")
+      );
+    }
+
+    logger.info(`[JTI=${dpopProofJWT.payload.jti}] - DPoP proof validated`);
+  }
+
+  return { dpopProofJWS, dpopProofJWT };
 };

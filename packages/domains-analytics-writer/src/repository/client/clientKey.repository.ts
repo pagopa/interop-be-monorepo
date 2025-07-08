@@ -7,6 +7,7 @@ import {
   buildColumnSet,
   generateMergeDeleteQuery,
   generateMergeQuery,
+  generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { DeletingDbTable, ClientDbTable } from "../../model/db/index.js";
 import {
@@ -31,13 +32,9 @@ export function clientKeyRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, ClientKeySchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.client_id = b.client_id
-            AND a.kid = b.kid
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["clientId", "kid"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -82,9 +79,7 @@ export function clientKeyRepository(conn: DBConnection) {
           deletingTableName,
           ClientKeyDeletingSchema
         );
-        await t.none(
-          pgp.helpers.insert(records, cs) + " ON CONFLICT DO NOTHING"
-        );
+        await t.none(pgp.helpers.insert(records, cs));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into deleting table ${stagingDeletingTableName}: ${error}`
@@ -99,6 +94,7 @@ export function clientKeyRepository(conn: DBConnection) {
           tableName,
           deletingTableName,
           ["clientId", "kid"],
+          false,
           false,
           ["deleted_at"]
         );
@@ -128,14 +124,9 @@ export function clientKeyRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, ClientKeyUserMigrationSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(`
-          DELETE FROM ${stagingTableName} a
-          USING ${stagingTableName} b
-          WHERE a.client_id = b.client_id
-            AND a.kid = b.kid
-            AND a.user_id = b.user_id
-            AND a.metadata_version < b.metadata_version;
-        `);
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["clientId", "kid", "userId"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
