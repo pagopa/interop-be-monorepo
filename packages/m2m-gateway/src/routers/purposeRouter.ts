@@ -313,6 +313,27 @@ const purposeRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .delete("/purposes/:purposeId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.deletePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting purpose with id ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return purposeRouter;
