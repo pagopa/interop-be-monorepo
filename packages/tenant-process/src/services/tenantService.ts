@@ -13,7 +13,6 @@ import {
   M2MAuthData,
   isUiAuthData,
   M2MAdminAuthData,
-  getLatestTenantMailOfKind,
 } from "pagopa-interop-commons";
 import {
   Attribute,
