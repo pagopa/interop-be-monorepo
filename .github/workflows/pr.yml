@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
         with:
           path: |
             .turbo
@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
         with:
           path: |
             .turbo
@@ -46,7 +46,7 @@ jobs:
             ${{ runner.os }}-turbo-lint-
       - name: Cache ESLint cache (if applicable)
         # Assicurati che ESLint sia configurato per usare la cache (es. `pnpm lint --cache`)
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4
         with:
           path: .eslintcache # Percorso comune per la cache di ESLint
           key: ${{ runner.os }}-eslint-cache-${{ github.ref_name }}-${{ github.sha }}
@@ -69,19 +69,13 @@ jobs:
             packages/**/*.ts
 
       - name: Run Lint on changed files
-        # Questo step viene eseguito solo se ci sono file modificati rilevanti per il linting
         if: steps.changed-files-for-lint.outputs.any_changed == 'true'
         run: |
           CHANGED_FILES_STRING="${{ steps.changed-files-for-lint.outputs.all_changed_files }}"
           echo "Linting only changed files: $CHANGED_FILES_STRING"
-          # Il comando `pnpm lint` deve essere in grado di accettare i percorsi dei file come argomenti.
-          # Se usi ESLint, spesso basta passare i percorsi direttamente: `pnpm exec eslint $CHANGED_FILES_STRING --cache`
-          # Se il tuo script `pnpm lint` è un wrapper per `eslint`, assicurati che lo wrapper inoltri gli argomenti.
-          # Includi `--cache` se il tuo linter lo supporta per un caching aggiuntivo.
-          pnpm lint $CHANGED_FILES_STRING --cache || true # `|| true` per evitare fallimenti se non ci sono file da lintare, ma ESLint tipicamente gestisce bene.
+          pnpm lint $CHANGED_FILES_STRING --cache || true
 
       - name: Skip Linting if no relevant files changed
-        # Questo step esegue solo se `any_changed` è false, indicando che non ci sono file rilevanti da lintare
         if: steps.changed-files-for-lint.outputs.any_changed == 'false'
         run: |
           echo "No relevant files changed for linting. Skipping."
@@ -92,7 +86,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
         with:
           path: |
             .turbo
@@ -111,7 +105,6 @@ jobs:
   # Job per scoprire dinamicamente i gruppi di test dai file test.config.json
   find_test_groups:
     name: Find Test Groups
-    # Questo job dipende dai controlli iniziali per assicurarsi che il codice sia valido prima di eseguire i test
     needs: [formatting, lint, check]
     runs-on: ubuntu-latest
     outputs:
@@ -121,21 +114,12 @@ jobs:
       - name: Find and parse test.config.json files
         id: set_groups_output
         run: |
-          # Inizializza con un array JSON vuoto per assicurare sempre un output JSON valido.
           ALL_TEST_GROUPS="[]"
 
-          # Trova tutti i test.config.json e li processa.
-          # Il `while read -r config_file` loop elabora ogni file trovato.
-          # `jq -s '.'` alla fine raccoglierà tutti gli oggetti JSON prodotti nel loop
-          # e li combinerà in un singolo array JSON.
           TEMP_GROUPS=$(find packages -type f -name "test.config.json" | while read -r config_file; do
             PACKAGE_PATH=$(dirname "$config_file")
             PACKAGE_NAME=$(basename "$PACKAGE_PATH")
 
-            # Utilizza jq per leggere il file JSON e formattarlo.
-            # Se `.testPaths` è un array, costruisce i percorsi completi.
-            # Altrimenti (se `.testPaths` è assente, null, o non un array),
-            # imposta `paths` a un array vuoto `[]`.
             jq --arg name "$PACKAGE_NAME" \
                --argjson paths_root "$PACKAGE_PATH" \
                '{
@@ -143,43 +127,37 @@ jobs:
                  paths: (if .testPaths | type == "array" then
                            [.testPaths[] as $path | "\($paths_root)/\($path)"]
                          else
-                           [] # Fallback a un array vuoto se testPaths non è un array o non esiste
+                           []
                          end)
                }' \
                "$config_file"
-          done | jq -s '.') # Unisce tutti gli oggetti JSON in un singolo array JSON
+          done | jq -s '.')
 
-          # Aggiorna ALL_TEST_GROUPS solo se TEMP_GROUPS contiene dati validi e non vuoti.
           if [ -n "$TEMP_GROUPS" ] && [ "$TEMP_GROUPS" != "null" ] && [ "$TEMP_GROUPS" != "[]" ]; then
             ALL_TEST_GROUPS="$TEMP_GROUPS"
           fi
 
-          # Output finale per GitHub Actions
           echo "Discovered Test Groups: $ALL_TEST_GROUPS"
           echo "test_groups=$ALL_TEST_GROUPS" >> "$GITHUB_OUTPUT"
 
   # Job per eseguire i test in parallelo, uno per ogni gruppo scoperto
   run_grouped_tests:
     name: Run Tests for ${{ matrix.group.name }}
-    needs: [find_test_groups] # Dipende dal job che scopre i gruppi
-    # Aggiungi un 'if' per assicurarti che il job venga saltato se non ci sono test_groups validi.
-    # `fromJson(...) | length > 0` controlla che l'array non sia vuoto.
+    needs: [find_test_groups]
     if: needs.find_test_groups.outputs.test_groups != '[]' && fromJson(needs.find_test_groups.outputs.test_groups) | length > 0
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false # Permette a tutti i job della matrice di finire anche se uno fallisce
+      fail-fast: false
       matrix:
-        # La matrice viene popolata dinamicamente con l'output del job find_test_groups
         group: ${{ fromJson(needs.find_test_groups.outputs.test_groups) }}
     steps:
       - uses: actions/checkout@v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
         with:
           path: |
             .turbo
             packages/*/.turbo
-          # La chiave della cache include il nome del gruppo per cache isolate per ogni test suite
           key: ${{ runner.os }}-turbo-test-${{ matrix.group.name }}-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-test-${{ matrix.group.name }}-
@@ -190,25 +168,19 @@ jobs:
         with:
           node-version-file: ./package.json
       - name: Install Dependencies
-        run: pnpm install --frozen-lockfile # 'pnpm ci' è un'alternativa valida
+        run: pnpm install --frozen-lockfile
 
       - name: Run Vitest for ${{ matrix.group.name }}
-        # Questo script esegue Vitest all'interno della cartella del package specifico.
-        # Se `testPaths` dal file di configurazione è vuoto, esegue Vitest su tutta la cartella del package.
         run: |
           TEST_PATHS_ARRAY=$(echo "${{ toJSON(matrix.group.paths) }}" | jq -r '.[]')
           if [ -z "$TEST_PATHS_ARRAY" ]; then
             echo "No specific test paths defined for package ${{ matrix.group.name }}. Running all tests in package."
-            # Se non ci sono percorsi specifici, Vitest cercherà i test in tutta la cartella del package
             pnpm --dir packages/${{ matrix.group.name }} test
           else
             echo "Running tests in package ${{ matrix.group.name }} at paths: $TEST_PATHS_ARRAY"
-            # Se ci sono percorsi specifici, li passa a Vitest
             pnpm --dir packages/${{ matrix.group.name }} test $TEST_PATHS_ARRAY
           fi
         env:
-          # Variabile d'ambiente cruciale per Testcontainers.
-          # Assicura che i container Docker siano gestiti correttamente sul runner.
           DOCKER_HOST: unix:///var/run/docker.sock
 
   lint-openapi:
@@ -216,6 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    # ATTENZIONE: Indentazione corretta per 'steps'
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
@@ -225,6 +198,9 @@ jobs:
   find_dockerfiles:
     name: Find Dockerfiles
     needs: [run_grouped_tests] # Ora dipende dai test che sono completati con successo
+    # CONSIDERAZIONE: Vuoi che questo job dipenda anche da lint-openapi?
+    # Se lint-openapi è un prerequisito per la build, aggiungilo qui:
+    # needs: [run_grouped_tests, lint-openapi]
     if: ${{ github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     outputs:
