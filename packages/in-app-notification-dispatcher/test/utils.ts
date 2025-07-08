@@ -1,5 +1,3 @@
-import axios, { AxiosResponse } from "axios";
-import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import {
   setupTestContainersVitest,
   writeInReadmodel,
@@ -54,8 +52,6 @@ export const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
 });
 
-export const templateService = buildHTMLTemplateService();
-
 export const interopFeBaseUrl = "http://localhost/fe";
 
 export const agreements = readModelRepository.agreements;
@@ -95,23 +91,5 @@ export const addOnePurpose = async (purpose: Purpose): Promise<void> => {
 
   await purposeReadModelServiceSQL.upsertPurpose(purpose, 0);
 };
-
-type Mail = {
-  HTML: string;
-  From: { Address: string };
-  To: Array<{ Address: string }>;
-  Subject: string;
-};
-export async function getLatestMail(): Promise<AxiosResponse<Mail>> {
-  return await axios.get<Mail>(
-    `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/message/latest`
-  );
-}
-
-export async function getMails(): Promise<AxiosResponse<{ messages: Mail[] }>> {
-  return await axios.get<{ messages: Mail[] }>(
-    `http://${emailManagerConfig?.smtpAddress}:${emailManagerConfig?.mailpitAPIPort}/api/v1/messages`
-  );
-}
 
 afterEach(cleanup);

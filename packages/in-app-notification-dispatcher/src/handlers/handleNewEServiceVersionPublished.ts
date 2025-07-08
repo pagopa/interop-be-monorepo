@@ -3,6 +3,7 @@ import {
   fromEServiceV2,
   Notification,
   generateId,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
@@ -14,10 +15,16 @@ import {
 } from "./handlerCommons.js";
 
 export async function handleNewEServiceVersionPublished(
-  eserviceV2Msg: EServiceV2,
+  eserviceV2Msg: EServiceV2 | undefined,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<Notification[]> {
+  if (!eserviceV2Msg) {
+    throw missingKafkaMessageDataError(
+      "eservice",
+      "EServiceDescriptorPublished"
+    );
+  }
   logger.info(
     `Sending in-app notification for new descriptor published eservice ${eserviceV2Msg.id}`
   );

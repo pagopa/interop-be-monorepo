@@ -2,8 +2,10 @@ import {
   EServiceEventEnvelopeV2,
   AgreementEventEnvelopeV2,
   PurposeEventEnvelopeV2,
+  DelegationEventEnvelopeV2,
+  AuthorizationEventEnvelopeV2,
+  AttributeEventEnvelope,
   Notification,
-  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
@@ -14,24 +16,16 @@ export async function handleEvent(
   decodedMessage:
     | EServiceEventEnvelopeV2
     | AgreementEventEnvelopeV2
-    | PurposeEventEnvelopeV2,
+    | PurposeEventEnvelopeV2
+    | DelegationEventEnvelopeV2
+    | AuthorizationEventEnvelopeV2
+    | AttributeEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<Notification[]> {
   return match(decodedMessage)
-    .with(
-      { type: "EServiceDescriptorPublished" },
-      async ({ data: { eservice } }) => {
-        if (eservice) {
-          return await handleNewEServiceVersionPublished(
-            eservice,
-            logger,
-            readModelService
-          );
-        } else {
-          throw missingKafkaMessageDataError("eservice", decodedMessage.type);
-        }
-      }
+    .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
+      handleNewEServiceVersionPublished(eservice, logger, readModelService)
     )
     .with(
       {
@@ -77,7 +71,6 @@ export async function handleEvent(
           "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
-
           // Agreements
           "AgreementActivated",
           "AgreementSubmitted",
@@ -100,7 +93,6 @@ export async function handleEvent(
           "AgreementSetMissingCertifiedAttributesByPlatform",
           "AgreementDeletedByRevokedDelegation",
           "AgreementArchivedByRevokedDelegation",
-
           // Purposes
           "NewPurposeVersionWaitingForApproval",
           "PurposeWaitingForApproval",
@@ -121,7 +113,39 @@ export async function handleEvent(
           "NewPurposeVersionActivated",
           "PurposeCloned",
           "PurposeDeletedByRevokedDelegation",
-          "PurposeVersionArchivedByRevokedDelegation"
+          "PurposeVersionArchivedByRevokedDelegation",
+          // Attributes
+          "AttributeAdded",
+          "MaintenanceAttributeDeleted",
+          // Delegation
+          "ProducerDelegationSubmitted",
+          "ProducerDelegationApproved",
+          "ProducerDelegationRejected",
+          "ProducerDelegationRevoked",
+          "ConsumerDelegationSubmitted",
+          "ConsumerDelegationApproved",
+          "ConsumerDelegationRejected",
+          "ConsumerDelegationRevoked",
+          // Authorization
+          "ClientAdded",
+          "ClientAdminSet",
+          "ClientDeleted",
+          "ClientKeyAdded",
+          "ClientKeyDeleted",
+          "ClientUserAdded",
+          "ClientUserDeleted",
+          "ClientPurposeAdded",
+          "ClientPurposeRemoved",
+          "ClientAdminRoleRevoked",
+          "ClientAdminRemoved",
+          "ProducerKeychainAdded",
+          "ProducerKeychainDeleted",
+          "ProducerKeychainKeyAdded",
+          "ProducerKeychainKeyDeleted",
+          "ProducerKeychainUserAdded",
+          "ProducerKeychainUserDeleted",
+          "ProducerKeychainEServiceAdded",
+          "ProducerKeychainEServiceRemoved"
         ),
       },
       () => {

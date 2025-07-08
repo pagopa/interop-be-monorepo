@@ -4,12 +4,14 @@ import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import {
   AgreementEventV2,
+  AttributeEvent,
+  AuthorizationEventV2,
   CorrelationId,
+  DelegationEventV2,
   EServiceEventV2,
   generateId,
   genericInternalError,
   PurposeEventV2,
-  toNotificationSQL,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -34,6 +36,9 @@ interface TopicNames {
   catalogTopic: string;
   agreementTopic: string;
   purposeTopic: string;
+  delegationTopic: string;
+  authorizationTopic: string;
+  attributeTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
@@ -63,12 +68,22 @@ const inAppNotificationService =
 
 function processMessage(topicNames: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
-    const { catalogTopic, agreementTopic, purposeTopic } = topicNames;
+    const {
+      catalogTopic,
+      agreementTopic,
+      purposeTopic,
+      delegationTopic,
+      authorizationTopic,
+      attributeTopic,
+    } = topicNames;
 
     const eventType = match(messagePayload.topic)
       .with(catalogTopic, () => EServiceEventV2)
       .with(agreementTopic, () => AgreementEventV2)
       .with(purposeTopic, () => PurposeEventV2)
+      .with(delegationTopic, () => DelegationEventV2)
+      .with(authorizationTopic, () => AuthorizationEventV2)
+      .with(attributeTopic, () => AttributeEvent)
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
@@ -98,19 +113,27 @@ function processMessage(topicNames: TopicNames) {
       loggerInstance,
       readModelService
     );
-    await inAppNotificationService.insertNotifications(
-      notifications.map(toNotificationSQL)
-    );
+    await inAppNotificationService.insertNotifications(notifications);
   };
 }
 
 await runConsumer(
   config,
-  [config.catalogTopic, config.agreementTopic, config.purposeTopic],
+  [
+    config.catalogTopic,
+    config.agreementTopic,
+    config.purposeTopic,
+    config.delegationTopic,
+    config.authorizationTopic,
+    config.attributeTopic,
+  ],
   processMessage({
     catalogTopic: config.catalogTopic,
     agreementTopic: config.agreementTopic,
     purposeTopic: config.purposeTopic,
+    delegationTopic: config.delegationTopic,
+    authorizationTopic: config.authorizationTopic,
+    attributeTopic: config.attributeTopic,
   }),
   "in-app-notification-dispatcher"
 );
