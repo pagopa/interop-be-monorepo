@@ -114,10 +114,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       queryParams: m2mGatewayApi.GetPurposesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purposes> {
-      const { eserviceIds, limit, offset } = queryParams;
+      const { eserviceIds, title, consumerIds, states, limit, offset } =
+        queryParams;
 
       logger.info(
-        `Retrieving purposes for eServiceIds ${eserviceIds} limit ${limit} offset ${offset}`
+        `Retrieving purposes for eServiceIds ${eserviceIds}, title ${title}, consumerIds ${consumerIds}, states ${states}, limit ${limit} offset ${offset}`
       );
 
       const queries = toGetPurposesApiQueryParams(queryParams);
@@ -384,6 +385,35 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       await pollPurposeUntilDeletion(purposeId, headers);
+    },
+    async createReversePurpose(
+      purposeSeed: m2mGatewayApi.EServicePurposeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> {
+      logger.info(
+        `Creating reverse purpose for e-service ${purposeSeed.eserviceId}`
+      );
+
+      const purposeResponse =
+        await clients.purposeProcessClient.createPurposeFromEService(
+          {
+            consumerId: purposeSeed.consumerId,
+            eServiceId: purposeSeed.eserviceId,
+            dailyCalls: purposeSeed.dailyCalls,
+            description: purposeSeed.description,
+            isFreeOfCharge: purposeSeed.isFreeOfCharge,
+            riskAnalysisId: purposeSeed.riskAnalysisId,
+            title: purposeSeed.title,
+            freeOfChargeReason: purposeSeed.freeOfChargeReason,
+          },
+          {
+            headers,
+          }
+        );
+
+      const polledResource = await pollPurpose(purposeResponse, headers);
+
+      return toM2MGatewayApiPurpose(polledResource.data);
     },
   };
 }
