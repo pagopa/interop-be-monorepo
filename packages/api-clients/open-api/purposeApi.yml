@@ -312,6 +312,9 @@ paths:
       responses:
         "200":
           description: Purpose updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -387,6 +390,9 @@ paths:
       responses:
         "200":
           description: Purpose updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
