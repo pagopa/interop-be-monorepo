@@ -4,7 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import {
   generateToken,
   mockM2MAdminClientId,
-  getMockedApiFullClient,
+  getMockedApiConsumerFullClient,
   getMockedApiAttribute,
 } from "pagopa-interop-commons-test";
 import { authRole, genericLogger } from "pagopa-interop-commons";
@@ -94,7 +94,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
   it("Should return 403 if getClientAdminId throws clientAdminIdNotFound", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     mockGetClientAdminId.mockRejectedValue(
-      clientAdminIdNotFound(getMockedApiFullClient())
+      clientAdminIdNotFound(getMockedApiConsumerFullClient())
     );
     const res = await makeRequest(token);
 
