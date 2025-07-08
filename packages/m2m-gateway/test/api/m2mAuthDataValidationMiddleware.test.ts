@@ -4,6 +4,8 @@ import { generateId } from "pagopa-interop-models";
 import {
   generateToken,
   mockM2MAdminClientId,
+  getMockedApiFullClient,
+  getMockedApiAttribute,
 } from "pagopa-interop-commons-test";
 import { authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
@@ -14,7 +16,6 @@ import {
   mockGetClientAdminId,
 } from "../vitest.api.setup.js";
 import { appBasePath } from "../../src/config/appBasePath.js";
-import { getMockedApiAttribute, getMockedApiClient } from "../mockUtils.js";
 import { clientAdminIdNotFound } from "../../src/model/errors.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../src/api/attributeApiConverter.js";
 
@@ -30,7 +31,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
     toM2MGatewayApiCertifiedAttribute({
       attribute: getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
-      }).data,
+      }),
       logger: genericLogger,
     })
   );
@@ -93,7 +94,7 @@ describe("m2mAuthDataValidationMiddleware", () => {
   it("Should return 403 if getClientAdminId throws clientAdminIdNotFound", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     mockGetClientAdminId.mockRejectedValue(
-      clientAdminIdNotFound(getMockedApiClient().data)
+      clientAdminIdNotFound(getMockedApiFullClient())
     );
     const res = await makeRequest(token);
 

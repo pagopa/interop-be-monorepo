@@ -1,17 +1,19 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiEservice,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiEservice } from "../../mockUtils.js";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
-describe("GET /eservice/:eserviceId router test", () => {
+describe("GET /eservices/:eserviceId router test", () => {
   const mockApiEservice = getMockedApiEservice();
   const mockM2MEserviceResponse: m2mGatewayApi.EService =
-    toM2MGatewayApiEService(mockApiEservice.data);
+    toM2MGatewayApiEService(mockApiEservice);
 
   const makeRequest = async (token: string, eserviceId: string) =>
     request(api)
@@ -31,7 +33,7 @@ describe("GET /eservice/:eserviceId router test", () => {
         .mockResolvedValue(mockM2MEserviceResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockApiEservice.data.id);
+      const res = await makeRequest(token, mockApiEservice.id);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MEserviceResponse);
@@ -42,7 +44,7 @@ describe("GET /eservice/:eserviceId router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockApiEservice.data.id);
+    const res = await makeRequest(token, mockApiEservice.id);
     expect(res.status).toBe(403);
   });
 
@@ -62,7 +64,7 @@ describe("GET /eservice/:eserviceId router test", () => {
     async (resp) => {
       mockEserviceService.getEService = vi.fn().mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockApiEservice.data.id);
+      const res = await makeRequest(token, mockApiEservice.id);
 
       expect(res.status).toBe(500);
     }

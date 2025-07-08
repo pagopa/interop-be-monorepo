@@ -16,7 +16,9 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
   RiskAnalysisId,
+  tenantKind,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { toBffCompactOrganization } from "../api/agreementApiConverter.js";
 import {
   apiTechnologyToTechnology,
@@ -30,6 +32,7 @@ import {
 } from "../api/eserviceTemplateApiConverter.js";
 import {
   AttributeProcessClient,
+  CatalogProcessClient,
   EServiceTemplateProcessClient,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
@@ -46,6 +49,7 @@ export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: AttributeProcessClient,
+  catalogProcessClient: CatalogProcessClient,
   fileManager: FileManager
 ) {
   return {
@@ -232,7 +236,7 @@ export function eserviceTemplateServiceBuilder(
     getEServiceTemplateVersion: async (
       templateId: EServiceTemplateId,
       templateVersionId: EServiceTemplateVersionId,
-      { headers, logger }: WithLogger<BffAppContext>
+      { headers, logger, authData }: WithLogger<BffAppContext>
     ): Promise<bffApi.EServiceTemplateVersionDetails> => {
       logger.info(
         `Retrieving EService template version for templateId = ${templateId}, templateVersionId = ${templateVersionId}`
@@ -272,6 +276,46 @@ export function eserviceTemplateServiceBuilder(
         },
       });
 
+      const callerTenant = await tenantProcessClient.tenant.getTenant({
+        headers,
+        params: {
+          id: authData.organizationId,
+        },
+      });
+
+      const isAlreadyInstantiated =
+        (
+          await catalogProcessClient.getEServices({
+            headers,
+            queries: {
+              templatesIds: [eserviceTemplate.id],
+              producersIds: [callerTenant.id],
+              limit: 1,
+              offset: 0,
+            },
+          })
+        ).totalCount > 0;
+
+      const hasRequesterRiskAnalysis = match(eserviceTemplate.mode)
+        .with(eserviceTemplateApi.EServiceMode.Values.DELIVER, () => null)
+        .with(eserviceTemplateApi.EServiceMode.Values.RECEIVE, () =>
+          eserviceTemplate.riskAnalysis.some((r) =>
+            match(callerTenant.kind)
+              .with(tenantKind.PA, () => r.tenantKind === tenantKind.PA)
+              .with(
+                tenantKind.GSP,
+                tenantKind.PRIVATE,
+                tenantKind.SCP,
+                () =>
+                  r.tenantKind === tenantKind.GSP ||
+                  r.tenantKind === tenantKind.PRIVATE ||
+                  r.tenantKind === tenantKind.SCP
+              )
+              .otherwise(() => false)
+          )
+        )
+        .exhaustive();
+
       return {
         id: eserviceTemplateVersion.id,
         version: eserviceTemplateVersion.version,
@@ -291,6 +335,8 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate,
           creatorTenant
         ),
+        isAlreadyInstantiated,
+        ...(hasRequesterRiskAnalysis !== null && { hasRequesterRiskAnalysis }),
       };
     },
     getEServiceTemplate: async (
@@ -398,9 +444,9 @@ export function eserviceTemplateServiceBuilder(
         },
       };
     },
-    createEServiceTemplateEServiceRiskAnalysis: async (
+    createEServiceTemplateRiskAnalysis: async (
       templateId: EServiceTemplateId,
-      seed: bffApi.EServiceRiskAnalysisSeed,
+      seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Creating EService template ${templateId} risk analysis`);
@@ -411,10 +457,10 @@ export function eserviceTemplateServiceBuilder(
         },
       });
     },
-    updateEServiceTemplateEServiceRiskAnalysis: async (
+    updateEServiceTemplateRiskAnalysis: async (
       templateId: EServiceTemplateId,
       riskAnalysisId: RiskAnalysisId,
-      seed: bffApi.EServiceRiskAnalysisSeed,
+      seed: bffApi.EServiceTemplateRiskAnalysisSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
@@ -514,7 +560,7 @@ export function eserviceTemplateServiceBuilder(
 
       await verifyAndCreateDocument(
         fileManager,
-        eserviceTemplate.id,
+        { id: eserviceTemplate.id, isEserviceTemplate: true },
         apiTechnologyToTechnology(eserviceTemplate.technology),
         doc.kind,
         doc.doc,

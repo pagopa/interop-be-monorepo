@@ -1,19 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import { generateToken, getMockedApiTenant } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiTenant } from "../../mockUtils.js";
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
 
 describe("GET /tenants/:tenantId route test", () => {
   const mockApiResponse = getMockedApiTenant();
-  const mockResponse: m2mGatewayApi.Tenant = toM2MGatewayApiTenant(
-    mockApiResponse.data
-  );
+  const mockResponse: m2mGatewayApi.Tenant =
+    toM2MGatewayApiTenant(mockApiResponse);
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -28,7 +26,7 @@ describe("GET /tenants/:tenantId route test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockTenantService.getTenant = vi.fn().mockResolvedValue(mockResponse);
+      vi.spyOn(mockTenantService, "getTenant").mockResolvedValue(mockResponse);
 
       const token = generateToken(role);
       const res = await makeRequest(token);
@@ -54,7 +52,9 @@ describe("GET /tenants/:tenantId route test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockTenantService.getTenant = vi.fn().mockResolvedValue(resp);
+      vi.spyOn(mockTenantService, "getTenant").mockResolvedValue(
+        resp as unknown as tenantApi.Tenant
+      );
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token);
 

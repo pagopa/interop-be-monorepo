@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Agreement, Client, EService, Purpose } from "pagopa-interop-models";
 import {
   aggregateEserviceArray,
@@ -106,9 +106,15 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         )
         .leftJoin(
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          eq(
-            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          and(
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+            ),
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
+            )
           )
         );
 
@@ -137,9 +143,15 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         )
         .leftJoin(
           purposeRiskAnalysisAnswerInReadmodelPurpose,
-          eq(
-            purposeRiskAnalysisFormInReadmodelPurpose.id,
-            purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+          and(
+            eq(
+              purposeInReadmodelPurpose.id,
+              purposeRiskAnalysisAnswerInReadmodelPurpose.purposeId
+            ),
+            eq(
+              purposeRiskAnalysisFormInReadmodelPurpose.id,
+              purposeRiskAnalysisAnswerInReadmodelPurpose.riskAnalysisFormId
+            )
           )
         )
         .leftJoin(

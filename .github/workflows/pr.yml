@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
           path: |
             .turbo
@@ -22,7 +22,7 @@ jobs:
           key: ${{ runner.os }}-turbo-check-formatting-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-check-formatting
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           run_install: true
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
           path: |
             .turbo
@@ -92,7 +92,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Cache turbo setup
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
           path: |
             .turbo
@@ -174,7 +174,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Cache turbo setup
-        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
+        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
           path: |
             .turbo
@@ -210,6 +210,17 @@ jobs:
           # Variabile d'ambiente cruciale per Testcontainers.
           # Assicura che i container Docker siano gestiti correttamente sul runner.
           DOCKER_HOST: unix:///var/run/docker.sock
+
+  lint-openapi:
+    name: Lint Open Api specification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
+        with:
+          file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
   find_dockerfiles:
     name: Find Dockerfiles

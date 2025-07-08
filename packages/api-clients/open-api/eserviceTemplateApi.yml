@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: EService Template Process Micro Service
   description: This service is the eservice template process
-  version: "v1"
+  version: "{{version}}"
   contact:
     name: API Support
     url: http://www.example.com/support
@@ -11,7 +11,7 @@ info:
   x-api-id: an x-api-id
   x-summary: an x-summary
 servers:
-  - url: "/eservice-template-process/v1"
+  - url: "/"
     description: This service is the eservice template process
 security:
   - bearerAuth: []
@@ -37,6 +37,7 @@ paths:
         - process
       summary: Retrieve a list of E-Service templates
       operationId: getEServiceTemplates
+      description: Retrieves a list of E-Service templates with optional filters
       parameters:
         - in: query
           name: name
@@ -96,7 +97,7 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
@@ -106,6 +107,7 @@ paths:
         - process
       summary: Create a new e-service template
       operationId: createEServiceTemplate
+      description: Creates a new E-Service template
       requestBody:
         description: An E-Service template seed
         content:
@@ -123,19 +125,19 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Name Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}:
@@ -148,6 +150,7 @@ paths:
         - process
       summary: Get an e-service template
       operationId: getEServiceTemplateById
+      description: Retrieves an E-Service template by its ID
       parameters:
         - name: templateId
           in: path
@@ -166,19 +169,19 @@ paths:
         "404":
           description: E-Service template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
@@ -188,6 +191,7 @@ paths:
         - process
       summary: Updates e-service template general information
       operationId: updateEServiceTemplate
+      description: Updates the general information of an E-Service template
       parameters:
         - name: templateId
           in: path
@@ -212,19 +216,19 @@ paths:
         "404":
           description: E-Service template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions:
@@ -237,6 +241,7 @@ paths:
         - process
       summary: Adds a version to the specified e-service template
       operationId: createEServiceTemplateVersion
+      description: Adds a new version to the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -255,19 +260,19 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}:
@@ -280,6 +285,7 @@ paths:
         - process
       summary: Deletes a draft template version
       operationId: deleteDraftTemplateVersion
+      description: Deletes a draft version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -301,19 +307,19 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     post:
@@ -323,6 +329,7 @@ paths:
         - process
       summary: Updates a draft template version
       operationId: updateDraftTemplateVersion
+      description: Updates a draft version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -355,19 +362,19 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/publish:
@@ -380,6 +387,7 @@ paths:
         - process
       summary: Publish the selected template version.
       operationId: publishTemplateVersion
+      description: Publishes the selected version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -401,19 +409,19 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/suspend:
@@ -426,6 +434,7 @@ paths:
         - process
       summary: Suspend the selected template version.
       operationId: suspendTemplateVersion
+      description: Suspends the selected version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -447,19 +456,19 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/activate:
@@ -472,6 +481,7 @@ paths:
         - process
       summary: Activate the selected template version.
       operationId: activateTemplateVersion
+      description: Activates the selected version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -493,19 +503,19 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/quotas/update:
@@ -518,6 +528,7 @@ paths:
         - process
       summary: Update the quotas of the selected template version
       operationId: updateTemplateVersionQuotas
+      description: Updates the quotas for the selected version of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -550,19 +561,19 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/documents:
@@ -575,6 +586,7 @@ paths:
         - process
       summary: Add new e-service template document
       operationId: createEServiceTemplateDocument
+      description: Adds a new document to the specified E-Service template version
       parameters:
         - name: templateId
           in: path
@@ -607,19 +619,19 @@ paths:
         "400":
           description: Invalid input
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/documents/{documentId}:
@@ -632,6 +644,7 @@ paths:
         - process
       summary: Get an e-service template document
       operationId: getEServiceTemplateDocumentById
+      description: Retrieves a document of the specified E-Service template version by its ID
       parameters:
         - name: templateId
           in: path
@@ -664,19 +677,19 @@ paths:
         "404":
           description: EService template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -686,6 +699,7 @@ paths:
         - process
       summary: Deletes an e-service template document
       operationId: deleteEServiceTemplateDocumentById
+      description: Deletes a document from the specified E-Service template version by its ID
       parameters:
         - name: templateId
           in: path
@@ -714,19 +728,19 @@ paths:
         "404":
           description: E-Service template document not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/documents/{documentId}/update:
@@ -739,6 +753,7 @@ paths:
         - process
       summary: Updates an e-service template document
       operationId: updateEServiceTemplateDocumentById
+      description: Updates a document of the specified E-Service template version by its ID
       parameters:
         - name: templateId
           in: path
@@ -778,19 +793,19 @@ paths:
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/riskAnalysis:
@@ -803,6 +818,7 @@ paths:
         - process
       summary: Create an e-service template risk analysis
       operationId: createEServiceTemplateRiskAnalysis
+      description: Creates a new risk analysis for the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -817,26 +833,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis created.
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/riskAnalysis/{riskAnalysisId}:
@@ -849,6 +865,7 @@ paths:
         - process
       summary: Update an e-service template risk analysis
       operationId: updateEServiceTemplateRiskAnalysis
+      description: Updates the risk analysis for the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -870,26 +887,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
+              $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
         "204":
           description: EService Template Risk Analysis updated.
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService Template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
     delete:
@@ -899,6 +916,7 @@ paths:
         - process
       summary: Delete an e-service template risk analysis
       operationId: deleteEServiceTemplateRiskAnalysis
+      description: Deletes the risk analysis from the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -920,19 +938,19 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/intendedTarget/update:
@@ -945,6 +963,7 @@ paths:
         - process
       summary: Update a published e-service template intended target description
       operationId: updateEServiceTemplateIntendedTarget
+      description: Updates the intended target description of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -970,19 +989,19 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/description/update:
@@ -995,6 +1014,7 @@ paths:
         - process
       summary: Update a published e-service template description
       operationId: updateEServiceTemplateDescription
+      description: Updates the description of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -1020,19 +1040,19 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/name/update:
@@ -1045,6 +1065,7 @@ paths:
         - process
       summary: Update an e-service published template name
       operationId: updateEServiceTemplateName
+      description: Updates the name of the specified E-Service template
       parameters:
         - name: templateId
           in: path
@@ -1070,19 +1091,19 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: EService Template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions/{templateVersionId}/attributes/update:
@@ -1095,6 +1116,7 @@ paths:
         - process
       summary: Update e-service published template version attributes
       operationId: updateTemplateVersionAttributes
+      description: Updates the attributes of the specified E-Service template version
       parameters:
         - name: templateId
           in: path
@@ -1127,25 +1149,25 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: E-Service template not found
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "400":
           description: Bad request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   "/creators":
@@ -1188,7 +1210,7 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
   /status:
@@ -1203,7 +1225,7 @@ paths:
         "200":
           description: successful operation
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
@@ -1438,17 +1460,20 @@ components:
       enum:
         - AUTOMATIC
         - MANUAL
-    EServiceRiskAnalysisSeed:
+    EServiceTemplateRiskAnalysisSeed:
       type: object
       additionalProperties: false
       required:
         - name
         - riskAnalysisForm
+        - tenantKind
       properties:
         name:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/EServiceRiskAnalysisFormSeed"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysisFormSeed:
       type: object
       additionalProperties: false
@@ -1463,7 +1488,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 500
+              maxLength: 2000
       required:
         - version
         - answers
@@ -1502,7 +1527,7 @@ components:
         riskAnalysis:
           type: array
           items:
-            $ref: "#/components/schemas/EServiceRiskAnalysis"
+            $ref: "#/components/schemas/EServiceTemplateRiskAnalysis"
         mode:
           $ref: "#/components/schemas/EServiceMode"
         isSignalHubEnabled:
@@ -1513,13 +1538,14 @@ components:
       enum:
         - RECEIVE
         - DELIVER
-    EServiceRiskAnalysis:
+    EServiceTemplateRiskAnalysis:
       type: object
       additionalProperties: false
       required:
         - id
         - name
         - riskAnalysisForm
+        - tenantKind
         - createdAt
       properties:
         id:
@@ -1529,6 +1555,8 @@ components:
           type: string
         riskAnalysisForm:
           $ref: "#/components/schemas/EServiceRiskAnalysisForm"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
         createdAt:
           type: string
           format: date-time
@@ -1790,6 +1818,13 @@ components:
       required:
         - results
         - totalCount
+    TenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
+        - GSP
+        - SCP
     Problem:
       properties:
         type:

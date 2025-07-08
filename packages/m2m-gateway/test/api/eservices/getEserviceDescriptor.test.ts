@@ -1,24 +1,24 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiEservice,
+  getMockedApiEserviceDescriptor,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  getMockedApiEservice,
-  getMockedApiEserviceDescriptor,
-} from "../../mockUtils.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 
-describe("GET /eservice/:eserviceId/descriptors/:descriptorId router test", () => {
+describe("GET /eservices/:eserviceId/descriptors/:descriptorId router test", () => {
   const mockApiEserviceDescriptor = getMockedApiEserviceDescriptor();
   const mockApiEservice = getMockedApiEservice({
-    descriptors: [mockApiEserviceDescriptor.data],
+    descriptors: [mockApiEserviceDescriptor],
   });
   const mockM2MEserviceDescriptorResponse: m2mGatewayApi.EServiceDescriptor =
-    toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor.data);
+    toM2MGatewayApiEServiceDescriptor(mockApiEserviceDescriptor);
 
   const makeRequest = async (
     token: string,
@@ -44,8 +44,8 @@ describe("GET /eservice/:eserviceId/descriptors/:descriptorId router test", () =
       const token = generateToken(role);
       const res = await makeRequest(
         token,
-        mockApiEservice.data.id,
-        mockApiEserviceDescriptor.data.id
+        mockApiEservice.id,
+        mockApiEserviceDescriptor.id
       );
 
       expect(res.status).toBe(200);
@@ -59,8 +59,8 @@ describe("GET /eservice/:eserviceId/descriptors/:descriptorId router test", () =
     const token = generateToken(role);
     const res = await makeRequest(
       token,
-      mockApiEservice.data.id,
-      mockApiEserviceDescriptor.data.id
+      mockApiEservice.id,
+      mockApiEserviceDescriptor.id
     );
     expect(res.status).toBe(403);
   });
@@ -70,7 +70,7 @@ describe("GET /eservice/:eserviceId/descriptors/:descriptorId router test", () =
     const res = await makeRequest(
       token,
       "invalidId",
-      mockApiEserviceDescriptor.data.id
+      mockApiEserviceDescriptor.id
     );
 
     expect(res.status).toBe(400);
@@ -78,7 +78,7 @@ describe("GET /eservice/:eserviceId/descriptors/:descriptorId router test", () =
 
   it("Should return 400 if passed an invalid descriptor id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockApiEservice.data.id, "invalidId");
+    const res = await makeRequest(token, mockApiEservice.id, "invalidId");
 
     expect(res.status).toBe(400);
   });
@@ -96,8 +96,8 @@ describe("GET /eservice/:eserviceId/descriptors/:descriptorId router test", () =
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(
         token,
-        mockApiEservice.data.id,
-        mockApiEserviceDescriptor.data.id
+        mockApiEservice.id,
+        mockApiEserviceDescriptor.id
       );
 
       expect(res.status).toBe(500);
@@ -109,15 +109,15 @@ describe("GET /eservice/:eserviceId/descriptors/:descriptorId router test", () =
       .fn()
       .mockRejectedValue(
         eserviceDescriptorNotFound(
-          mockApiEservice.data.id,
-          mockApiEserviceDescriptor.data.id
+          mockApiEservice.id,
+          mockApiEserviceDescriptor.id
         )
       );
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      mockApiEservice.data.id,
-      mockApiEserviceDescriptor.data.id
+      mockApiEservice.id,
+      mockApiEserviceDescriptor.id
     );
 
     expect(res.status).toBe(404);

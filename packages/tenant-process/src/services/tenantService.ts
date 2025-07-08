@@ -6,6 +6,7 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
+  getLatestTenantMailOfKind,
   UIAuthData,
   InternalAuthData,
   MaintenanceAuthData,
@@ -1262,9 +1263,19 @@ export function tenantServiceBuilder(
 
       const validatedAddress = validateAddress(mailSeed.address);
 
-      if (tenant.data.mails.find((m) => m.address === validatedAddress)) {
+      // could be simplified when the tenants will have only one mail of each kind
+      const latestMail = getLatestTenantMailOfKind(
+        tenant.data.mails,
+        mailSeed.kind
+      );
+
+      if (latestMail?.address === validatedAddress) {
         throw mailAlreadyExists();
       }
+
+      const filteredMails = tenant.data.mails.filter(
+        (mail) => mail.kind !== mailSeed.kind
+      );
 
       const newMail: TenantMail = {
         kind: mailSeed.kind,
@@ -1276,7 +1287,7 @@ export function tenantServiceBuilder(
 
       const updatedTenant: Tenant = {
         ...tenant.data,
-        mails: [...tenant.data.mails, newMail],
+        mails: [...filteredMails, newMail],
         updatedAt: new Date(),
       };
 
