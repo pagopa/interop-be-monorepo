@@ -75,10 +75,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Client> {
       logger.info(`Retrieving client with id ${clientId}`);
 
-      const client = await clients.authorizationClient.client.getClient({
-        params: { clientId },
-        headers,
-      });
+      const client = await retrieveClientById(clientId, headers);
 
       return toM2MGatewayApiConsumerClient(client.data);
     },
