@@ -32,7 +32,14 @@
       "outputs": ["src/gen/**"]
     },
     "test": {
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build",
+        "test:ci",
+        "test:old",
+        "test:integration",
+        "test:integration:old",
+        "test:api"
+      ]
     },
     "test:ci": {
       "dependsOn": ["build"]
