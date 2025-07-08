@@ -11,7 +11,7 @@ jobs:
     name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d2759364c9af683 # v4
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
         with:
@@ -33,7 +33,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d2759364c9af683 # v4
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
         with:
@@ -55,7 +55,7 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d2759364c9af683 # v4
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
         with:
@@ -73,11 +73,10 @@ jobs:
           run_install: true
       - run: pnpm check
 
-  # INIZIO NUOVA LOGICA TEST
-  # Job per scoprire dinamicamente i gruppi di test dai file test.config.json
+  # START: Updated test logic
   find_test_groups:
     name: Find Test Groups
-    needs: [formatting, lint, check] # Dipende dai controlli iniziali
+    needs: [formatting, lint, check]
     runs-on: ubuntu-latest
     outputs:
       test_groups: ${{ steps.set_groups_output.outputs.test_groups }}
@@ -92,10 +91,6 @@ jobs:
             PACKAGE_PATH=$(dirname "$config_file")
             PACKAGE_NAME=$(basename "$PACKAGE_PATH")
 
-            # Utilizza jq per leggere il file JSON e formattarlo.
-            # Se `.testPaths` è un array, costruisce i percorsi completi.
-            # Altrimenti (se `.testPaths` è assente, null, o non un array),
-            # imposta `paths` a un array vuoto `[]`.
             jq --arg name "$PACKAGE_NAME" \
                --argjson paths_root "$PACKAGE_PATH" \
                '{
@@ -103,13 +98,12 @@ jobs:
                  paths: (if .testPaths | type == "array" then
                            [.testPaths[] as $path | "\($paths_root)/\($path)"]
                          else
-                           [] # Fallback a un array vuoto se testPaths non è un array o non esiste
+                           []
                          end)
                }' \
                "$config_file"
           done | jq -s '.')
 
-          # Aggiorna ALL_TEST_GROUPS solo se TEMP_GROUPS contiene dati validi e non vuoti.
           if [ -n "$TEMP_GROUPS" ] && [ "$TEMP_GROUPS" != "null" ] && [ "$TEMP_GROUPS" != "[]" ]; then
             ALL_TEST_GROUPS="$TEMP_GROUPS"
           fi
@@ -117,18 +111,14 @@ jobs:
           echo "Discovered Test Groups: $ALL_TEST_GROUPS"
           echo "test_groups=$ALL_TEST_GROUPS" >> "$GITHUB_OUTPUT"
 
-  # Job per eseguire i test in parallelo, uno per ogni gruppo scoperto
   run_grouped_tests:
     name: Run Tests for ${{ matrix.group.name }}
-    needs: [find_test_groups] # Dipende dal job che scopre i gruppi
-    # Aggiungi un 'if' per assicurarti che il job venga saltato se non ci sono test_groups validi.
-    # `fromJson(...) | length > 0` controlla che l'array non sia vuoto.
+    needs: [find_test_groups]
     if: needs.find_test_groups.outputs.test_groups != '[]' && fromJson(needs.find_test_groups.outputs.test_groups) | length > 0
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false # Permette a tutti i job della matrice di finire anche se uno fallisce
+      fail-fast: false
       matrix:
-        # La matrice viene popolata dinamicamente con l'output del job find_test_groups
         group: ${{ fromJson(needs.find_test_groups.outputs.test_groups) }}
     steps:
       - uses: actions/checkout@v4
@@ -138,7 +128,6 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          # La chiave della cache include il nome del gruppo per cache isolate per ogni test suite
           key: ${{ runner.os }}-turbo-test-${{ matrix.group.name }}-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-test-${{ matrix.group.name }}-
@@ -152,8 +141,6 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Vitest for ${{ matrix.group.name }}
-        # Questo script esegue Vitest all'interno della cartella del package specifico.
-        # Se `testPaths` dal file di configurazione è vuoto, esegue Vitest su tutta la cartella del package.
         run: |
           TEST_PATHS_ARRAY=$(echo "${{ toJSON(matrix.group.paths) }}" | jq -r '.[]')
           if [ -z "$TEST_PATHS_ARRAY" ]; then
@@ -165,7 +152,7 @@ jobs:
           fi
         env:
           DOCKER_HOST: unix:///var/run/docker.sock
-  # FINE NUOVA LOGICA TEST
+  # END: Updated test logic
 
   lint-openapi:
     name: Lint Open Api specification
@@ -180,7 +167,7 @@ jobs:
 
   find_dockerfiles:
     name: Find Dockerfiles
-    # AGGIORNATO: Ora dipende da run_grouped_tests
+    # Updated needs to depend on the new test jobs
     needs: [formatting, lint, check, run_grouped_tests, lint-openapi]
     if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
     runs-on: ubuntu-latest
@@ -243,4 +230,3 @@ jobs:
         run: |
           [[ ${{ needs.docker_build.result }} != 'success' ]] && exit 1
           exit 0
-
