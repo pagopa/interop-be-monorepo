@@ -166,7 +166,7 @@ export const assertKeyDoesNotAlreadyExist = async (
 };
 
 export const assertSecurityRoleIsClientMember = (
-  authData: UIAuthData | M2MAuthData,
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
   client: Client
 ): void => {
   if (

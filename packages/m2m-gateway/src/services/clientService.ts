@@ -12,6 +12,7 @@ import {
 } from "../utils/polling.js";
 import { assertClientVisibilityIsFull } from "../utils/validators/validators.js";
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
+import { toM2MKey } from "../api/keysApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -114,6 +115,41 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
           totalCount: purposeIds.length,
         },
         results: paginatedPurposes.map(toM2MGatewayApiPurpose),
+      };
+    },
+    async getClientKeys(
+      clientId: ClientId,
+      { limit, offset }: m2mGatewayApi.GetClientKeysQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Keys> {
+      logger.info(`Retrieving keys for client with id ${clientId}`);
+
+      const {
+        data: { keys, totalCount },
+      } = await clients.authorizationClient.client.getClientKeys({
+        params: { clientId },
+        queries: { limit, offset },
+        headers,
+      });
+
+      const jwks = await Promise.all(
+        keys.map((key) =>
+          clients.authorizationClient.key
+            .getJWKByKid({
+              params: { kid: key.kid },
+              headers,
+            })
+            .then(({ data: jwk }) => jwk)
+        )
+      );
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+        results: jwks.map(toM2MKey),
       };
     },
   };
