@@ -192,13 +192,17 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await agreementService.removeAgreementConsumerDocument(
-            unsafeBrandId(req.params.agreementId),
-            unsafeBrandId(req.params.documentId),
-            ctx
-          );
+          const { metadata } =
+            await agreementService.removeAgreementConsumerDocument(
+              unsafeBrandId(req.params.agreementId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(
