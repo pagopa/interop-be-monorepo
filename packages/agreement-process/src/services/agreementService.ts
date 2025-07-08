@@ -749,7 +749,10 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      if (eservice.producerId !== agreementToBeUpgraded.data.consumerId) {
+      const isSelfConsumer =
+        eservice.producerId === agreementToBeUpgraded.data.consumerId;
+
+      if (!isSelfConsumer) {
         validateCertifiedAttributes({
           descriptor: newDescriptor,
           consumer,
@@ -775,6 +778,8 @@ export function agreementServiceBuilder(
         logger
       );
 
+      const canBeUpgraded = isSelfConsumer || (verifiedValid && declaredValid);
+
       const [agreement, events] = await createUpgradeOrNewDraft({
         agreement: agreementToBeUpgraded,
         newDescriptor,
@@ -782,7 +787,7 @@ export function agreementServiceBuilder(
         consumer,
         producer,
         readModelService,
-        canBeUpgraded: verifiedValid && declaredValid,
+        canBeUpgraded,
         copyFile: fileManager.copy,
         authData,
         activeDelegations,
@@ -892,8 +897,12 @@ export function agreementServiceBuilder(
     async addConsumerDocument(
       agreementId: AgreementId,
       documentSeed: agreementApi.DocumentSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<AgreementDocument> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<AgreementDocument>> {
       logger.info(`Adding a consumer document to agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -926,7 +935,7 @@ export function agreementServiceBuilder(
         consumerDocuments: [...agreement.data.consumerDocuments, newDocument],
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventAgreementConsumerDocumentAdded(
           newDocument.id,
           updatedAgreement,
@@ -935,12 +944,18 @@ export function agreementServiceBuilder(
         )
       );
 
-      return newDocument;
+      return {
+        data: newDocument,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      { authData, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData | M2MAuthData>>
     ): Promise<AgreementDocument> {
       logger.info(
         `Retrieving consumer document ${documentId} from agreement ${agreementId}`

@@ -11,17 +11,21 @@ import {
 import { generateMock } from "@anatine/zod-mock";
 import { generateId } from "pagopa-interop-models";
 import { z } from "zod";
+import { match } from "ts-pattern";
 
 export function getMockedApiPurposeVersion({
   state,
+  riskAnalysis,
 }: {
   state?: purposeApi.PurposeVersionState;
+  riskAnalysis?: purposeApi.PurposeVersionDocument;
 } = {}): purposeApi.PurposeVersion {
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
     dailyCalls: generateMock(z.number().positive()),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
+    riskAnalysis,
   };
 }
 
@@ -138,26 +142,47 @@ export function getMockedApiAttribute({
   };
 }
 
-export function getMockedApiClient({
+export function getMockedApiFullClient({
   kind: paramKind,
 }: {
   kind?: authorizationApi.ClientKind;
-} = {}): authorizationApi.Client {
-  const kind = paramKind ?? authorizationApi.ClientKind.Values.API;
+} = {}): authorizationApi.FullClient {
+  const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
-    kind,
+    visibility: authorizationApi.ClientVisibility.Enum.FULL,
+    kind: kind ?? authorizationApi.ClientKind.Values.CONSUMER,
     id: generateId(),
     name: generateMock(z.string()),
     description: generateMock(z.string()),
     createdAt: new Date().toISOString(),
     consumerId: generateId(),
-    purposes: [],
-    users: [],
-    adminId:
-      kind === authorizationApi.ClientKind.Values.API
-        ? generateId()
-        : undefined,
-  };
+    purposes: match(kind)
+      .with(authorizationApi.ClientKind.Values.CONSUMER, () => [
+        generateId(),
+        generateId(),
+      ])
+      .with(authorizationApi.ClientKind.Values.API, () => [])
+      .exhaustive(),
+    users: [generateId(), generateId()],
+    adminId: match(kind)
+      .with(authorizationApi.ClientKind.Values.CONSUMER, () => undefined)
+      .with(authorizationApi.ClientKind.Values.API, () => generateId())
+      .exhaustive(),
+  } satisfies authorizationApi.Client;
+}
+
+export function getMockedApiCompactClient({
+  kind: paramKind,
+}: {
+  kind?: authorizationApi.ClientKind;
+} = {}): authorizationApi.CompactClient {
+  const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
+  return {
+    visibility: authorizationApi.ClientVisibility.Enum.COMPACT,
+    id: generateId(),
+    consumerId: generateId(),
+    kind: kind ?? authorizationApi.ClientKind.Values.CONSUMER,
+  } satisfies authorizationApi.CompactClient;
 }
 
 export function getMockedApiEservice({
@@ -298,5 +323,48 @@ export function getMockedApiCertifiedTenantAttribute({
     id: generateId(),
     assignmentTimestamp: new Date().toISOString(),
     revocationTimestamp: revoked ? new Date().toISOString() : undefined,
+  };
+}
+
+export function getMockedApiAgreementDocument({
+  id = generateId(),
+  name = "doc.txt",
+  path = `mock/path/${id}/doc.txt`,
+  contentType = "text/plain",
+}: {
+  id?: string;
+  name?: string;
+  path?: string;
+  contentType?: string;
+} = {}): agreementApi.Document {
+  return {
+    id,
+    name,
+    contentType,
+    prettyName: "Interface Document",
+    path,
+    createdAt: new Date().toISOString(),
+  };
+}
+
+export function getMockedApiEserviceDoc({
+  id = generateId(),
+  name = "doc.txt",
+  path = `mock/path/${id}/doc.txt`,
+  contentType = "text/plain",
+}: {
+  id?: string;
+  name?: string;
+  path?: string;
+  contentType?: string;
+} = {}): catalogApi.EServiceDoc {
+  return {
+    id,
+    name,
+    contentType,
+    prettyName: "Interface Document",
+    path,
+    checksum: "mock-checksum",
+    contacts: generateMock(catalogApi.DescriptorInterfaceContacts),
   };
 }

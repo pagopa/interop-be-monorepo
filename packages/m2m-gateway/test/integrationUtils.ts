@@ -112,13 +112,19 @@ export function expectApiClientPostToHaveBeenCalledWith({
 export const mockInteropBeClients = {} as PagoPAInteropBeClients;
 
 export const delegationService = delegationServiceBuilder(mockInteropBeClients);
-export const purposeService = purposeServiceBuilder(mockInteropBeClients);
+export const purposeService = purposeServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const tenantService = tenantServiceBuilder(mockInteropBeClients);
 export const attributeService = attributeServiceBuilder(mockInteropBeClients);
 export const eserviceTemplateService =
   eserviceTemplateServiceBuilder(mockInteropBeClients);
 export const clientService = clientServiceBuilder(mockInteropBeClients);
-export const agreementService = agreementServiceBuilder(mockInteropBeClients);
+export const agreementService = agreementServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const eserviceService = eserviceServiceBuilder(
   mockInteropBeClients,
   fileManager
