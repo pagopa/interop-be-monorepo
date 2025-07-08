@@ -15,14 +15,17 @@ import { match } from "ts-pattern";
 
 export function getMockedApiPurposeVersion({
   state,
+  riskAnalysis,
 }: {
   state?: purposeApi.PurposeVersionState;
+  riskAnalysis?: purposeApi.PurposeVersionDocument;
 } = {}): purposeApi.PurposeVersion {
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
     dailyCalls: generateMock(z.number().positive()),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
+    riskAnalysis,
   };
 }
 
@@ -146,7 +149,7 @@ export function getMockedApiFullClient({
 } = {}): authorizationApi.FullClient {
   const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
-    visibility: authorizationApi.ClientVisibility.Enum.FULL,
+    visibility: authorizationApi.Visibility.Enum.FULL,
     kind: kind ?? authorizationApi.ClientKind.Values.CONSUMER,
     id: generateId(),
     name: generateMock(z.string()),
@@ -168,18 +171,18 @@ export function getMockedApiFullClient({
   } satisfies authorizationApi.Client;
 }
 
-export function getMockedApiCompactClient({
+export function getMockedApiPartialClient({
   kind: paramKind,
 }: {
   kind?: authorizationApi.ClientKind;
-} = {}): authorizationApi.CompactClient {
+} = {}): authorizationApi.PartialClient {
   const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
-    visibility: authorizationApi.ClientVisibility.Enum.COMPACT,
+    visibility: authorizationApi.Visibility.Enum.PARTIAL,
     id: generateId(),
     consumerId: generateId(),
     kind: kind ?? authorizationApi.ClientKind.Values.CONSUMER,
-  } satisfies authorizationApi.CompactClient;
+  } satisfies authorizationApi.PartialClient;
 }
 
 export function getMockedApiEservice({
