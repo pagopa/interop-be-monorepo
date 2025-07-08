@@ -18,6 +18,7 @@ import {
   LabeledValue,
   FormQuestionRules,
   RiskAnalysisFormRules,
+  ValidationOption,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 
@@ -179,6 +180,12 @@ export const labeledValueToApiLabeledValue = (
   value: labeledValue.value,
 });
 
+export const validationToApiValidation = (
+  validation: ValidationOption
+): purposeApi.ValidationOptionResponse => ({
+  maxLength: validation.maxLength,
+});
+
 export const formConfigQuestionToApiFormConfigQuestion = (
   question: FormQuestionRules
 ): purposeApi.FormConfigQuestionResponse => {
@@ -195,6 +202,9 @@ export const formConfigQuestionToApiFormConfigQuestion = (
     defaultValue: question.defaultValue,
     hideOption: question.hideOption
       ? mapHideOptionToApiMapHideOption(question.hideOption)
+      : undefined,
+    validation: question.validation
+      ? validationToApiValidation(question.validation)
       : undefined,
   };
 
