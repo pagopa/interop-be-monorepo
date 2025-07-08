@@ -1,6 +1,6 @@
 export * as agreementApi from "./agreementApi.js";
 export * as attributeRegistryApi from "./attributeRegistryApi.js";
-export * as authorizationApi from "./generated/authorizationApi.js";
+export * as authorizationApi from "./authorizationApi.js";
 export * as authorizationManagementApi from "./generated/authorizationManagementApi.js";
 export * as bffApi from "./bffApi.js";
 export * as catalogApi from "./catalogApi.js";

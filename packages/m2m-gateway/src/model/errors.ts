@@ -34,6 +34,7 @@ export const errorCodes = {
   tenantCertifiedAttributeNotFound: "0018",
   eserviceDescriptorInterfaceNotFound: "0019",
   purposeVersionDocumentNotFound: "0020",
+  unexpectedClientKind: "0021",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -213,5 +214,15 @@ export function purposeVersionDocumentNotFound(
     detail: `Document for version ${versionId} of purpose ${purposeId} not found`,
     code: "purposeVersionDocumentNotFound",
     title: "Purpose version document not found",
+  });
+}
+
+export function unexpectedClientKind(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
+    code: "unexpectedClientKind",
+    title: "Unexpected client kind",
   });
 }
