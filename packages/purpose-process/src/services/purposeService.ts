@@ -1225,8 +1225,14 @@ export function purposeServiceBuilder(
     },
     async createReversePurpose(
       seed: purposeApi.EServicePurposeSeed,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<{ purpose: Purpose; isRiskAnalysisValid: boolean }> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<
+      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
+    > {
       logger.info(
         `Creating Purpose for EService ${seed.eServiceId}, Consumer ${seed.consumerId}`
       );
@@ -1297,12 +1303,16 @@ export function purposeServiceBuilder(
         },
       };
 
-      await repository.createEvent(
+      const event = await repository.createEvent(
         toCreateEventPurposeAdded(purpose, correlationId)
       );
+
       return {
-        purpose,
-        isRiskAnalysisValid: true,
+        data: {
+          purpose,
+          isRiskAnalysisValid: true,
+        },
+        metadata: { version: event.newVersion },
       };
     },
     async clonePurpose({

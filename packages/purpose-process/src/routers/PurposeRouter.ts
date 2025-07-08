@@ -134,10 +134,15 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { purpose, isRiskAnalysisValid } =
-          await purposeService.createReversePurpose(req.body, ctx);
+        const {
+          data: { purpose, isRiskAnalysisValid },
+          metadata,
+        } = await purposeService.createReversePurpose(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(

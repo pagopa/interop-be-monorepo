@@ -379,5 +379,34 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       await pollPurposeById(purposeId, metadata, headers);
     },
+    async createReversePurpose(
+      purposeSeed: m2mGatewayApi.EServicePurposeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> {
+      logger.info(
+        `Creating reverse purpose for e-service ${purposeSeed.eserviceId}`
+      );
+
+      const purposeResponse =
+        await clients.purposeProcessClient.createPurposeFromEService(
+          {
+            consumerId: purposeSeed.consumerId,
+            eServiceId: purposeSeed.eserviceId,
+            dailyCalls: purposeSeed.dailyCalls,
+            description: purposeSeed.description,
+            isFreeOfCharge: purposeSeed.isFreeOfCharge,
+            riskAnalysisId: purposeSeed.riskAnalysisId,
+            title: purposeSeed.title,
+            freeOfChargeReason: purposeSeed.freeOfChargeReason,
+          },
+          {
+            headers,
+          }
+        );
+
+      const polledResource = await pollPurpose(purposeResponse, headers);
+
+      return toM2MGatewayApiPurpose(polledResource.data);
+    },
   };
 }

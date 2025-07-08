@@ -266,6 +266,27 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/reversePurposes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.createReversePurpose(
+          req.body,
+          ctx
+        );
+
+        return res.status(201).send(m2mGatewayApi.Purpose.parse(purpose));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating e-service purpose`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete("/purposes/:purposeId/versions/:versionId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
