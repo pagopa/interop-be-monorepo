@@ -24,6 +24,44 @@ const clientRouter = (
   });
 
   clientRouter
+    .get("/clients", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const clients = await clientService.getClients(req.query, ctx);
+
+        return res.status(200).send(m2mGatewayApi.Clients.parse(clients));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error retrieving clients"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/clients/:clientId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const client = await clientService.getClient(
+          unsafeBrandId(req.params.clientId),
+          ctx
+        );
+        return res.status(200).send(m2mGatewayApi.Client.parse(client));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving client with id ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/clients/:clientId/purposes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 

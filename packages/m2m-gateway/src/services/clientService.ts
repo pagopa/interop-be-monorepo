@@ -11,6 +11,10 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { assertClientVisibilityIsFull } from "../utils/validators/validators.js";
+import {
+  toGetClientsApiQueryParams,
+  toM2MGatewayApiConsumerClient,
+} from "../api/clientApiConverter.js";
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
@@ -50,11 +54,11 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const adminId = match(client)
         .with(
-          { visibility: authorizationApi.ClientVisibility.Enum.FULL },
+          { visibility: authorizationApi.Visibility.Enum.FULL },
           (c) => c.adminId
         )
         .with(
-          { visibility: authorizationApi.ClientVisibility.Enum.COMPACT },
+          { visibility: authorizationApi.Visibility.Enum.PARTIAL },
           () => undefined
         )
         .exhaustive();
@@ -64,6 +68,44 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       }
 
       return unsafeBrandId<UserId>(adminId);
+    },
+    async getClient(
+      clientId: ClientId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Client> {
+      logger.info(`Retrieving client with id ${clientId}`);
+
+      const client = await clients.authorizationClient.client.getClient({
+        params: { clientId },
+        headers,
+      });
+
+      return toM2MGatewayApiConsumerClient(client.data);
+    },
+    async getClients(
+      params: m2mGatewayApi.GetClientsQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Clients> {
+      const { limit, offset, name, consumerId } = params;
+      logger.info(
+        `Retrieving clients with name ${name}, consumerId ${consumerId}, offset ${offset}, limit ${limit}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } = await clients.authorizationClient.client.getClients({
+        queries: toGetClientsApiQueryParams(params),
+        headers,
+      });
+
+      return {
+        results: results.map(toM2MGatewayApiConsumerClient),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
     },
     async addClientPurpose(
       clientId: ClientId,

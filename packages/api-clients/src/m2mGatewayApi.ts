@@ -64,6 +64,11 @@ export type GetEServiceTemplateVersionsQueryParams = QueryParametersByAlias<
   "getEServiceTemplateVersions"
 >;
 
+export type GetClientsQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClients"
+>;
+
 export type GetClientPurposesQueryParams = QueryParametersByAlias<
   ClientApi,
   "getClientPurposes"
