@@ -51,52 +51,53 @@ describe("getClientPurposes", () => {
     },
   } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
+  const expectedM2MPurpose1: m2mGatewayApi.Purpose = {
+    consumerId: mockApiPurpose1.consumerId,
+    createdAt: mockApiPurpose1.createdAt,
+    description: mockApiPurpose1.description,
+    eserviceId: mockApiPurpose1.eserviceId,
+    id: mockApiPurpose1.id,
+    isFreeOfCharge: mockApiPurpose1.isFreeOfCharge,
+    isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
+    title: mockApiPurpose1.title,
+    currentVersion: mockApiPurpose1.versions.at(0),
+    delegationId: mockApiPurpose1.delegationId,
+    freeOfChargeReason: mockApiPurpose1.freeOfChargeReason,
+    rejectedVersion: undefined,
+    suspendedByConsumer: undefined,
+    suspendedByProducer: undefined,
+    updatedAt: mockApiPurpose1.updatedAt,
+    waitingForApprovalVersion: undefined,
+  };
+
+  const expectedM2MPurpose2: m2mGatewayApi.Purpose = {
+    consumerId: mockApiPurpose2.consumerId,
+    createdAt: mockApiPurpose2.createdAt,
+    description: mockApiPurpose2.description,
+    eserviceId: mockApiPurpose2.eserviceId,
+    id: mockApiPurpose2.id,
+    isFreeOfCharge: mockApiPurpose2.isFreeOfCharge,
+    isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
+    title: mockApiPurpose2.title,
+    currentVersion: mockApiPurpose2.versions.at(0),
+    delegationId: mockApiPurpose2.delegationId,
+    freeOfChargeReason: mockApiPurpose2.freeOfChargeReason,
+    rejectedVersion: undefined,
+    suspendedByConsumer: undefined,
+    suspendedByProducer: undefined,
+    updatedAt: mockApiPurpose2.updatedAt,
+    waitingForApprovalVersion: undefined,
+  };
+
+  const expectedM2MPurposes = [expectedM2MPurpose1, expectedM2MPurpose2];
+  const sortedClientPurposeIds = [...mockApiConsumerClient.purposes].sort();
+
   beforeEach(() => {
     mockGetClient.mockClear();
     mockGetPurpose.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    const expectedM2MPurpose1: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose1.consumerId,
-      createdAt: mockApiPurpose1.createdAt,
-      description: mockApiPurpose1.description,
-      eserviceId: mockApiPurpose1.eserviceId,
-      id: mockApiPurpose1.id,
-      isFreeOfCharge: mockApiPurpose1.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose1.isRiskAnalysisValid,
-      title: mockApiPurpose1.title,
-      currentVersion: mockApiPurpose1.versions.at(0),
-      delegationId: mockApiPurpose1.delegationId,
-      freeOfChargeReason: mockApiPurpose1.freeOfChargeReason,
-      rejectedVersion: undefined,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
-      updatedAt: mockApiPurpose1.updatedAt,
-      waitingForApprovalVersion: undefined,
-    };
-
-    const expectedM2MPurpose2: m2mGatewayApi.Purpose = {
-      consumerId: mockApiPurpose2.consumerId,
-      createdAt: mockApiPurpose2.createdAt,
-      description: mockApiPurpose2.description,
-      eserviceId: mockApiPurpose2.eserviceId,
-      id: mockApiPurpose2.id,
-      isFreeOfCharge: mockApiPurpose2.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurpose2.isRiskAnalysisValid,
-      title: mockApiPurpose2.title,
-      currentVersion: mockApiPurpose2.versions.at(0),
-      delegationId: mockApiPurpose2.delegationId,
-      freeOfChargeReason: mockApiPurpose2.freeOfChargeReason,
-      rejectedVersion: undefined,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
-      updatedAt: mockApiPurpose2.updatedAt,
-      waitingForApprovalVersion: undefined,
-    };
-
-    const expectedM2MPurposes = [expectedM2MPurpose1, expectedM2MPurpose2];
-    const sortedClientPurposeIds = [...mockApiConsumerClient.purposes].sort();
     const m2mClientPurposesResponse: m2mGatewayApi.Purposes = {
       pagination: {
         limit: mockParams.limit,
@@ -133,5 +134,45 @@ describe("getClientPurposes", () => {
     });
   });
 
-  // TODO add also tests for pagination, errors, etc.
+  it("Should apply filters (offset, limit)", async () => {
+    const result1 = await clientService.getClientPurposes(
+      unsafeBrandId(mockApiConsumerClient.id),
+      { offset: 0, limit: 1 },
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result1).toEqual({
+      pagination: {
+        offset: 0,
+        limit: 1,
+        totalCount: 2,
+      },
+      results: [
+        expectedM2MPurposes.find((p) => p.id === sortedClientPurposeIds[0]),
+      ],
+    });
+
+    expect(mockGetClient).toHaveBeenCalledTimes(1);
+    expect(mockGetPurpose).toHaveBeenCalledTimes(1);
+
+    const result2 = await clientService.getClientPurposes(
+      unsafeBrandId(mockApiConsumerClient.id),
+      { offset: 1, limit: 1 },
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result2).toEqual({
+      pagination: {
+        offset: 1,
+        limit: 1,
+        totalCount: 2,
+      },
+      results: [
+        expectedM2MPurposes.find((p) => p.id === sortedClientPurposeIds[1]),
+      ],
+    });
+
+    expect(mockGetClient).toHaveBeenCalledTimes(2);
+    expect(mockGetPurpose).toHaveBeenCalledTimes(2);
+  });
 });
