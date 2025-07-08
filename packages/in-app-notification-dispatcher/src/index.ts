@@ -65,19 +65,18 @@ function processMessage(topicNames: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     const { catalogTopic, agreementTopic, purposeTopic } = topicNames;
 
-    const decodedMessage = match(messagePayload.topic)
-      .with(catalogTopic, () =>
-        decodeKafkaMessage(messagePayload.message, EServiceEventV2)
-      )
-      .with(agreementTopic, () =>
-        decodeKafkaMessage(messagePayload.message, AgreementEventV2)
-      )
-      .with(purposeTopic, () =>
-        decodeKafkaMessage(messagePayload.message, PurposeEventV2)
-      )
+    const eventType = match(messagePayload.topic)
+      .with(catalogTopic, () => EServiceEventV2)
+      .with(agreementTopic, () => AgreementEventV2)
+      .with(purposeTopic, () => PurposeEventV2)
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
       });
+
+    const decodedMessage = decodeKafkaMessage(
+      messagePayload.message,
+      eventType
+    );
 
     const loggerInstance = logger({
       serviceName: "in-app-notification-dispatcher",
