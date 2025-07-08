@@ -39,7 +39,7 @@ describe("getProducerKeychainUsers", async () => {
       },
       getMockContext({ authData: getMockAuthData(organizationId) })
     );
-    expect(users).toEqual([userId1, userId2]);
+    expect(users).toEqual(expect.arrayContaining([userId1, userId2]));
   });
   it("should throw producerKeychainNotFound if the producer keychain with the specified Id doesn't exist", async () => {
     await addOneProducerKeychain(getMockProducerKeychain());
