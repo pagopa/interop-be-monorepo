@@ -1,7 +1,6 @@
 import {
   AgreementTopicConfig,
   KafkaConsumerConfig,
-  ReadModelDbConfig,
   PurposeTopicConfig,
   CatalogTopicConfig,
   DelegationTopicConfig,
@@ -13,9 +12,8 @@ import {
 import { z } from "zod";
 
 export const InAppNotificationDispatcherConfig = KafkaConsumerConfig.and(
-  ReadModelDbConfig
+  AgreementTopicConfig
 )
-  .and(AgreementTopicConfig)
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
   .and(DelegationTopicConfig)
