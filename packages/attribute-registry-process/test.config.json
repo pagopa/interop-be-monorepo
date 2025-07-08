@@ -1,0 +1,7 @@
+{
+  "groupName": "attribute-registry",
+  "testPaths": [
+    "test/integration",
+    "test/api"
+  ]
+}

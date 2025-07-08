@@ -1,0 +1,7 @@
+{
+  "groupName": "m2m-gateway",
+  "testPaths": [
+    "test/integration",
+    "test/api"
+  ]
+}

@@ -7,7 +7,7 @@ export default defineConfig({
     testTimeout: 60000,
     hookTimeout: 60000,
     fileParallelism: false,
-    pool: "forks",
+    pool: "threads",
     env: { FEATURE_FLAG_SQL: "true" },
     watch: false,
   },

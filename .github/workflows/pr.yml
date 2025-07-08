@@ -1,4 +1,5 @@
 name: PR validation
+
 on:
   pull_request:
 
@@ -43,12 +44,12 @@ jobs:
           key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-lint-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: ./package.json
       - run: pnpm lint
 
   check:
@@ -65,38 +66,91 @@ jobs:
           key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-check
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
+      - uses: actions/setup-node@v4 # v4
+        with:
+          node-version-file: ./package.json
       - run: pnpm check
-  test:
-    name: Test
+
+  # Job per scoprire dinamicamente i gruppi di test dai file test.config.json
+  find_test_groups:
+    name: Find Test Groups
+    # Questo job dipende dai controlli iniziali per assicurarsi che il codice sia valido prima di eseguire i test
+    needs: [formatting, lint, check]
     runs-on: ubuntu-latest
+    outputs:
+      # L'output sarà un JSON array di oggetti { name: "catalog", paths: ["test/integration", "test/api"] }
+      test_groups: ${{ steps.set_groups_output.outputs.test_groups }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - name: Find and parse test.config.json files
+        id: set_groups_output
+        run: |
+          # Questo script trova tutti i test.config.json, li legge e li formatta come un JSON array
+          # adatto per la matrice di GitHub Actions.
+          TEST_GROUPS=$(find packages -type f -name "test.config.json" | while read -r config_file; do
+            PACKAGE_PATH=$(dirname "$config_file")
+            PACKAGE_NAME=$(basename "$PACKAGE_PATH")
+            # Legge il file JSON, aggiunge il nome del package e il percorso assoluto ai test
+            jq --arg name "$PACKAGE_NAME" \
+               --argjson paths_root "$PACKAGE_PATH" \
+               '{name: $name, paths: ($paths_root + "/" + .testPaths[] | @json) | fromjson}' \
+               "$config_file"
+          done | jq -s '.')
+
+          echo "Discovered Test Groups: $TEST_GROUPS"
+          echo "test_groups=$TEST_GROUPS" >> $GITHUB_OUTPUT
+
+  # Job per eseguire i test in parallelo, uno per ogni gruppo scoperto
+  run_grouped_tests:
+    name: Run Tests for ${{ matrix.group.name }}
+    needs: [find_test_groups] # Dipende dal job che scopre i gruppi
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # Permette a tutti i job della matrice di finire anche se uno fallisce
+      matrix:
+        # La matrice viene popolata dinamicamente con l'output del job find_test_groups
+        group: ${{ fromJson(needs.find_test_groups.outputs.test_groups) }}
+    steps:
+      - uses: actions/checkout@v4
       - name: Cache turbo setup
         uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-test-${{ github.ref_name }}
+          # La chiave della cache include il nome del gruppo per cache isolate per ogni test suite
+          key: ${{ runner.os }}-turbo-test-${{ matrix.group.name }}-${{ github.ref_name }}
           restore-keys: |
-            ${{ runner.os }}-turbo-test
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version-file: ./package.json
+            ${{ runner.os }}-turbo-test-${{ matrix.group.name }}-
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
-      - run: pnpm test
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ./package.json
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile # 'pnpm ci' è un'alternativa valida
+
+      - name: Run Vitest for ${{ matrix.group.name }}
+        # Esegue Vitest all'interno della cartella del package specifico,
+        # passando i percorsi dei test dal file di configurazione.
+        # Questo garantisce che Testcontainers sia isolato per ogni gruppo.
+        run: |
+          TEST_PATHS=$(echo "${{ toJSON(matrix.group.paths) }}" | jq -r '.[]')
+          echo "Running tests in package ${{ matrix.group.name }} at paths: $TEST_PATHS"
+          # Esempio: pnpm --dir packages/catalog-process test test/integration test/api
+          pnpm --dir packages/${{ matrix.group.name }} test $TEST_PATHS
+        env:
+          # Variabile d'ambiente cruciale per Testcontainers.
+          # Assicura che i container siano gestiti correttamente sul runner Docker.
+          DOCKER_HOST: unix:///var/run/docker.sock
 
   find_dockerfiles:
     name: Find Dockerfiles
-    needs: [formatting, lint, check, test]
+    needs: [run_grouped_tests] # Ora dipende dai test che sono completati con successo
     if: ${{ github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     outputs:
@@ -129,7 +183,7 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4 
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ vars.IAM_ROLE_ARN }}

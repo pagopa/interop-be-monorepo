@@ -1,0 +1,7 @@
+{
+  "groupName": "agreement-process",
+  "testPaths": [
+    "test/integration",
+    "test/api"
+  ]
+}

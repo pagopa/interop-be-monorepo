@@ -1,0 +1,7 @@
+{
+  "groupName": "delegation-process",
+  "testPaths": [
+    "test/integration",
+    "test/api"
+  ]
+}
