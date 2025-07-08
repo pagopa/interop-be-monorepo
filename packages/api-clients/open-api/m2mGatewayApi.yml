@@ -2438,7 +2438,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Keys"
+                $ref: "#/components/schemas/JWKs"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5967,6 +5967,19 @@ components:
         - r
         - d
         - t
+    JWKs:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/JWK"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     Key:
       description: Key
       type: object
@@ -5980,19 +5993,6 @@ components:
       required:
         - clientId
         - jwk
-    Keys:
-      type: object
-      additionalProperties: false
-      properties:
-        results:
-          type: array
-          items:
-            $ref: "#/components/schemas/Key"
-        pagination:
-          $ref: "#/components/schemas/Pagination"
-      required:
-        - results
-        - pagination
     ProducerKey:
       description: Key
       type: object

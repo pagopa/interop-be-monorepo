@@ -79,7 +79,7 @@ const clientRouter = (
           req.query,
           ctx
         );
-        return res.status(200).send(m2mGatewayApi.Keys.parse(keys));
+        return res.status(200).send(m2mGatewayApi.JWKs.parse(keys));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
