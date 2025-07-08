@@ -6,6 +6,7 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
+  getLatestTenantMailOfKind,
   UIAuthData,
   InternalAuthData,
   MaintenanceAuthData,
