@@ -21,7 +21,7 @@
   "devDependencies": {
     "@types/json-diff": "1.0.3",
     "@pagopa/eslint-config": "3.0.0",
-    "@types/node": "20.19.3",
+    "@types/node": "20.19.4",
     "@types/pg": "8.11.11",
     "lodash.isequal": "4.5.0",
     "pagopa-interop-commons-test": "workspace:*",
