@@ -1,0 +1,6 @@
+{
+  "groupName": "notification-email-sender",
+  "testPaths": [
+    "test"
+  ]
+}

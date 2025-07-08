@@ -1,0 +1,6 @@
+{
+  "groupName": "ivass-certified-attributes-importer",
+  "testPaths": [
+    "test"
+  ]
+}

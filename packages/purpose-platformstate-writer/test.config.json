@@ -1,0 +1,6 @@
+{
+  "groupName": "purpose-platformstate-writer",
+  "testPaths": [
+    "test"
+  ]
+}

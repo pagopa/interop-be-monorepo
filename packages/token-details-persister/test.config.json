@@ -1,0 +1,6 @@
+{
+  "groupName": "token-details-persister",
+  "testPaths": [
+    "test"
+  ]
+}

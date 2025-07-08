@@ -1,0 +1,6 @@
+{
+  "groupName": "eservice-template-instances-updater",
+  "testPaths": [
+    "test"
+  ]
+}

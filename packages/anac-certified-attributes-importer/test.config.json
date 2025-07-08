@@ -1,0 +1,6 @@
+{
+  "groupName": "anac-certified-attributes-importer",
+  "testPaths": [
+    "test"
+  ]
+}

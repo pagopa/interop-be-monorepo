@@ -1,0 +1,6 @@
+{
+  "groupName": "agreement-platformstate-writer",
+  "testPaths": [
+    "test"
+  ]
+}

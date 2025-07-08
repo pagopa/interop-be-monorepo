@@ -1,0 +1,6 @@
+{
+  "groupName": "token-generation-readmodel-checker",
+  "testPaths": [
+    "test"
+  ]
+}

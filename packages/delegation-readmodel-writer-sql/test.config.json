@@ -1,0 +1,6 @@
+{
+  "groupName": "delegation-readmodel-writer-sql",
+  "testPaths": [
+    "test"
+  ]
+}

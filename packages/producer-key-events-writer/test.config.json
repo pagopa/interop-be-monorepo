@@ -1,0 +1,6 @@
+{
+  "groupName": "producer-key-events-writer",
+  "testPaths": [
+    "test"
+  ]
+}

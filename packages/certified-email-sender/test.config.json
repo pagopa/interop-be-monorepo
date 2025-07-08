@@ -1,0 +1,6 @@
+{
+  "groupName": "certified-email-sender",
+  "testPaths": [
+    "test"
+  ]
+}

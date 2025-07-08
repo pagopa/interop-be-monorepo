@@ -1,0 +1,6 @@
+{
+  "groupName": "purpose-readmodel-writer-sql",
+  "testPaths": [
+    "test"
+  ]
+}

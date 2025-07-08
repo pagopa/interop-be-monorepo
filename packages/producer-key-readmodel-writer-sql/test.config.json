@@ -1,0 +1,6 @@
+{
+  "groupName": "producer-key-readmodel-writer-sql",
+  "testPaths": [
+    "test"
+  ]
+}

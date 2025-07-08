@@ -1,0 +1,6 @@
+{
+  "groupName": "token-generation-readmodel-producer-id-updater",
+  "testPaths": [
+    "test"
+  ]
+}

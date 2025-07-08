@@ -1,0 +1,7 @@
+{
+  "groupName": "backend-for-frontend",
+  "testPaths": [
+    "test",
+    "test/api"
+  ]
+}

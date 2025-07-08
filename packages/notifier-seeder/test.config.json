@@ -1,0 +1,6 @@
+{
+  "groupName": "notification-seeder",
+  "testPaths": [
+    "test"
+  ]
+}

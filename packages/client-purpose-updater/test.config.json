@@ -1,0 +1,6 @@
+{
+  "groupName": "client-purpose-updater",
+  "testPaths": [
+    "test"
+  ]
+}

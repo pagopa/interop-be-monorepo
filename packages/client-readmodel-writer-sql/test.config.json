@@ -1,0 +1,6 @@
+{
+  "groupName": "client-readmodel-writer-sql",
+  "testPaths": [
+    "test"
+  ]
+}
