@@ -23,14 +23,10 @@ import {
 } from "pagopa-interop-readmodel";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
-
-// Config & Services
 import { config } from "./config/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { inAppNotificationServiceBuilderSQL } from "./services/inAppNotificationServiceSQL.js";
 import { handleEvent } from "./handlers/eventHandler.js";
-
-// Handlers
 
 interface TopicNames {
   catalogTopic: string;
