@@ -1,5 +1,6 @@
+import { basename } from "path";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
@@ -21,6 +22,7 @@ import {
 } from "../utils/polling.js";
 import {
   purposeAgreementNotFound,
+  purposeVersionDocumentNotFound,
   purposeVersionNotFound,
 } from "../model/errors.js";
 import {
@@ -28,6 +30,8 @@ import {
   assertPurposeVersionExistsWithState,
 } from "../utils/validators/purposeValidator.js";
 import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import { config } from "../config/config.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -51,7 +55,10 @@ export const getPurposeCurrentVersion = (
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
+export function purposeServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
+) {
   const retrievePurposeById = async (
     purposeId: PurposeId,
     headers: M2MGatewayAppContext["headers"]
@@ -397,6 +404,38 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       const polledResource = await pollPurpose(purposeResponse, headers);
 
       return toM2MGatewayApiPurpose(polledResource.data);
+    },
+    async downloadPurposeVersionDocument(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving document for version ${versionId} of purpose ${purposeId}`
+      );
+
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const version = purpose.versions.find(
+        (version) => version.id === versionId
+      );
+
+      if (!version) {
+        throw purposeVersionNotFound(purposeId, versionId);
+      }
+
+      if (!version.riskAnalysis) {
+        throw purposeVersionDocumentNotFound(purposeId, versionId);
+      }
+
+      const name = basename(version.riskAnalysis.path);
+
+      return downloadDocument(
+        { ...version.riskAnalysis, name },
+        fileManager,
+        config.riskAnalysisDocumentsContainer,
+        logger
+      );
     },
     getPurposeAgreement: async (
       purposeId: PurposeId,
