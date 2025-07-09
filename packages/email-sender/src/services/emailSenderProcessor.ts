@@ -1,14 +1,15 @@
 /* eslint-disable functional/no-let */
-import { genericInternalError } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  EmailNotificationMessagePayload,
+} from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { delay, EmailManagerSES, Logger, logger } from "pagopa-interop-commons";
 import Mail from "nodemailer/lib/mailer/index.js";
 import {
   LimitExceededException,
-  SendingPausedException,
   TooManyRequestsException,
 } from "@aws-sdk/client-sesv2";
-import { EmailNotificationPayload } from "../model/emailNotificationPayload.js";
 import { config } from "../config/config.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -30,7 +31,7 @@ export function emailSenderProcessorBuilder(
         );
       }
 
-      let jsonPayload: EmailNotificationPayload;
+      let jsonPayload: EmailNotificationMessagePayload;
       let loggerInstance: Logger;
       let mailOptions: Mail.Options;
       try {
@@ -44,9 +45,9 @@ export function emailSenderProcessorBuilder(
         );
         mailOptions = {
           from: { name: sesSenderData.label, address: sesSenderData.mail },
-          subject: jsonPayload.subject,
+          subject: jsonPayload.email.subject,
           to: [jsonPayload.address],
-          html: jsonPayload.body,
+          html: jsonPayload.email.body,
         };
       } catch (err) {
         throw genericInternalError(
