@@ -1,5 +1,8 @@
 /* eslint-disable functional/no-let */
-import { genericInternalError } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  EmailNotificationMessagePayload,
+} from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { delay, EmailManagerSES, logger } from "pagopa-interop-commons";
 import Mail from "nodemailer/lib/mailer/index.js";
@@ -43,9 +46,9 @@ export function emailSenderProcessorBuilder(
         );
         mailOptions = {
           from: { name: sesSenderData.label, address: sesSenderData.mail },
-          subject: jsonPayload.subject,
+          subject: jsonPayload.email.subject,
           to: [jsonPayload.address],
-          html: jsonPayload.body,
+          html: jsonPayload.email.body,
         };
       } catch (err) {
         // Log and skip message
