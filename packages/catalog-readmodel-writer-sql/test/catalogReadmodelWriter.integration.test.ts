@@ -1539,6 +1539,78 @@ describe("database test", async () => {
       expect(retrievedEservice?.data).toEqual(updatedEService);
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
+    it("EServiceSignalHubEnabled", async () => {
+      const publishedDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        interface: getMockDocument(),
+        state: descriptorState.published,
+        publishedAt: new Date(),
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [publishedDescriptor],
+        isSignalHubEnabled: true,
+      };
+      await catalogReadModelService.upsertEService(eservice, 1);
+      const updatedEService: EService = {
+        ...eservice,
+        isSignalHubEnabled: true,
+      };
+      const payload: EServiceNameUpdatedV2 = {
+        eservice: toEServiceV2(updatedEService),
+      };
+      const message: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEService.id,
+        version: 2,
+        type: "EServiceSignalHubEnabled",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, readModelService);
+      const retrievedEservice = await catalogReadModelService.getEServiceById(
+        mockEService.id
+      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
+      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+    });
+    it("EServiceSignalHubDisabled", async () => {
+      const publishedDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        interface: getMockDocument(),
+        state: descriptorState.published,
+        publishedAt: new Date(),
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [publishedDescriptor],
+        isSignalHubEnabled: false,
+      };
+      await catalogReadModelService.upsertEService(eservice, 1);
+      const updatedEService: EService = {
+        ...eservice,
+        isSignalHubEnabled: false,
+      };
+      const payload: EServiceNameUpdatedV2 = {
+        eservice: toEServiceV2(updatedEService),
+      };
+      const message: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEService.id,
+        version: 2,
+        type: "EServiceSignalHubDisabled",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+      await handleMessageV2(message, readModelService);
+      const retrievedEservice = await catalogReadModelService.getEServiceById(
+        mockEService.id
+      );
+      expect(retrievedEservice?.data).toEqual(updatedEService);
+      expect(retrievedEservice?.metadata).toEqual({ version: 2 });
+    });
   });
 });
 

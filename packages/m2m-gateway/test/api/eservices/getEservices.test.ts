@@ -1,12 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiEservice,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockedApiEservice } from "../../mockUtils.js";
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("GET /eservices router test", () => {
@@ -16,8 +18,8 @@ describe("GET /eservices router test", () => {
   const mockM2MEservicesResponse: m2mGatewayApi.EServices = {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
-      toM2MGatewayApiEService(mockApiEservice1.data),
-      toM2MGatewayApiEService(mockApiEservice2.data),
+      toM2MGatewayApiEService(mockApiEservice1),
+      toM2MGatewayApiEService(mockApiEservice2),
     ],
   };
 

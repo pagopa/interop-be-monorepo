@@ -2,14 +2,13 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   EServiceTemplateId,
-  TenantId,
   generateId,
   operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockValidRiskAnalysis,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   AuthRole,
@@ -26,21 +25,20 @@ import {
   eserviceTemplateRiskAnalysisNameDuplicate,
   riskAnalysisValidationFailed,
   templateNotInReceiveMode,
-  tenantKindNotFound,
-  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/riskAnalysis", () => {
   const eserviceTemplateId = generateId<EServiceTemplateId>();
 
-  const mockValidRiskAnalysis = getMockValidRiskAnalysis(tenantKind.PA);
-  const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+  const mockValidRiskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+    tenantKind.PA
+  );
+  const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
     buildRiskAnalysisSeed(mockValidRiskAnalysis);
-  const tenantId = generateId<TenantId>();
 
   const makeRequest = async (
     token: string,
-    body: eserviceTemplateApi.EServiceRiskAnalysisSeed = riskAnalysisSeed,
+    body: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed = riskAnalysisSeed,
     templateId: EServiceTemplateId = eserviceTemplateId
   ) =>
     request(api)
@@ -81,7 +79,7 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as eserviceTemplateApi.EServiceRiskAnalysisSeed
+      body as eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed
     );
 
     expect(res.status).toBe(400);
@@ -116,14 +114,6 @@ describe("API POST /templates/:templateId/riskAnalysis", () => {
     {
       error: eserviceTemplateRiskAnalysisNameDuplicate("risk"),
       expectedStatus: 409,
-    },
-    {
-      error: tenantNotFound(tenantId),
-      expectedStatus: 500,
-    },
-    {
-      error: tenantKindNotFound(tenantId),
-      expectedStatus: 500,
     },
   ])(
     "Should return $expectedStatus for $error.code",

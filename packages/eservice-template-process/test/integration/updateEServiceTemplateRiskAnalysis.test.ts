@@ -6,13 +6,13 @@ import {
 } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  getMockAuthData,
   getMockContext,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
-  getMockValidRiskAnalysis,
-  getMockAuthData,
+  getMockValidEServiceTemplateRiskAnalysis,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
@@ -37,8 +37,7 @@ import {
   riskAnalysisValidationFailed,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
-  tenantKindNotFound,
-  tenantNotFound,
+  riskAnalysisNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -69,8 +68,10 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       kind: creatorTenantKind,
     };
 
-    const riskAnalysis1 = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysis2 = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysisToUpdate =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSecondary =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
@@ -80,23 +81,23 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       ...getMockEServiceTemplate(),
       mode: eserviceMode.receive,
       versions: [eserviceTemplateVersion],
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [riskAnalysisToUpdate, riskAnalysisSecondary],
       creatorId: requesterId,
     };
     await addOneTenant(creator);
     await addOneEServiceTemplate(eserviceTemplate);
 
     const mockValidRiskAnalysis = {
-      ...getMockValidRiskAnalysis(creatorTenantKind),
-      id: riskAnalysis1.id,
+      ...getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind),
+      id: riskAnalysisToUpdate.id,
       name: "updated name",
     };
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
     await eserviceTemplateService.updateRiskAnalysis(
       eserviceTemplate.id,
-      riskAnalysis1.id,
+      riskAnalysisToUpdate.id,
       riskAnalysisSeed,
       getMockContext({
         authData: getMockAuthData(eserviceTemplate.creatorId),
@@ -120,18 +121,12 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       ...eserviceTemplate,
       riskAnalysis: [
         {
-          ...riskAnalysis2,
-          id: unsafeBrandId(
-            writtenPayload.eserviceTemplate!.riskAnalysis[0]!.id
-          ),
+          ...riskAnalysisToUpdate,
+          name: riskAnalysisSeed.name,
           riskAnalysisForm: {
-            ...mockValidRiskAnalysis.riskAnalysisForm,
-            id: unsafeBrandId(
-              writtenPayload.eserviceTemplate!.riskAnalysis[0]!
-                .riskAnalysisForm!.id
-            ),
+            ...riskAnalysisToUpdate.riskAnalysisForm,
             singleAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
+              riskAnalysisToUpdate.riskAnalysisForm.singleAnswers.map(
                 (singleAnswer) => ({
                   ...singleAnswer,
                   id: unsafeBrandId(
@@ -142,7 +137,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
                 })
               ),
             multiAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
+              riskAnalysisToUpdate.riskAnalysisForm.multiAnswers.map(
                 (multiAnswer) => ({
                   ...multiAnswer,
                   id: unsafeBrandId(
@@ -154,41 +149,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
               ),
           },
         },
-        {
-          ...mockValidRiskAnalysis,
-          id: unsafeBrandId(
-            writtenPayload.eserviceTemplate!.riskAnalysis[1]!.id
-          ),
-          riskAnalysisForm: {
-            ...mockValidRiskAnalysis.riskAnalysisForm,
-            id: unsafeBrandId(
-              writtenPayload.eserviceTemplate!.riskAnalysis[1]!
-                .riskAnalysisForm!.id
-            ),
-            singleAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.singleAnswers.map(
-                (singleAnswer) => ({
-                  ...singleAnswer,
-                  id: unsafeBrandId(
-                    writtenPayload.eserviceTemplate!.riskAnalysis[1]!.riskAnalysisForm!.singleAnswers.find(
-                      (sa) => sa.key === singleAnswer.key
-                    )!.id
-                  ),
-                })
-              ),
-            multiAnswers:
-              mockValidRiskAnalysis.riskAnalysisForm.multiAnswers.map(
-                (multiAnswer) => ({
-                  ...multiAnswer,
-                  id: unsafeBrandId(
-                    writtenPayload.eserviceTemplate!.riskAnalysis[1]!.riskAnalysisForm!.multiAnswers.find(
-                      (ma) => ma.key === multiAnswer.key
-                    )!.id
-                  ),
-                })
-              ),
-          },
-        },
+        riskAnalysisSecondary,
       ],
     };
 
@@ -201,8 +162,10 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     const creatorTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
     );
-    const riskAnalysis1 = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysis2 = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysisToUpdate =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSecondary =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
@@ -213,25 +176,29 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       mode: eserviceMode.receive,
       versions: [eserviceTemplateVersion],
       creatorId: generateId(),
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [riskAnalysisToUpdate, riskAnalysisSecondary],
     };
     expect(
       eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
-        riskAnalysis1.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
+        riskAnalysisToUpdate.id,
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
+        ),
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
   });
-  it("should throw operationForbidden if the requester is not the creator", async () => {
+  it("should throw riskAnalysisNotFound if the risk analysis doesn't exist", async () => {
     const creatorTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
     );
-    const riskAnalysis1 = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysis2 = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysisToUpdate =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSecondary =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
@@ -242,7 +209,45 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       mode: eserviceMode.receive,
       versions: [eserviceTemplateVersion],
       creatorId: generateId(),
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [riskAnalysisSecondary],
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    expect(
+      eserviceTemplateService.updateRiskAnalysis(
+        eserviceTemplate.id,
+        riskAnalysisToUpdate.id,
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
+        ),
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisNotFound(eserviceTemplate.id, riskAnalysisToUpdate.id)
+    );
+  });
+  it("should throw operationForbidden if the requester is not the creator", async () => {
+    const creatorTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const riskAnalysisToUpdate =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSecondary =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.draft,
+      interface: getMockDocument(),
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      mode: eserviceMode.receive,
+      versions: [eserviceTemplateVersion],
+      creatorId: generateId(),
+      riskAnalysis: [riskAnalysisToUpdate, riskAnalysisSecondary],
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
@@ -252,8 +257,10 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
-        riskAnalysis1.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
+        riskAnalysisToUpdate.id,
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
+        ),
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).rejects.toThrowError(operationForbidden);
@@ -262,8 +269,10 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     const creatorTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
     );
-    const riskAnalysis1 = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysis2 = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysisToUpdate =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSecondary =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -274,7 +283,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       mode: eserviceMode.receive,
       versions: [eserviceTemplateVersion],
       creatorId: generateId(),
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [riskAnalysisToUpdate, riskAnalysisSecondary],
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
@@ -283,8 +292,10 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
-        riskAnalysis1.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
+        riskAnalysisToUpdate.id,
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
+        ),
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -297,8 +308,10 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     const creatorTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
     );
-    const riskAnalysis1 = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysis2 = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysisToUpdate =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSecondary =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
@@ -309,7 +322,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       mode: eserviceMode.deliver,
       versions: [eserviceTemplateVersion],
       creatorId: generateId(),
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [riskAnalysisToUpdate, riskAnalysisSecondary],
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
@@ -318,76 +331,15 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
-        riskAnalysis1.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
+        riskAnalysisToUpdate.id,
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
+        ),
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));
-  });
-  it("should throw tenantNotFound if the creator tenant doesn't exist", async () => {
-    const creatorTenantKind: TenantKind = randomArrayItem(
-      Object.values(tenantKind)
-    );
-    const riskAnalysis1 = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysis2 = getMockValidRiskAnalysis(creatorTenantKind);
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.draft,
-      interface: getMockDocument(),
-    };
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      mode: eserviceMode.receive,
-      versions: [eserviceTemplateVersion],
-      creatorId: generateId(),
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
-    };
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    expect(
-      eserviceTemplateService.updateRiskAnalysis(
-        eserviceTemplate.id,
-        riskAnalysis1.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(creatorTenantKind)),
-        getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(tenantNotFound(eserviceTemplate.creatorId));
-  });
-  it("should throw tenantKindNotFound if the creator tenant kind doesn't exist", async () => {
-    const creator: Tenant = {
-      ...getMockTenant(),
-      kind: undefined,
-    };
-
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PA);
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.draft,
-      interface: getMockDocument(),
-    };
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      mode: eserviceMode.receive,
-      versions: [eserviceTemplateVersion],
-      creatorId: creator.id,
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
-    };
-    await addOneEServiceTemplate(eserviceTemplate);
-    await addOneTenant(creator);
-
-    expect(
-      eserviceTemplateService.updateRiskAnalysis(
-        eserviceTemplate.id,
-        riskAnalysis1.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getMockAuthData(creator.id) })
-      )
-    ).rejects.toThrowError(tenantKindNotFound(creator.id));
   });
   it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
     const requesterId = generateId<TenantId>();
@@ -400,8 +352,10 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       kind: creatorTenantKind,
     };
 
-    const riskAnalysis1 = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysis2 = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysisToUpdate =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSecondary =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
@@ -411,18 +365,18 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       ...getMockEServiceTemplate(),
       mode: eserviceMode.receive,
       versions: [eserviceTemplateVersion],
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
+      riskAnalysis: [riskAnalysisToUpdate, riskAnalysisSecondary],
       creatorId: requesterId,
     };
     await addOneTenant(creator);
     await addOneEServiceTemplate(eserviceTemplate);
 
     const mockValidRiskAnalysis = {
-      ...getMockValidRiskAnalysis(creatorTenantKind),
-      id: riskAnalysis1.id,
+      ...getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind),
+      id: riskAnalysisToUpdate.id,
       name: "updated name",
     };
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
     const invalidRiskAnalysisSeed = {
@@ -445,9 +399,11 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.updateRiskAnalysis(
         eserviceTemplate.id,
-        riskAnalysis1.id,
+        riskAnalysisToUpdate.id,
         invalidRiskAnalysisSeed,
-        getMockContext({ authData: getMockAuthData(creator.id) })
+        getMockContext({
+          authData: getMockAuthData(creator.id),
+        })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([

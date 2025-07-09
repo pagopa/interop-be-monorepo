@@ -1,32 +1,30 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiPurpose,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { WithMetadata } from "pagopa-interop-models";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  missingMetadata,
-  resourcePollingTimeout,
-} from "../../../src/model/errors.js";
-import { getMockedApiPurpose } from "../../mockUtils.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 
 describe("POST /purposes router test", () => {
-  const mockPurpose: WithMetadata<purposeApi.Purpose> = getMockedApiPurpose();
+  const mockPurpose: purposeApi.Purpose = getMockedApiPurpose();
 
   const mockPurposeSeed: m2mGatewayApi.PurposeSeed = {
-    dailyCalls: mockPurpose.data.versions[0].dailyCalls,
-    description: mockPurpose.data.description,
-    eserviceId: mockPurpose.data.eserviceId,
-    isFreeOfCharge: mockPurpose.data.isFreeOfCharge,
-    title: mockPurpose.data.title,
+    dailyCalls: mockPurpose.versions[0].dailyCalls,
+    description: mockPurpose.description,
+    eserviceId: mockPurpose.eserviceId,
+    isFreeOfCharge: mockPurpose.isFreeOfCharge,
+    title: mockPurpose.title,
   };
 
-  const mockM2MPurpose: m2mGatewayApi.Purpose = toM2MGatewayApiPurpose(
-    mockPurpose.data
-  );
+  const mockM2MPurpose: m2mGatewayApi.Purpose =
+    toM2MGatewayApiPurpose(mockPurpose);
 
   const makeRequest = async (token: string, body: m2mGatewayApi.PurposeSeed) =>
     request(api)
@@ -69,7 +67,7 @@ describe("POST /purposes router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([missingMetadata(), resourcePollingTimeout(3)])(
+  it.each([missingMetadata(), pollingMaxRetriesExceeded(3, 10)])(
     "Should return 500 in case of $code error",
     async (error) => {
       mockPurposeService.createPurpose = vi.fn().mockRejectedValue(error);

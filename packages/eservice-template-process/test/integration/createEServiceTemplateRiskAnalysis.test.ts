@@ -6,14 +6,14 @@ import {
 } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
-  getMockContext,
+  getMockAuthData,
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockTenant,
-  getMockValidRiskAnalysis,
-  getMockAuthData,
+  getMockValidEServiceTemplateRiskAnalysis,
   randomArrayItem,
+  getMockContext,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -33,13 +33,11 @@ import {
 import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
-  eserviceTemplateRiskAnalysisNameDuplicate,
   eserviceTemplateNotFound,
   riskAnalysisValidationFailed,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
-  tenantKindNotFound,
-  tenantNotFound,
+  eserviceTemplateRiskAnalysisNameDuplicate,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -84,8 +82,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(creator);
     await addOneEServiceTemplate(eserviceTemplate);
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+    const mockValidRiskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
     await eserviceTemplateService.createRiskAnalysis(
@@ -155,7 +154,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     );
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+  it("should throw eserviceTemplateNotFound if the eservice doesn't exist", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.draft,
@@ -170,7 +169,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -197,7 +198,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         getMockContext({ authData: getMockAuthData(requesterId) })
       )
     ).rejects.toThrowError(operationForbidden);
@@ -221,7 +224,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
@@ -249,72 +254,22 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
+        buildRiskAnalysisSeed(
+          getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
+        ),
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));
   });
-  it("should throw tenantNotFound if the creator tenant doesn't exist", async () => {
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.draft,
-      interface: getMockDocument(),
-    };
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      mode: eserviceMode.receive,
-      versions: [eserviceTemplateVersion],
-      creatorId: generateId(),
-    };
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    expect(
-      eserviceTemplateService.createRiskAnalysis(
-        eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
-        })
-      )
-    ).rejects.toThrowError(tenantNotFound(eserviceTemplate.creatorId));
-  });
-  it("should throw tenantKindNotFound if the creator tenant kind doesn't exist", async () => {
-    const creator: Tenant = {
-      ...getMockTenant(),
-      kind: undefined,
-    };
-
-    const eserviceTemplateVersion: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(),
-      state: eserviceTemplateVersionState.draft,
-      interface: getMockDocument(),
-    };
-    const eserviceTemplate: EServiceTemplate = {
-      ...getMockEServiceTemplate(),
-      mode: eserviceMode.receive,
-      versions: [eserviceTemplateVersion],
-      creatorId: creator.id,
-    };
-    await addOneEServiceTemplate(eserviceTemplate);
-
-    await addOneTenant(creator);
-
-    expect(
-      eserviceTemplateService.createRiskAnalysis(
-        eserviceTemplate.id,
-        buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getMockAuthData(creator.id) })
-      )
-    ).rejects.toThrowError(tenantKindNotFound(creator.id));
-  });
-  it("should throw riskAnalysisDuplicated if risk analysis name is duplicated, case insensitive", async () => {
+  it("should throw eserviceTemplateRiskAnalysisNameDuplicate if risk analysis name is duplicated, case insensitive", async () => {
     const creatorTenantKind: TenantKind = randomArrayItem(
       Object.values(tenantKind)
     );
 
-    const riskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
+    const riskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
 
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -335,17 +290,21 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     };
     await addOneTenant(creator);
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed = {
-      ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
-      name: riskAnalysis.name,
-    };
+    const mockValidRiskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
+      {
+        ...buildRiskAnalysisSeed(mockValidRiskAnalysis),
+        name: riskAnalysis.name,
+      };
 
     expect(
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysisSeed,
-        getMockContext({ authData: getMockAuthData(creator.id) })
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
       )
     ).rejects.toThrowError(
       eserviceTemplateRiskAnalysisNameDuplicate(riskAnalysis.name)
@@ -376,8 +335,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     await addOneTenant(creator);
     await addOneEServiceTemplate(eserviceTemplate);
 
-    const mockValidRiskAnalysis = getMockValidRiskAnalysis(creatorTenantKind);
-    const riskAnalysisSeed: eserviceTemplateApi.EServiceRiskAnalysisSeed =
+    const mockValidRiskAnalysis =
+      getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind);
+    const riskAnalysisSeed: eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed =
       buildRiskAnalysisSeed(mockValidRiskAnalysis);
 
     const invalidRiskAnalysisSeed = {
@@ -401,7 +361,9 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.createRiskAnalysis(
         eserviceTemplate.id,
         invalidRiskAnalysisSeed,
-        getMockContext({ authData: getMockAuthData(creator.id) })
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([

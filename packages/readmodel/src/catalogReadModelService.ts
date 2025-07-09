@@ -207,9 +207,15 @@ export function catalogReadModelServiceBuilder(db: DrizzleReturnType) {
         .leftJoin(
           // 8
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          eq(
-            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          and(
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+            ),
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
+            )
           )
         );
 

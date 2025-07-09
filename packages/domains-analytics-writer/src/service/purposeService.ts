@@ -3,7 +3,10 @@
 import { genericLogger } from "pagopa-interop-commons";
 import { DBContext } from "../db/db.js";
 import { batchMessages } from "../utils/batchHelper.js";
-import { mergeDeletingCascadeById } from "../utils/sqlQueryHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 import { config } from "../config/config.js";
 import { DeletingDbTable } from "../model/db/deleting.js";
 import { PurposeDbTable } from "../model/db/purpose.js";
@@ -99,6 +102,20 @@ export function purposeServiceBuilder(db: DBContext) {
         await answerRepository.merge(t);
       });
 
+      await dbContext.conn.tx(async (t) => {
+        await cleaningTargetTables(
+          t,
+          "purposeId",
+          [
+            PurposeDbTable.purpose_version_document,
+            PurposeDbTable.purpose_version,
+            PurposeDbTable.purpose_risk_analysis_answer,
+            PurposeDbTable.purpose_risk_analysis_form,
+          ],
+          PurposeDbTable.purpose
+        );
+      });
+
       genericLogger.info(
         `Staging data merged into target tables for all batches`
       );
@@ -149,6 +166,16 @@ export function purposeServiceBuilder(db: DBContext) {
         await versionRepository.merge(t);
         await versionDocumentRepository.merge(t);
       });
+
+      await dbContext.conn.tx(async (t) => {
+        await cleaningTargetTables(
+          t,
+          "purposeVersionId",
+          [PurposeDbTable.purpose_version_document],
+          PurposeDbTable.purpose_version
+        );
+      });
+
       genericLogger.info(
         `Staging data merged into target tables for all batches`
       );
@@ -169,7 +196,9 @@ export function purposeServiceBuilder(db: DBContext) {
         )) {
           await purposeRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for purposeIds: ${batch.join(", ")}`
+            `Staging deletion inserted for purposeIds: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 
@@ -205,19 +234,20 @@ export function purposeServiceBuilder(db: DBContext) {
         )) {
           await versionRepository.insertDeleting(t, dbContext.pgp, batch);
           genericLogger.info(
-            `Staging deletion inserted for purposeVersionIds: ${batch.join(
-              ", "
-            )}`
+            `Staging deletion inserted for purposeVersionIds: ${batch
+              .map((r) => r.id)
+              .join(", ")}`
           );
         }
 
-        await versionRepository.mergeDeleting(t);
         await mergeDeletingCascadeById(
           t,
           "purposeVersionId",
           [PurposeDbTable.purpose_version_document],
-          DeletingDbTable.purpose_deleting_table
+          DeletingDbTable.purpose_deleting_table,
+          true
         );
+        await versionRepository.mergeDeleting(t);
       });
       genericLogger.info(
         `Staging deletion merged into target tables for all purpose versions`

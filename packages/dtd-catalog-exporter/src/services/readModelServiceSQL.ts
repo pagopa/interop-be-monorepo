@@ -6,7 +6,7 @@ import {
   Attribute,
   descriptorState,
 } from "pagopa-interop-models";
-import { eq, inArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import {
   attributeInReadmodelAttribute,
   DrizzleTransactionType,
@@ -130,9 +130,15 @@ export function readModelServiceBuilderSQL(
         )
         .leftJoin(
           eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          eq(
-            eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+          and(
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+            ),
+            eq(
+              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
+              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
+            )
           )
         );
 

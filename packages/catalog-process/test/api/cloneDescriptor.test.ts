@@ -25,6 +25,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceNameDuplicateForProducer,
   templateInstanceNotAllowed,
+  eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/clone authorization test", () => {
@@ -102,6 +103,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/clone authoriza
         eservice.name,
         eservice.producerId
       ),
+      expectedStatus: 409,
+    },
+    {
+      error: eserviceTemplateNameConflict(eservice.name),
       expectedStatus: 409,
     },
     {

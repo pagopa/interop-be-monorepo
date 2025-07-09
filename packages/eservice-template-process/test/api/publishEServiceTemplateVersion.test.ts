@@ -3,7 +3,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
-  TenantId,
   eserviceTemplateVersionState,
   generateId,
   operationForbidden,
@@ -25,13 +24,10 @@ import {
   missingTemplateVersionInterface,
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
-  tenantKindNotFound,
-  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates/:templateId/versions/:templateVersionId/publish", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
-  const tenantId = generateId<TenantId>();
 
   const makeRequest = async (
     token: string,
@@ -110,14 +106,6 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
         }),
       ]),
       expectedStatus: 400,
-    },
-    {
-      error: tenantNotFound(tenantId),
-      expectedStatus: 500,
-    },
-    {
-      error: tenantKindNotFound(tenantId),
-      expectedStatus: 500,
     },
     {
       error: operationForbidden,

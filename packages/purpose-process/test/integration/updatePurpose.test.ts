@@ -16,6 +16,7 @@ import {
   getMockAgreement,
   getMockContext,
   getMockEService,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   tenantKind,
@@ -169,8 +170,13 @@ describe("updatePurpose and updateReversePurpose", () => {
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("Should write on event store for the update of a purpose of an e-service in mode DELIVER (no title change)", async () => {
@@ -210,8 +216,13 @@ describe("updatePurpose and updateReversePurpose", () => {
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("Should write on event store for the update of a purpose of an e-service in mode RECEIVE (including title change)", async () => {
@@ -246,8 +257,13 @@ describe("updatePurpose and updateReversePurpose", () => {
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
@@ -305,8 +321,13 @@ describe("updatePurpose and updateReversePurpose", () => {
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
@@ -359,8 +380,13 @@ describe("updatePurpose and updateReversePurpose", () => {
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode DELIVER", async () => {
@@ -462,8 +488,13 @@ describe("updatePurpose and updateReversePurpose", () => {
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a updatable state and the e-service is in mode RECEIVE", async () => {
@@ -559,8 +590,13 @@ describe("updatePurpose and updateReversePurpose", () => {
       writtenPayload.purpose!.riskAnalysisForm!
     );
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(purpose));
+    const sortedWrittenPayloadPurpose = sortPurpose(writtenPayload.purpose);
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(expectedPurpose))
+    );
+    expect(sortedWrittenPayloadPurpose).toEqual(
+      sortPurpose(toPurposeV2(purpose))
+    );
     expect(isRiskAnalysisValid).toBe(true);
   });
   it("Should throw purposeNotFound if the purpose doesn't exist", async () => {
@@ -771,30 +807,6 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         purposeForDeliver.id,
         mockPurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(
-      riskAnalysisValidationFailed([unexpectedRulesVersionError("0")])
-    );
-  });
-  it("Should throw riskAnalysisValidationFailed if the risk analysis is not valid in updateReversePurpose", async () => {
-    const purposeWithInvalidRiskAnalysis: Purpose = {
-      ...purposeForReceive,
-      riskAnalysisForm: {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        ...purposeForReceive.riskAnalysisForm!,
-        version: "0",
-      },
-    };
-
-    await addOnePurpose(purposeWithInvalidRiskAnalysis);
-    await addOneEService(eServiceReceive);
-    await addOneTenant(tenant);
-
-    expect(
-      purposeService.updateReversePurpose(
-        purposeWithInvalidRiskAnalysis.id,
-        reversePurposeUpdateContent,
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(

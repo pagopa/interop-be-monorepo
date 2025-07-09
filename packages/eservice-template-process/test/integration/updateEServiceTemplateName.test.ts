@@ -158,7 +158,7 @@ describe("updateEServiceTemplateName", () => {
       versions: [eserviceTemplateVersion],
     };
 
-    const duplicateName = "eservice duplciate name";
+    const duplicateName = "eservice duplicate name";
 
     const eserviceTemplateWithSameName: EServiceTemplate = {
       ...getMockEServiceTemplate(),
@@ -174,6 +174,42 @@ describe("updateEServiceTemplateName", () => {
       eserviceTemplateService.updateEServiceTemplateName(
         eserviceTemplate.id,
         updatedName,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(eserviceTemplateDuplicate(duplicateName));
+  });
+
+  it("should throw eserviceTemplateDuplicate is there is another eservice template with the same name by a different creator", async () => {
+    const creatorId = generateId<TenantId>();
+
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      creatorId,
+      versions: [eserviceTemplateVersion],
+    };
+
+    const duplicateName = "eservice duplicate name";
+
+    const eserviceTemplateWithSameName: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      creatorId: generateId<TenantId>(),
+      name: duplicateName,
+    };
+
+    await addOneEServiceTemplate(eserviceTemplate);
+    await addOneEServiceTemplate(eserviceTemplateWithSameName);
+
+    expect(
+      eserviceTemplateService.updateEServiceTemplateName(
+        eserviceTemplate.id,
+        duplicateName,
         getMockContext({
           authData: getMockAuthData(eserviceTemplate.creatorId),
         })

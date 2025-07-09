@@ -62,6 +62,11 @@ export * from "./eservice-template/eserviceTemplateEvents.js";
 export * from "./eservice-template/protobufConverterFromV2.js";
 export * from "./eservice-template/protobufConverterToV2.js";
 
+export * from "./notification-config/notificationConfig.js";
+export * from "./notification-config/notificationConfigEvents.js";
+export * from "./notification-config/protobufConverterFromV2.js";
+export * from "./notification-config/protobufConverterToV2.js";
+
 export * from "./application-audit/application-audit.js";
 
 // Token generation read model
@@ -70,6 +75,10 @@ export * from "./token-generation-readmodel/token-generation-states-entry.js";
 export * from "./token-generation-readmodel/commons.js";
 export * from "./token-generation-audit/audit.js";
 export * from "./client-assertion/clientAssertionValidation.js";
+
+// DPoP
+export * from "./dpop/dpop.js";
+export * from "./dpop/dpopCache.js";
 
 // Protobuf
 export * from "./protobuf/protobuf.js";
@@ -125,3 +134,5 @@ export * from "./gen/v2/delegation/delegation.js";
 export * from "./gen/v2/delegation/events.js";
 export * from "./gen/v2/eservice-template/eservice-template.js";
 export * from "./gen/v2/eservice-template/events.js";
+export * from "./gen/v2/notification-config/notification-config.js";
+export * from "./gen/v2/notification-config/events.js";

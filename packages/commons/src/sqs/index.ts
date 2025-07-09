@@ -15,6 +15,7 @@ import { InternalError } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { LoggerConfig } from "../config/loggerConfig.js";
 import { genericLogger, Logger } from "../logging/index.js";
+import { delay } from "../utils/delay.js";
 import { validateSqsMessage } from "./queueManagerMessageValidation.js";
 import { QueueMessage } from "./queueMessage.js";
 import {
@@ -32,7 +33,7 @@ const serializeError = (error: unknown): string => {
 
 const processExit = async (exitStatusCode: number = 1): Promise<void> => {
   genericLogger.error(`Process exit with code ${exitStatusCode}`);
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+  await delay(1000);
   process.exit(exitStatusCode);
 };
 
@@ -222,10 +223,4 @@ export function initQueueManager(
   };
 }
 
-export {
-  SQSClient,
-  QueueMessage,
-  queueManagerSendError,
-  queueManagerReceiveError,
-};
-export type { SQSClientConfig, Message };
+export { QueueMessage, queueManagerSendError, queueManagerReceiveError };

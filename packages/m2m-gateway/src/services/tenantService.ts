@@ -10,7 +10,7 @@ import {
 } from "../api/tenantApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
-  pollResource,
+  pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { tenantCertifiedAttributeNotFound } from "../model/errors.js";
@@ -40,19 +40,19 @@ export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const pollTenant = (
     response: WithMaybeMetadata<tenantApi.Tenant>,
     headers: M2MGatewayAppContext["headers"]
-  ) =>
-    pollResource(() =>
+  ): Promise<WithMaybeMetadata<tenantApi.Tenant>> =>
+    pollResourceWithMetadata(() =>
       clients.tenantProcessClient.tenant.getTenant({
         params: { id: response.data.id },
         headers,
       })
     )({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
   return {
     async getTenants(
       queryParams: m2mGatewayApi.GetTenantsQueryParams,

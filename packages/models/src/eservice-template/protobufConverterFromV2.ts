@@ -5,19 +5,22 @@ import {
   fromEServiceAttributeV2,
   fromEServiceModeV2,
   fromEServiceTechnologyV2,
-  fromRiskAnalysisV2,
+  fromRiskAnalysisFormV2,
 } from "../eservice/protobufConverterFromV2.js";
 import {
   EServiceTemplateV2,
   EServiceTemplateVersionStateV2,
   EServiceTemplateVersionV2,
+  EServiceTemplateRiskAnalysisV2,
 } from "../gen/v2/eservice-template/eservice-template.js";
+import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 import { bigIntToDate } from "../utils.js";
 import {
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
+  EServiceTemplateRiskAnalysis,
 } from "./eserviceTemplate.js";
 
 export const fromEServiceTemplateVersionStateV2 = (
@@ -67,6 +70,18 @@ export const fromEServiceTemplateVersionV2 = (
   deprecatedAt: bigIntToDate(input.deprecatedAt),
 });
 
+export function fromEServiceTemplateRiskAnalysisV2(
+  input: EServiceTemplateRiskAnalysisV2
+): EServiceTemplateRiskAnalysis {
+  return {
+    ...input,
+    id: unsafeBrandId(input.id),
+    createdAt: bigIntToDate(input.createdAt),
+    riskAnalysisForm: fromRiskAnalysisFormV2(input.riskAnalysisForm),
+    tenantKind: fromTenantKindV2(input.tenantKind),
+  };
+}
+
 export const fromEServiceTemplateV2 = (
   input: EServiceTemplateV2
 ): EServiceTemplate => ({
@@ -76,6 +91,6 @@ export const fromEServiceTemplateV2 = (
   technology: fromEServiceTechnologyV2(input.technology),
   versions: input.versions.map(fromEServiceTemplateVersionV2),
   createdAt: bigIntToDate(input.createdAt),
-  riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV2),
+  riskAnalysis: input.riskAnalysis.map(fromEServiceTemplateRiskAnalysisV2),
   mode: fromEServiceModeV2(input.mode),
 });

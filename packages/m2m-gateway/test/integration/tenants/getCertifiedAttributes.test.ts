@@ -4,16 +4,17 @@ import { unsafeBrandId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import {
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   tenantService,
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiCertifiedTenantAttribute,
-  getMockedApiTenant,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getCertifiedAttributes", () => {
   const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({
@@ -27,26 +28,28 @@ describe("getCertifiedAttributes", () => {
     z.array(tenantApi.TenantAttribute)
   ).filter((attr) => attr.certified === undefined);
 
-  const mockTenantProcessResponse = getMockedApiTenant({
-    attributes: [
-      {
-        certified: mockCertifiedAttribute1,
-      },
-      {
-        certified: mockCertifiedAttribute2,
-      },
-      {
-        certified: mockCertifiedAttribute3,
-      },
-      {
-        certified: mockCertifiedAttribute4,
-      },
-      {
-        certified: mockCertifiedAttribute5,
-      },
-      ...otherMockedAttributes,
-    ],
-  });
+  const mockTenantProcessResponse = getMockWithMetadata(
+    getMockedApiTenant({
+      attributes: [
+        {
+          certified: mockCertifiedAttribute1,
+        },
+        {
+          certified: mockCertifiedAttribute2,
+        },
+        {
+          certified: mockCertifiedAttribute3,
+        },
+        {
+          certified: mockCertifiedAttribute4,
+        },
+        {
+          certified: mockCertifiedAttribute5,
+        },
+        ...otherMockedAttributes,
+      ],
+    })
+  );
 
   const testToM2MGatewayApiCertifiedAttribute = (
     attribute: tenantApi.CertifiedTenantAttribute

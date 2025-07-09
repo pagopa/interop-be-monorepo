@@ -1,5 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiAttribute,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
 import {
@@ -9,7 +12,6 @@ import {
 import { api, mockAttributeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { attributeNotFound } from "../../../src/model/errors.js";
-import { getMockedApiAttribute } from "../../mockUtils.js";
 import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
 describe("GET /certifiedAttributes/:attributeId router test", () => {
@@ -18,7 +20,7 @@ describe("GET /certifiedAttributes/:attributeId router test", () => {
   });
   const mockM2MCertifiedAttributeResponse: m2mGatewayApi.CertifiedAttribute =
     toM2MGatewayApiCertifiedAttribute({
-      attribute: mockApiCertifiedAttribute.data,
+      attribute: mockApiCertifiedAttribute,
       logger: genericLogger,
     });
 
@@ -40,7 +42,7 @@ describe("GET /certifiedAttributes/:attributeId router test", () => {
         .mockResolvedValue(mockM2MCertifiedAttributeResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
+      const res = await makeRequest(token, mockApiCertifiedAttribute.id);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MCertifiedAttributeResponse);
@@ -51,7 +53,7 @@ describe("GET /certifiedAttributes/:attributeId router test", () => {
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
+    const res = await makeRequest(token, mockApiCertifiedAttribute.id);
     expect(res.status).toBe(403);
   });
 
@@ -65,9 +67,9 @@ describe("GET /certifiedAttributes/:attributeId router test", () => {
   it("Should return 404 in case of attributeNotFound error", async () => {
     mockAttributeService.getCertifiedAttribute = vi
       .fn()
-      .mockRejectedValue(attributeNotFound(mockApiCertifiedAttribute.data));
+      .mockRejectedValue(attributeNotFound(mockApiCertifiedAttribute));
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
+    const res = await makeRequest(token, mockApiCertifiedAttribute.id);
 
     expect(res.status).toBe(404);
   });
@@ -83,7 +85,7 @@ describe("GET /certifiedAttributes/:attributeId router test", () => {
         .fn()
         .mockResolvedValueOnce(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, mockApiCertifiedAttribute.data.id);
+      const res = await makeRequest(token, mockApiCertifiedAttribute.id);
 
       expect(res.status).toBe(500);
     }

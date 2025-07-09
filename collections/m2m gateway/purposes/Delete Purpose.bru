@@ -1,0 +1,19 @@
+meta {
+  name: Delete purpose
+  type: http
+  seq: 12
+}
+
+delete {
+  url: {{host-m2m-gw}}/purposes/:purposeId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M-ADMIN}}
+}

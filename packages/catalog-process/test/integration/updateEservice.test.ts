@@ -10,6 +10,7 @@ import {
   getMockDocument,
   getMockDescriptor,
   getMockEService,
+  getMockEServiceTemplate,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -23,6 +24,7 @@ import {
   delegationState,
   delegationKind,
   EServiceTemplateId,
+  EServiceTemplate,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
@@ -31,6 +33,7 @@ import {
   eServiceNameDuplicateForProducer,
   eserviceNotInDraftState,
   templateInstanceNotAllowed,
+  eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -39,6 +42,7 @@ import {
   catalogService,
   readLastEserviceEvent,
   addOneDelegation,
+  addOneEServiceTemplate,
 } from "../integrationUtils.js";
 
 describe("update eService", () => {
@@ -473,16 +477,19 @@ describe("update eService", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eServiceNameDuplicateForProducer if the updated name is already in use, case insensitive", async () => {
+  it("should throw eServiceNameDuplicateForProducer if the updated name is already in use", async () => {
     const eservice1: EService = {
       ...mockEService,
       id: generateId(),
       descriptors: [],
     };
+
+    const name = "eservice name already in use";
+
     const eservice2: EService = {
       ...mockEService,
       id: generateId(),
-      name: "eservice name already in use",
+      name,
       descriptors: [],
     };
     await addOneEService(eservice1);
@@ -492,7 +499,7 @@ describe("update eService", () => {
       catalogService.updateEService(
         eservice1.id,
         {
-          name: "ESERVICE NAME ALREADY IN USE",
+          name,
           description: "eservice description",
           technology: "REST",
           mode: "DELIVER",
@@ -500,11 +507,101 @@ describe("update eService", () => {
         getMockContext({ authData: getMockAuthData(eservice1.producerId) })
       )
     ).rejects.toThrowError(
-      eServiceNameDuplicateForProducer(
-        "ESERVICE NAME ALREADY IN USE",
-        eservice1.producerId
-      )
+      eServiceNameDuplicateForProducer(name, eservice1.producerId)
     );
+  });
+  it("should throw eServiceNameDuplicateForProducer if the updated name is already in use, case insensitive", async () => {
+    const eservice1: EService = {
+      ...mockEService,
+      id: generateId(),
+      descriptors: [],
+    };
+
+    const name = "eservice name already in use";
+
+    const eservice2: EService = {
+      ...mockEService,
+      id: generateId(),
+      name,
+      descriptors: [],
+    };
+    await addOneEService(eservice1);
+    await addOneEService(eservice2);
+
+    expect(
+      catalogService.updateEService(
+        eservice1.id,
+        {
+          name: name.toUpperCase(),
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+        },
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+      )
+    ).rejects.toThrowError(
+      eServiceNameDuplicateForProducer(name.toUpperCase(), eservice1.producerId)
+    );
+  });
+  it("should throw eserviceTemplateNameConflict if the updated name is already in use", async () => {
+    const eservice1: EService = {
+      ...mockEService,
+      id: generateId(),
+      descriptors: [],
+    };
+
+    const name = "eservice name already in use";
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      name,
+    };
+
+    await addOneEService(eservice1);
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    expect(
+      catalogService.updateEService(
+        eservice1.id,
+        {
+          name,
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+        },
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+      )
+    ).rejects.toThrowError(eserviceTemplateNameConflict(name));
+  });
+  it("should throw eserviceTemplateNameConflict if the updated name is already in use, case insensitive", async () => {
+    const eservice1: EService = {
+      ...mockEService,
+      id: generateId(),
+      descriptors: [],
+    };
+
+    const name = "eservice name already in use";
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      name,
+    };
+
+    await addOneEService(eservice1);
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    expect(
+      catalogService.updateEService(
+        eservice1.id,
+        {
+          name: name.toUpperCase(),
+          description: "eservice description",
+          technology: "REST",
+          mode: "DELIVER",
+        },
+        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+      )
+    ).rejects.toThrowError(eserviceTemplateNameConflict(name.toUpperCase()));
   });
 
   it("should throw eserviceNotInDraftState if the eservice descriptor is in published state", async () => {

@@ -57,12 +57,9 @@ import {
   AppContext,
   RateLimiter,
   initFileManager,
+  rateLimiterMiddleware,
 } from "pagopa-interop-commons";
-import {
-  RateLimiterMiddleware,
-  createApp,
-  createServices,
-} from "../src/app.js";
+import { createApp, createServices } from "../src/app.js";
 import {
   AgreementProcessClient,
   AttributeProcessClient,
@@ -77,6 +74,17 @@ import {
 } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
 
+export const mockRateLimiter: RateLimiter = {
+  rateLimitByOrganization: vi.fn().mockResolvedValue({
+    limitReached: false,
+    maxRequests: 100,
+    rateInterval: 1000,
+    remainingRequests: 99,
+  }),
+  getCountByOrganization: vi.fn(),
+  getBurstCountByOrganization: vi.fn(),
+};
+
 export const clients = {
   tenantProcessClient: {
     tenant: {},
@@ -87,24 +95,33 @@ export const clients = {
   catalogProcessClient: {} as CatalogProcessClient,
   agreementProcessClient: {} as AgreementProcessClient,
   purposeProcessClient: {} as PurposeProcessClient,
-  authorizationClient: {} as AuthorizationProcessClient,
+  authorizationClient: {
+    client: {},
+    producerKeychain: {},
+    user: {},
+    token: {},
+  } as AuthorizationProcessClient,
   selfcareV2InstitutionClient: {} as SelfcareV2InstitutionClient,
   selfcareV2UserClient: {} as SelfcareV2UserClient,
-  delegationProcessClient: {} as DelegationProcessClient,
+  delegationProcessClient: {
+    producer: {},
+    consumer: {},
+    delegation: {},
+  } as DelegationProcessClient,
   eserviceTemplateProcessClient: {} as EServiceTemplateProcessClient,
 };
 
 const fileManager = initFileManager(config);
 const authorizationServiceAllowList: string[] = [];
-const redisRateLimiter = {} as RateLimiter;
-const rateLimiterMiddleware: RateLimiterMiddleware = (_req, _res, next): void =>
-  next();
 
 export const services = await createServices(
   clients,
   fileManager,
-  redisRateLimiter,
+  mockRateLimiter,
   authorizationServiceAllowList
 );
 
-export const api = await createApp(services, rateLimiterMiddleware);
+export const api = await createApp(
+  services,
+  rateLimiterMiddleware(mockRateLimiter)
+);

@@ -1,8 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AttributeId, generateId, unsafeBrandId } from "pagopa-interop-models";
+import {
+  AttributeId,
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
+import {
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -14,14 +24,9 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
-  resourcePollingTimeout,
   tenantCertifiedAttributeNotFound,
 } from "../../../src/model/errors.js";
-import {
-  getMockM2MAdminAppContext,
-  getMockedApiCertifiedTenantAttribute,
-  getMockedApiTenant,
-} from "../../mockUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("revokeCertifiedAttribute", () => {
   const mockCertifiedAttribute1 = getMockedApiCertifiedTenantAttribute({
@@ -31,17 +36,19 @@ describe("revokeCertifiedAttribute", () => {
   const otherMockedAttributes = generateMock(
     z.array(tenantApi.TenantAttribute)
   );
-  const mockTenantProcessResponse = getMockedApiTenant({
-    attributes: [
-      {
-        certified: mockCertifiedAttribute1,
-      },
-      {
-        certified: mockCertifiedAttribute2,
-      },
-      ...otherMockedAttributes,
-    ],
-  });
+  const mockTenantProcessResponse = getMockWithMetadata(
+    getMockedApiTenant({
+      attributes: [
+        {
+          certified: mockCertifiedAttribute1,
+        },
+        {
+          certified: mockCertifiedAttribute2,
+        },
+        ...otherMockedAttributes,
+      ],
+    })
+  );
 
   const mockRevokeCertifiedAttributeById = vi
     .fn()
@@ -144,11 +151,11 @@ describe("revokeCertifiedAttribute", () => {
     ).rejects.toThrowError(missingMetadata());
   });
 
-  it("Should throw resourcePollingTimeout in case of polling max attempts", async () => {
+  it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
     mockGetTenant.mockImplementation(
       mockPollingResponse(
         mockTenantProcessResponse,
-        config.defaultPollingMaxAttempts + 1
+        config.defaultPollingMaxRetries + 1
       )
     );
 
@@ -159,10 +166,13 @@ describe("revokeCertifiedAttribute", () => {
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      resourcePollingTimeout(config.defaultPollingMaxAttempts)
+      pollingMaxRetriesExceeded(
+        config.defaultPollingMaxRetries,
+        config.defaultPollingRetryDelay
+      )
     );
     expect(mockGetTenant).toHaveBeenCalledTimes(
-      config.defaultPollingMaxAttempts
+      config.defaultPollingMaxRetries
     );
   });
 });

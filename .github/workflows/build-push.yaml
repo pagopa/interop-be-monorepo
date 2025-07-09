@@ -4,13 +4,16 @@ on:
   push:
     branches:
       - "develop"
-      - "PIN-6201-auth-server-perf-test"
     tags:
       - "*"
     paths:
       - "packages/**"
       - "!packages/*/scripts/**"
       - ".github/workflows/build-push.yaml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   find_dockerfiles:
@@ -29,13 +32,12 @@ jobs:
   build_push_image:
     name: ${{ matrix.package }}
     needs: [find_dockerfiles]
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     environment: ecr
     permissions:
       contents: read
       id-token: write
     strategy:
-      max-parallel: 5
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
@@ -45,13 +47,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
-        with:
-          aws-region: ${{ vars.AWS_REGION }}
-          role-to-assume: ${{ vars.IAM_ROLE_ARN }}
-          role-session-name: be-monorepo-build-push-${{ github.run_number }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -68,7 +63,7 @@ jobs:
       - name: (branch) Docker metadata
         id: meta_branch
         if: ${{ github.ref_type == 'branch' }}
-        uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
+        uses: docker/metadata-action@be19121bfd18b9c1ac415d9571d4f67b9b357886
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |
@@ -81,7 +76,7 @@ jobs:
       - name: (tag) Docker metadata
         id: meta_tag
         if: ${{ github.ref_type == 'tag' }}
-        uses: docker/metadata-action@60a0d343a0d8a18aedee9d34e62251f752153bdb
+        uses: docker/metadata-action@be19121bfd18b9c1ac415d9571d4f67b9b357886
         with:
           images: ${{ steps.login-ecr.outputs.registry }}/interop-be-${{ matrix.package }}
           flavor: |

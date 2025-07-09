@@ -1,15 +1,16 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiPurpose,
+  getMockedApiPurposeVersion,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  getMockedApiPurpose,
-  getMockedApiPurposeVersion,
-} from "../../mockUtils.js";
 import { purposeVersionNotFound } from "../../../src/model/errors.js";
+import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
 
 describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
   const authorizedRoles: AuthRole[] = [
@@ -37,7 +38,9 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
     async (role) => {
       mockPurposeService.getPurposeVersion = vi
         .fn()
-        .mockResolvedValue(mockApiPurposeVersion);
+        .mockResolvedValue(
+          toM2mGatewayApiPurposeVersion(mockApiPurposeVersion)
+        );
 
       const token = generateToken(role);
       const res = await makeRequest(
@@ -61,7 +64,7 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
     const token = generateToken(authRole.M2M_ROLE);
     const res = await makeRequest(
       token,
-      mockApiPurpose.data.id,
+      mockApiPurpose.id,
       "INVALID_VERSION_ID"
     );
     expect(res.status).toBe(400);
@@ -72,14 +75,14 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
       .fn()
       .mockRejectedValue(
         purposeVersionNotFound(
-          unsafeBrandId(mockApiPurpose.data.id),
+          unsafeBrandId(mockApiPurpose.id),
           unsafeBrandId(mockApiPurposeVersion.id)
         )
       );
 
     const token = generateToken(authRole.M2M_ROLE);
 
-    const res = await makeRequest(token, mockApiPurpose.data.id, generateId());
+    const res = await makeRequest(token, mockApiPurpose.id, generateId());
     expect(res.status).toBe(404);
   });
 

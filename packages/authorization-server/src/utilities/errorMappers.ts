@@ -21,6 +21,10 @@ export const authorizationServerErrorMapper = (
       "clientAssertionSignatureValidationFailed",
       "clientAssertionValidationFailed",
       "platformStateValidationFailed",
+      "dpopProofValidationFailed",
+      "dpopProofSignatureValidationFailed",
+      "unexpectedDPoPProofForAPIToken",
+      "dpopProofJtiAlreadyUsed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)

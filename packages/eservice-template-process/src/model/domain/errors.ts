@@ -6,7 +6,6 @@ import {
   EServiceTemplateVersionId,
   EServiceTemplateVersionState,
   makeApiProblemBuilder,
-  TenantId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -17,8 +16,6 @@ export const errorCodes = {
   eserviceTemplateWithoutPublishedVersion: "0005",
   riskAnalysisNameDuplicate: "0006",
   riskAnalysisValidationFailed: "0007",
-  tenantNotFound: "0008",
-  tenantKindNotFound: "0009",
   eserviceTemplateNotInDraftState: "0010",
   eserviceTemplateNotInReceiveMode: "0011",
   inconsistentDailyCalls: "0012",
@@ -35,6 +32,7 @@ export const errorCodes = {
   checksumDuplicate: "0023",
   draftEServiceTemplateVersionAlreadyExists: "0024",
   eserviceTemplateDocumentNotFound: "0025",
+  riskAnalysisNotFound: "0026",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -174,22 +172,6 @@ export function riskAnalysisValidationFailed(
   });
 }
 
-export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} not found`,
-    code: "tenantNotFound",
-    title: "Tenant not found",
-  });
-}
-
-export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant kind for tenant ${tenantId} not found`,
-    code: "tenantKindNotFound",
-    title: "Tenant kind not found",
-  });
-}
-
 export function templateNotInReceiveMode(
   templateId: EServiceTemplateId
 ): ApiError<ErrorCodes> {
@@ -293,5 +275,16 @@ export function eserviceTemplateDocumentNotFound(
     detail: `Document ${documentId} not found in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
     code: "eserviceTemplateDocumentNotFound",
     title: "Document not found",
+  });
+}
+
+export function riskAnalysisNotFound(
+  eserviceTemplateId: EServiceTemplateId,
+  riskAnalysisId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis ${riskAnalysisId} not found in template ${eserviceTemplateId}`,
+    code: "riskAnalysisNotFound",
+    title: "Risk analysis not found",
   });
 }

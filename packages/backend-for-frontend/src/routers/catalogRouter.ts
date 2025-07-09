@@ -647,7 +647,7 @@ const catalogRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          bffGetCatalogErrorMapper,
+          emptyErrorMapper,
           ctx,
           `Error inserting risk analysis ${req.body.name} to eservice ${req.params.eServiceId} from catalog`
         );
@@ -707,6 +707,25 @@ const catalogRouter = (
           emptyErrorMapper,
           ctx,
           `Error updating name of eservice with Id: ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/:eServiceId/signalhub/update", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.updateEServiceSignalHubFlag(
+          ctx,
+          unsafeBrandId(req.params.eServiceId),
+          req.body
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating signalhub for eservice with Id: ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -773,7 +792,7 @@ const catalogRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            bffGetCatalogErrorMapper,
+            emptyErrorMapper,
             ctx,
             `Error deleting risk analysis ${req.params.riskAnalysisId} to eservice ${req.params.eServiceId} from catalog`
           );

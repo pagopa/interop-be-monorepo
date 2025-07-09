@@ -1,5 +1,6 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import {
+  InternalAuthData,
   M2MAdminAuthData,
   M2MAuthData,
   RiskAnalysisValidatedForm,
@@ -42,6 +43,7 @@ import {
   eServiceNotAnInstance,
   inconsistentDailyCalls,
   eserviceWithoutValidDescriptors,
+  eserviceTemplateNameConflict,
 } from "../model/domain/errors.js";
 import { ReadModelService } from "./readModelService.js";
 
@@ -269,18 +271,31 @@ export function assertDocumentDeletableDescriptorState(
     .exhaustive();
 }
 
-export async function assertNotDuplicatedEServiceNameForProducer(
+export async function assertEServiceNameAvailableForProducer(
   name: string,
   producerId: TenantId,
   readModelService: ReadModelService
 ): Promise<void> {
-  const eserviceWithSameName =
-    await readModelService.getEServiceByNameAndProducerId({
+  const isEServiceNameAvailable =
+    await readModelService.isEServiceNameAvailableForProducer({
       name,
       producerId,
     });
-  if (eserviceWithSameName !== undefined) {
+  if (!isEServiceNameAvailable) {
     throw eServiceNameDuplicateForProducer(name, producerId);
+  }
+}
+
+export async function assertEServiceNameNotConflictingWithTemplate(
+  name: string,
+  readModelService: ReadModelService
+): Promise<void> {
+  const eserviceTemplateWithSameNameExists =
+    await readModelService.isEServiceNameConflictingWithTemplate({
+      name,
+    });
+  if (eserviceTemplateWithSameNameExists) {
+    throw eserviceTemplateNameConflict(name);
   }
 }
 
@@ -344,7 +359,7 @@ export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
  * from the producer tenant or the delegate producer tenant.
  */
 export function hasRoleToAccessInactiveDescriptors(
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
 ): boolean {
   return (
     hasAtLeastOneUserRole(authData, [

@@ -398,20 +398,40 @@ export function readModelServiceBuilder(
         ),
       };
     },
-    async getEServiceByNameAndProducerId({
+    async isEServiceNameAvailableForProducer({
       name,
       producerId,
     }: {
       name: string;
       producerId: TenantId;
-    }): Promise<WithMetadata<EService> | undefined> {
-      return getEService(eservices, {
-        "data.name": {
-          $regex: `^${ReadModelRepository.escapeRegExp(name)}$$`,
-          $options: "i",
+    }): Promise<boolean> {
+      const count = await eservices.countDocuments(
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(name)}$`,
+            $options: "i",
+          },
+          "data.producerId": producerId,
         },
-        "data.producerId": producerId,
-      });
+        { limit: 1 }
+      );
+      return count === 0;
+    },
+    async isEServiceNameConflictingWithTemplate({
+      name,
+    }: {
+      name: string;
+    }): Promise<boolean> {
+      const count = await eserviceTemplates.countDocuments(
+        {
+          "data.name": {
+            $regex: `^${ReadModelRepository.escapeRegExp(name)}$`,
+            $options: "i",
+          },
+        },
+        { limit: 1 }
+      );
+      return count > 0;
     },
     async getEServiceById(
       id: EServiceId

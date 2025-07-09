@@ -7,6 +7,7 @@ import {
   randomArrayItem,
   readEventByStreamIdAndVersion,
   getMockEService,
+  getMockEServiceTemplate,
 } from "pagopa-interop-commons-test";
 import {
   EServiceAddedV2,
@@ -19,12 +20,14 @@ import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import { match } from "ts-pattern";
 import {
   eServiceNameDuplicateForProducer,
+  eserviceTemplateNameConflict,
   inconsistentDailyCalls,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
   addOneEService,
+  addOneEServiceTemplate,
   catalogService,
   postgresDB,
   readLastEserviceEvent,
@@ -344,6 +347,29 @@ describe("create eservice", () => {
     expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
   });
 
+  it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists", async () => {
+    await addOneEService({
+      ...mockEService,
+      name: mockEService.name,
+    });
+    expect(
+      catalogService.createEService(
+        {
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
+          descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(
+      eServiceNameDuplicateForProducer(
+        mockEService.name,
+        mockEService.producerId
+      )
+    );
+  });
   it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists, case insensitive", async () => {
     await addOneEService({
       ...mockEService,
@@ -365,6 +391,44 @@ describe("create eservice", () => {
         mockEService.name.toLowerCase(),
         mockEService.producerId
       )
+    );
+  });
+  it("should throw eserviceTemplateNameConflict if an eservice template with the same name already exists", async () => {
+    await addOneEServiceTemplate({
+      ...getMockEServiceTemplate(),
+      name: mockEService.name,
+    });
+    expect(
+      catalogService.createEService(
+        {
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
+          descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(eserviceTemplateNameConflict(mockEService.name));
+  });
+  it("should throw eserviceTemplateNameConflict if an eservice template with the same name already exists, case insensitive", async () => {
+    await addOneEServiceTemplate({
+      ...getMockEServiceTemplate(),
+      name: mockEService.name.toUpperCase(),
+    });
+    expect(
+      catalogService.createEService(
+        {
+          name: mockEService.name.toLowerCase(),
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
+          descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(
+      eserviceTemplateNameConflict(mockEService.name.toLowerCase())
     );
   });
 

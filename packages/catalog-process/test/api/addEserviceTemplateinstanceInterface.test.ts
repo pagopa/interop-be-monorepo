@@ -141,7 +141,10 @@ describe("addEServiceTemplateInstanceInterface", () => {
           expectedStatus: 409,
         },
         {
-          error: invalidInterfaceFileDetected(eservice.id),
+          error: invalidInterfaceFileDetected({
+            id: eservice.id,
+            isEserviceTemplate: true,
+          }),
           expectedStatus: 409,
         },
         { error: interfaceAlreadyExists(descriptor.id), expectedStatus: 409 },
@@ -163,7 +166,10 @@ describe("addEServiceTemplateInstanceInterface", () => {
         { error: eserviceInterfaceDataNotValid(), expectedStatus: 400 },
         {
           error: invalidInterfaceContentTypeDetected(
-            eservice.id,
+            {
+              id: eservice.id,
+              isEserviceTemplate: true,
+            },
             "invalid",
             eservice.technology
           ),

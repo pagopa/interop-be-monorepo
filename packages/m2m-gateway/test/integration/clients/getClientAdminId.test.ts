@@ -2,9 +2,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
-  getMockM2MAdminAppContext,
-  getMockedApiClient,
-} from "../../mockUtils.js";
+  getMockWithMetadata,
+  getMockedApiPartialClient,
+  getMockedApiFullClient,
+} from "pagopa-interop-commons-test";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -14,13 +16,23 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { clientAdminIdNotFound } from "../../../src/model/errors.js";
 
 describe("getClientAdminId", () => {
-  const mockAuthProcessResponseWithAdminId = getMockedApiClient({
-    kind: authorizationApi.ClientKind.Values.API,
-  });
+  const mockAuthProcessResponseWithAdminId = getMockWithMetadata(
+    getMockedApiFullClient({
+      kind: authorizationApi.ClientKind.Values.API,
+    })
+  );
 
-  const mockAuthProcessResponseWithoutAdminId = getMockedApiClient({
-    kind: authorizationApi.ClientKind.Values.CONSUMER,
-  });
+  const mockAuthProcessResponseWithoutAdminId = getMockWithMetadata(
+    getMockedApiFullClient({
+      kind: authorizationApi.ClientKind.Values.CONSUMER,
+    })
+  );
+
+  const mockAuthProcessResponsePartial = getMockWithMetadata(
+    getMockedApiPartialClient({
+      kind: authorizationApi.ClientKind.Values.CONSUMER,
+    })
+  );
 
   const mockGetClient = vi.fn();
   mockInteropBeClients.authorizationClient = {
@@ -63,6 +75,23 @@ describe("getClientAdminId", () => {
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
       params: { clientId: mockAuthProcessResponseWithoutAdminId.data.id },
+    });
+  });
+
+  it("Should throw clientAdminIdNotFound if the client is partial", async () => {
+    mockGetClient.mockResolvedValueOnce(mockAuthProcessResponsePartial);
+    await expect(
+      clientService.getClientAdminId(
+        unsafeBrandId(mockAuthProcessResponsePartial.data.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      clientAdminIdNotFound(mockAuthProcessResponsePartial.data)
+    );
+
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.authorizationClient.client.getClient,
+      params: { clientId: mockAuthProcessResponsePartial.data.id },
     });
   });
 });

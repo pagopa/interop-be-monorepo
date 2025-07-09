@@ -11,7 +11,7 @@ import {
 } from "pagopa-interop-readmodel-models";
 import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
 import { aggregateProducerJWKKey } from "./authorization/producerJWKKeyAggregators.js";
-import { checkMetadataVersionByFilter } from "./index.js";
+import { checkMetadataVersionByFilter } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function producerJWKKeyReadModelServiceBuilder(db: DrizzleReturnType) {

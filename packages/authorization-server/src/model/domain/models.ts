@@ -3,3 +3,7 @@ export interface InteropTokenResponse {
   token_type: string;
   expires_in: number;
 }
+
+export type HttpDPoPHeader = {
+  DPoP?: string;
+};

@@ -1,12 +1,13 @@
+import { basename } from "path";
 import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   PurposeId,
   PurposeVersionId,
   unsafeBrandId,
-  WithMetadata,
 } from "pagopa-interop-models";
 import {
+  toGetAgreementsApiQueryParamsForPurpose,
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
   toM2mGatewayApiPurposeVersion,
@@ -15,15 +16,23 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
-  pollResource,
+  pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
   isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceUntilDeletion,
 } from "../utils/polling.js";
-import { purposeVersionNotFound } from "../model/errors.js";
+import {
+  purposeAgreementNotFound,
+  purposeVersionDocumentNotFound,
+  purposeVersionNotFound,
+} from "../model/errors.js";
 import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
 } from "../utils/validators/purposeValidator.js";
+import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
+import { config } from "../config/config.js";
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
@@ -47,7 +56,10 @@ export const getPurposeCurrentVersion = (
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
+export function purposeServiceBuilder(
+  clients: PagoPAInteropBeClients,
+  fileManager: FileManager
+) {
   const retrievePurposeById = async (
     purposeId: PurposeId,
     headers: M2MGatewayAppContext["headers"]
@@ -62,20 +74,28 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
   const pollPurpose = (
     response: WithMaybeMetadata<purposeApi.Purpose>,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMetadata<purposeApi.Purpose>> =>
-    pollResource(() =>
+  ): Promise<WithMaybeMetadata<purposeApi.Purpose>> =>
+    pollResourceWithMetadata(() =>
       retrievePurposeById(unsafeBrandId(response.data.id), headers)
     )({
-      checkFn: isPolledVersionAtLeastResponseVersion(response),
+      condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollPurposeUntilDeletion = (
+    purposeId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrievePurposeById(unsafeBrandId(purposeId), headers)
+    )({});
 
   const pollPurposeById = (
     purposeId: PurposeId,
     metadata: { version: number } | undefined,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMetadata<purposeApi.Purpose>> =>
-    pollResource(() => retrievePurposeById(purposeId, headers))({
-      checkFn: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+  ): Promise<WithMaybeMetadata<purposeApi.Purpose>> =>
+    pollResourceWithMetadata(() => retrievePurposeById(purposeId, headers))({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
   const retrieveLatestPurposeVersionByState = (
@@ -106,10 +126,11 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
       queryParams: m2mGatewayApi.GetPurposesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Purposes> {
-      const { eserviceIds, limit, offset } = queryParams;
+      const { eserviceIds, title, consumerIds, states, limit, offset } =
+        queryParams;
 
       logger.info(
-        `Retrieving purposes for eServiceIds ${eserviceIds} limit ${limit} offset ${offset}`
+        `Retrieving purposes for eServiceIds ${eserviceIds}, title ${title}, consumerIds ${consumerIds}, states ${states}, limit ${limit} offset ${offset}`
       );
 
       const queries = toGetPurposesApiQueryParams(queryParams);
@@ -363,6 +384,102 @@ export function purposeServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
+    },
+    async deletePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose with id ${purposeId}`);
+
+      await clients.purposeProcessClient.deletePurpose(undefined, {
+        params: { id: purposeId },
+        headers,
+      });
+
+      await pollPurposeUntilDeletion(purposeId, headers);
+    },
+    async createReversePurpose(
+      purposeSeed: m2mGatewayApi.EServicePurposeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purpose> {
+      logger.info(
+        `Creating reverse purpose for e-service ${purposeSeed.eserviceId}`
+      );
+
+      const purposeResponse =
+        await clients.purposeProcessClient.createPurposeFromEService(
+          {
+            consumerId: purposeSeed.consumerId,
+            eServiceId: purposeSeed.eserviceId,
+            dailyCalls: purposeSeed.dailyCalls,
+            description: purposeSeed.description,
+            isFreeOfCharge: purposeSeed.isFreeOfCharge,
+            riskAnalysisId: purposeSeed.riskAnalysisId,
+            title: purposeSeed.title,
+            freeOfChargeReason: purposeSeed.freeOfChargeReason,
+          },
+          {
+            headers,
+          }
+        );
+
+      const polledResource = await pollPurpose(purposeResponse, headers);
+
+      return toM2MGatewayApiPurpose(polledResource.data);
+    },
+    async downloadPurposeVersionDocument(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving document for version ${versionId} of purpose ${purposeId}`
+      );
+
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const version = purpose.versions.find(
+        (version) => version.id === versionId
+      );
+
+      if (!version) {
+        throw purposeVersionNotFound(purposeId, versionId);
+      }
+
+      if (!version.riskAnalysis) {
+        throw purposeVersionDocumentNotFound(purposeId, versionId);
+      }
+
+      const name = basename(version.riskAnalysis.path);
+
+      return downloadDocument(
+        { ...version.riskAnalysis, name },
+        fileManager,
+        config.riskAnalysisDocumentsContainer,
+        logger
+      );
+    },
+    getPurposeAgreement: async (
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Retrieving agreement for purpose with id ${purposeId}`);
+
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const { data: agreements } =
+        await clients.agreementProcessClient.getAgreements({
+          queries: toGetAgreementsApiQueryParamsForPurpose(purpose),
+          headers,
+        });
+
+      const agreement = agreements.results.at(0);
+
+      if (!agreement) {
+        throw purposeAgreementNotFound(purposeId);
+      }
+
+      return toM2MGatewayApiAgreement(agreement);
     },
   };
 }

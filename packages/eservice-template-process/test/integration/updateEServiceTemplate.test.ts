@@ -6,10 +6,10 @@ import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  getMockValidRiskAnalysis,
   getMockAuthData,
   randomArrayItem,
   readLastEventByStreamId,
+  getMockValidEServiceTemplateRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -20,6 +20,7 @@ import {
   eserviceTemplateVersionState,
   eserviceMode,
   operationForbidden,
+  tenantKind,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
 import { config } from "../../src/config/config.js";
@@ -182,7 +183,9 @@ describe("update EService template", () => {
   });
 
   it("should write on event-store for the update of an eService (update mode to DELIVER so risk analysis has to be deleted)", async () => {
-    const riskAnalysis = getMockValidRiskAnalysis("PA");
+    const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis(
+      tenantKind.PA
+    );
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [],
@@ -298,6 +301,7 @@ describe("update EService template", () => {
     const eserviceTemplate2: EServiceTemplate = {
       ...mockEServiceTemplate,
       id: generateId(),
+      creatorId: generateId(),
       name: "eservice name already in use",
       versions: [],
     };
