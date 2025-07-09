@@ -19891,10 +19891,6 @@ paths:
       responses:
         "200":
           description: successful operation
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
   "/status":
     get:
       security: []
