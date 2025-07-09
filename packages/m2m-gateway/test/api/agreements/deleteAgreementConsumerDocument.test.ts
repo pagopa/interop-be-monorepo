@@ -26,19 +26,15 @@ describe("DELETE /agreements/:agreementId/consumerDocuments/:documentId router t
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
-      mockAgreementService.removeAgreementConsumerDocument = vi
+      mockAgreementService.deleteAgreementConsumerDocument = vi
         .fn()
         .mockResolvedValue(undefined);
       const token = generateToken(role);
       const res = await makeRequest(token, agreementId, documentId);
       expect(res.status).toBe(204);
       expect(
-        mockAgreementService.removeAgreementConsumerDocument
-      ).toHaveBeenCalledWith(
-        agreementId,
-        documentId,
-        expect.any(Object) // Context object
-      );
+        mockAgreementService.deleteAgreementConsumerDocument
+      ).toHaveBeenCalledWith(agreementId, documentId, expect.any(Object));
     }
   );
 
@@ -51,7 +47,7 @@ describe("DELETE /agreements/:agreementId/consumerDocuments/:documentId router t
   });
 
   it("Should return 400 for incorrect value for agreement id", async () => {
-    mockAgreementService.removeAgreementConsumerDocument = vi
+    mockAgreementService.deleteAgreementConsumerDocument = vi
       .fn()
       .mockResolvedValue(undefined);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -60,7 +56,7 @@ describe("DELETE /agreements/:agreementId/consumerDocuments/:documentId router t
   });
 
   it("Should return 400 for incorrect value for document id", async () => {
-    mockAgreementService.removeAgreementConsumerDocument = vi
+    mockAgreementService.deleteAgreementConsumerDocument = vi
       .fn()
       .mockResolvedValue(undefined);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

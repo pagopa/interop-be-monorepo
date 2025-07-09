@@ -279,7 +279,7 @@ const agreementRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          await agreementService.removeAgreementConsumerDocument(
+          await agreementService.deleteAgreementConsumerDocument(
             unsafeBrandId(req.params.agreementId),
             unsafeBrandId(req.params.documentId),
             ctx

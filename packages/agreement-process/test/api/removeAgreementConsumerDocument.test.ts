@@ -30,7 +30,7 @@ describe("API DELETE /agreements/{agreementId}/consumer-documents/{documentId} t
   beforeEach(() => {
     agreementService.removeAgreementConsumerDocument = vi
       .fn()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -49,7 +49,7 @@ describe("API DELETE /agreements/{agreementId}/consumer-documents/{documentId} t
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 204 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);

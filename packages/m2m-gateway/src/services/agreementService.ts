@@ -347,7 +347,7 @@ export function agreementServiceBuilder(
         logger
       );
     },
-    async removeAgreementConsumerDocument(
+    async deleteAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>

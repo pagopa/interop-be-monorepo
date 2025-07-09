@@ -1288,12 +1288,12 @@ paths:
     delete:
       tags:
         - agreements
-      summary: Removes an Agreement Consumer Document
-      description: Remove a specific Consumer Document from the specified Agreement
-      operationId: removeAgreementConsumerDocument
+      summary: Delete an Agreement Consumer Document
+      description: Delete a specific Consumer Document from the specified Agreement
+      operationId: deleteAgreementConsumerDocument
       responses:
         "204":
-          description: Consumer document removed successfully
+          description: Consumer document deleted successfully
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"

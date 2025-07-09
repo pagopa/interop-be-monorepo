@@ -15,7 +15,7 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("removeAgreementConsumerDocument", () => {
+describe("deleteAgreementConsumerDocument", () => {
   const mockDocument = getMockedApiAgreementDocument();
   const mockAgreement = getMockedApiAgreement({
     consumerDocuments: [mockDocument],
@@ -23,7 +23,7 @@ describe("removeAgreementConsumerDocument", () => {
   const mockRemoveResponse = { metadata: { version: 2 } };
   const mockGetAgreementResponse = getMockWithMetadata(mockAgreement, 2);
 
-  const mockRemoveAgreementConsumerDocument = vi
+  const mockDeleteAgreementConsumerDocument = vi
     .fn()
     .mockResolvedValue(mockRemoveResponse);
   const mockGetAgreement = vi.fn(
@@ -31,17 +31,17 @@ describe("removeAgreementConsumerDocument", () => {
   );
 
   mockInteropBeClients.agreementProcessClient = {
-    removeAgreementConsumerDocument: mockRemoveAgreementConsumerDocument,
+    removeAgreementConsumerDocument: mockDeleteAgreementConsumerDocument,
     getAgreementById: mockGetAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
   beforeEach(() => {
-    mockRemoveAgreementConsumerDocument.mockClear();
+    mockDeleteAgreementConsumerDocument.mockClear();
     mockGetAgreement.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    await agreementService.removeAgreementConsumerDocument(
+    await agreementService.deleteAgreementConsumerDocument(
       unsafeBrandId(mockAgreement.id),
       unsafeBrandId(mockDocument.id),
       getMockM2MAdminAppContext()
