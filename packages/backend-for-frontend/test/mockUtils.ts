@@ -12,68 +12,13 @@ import {
   DescriptorId,
   EServiceId,
   EServiceTemplateId,
+  AgreementId,
   PurposeId,
   PurposeVersionId,
-  TenantId,
   generateId,
+  TenantId,
 } from "pagopa-interop-models";
 import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
-
-export const getMockBffApiAgreementListEntry =
-  (): bffApi.AgreementListEntry => ({
-    id: generateId(),
-    consumer: generateMock(bffApi.CompactOrganization),
-    eservice: generateMock(bffApi.CompactEService),
-    state: generateMock(bffApi.AgreementState),
-    canBeUpgraded: generateMock(z.boolean()),
-    suspendedByConsumer: generateMock(z.boolean().optional()),
-    suspendedByProducer: generateMock(z.boolean().optional()),
-    suspendedByPlatform: generateMock(z.boolean().optional()),
-    descriptor: generateMock(bffApi.CompactDescriptor),
-    delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
-  });
-
-export const getMockBffApiAgreement = (): bffApi.Agreement => ({
-  id: generateId(),
-  descriptorId: generateId(),
-  delegation: {
-    id: generateId(),
-    delegate: generateMock(bffApi.CompactOrganization),
-  },
-  producer: generateMock(bffApi.CompactOrganization),
-  consumer: generateMock(bffApi.Tenant),
-  eservice: generateMock(bffApi.AgreementsEService),
-  state: generateMock(bffApi.AgreementState),
-  verifiedAttributes: generateMock(z.array(bffApi.VerifiedAttribute)),
-  certifiedAttributes: generateMock(z.array(bffApi.CertifiedAttribute)),
-  declaredAttributes: generateMock(z.array(bffApi.DeclaredAttribute)),
-  isContractPresent: generateMock(z.boolean()),
-  consumerNotes: generateMock(z.string().optional()),
-  rejectionReason: generateMock(z.string().optional()),
-  consumerDocuments: generateMock(z.array(bffApi.Document)),
-  createdAt: generateMock(z.string().datetime({ offset: true })),
-  updatedAt: generateMock(z.string().datetime({ offset: true }).optional()),
-  suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
-});
-
-export const getMockBffApiAddAgreementConsumerDocument_Body =
-  (): bffApi.addAgreementConsumerDocument_Body => ({
-    name: generateMock(z.string()),
-    prettyName: generateMock(z.string()),
-    doc: new File(["content"], "doc.txt"),
-  });
-
-export const getMockBffApiAgreementPayload = (): bffApi.AgreementPayload => ({
-  descriptorId: generateId(),
-  eserviceId: generateId(),
-  delegationId: generateId(),
-});
-
-export const getMockAgreementApiCompactEService =
-  (): agreementApi.CompactEService => ({
-    id: generateId(),
-    name: generateMock(z.string()),
-  });
 
 export const getMockBffApiCatalogEService = (): bffApi.CatalogEService => ({
   id: generateId(),
@@ -91,32 +36,6 @@ export const getMockBffApiCompactEServiceLight = (
   id,
   name: generateMock(z.string()),
 });
-
-export const getMockBffApiAgreementSubmissionPayload =
-  (): bffApi.AgreementSubmissionPayload => ({
-    consumerNotes: generateMock(z.string().optional()),
-  });
-
-export const getMockBffApiAgreementRejectionPayload =
-  (): bffApi.AgreementRejectionPayload => ({
-    reason: generateMock(z.string()),
-  });
-
-export const getMockBffApiAgreementUpdatePayload =
-  (): bffApi.AgreementUpdatePayload => ({
-    consumerNotes: generateMock(z.string()),
-  });
-
-export const getMockBffApiHasCertifiedAttributes =
-  (): bffApi.HasCertifiedAttributes => ({
-    hasCertifiedAttributes: generateMock(z.boolean()),
-  });
-
-export const getMockAgreementApiCompactOrganization =
-  (): agreementApi.CompactOrganization => ({
-    id: generateId(),
-    name: generateMock(z.string()),
-  });
 
 export const getMockBffApiProducerEServiceDescriptor =
   (): bffApi.ProducerEServiceDescriptor => ({
@@ -842,3 +761,103 @@ export const getMockBffApiCreateEServiceDocumentBody =
     prettyName: generateMock(z.string()),
     doc: new File(["content"], "doc.txt"),
   });
+export const getMockApiAddAgreementConsumerDocument_Body =
+  (): bffApi.addAgreementConsumerDocument_Body => ({
+    name: "name",
+    prettyName: "pretty name",
+    doc: new File([], "file name"),
+  });
+
+export const getMockBffApiAgreementListEntry =
+  (): bffApi.AgreementListEntry => ({
+    id: generateId(),
+    consumer: generateMock(bffApi.CompactOrganization),
+    eservice: generateMock(bffApi.CompactEService),
+    state: generateMock(bffApi.AgreementState),
+    canBeUpgraded: generateMock(z.boolean()),
+    suspendedByConsumer: generateMock(z.boolean().optional()),
+    suspendedByPlatform: generateMock(z.boolean().optional()),
+    suspendedByProducer: generateMock(z.boolean().optional()),
+    descriptor: generateMock(bffApi.CompactDescriptor),
+    delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
+  });
+
+export const getMockBffApiAgreement = (): bffApi.Agreement & {
+  id: AgreementId;
+} => ({
+  id: generateId(),
+  descriptorId: generateId(),
+  delegation: {
+    id: generateId(),
+    delegate: generateMock(bffApi.CompactOrganization),
+  },
+  producer: generateMock(bffApi.CompactOrganization),
+  consumer: generateMock(bffApi.Tenant),
+  eservice: generateMock(bffApi.AgreementsEService),
+  state: generateMock(bffApi.AgreementState),
+  verifiedAttributes: generateMock(z.array(bffApi.VerifiedAttribute)),
+  certifiedAttributes: generateMock(z.array(bffApi.CertifiedAttribute)),
+  declaredAttributes: generateMock(z.array(bffApi.DeclaredAttribute)),
+  suspendedByConsumer: generateMock(z.boolean().optional()),
+  suspendedByPlatform: generateMock(z.boolean().optional()),
+  suspendedByProducer: generateMock(z.boolean().optional()),
+  isContractPresent: generateMock(z.boolean()),
+  consumerNotes: generateMock(z.string().optional()),
+  rejectionReason: generateMock(z.string().optional()),
+  consumerDocuments: generateMock(z.array(bffApi.Document)),
+  createdAt: generateMock(z.string().datetime({ offset: true })),
+  updatedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+  suspendedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+});
+
+export const getMockBffApiAddAgreementConsumerDocumentBody =
+  (): bffApi.addAgreementConsumerDocument_Body => ({
+    name: generateMock(z.string()),
+    prettyName: generateMock(z.string()),
+    doc: new File(["content"], "doc.txt"),
+  });
+
+export const getMockBffApiAgreementPayload = (): bffApi.AgreementPayload => ({
+  eserviceId: generateId(),
+  descriptorId: generateId(),
+  delegationId: generateMock(z.string().uuid().optional()),
+});
+
+export const getMockAgreementApiCompactEService =
+  (): agreementApi.CompactEService => ({
+    id: generateId(),
+    name: generateMock(z.string()),
+  });
+
+export const getMockBffApiAgreementSubmissionPayload =
+  (): bffApi.AgreementSubmissionPayload => ({
+    consumerNotes: generateMock(z.string().optional()),
+  });
+
+export const getMockBffApiAgreementRejectionPayload =
+  (): bffApi.AgreementRejectionPayload => ({
+    reason: generateMock(z.string()),
+  });
+
+export const getMockBffApiAgreementUpdatePayload =
+  (): bffApi.AgreementUpdatePayload => ({
+    consumerNotes: generateMock(z.string()),
+  });
+
+export const getMockBffApiHasCertifiedAttributes =
+  (): bffApi.HasCertifiedAttributes => ({
+    hasCertifiedAttributes: generateMock(z.boolean()),
+  });
+
+export const getMockAgreementApiCompactOrganization =
+  (): agreementApi.CompactOrganization => ({
+    id: generateId(),
+    name: generateMock(z.string()),
+  });
+
+export const toBffCompactEServiceLight = (
+  compactEService: agreementApi.CompactEService
+): bffApi.CompactEServiceLight => ({
+  id: compactEService.id,
+  name: compactEService.name,
+});

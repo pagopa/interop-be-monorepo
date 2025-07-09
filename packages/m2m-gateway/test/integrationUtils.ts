@@ -45,6 +45,28 @@ export function mockPollingResponse<T>(
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export function mockDeletionPollingResponse<T>(
+  mockResponse: WithMaybeMetadata<T>,
+  respondeAfterNCalls = 1
+) {
+  let callCount = 1;
+  return async (): Promise<WithMaybeMetadata<T>> => {
+    if (callCount < respondeAfterNCalls) {
+      callCount++;
+      return Promise.resolve(mockResponse);
+    }
+    const notFound: AxiosError = new AxiosError(
+      "Resource not found",
+      "404",
+      undefined,
+      undefined,
+      { status: 404 } as AxiosResponse
+    );
+    return Promise.reject(notFound);
+  };
+}
+
 export function expectApiClientGetToHaveBeenCalledWith({
   mockGet,
   params,
@@ -112,13 +134,19 @@ export function expectApiClientPostToHaveBeenCalledWith({
 export const mockInteropBeClients = {} as PagoPAInteropBeClients;
 
 export const delegationService = delegationServiceBuilder(mockInteropBeClients);
-export const purposeService = purposeServiceBuilder(mockInteropBeClients);
+export const purposeService = purposeServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const tenantService = tenantServiceBuilder(mockInteropBeClients);
 export const attributeService = attributeServiceBuilder(mockInteropBeClients);
 export const eserviceTemplateService =
   eserviceTemplateServiceBuilder(mockInteropBeClients);
 export const clientService = clientServiceBuilder(mockInteropBeClients);
-export const agreementService = agreementServiceBuilder(mockInteropBeClients);
+export const agreementService = agreementServiceBuilder(
+  mockInteropBeClients,
+  fileManager
+);
 export const eserviceService = eserviceServiceBuilder(
   mockInteropBeClients,
   fileManager

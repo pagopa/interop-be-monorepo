@@ -26,13 +26,19 @@ describe("POST /clients/:clientId/purposes router test", () => {
   it.each(authorizedRoles)(
     "Should return 204 and perform service calls for user with role %s",
     async (role) => {
+      const clientId = generateId();
       mockClientService.addClientPurpose = vi.fn();
 
       const token = generateToken(role);
-      const res = await makeRequest(token, generateId(), mockSeed);
+      const res = await makeRequest(token, clientId, mockSeed);
 
       expect(res.status).toBe(204);
       expect(res.body).toEqual({});
+      expect(mockClientService.addClientPurpose).toHaveBeenCalledWith(
+        clientId,
+        mockSeed,
+        expect.any(Object) // Context
+      );
     }
   );
 
