@@ -68,47 +68,62 @@ describe("handleNewEServiceVersionPublished", async () => {
     ).rejects.toThrow(tenantNotFound(consumerId));
   });
 
-  it("should return notifications when user notification configs exist for the eservice", async () => {
-    const consumerId = generateId<TenantId>();
-    const consumerTenant = getMockTenant(consumerId);
-    const agreement = getMockAgreement(
-      eservice.id,
-      consumerId,
-      agreementState.active
-    );
-    await addOneAgreement(agreement);
-    await addOneTenant(consumerTenant);
+  it.each([
+    { state: agreementState.pending, expectedNotifications: 1 },
+    { state: agreementState.active, expectedNotifications: 1 },
+    { state: agreementState.suspended, expectedNotifications: 1 },
+    { state: agreementState.archived, expectedNotifications: 0 },
+    {
+      state: agreementState.missingCertifiedAttributes,
+      expectedNotifications: 0,
+    },
+    { state: agreementState.rejected, expectedNotifications: 0 },
+  ])(
+    "should generate $expectedNotifications notification for agreement in $state state",
+    async ({ state, expectedNotifications }) => {
+      const eservice = {
+        ...getMockEService(),
+        producerId: generateId<TenantId>(),
+        descriptors: [getMockDescriptorPublished()],
+      };
+      await addOneEService(eservice);
 
-    const userId = generateId();
-    // eslint-disable-next-line functional/immutable-data
-    readModelService.getUserNotificationConfigsByTenantIds = vi
-      .fn()
-      .mockResolvedValue([
-        {
-          userId,
-          tenantId: consumerId,
-        },
-      ]);
+      const consumerId = generateId<TenantId>();
+      const consumerTenant = getMockTenant(consumerId);
+      await addOneTenant(consumerTenant);
 
-    const notifications = await handleNewEServiceVersionPublished(
-      toEServiceV2(eservice),
-      logger,
-      readModelService
-    );
+      const agreement = getMockAgreement(eservice.id, consumerId, state);
+      await addOneAgreement(agreement);
 
-    const body = inAppTemplates.newEServiceVersionPublished(eservice.name);
-    expect(notifications).toEqual([
-      {
-        id: expect.any(String),
-        createdAt: expect.any(Date),
-        userId,
-        tenantId: consumerId,
-        body,
-        deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${eservice.descriptors[0].id}`,
-        readAt: undefined,
-      },
-    ]);
-  });
+      const userId = generateId();
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getUserNotificationConfigsByTenantIds = vi
+        .fn()
+        .mockResolvedValue([{ userId, tenantId: consumerId }]);
+
+      const notifications = await handleNewEServiceVersionPublished(
+        toEServiceV2(eservice),
+        logger,
+        readModelService
+      );
+
+      expect(notifications).toHaveLength(expectedNotifications);
+      if (expectedNotifications > 0) {
+        const body = inAppTemplates.newEServiceVersionPublished(eservice.name);
+        expect(notifications).toEqual([
+          {
+            id: expect.any(String),
+            createdAt: expect.any(Date),
+            userId,
+            tenantId: consumerId,
+            body,
+            deepLink: `https://${config.interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${eservice.descriptors[0].id}`,
+            readAt: undefined,
+          },
+        ]);
+      }
+    }
+  );
 
   it("should return empty array when no user notification configs exist for the eservice", async () => {
     const consumerId = generateId<TenantId>();
