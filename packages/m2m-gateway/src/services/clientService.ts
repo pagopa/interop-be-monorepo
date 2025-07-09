@@ -10,24 +10,32 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
+import { assertClientVisibilityIsFull } from "../utils/validators/validators.js";
 import {
   toGetClientsApiQueryParams,
   toM2MGatewayApiConsumerClient,
 } from "../api/clientApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
+  const retrieveClientById = (
+    clientId: ClientId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<authorizationApi.Client>> =>
+    clients.authorizationClient.client.getClient({
+      params: { clientId },
+      headers,
+    });
+
   const pollClient = (
     response: WithMaybeMetadata<authorizationApi.Client>,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<WithMaybeMetadata<authorizationApi.Client>> =>
     pollResourceWithMetadata(() =>
-      clients.authorizationClient.client.getClient({
-        params: { clientId: response.data.id },
-        headers,
-      })
+      retrieveClientById(unsafeBrandId(response.data.id), headers)
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
@@ -42,11 +50,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<UserId> {
       logger.info(`Retrieving client with id ${clientId} to get its adminId`);
 
-      const { data: client } =
-        await clients.authorizationClient.client.getClient({
-          params: { clientId },
-          headers,
-        });
+      const { data: client } = await retrieveClientById(clientId, headers);
 
       const adminId = match(client)
         .with(
@@ -71,10 +75,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Client> {
       logger.info(`Retrieving client with id ${clientId}`);
 
-      const client = await clients.authorizationClient.client.getClient({
-        params: { clientId },
-        headers,
-      });
+      const client = await retrieveClientById(clientId, headers);
 
       return toM2MGatewayApiConsumerClient(client.data);
     },
@@ -119,6 +120,39 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         });
 
       await pollClient(response, headers);
+    },
+    async getClientPurposes(
+      clientId: ClientId,
+      { limit, offset }: m2mGatewayApi.GetClientPurposesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Purposes> {
+      logger.info(`Retrieving purposes for client with id ${clientId}`);
+
+      const { data: client } = await retrieveClientById(clientId, headers);
+
+      assertClientVisibilityIsFull(client);
+
+      const paginatedPurposeIds = client.purposes.slice(offset, offset + limit);
+
+      const paginatedPurposes = await Promise.all(
+        paginatedPurposeIds.map((purposeId) =>
+          clients.purposeProcessClient
+            .getPurpose({
+              params: { id: purposeId },
+              headers,
+            })
+            .then(({ data: purpose }) => purpose)
+        )
+      );
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount: client.purposes.length,
+        },
+        results: paginatedPurposes.map(toM2MGatewayApiPurpose),
+      };
     },
     async removeClientPurpose(
       clientId: ClientId,
