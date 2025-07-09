@@ -37,25 +37,34 @@ import {
   producerJWKKeyReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import {
+  DBContext,
+  readModelServiceBuilderKPI,
+} from "../src/services/readModelServiceKPI.js";
 
-export const config = inject("tokenGenerationReadModelConfig");
-
-export const { cleanup, readModelRepository, readModelDB } =
+export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(
-    inject("readModelConfig"),
     undefined,
     undefined,
     undefined,
     undefined,
     undefined,
-    inject("readModelSQLConfig")
+    undefined,
+    inject("readModelSQLConfig"),
+    inject("analyticsSQLDbConfig")
   );
 
 afterEach(cleanup);
 
-export const readModelService = readModelServiceBuilder(readModelRepository);
+const connection = await analyticsPostgresDB.connect();
+
+export const dbContext: DBContext = {
+  conn: connection,
+  pgp: analyticsPostgresDB.$config.pgp,
+};
+
+export const readModelServiceKPI = readModelServiceBuilderKPI(dbContext);
 export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 export const eserviceReadModelServiceSQL =
