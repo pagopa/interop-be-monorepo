@@ -113,10 +113,7 @@ export function getMockedApiTenant({
   return {
     id: generateId(),
     attributes: attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
-    externalId: {
-      origin: generateMock(z.string()),
-      value: generateMock(z.string()),
-    },
+    externalId: generateMock(tenantApi.ExternalId),
     name: generateMock(z.string()),
     createdAt: new Date().toISOString(),
     kind: tenantApi.TenantKind.Values.GSP,
