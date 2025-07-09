@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi } from "vitest";
 import { Attribute, generateId } from "pagopa-interop-models";
-import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockAttribute,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
@@ -25,13 +29,15 @@ describe("API /declaredAttributes authorization test", () => {
     creationTime: new Date(),
   };
 
+  const serviceResponse = getMockWithMetadata(mockAttribute);
+
   const apiAttribute = attributeRegistryApi.Attribute.parse(
     toApiAttribute(mockAttribute)
   );
 
   attributeRegistryService.createDeclaredAttribute = vi
     .fn()
-    .mockResolvedValue(mockAttribute);
+    .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (token: string) =>
     request(api)
@@ -54,6 +60,9 @@ describe("API /declaredAttributes authorization test", () => {
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiAttribute);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
     }
   );
 
