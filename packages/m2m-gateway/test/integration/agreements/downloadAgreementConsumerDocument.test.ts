@@ -16,7 +16,7 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { config } from "../../../src/config/config.js";
 import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 
-describe("getAgreementConsumerDocument", () => {
+describe("downloadAgreementConsumerDocument", () => {
   const testFileContent =
     "This is a mock file content for testing purposes.\nOn multiple lines.";
 
