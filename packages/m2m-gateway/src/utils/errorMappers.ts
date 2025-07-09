@@ -116,3 +116,11 @@ export const downloadPurposeVersionDocumentErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export function downloadAgreementContractErrorMapper(
+  error: ApiError<ErrorCodes>
+): number {
+  return match(error.code)
+    .with("agreementContractNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+}

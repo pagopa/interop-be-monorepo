@@ -35,6 +35,7 @@ export const errorCodes = {
   eserviceDescriptorInterfaceNotFound: "0019",
   purposeVersionDocumentNotFound: "0020",
   unexpectedClientKind: "0021",
+  agreementContractNotFound: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -224,5 +225,15 @@ export function unexpectedClientKind(
     detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
     code: "unexpectedClientKind",
     title: "Unexpected client kind",
+  });
+}
+
+export function agreementContractNotFound(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract not found for agreement ${agreementId}`,
+    code: "agreementContractNotFound",
+    title: "Agreement contract not found",
   });
 }
