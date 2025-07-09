@@ -5,6 +5,7 @@ import { zodiosRouter } from "@zodios/express";
 import { bffApi } from "pagopa-interop-api-clients";
 import swaggerUi from "swagger-ui-express";
 import YAML from "yaml";
+import { config } from "../config/config.js";
 
 const BFF_API_SPEC_FILE_NAME: string = "bffApi.yml";
 
