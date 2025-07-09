@@ -123,7 +123,6 @@ const clientRouter = (
           error,
           emptyErrorMapper,
           ctx,
-
           `Error removing purpose with id ${req.params.purposeId} from client with id ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
