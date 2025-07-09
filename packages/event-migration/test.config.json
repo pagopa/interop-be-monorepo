@@ -1,0 +1,6 @@
+{
+  "groupName": "event-migration",
+  "testPaths": [
+    "test"
+  ]
+}

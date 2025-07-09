@@ -1,0 +1,6 @@
+{
+  "groupName": "authorization-platformstate-writer",
+  "testPaths": [
+    "test"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "groupName": "key-readmodel-writer",
+  "testPaths": [
+    "test"
+  ]
+}

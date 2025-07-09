@@ -1,0 +1,7 @@
+{
+  "groupName": "tenant-process",
+  "testPaths": [
+    "test/integration",
+    "test/api"
+  ]
+}

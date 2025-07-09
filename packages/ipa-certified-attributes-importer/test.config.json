@@ -1,0 +1,6 @@
+{
+  "groupName": "ipa-certified-attributes-importer",
+  "testPaths": [
+    "test"
+  ]
+}

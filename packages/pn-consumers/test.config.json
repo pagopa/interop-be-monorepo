@@ -1,0 +1,6 @@
+{
+  "groupName": "pn-consumers",
+  "testPaths": [
+    "test"
+  ]
+}

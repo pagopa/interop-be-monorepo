@@ -1,0 +1,6 @@
+{
+  "groupName": "dtd-catalog-exporter",
+  "testPaths": [
+    "test"
+  ]
+}
