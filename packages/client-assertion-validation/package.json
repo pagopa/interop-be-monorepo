@@ -27,7 +27,7 @@
     "zod": "3.23.8"
   },
   "devDependencies": {
-    "@types/node": "20.14.6",
+    "@types/node": "20.19.4",
     "@types/jsonwebtoken": "9.0.10",
     "jsonwebtoken": "9.0.2",
     "eslint": "8.57.1",

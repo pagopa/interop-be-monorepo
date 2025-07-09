@@ -12,7 +12,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
 
-describe("GET /eservice/:eserviceId/descriptors/:descriptorId router test", () => {
+describe("GET /eservices/:eserviceId/descriptors/:descriptorId router test", () => {
   const mockApiEserviceDescriptor = getMockedApiEserviceDescriptor();
   const mockApiEservice = getMockedApiEservice({
     descriptors: [mockApiEserviceDescriptor],
