@@ -4653,19 +4653,6 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-        "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            X-Rate-Limit-Limit:
-              $ref: "#/components/headers/RateLimitLimitHeader"
-            X-Rate-Limit-Remaining:
-              $ref: "#/components/headers/RateLimitRemainingHeader"
-            X-Rate-Limit-Interval:
-              $ref: "#/components/headers/RateLimitIntervalHeader"
         "429":
           description: Too Many Requests
           content:
@@ -5066,6 +5053,113 @@ paths:
               $ref: "#/components/headers/RateLimitIntervalHeader"
         "404":
           description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+  /purposes/{purposeId}/agreement:
+    parameters:
+      - name: purposeId
+        in: path
+        description: The ID of the Purpose to retrieve the agreement for
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposes
+      summary: Get purpose agreement
+      description: Retrieve the agreement associated to a purpose
+      operationId: getPurposeAgreement
+      responses:
+        "200":
+          description: Agreement retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "409":
+          description: Name Conflict
           content:
             application/problem+json:
               schema:
