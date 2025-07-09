@@ -18,7 +18,7 @@ import { config } from "../../../src/config/config.js";
 import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 import { agreementContractNotFound } from "../../../src/model/errors.js";
 
-describe("downloadAgreementContract", () => {
+describe("downloadAgreementConsumerContract", () => {
   const testFileContent = "This is a mock contract file content.";
   const mockContractId = generateId();
   const mockContractName = "contract.pdf";
@@ -70,7 +70,7 @@ describe("downloadAgreementContract", () => {
       ).at(0)
     ).toEqual(mockContract.path);
 
-    const result = await agreementService.downloadAgreementContract(
+    const result = await agreementService.downloadAgreementConsumerContract(
       mockAgreementId,
       getMockM2MAdminAppContext()
     );
@@ -98,7 +98,7 @@ describe("downloadAgreementContract", () => {
     );
 
     await expect(
-      agreementService.downloadAgreementContract(
+      agreementService.downloadAgreementConsumerContract(
         mockAgreementId,
         getMockM2MAdminAppContext()
       )

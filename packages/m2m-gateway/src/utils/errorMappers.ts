@@ -117,7 +117,7 @@ export const downloadPurposeVersionDocumentErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export function downloadAgreementContractErrorMapper(
+export function downloadAgreementConsumerContractErrorMapper(
   error: ApiError<ErrorCodes>
 ): number {
   return match(error.code)

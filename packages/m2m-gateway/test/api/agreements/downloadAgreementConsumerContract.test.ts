@@ -30,7 +30,7 @@ describe("GET /agreements/:agreementId/contract router test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockAgreementService.downloadAgreementContract = vi
+      mockAgreementService.downloadAgreementConsumerContract = vi
         .fn()
         .mockResolvedValue(mockDownloadedDoc);
 
@@ -58,7 +58,7 @@ describe("GET /agreements/:agreementId/contract router test", () => {
   });
 
   it("Should return 404 if the agreement contract is not found", async () => {
-    mockAgreementService.downloadAgreementContract = vi
+    mockAgreementService.downloadAgreementConsumerContract = vi
       .fn()
       .mockRejectedValue(agreementContractNotFound(generateId()));
 

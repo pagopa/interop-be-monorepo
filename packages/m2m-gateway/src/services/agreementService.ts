@@ -348,7 +348,7 @@ export function agreementServiceBuilder(
         logger
       );
     },
-    async downloadAgreementContract(
+    async downloadAgreementConsumerContract(
       agreementId: AgreementId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<DownloadedDocument> {
