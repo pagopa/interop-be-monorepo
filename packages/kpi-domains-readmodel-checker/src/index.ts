@@ -58,15 +58,15 @@ async function main(): Promise<void> {
   });
 
   // ESERVICE TEMPLATE
-  // const eserviceTemplates = await readModelServiceKPI.getAllEServiceTemplates();
-  // const eserviceTemplatesPostgres =
-  //   await readModelServiceSQL.getAllEServiceTemplates();
-  // compare({
-  //   collectionItems: eserviceTemplates,
-  //   postgresItems: eserviceTemplatesPostgres,
-  //   schema: "eservice templates",
-  //   loggerInstance,
-  // });
+  const eserviceTemplates = await readModelServiceKPI.getAllEServiceTemplates();
+  const eserviceTemplatesPostgres =
+    await readModelServiceSQL.getAllEServiceTemplates();
+  compare({
+    collectionItems: eserviceTemplates,
+    postgresItems: eserviceTemplatesPostgres,
+    schema: "eservice templates",
+    loggerInstance,
+  });
 
   // ATTRIBUTE
   const attributes = await readModelServiceKPI.getAllAttributes();
@@ -99,14 +99,14 @@ async function main(): Promise<void> {
   });
 
   // PURPOSE
-  // const purposes = await readModelServiceKPI.getAllPurposes();
-  // const purposesPostgres = await readModelServiceSQL.getAllPurposes();
-  // compare({
-  //   collectionItems: purposes,
-  //   postgresItems: purposesPostgres,
-  //   schema: "purposes",
-  //   loggerInstance,
-  // });
+  const purposes = await readModelServiceKPI.getAllPurposes();
+  const purposesPostgres = await readModelServiceSQL.getAllPurposes();
+  compare({
+    collectionItems: purposes,
+    postgresItems: purposesPostgres,
+    schema: "purposes",
+    loggerInstance,
+  });
 
   // CLIENT
   const clients = await readModelServiceKPI.getAllClients();
