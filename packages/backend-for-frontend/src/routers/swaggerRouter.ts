@@ -8,6 +8,7 @@ import YAML from "yaml";
 import { config } from "../config/config.js";
 
 const BFF_API_SPEC_FILE_NAME: string = "bffApi.yml";
+const swaggerRouter = zodiosRouter(bffApi.developApi.api);
 
 if (config.bffSwaggerUiEnabled) {
   const pkgUrl = import.meta.resolve("pagopa-interop-api-clients");
@@ -21,8 +22,6 @@ if (config.bffSwaggerUiEnabled) {
 
   const yamlSpecFile = await fs.readFile(yamlPath, "utf8");
   const swaggerDocument = YAML.parse(yamlSpecFile);
-
-  const swaggerRouter = zodiosRouter(bffApi.developApi.api);
 
   swaggerRouter.use(
     "/apiDocs",
