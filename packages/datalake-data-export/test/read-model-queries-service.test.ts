@@ -2,6 +2,9 @@
 /* eslint-disable fp/no-delete */
 import {
   agreementState,
+  DelegationId,
+  delegationKind,
+  delegationState,
   descriptorState,
   EServiceId,
   generateId,
@@ -17,6 +20,7 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   getMockAgreement,
+  getMockDelegation,
   getMockDescriptor,
   getMockDescriptorList,
   getMockEService,
@@ -36,6 +40,8 @@ import {
   seedPurposes,
   seedTenants,
   tenants,
+  delegations,
+  seedDelegations,
 } from "./utils.js";
 
 describe("read-model-queries.service", () => {
@@ -322,6 +328,56 @@ describe("read-model-queries.service", () => {
 
       expect(result).toHaveLength(1);
       expect(result.at(0)?.id).toEqual(purposesData.at(0)?.id);
+    });
+  });
+
+  describe("getDelegations", async () => {
+    const validDelegationStates = Object.values(delegationState).filter(
+      (state) => state !== delegationState.waitingForApproval
+    );
+
+    it("should return all delegations", async () => {
+      const delegationsData = [
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          id: generateId<DelegationId>(),
+          state: randomArrayItem(validDelegationStates),
+        }),
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          id: generateId<DelegationId>(),
+          state: randomArrayItem(validDelegationStates),
+        }),
+      ];
+      const result = await readModelService.getDelegations();
+      expect(result).toHaveLength(delegationsData.length);
+    });
+
+    it("should return empty array if no delegations are found", async () => {
+      const result = await readModelService.getDelegations();
+      expect(result).toHaveLength(0);
+    });
+
+    it("should not return delegations in 'Waiting for approval' state", async () => {
+      const delegationsData = [
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          id: generateId<DelegationId>(),
+          state: randomArrayItem(validDelegationStates),
+        }),
+        getMockDelegation({
+          kind: delegationKind.delegatedConsumer,
+          id: generateId<DelegationId>(),
+          state: delegationState.waitingForApproval,
+        }),
+      ];
+
+      await seedCollection(delegationsData, delegations);
+
+      await seedDelegations(delegationsData);
+
+      const result = await readModelService.getDelegations();
+      expect(result).toHaveLength(1);
     });
   });
 });

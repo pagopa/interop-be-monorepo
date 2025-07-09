@@ -109,7 +109,6 @@ export function readModelServiceBuilder(
     async getDelegations(): Promise<ExportedDelegation[]> {
       return delegations
         .find({
-          // TODO COSA CONTROLLARE???
           "data.state": { $ne: "WaitingForApproval" satisfies DelegationState },
         })
         .map(({ data }) => ExportedDelegation.parse(data))
