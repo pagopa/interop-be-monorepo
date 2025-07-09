@@ -144,10 +144,12 @@ export function getMockedApiAttribute({
   };
 }
 
-export function getMockedApiFullClient({
+export function getMockedApiConsumerFullClient({
   kind: paramKind,
+  purposes = [],
 }: {
   kind?: authorizationApi.ClientKind;
+  purposes?: string[];
 } = {}): authorizationApi.FullClient {
   const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
@@ -159,10 +161,10 @@ export function getMockedApiFullClient({
     createdAt: new Date().toISOString(),
     consumerId: generateId(),
     purposes: match(kind)
-      .with(authorizationApi.ClientKind.Values.CONSUMER, () => [
-        generateId(),
-        generateId(),
-      ])
+      .with(
+        authorizationApi.ClientKind.Values.CONSUMER,
+        () => purposes ?? [generateId(), generateId()]
+      )
       .with(authorizationApi.ClientKind.Values.API, () => [])
       .exhaustive(),
     users: [generateId(), generateId()],
@@ -173,7 +175,7 @@ export function getMockedApiFullClient({
   } satisfies authorizationApi.Client;
 }
 
-export function getMockedApiPartialClient({
+export function getMockedApiConsumerPartialClient({
   kind: paramKind,
 }: {
   kind?: authorizationApi.ClientKind;
