@@ -89,9 +89,6 @@ describe("getClientPurposes", () => {
     waitingForApprovalVersion: undefined,
   };
 
-  const expectedM2MPurposes = [expectedM2MPurpose1, expectedM2MPurpose2];
-  const sortedClientPurposeIds = [...mockApiConsumerClient.purposes].sort();
-
   beforeEach(() => {
     mockGetClient.mockClear();
     mockGetPurpose.mockClear();
@@ -104,9 +101,7 @@ describe("getClientPurposes", () => {
         offset: mockParams.offset,
         totalCount: mockApiConsumerClient.purposes.length,
       },
-      results: sortedClientPurposeIds.map(
-        (purposeId) => expectedM2MPurposes.find((p) => p.id === purposeId)!
-      ),
+      results: [expectedM2MPurpose1, expectedM2MPurpose2],
     };
 
     const result = await clientService.getClientPurposes(
@@ -123,7 +118,7 @@ describe("getClientPurposes", () => {
         clientId: mockApiConsumerClient.id,
       },
     });
-    sortedClientPurposeIds.forEach((id, index) => {
+    mockApiConsumerClient.purposes.forEach((id, index) => {
       expectApiClientGetToHaveBeenNthCalledWith({
         nthCall: index + 1,
         mockGet: mockGetPurpose,
@@ -147,9 +142,7 @@ describe("getClientPurposes", () => {
         limit: 1,
         totalCount: 2,
       },
-      results: [
-        expectedM2MPurposes.find((p) => p.id === sortedClientPurposeIds[0]),
-      ],
+      results: [expectedM2MPurpose1],
     });
 
     expect(mockGetClient).toHaveBeenCalledTimes(1);
@@ -167,9 +160,7 @@ describe("getClientPurposes", () => {
         limit: 1,
         totalCount: 2,
       },
-      results: [
-        expectedM2MPurposes.find((p) => p.id === sortedClientPurposeIds[1]),
-      ],
+      results: [expectedM2MPurpose2],
     });
 
     expect(mockGetClient).toHaveBeenCalledTimes(2);

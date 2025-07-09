@@ -133,8 +133,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
 
       assertClientVisibilityIsFull(client);
 
-      const purposeIds = [...client.purposes].sort();
-      const paginatedPurposeIds = purposeIds.slice(offset, offset + limit);
+      const paginatedPurposeIds = client.purposes.slice(offset, offset + limit);
 
       const paginatedPurposes = await Promise.all(
         paginatedPurposeIds.map((purposeId) =>
@@ -151,7 +150,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         pagination: {
           limit,
           offset,
-          totalCount: purposeIds.length,
+          totalCount: client.purposes.length,
         },
         results: paginatedPurposes.map(toM2MGatewayApiPurpose),
       };
