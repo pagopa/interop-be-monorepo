@@ -7,6 +7,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  toGetAgreementsApiQueryParamsForPurpose,
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
   toM2mGatewayApiPurposeVersion,
@@ -18,8 +19,10 @@ import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastResponseVersion,
   isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import {
+  purposeAgreementNotFound,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
 } from "../model/errors.js";
@@ -27,6 +30,7 @@ import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
 } from "../utils/validators/purposeValidator.js";
+import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
 
@@ -76,6 +80,14 @@ export function purposeServiceBuilder(
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollPurposeUntilDeletion = (
+    purposeId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrievePurposeById(unsafeBrandId(purposeId), headers)
+    )({});
 
   const pollPurposeById = (
     purposeId: PurposeId,
@@ -373,6 +385,19 @@ export function purposeServiceBuilder(
       const polledPurpose = await pollPurposeById(purposeId, metadata, headers);
       return toM2MGatewayApiPurpose(polledPurpose.data);
     },
+    async deletePurpose(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting purpose with id ${purposeId}`);
+
+      await clients.purposeProcessClient.deletePurpose(undefined, {
+        params: { id: purposeId },
+        headers,
+      });
+
+      await pollPurposeUntilDeletion(purposeId, headers);
+    },
     async createReversePurpose(
       purposeSeed: m2mGatewayApi.EServicePurposeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -433,6 +458,28 @@ export function purposeServiceBuilder(
         config.riskAnalysisDocumentsContainer,
         logger
       );
+    },
+    getPurposeAgreement: async (
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Retrieving agreement for purpose with id ${purposeId}`);
+
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const { data: agreements } =
+        await clients.agreementProcessClient.getAgreements({
+          queries: toGetAgreementsApiQueryParamsForPurpose(purpose),
+          headers,
+        });
+
+      const agreement = agreements.results.at(0);
+
+      if (!agreement) {
+        throw purposeAgreementNotFound(purposeId);
+      }
+
+      return toM2MGatewayApiAgreement(agreement);
     },
   };
 }

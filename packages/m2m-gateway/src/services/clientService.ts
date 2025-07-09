@@ -154,5 +154,25 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         results: paginatedPurposes.map(toM2MGatewayApiPurpose),
       };
     },
+    async removeClientPurpose(
+      clientId: ClientId,
+      purposeId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing purpose ${purposeId} from client with id ${clientId}`
+      );
+
+      const response =
+        await clients.authorizationClient.client.removeClientPurpose(
+          undefined,
+          {
+            params: { clientId, purposeId },
+            headers,
+          }
+        );
+
+      await pollClient(response, headers);
+    },
   };
 }
