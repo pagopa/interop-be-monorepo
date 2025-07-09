@@ -36,6 +36,9 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Verifica contenuto di .turbo
         run: ls -la .turbo
+      - name: Verifica valore di github.ref_name
+        run: |
+          echo "Il valore di github.ref_name è: ${{ github.ref_name }}"
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
