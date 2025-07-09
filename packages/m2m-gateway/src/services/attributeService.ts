@@ -112,5 +112,23 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         logger,
       });
     },
+    async createVerifiedAttribute(
+      seed: m2mGatewayApi.VerifiedAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.VerifiedAttribute> {
+      logger.info(`Creating verified attribute with name ${seed.name}`);
+
+      const response =
+        await clients.attributeProcessClient.createVerifiedAttribute(seed, {
+          headers,
+        });
+
+      const polledResource = await pollAttribute(response, headers);
+
+      return toM2MGatewayApiVerifiedAttribute({
+        attribute: polledResource.data,
+        logger,
+      });
+    },
   };
 }

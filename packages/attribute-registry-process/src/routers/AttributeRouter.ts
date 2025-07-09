@@ -317,8 +317,11 @@ const attributeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const attribute =
+        const { data: attribute, metadata } =
           await attributeRegistryService.createVerifiedAttribute(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+
         return res
           .status(200)
           .send(
