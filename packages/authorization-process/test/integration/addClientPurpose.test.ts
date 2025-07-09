@@ -124,10 +124,7 @@ describe("addClientPurpose", async () => {
       client: toClientV2(expectedClient),
     });
     expect(addClientPurposeResponse).toEqual({
-      data: {
-        client: expectedClient,
-        showUsers: true,
-      },
+      data: expectedClient,
       metadata: {
         version: 1,
       },
@@ -217,10 +214,7 @@ describe("addClientPurpose", async () => {
       client: toClientV2(expectedClient),
     });
     expect(addClientPurposeResponse).toEqual({
-      data: {
-        client: expectedClient,
-        showUsers: true,
-      },
+      data: expectedClient,
       metadata: {
         version: 1,
       },
@@ -310,10 +304,7 @@ describe("addClientPurpose", async () => {
     });
 
     expect(addClientPurposeResponse).toEqual({
-      data: {
-        client: expectedClient,
-        showUsers: true,
-      },
+      data: expectedClient,
       metadata: {
         version: 1,
       },
@@ -956,13 +947,14 @@ describe("addClientPurpose", async () => {
     await addOneEService(mockEservice);
     await addOneAgreement(mockAgreement);
 
-    await authorizationService.addClientPurpose(
-      {
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-      },
-      getMockContext({ authData: getMockAuthData(delegateId) })
-    );
+    const addClientPurposeResponse =
+      await authorizationService.addClientPurpose(
+        {
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+        },
+        getMockContext({ authData: getMockAuthData(delegateId) })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -978,12 +970,19 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient = {
+      ...mockClient,
+      purposes: [...mockClient.purposes, mockPurpose.id],
+    };
     expect(writtenPayload).toEqual({
       purposeId: mockPurpose.id,
-      client: toClientV2({
-        ...mockClient,
-        purposes: [...mockClient.purposes, mockPurpose.id],
-      }),
+      client: toClientV2(expectedClient),
+    });
+    expect(addClientPurposeResponse).toEqual({
+      data: expectedClient,
+      metadata: {
+        version: 1,
+      },
     });
   });
   it("should write on event-store for the addition of a purpose created by a delegate into a client where the requester is the consumer", async () => {
@@ -1036,13 +1035,14 @@ describe("addClientPurpose", async () => {
     await addOneEService(mockEservice);
     await addOneAgreement(mockAgreement);
 
-    await authorizationService.addClientPurpose(
-      {
-        clientId: mockClient.id,
-        seed: { purposeId: mockPurpose.id },
-      },
-      getMockContext({ authData: getMockAuthData(consumerId) })
-    );
+    const addClientPurposeResponse =
+      await authorizationService.addClientPurpose(
+        {
+          clientId: mockClient.id,
+          seed: { purposeId: mockPurpose.id },
+        },
+        getMockContext({ authData: getMockAuthData(consumerId) })
+      );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
 
@@ -1058,12 +1058,20 @@ describe("addClientPurpose", async () => {
       payload: writtenEvent.data,
     });
 
+    const expectedClient = {
+      ...mockClient,
+      purposes: [...mockClient.purposes, mockPurpose.id],
+    };
+
     expect(writtenPayload).toEqual({
       purposeId: mockPurpose.id,
-      client: toClientV2({
-        ...mockClient,
-        purposes: [...mockClient.purposes, mockPurpose.id],
-      }),
+      client: toClientV2(expectedClient),
+    });
+    expect(addClientPurposeResponse).toEqual({
+      data: expectedClient,
+      metadata: {
+        version: 1,
+      },
     });
   });
   it("should throw delegationNotFound if the purpose delegation is not found or is not in an active state", async () => {

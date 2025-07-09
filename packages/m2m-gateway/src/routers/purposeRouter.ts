@@ -19,7 +19,10 @@ import {
   approvePurposeErrorMapper,
   activatePurposeErrorMapper,
   unsuspendPurposeErrorMapper,
+  downloadPurposeVersionDocumentErrorMapper,
+  getPurposeAgreementErrorMapper,
 } from "../utils/errorMappers.js";
+import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,
@@ -262,6 +265,94 @@ const purposeRouter = (
           unsuspendPurposeErrorMapper,
           ctx,
           `Error unsuspending purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get(
+      "/purposes/:purposeId/versions/:versionId/document",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const document = await purposeService.downloadPurposeVersionDocument(
+            unsafeBrandId(req.params.purposeId),
+            unsafeBrandId(req.params.versionId),
+            ctx
+          );
+
+          return sendDownloadedDocumentAsFormData(document, res);
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            downloadPurposeVersionDocumentErrorMapper,
+            ctx,
+            `Error retrieving document for purpose ${req.params.purposeId} with version ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post("/reversePurposes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const purpose = await purposeService.createReversePurpose(
+          req.body,
+          ctx
+        );
+
+        return res.status(201).send(m2mGatewayApi.Purpose.parse(purpose));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating e-service purpose`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/purposes/:purposeId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.deletePurpose(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting purpose with id ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/purposes/:purposeId/agreement", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const agreement = await purposeService.getPurposeAgreement(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApi.Agreement.parse(agreement));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeAgreementErrorMapper,
+          ctx,
+          `Error retrieving agreement for purpose with id ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

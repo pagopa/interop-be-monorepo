@@ -304,6 +304,7 @@ export const commonErrorCodes = {
   invalidSqsMessage: "10023",
   decodeSQSMessageError: "10024",
   pollingMaxRetriesExceeded: "10025",
+  invalidServerUrl: "10026",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -475,6 +476,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
     .with(
       "unauthorizedError",
       "featureFlagNotEnabled",
+      "operationForbidden",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
@@ -656,21 +658,27 @@ export function notAnRSAKey(): ApiError<CommonErrorCodes> {
   });
 }
 
-export function invalidInterfaceFileDetected(
-  resourceId: string
-): ApiError<CommonErrorCodes> {
+export function invalidInterfaceFileDetected(resource: {
+  id: string;
+  isEserviceTemplate: boolean;
+}): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface file for EService or EserviceTemplate with ID ${resourceId} is invalid`,
+    detail: `The interface file for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } with ID ${resource.id} is invalid`,
     code: "invalidEserviceInterfaceFileDetected",
     title: "Invalid interface file detected",
   });
 }
 
-export function invalidInterfaceData(
-  resourceId: string
-): ApiError<CommonErrorCodes> {
+export function invalidInterfaceData(resource: {
+  id: string;
+  isEserviceTemplate: boolean;
+}): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface data provided for EService ${resourceId} is invalid`,
+    detail: `The interface data provided for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } ${resource.id} is invalid`,
     code: "invalidEserviceInterfaceData",
     title: "Invalid interface file data provided",
   });
@@ -720,12 +728,19 @@ export function interfaceExtractingSoapFiledError(
 }
 
 export function invalidInterfaceContentTypeDetected(
-  eServiceId: string,
+  resource: {
+    id: string;
+    isEserviceTemplate: boolean;
+  },
   contentType: string,
   technology: string
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
-    detail: `The interface file for EService ${eServiceId} has a contentType ${contentType} not admitted for ${technology} technology`,
+    detail: `The interface file for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } ${
+      resource.id
+    } has a contentType ${contentType} not admitted for ${technology} technology`,
     code: "invalidInterfaceContentTypeDetected",
     title: "Invalid content type detected",
   });
@@ -748,5 +763,18 @@ export function pollingMaxRetriesExceeded(
     detail: `Polling exceeded maximum retries (${retries}) with delay ${retryDelayMs}ms`,
     code: "pollingMaxRetriesExceeded",
     title: "Polling max retries exceeded",
+  });
+}
+
+export function invalidServerUrl(resource: {
+  id: string;
+  isEserviceTemplate: boolean;
+}): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The interface file for ${
+      resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
+    } with ID ${resource.id} has invalid server URL`,
+    code: "invalidServerUrl",
+    title: "Invalid server URL",
   });
 }

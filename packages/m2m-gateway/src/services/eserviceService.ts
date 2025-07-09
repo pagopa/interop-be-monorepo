@@ -14,6 +14,7 @@ import {
 } from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
+import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -145,11 +146,11 @@ export function eserviceServiceBuilder(
         results: paginatedDescriptors.map(toM2MGatewayApiEServiceDescriptor),
       };
     },
-    async getEServiceDescriptorInterface(
+    async downloadEServiceDescriptorInterface(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<{ file: Buffer; filename: string; contentType: string }> {
+    ): Promise<DownloadedDocument> {
       logger.info(
         `Retrieving interface for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
@@ -164,15 +165,12 @@ export function eserviceServiceBuilder(
         throw eserviceDescriptorInterfaceNotFound(eserviceId, descriptorId);
       }
 
-      const { path, contentType, prettyName } = descriptor.interface;
-
-      const stream = await fileManager.get(
+      return downloadDocument(
+        descriptor.interface,
+        fileManager,
         config.eserviceDocumentsContainer,
-        path,
         logger
       );
-
-      return { file: Buffer.from(stream), contentType, filename: prettyName };
     },
   };
 }
