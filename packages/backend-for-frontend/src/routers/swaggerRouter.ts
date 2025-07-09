@@ -20,19 +20,10 @@ const yamlPath = path.join(
 const yamlSpecFile = await fs.readFile(yamlPath, "utf8");
 const swaggerDocument = YAML.parse(yamlSpecFile);
 
-if (config.bffSwaggerUiEnabled) {
-  swaggerRouter.use(
-    ...swaggerUi.serve,
-    swaggerUi.setup(swaggerDocument, {
-      swaggerOptions: {
-        url: null,
-      },
-    })
-  );
-}
 const swaggerRouter = zodiosRouter(bffApi.developApi.api);
 
 swaggerRouter.use(
+  "/apiDocs",
   ...swaggerUi.serve,
   swaggerUi.setup(swaggerDocument, {
     swaggerOptions: { url: null },

@@ -83,6 +83,8 @@ tags:
     externalDocs:
       description: Find out more
       url: "http://swagger.io"
+  - name: develop
+    description: Development
 paths:
   "/consumers/agreements":
     get:
@@ -19878,11 +19880,11 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/api-docs":
+  "/apiDocs":
     get:
       security: []
       tags:
-        - docs
+        - develop
       summary: Swagger docs endpoint
       description: Return ok
       operationId: getDocs
