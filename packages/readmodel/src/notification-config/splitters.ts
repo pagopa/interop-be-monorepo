@@ -1,36 +1,45 @@
 import {
+  NotificationConfig,
   TenantNotificationConfig,
   UserNotificationConfig,
   dateToString,
 } from "pagopa-interop-models";
 import {
-  TenantNotificationConfigSQL,
-  UserNotificationConfigSQL,
+  TenantNotificationConfigItemsSQL,
+  UserNotificationConfigItemsSQL,
 } from "pagopa-interop-readmodel-models";
+import { TenantNotificationType, UserNotificationType } from "./utils.js";
 
 export const splitTenantNotificationConfigIntoObjectsSQL = (
   {
     id,
     tenantId,
-    config: {
-      newEServiceVersionPublished: newEserviceVersionPublished,
-      ...configRest
-    },
+    config,
     createdAt,
     updatedAt,
     ...rest
   }: TenantNotificationConfig,
   metadataVersion: number
-): TenantNotificationConfigSQL => {
+): TenantNotificationConfigItemsSQL & {
+  enabledNotificationsSQL: Array<{ notificationType: TenantNotificationType }>;
+} => {
   void (rest satisfies Record<string, never>);
-  void (configRest satisfies Record<string, never>);
+
   return {
-    id,
-    metadataVersion,
-    tenantId,
-    createdAt: dateToString(createdAt),
-    updatedAt: dateToString(updatedAt),
-    newEserviceVersionPublished,
+    tenantNotificationConfigSQL: {
+      id,
+      metadataVersion,
+      tenantId,
+      createdAt: dateToString(createdAt),
+      updatedAt: dateToString(updatedAt),
+    },
+    enabledNotificationsSQL: TenantNotificationType.options
+      .filter((notificationType) => config[notificationType])
+      .map((notificationType) => ({
+        notificationType,
+        tenantNotificationConfigId: id,
+        metadataVersion,
+      })),
   };
 };
 
@@ -39,31 +48,40 @@ export const splitUserNotificationConfigIntoObjectsSQL = (
     id,
     userId,
     tenantId,
-    inAppConfig: {
-      newEServiceVersionPublished: newEserviceVersionPublishedInApp,
-      ...inAppConfigRest
-    },
-    emailConfig: {
-      newEServiceVersionPublished: newEserviceVersionPublishedEmail,
-      ...emailConfigRest
-    },
+    inAppConfig,
+    emailConfig,
     createdAt,
     updatedAt,
     ...rest
   }: UserNotificationConfig,
   metadataVersion: number
-): UserNotificationConfigSQL => {
+): UserNotificationConfigItemsSQL & {
+  enabledNotificationsSQL: Array<{ notificationType: UserNotificationType }>;
+} => {
   void (rest satisfies Record<string, never>);
-  void (inAppConfigRest satisfies Record<string, never>);
-  void (emailConfigRest satisfies Record<string, never>);
+
   return {
-    id,
-    metadataVersion,
-    userId,
-    tenantId,
-    createdAt: dateToString(createdAt),
-    updatedAt: dateToString(updatedAt),
-    newEserviceVersionPublishedInApp,
-    newEserviceVersionPublishedEmail,
+    userNotificationConfigSQL: {
+      id,
+      metadataVersion,
+      userId,
+      tenantId,
+      createdAt: dateToString(createdAt),
+      updatedAt: dateToString(updatedAt),
+    },
+    enabledNotificationsSQL: NotificationConfig.keyof()
+      .options.flatMap((notificationType) => [
+        ...(inAppConfig[notificationType]
+          ? ([`${notificationType}.inApp`] as const)
+          : []),
+        ...(emailConfig[notificationType]
+          ? ([`${notificationType}.email`] as const)
+          : []),
+      ])
+      .map((notificationType) => ({
+        notificationType,
+        userNotificationConfigId: id,
+        metadataVersion,
+      })),
   };
 };
