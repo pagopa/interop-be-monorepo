@@ -19,7 +19,7 @@ import {
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiVerifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 
-describe("POST /VerifiedAttributes router test", () => {
+describe("POST /verifiedAttributes router test", () => {
   const mockVerifiedAttributeSeed: m2mGatewayApi.VerifiedAttributeSeed =
     generateMock(m2mGatewayApi.VerifiedAttributeSeed);
 
@@ -40,7 +40,7 @@ describe("POST /VerifiedAttributes router test", () => {
     body: m2mGatewayApi.VerifiedAttributeSeed
   ) =>
     request(api)
-      .post(`${appBasePath}/VerifiedAttributes`)
+      .post(`${appBasePath}/verifiedAttributes`)
       .set("Authorization", `Bearer ${token}`)
       .send(body);
 
