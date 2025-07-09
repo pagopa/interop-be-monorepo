@@ -62,6 +62,11 @@ export * from "./eservice-template/eserviceTemplateEvents.js";
 export * from "./eservice-template/protobufConverterFromV2.js";
 export * from "./eservice-template/protobufConverterToV2.js";
 
+export * from "./notification-config/notificationConfig.js";
+export * from "./notification-config/notificationConfigEvents.js";
+export * from "./notification-config/protobufConverterFromV2.js";
+export * from "./notification-config/protobufConverterToV2.js";
+
 export * from "./application-audit/application-audit.js";
 
 // Token generation read model
@@ -129,3 +134,5 @@ export * from "./gen/v2/delegation/delegation.js";
 export * from "./gen/v2/delegation/events.js";
 export * from "./gen/v2/eservice-template/eservice-template.js";
 export * from "./gen/v2/eservice-template/events.js";
+export * from "./gen/v2/notification-config/notification-config.js";
+export * from "./gen/v2/notification-config/events.js";
