@@ -2192,8 +2192,7 @@ paths:
       summary: Create a verified Attribute
       description: |
         Create a verified Attribute
-        The Attribute must
-          - have a unique name across all Attributes in the Platform
+        The Attribute must have a unique name across all Attributes in the Platform
       operationId: createVerifiedAttribute
       requestBody:
         required: true
