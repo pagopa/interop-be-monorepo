@@ -8,26 +8,28 @@ import YAML from "yaml";
 
 const BFF_API_SPEC_FILE_NAME: string = "bffApi.yml";
 
-const pkgUrl = import.meta.resolve("pagopa-interop-api-clients");
-const pkgDir = path.dirname(fileURLToPath(pkgUrl));
+if (config.bffSwaggerUiEnabled) {
+  const pkgUrl = import.meta.resolve("pagopa-interop-api-clients");
+  const pkgDir = path.dirname(fileURLToPath(pkgUrl));
 
-const yamlPath = path.join(
-  path.dirname(pkgDir),
-  "open-api",
-  BFF_API_SPEC_FILE_NAME
-);
+  const yamlPath = path.join(
+    path.dirname(pkgDir),
+    "open-api",
+    BFF_API_SPEC_FILE_NAME
+  );
 
-const yamlSpecFile = await fs.readFile(yamlPath, "utf8");
-const swaggerDocument = YAML.parse(yamlSpecFile);
+  const yamlSpecFile = await fs.readFile(yamlPath, "utf8");
+  const swaggerDocument = YAML.parse(yamlSpecFile);
 
-const swaggerRouter = zodiosRouter(bffApi.developApi.api);
+  const swaggerRouter = zodiosRouter(bffApi.developApi.api);
 
-swaggerRouter.use(
-  "/apiDocs",
-  ...swaggerUi.serve,
-  swaggerUi.setup(swaggerDocument, {
-    swaggerOptions: { url: null },
-  })
-);
+  swaggerRouter.use(
+    "/apiDocs",
+    ...swaggerUi.serve,
+    swaggerUi.setup(swaggerDocument, {
+      swaggerOptions: { url: null },
+    })
+  );
+}
 
 export default swaggerRouter;
