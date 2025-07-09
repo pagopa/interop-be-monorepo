@@ -11,7 +11,10 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../api/attributeApiConverter.js";
+import {
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+} from "../api/attributeApiConverter.js";
 
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
 
@@ -66,6 +69,24 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
       const polledResource = await pollAttribute(response, headers);
 
       return toM2MGatewayApiCertifiedAttribute({
+        attribute: polledResource.data,
+        logger,
+      });
+    },
+    async createDeclaredAttribute(
+      seed: m2mGatewayApi.DeclaredAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.DeclaredAttribute> {
+      logger.info(`Creating declared attribute with name ${seed.name}`);
+
+      const response =
+        await clients.attributeProcessClient.createDeclaredAttribute(seed, {
+          headers,
+        });
+
+      const polledResource = await pollAttribute(response, headers);
+
+      return toM2MGatewayApiDeclaredAttribute({
         attribute: polledResource.data,
         logger,
       });
