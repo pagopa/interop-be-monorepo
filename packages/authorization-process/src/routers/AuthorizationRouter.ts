@@ -513,16 +513,25 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await authorizationService.removeClientPurpose(
-          {
-            clientId: unsafeBrandId(req.params.clientId),
-            purposeIdToRemove: unsafeBrandId(req.params.purposeId),
-          },
-          ctx
-        );
-        return res.status(204).send();
+        const { data: client, metadata } =
+          await authorizationService.removeClientPurpose(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              purposeIdToRemove: unsafeBrandId(req.params.purposeId),
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            authorizationApi.FullClient.parse(
+              clientToApiFullVisibilityClient(client)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
