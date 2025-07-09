@@ -55,7 +55,7 @@ export function clientToApiFullVisibilityClient(
   client: Client
 ): authorizationApi.FullClient {
   return {
-    visibility: authorizationApi.ClientVisibility.Enum.FULL,
+    visibility: authorizationApi.Visibility.Enum.FULL,
     id: client.id,
     name: client.name,
     consumerId: client.consumerId,
@@ -74,11 +74,11 @@ export function clientToApiClient(
 ): authorizationApi.Client {
   if (authData.organizationId !== client.consumerId) {
     return {
-      visibility: authorizationApi.ClientVisibility.Enum.COMPACT,
+      visibility: authorizationApi.Visibility.Enum.PARTIAL,
       id: client.id,
       consumerId: client.consumerId,
       kind: clientKindToApiClientKind(client.kind),
-    } satisfies authorizationApi.CompactClient;
+    } satisfies authorizationApi.PartialClient;
   }
 
   return clientToApiFullVisibilityClient(client);

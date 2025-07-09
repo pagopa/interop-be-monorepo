@@ -1,14 +1,14 @@
 import { authorizationApi } from "pagopa-interop-api-clients";
 import { Client } from "pagopa-interop-models";
 
-export function testToCompactClient(
+export function testToPartialClient(
   client: Client
-): authorizationApi.CompactClient {
+): authorizationApi.PartialClient {
   return {
     id: client.id,
     consumerId: client.consumerId,
     kind: client.kind.toUpperCase() as authorizationApi.ClientKind,
-    visibility: authorizationApi.ClientVisibility.Enum.COMPACT,
+    visibility: authorizationApi.Visibility.Enum.PARTIAL,
   };
 }
 
@@ -23,6 +23,6 @@ export function testToFullClient(client: Client): authorizationApi.FullClient {
     kind: client.kind.toUpperCase() as authorizationApi.ClientKind,
     description: client.description,
     adminId: client.adminId,
-    visibility: authorizationApi.ClientVisibility.Enum.FULL,
+    visibility: authorizationApi.Visibility.Enum.FULL,
   };
 }

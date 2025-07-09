@@ -15,7 +15,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, authorizationService } from "../vitest.api.setup.js";
-import { testToCompactClient, testToFullClient } from "../apiUtils.js";
+import { testToPartialClient, testToFullClient } from "../apiUtils.js";
 
 describe("API /clients authorization test", () => {
   const consumerId = generateId<TenantId>();
@@ -73,16 +73,17 @@ describe("API /clients authorization test", () => {
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ADMIN_ROLE,
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 with role %s and return full or compact clients based on client consumerId",
+    "Should return 200 with role %s and return full or partial clients based on client consumerId",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual({
-        results: [testToFullClient(client1), testToCompactClient(client2)],
+        results: [testToFullClient(client1), testToPartialClient(client2)],
         totalCount: 2,
       });
     }
