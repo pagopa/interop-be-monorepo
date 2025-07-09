@@ -2,7 +2,11 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import { generateId, Client, PurposeId, ClientId } from "pagopa-interop-models";
-import { generateToken, getMockClient } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockClient,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, authorizationService } from "../vitest.api.setup.js";
 import {
@@ -10,6 +14,7 @@ import {
   clientNotFound,
   tenantNotAllowedOnClient,
 } from "../../src/model/domain/errors.js";
+import { testToFullClient } from "../apiUtils.js";
 
 describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () => {
   const purposeIdToRemove: PurposeId = generateId();
@@ -19,6 +24,7 @@ describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () =
     ...getMockClient(),
     purposes: [purposeIdToRemove, purposeIdToNotRemove],
   };
+  const serviceResponse = getMockWithMetadata(mockClient);
 
   const makeRequest = async (
     token: string,
@@ -30,16 +36,32 @@ describe("API /clients/{clientId}/purposes/{purposeId} authorization test", () =
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
-  authorizationService.removeClientPurpose = vi.fn().mockResolvedValue({});
+  authorizationService.removeClientPurpose = vi
+    .fn()
+    .mockResolvedValue(serviceResponse);
 
   it.each(authorizedRoles)(
-    "Should return 204 for user with role %s",
+    "Should return 200 with a full client for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id, purposeIdToRemove);
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(testToFullClient(mockClient));
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+      expect(authorizationService.removeClientPurpose).toHaveBeenCalledWith(
+        {
+          clientId: mockClient.id,
+          purposeIdToRemove,
+        },
+        expect.any(Object)
+      );
     }
   );
 
