@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Verifica valore di github.ref_name
+      - name: Value of github.ref_name
         run: |
           echo "Il valore di github.ref_name è: ${{ github.ref_name }}"
       - name: Cache turbo setup
