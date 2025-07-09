@@ -407,7 +407,7 @@ describe("upgrade Agreement", () => {
 
       const newPublishedDescriptor: Descriptor = {
         ...getMockDescriptorPublished(),
-        version: "2",
+        version: 2,
         attributes: {
           certified: [
             [getMockEServiceAttribute(validCertifiedTenantAttribute.id)],
@@ -428,7 +428,7 @@ describe("upgrade Agreement", () => {
       const currentDescriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: descriptorState.deprecated,
-        version: "1",
+        version: 1,
       };
       const eservice: EService = {
         ...getMockEService(),
