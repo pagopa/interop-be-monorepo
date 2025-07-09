@@ -20,11 +20,11 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@anatine/zod-mock": "3.13.4",
+    "@anatine/zod-mock": "3.14.0",
     "@faker-js/faker": "8.4.1",
     "@pagopa/eslint-config": "3.0.0",
     "@types/express": "4.17.21",
-    "@types/node": "20.19.3",
+    "@types/node": "20.19.4",
     "@types/supertest": "6.0.3",
     "cpx2": "7.0.2",
     "date-fns": "3.6.0",

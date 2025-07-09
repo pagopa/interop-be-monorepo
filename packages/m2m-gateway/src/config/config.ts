@@ -63,9 +63,13 @@ export type AttributeRegistryProcessServerConfig = z.infer<
 export const PurposeProcessServerConfig = z
   .object({
     PURPOSE_PROCESS_URL: APIEndpoint,
+    RISK_ANALYSIS_DOCUMENTS_CONTAINER: z.string(),
+    RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     purposeUrl: c.PURPOSE_PROCESS_URL,
+    riskAnalysisDocumentsContainer: c.RISK_ANALYSIS_DOCUMENTS_CONTAINER,
+    riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
   }));
 export type PurposeProcessServerConfig = z.infer<
   typeof PurposeProcessServerConfig
