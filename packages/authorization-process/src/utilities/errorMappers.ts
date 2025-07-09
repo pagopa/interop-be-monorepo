@@ -67,7 +67,6 @@ export const removeClientPurposeErrorMapper = (
 ): number =>
   match(error.code)
     .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
-    // .with("purposeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "tenantNotAllowedOnClient",
       "clientKindNotAllowed",

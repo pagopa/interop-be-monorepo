@@ -7,6 +7,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
+  toGetAgreementsApiQueryParamsForPurpose,
   toGetPurposesApiQueryParams,
   toM2MGatewayApiPurpose,
   toM2mGatewayApiPurposeVersion,
@@ -21,6 +22,7 @@ import {
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
 import {
+  purposeAgreementNotFound,
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
 } from "../model/errors.js";
@@ -28,6 +30,7 @@ import {
   assertPurposeCurrentVersionExists,
   assertPurposeVersionExistsWithState,
 } from "../utils/validators/purposeValidator.js";
+import { toM2MGatewayApiAgreement } from "../api/agreementApiConverter.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import { config } from "../config/config.js";
 
@@ -455,6 +458,28 @@ export function purposeServiceBuilder(
         config.riskAnalysisDocumentsContainer,
         logger
       );
+    },
+    getPurposeAgreement: async (
+      purposeId: PurposeId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> => {
+      logger.info(`Retrieving agreement for purpose with id ${purposeId}`);
+
+      const { data: purpose } = await retrievePurposeById(purposeId, headers);
+
+      const { data: agreements } =
+        await clients.agreementProcessClient.getAgreements({
+          queries: toGetAgreementsApiQueryParamsForPurpose(purpose),
+          headers,
+        });
+
+      const agreement = agreements.results.at(0);
+
+      if (!agreement) {
+        throw purposeAgreementNotFound(purposeId);
+      }
+
+      return toM2MGatewayApiAgreement(agreement);
     },
   };
 }
