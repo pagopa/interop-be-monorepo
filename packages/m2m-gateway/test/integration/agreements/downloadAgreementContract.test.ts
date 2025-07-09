@@ -26,7 +26,7 @@ describe("downloadAgreementContract", () => {
   const mockContract: agreementApi.Document = {
     id: mockContractId,
     name: mockContractName,
-    path: `${config.agreementConsumerDocumentsPath}/${mockContractId}/${mockContractName}`,
+    path: `${config.agreementConsumerContractsPath}/${mockContractId}/${mockContractName}`,
     contentType: "application/pdf",
     prettyName: "Contratto",
     createdAt: new Date().toISOString(),
@@ -53,7 +53,7 @@ describe("downloadAgreementContract", () => {
     await fileManager.storeBytes(
       {
         bucket: config.agreementConsumerDocumentsContainer,
-        path: config.agreementConsumerDocumentsPath,
+        path: config.agreementConsumerContractsPath,
         resourceId: mockContract.id,
         name: mockContract.name,
         content: Buffer.from(testFileContent),
