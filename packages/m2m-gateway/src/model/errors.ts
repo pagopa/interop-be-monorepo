@@ -35,6 +35,7 @@ export const errorCodes = {
   eserviceDescriptorInterfaceNotFound: "0019",
   purposeVersionDocumentNotFound: "0020",
   unexpectedClientKind: "0021",
+  purposeAgreementNotFound: "0022",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -205,7 +206,6 @@ export function eserviceDescriptorInterfaceNotFound(
     title: "Eservice descriptor interface not found",
   });
 }
-
 export function purposeVersionDocumentNotFound(
   purposeId: PurposeId,
   versionId: PurposeVersionId
@@ -224,5 +224,15 @@ export function unexpectedClientKind(
     detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
     code: "unexpectedClientKind",
     title: "Unexpected client kind",
+  });
+}
+
+export function purposeAgreementNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No active agreement found for purpose ${purposeId}`,
+    code: "purposeAgreementNotFound",
+    title: "Agreement for purpose not found",
   });
 }
