@@ -274,6 +274,9 @@ export async function setupTestContainersVitest(
       await postgresDB?.none(
         "TRUNCATE TABLE eservice_template.events RESTART IDENTITY"
       );
+      await postgresDB?.none(
+        "TRUNCATE TABLE notification_config.events RESTART IDENTITY"
+      );
 
       // CLEANUP READMODEL-SQL TABLES
       await readModelDB?.execute(
@@ -308,6 +311,12 @@ export async function setupTestContainersVitest(
       );
       await readModelDB?.execute(
         "TRUNCATE TABLE readmodel_eservice_template.eservice_template CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_notification_config.tenant_notification_config CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_notification_config.user_notification_config CASCADE"
       );
 
       if (fileManagerConfig && fileManager) {

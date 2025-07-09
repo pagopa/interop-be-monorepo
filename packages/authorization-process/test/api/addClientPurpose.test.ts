@@ -95,6 +95,15 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );
+      expect(authorizationService.addClientPurpose).toHaveBeenCalledWith(
+        {
+          clientId: mockClient.id,
+          seed: {
+            purposeId: mockPurpose.id,
+          },
+        },
+        expect.any(Object)
+      );
     }
   );
 

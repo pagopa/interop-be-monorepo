@@ -104,7 +104,7 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Removing purpose ${purposeId} from client ${clientId}`);
 
-      return authorizationClient.client.removeClientPurpose(undefined, {
+      await authorizationClient.client.removeClientPurpose(undefined, {
         params: { clientId, purposeId },
         headers,
       });
