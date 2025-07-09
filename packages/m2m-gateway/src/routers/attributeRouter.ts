@@ -71,6 +71,29 @@ const attributeRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
+    })
+    .post("/verifiedAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const attribute = await attributeService.createVerifiedAttribute(
+          req.body,
+          ctx
+        );
+        return res
+          .status(201)
+          .send(m2mGatewayApi.VerifiedAttribute.parse(attribute));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error creating verified attribute"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
     });
 
   return attributeRouter;
