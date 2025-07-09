@@ -19,8 +19,6 @@ jobs:
             .turbo
             packages/*/.turbo
           key: ${{ runner.os }}-turbo-check-formatting-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-check-formatting
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           run_install: true
@@ -41,14 +39,12 @@ jobs:
             .turbo
             packages/*/.turbo
           key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-lint-
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
-        with:
-          run_install: true
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
         with:
           node-version-file: ./package.json
+      - uses: pnpm/action-setup@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          run_install: true
       - run: pnpm lint
 
   check:
@@ -63,8 +59,6 @@ jobs:
             .turbo
             packages/*/.turbo
           key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-check
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
@@ -73,7 +67,6 @@ jobs:
           run_install: true
       - run: pnpm check
 
-  # START: Updated test logic
   find_test_groups:
     name: Find Test Groups
     needs: [formatting, lint, check]
@@ -86,34 +79,29 @@ jobs:
         id: set_groups_output
         run: |
           ALL_TEST_GROUPS="[]"
+          TEMP=$(find packages -maxdepth 2 -type f -name "test.config.json" | while read -r cfg; do
+            PKG_DIR=$(dirname "$cfg")
+            PKG_NAME=$(basename "$PKG_DIR")
+            jq --arg name "$PKG_NAME" \
+               --arg base "$PKG_DIR" \
+               '{ name: $name, paths: [ .testPaths[]? | "\($base)/\(.)" ] }' \
+               "$cfg"
+          done | jq -s .)
 
-          TEMP_GROUPS=$(find packages -type f -name "test.config.json" | while read -r config_file; do
-            PACKAGE_PATH=$(dirname "$config_file")
-            PACKAGE_NAME=$(basename "$PACKAGE_PATH")
-
-            jq --arg name "$PACKAGE_NAME" \
-               --argjson paths_root "$PACKAGE_PATH" \
-               '{
-                 name: $name,
-                 paths: (if .testPaths | type == "array" then
-                           [.testPaths[] as $path | "\($paths_root)/\($path)"]
-                         else
-                           []
-                         end)
-               }' \
-               "$config_file"
-          done | jq -s '.')
-
-          if [ -n "$TEMP_GROUPS" ] && [ "$TEMP_GROUPS" != "null" ] && [ "$TEMP_GROUPS" != "[]" ]; then
-            ALL_TEST_GROUPS="$TEMP_GROUPS"
+          if [[ "$TEMP" != "null" && "$TEMP" != "[]" ]]; then
+            ALL_TEST_GROUPS="$TEMP"
           fi
 
-          echo "Discovered Test Groups: $ALL_TEST_GROUPS"
-          echo "test_groups=$ALL_TEST_GROUPS" >> "$GITHUB_OUTPUT"
+          echo "Discovered: $ALL_TEST_GROUPS"
+          echo "test_groups=$(jq -c <<< \"$ALL_TEST_GROUPS\")" >> "$GITHUB_OUTPUT"
+      - name: Debug test_groups
+        run: |
+          echo ">>> test_groups string:"
+          echo '${{ needs.find_test_groups.outputs.test_groups }}' | jq .
 
   run_grouped_tests:
-    name: Run Tests for ${{ matrix.group.name }}
-    needs: [find_test_groups]
+    name: Run Tests
+    needs: find_test_groups
     if: needs.find_test_groups.outputs.test_groups != '[]' && fromJson(needs.find_test_groups.outputs.test_groups) | length > 0
     runs-on: ubuntu-latest
     strategy:
@@ -129,33 +117,23 @@ jobs:
             .turbo
             packages/*/.turbo
           key: ${{ runner.os }}-turbo-test-${{ matrix.group.name }}-${{ github.ref_name }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-test-${{ matrix.group.name }}-
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
       - uses: actions/setup-node@v4
         with:
           node-version-file: ./package.json
-      - name: Install Dependencies
+      - name: Install deps
         run: pnpm install --frozen-lockfile
-
-      - name: Run Vitest for ${{ matrix.group.name }}
+      - name: Run Vitest
         run: |
-          TEST_PATHS_ARRAY=$(echo "${{ toJSON(matrix.group.paths) }}" | jq -r '.[]')
-          if [ -z "$TEST_PATHS_ARRAY" ]; then
-            echo "No specific test paths defined for package ${{ matrix.group.name }}. Running all tests in package."
-            pnpm --dir packages/${{ matrix.group.name }} test
-          else
-            echo "Running tests in package ${{ matrix.group.name }} at paths: $TEST_PATHS_ARRAY"
-            pnpm --dir packages/${{ matrix.group.name }} test $TEST_PATHS_ARRAY
-          fi
-        env:
-          DOCKER_HOST: unix:///var/run/docker.sock
-  # END: Updated test logic
+          for p in "${{ toJSON(matrix.group.paths) }}" | jq -r '.[]'; do
+            echo "Running tests in $p"
+            pnpm --dir packages/${{ matrix.group.name }} test "$p"
+          done
 
   lint-openapi:
-    name: Lint Open Api specification
+    name: Lint OpenAPI specs
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -163,70 +141,51 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d2759364c9af683 # v4
       - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
         with:
-          file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
+          file_glob: "./packages/api-clients/open‑api/!(...api.yml)"
 
   find_dockerfiles:
     name: Find Dockerfiles
-    # Updated needs to depend on the new test jobs
     needs: [formatting, lint, check, run_grouped_tests, lint-openapi]
-    if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
+    if: github.base_ref == 'develop' || github.base_ref == 'main'
     runs-on: ubuntu-latest
     outputs:
-      packages: ${{ steps.set_packages_output.outputs.packages }}
+      packages: ${{ steps.set.output.packages }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d2759364c9af683 # v4
-      - name: Find packages
-        id: set_packages_output
+      - id: set
         run: |
-          PACKAGES=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
+          PACKAGES=$(find packages -type f -name Dockerfile | awk -F/ '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
           echo "packages=$PACKAGES" >> "$GITHUB_OUTPUT"
 
   docker_build:
     name: Build
-    needs: [find_dockerfiles]
-    if: ${{ github.base_ref == 'main' }}
+    needs: find_dockerfiles
+    if: github.base_ref == 'main'
     runs-on: ubuntu-latest
-    environment: ecr-ro
-    permissions:
-      contents: read
-      id-token: write
     strategy:
       max-parallel: 5
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
-    env:
-      DOCKER_BUILD_SUMMARY: "false"
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d2759364c9af683 # v4
-
-      - name: Configure AWS Credentials
+      - name: AWS creds
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ vars.IAM_ROLE_ARN }}
-          role-session-name: be-monorepo-pr-validation-${{ github.run_number }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
-
-      - name: Build Docker image
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
+      - uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
+      - uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
         with:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile
-          build-args: |
-            NODE_REGISTRY=${{ vars.NODE_REGISTRY }}
           push: false
 
   check_build_result:
     name: Build Result
-    needs: [docker_build]
+    needs: docker_build
     if: ${{ always() && github.base_ref == 'main' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Check build result
-        run: |
-          [[ ${{ needs.docker_build.result }} != 'success' ]] && exit 1
-          exit 0
+      - run: |
+          [[ "${{ needs.docker_build.result }}" != "success" ]] && exit 1 || exit 0
