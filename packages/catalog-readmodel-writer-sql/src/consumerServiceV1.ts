@@ -7,11 +7,11 @@ import {
   genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { CustomReadModelService } from "./readModelService.js";
+import { CatalogWriterService } from "./catalogWriterService.js";
 
 export async function handleMessageV1(
   message: EServiceEventEnvelopeV1,
-  customReadModelService: CustomReadModelService
+  catalogWriterService: CatalogWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -30,7 +30,7 @@ export async function handleMessageV1(
           );
         }
 
-        return await customReadModelService.upsertEService(
+        return await catalogWriterService.upsertEService(
           fromEServiceV1(eserviceV1),
           msg.version
         );
@@ -39,7 +39,7 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceWithDescriptorsDeleted" },
       async (msg) =>
-        await customReadModelService.deleteDescriptorById({
+        await catalogWriterService.deleteDescriptorById({
           eserviceId: unsafeBrandId(msg.stream_id),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           metadataVersion: msg.version,
@@ -54,7 +54,7 @@ export async function handleMessageV1(
         );
       }
 
-      await customReadModelService.updateDocOrInterface({
+      await catalogWriterService.updateDocOrInterface({
         eserviceId: unsafeBrandId(msg.data.eserviceId),
         descriptorId: unsafeBrandId(msg.data.descriptorId),
         docOrInterface: fromDocumentV1(documentV1),
@@ -65,7 +65,7 @@ export async function handleMessageV1(
     .with(
       { type: "EServiceDeleted" },
       async (msg) =>
-        await customReadModelService.deleteEServiceById(
+        await catalogWriterService.deleteEServiceById(
           unsafeBrandId(msg.data.eserviceId),
           msg.version
         )
@@ -80,7 +80,7 @@ export async function handleMessageV1(
       }
 
       if (msg.data.isInterface) {
-        await customReadModelService.upsertInterface({
+        await catalogWriterService.upsertInterface({
           eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           descriptorInterface: fromDocumentV1(documentV1),
@@ -88,7 +88,7 @@ export async function handleMessageV1(
           serverUrls: msg.data.serverUrls,
         });
       } else {
-        await customReadModelService.upsertDocument({
+        await catalogWriterService.upsertDocument({
           eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptorId: unsafeBrandId(msg.data.descriptorId),
           document: fromDocumentV1(documentV1),
@@ -97,7 +97,7 @@ export async function handleMessageV1(
       }
     })
     .with({ type: "EServiceDocumentDeleted" }, async (msg) => {
-      await customReadModelService.deleteDocumentOrInterface({
+      await catalogWriterService.deleteDocumentOrInterface({
         eserviceId: unsafeBrandId(msg.data.eserviceId),
         descriptorId: unsafeBrandId(msg.data.descriptorId),
         documentId: unsafeBrandId(msg.data.documentId),
@@ -116,7 +116,7 @@ export async function handleMessageV1(
           );
         }
 
-        await customReadModelService.upsertDescriptor({
+        await catalogWriterService.upsertDescriptor({
           eserviceId: unsafeBrandId(msg.data.eserviceId),
           descriptor: fromDescriptorV1(descriptorV1),
           metadataVersion: msg.version,
