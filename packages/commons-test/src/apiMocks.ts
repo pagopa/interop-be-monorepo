@@ -9,9 +9,10 @@ import {
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
-import { generateId } from "pagopa-interop-models";
+import { ClientId, algorithm, generateId } from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
+import { getMockClientJWKKey } from "./testUtils.js";
 
 export function getMockedApiPurposeVersion({
   state,
@@ -370,5 +371,33 @@ export function getMockedApiEserviceDoc({
     path,
     checksum: "mock-checksum",
     contacts: generateMock(catalogApi.DescriptorInterfaceContacts),
+  };
+}
+
+export function getMockedApiClientJWK({
+  clientId = generateId<ClientId>(),
+}: {
+  clientId?: ClientId;
+} = {}): authorizationApi.ClientJWK {
+  const jwk = getMockClientJWKKey(clientId);
+  return {
+    jwk,
+    clientId,
+  };
+}
+
+export function getMockedApiKey({
+  kid = generateId(),
+}: {
+  kid?: string;
+} = {}): authorizationApi.Key {
+  return {
+    kid,
+    name: generateMock(z.string().length(10)),
+    createdAt: new Date().toISOString(),
+    use: authorizationApi.KeyUse.Values.SIG,
+    userId: generateId(),
+    encodedPem: generateMock(z.string().length(50)),
+    algorithm: algorithm.RS256,
   };
 }

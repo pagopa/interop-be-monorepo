@@ -16,6 +16,7 @@ import {
   toM2MGatewayApiConsumerClient,
 } from "../api/clientApiConverter.js";
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
+import { toM2MJWK } from "../api/keysApiConverter.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 
@@ -173,6 +174,41 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
         );
 
       await pollClient(response, headers);
+    },
+    async getClientKeys(
+      clientId: ClientId,
+      { limit, offset }: m2mGatewayApi.GetClientKeysQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.JWKs> {
+      logger.info(`Retrieving keys for client with id ${clientId}`);
+
+      const {
+        data: { keys, totalCount },
+      } = await clients.authorizationClient.client.getClientKeys({
+        params: { clientId },
+        queries: { limit, offset },
+        headers,
+      });
+
+      const jwks = await Promise.all(
+        keys.map((key) =>
+          clients.authorizationClient.key
+            .getJWKByKid({
+              params: { kid: key.kid },
+              headers,
+            })
+            .then(({ data: jwk }) => jwk.jwk)
+        )
+      );
+
+      return {
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+        results: jwks.map(toM2MJWK),
+      };
     },
   };
 }

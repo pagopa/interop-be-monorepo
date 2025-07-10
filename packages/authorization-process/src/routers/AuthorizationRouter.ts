@@ -403,6 +403,7 @@ const authorizationRouter = (
           ADMIN_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
         ]);
 
