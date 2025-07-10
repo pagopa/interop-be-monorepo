@@ -40,7 +40,7 @@ export const agreementReadModelService =
 export const agreementWriterService =
   agreementWriterServiceBuilder(readModelDB);
 
-export const readAgreementSQL = async (
+export const retrieveAgreementSQL = async (
   agreementId: AgreementId
 ): Promise<AgreementSQL | undefined> => {
   const result = await readModelDB
@@ -50,7 +50,7 @@ export const readAgreementSQL = async (
   return result[0];
 };
 
-export const readAgreementStampsSQLByAgreementId = async (
+export const retrieveAgreementStampsSQLByAgreementId = async (
   agreementId: AgreementId
 ): Promise<AgreementStampSQL[]> =>
   await readModelDB
@@ -58,7 +58,7 @@ export const readAgreementStampsSQLByAgreementId = async (
     .from(agreementStampInReadmodelAgreement)
     .where(eq(agreementStampInReadmodelAgreement.agreementId, agreementId));
 
-export const readAgreementAttributesSQLByAgreementId = async (
+export const retrieveAgreementAttributesSQLByAgreementId = async (
   agreementId: AgreementId
 ): Promise<AgreementAttributeSQL[]> =>
   await readModelDB
@@ -66,7 +66,7 @@ export const readAgreementAttributesSQLByAgreementId = async (
     .from(agreementAttributeInReadmodelAgreement)
     .where(eq(agreementAttributeInReadmodelAgreement.agreementId, agreementId));
 
-export const readAgreementConsumerDocumentSQLByAgreementId = async (
+export const retrieveAgreementConsumerDocumentSQLByAgreementId = async (
   agreementId: AgreementId
 ): Promise<AgreementConsumerDocumentSQL[]> =>
   await readModelDB
@@ -76,7 +76,7 @@ export const readAgreementConsumerDocumentSQLByAgreementId = async (
       eq(agreementConsumerDocumentInReadmodelAgreement.agreementId, agreementId)
     );
 
-export const readAgreementContractQLByAgreementId = async (
+export const retrieveAgreementContractQLByAgreementId = async (
   agreementId: AgreementId
 ): Promise<AgreementContractSQL[]> =>
   await readModelDB
