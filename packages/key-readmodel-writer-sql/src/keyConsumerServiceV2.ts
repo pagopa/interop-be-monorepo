@@ -6,11 +6,11 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { CustomReadModelService } from "./readModelService.js";
+import { ClientJWKKeyWriterService } from "./clientJWKKeyWriterService.js";
 
 export async function handleMessageV2(
   message: AuthorizationEventEnvelopeV2,
-  clientJWKKeyReadModelService: CustomReadModelService
+  clientJWKKeyWriterService: ClientJWKKeyWriterService
 ): Promise<void> {
   await match(message)
     .with({ type: "ClientKeyAdded" }, async (message) => {
@@ -25,7 +25,7 @@ export async function handleMessageV2(
       if (!key) {
         throw genericInternalError(`Key not found in client: ${client?.id}`);
       }
-      await clientJWKKeyReadModelService.upsertClientJWKKey(
+      await clientJWKKeyWriterService.upsertClientJWKKey(
         keyToClientJWKKey(key, client.id),
         message.version
       );
@@ -38,14 +38,14 @@ export async function handleMessageV2(
         throw genericInternalError("Client not found in event");
       }
 
-      await clientJWKKeyReadModelService.deleteClientJWKKeyByClientIdAndKid(
+      await clientJWKKeyWriterService.deleteClientJWKKeyByClientIdAndKid(
         client.id,
         message.data.kid,
         message.version
       );
     })
     .with({ type: "ClientDeleted" }, async (message) => {
-      await clientJWKKeyReadModelService.deleteClientJWKKeysByClientId(
+      await clientJWKKeyWriterService.deleteClientJWKKeysByClientId(
         unsafeBrandId(message.data.clientId),
         message.version
       );

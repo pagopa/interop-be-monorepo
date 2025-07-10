@@ -1,5 +1,10 @@
-import { eq } from "drizzle-orm";
-import { Agreement, Attribute, EService } from "pagopa-interop-models";
+import { and, eq } from "drizzle-orm";
+import {
+  Agreement,
+  Attribute,
+  ClientJWKKey,
+  EService,
+} from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
@@ -17,11 +22,13 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  clientJwkKeyInReadmodelClientJwkKey,
 } from "pagopa-interop-readmodel-models";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
-import { checkMetadataVersion } from "./utils.js";
+import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
+import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
 
 // TODO: simplify the functions for tests. Maybe rename to insertX to keep it aligned with the notifications functions
 export const upsertAgreement = async (
@@ -190,5 +197,48 @@ export const upsertEService = async (
         .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
         .values(templateVersionRefSQL);
     }
+  });
+};
+
+export const upsertClientJWKKey = async (
+  readModelDB: DrizzleReturnType,
+  clientJWKKey: ClientJWKKey,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersionByFilter(
+      tx,
+      clientJwkKeyInReadmodelClientJwkKey,
+      metadataVersion,
+      and(
+        eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid),
+        eq(clientJwkKeyInReadmodelClientJwkKey.clientId, clientJWKKey.clientId)
+      )
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(clientJwkKeyInReadmodelClientJwkKey)
+      .where(
+        and(
+          eq(
+            clientJwkKeyInReadmodelClientJwkKey.clientId,
+            clientJWKKey.clientId
+          ),
+          eq(clientJwkKeyInReadmodelClientJwkKey.kid, clientJWKKey.kid)
+        )
+      );
+
+    const clientJWKKeySQL = splitClientJWKKeyIntoObjectsSQL(
+      clientJWKKey,
+      metadataVersion
+    );
+
+    await tx
+      .insert(clientJwkKeyInReadmodelClientJwkKey)
+      .values(clientJWKKeySQL);
   });
 };
