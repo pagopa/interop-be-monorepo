@@ -61,6 +61,31 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/tenants/:tenantId/declaredAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const declaredAttributes = await tenantService.getDeclaredAttributes(
+          unsafeBrandId(req.params.tenantId),
+          req.query,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(
+            m2mGatewayApi.TenantDeclaredAttributes.parse(declaredAttributes)
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error retrieving tenant ${req.params.tenantId} declared attributes`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/tenants/:tenantId/certifiedAttributes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {

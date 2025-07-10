@@ -584,7 +584,7 @@ export function tenantServiceBuilder(
             throw delegationNotFound(delegationId);
           }
           logger.info(
-            `Add declared attribute ${tenantAttributeSeed.id} to delegatator tenant ${delegation.delegatorId}`
+            `Add declared attribute ${tenantAttributeSeed.id} to delegator tenant ${delegation.delegatorId}`
           );
 
           if (delegation.delegateId !== authData.organizationId) {

@@ -12,10 +12,11 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toM2MGatewayApiTenantVerifiedAttribute } from "../../../src/api/tenantApiConverter.js";
 
 describe("GET /tenants/:tenantId/verifiedAttributes route test", () => {
-  const mockQueryParams: m2mGatewayApi.GetVerifiedAttributesQueryParams = {
-    offset: 0,
-    limit: 10,
-  };
+  const mockQueryParams: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams =
+    {
+      offset: 0,
+      limit: 10,
+    };
 
   const mockTenantAttribute1 = getMockedApiVerifiedTenantAttribute();
 
@@ -35,7 +36,7 @@ describe("GET /tenants/:tenantId/verifiedAttributes route test", () => {
 
   const makeRequest = async (
     token: string,
-    query: m2mGatewayApi.GetVerifiedAttributesQueryParams
+    query: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams
   ) =>
     request(api)
       .get(`${appBasePath}/tenants/${generateId()}/verifiedAttributes`)
@@ -80,7 +81,7 @@ describe("GET /tenants/:tenantId/verifiedAttributes route test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as m2mGatewayApi.GetVerifiedAttributesQueryParams
+      query as m2mGatewayApi.GetTenantVerifiedAttributesQueryParams
     );
 
     expect(res.status).toBe(400);

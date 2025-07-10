@@ -8,6 +8,7 @@ import {
   toGetTenantsApiQueryParams,
   toM2MGatewayApiTenant,
   toM2MGatewayApiTenantVerifiedAttribute,
+  toM2MGatewayApiTenantDeclaredAttribute,
 } from "../api/tenantApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
@@ -15,6 +16,12 @@ import {
 } from "../utils/polling.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { tenantCertifiedAttributeNotFound } from "../model/errors.js";
+
+function retrieveDeclaredAttributes(
+  tenant: tenantApi.Tenant
+): tenantApi.DeclaredTenantAttribute[] {
+  return tenant.attributes.map((v) => v.declared).filter(isDefined);
+}
 
 function retrieveCertifiedAttributes(
   tenant: tenantApi.Tenant
@@ -47,15 +54,21 @@ export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
+  const retrieveTenantById = async (
+    tenantId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<tenantApi.Tenant>> =>
+    await clients.tenantProcessClient.tenant.getTenant({
+      params: { id: tenantId },
+      headers,
+    });
+
   const pollTenant = (
     response: WithMaybeMetadata<tenantApi.Tenant>,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<WithMaybeMetadata<tenantApi.Tenant>> =>
     pollResourceWithMetadata(() =>
-      clients.tenantProcessClient.tenant.getTenant({
-        params: { id: response.data.id },
-        headers,
-      })
+      retrieveTenantById(response.data.id, headers)
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
@@ -93,26 +106,56 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Tenant> {
       logger.info(`Retrieving tenant with id ${tenantId}`);
 
-      const { data: tenant } =
-        await clients.tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
-          headers,
-        });
+      const { data: tenant } = await retrieveTenantById(tenantId, headers);
 
       return toM2MGatewayApiTenant(tenant);
     },
+    async getDeclaredAttributes(
+      tenantId: TenantId,
+      {
+        delegationId,
+        limit,
+        offset,
+      }: m2mGatewayApi.GetTenantDeclaredAttributesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantDeclaredAttributes> {
+      logger.info(`Retrieving tenant ${tenantId} declared attributes`);
+
+      const { data: tenant } = await retrieveTenantById(tenantId, headers);
+
+      const declaredAttributes = retrieveDeclaredAttributes(tenant);
+
+      const filteredDeclaredAttributes = delegationId
+        ? declaredAttributes.filter(
+            (declaredAttribute) =>
+              declaredAttribute.delegationId === delegationId
+          )
+        : declaredAttributes;
+
+      const paginatedDeclaredAttributes = filteredDeclaredAttributes.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results: paginatedDeclaredAttributes.map(
+          toM2MGatewayApiTenantDeclaredAttribute
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: filteredDeclaredAttributes.length,
+        },
+      };
+    },
     async getCertifiedAttributes(
       tenantId: TenantId,
-      { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
+      { limit, offset }: m2mGatewayApi.GetTenantCertifiedAttributesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantCertifiedAttributes> {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);
 
-      const { data: tenant } =
-        await clients.tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
-          headers,
-        });
+      const { data: tenant } = await retrieveTenantById(tenantId, headers);
 
       const certifiedAttributes = retrieveCertifiedAttributes(tenant);
 
@@ -186,16 +229,12 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     },
     async getVerifiedAttributes(
       tenantId: TenantId,
-      { limit, offset }: m2mGatewayApi.GetVerifiedAttributesQueryParams,
+      { limit, offset }: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantVerifiedAttributes> {
       logger.info(`Retrieving tenant ${tenantId} verified attributes`);
 
-      const { data: tenant } =
-        await clients.tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
-          headers,
-        });
+      const { data: tenant } = await retrieveTenantById(tenantId, headers);
 
       const verifiedAttributes = retrieveVerifiedAttributes(tenant);
 

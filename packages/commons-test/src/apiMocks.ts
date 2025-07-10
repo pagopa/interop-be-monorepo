@@ -340,6 +340,19 @@ export function getMockedApiVerifiedTenantAttribute(): tenantApi.VerifiedTenantA
   };
 }
 
+export function getMockedApiDeclaredTenantAttribute({
+  revoked = false,
+}: {
+  revoked?: boolean;
+} = {}): tenantApi.DeclaredTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    revocationTimestamp: revoked ? new Date().toISOString() : undefined,
+    delegationId: generateId(),
+  };
+}
+
 export function getMockedApiAgreementDocument({
   id = generateId(),
   name = "doc.txt",
