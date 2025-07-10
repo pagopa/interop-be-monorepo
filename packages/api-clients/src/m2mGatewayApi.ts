@@ -7,6 +7,7 @@ type PurposeApi = typeof m2mGatewayApi.purposesApi.api;
 type TenantApi = typeof m2mGatewayApi.tenantsApi.api;
 type DelegationApi = typeof m2mGatewayApi.delegationsApi.api;
 type EServiceTemplateApi = typeof m2mGatewayApi.eserviceTemplatesApi.api;
+type ClientApi = typeof m2mGatewayApi.clientsApi.api;
 
 export type GetAgreementsQueryParams = QueryParametersByAlias<
   AgreementApi,
@@ -66,6 +67,21 @@ export type GetProducerDelegationsQueryParams = QueryParametersByAlias<
 export type GetEServiceTemplateVersionsQueryParams = QueryParametersByAlias<
   EServiceTemplateApi,
   "getEServiceTemplateVersions"
+>;
+
+export type GetClientsQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClients"
+>;
+
+export type GetClientPurposesQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClientPurposes"
+>;
+
+export type GetClientKeysQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClientKeys"
 >;
 
 export * from "./generated/m2mGatewayApi.js";

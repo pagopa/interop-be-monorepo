@@ -9,20 +9,24 @@ import {
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
-import { generateId } from "pagopa-interop-models";
+import { ClientId, algorithm, generateId } from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
+import { getMockClientJWKKey } from "./testUtils.js";
 
 export function getMockedApiPurposeVersion({
   state,
+  riskAnalysis,
 }: {
   state?: purposeApi.PurposeVersionState;
+  riskAnalysis?: purposeApi.PurposeVersionDocument;
 } = {}): purposeApi.PurposeVersion {
   return {
     id: generateId(),
     createdAt: new Date().toISOString(),
     dailyCalls: generateMock(z.number().positive()),
     state: state ?? purposeApi.PurposeVersionState.Enum.DRAFT,
+    riskAnalysis,
   };
 }
 
@@ -77,17 +81,19 @@ export function getMockedApiAgreement({
   state,
   eserviceId,
   descriptorId,
+  consumerId,
 }: {
   state?: agreementApi.AgreementState;
   eserviceId?: string;
   descriptorId?: string;
+  consumerId?: string;
 } = {}): agreementApi.Agreement {
   return {
     id: generateId(),
     eserviceId: eserviceId ?? generateId(),
     descriptorId: descriptorId ?? generateId(),
     producerId: generateId(),
-    consumerId: generateId(),
+    consumerId: consumerId ?? generateId(),
     state: state ?? agreementApi.AgreementState.Values.ACTIVE,
     certifiedAttributes: generateMock(z.array(agreementApi.CertifiedAttribute)),
     declaredAttributes: generateMock(z.array(agreementApi.DeclaredAttribute)),
@@ -139,14 +145,16 @@ export function getMockedApiAttribute({
   };
 }
 
-export function getMockedApiFullClient({
+export function getMockedApiConsumerFullClient({
   kind: paramKind,
+  purposes = [],
 }: {
   kind?: authorizationApi.ClientKind;
+  purposes?: string[];
 } = {}): authorizationApi.FullClient {
   const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
-    visibility: authorizationApi.ClientVisibility.Enum.FULL,
+    visibility: authorizationApi.Visibility.Enum.FULL,
     kind: kind ?? authorizationApi.ClientKind.Values.CONSUMER,
     id: generateId(),
     name: generateMock(z.string()),
@@ -154,10 +162,10 @@ export function getMockedApiFullClient({
     createdAt: new Date().toISOString(),
     consumerId: generateId(),
     purposes: match(kind)
-      .with(authorizationApi.ClientKind.Values.CONSUMER, () => [
-        generateId(),
-        generateId(),
-      ])
+      .with(
+        authorizationApi.ClientKind.Values.CONSUMER,
+        () => purposes ?? [generateId(), generateId()]
+      )
       .with(authorizationApi.ClientKind.Values.API, () => [])
       .exhaustive(),
     users: [generateId(), generateId()],
@@ -168,18 +176,18 @@ export function getMockedApiFullClient({
   } satisfies authorizationApi.Client;
 }
 
-export function getMockedApiCompactClient({
+export function getMockedApiConsumerPartialClient({
   kind: paramKind,
 }: {
   kind?: authorizationApi.ClientKind;
-} = {}): authorizationApi.CompactClient {
+} = {}): authorizationApi.PartialClient {
   const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
-    visibility: authorizationApi.ClientVisibility.Enum.COMPACT,
+    visibility: authorizationApi.Visibility.Enum.PARTIAL,
     id: generateId(),
     consumerId: generateId(),
     kind: kind ?? authorizationApi.ClientKind.Values.CONSUMER,
-  } satisfies authorizationApi.CompactClient;
+  } satisfies authorizationApi.PartialClient;
 }
 
 export function getMockedApiEservice({
@@ -372,5 +380,33 @@ export function getMockedApiEserviceDoc({
     path,
     checksum: "mock-checksum",
     contacts: generateMock(catalogApi.DescriptorInterfaceContacts),
+  };
+}
+
+export function getMockedApiClientJWK({
+  clientId = generateId<ClientId>(),
+}: {
+  clientId?: ClientId;
+} = {}): authorizationApi.ClientJWK {
+  const jwk = getMockClientJWKKey(clientId);
+  return {
+    jwk,
+    clientId,
+  };
+}
+
+export function getMockedApiKey({
+  kid = generateId(),
+}: {
+  kid?: string;
+} = {}): authorizationApi.Key {
+  return {
+    kid,
+    name: generateMock(z.string().length(10)),
+    createdAt: new Date().toISOString(),
+    use: authorizationApi.KeyUse.Values.SIG,
+    userId: generateId(),
+    encodedPem: generateMock(z.string().length(50)),
+    algorithm: algorithm.RS256,
   };
 }
