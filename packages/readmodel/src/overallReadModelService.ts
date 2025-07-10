@@ -506,10 +506,6 @@ export function overallReadModelServiceBuilder(readModelDB: DrizzleReturnType) {
   };
 }
 
-export type OverallReadModelService = ReturnType<
-  typeof overallReadModelServiceBuilder
->;
-
 const readAllTenantsSQL = async (
   tx: DrizzleTransactionType
 ): Promise<TenantSQL[]> =>
