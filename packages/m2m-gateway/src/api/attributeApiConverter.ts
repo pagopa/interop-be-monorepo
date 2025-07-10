@@ -11,7 +11,12 @@ import {
 } from "../utils/validators/attributeValidators.js";
 import { attributeNotFound } from "../model/errors.js";
 
-function convertAttribute<T>(
+function convertAttribute<
+  T extends
+    | m2mGatewayApi.DeclaredAttribute
+    | m2mGatewayApi.VerifiedAttribute
+    | m2mGatewayApi.CertifiedAttribute
+>(
   attribute: attributeRegistryApi.Attribute,
   attributeKind: attributeRegistryApi.AttributeKind,
   logger: Logger,
@@ -36,7 +41,12 @@ function convertAttribute<T>(
           origin: attribute.origin,
         } as T;
       })
-      .otherwise(() => baseFields as T);
+      .with(
+        attributeRegistryApi.AttributeKind.Values.DECLARED,
+        attributeRegistryApi.AttributeKind.Values.VERIFIED,
+        () => baseFields as T
+      )
+      .exhaustive();
   } catch (error) {
     if (mapThrownErrorsToNotFound) {
       logger.warn(
