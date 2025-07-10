@@ -34,9 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Value of github.ref_name
+      - name: Debug cache key
         run: |
-          echo "Il valore di github.ref_name è: ${{ github.ref_name }}"
+          KEY="${{ runner.os }}-turbo-lint-${{ github.ref_name }}"
+          NORMALIZED_KEY=$(echo "$KEY" | tr '/' '-')
+          echo "Chiave non normalizzata: $KEY"
+          echo "Chiave normalizzata: $NORMALIZED_KEY"
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
