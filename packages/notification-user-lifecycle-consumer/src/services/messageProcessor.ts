@@ -46,6 +46,7 @@ export function messageProcessorBuilder(
     await match(action)
       .with("add", () => {
         loggerInstance.info(`Add user id ${userId} from tenant ${tenantId}`);
+        // TODO: call internal create notification config
         return userServiceSQL.insertUser(userData);
       })
       .with("update", () => {
@@ -54,6 +55,7 @@ export function messageProcessorBuilder(
       })
       .with("delete", () => {
         loggerInstance.info(`Removing admin ${userId} from tenant ${tenantId}`);
+        // TODO: call internal delete notification config
         return userServiceSQL.deleteUser(userId);
       })
       .exhaustive();
