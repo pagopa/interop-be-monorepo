@@ -104,6 +104,10 @@ jobs:
         with:
           run_install: true
       - run: pnpm test
+      - name: List .turbo after cache
+        run: |
+          echo "Contenuto della directory .turbo dopo il restore della cache:"
+          ls -la .turbo || echo ".turbo non esiste"
 
   lint-openapi:
     name: Lint Open Api specification
