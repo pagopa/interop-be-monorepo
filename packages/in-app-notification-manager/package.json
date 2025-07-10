@@ -28,7 +28,6 @@
     "pagopa-interop-commons-test": "workspace:*",
     "tsx": "4.19.1",
     "supertest": "7.0.0",
-    "testcontainers": "10.9.0",
     "drizzle-orm": "0.39.3",
     "vitest": "1.6.1",
     "typescript": "5.4.5"
@@ -47,7 +46,6 @@
     "pagopa-interop-application-audit": "workspace:*",
     "pagopa-interop-in-app-notification-db-models": "workspace:*",
     "ts-pattern": "5.2.0",
-    "zod": "3.23.8",
-    "drizzle-kit": "0.30.4"
+    "zod": "3.23.8"
   }
 }
