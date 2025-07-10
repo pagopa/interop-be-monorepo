@@ -5,7 +5,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  getMockedApiFullClient,
+  getMockedApiConsumerFullClient,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
@@ -22,7 +22,7 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("removeClientPurpose", () => {
   const mockAuthorizationProcessResponse = getMockWithMetadata(
-    getMockedApiFullClient()
+    getMockedApiConsumerFullClient()
   );
 
   const mockRemoveClientPurpose = vi
