@@ -10,6 +10,7 @@ import {
   getMockAuthData,
   getMockContext,
   getMockProducerKeychain,
+  sortProducerKeychain,
 } from "pagopa-interop-commons-test";
 import { producerKeychainNotFound } from "../../src/model/domain/errors.js";
 import {
@@ -38,7 +39,9 @@ describe("getProducerKeychainById", async () => {
         },
         getMockContext({ authData: getMockAuthData(organizationId) })
       );
-    expect(producerKeychain).toEqual(expectedProducerKeychain);
+    expect(sortProducerKeychain(producerKeychain)).toEqual(
+      sortProducerKeychain(expectedProducerKeychain)
+    );
   });
   it("should get from the readModel the producer keychain with the specified Id without users", async () => {
     const expectedProducerKeychainWithoutUser: ProducerKeychain = {
