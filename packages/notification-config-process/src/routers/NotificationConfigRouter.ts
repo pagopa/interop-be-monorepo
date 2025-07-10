@@ -9,7 +9,7 @@ import {
   validateAuthorization,
 } from "pagopa-interop-commons";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { emptyErrorMapper } from "pagopa-interop-models";
+import { unsafeBrandId } from "pagopa-interop-models";
 import { NotificationConfigService } from "../services/notificationConfigService.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
@@ -17,15 +17,21 @@ import {
   userNotificationConfigToApiUserNotificationConfig,
 } from "../model/domain/apiConverter.js";
 import {
+  createTenantNotificationConfigErrorMapper,
+  createUserNotificationConfigErrorMapper,
+  deleteTenantNotificationConfigErrorMapper,
+  deleteUserNotificationConfigErrorMapper,
   getTenantNotificationConfigErrorMapper,
   getUserNotificationConfigErrorMapper,
+  updateTenantNotificationConfigErrorMapper,
+  updateUserNotificationConfigErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const notificationConfigRouter = (
   ctx: ZodiosContext,
   notificationConfigService: NotificationConfigService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const { ADMIN_ROLE, API_ROLE } = authRole;
+  const { ADMIN_ROLE, API_ROLE, INTERNAL_ROLE } = authRole;
 
   return ctx
     .router(notificationConfigApi.processApi.api, {
@@ -101,7 +107,11 @@ const notificationConfigRouter = (
             )
           );
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          updateTenantNotificationConfigErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -125,9 +135,120 @@ const notificationConfigRouter = (
             )
           );
       } catch (error) {
-        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+        const errorRes = makeApiProblem(
+          error,
+          updateUserNotificationConfigErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .post("/internal/tenantNotificationConfigs/:tenantId", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+        const tenantNotificationConfig =
+          await notificationConfigService.createTenantNotificationConfig(
+            unsafeBrandId(req.params.tenantId),
+            req.body,
+            ctx
+          );
+        return res
+          .status(200)
+          .send(
+            notificationConfigApi.TenantNotificationConfig.parse(
+              tenantNotificationConfigToApiTenantNotificationConfig(
+                tenantNotificationConfig
+              )
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createTenantNotificationConfigErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
+      "/internal/userNotificationConfigs/:tenantId/:userId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          const userNotificationConfig =
+            await notificationConfigService.createUserNotificationConfig(
+              unsafeBrandId(req.params.userId),
+              unsafeBrandId(req.params.tenantId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              notificationConfigApi.UserNotificationConfig.parse(
+                userNotificationConfigToApiUserNotificationConfig(
+                  userNotificationConfig
+                )
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createUserNotificationConfigErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/internal/tenantNotificationConfigs/:tenantId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          await notificationConfigService.deleteTenantNotificationConfig(
+            unsafeBrandId(req.params.tenantId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteTenantNotificationConfigErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/internal/userNotificationConfigs/:tenantId/:userId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+          await notificationConfigService.deleteUserNotificationConfig(
+            unsafeBrandId(req.params.userId),
+            unsafeBrandId(req.params.tenantId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteUserNotificationConfigErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 };
 export default notificationConfigRouter;

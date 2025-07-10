@@ -21,3 +21,45 @@ export const getUserNotificationConfigErrorMapper = (
   match(error.code)
     .with("userNotificationConfigNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createTenantNotificationConfigErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotificationConfigAlreadyExists", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const createUserNotificationConfigErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("userNotificationConfigAlreadyExists", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateTenantNotificationConfigErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotificationConfigNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const updateUserNotificationConfigErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("userNotificationConfigNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteTenantNotificationConfigErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotificationConfigNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteUserNotificationConfigErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("userNotificationConfigNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

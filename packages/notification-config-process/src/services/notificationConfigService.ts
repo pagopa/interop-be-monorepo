@@ -4,6 +4,7 @@ import {
   WithLogger,
   eventRepository,
   UIAuthData,
+  InternalAuthData,
 } from "pagopa-interop-commons";
 import {
   notificationConfigEventToBinaryDataV2,
@@ -12,15 +13,23 @@ import {
   generateId,
   TenantNotificationConfigId,
   UserNotificationConfigId,
+  UserId,
+  TenantId,
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { NotificationConfigReadModelService } from "pagopa-interop-readmodel";
 import {
+  toCreateEventTenantNotificationConfigCreated,
+  toCreateEventTenantNotificationConfigDeleted,
   toCreateEventTenantNotificationConfigUpdated,
+  toCreateEventUserNotificationConfigCreated,
+  toCreateEventUserNotificationConfigDeleted,
   toCreateEventUserNotificationConfigUpdated,
 } from "../model/domain/toEvent.js";
 import {
+  tenantNotificationConfigAlreadyExists,
   tenantNotificationConfigNotFound,
+  userNotificationConfigAlreadyExists,
   userNotificationConfigNotFound,
 } from "../model/domain/errors.js";
 
@@ -86,32 +95,21 @@ export function notificationConfigServiceBuilder(
           organizationId
         );
 
-      const { id, version, createdAt, updatedAt } =
-        existingConfig !== undefined
-          ? {
-              id: existingConfig.data.id,
-              version: existingConfig.metadata.version,
-              createdAt: existingConfig.data.createdAt,
-              updatedAt: new Date(),
-            }
-          : {
-              id: generateId<TenantNotificationConfigId>(),
-              version: undefined,
-              createdAt: new Date(),
-              updatedAt: undefined,
-            };
+      if (existingConfig === undefined) {
+        throw tenantNotificationConfigNotFound(organizationId);
+      }
 
       const tenantNotificationConfig: TenantNotificationConfig = {
-        id,
+        id: existingConfig.data.id,
         tenantId: organizationId,
         config: seed,
-        createdAt,
-        updatedAt,
+        createdAt: existingConfig.data.createdAt,
+        updatedAt: new Date(),
       };
 
       const event = toCreateEventTenantNotificationConfigUpdated(
-        id,
-        version,
+        existingConfig.data.id,
+        existingConfig.metadata.version,
         tenantNotificationConfig,
         correlationId
       );
@@ -137,39 +135,150 @@ export function notificationConfigServiceBuilder(
           organizationId
         );
 
-      const { id, version, createdAt, updatedAt } =
-        existingConfig !== undefined
-          ? {
-              id: existingConfig.data.id,
-              version: existingConfig.metadata.version,
-              createdAt: existingConfig.data.createdAt,
-              updatedAt: new Date(),
-            }
-          : {
-              id: generateId<UserNotificationConfigId>(),
-              version: undefined,
-              createdAt: new Date(),
-              updatedAt: undefined,
-            };
+      if (existingConfig === undefined) {
+        throw userNotificationConfigNotFound(userId, organizationId);
+      }
 
       const userNotificationConfig: UserNotificationConfig = {
-        id,
+        id: existingConfig.data.id,
         userId,
         tenantId: organizationId,
         inAppConfig: seed.inAppConfig,
         emailConfig: seed.emailConfig,
-        createdAt,
-        updatedAt,
+        createdAt: existingConfig.data.createdAt,
+        updatedAt: new Date(),
       };
 
       const event = toCreateEventUserNotificationConfigUpdated(
-        id,
-        version,
+        existingConfig.data.id,
+        existingConfig.metadata.version,
         userNotificationConfig,
         correlationId
       );
       await repository.createEvent(event);
       return userNotificationConfig;
+    },
+
+    async createTenantNotificationConfig(
+      tenantId: TenantId,
+      seed: notificationConfigApi.NotificationConfigSeed,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<TenantNotificationConfig> {
+      logger.info(`Creating notification configuration for tenant ${tenantId}`);
+
+      const existingConfig =
+        await readModelService.getTenantNotificationConfigByTenantId(tenantId);
+
+      if (existingConfig !== undefined) {
+        throw tenantNotificationConfigAlreadyExists(tenantId);
+      }
+
+      const tenantNotificationConfig: TenantNotificationConfig = {
+        id: generateId<TenantNotificationConfigId>(),
+        tenantId,
+        config: seed,
+        createdAt: new Date(),
+        updatedAt: undefined,
+      };
+
+      const event = toCreateEventTenantNotificationConfigCreated(
+        tenantNotificationConfig.id,
+        undefined,
+        tenantNotificationConfig,
+        correlationId
+      );
+      await repository.createEvent(event);
+      return tenantNotificationConfig;
+    },
+
+    async createUserNotificationConfig(
+      userId: UserId,
+      tenantId: TenantId,
+      seed: notificationConfigApi.UserNotificationConfigSeed,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<UserNotificationConfig> {
+      logger.info(
+        `Updating notification configuration for user ${userId} in tenant ${tenantId}`
+      );
+
+      const existingConfig =
+        await readModelService.getUserNotificationConfigByUserIdAndTenantId(
+          userId,
+          tenantId
+        );
+
+      if (existingConfig !== undefined) {
+        throw userNotificationConfigAlreadyExists(userId, tenantId);
+      }
+
+      const userNotificationConfig: UserNotificationConfig = {
+        id: generateId<UserNotificationConfigId>(),
+        userId,
+        tenantId,
+        inAppConfig: seed.inAppConfig,
+        emailConfig: seed.emailConfig,
+        createdAt: new Date(),
+        updatedAt: undefined,
+      };
+
+      const event = toCreateEventUserNotificationConfigCreated(
+        userNotificationConfig.id,
+        undefined,
+        userNotificationConfig,
+        correlationId
+      );
+      await repository.createEvent(event);
+      return userNotificationConfig;
+    },
+
+    async deleteTenantNotificationConfig(
+      tenantId: TenantId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(`Deleting notification configuration for tenant ${tenantId}`);
+
+      const existingConfig =
+        await readModelService.getTenantNotificationConfigByTenantId(tenantId);
+
+      if (existingConfig === undefined) {
+        throw tenantNotificationConfigNotFound(tenantId);
+      }
+
+      const event = toCreateEventTenantNotificationConfigDeleted(
+        existingConfig.data.id,
+        existingConfig.metadata.version,
+        existingConfig.data,
+        correlationId
+      );
+      await repository.createEvent(event);
+    },
+
+    async deleteUserNotificationConfig(
+      userId: UserId,
+      tenantId: TenantId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Deleting notification configuration for user ${userId} in tenant ${tenantId}`
+      );
+
+      const existingConfig =
+        await readModelService.getUserNotificationConfigByUserIdAndTenantId(
+          userId,
+          tenantId
+        );
+
+      if (existingConfig === undefined) {
+        throw userNotificationConfigNotFound(userId, tenantId);
+      }
+
+      const event = toCreateEventUserNotificationConfigDeleted(
+        existingConfig.data.id,
+        existingConfig.metadata.version,
+        existingConfig.data,
+        correlationId
+      );
+      await repository.createEvent(event);
     },
   };
 }

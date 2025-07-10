@@ -9,6 +9,46 @@ import {
   UserNotificationConfig,
 } from "pagopa-interop-models";
 
+export const toCreateEventTenantNotificationConfigCreated = (
+  streamId: string,
+  version: number | undefined,
+  tenantNotificationConfig: TenantNotificationConfig,
+  correlationId: CorrelationId
+): CreateEvent<NotificationConfigEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "TenantNotificationConfigCreated",
+    event_version: 2,
+    data: {
+      tenantNotificationConfig: toTenantNotificationConfigV2(
+        tenantNotificationConfig
+      ),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventUserNotificationConfigCreated = (
+  streamId: string,
+  version: number | undefined,
+  userNotificationConfig: UserNotificationConfig,
+  correlationId: CorrelationId
+): CreateEvent<NotificationConfigEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "UserNotificationConfigCreated",
+    event_version: 2,
+    data: {
+      userNotificationConfig: toUserNotificationConfigV2(
+        userNotificationConfig
+      ),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventTenantNotificationConfigUpdated = (
   streamId: string,
   version: number | undefined,
@@ -39,6 +79,46 @@ export const toCreateEventUserNotificationConfigUpdated = (
   version,
   event: {
     type: "UserNotificationConfigUpdated",
+    event_version: 2,
+    data: {
+      userNotificationConfig: toUserNotificationConfigV2(
+        userNotificationConfig
+      ),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantNotificationConfigDeleted = (
+  streamId: string,
+  version: number | undefined,
+  tenantNotificationConfig: TenantNotificationConfig,
+  correlationId: CorrelationId
+): CreateEvent<NotificationConfigEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "TenantNotificationConfigDeleted",
+    event_version: 2,
+    data: {
+      tenantNotificationConfig: toTenantNotificationConfigV2(
+        tenantNotificationConfig
+      ),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventUserNotificationConfigDeleted = (
+  streamId: string,
+  version: number | undefined,
+  userNotificationConfig: UserNotificationConfig,
+  correlationId: CorrelationId
+): CreateEvent<NotificationConfigEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "UserNotificationConfigDeleted",
     event_version: 2,
     data: {
       userNotificationConfig: toUserNotificationConfigV2(
