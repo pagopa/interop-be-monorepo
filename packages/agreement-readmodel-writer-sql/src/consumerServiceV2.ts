@@ -4,11 +4,11 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { ReadModelService } from "./readModelService.js";
+import { AgreementWriterService } from "./agreementWriterService.js";
 
 export async function handleMessageV2(
   message: AgreementEventEnvelopeV2,
-  readModelService: ReadModelService
+  agreementWriterService: AgreementWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -21,7 +21,7 @@ export async function handleMessageV2(
             "agreement can't be missing in event message"
           );
         }
-        await readModelService.deleteAgreementById(
+        await agreementWriterService.deleteAgreementById(
           fromAgreementV2(agreementV2).id,
           message.version
         );
@@ -55,7 +55,7 @@ export async function handleMessageV2(
             "agreement can't be missing in event message"
           );
         }
-        await readModelService.upsertAgreement(
+        await agreementWriterService.upsertAgreement(
           fromAgreementV2(agreementV2),
           message.version
         );
