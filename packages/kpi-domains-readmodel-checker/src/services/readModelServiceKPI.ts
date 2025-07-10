@@ -238,7 +238,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         riskAnalysisFormsSQL,
         riskAnalysisAnswersSQL: riskAnalysisAnswersSQL.map((ra) => ({
           ...ra,
-          value: JSON.parse(ra.value!),
+          value: JSON.parse(ra.value),
         })),
         versionsSQL,
         versionDocumentsSQL,
