@@ -156,12 +156,18 @@ const agreementRouter = (
       try {
         validateAuthorization(ctx, [M2M_ADMIN_ROLE, M2M_ROLE]);
 
-        const documents = await agreementService.getAgreementConsumerDocuments(
-          unsafeBrandId(req.params.agreementId),
-          req.query,
-          ctx
+        const { results, totalCount } =
+          await agreementService.getAgreementConsumerDocuments(
+            unsafeBrandId(req.params.agreementId),
+            req.query,
+            ctx
+          );
+        return res.status(200).send(
+          agreementApi.Documents.parse({
+            results: results.map(agreementDocumentToApiAgreementDocument),
+            totalCount,
+          })
         );
-        return res.status(200).send(agreementApi.Documents.parse(documents));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
