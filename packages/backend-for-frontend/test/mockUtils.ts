@@ -128,7 +128,7 @@ export const getMockAuthorizationApiClient = (): authorizationApi.Client & {
   description: generateMock(z.string().optional()),
   users: generateMock(z.array(z.string().uuid())),
   kind: generateMock(authorizationApi.ClientKind),
-  visibility: generateMock(z.union([z.literal("FULL"), z.literal("COMPACT")])),
+  visibility: generateMock(z.union([z.literal("FULL"), z.literal("PARTIAL")])),
 });
 
 export const getMockBffApiCompactDelegation = (): bffApi.CompactDelegation => ({
