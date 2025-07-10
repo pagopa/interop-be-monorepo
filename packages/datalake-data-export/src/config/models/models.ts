@@ -139,9 +139,12 @@ const ExportedEServiceTemplateVersion = EServiceTemplateVersion.pick({
   description: true,
   dailyCallsPerConsumer: true,
   dailyCallsTotal: true,
-  interface: true,
   agreementApprovalPolicy: true,
-});
+}).and(
+  z.object({
+    interface: ExportedCatalogDocument.optional(),
+  })
+);
 
 export const ExportedEServiceTemplate = EServiceTemplate.pick({
   id: true,

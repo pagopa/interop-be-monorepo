@@ -9,7 +9,6 @@ import {
 import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
-  delegationContractDocumentInReadmodelDelegation,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
@@ -22,6 +21,7 @@ import {
   eserviceInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
+  eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
@@ -229,8 +229,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         .select({
           delegation: delegationInReadmodelDelegation,
           delegationStamp: delegationStampInReadmodelDelegation,
-          delegationContractDocument:
-            delegationContractDocumentInReadmodelDelegation,
+          delegationContractDocument: sql<null>`NULL`,
         })
         .from(delegationInReadmodelDelegation)
         .leftJoin(
@@ -252,47 +251,30 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       ).map((delegation) => ExportedDelegation.parse(delegation.data));
     },
     async getEServiceTemplates(): Promise<ExportedEServiceTemplate[]> {
-      const subquery = readModelDB
-        .select({
-          id: eserviceTemplateInReadmodelEserviceTemplate.id,
-        })
-        .from(eserviceTemplateInReadmodelEserviceTemplate)
-        .innerJoin(
-          eserviceTemplateInReadmodelEserviceTemplate,
-          and(
-            eq(
-              eserviceTemplateInReadmodelEserviceTemplate.id,
-              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
-            ),
-            ne(
-              eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-              eserviceTemplateVersionState.draft
-            )
-          )
-        )
-        .groupBy(eserviceTemplateInReadmodelEserviceTemplate.id)
-        .as("subquery");
-
       const queryResult = await readModelDB
         .select({
           eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
           version: eserviceTemplateVersionInReadmodelEserviceTemplate,
           document: sql<null>`NULL`,
-          interface: sql<null>`NULL`,
+          interface:
+            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
           riskAnalysis: sql<null>`NULL`,
           riskAnalysisAnswer: sql<null>`NULL`,
           attribute: sql<null>`NULL`,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .innerJoin(
-          subquery,
-          eq(eserviceTemplateInReadmodelEserviceTemplate.id, subquery.id)
-        )
-        .innerJoin(
           eserviceTemplateVersionInReadmodelEserviceTemplate,
           eq(
             eserviceTemplateInReadmodelEserviceTemplate.id,
             eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId
+          )
+        )
+        .leftJoin(
+          eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
+            eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.eserviceTemplateId
           )
         )
         .where(
