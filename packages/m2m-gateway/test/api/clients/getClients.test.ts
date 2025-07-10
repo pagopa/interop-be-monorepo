@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
-  getMockedApiPartialClient,
-  getMockedApiFullClient,
+  getMockedApiConsumerPartialClient,
+  getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -20,12 +20,12 @@ describe("GET /clients router test", () => {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
       toM2MGatewayApiConsumerClient(
-        getMockedApiPartialClient({
+        getMockedApiConsumerPartialClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
       ),
       toM2MGatewayApiConsumerClient(
-        getMockedApiPartialClient({
+        getMockedApiConsumerPartialClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
       ),
@@ -36,12 +36,12 @@ describe("GET /clients router test", () => {
     pagination: { offset: 0, limit: 10, totalCount: 2 },
     results: [
       toM2MGatewayApiConsumerClient(
-        getMockedApiFullClient({
+        getMockedApiConsumerFullClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
       ),
       toM2MGatewayApiConsumerClient(
-        getMockedApiFullClient({
+        getMockedApiConsumerFullClient({
           kind: authorizationApi.ClientKind.Values.CONSUMER,
         })
       ),
@@ -172,7 +172,9 @@ describe("GET /clients router test", () => {
   it("Should return 500 in case of unexpectedClientKind error", async () => {
     mockClientService.getClients = vi
       .fn()
-      .mockRejectedValue(unexpectedClientKind(getMockedApiPartialClient()));
+      .mockRejectedValue(
+        unexpectedClientKind(getMockedApiConsumerPartialClient())
+      );
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockQueryParams);
 

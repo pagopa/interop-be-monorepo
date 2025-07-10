@@ -69,4 +69,14 @@ export type GetClientsQueryParams = QueryParametersByAlias<
   "getClients"
 >;
 
+export type GetClientPurposesQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClientPurposes"
+>;
+
+export type GetClientKeysQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClientKeys"
+>;
+
 export * from "./generated/m2mGatewayApi.js";

@@ -2,8 +2,8 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
-  getMockedApiPartialClient,
-  getMockedApiFullClient,
+  getMockedApiConsumerPartialClient,
+  getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -16,13 +16,13 @@ import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConvert
 
 describe("GET /clients/:clientId route test", () => {
   const mockM2MFullClientResponse = toM2MGatewayApiConsumerClient(
-    getMockedApiFullClient({
+    getMockedApiConsumerFullClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
 
   const mockM2MPartialClientResponse = toM2MGatewayApiConsumerClient(
-    getMockedApiPartialClient({
+    getMockedApiConsumerPartialClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
@@ -108,7 +108,9 @@ describe("GET /clients/:clientId route test", () => {
   it("Should return 500 in case of unexpectedClientKind error", async () => {
     mockClientService.getClient = vi
       .fn()
-      .mockRejectedValue(unexpectedClientKind(getMockedApiFullClient()));
+      .mockRejectedValue(
+        unexpectedClientKind(getMockedApiConsumerFullClient())
+      );
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 

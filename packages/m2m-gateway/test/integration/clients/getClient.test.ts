@@ -3,8 +3,8 @@ import { unsafeBrandId } from "pagopa-interop-models";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
-  getMockedApiPartialClient,
-  getMockedApiFullClient,
+  getMockedApiConsumerPartialClient,
+  getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
 import {
   clientService,
@@ -17,13 +17,13 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getClient", () => {
   const mockFullClientFromProcess = getMockWithMetadata(
-    getMockedApiFullClient({
+    getMockedApiConsumerFullClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
 
   const mockPartialClientFromProcess = getMockWithMetadata(
-    getMockedApiPartialClient({
+    getMockedApiConsumerPartialClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );

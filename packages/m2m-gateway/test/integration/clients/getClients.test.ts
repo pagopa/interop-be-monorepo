@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { authorizationApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import {
-  getMockedApiPartialClient,
-  getMockedApiFullClient,
+  getMockedApiConsumerPartialClient,
+  getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
@@ -24,10 +24,10 @@ describe("getClients", () => {
     offset: 0,
     limit: 10,
   };
-  const mockFullClient1 = getMockedApiFullClient({
+  const mockFullClient1 = getMockedApiConsumerFullClient({
     kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
-  const mockFullClient2 = getMockedApiFullClient({
+  const mockFullClient2 = getMockedApiConsumerFullClient({
     kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
 
@@ -43,10 +43,10 @@ describe("getClients", () => {
 
   const mockGetClients = vi.fn();
 
-  const mockPartialClient1 = getMockedApiPartialClient({
+  const mockPartialClient1 = getMockedApiConsumerPartialClient({
     kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
-  const mockPartialClient2 = getMockedApiPartialClient({
+  const mockPartialClient2 = getMockedApiConsumerPartialClient({
     kind: authorizationApi.ClientKind.Values.CONSUMER,
   });
   const mockPartialClients = [mockPartialClient1, mockPartialClient2];

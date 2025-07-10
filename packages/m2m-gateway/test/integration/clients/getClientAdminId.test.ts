@@ -3,8 +3,8 @@ import { authorizationApi } from "pagopa-interop-api-clients";
 import { unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockWithMetadata,
-  getMockedApiPartialClient,
-  getMockedApiFullClient,
+  getMockedApiConsumerPartialClient,
+  getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
@@ -17,19 +17,19 @@ import { clientAdminIdNotFound } from "../../../src/model/errors.js";
 
 describe("getClientAdminId", () => {
   const mockAuthProcessResponseWithAdminId = getMockWithMetadata(
-    getMockedApiFullClient({
+    getMockedApiConsumerFullClient({
       kind: authorizationApi.ClientKind.Values.API,
     })
   );
 
   const mockAuthProcessResponseWithoutAdminId = getMockWithMetadata(
-    getMockedApiFullClient({
+    getMockedApiConsumerFullClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
 
   const mockAuthProcessResponsePartial = getMockWithMetadata(
-    getMockedApiPartialClient({
+    getMockedApiConsumerPartialClient({
       kind: authorizationApi.ClientKind.Values.CONSUMER,
     })
   );
