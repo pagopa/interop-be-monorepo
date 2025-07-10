@@ -59,3 +59,5 @@ export * from "./tenant/aggregators.js";
 export * from "./notificationConfigReadModelService.js";
 export * from "./notification-config/splitters.js";
 export * from "./notification-config/aggregators.js";
+
+export * from "./overallReadModelService.js";
