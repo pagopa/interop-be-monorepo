@@ -76,8 +76,6 @@ export const clientReadModelServiceSQL =
   clientReadModelServiceBuilder(readModelDB);
 export const producerKeychainReadModelServiceSQL =
   producerKeychainReadModelServiceBuilder(readModelDB);
-export const clientKeysReadModelServiceSQL =
-  clientJWKKeyReadModelServiceBuilder(readModelDB);
 export const producerKeychainKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
 
