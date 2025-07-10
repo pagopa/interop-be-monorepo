@@ -1,4 +1,4 @@
-import { ilike, inArray, or, and, eq, SQL } from "drizzle-orm";
+import { ilike, inArray, or, and, eq, SQL, asc } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -847,9 +847,7 @@ export function readModelServiceBuilderSQL(
             agreementId
           )
         )
-        .orderBy(
-          ascLower(agreementConsumerDocumentInReadmodelAgreement.prettyName)
-        )
+        .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
         .limit(limit)
         .offset(offset)
         .$dynamic();

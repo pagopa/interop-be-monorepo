@@ -824,6 +824,9 @@ export function readModelServiceBuilder(
           [
             ...pipeline,
             {
+              $sort: { "documents.createdAt": 1 },
+            },
+            {
               $skip: offset,
             },
             {
