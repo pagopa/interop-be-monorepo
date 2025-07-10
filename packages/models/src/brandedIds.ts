@@ -167,6 +167,9 @@ export type EServiceTemplateVersionId = z.infer<
   typeof EServiceTemplateVersionId
 >;
 
+export const NotificationId = z.string().uuid().brand("NotificationId");
+export type NotificationId = z.infer<typeof NotificationId>;
+
 export const TenantNotificationConfigId = z
   .string()
   .uuid()
@@ -216,6 +219,7 @@ type IDS =
   | GSIPKClientIdKid
   | EServiceTemplateId
   | EServiceTemplateVersionId
+  | NotificationId
   | TenantNotificationConfigId
   | UserNotificationConfigId;
 
