@@ -8,10 +8,10 @@ import {
   agreementReadModelService,
   agreementWriterService,
   getCustomMockAgreement,
-  readAgreementAttributesSQLByAgreementId,
-  readAgreementConsumerDocumentSQLByAgreementId,
-  readAgreementContractQLByAgreementId,
-  readAgreementStampsSQLByAgreementId,
+  retrieveAgreementAttributesSQLByAgreementId,
+  retrieveAgreementConsumerDocumentSQLByAgreementId,
+  retrieveAgreementContractQLByAgreementId,
+  retrieveAgreementStampsSQLByAgreementId,
 } from "./utils.js";
 
 describe("Agreement queries", () => {
@@ -46,15 +46,16 @@ describe("Agreement queries", () => {
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);
 
-      const retrievedStamps = await readAgreementStampsSQLByAgreementId(
+      const retrievedStamps = await retrieveAgreementStampsSQLByAgreementId(
         agreement.data.id
       );
-      const retrievedAttributes = await readAgreementAttributesSQLByAgreementId(
-        agreement.data.id
-      );
+      const retrievedAttributes =
+        await retrieveAgreementAttributesSQLByAgreementId(agreement.data.id);
       const retrievedConsumerDocuments =
-        await readAgreementConsumerDocumentSQLByAgreementId(agreement.data.id);
-      const retrievedContract = await readAgreementContractQLByAgreementId(
+        await retrieveAgreementConsumerDocumentSQLByAgreementId(
+          agreement.data.id
+        );
+      const retrievedContract = await retrieveAgreementContractQLByAgreementId(
         agreement.data.id
       );
 
@@ -82,15 +83,16 @@ describe("Agreement queries", () => {
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);
 
-      const retrievedStamps = await readAgreementStampsSQLByAgreementId(
+      const retrievedStamps = await retrieveAgreementStampsSQLByAgreementId(
         agreement.data.id
       );
-      const retrievedAttributes = await readAgreementAttributesSQLByAgreementId(
-        agreement.data.id
-      );
+      const retrievedAttributes =
+        await retrieveAgreementAttributesSQLByAgreementId(agreement.data.id);
       const retrievedConsumerDocuments =
-        await readAgreementConsumerDocumentSQLByAgreementId(agreement.data.id);
-      const retrievedContract = await readAgreementContractQLByAgreementId(
+        await retrieveAgreementConsumerDocumentSQLByAgreementId(
+          agreement.data.id
+        );
+      const retrievedContract = await retrieveAgreementContractQLByAgreementId(
         agreement.data.id
       );
 
@@ -152,17 +154,18 @@ describe("Agreement queries", () => {
           updatedAgreement.data.id
         );
 
-      const retrievedStamps = await readAgreementStampsSQLByAgreementId(
+      const retrievedStamps = await retrieveAgreementStampsSQLByAgreementId(
         updatedAgreement.data.id
       );
-      const retrievedAttributes = await readAgreementAttributesSQLByAgreementId(
-        updatedAgreement.data.id
-      );
-      const retrievedConsumerDocuments =
-        await readAgreementConsumerDocumentSQLByAgreementId(
+      const retrievedAttributes =
+        await retrieveAgreementAttributesSQLByAgreementId(
           updatedAgreement.data.id
         );
-      const retrievedContract = await readAgreementContractQLByAgreementId(
+      const retrievedConsumerDocuments =
+        await retrieveAgreementConsumerDocumentSQLByAgreementId(
+          updatedAgreement.data.id
+        );
+      const retrievedContract = await retrieveAgreementContractQLByAgreementId(
         updatedAgreement.data.id
       );
 
@@ -198,15 +201,16 @@ describe("Agreement queries", () => {
       );
       const retrievedAgreement =
         await agreementReadModelService.getAgreementById(agreement.data.id);
-      const retrievedStamps = await readAgreementStampsSQLByAgreementId(
+      const retrievedStamps = await retrieveAgreementStampsSQLByAgreementId(
         agreement.data.id
       );
-      const retrievedAttributes = await readAgreementAttributesSQLByAgreementId(
-        agreement.data.id
-      );
+      const retrievedAttributes =
+        await retrieveAgreementAttributesSQLByAgreementId(agreement.data.id);
       const retrievedConsumerDocuments =
-        await readAgreementConsumerDocumentSQLByAgreementId(agreement.data.id);
-      const retrievedContract = await readAgreementContractQLByAgreementId(
+        await retrieveAgreementConsumerDocumentSQLByAgreementId(
+          agreement.data.id
+        );
+      const retrievedContract = await retrieveAgreementContractQLByAgreementId(
         agreement.data.id
       );
 
