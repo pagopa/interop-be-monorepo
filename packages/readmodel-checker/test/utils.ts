@@ -25,9 +25,6 @@ import {
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
 import {
-  agreementReadModelServiceBuilder,
-  attributeReadModelServiceBuilder,
-  catalogReadModelServiceBuilder,
   clientJWKKeyReadModelServiceBuilder,
   clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
@@ -58,16 +55,10 @@ afterEach(cleanup);
 export const readModelService = readModelServiceBuilder(readModelRepository);
 export const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
-export const eserviceReadModelServiceSQL =
-  catalogReadModelServiceBuilder(readModelDB);
 export const eserviceTemplateReadModelServiceSQL =
   eserviceTemplateReadModelServiceBuilder(readModelDB);
-export const attributeReadModelServiceSQL =
-  attributeReadModelServiceBuilder(readModelDB);
 export const tenantReadModelServiceSQL =
   tenantReadModelServiceBuilder(readModelDB);
-export const agreementReadModelServiceSQL =
-  agreementReadModelServiceBuilder(readModelDB);
 export const purposeReadModelServiceSQL =
   purposeReadModelServiceBuilder(readModelDB);
 export const delegationReadModelServiceSQL =
