@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { Agreement } from "pagopa-interop-models";
+import { Agreement, Attribute } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
@@ -7,9 +7,11 @@ import {
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
   DrizzleReturnType,
+  attributeInReadmodelAttribute,
 } from "pagopa-interop-readmodel-models";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
+import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 
 // TODO: simplify the functions for tests. Maybe rename to insertX to keep it aligned with the notifications functions
 export const upsertAgreement = async (
@@ -63,5 +65,35 @@ export const upsertAgreement = async (
         .insert(agreementContractInReadmodelAgreement)
         .values(contractSQL);
     }
+  });
+};
+
+export const upsertAttribute = async (
+  readModelDB: DrizzleReturnType,
+  attribute: Attribute,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      attributeInReadmodelAttribute,
+      metadataVersion,
+      attribute.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(attributeInReadmodelAttribute)
+      .where(eq(attributeInReadmodelAttribute.id, attribute.id));
+
+    const attributeSQL = splitAttributeIntoObjectsSQL(
+      attribute,
+      metadataVersion
+    );
+
+    await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
   });
 };
