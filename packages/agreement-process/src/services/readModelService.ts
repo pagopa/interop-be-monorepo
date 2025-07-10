@@ -33,6 +33,7 @@ import {
   DescriptorReadModel,
   EServiceReadModel,
   delegationKind,
+  AgreementDocument,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { z } from "zod";
@@ -796,6 +797,61 @@ export function readModelServiceBuilder(
         "data.state": delegationState.active,
         "data.kind": delegationKind.delegatedConsumer,
       });
+    },
+    async getAgreementConsumerDocuments(
+      agreementId: AgreementId,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<AgreementDocument>> {
+      const pipeline = [
+        {
+          $match: { "data.id": agreementId },
+        },
+        {
+          $project: {
+            documents: "$data.consumerDocuments",
+          },
+        },
+        {
+          $unwind: {
+            path: "$documents",
+            preserveNullAndEmptyArrays: true,
+          },
+        },
+      ];
+      const data = await agreements
+        .aggregate(
+          [
+            ...pipeline,
+            {
+              $skip: offset,
+            },
+            {
+              $limit: limit,
+            },
+          ],
+          { allowDiskUse: true }
+        )
+        .toArray();
+
+      const result = z
+        .array(AgreementDocument)
+        .safeParse(data.map((d) => d.documents));
+      if (!result.success) {
+        throw genericInternalError(
+          `Unable to parse agreement document items: result ${JSON.stringify(
+            result
+          )} - data ${JSON.stringify(data)} `
+        );
+      }
+
+      return {
+        results: result.data,
+        totalCount: await ReadModelRepository.getTotalCount(
+          agreements,
+          pipeline
+        ),
+      };
     },
   };
 }
