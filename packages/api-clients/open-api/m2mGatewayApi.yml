@@ -1189,7 +1189,7 @@ paths:
         - agreements
       summary: List Agreement Consumer Documents
       description: Retrieve a list of Consumer Documents for the specified Agreement
-      operationId: listAgreementConsumerDocuments
+      operationId: getAgreementConsumerDocuments
       parameters:
         - in: query
           name: offset
