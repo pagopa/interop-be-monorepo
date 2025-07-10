@@ -626,7 +626,10 @@ export function authorizationServiceBuilder(
         offset: number;
         limit: number;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Key>> {
       logger.info(
         `Retrieving keys for client ${clientId}, limit = ${limit}, offset = ${offset}`
