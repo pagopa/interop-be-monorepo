@@ -936,8 +936,15 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        "200":
           description: Request succeed
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullClient"
         "401":
           description: Unauthorized
           content:
@@ -1833,23 +1840,23 @@ components:
       required:
         - name
         - members
-    ClientVisibility:
+    Visibility:
       type: string
-      enum: [COMPACT, FULL]
+      enum: [PARTIAL, FULL]
     Client:
       description: |
-        Models a client that can be either a full client or a compact client based on the caller
+        Models a client that can be either a full client or a partial client based on the caller
         tenant. In case the caller tenant is the consumer of the client (i.e., the owner), the
-        full client is returned, otherwise a compact client is returned.
+        full client is returned, otherwise a partial client is returned.
       oneOf:
         - $ref: "#/components/schemas/FullClient"
-        - $ref: "#/components/schemas/CompactClient"
+        - $ref: "#/components/schemas/PartialClient"
       discriminator:
         propertyName: visibility
         mapping:
-          COMPACT: "#/components/schemas/CompactClient"
+          PARTIAL: "#/components/schemas/PartialClient"
           FULL: "#/components/schemas/FullClient"
-    CompactClient:
+    PartialClient:
       type: object
       description: |
         Models a client with a reduced set of fields: only the fields that are
@@ -1858,7 +1865,7 @@ components:
       properties:
         visibility:
           type: string
-          enum: [COMPACT]
+          enum: [PARTIAL]
         id:
           type: string
           format: uuid
@@ -1881,7 +1888,7 @@ components:
         Models a client that can be either a Consumer or an API client.
         The owner of the client is the consumer tenant, identified by the consumerId.
         The only fields that are visible to any caller tenant are the ones that are
-        present also in the CompactClient schema. The rest are visible only to the owner tenant.
+        present also in the PartialClient schema. The rest are visible only to the owner tenant.
       additionalProperties: false
       properties:
         visibility:

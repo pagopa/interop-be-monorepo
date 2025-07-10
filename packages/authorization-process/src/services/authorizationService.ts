@@ -218,15 +218,7 @@ export function authorizationServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Client>> {
       logger.info(`Retrieving Client ${clientId}`);
-      const { data: client, metadata } = await retrieveClient(
-        clientId,
-        readModelService
-      );
-
-      return {
-        data: client,
-        metadata,
-      };
+      return await retrieveClient(clientId, readModelService);
     },
 
     async createConsumerClient(
@@ -297,7 +289,10 @@ export function authorizationServiceBuilder(
         offset: number;
         limit: number;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Client>> {
       logger.info(
         `Retrieving clients by name ${filters.name} , userIds ${filters.userIds}`
@@ -432,8 +427,12 @@ export function authorizationServiceBuilder(
         clientId: ClientId;
         purposeIdToRemove: PurposeId;
       },
-      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        correlationId,
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Client>> {
       logger.info(
         `Removing purpose ${purposeIdToRemove} from client ${clientId}`
       );
@@ -444,10 +443,6 @@ export function authorizationServiceBuilder(
 
       assertOrganizationIsClientConsumer(authData, client.data);
 
-      // if (!client.data.purposes.find((id) => id === purposeIdToRemove)) {
-      //   throw purposeNotFound(purposeIdToRemove);
-      // }
-
       const updatedClient: Client = {
         ...client.data,
         purposes: client.data.purposes.filter(
@@ -455,7 +450,7 @@ export function authorizationServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventClientPurposeRemoved(
           updatedClient,
           purposeIdToRemove,
@@ -463,6 +458,13 @@ export function authorizationServiceBuilder(
           correlationId
         )
       );
+
+      return {
+        data: updatedClient,
+        metadata: {
+          version: createdEvent.newVersion,
+        },
+      };
     },
     async removePurposeFromClients(
       {
@@ -624,7 +626,10 @@ export function authorizationServiceBuilder(
         offset: number;
         limit: number;
       },
-      { authData, logger }: WithLogger<AppContext<UIAuthData | M2MAuthData>>
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<Key>> {
       logger.info(
         `Retrieving keys for client ${clientId}, limit = ${limit}, offset = ${offset}`

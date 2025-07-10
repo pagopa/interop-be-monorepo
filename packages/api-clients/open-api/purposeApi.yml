@@ -1361,7 +1361,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 500
+              maxLength: 2000
         riskAnalysisId:
           type: string
           format: uuid
@@ -1382,7 +1382,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 500
+              maxLength: 2000
       required:
         - version
         - answers

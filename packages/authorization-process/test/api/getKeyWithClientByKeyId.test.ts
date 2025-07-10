@@ -15,7 +15,7 @@ import {
   clientKeyNotFound,
   clientNotFound,
 } from "../../src/model/domain/errors.js";
-import { testToCompactClient, testToFullClient } from "../apiUtils.js";
+import { testToPartialClient, testToFullClient } from "../apiUtils.js";
 
 describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () => {
   const mockClient: Client = getMockClient();
@@ -51,13 +51,13 @@ describe("API /clients/{clientId}/keys/{keyId}/bundle authorization test", () =>
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 with a compact client for user with role %s and tenant != client consumerId",
+    "Should return 200 with a partial client for user with role %s and tenant != client consumerId",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockClient.id, mockKey.kid);
       expect(res.status).toBe(200);
       expect(res.body).toEqual({
-        client: testToCompactClient(mockClient),
+        client: testToPartialClient(mockClient),
         key: {
           ...mockJwk,
           kid: mockKey.kid,
