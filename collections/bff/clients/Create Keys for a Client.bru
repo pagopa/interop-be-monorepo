@@ -1,5 +1,5 @@
 meta {
-  name: Create Keys for the specific clientId-
+  name: Create Keys for a Client
   type: http
   seq: 3
 }
@@ -11,7 +11,7 @@ post {
 }
 
 params:path {
-  clientId: bfb613c0-f07a-45ee-be0a-26cf9985f940
+  clientId: {{clientId}}
 }
 
 headers {
@@ -19,14 +19,12 @@ headers {
 }
 
 body:json {
-  [
-    {
+  {
       "key": "{{keyEncodedPem}}",
       "use": "ENC",
       "alg": "RS256",
       "name": "asdasasdasdad"
-    }
-  ]
+  }
 }
 
 docs {

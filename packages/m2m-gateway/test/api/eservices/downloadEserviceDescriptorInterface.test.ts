@@ -9,19 +9,14 @@ import {
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
+import { getMockDownloadedDocument } from "../../mockUtils.js";
+import {
+  testExpectedMultipartResponse,
+  testMultipartResponseParser,
+} from "../../multipartTestUtils.js";
 
-describe("GET /eservice/:eserviceId/descriptors/:descriptorId/interface router test", () => {
-  const mockFileName = "mockFileName.txt";
-  const mockContentType = "text/plain";
-  const mockFileContent = `This is a mock file content for testing purposes.
-It simulates the content of an Eservice descriptor interface file.
-On multiple lines.`;
-
-  const mockM2MEserviceDescriptorInterfaceResponse = {
-    file: Buffer.from(mockFileContent),
-    filename: mockFileName,
-    contentType: mockContentType,
-  };
+describe("GET /eservices/:eserviceId/descriptors/:descriptorId/interface router test", () => {
+  const mockDownloadedDoc = getMockDownloadedDocument();
 
   const makeRequest = async (
     token: string,
@@ -34,16 +29,7 @@ On multiple lines.`;
       )
       .set("Authorization", `Bearer ${token}`)
       .buffer(true)
-      .parse((res, done) => {
-        const chunks: Buffer[] = [];
-        res.on("data", (c: Buffer) => chunks.push(c));
-        res.once("end", function () {
-          const buf = Buffer.concat(chunks);
-          res.text = buf.toString("utf8");
-          done(null, res);
-        });
-        res.once("error", done);
-      });
+      .parse(testMultipartResponseParser);
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ROLE,
@@ -52,42 +38,15 @@ On multiple lines.`;
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.getEServiceDescriptorInterface = vi
+      mockEserviceService.downloadEServiceDescriptorInterface = vi
         .fn()
-        .mockResolvedValue(mockM2MEserviceDescriptorInterfaceResponse);
+        .mockResolvedValue(mockDownloadedDoc);
 
       const token = generateToken(role);
       const res = await makeRequest(token, generateId(), generateId());
 
       expect(res.status).toBe(200);
-      expect(res.headers["content-type"]).toMatch(
-        /^multipart\/form-data;\s*boundary=form-data-encoder-[A-Za-z0-9]+/
-      );
-      const boundary = res.headers["content-type"].match(/boundary=(.*)$/)![1];
-
-      const CRLF = "\r\n";
-      const expectedMultipart = [
-        `--${boundary}`,
-        `Content-Disposition: form-data; name="file"; filename="${mockFileName}"`,
-        `Content-Type: ${mockContentType}`,
-        ``,
-        mockFileContent,
-        `--${boundary}`,
-        `Content-Disposition: form-data; name="filename"`,
-        ``,
-        mockFileName,
-        `--${boundary}`,
-        `Content-Disposition: form-data; name="contentType"`,
-        ``,
-        mockContentType,
-        `--${boundary}--`,
-        CRLF,
-      ].join(CRLF);
-
-      expect(res.text).toEqual(expectedMultipart);
-      expect(res.headers["content-length"]).toBe(
-        Buffer.byteLength(expectedMultipart, "utf8").toString()
-      );
+      await testExpectedMultipartResponse(mockDownloadedDoc, res);
     }
   );
 
@@ -117,7 +76,7 @@ On multiple lines.`;
     eserviceDescriptorNotFound(generateId(), generateId()),
     eserviceDescriptorInterfaceNotFound(generateId(), generateId()),
   ])("Should return 404 in case of $code error", async (error) => {
-    mockEserviceService.getEServiceDescriptorInterface = vi
+    mockEserviceService.downloadEServiceDescriptorInterface = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

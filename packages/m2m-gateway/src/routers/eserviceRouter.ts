@@ -1,5 +1,3 @@
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -11,15 +9,14 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { FormDataEncoder } from "form-data-encoder";
-import { FormData, File } from "formdata-node";
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getEserviceDescriptorErrorMapper,
-  getEserviceDescriptorInterfaceErrorMapper,
+  downloadEServiceDescriptorInterfaceErrorMapper,
 } from "../utils/errorMappers.js";
+import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
@@ -132,29 +129,18 @@ const eserviceRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
-          const { file, filename, contentType } =
-            await eserviceService.getEServiceDescriptorInterface(
+          const file =
+            await eserviceService.downloadEServiceDescriptorInterface(
               unsafeBrandId(req.params.eserviceId),
               unsafeBrandId(req.params.descriptorId),
               ctx
             );
 
-          const form = new FormData();
-          form.set("file", new File([file], filename, { type: contentType }));
-          form.set("filename", filename);
-          form.set("contentType", contentType);
-
-          const encoder = new FormDataEncoder(form);
-
-          res.writeHead(200, encoder.headers);
-
-          // Stream the multipart body and end the response when done
-          await pipeline(Readable.from(encoder.encode()), res);
-          return res;
+          return sendDownloadedDocumentAsFormData(file, res);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            getEserviceDescriptorInterfaceErrorMapper,
+            downloadEServiceDescriptorInterfaceErrorMapper,
             ctx,
             `Error retrieving interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );

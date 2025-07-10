@@ -3,6 +3,7 @@ import { DescriptorId, generateId, unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
+  getMockedApiEserviceDoc,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
@@ -20,21 +21,17 @@ import {
 } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
-describe("getEserviceDescriptor", () => {
-  const testFileContent = `This is a mock file content for testing purposes.
-It simulates the content of an Eservice descriptor interface file.
-On multiple lines.`;
+describe("downloadEserviceDescriptorInterface", () => {
+  const testFileContent =
+    "This is a mock file content for testing purposes.\nOn multiple lines.";
 
   const mockInterfaceId = generateId();
   const mockInterfaceName = "interfaceDoc.txt";
-  const mockInterface = {
+  const mockInterface = getMockedApiEserviceDoc({
     id: mockInterfaceId,
     name: mockInterfaceName,
-    contentType: "text/plain",
-    prettyName: "Interface Document",
     path: `${config.eserviceDocumentsPath}/${mockInterfaceId}/${mockInterfaceName}`,
-    checksum: "mock-checksum",
-  };
+  });
   const mockCatalogProcessResponseDescriptor = getMockedApiEserviceDescriptor({
     interfaceDoc: mockInterface,
   });
@@ -79,17 +76,20 @@ On multiple lines.`;
       ).at(0)
     ).toEqual(mockInterface.path);
 
-    const result = await eserviceService.getEServiceDescriptorInterface(
+    const result = await eserviceService.downloadEServiceDescriptorInterface(
       unsafeBrandId(mockCatalogProcessResponse.data.id),
       unsafeBrandId(mockCatalogProcessResponseDescriptor.id),
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual({
-      file: Buffer.from(testFileContent),
-      contentType: mockInterface.contentType,
-      filename: mockInterface.prettyName,
-    });
+    const expectedServiceResponse = {
+      id: mockInterface.id,
+      file: new File([Buffer.from(testFileContent)], mockInterface.name, {
+        type: mockInterface.contentType,
+      }),
+      prettyName: mockInterface.prettyName,
+    };
+    expect(result).toEqual(expectedServiceResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },
@@ -99,7 +99,7 @@ On multiple lines.`;
   it("Should throw eserviceDescriptorNotFound in case the returned eservice has no descriptor with the given id", async () => {
     const nonExistingDescriptorId = generateId<DescriptorId>();
     await expect(
-      eserviceService.getEServiceDescriptorInterface(
+      eserviceService.downloadEServiceDescriptorInterface(
         unsafeBrandId(mockCatalogProcessResponse.data.id),
         nonExistingDescriptorId,
         getMockM2MAdminAppContext()
@@ -126,7 +126,7 @@ On multiple lines.`;
       },
     });
     await expect(
-      eserviceService.getEServiceDescriptorInterface(
+      eserviceService.downloadEServiceDescriptorInterface(
         unsafeBrandId(mockCatalogProcessResponse.data.id),
         unsafeBrandId(mockCatalogProcessResponseDescriptor.id),
         getMockM2MAdminAppContext()

@@ -105,6 +105,10 @@ import {
   JWKKeyES256,
   Algorithm,
   algorithm,
+  ClientKind,
+  NotificationConfig,
+  TenantNotificationConfig,
+  UserNotificationConfig,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -404,16 +408,31 @@ export const getMockAgreementDocument = (): AgreementDocument => ({
   createdAt: new Date(),
 });
 
-export const getMockClient = (): Client => ({
+export const getMockClient = ({
+  consumerId = generateId<TenantId>(),
+  users = [],
+  kind = clientKind.consumer,
+  purposes = [],
+  keys = [],
+  adminId = undefined,
+}: {
+  consumerId?: TenantId;
+  users?: UserId[];
+  kind?: ClientKind;
+  purposes?: PurposeId[];
+  keys?: Key[];
+  adminId?: UserId;
+} = {}): Client => ({
   id: generateId(),
-  consumerId: generateId(),
+  consumerId,
   name: "Test client",
-  purposes: [],
+  purposes,
   description: "Client description",
-  users: [],
-  kind: clientKind.consumer,
+  users,
+  kind,
   createdAt: new Date(),
-  keys: [],
+  keys,
+  ...(adminId ? { adminId } : {}),
 });
 
 export const getMockProducerKeychain = (): ProducerKeychain => ({
@@ -1220,9 +1239,12 @@ export const getMockSessionClaims = (
   },
 });
 
-export const getMockWithMetadata = <T>(data: T): WithMetadata<T> => ({
+export const getMockWithMetadata = <T>(
+  data: T,
+  version?: number
+): WithMetadata<T> => ({
   data,
-  metadata: { version: generateMock(z.number().int()) },
+  metadata: { version: version ?? generateMock(z.number().int()) },
 });
 
 export const readFileContent = async (fileName: string): Promise<string> => {
@@ -1237,3 +1259,26 @@ export const readFileContent = async (fileName: string): Promise<string> => {
 export function createDummyStub<T>(): T {
   return {} as T;
 }
+
+export const getMockNotificationConfig = (): NotificationConfig => ({
+  newEServiceVersionPublished: generateMock(z.boolean()),
+});
+
+export const getMockTenantNotificationConfig =
+  (): TenantNotificationConfig => ({
+    id: generateId(),
+    tenantId: generateId(),
+    config: getMockNotificationConfig(),
+    createdAt: generateMock(z.coerce.date()),
+    updatedAt: generateMock(z.coerce.date().optional()),
+  });
+
+export const getMockUserNotificationConfig = (): UserNotificationConfig => ({
+  id: generateId(),
+  userId: generateId(),
+  tenantId: generateId(),
+  inAppConfig: getMockNotificationConfig(),
+  emailConfig: getMockNotificationConfig(),
+  createdAt: generateMock(z.coerce.date()),
+  updatedAt: generateMock(z.coerce.date().optional()),
+});
