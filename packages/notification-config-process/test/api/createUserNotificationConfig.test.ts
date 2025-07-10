@@ -1,23 +1,25 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { UserNotificationConfig, generateId } from "pagopa-interop-models";
+import {
+  TenantId,
+  UserId,
+  UserNotificationConfig,
+  generateId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockNotificationConfig,
   getMockUserNotificationConfig,
-  mockTokenOrganizationId,
-  mockTokenUserId,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { api, notificationConfigService } from "../vitest.api.setup.js";
 import { userNotificationConfigToApiUserNotificationConfig } from "../../src/model/domain/apiConverter.js";
-import { expectedUserIdAndOrganizationId } from "../utils.js";
-import { userNotificationConfigNotFound } from "../../src/model/domain/errors.js";
+import { userNotificationConfigAlreadyExists } from "../../src/model/domain/errors.js";
 
-describe("API POST /userNotificationConfigs test", () => {
-  const userId = mockTokenUserId;
-  const tenantId = mockTokenOrganizationId;
+describe("API POST /internal/userNotificationConfigs/{tenantId}/{userId} test", () => {
+  const defaultTenantId: TenantId = generateId();
+  const defaultUserId: UserId = generateId();
   const notificationConfigSeed: notificationConfigApi.UserNotificationConfigSeed =
     {
       inAppConfig: getMockNotificationConfig(),
@@ -25,8 +27,8 @@ describe("API POST /userNotificationConfigs test", () => {
     };
   const serviceResponse: UserNotificationConfig = {
     ...getMockUserNotificationConfig(),
-    userId,
-    tenantId,
+    userId: defaultUserId,
+    tenantId: defaultTenantId,
     ...notificationConfigSeed,
   };
   const apiResponse: notificationConfigApi.UserNotificationConfig =
@@ -34,21 +36,23 @@ describe("API POST /userNotificationConfigs test", () => {
 
   const makeRequest = async (
     token: string,
+    tenantId: TenantId = defaultTenantId,
+    userId: UserId = defaultUserId,
     body: notificationConfigApi.UserNotificationConfigSeed = notificationConfigSeed
   ) =>
     request(api)
-      .post("/userNotificationConfigs")
+      .post(`/internal/userNotificationConfigs/${tenantId}/${userId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
   beforeEach(() => {
-    notificationConfigService.updateUserNotificationConfig = vi
+    notificationConfigService.createUserNotificationConfig = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [authRole.INTERNAL_ROLE];
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -58,28 +62,15 @@ describe("API POST /userNotificationConfigs test", () => {
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
       expect(
-        notificationConfigService.updateUserNotificationConfig
+        notificationConfigService.createUserNotificationConfig
       ).toHaveBeenCalledWith(
+        defaultUserId,
+        defaultTenantId,
         notificationConfigSeed,
-        expectedUserIdAndOrganizationId(userId, tenantId)
+        expect.any(Object)
       );
     }
   );
-
-  it("Should return 404 for userNotificationConfigNotFound", async () => {
-    notificationConfigService.updateUserNotificationConfig = vi
-      .fn()
-      .mockRejectedValue(userNotificationConfigNotFound(userId, tenantId));
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-    expect(
-      notificationConfigService.updateUserNotificationConfig
-    ).toHaveBeenCalledWith(
-      notificationConfigSeed,
-      expectedUserIdAndOrganizationId(userId, tenantId)
-    );
-  });
 
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
@@ -88,11 +79,32 @@ describe("API POST /userNotificationConfigs test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
     expect(
-      notificationConfigService.updateUserNotificationConfig
+      notificationConfigService.createUserNotificationConfig
     ).not.toHaveBeenCalled();
   });
 
+  it("Should return 409 for userNotificationConfigAlreadyExists", async () => {
+    notificationConfigService.createUserNotificationConfig = vi
+      .fn()
+      .mockRejectedValue(
+        userNotificationConfigAlreadyExists(defaultUserId, defaultTenantId)
+      );
+    const token = generateToken(authRole.INTERNAL_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(409);
+    expect(
+      notificationConfigService.createUserNotificationConfig
+    ).toHaveBeenCalledWith(
+      defaultUserId,
+      defaultTenantId,
+      notificationConfigSeed,
+      expect.any(Object)
+    );
+  });
+
   it.each([
+    { userId: "invalid" as UserId },
+    { tenantId: "invalid" as TenantId },
     { body: {} },
     { body: { ...notificationConfigSeed, inAppConfig: undefined } },
     { body: { ...notificationConfigSeed, emailConfig: undefined } },
@@ -106,15 +118,20 @@ describe("API POST /userNotificationConfigs test", () => {
       },
     },
     { body: { ...notificationConfigSeed, extraField: 1 } },
-  ])("Should return 400 if passed invalid params: %s", async ({ body }) => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(
-      token,
-      body as notificationConfigApi.UserNotificationConfigSeed
-    );
-    expect(res.status).toBe(400);
-    expect(
-      notificationConfigService.updateUserNotificationConfig
-    ).not.toHaveBeenCalledWith();
-  });
+  ])(
+    "Should return 400 if passed invalid params: %s",
+    async ({ userId, tenantId, body }) => {
+      const token = generateToken(authRole.INTERNAL_ROLE);
+      const res = await makeRequest(
+        token,
+        tenantId,
+        userId,
+        body as notificationConfigApi.UserNotificationConfigSeed
+      );
+      expect(res.status).toBe(400);
+      expect(
+        notificationConfigService.createUserNotificationConfig
+      ).not.toHaveBeenCalledWith();
+    }
+  );
 });
