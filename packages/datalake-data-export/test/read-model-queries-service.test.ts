@@ -420,7 +420,7 @@ describe("read-model-queries.service", () => {
       await seedCollection(eserviceTemplatesData, eserviceTemplates);
       await seedEServiceTemplates(eserviceTemplatesData);
 
-      const result = await readModelService.getEServices();
+      const result = await readModelService.getEServiceTemplates();
       expect(result).toHaveLength(eserviceTemplatesData.length);
     });
 
@@ -479,7 +479,7 @@ describe("read-model-queries.service", () => {
       await seedCollection(eserviceTemplatesData, eserviceTemplates);
       await seedEServiceTemplates(eserviceTemplatesData);
 
-      const result = await readModelService.getEServices();
+      const result = await readModelService.getEServiceTemplates();
       expect(result).toHaveLength(1);
       expect(result.at(0)?.id).toEqual(eserviceTemplatesData.at(0)?.id);
     });
