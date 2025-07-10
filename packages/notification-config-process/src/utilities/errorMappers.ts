@@ -6,7 +6,11 @@ import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
 
-const { HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_NOT_FOUND } = constants;
+const {
+  HTTP_STATUS_INTERNAL_SERVER_ERROR,
+  HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_CONFLICT,
+} = constants;
 
 export const getTenantNotificationConfigErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -26,14 +30,14 @@ export const createTenantNotificationConfigErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotificationConfigAlreadyExists", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotificationConfigAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createUserNotificationConfigErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("userNotificationConfigAlreadyExists", () => HTTP_STATUS_NOT_FOUND)
+    .with("userNotificationConfigAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateTenantNotificationConfigErrorMapper = (
