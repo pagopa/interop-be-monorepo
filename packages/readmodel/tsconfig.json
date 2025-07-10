@@ -5,5 +5,5 @@
     "declarationMap": true,
     "outDir": "dist"
   },
-  "include": ["src", "test/testUtils.ts"]
+  "include": ["src"]
 }

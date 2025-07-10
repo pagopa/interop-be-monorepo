@@ -8,8 +8,8 @@ import {
   agreementContractInReadmodelAgreement,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { splitAgreementIntoObjectsSQL } from "../src/agreement/splitters.js";
-import { checkMetadataVersion } from "../src/utils.js";
+import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
+import { checkMetadataVersion } from "./utils.js";
 
 // TODO: simplify the functions for tests. Maybe rename to insertX to keep it aligned with the notifications functions
 export const upsertAgreement = async (
