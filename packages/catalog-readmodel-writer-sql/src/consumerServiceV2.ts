@@ -5,15 +5,15 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { CustomReadModelService } from "./readModelService.js";
+import { CatalogWriterService } from "./catalogWriterService.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
-  catalogReadModelService: CustomReadModelService
+  catalogWriterService: CatalogWriterService
 ): Promise<void> {
   await match(message)
     .with({ type: "EServiceDeleted" }, async (message) => {
-      await catalogReadModelService.deleteEServiceById(
+      await catalogWriterService.deleteEServiceById(
         unsafeBrandId(message.stream_id),
         message.version
       );
@@ -67,7 +67,7 @@ export async function handleMessageV2(
             "Eservice can't be missing in event message"
           );
         }
-        return await catalogReadModelService.upsertEService(
+        return await catalogWriterService.upsertEService(
           fromEServiceV2(eservice),
           message.version
         );
