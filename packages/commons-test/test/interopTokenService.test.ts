@@ -1,3 +1,4 @@
+// Modifica di test per invalidazione cache
 import {
   AuthorizationServerTokenGenerationConfig,
   InteropTokenGenerator,
