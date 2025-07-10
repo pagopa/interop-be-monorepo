@@ -40,6 +40,28 @@ describe("Notification config queries", () => {
       });
     });
 
+    // Test that the query works even if there are no tenant_enabled_notification rows
+    it("should get a tenant notification config with all notifications disabled", async () => {
+      const tenantNotificationConfig = {
+        ...getMockTenantNotificationConfig(),
+        config: { newEServiceVersionPublished: false },
+      };
+      await insertTenantNotificationConfig(
+        readModelDB,
+        tenantNotificationConfig,
+        1
+      );
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
+          tenantNotificationConfig.tenantId
+        );
+      expect(retrievedConfig).toStrictEqual({
+        data: tenantNotificationConfig,
+        metadata: { version: 1 },
+      });
+    });
+
     it("should *not* get a tenant notification config if not present", async () => {
       const retrievedConfig =
         await notificationConfigReadModelService.getTenantNotificationConfigByTenantId(
@@ -52,6 +74,30 @@ describe("Notification config queries", () => {
   describe("getUserNotificationConfigByUserIdAndTenantId", () => {
     it("should get a user notification config if present", async () => {
       const userNotificationConfig = getMockUserNotificationConfig();
+      await insertUserNotificationConfig(
+        readModelDB,
+        userNotificationConfig,
+        1
+      );
+
+      const retrievedConfig =
+        await notificationConfigReadModelService.getUserNotificationConfigByUserIdAndTenantId(
+          userNotificationConfig.userId,
+          userNotificationConfig.tenantId
+        );
+      expect(retrievedConfig).toStrictEqual({
+        data: userNotificationConfig,
+        metadata: { version: 1 },
+      });
+    });
+
+    // Test that the query works even if there are no user_enabled_notification rows
+    it("should get a user notification config with all notifications disabled", async () => {
+      const userNotificationConfig = {
+        ...getMockUserNotificationConfig(),
+        inAppConfig: { newEServiceVersionPublished: false },
+        emailConfig: { newEServiceVersionPublished: false },
+      };
       await insertUserNotificationConfig(
         readModelDB,
         userNotificationConfig,
