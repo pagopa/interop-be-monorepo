@@ -30,7 +30,7 @@
     "zod-validation-error": "3.3.0"
   },
   "devDependencies": {
-    "@types/node": "20.19.3",
+    "@types/node": "20.19.4",
     "eslint": "8.57.1",
     "mkdirp": "3.0.1",
     "prettier": "2.8.8",

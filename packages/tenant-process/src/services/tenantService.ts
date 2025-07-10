@@ -6,13 +6,13 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
+  getLatestTenantMailOfKind,
   UIAuthData,
   InternalAuthData,
   MaintenanceAuthData,
   M2MAuthData,
   isUiAuthData,
   M2MAdminAuthData,
-  getLatestTenantMailOfKind,
 } from "pagopa-interop-commons";
 import {
   Attribute,
