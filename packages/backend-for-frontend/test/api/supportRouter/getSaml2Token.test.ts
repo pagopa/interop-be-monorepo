@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import request from "supertest";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { bffApi } from "pagopa-interop-api-clients";
@@ -28,6 +27,7 @@ describe("API POST /session/saml2/tokens", () => {
       .mockResolvedValue(mockSessionToken);
   });
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const makeRequest = async (
     token: string,
     body: bffApi.SAMLTokenRequest = mockSAMLTokenRequestBody

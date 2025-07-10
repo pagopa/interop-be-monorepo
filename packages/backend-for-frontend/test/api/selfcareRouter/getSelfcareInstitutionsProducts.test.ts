@@ -3,13 +3,11 @@ import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { bffApi } from "pagopa-interop-api-clients";
 
 describe("API GET /selfcare/institutions/products", () => {
-
-
   const mockProducts: bffApi.SelfcareProduct[] = [
     { id: "prod-1", name: "Product One" },
     { id: "prod-2", name: "Product Two" },
@@ -21,6 +19,7 @@ describe("API GET /selfcare/institutions/products", () => {
       .mockResolvedValue(mockProducts);
   });
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const makeRequest = async (token: string) =>
     request(api)
       .get(`${appBasePath}/selfcare/institutions/products`)

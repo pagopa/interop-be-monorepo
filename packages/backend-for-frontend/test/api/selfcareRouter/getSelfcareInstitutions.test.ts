@@ -3,9 +3,9 @@ import request from "supertest";
 import { generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { bffApi } from "pagopa-interop-api-clients";
 
 describe("API GET /selfcare/institutions", () => {
   const mockInstitutions: bffApi.SelfcareInstitution[] = [
@@ -13,14 +13,14 @@ describe("API GET /selfcare/institutions", () => {
       id: generateId(),
       description: "Mock Institution A",
       userProductRoles: ["ADMIN"],
-      parent: "Mock Parent A"
+      parent: "Mock Parent A",
     },
     {
       id: generateId(),
       description: "Mock Institution B",
       userProductRoles: ["LIMITED"],
-      parent: "Mock Parent B"
-    }
+      parent: "Mock Parent B",
+    },
   ];
 
   beforeEach(() => {
@@ -29,6 +29,7 @@ describe("API GET /selfcare/institutions", () => {
       .mockResolvedValue(mockInstitutions);
   });
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const makeRequest = async (token: string) =>
     request(api)
       .get(`${appBasePath}/selfcare/institutions`)

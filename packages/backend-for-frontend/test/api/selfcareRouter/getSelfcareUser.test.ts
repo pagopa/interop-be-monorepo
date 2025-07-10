@@ -3,14 +3,13 @@ import { generateId, UserId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { bffApi, selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toApiSelfcareUser } from "../../../src/api/selfcareApiConverter.js";
-import { bffApi, selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { userNotFound } from "../../../src/model/errors.js";
 
 describe("API GET /users/:userId", () => {
-
   const mockUserResource: selfcareV2ClientApi.UserResource = {
     id: generateId(),
     name: "Test",
@@ -20,7 +19,10 @@ describe("API GET /users/:userId", () => {
     fiscalCode: "ABCDEF12G34H567I",
     role: "ADMIN_EA",
   };
-  const mockResponse: bffApi.User = toApiSelfcareUser(mockUserResource, generateId());
+  const mockResponse: bffApi.User = toApiSelfcareUser(
+    mockUserResource,
+    generateId()
+  );
 
   beforeEach(() => {
     services.selfcareService.getSelfcareUser = vi
@@ -28,6 +30,7 @@ describe("API GET /users/:userId", () => {
       .mockResolvedValue(mockResponse);
   });
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const makeRequest = async (userId: string, token: string) =>
     request(api)
       .get(`${appBasePath}/users/${userId}`)
@@ -39,7 +42,6 @@ describe("API GET /users/:userId", () => {
 
     const res = await makeRequest(mockUserResource.id, token);
 
-    console.log("Text", res.text);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockResponse);
   });
@@ -47,7 +49,9 @@ describe("API GET /users/:userId", () => {
   it("Should return 404 if user is not found", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
 
-    services.selfcareService.getSelfcareUser = vi.fn().mockRejectedValue(userNotFound(mockUserResource.id, generateId()))
+    services.selfcareService.getSelfcareUser = vi
+      .fn()
+      .mockRejectedValue(userNotFound(mockUserResource.id, generateId()));
 
     const res = await makeRequest(mockUserResource.id, token);
     expect(res.status).toBe(404);
