@@ -47,15 +47,21 @@ export type TenantService = ReturnType<typeof tenantServiceBuilder>;
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
+  const retrieveTenantById = async (
+    tenantId: string,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<tenantApi.Tenant>> =>
+    await clients.tenantProcessClient.tenant.getTenant({
+      params: { id: tenantId },
+      headers,
+    });
+
   const pollTenant = (
     response: WithMaybeMetadata<tenantApi.Tenant>,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<WithMaybeMetadata<tenantApi.Tenant>> =>
     pollResourceWithMetadata(() =>
-      clients.tenantProcessClient.tenant.getTenant({
-        params: { id: response.data.id },
-        headers,
-      })
+      retrieveTenantById(response.data.id, headers)
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
@@ -93,11 +99,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.Tenant> {
       logger.info(`Retrieving tenant with id ${tenantId}`);
 
-      const { data: tenant } =
-        await clients.tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
-          headers,
-        });
+      const { data: tenant } = await retrieveTenantById(tenantId, headers);
 
       return toM2MGatewayApiTenant(tenant);
     },
@@ -112,11 +114,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.TenantDeclaredAttributes> {
       logger.info(`Retrieving tenant ${tenantId} declared attributes`);
 
-      const { data: tenant } =
-        await clients.tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
-          headers,
-        });
+      const { data: tenant } = await retrieveTenantById(tenantId, headers);
 
       const declaredAttributes = retrieveDeclaredAttributes(tenant);
 
@@ -150,11 +148,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApi.TenantCertifiedAttributes> {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);
 
-      const { data: tenant } =
-        await clients.tenantProcessClient.tenant.getTenant({
-          params: { id: tenantId },
-          headers,
-        });
+      const { data: tenant } = await retrieveTenantById(tenantId, headers);
 
       const certifiedAttributes = retrieveCertifiedAttributes(tenant);
 
