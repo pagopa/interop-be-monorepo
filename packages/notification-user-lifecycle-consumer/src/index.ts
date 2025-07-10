@@ -1,0 +1,34 @@
+import { runConsumer } from "kafka-iam-auth";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+import pg from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { userServiceBuilderSQL } from "./services/userServiceSQL.js";
+import { messageProcessorBuilder } from "./services/messageProcessor.js";
+import { config } from "./config/config.js";
+
+// Initialize database connections
+const readModelDB = makeDrizzleConnection(config);
+const pool = new pg.Pool({
+  host: config.userSQLDbHost,
+  database: config.userSQLDbName,
+  user: config.userSQLDbUsername,
+  password: config.userSQLDbPassword,
+  port: config.userSQLDbPort,
+  ssl: config.userSQLDbUseSSL,
+});
+const userDB = drizzle(pool);
+
+const readModelServiceSQL = readModelServiceBuilderSQL({ readModelDB });
+const userServiceSQL = userServiceBuilderSQL(userDB);
+
+const messageProcessor = messageProcessorBuilder(
+  readModelServiceSQL,
+  userServiceSQL
+);
+
+await runConsumer(
+  config,
+  [config.selfcareTopic],
+  messageProcessor.processMessage
+);
