@@ -315,9 +315,9 @@ export function descriptorNotFoundInEservice(
   });
 }
 
-export function notValidMailAddress(address: string): ApiError<ErrorCodes> {
+export function notValidMailAddress(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Mail address ${address} not valid`,
+    detail: `Mail address not valid`,
     code: "notValidMailAddress",
     title: "Not valid mail address",
   });
