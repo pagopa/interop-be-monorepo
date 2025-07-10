@@ -13,6 +13,7 @@ import {
   PurposeCollection,
   TenantCollection,
   DelegationCollection,
+  EServiceTemplateCollection,
 } from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilder,
@@ -20,6 +21,7 @@ import {
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import {
   Agreement,
@@ -27,6 +29,7 @@ import {
   Purpose,
   Tenant,
   Delegation,
+  EServiceTemplate,
 } from "pagopa-interop-models";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -53,6 +56,8 @@ export const attributes: AttributeCollection = readModelRepository.attributes;
 export const purposes: PurposeCollection = readModelRepository.purposes;
 export const delegations: DelegationCollection =
   readModelRepository.delegations;
+export const eserviceTemplates: EServiceTemplateCollection =
+  readModelRepository.eserviceTemplates;
 
 const oldReadModelService = readModelServiceBuilder(readModelRepository);
 
@@ -63,6 +68,8 @@ const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
+const eserviceTemplateReadModelServiceSQL =
+  eserviceTemplateReadModelServiceBuilder(readModelDB);
 const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
 
 export const readModelService =
@@ -111,5 +118,13 @@ export const seedDelegations = async (
 ): Promise<void> => {
   for (const d of delegations) {
     await delegationReadModelServiceSQL.upsertDelegation(d, 0);
+  }
+};
+
+export const seedEServiceTemplates = async (
+  eserviceTemplates: EServiceTemplate[]
+): Promise<void> => {
+  for (const e of eserviceTemplates) {
+    await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(e, 0);
   }
 };

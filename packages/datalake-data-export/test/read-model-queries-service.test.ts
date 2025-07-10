@@ -7,6 +7,9 @@ import {
   delegationState,
   descriptorState,
   EServiceId,
+  EServiceTemplateId,
+  EServiceTemplateVersion,
+  eserviceTemplateVersionState,
   generateId,
   purposeVersionState,
   Tenant,
@@ -23,7 +26,10 @@ import {
   getMockDelegation,
   getMockDescriptor,
   getMockDescriptorList,
+  getMockDocument,
   getMockEService,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
   getMockPurpose,
   getMockPurposeVersion,
   getMockTenant,
@@ -42,6 +48,8 @@ import {
   tenants,
   delegations,
   seedDelegations,
+  eserviceTemplates,
+  seedEServiceTemplates,
 } from "./utils.js";
 
 describe("read-model-queries.service", () => {
@@ -349,6 +357,10 @@ describe("read-model-queries.service", () => {
           state: randomArrayItem(validDelegationStates),
         }),
       ];
+
+      await seedCollection(delegationsData, delegations);
+      await seedDelegations(delegationsData);
+
       const result = await readModelService.getDelegations();
       expect(result).toHaveLength(delegationsData.length);
     });
@@ -373,11 +385,103 @@ describe("read-model-queries.service", () => {
       ];
 
       await seedCollection(delegationsData, delegations);
-
       await seedDelegations(delegationsData);
 
       const result = await readModelService.getDelegations();
       expect(result).toHaveLength(1);
+    });
+  });
+
+  describe("getEServiceTemplates", async () => {
+    const validEserviceTemplateVersionStates = Object.values(
+      eserviceTemplateVersionState
+    ).filter((state) => state !== eserviceTemplateVersionState.draft);
+
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: randomArrayItem(validEserviceTemplateVersionStates),
+      interface: getMockDocument(),
+    };
+
+    it("should return all eService templates", async () => {
+      const eserviceTemplateVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        state: randomArrayItem(validEserviceTemplateVersionStates),
+        interface: getMockDocument(),
+      };
+
+      const eserviceTemplatesData = [
+        getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [eserviceTemplateVersion]
+        ),
+      ];
+      await seedCollection(eserviceTemplatesData, eserviceTemplates);
+      await seedEServiceTemplates(eserviceTemplatesData);
+
+      const result = await readModelService.getEServices();
+      expect(result).toHaveLength(eserviceTemplatesData.length);
+    });
+
+    it("should not return draft descriptors in the e-service", async () => {
+      const eserviceTemplatesData = [
+        getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [
+            {
+              ...getMockEServiceTemplateVersion(),
+              state: eserviceTemplateVersionState.published,
+              interface: getMockDocument(),
+            },
+            {
+              ...getMockEServiceTemplateVersion(),
+              state: eserviceTemplateVersionState.draft,
+            },
+          ]
+        ),
+      ];
+
+      await seedCollection(eserviceTemplatesData, eserviceTemplates);
+      await seedEServiceTemplates(eserviceTemplatesData);
+
+      const result = await readModelService.getEServiceTemplates();
+      expect(result).toHaveLength(eserviceTemplatesData.length);
+      expect(result.at(0)?.versions).toHaveLength(1);
+      expect(result.at(0)?.versions.at(0)?.state).toEqual("Published");
+    });
+
+    it("should return empty array if no eService templates are found", async () => {
+      const result = await readModelService.getEServiceTemplates();
+      expect(result).toHaveLength(0);
+    });
+
+    it("should not return eService templates with only one version with Draft state", async () => {
+      const eserviceTemplatesData = [
+        getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [eserviceTemplateVersion]
+        ),
+        getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [
+            {
+              ...getMockEServiceTemplateVersion(),
+              state: eserviceTemplateVersionState.draft,
+            },
+          ]
+        ),
+      ];
+
+      await seedCollection(eserviceTemplatesData, eserviceTemplates);
+      await seedEServiceTemplates(eserviceTemplatesData);
+
+      const result = await readModelService.getEServices();
+      expect(result).toHaveLength(1);
+      expect(result.at(0)?.id).toEqual(eserviceTemplatesData.at(0)?.id);
     });
   });
 });
