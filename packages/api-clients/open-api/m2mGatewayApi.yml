@@ -994,7 +994,7 @@ paths:
       operationId: upgradeAgreement
       responses:
         "200":
-          description: Agreement updated
+          description: Agreement upgraded
           content:
             application/json:
               schema:
