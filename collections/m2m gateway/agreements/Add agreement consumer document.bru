@@ -1,7 +1,7 @@
 meta {
   name: Add agreement consumer document
   type: http
-  seq: 10
+  seq: 11
 }
 
 post {
@@ -20,7 +20,7 @@ headers {
 }
 
 body:multipart-form {
-  file: @file()
+  file: @file(/Users/ecamel/Downloads/test.png)
   prettyName: Test File
 }
 
