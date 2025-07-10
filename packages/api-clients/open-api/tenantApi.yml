@@ -632,12 +632,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -692,12 +686,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -837,12 +825,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
@@ -851,12 +833,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Attribute already assigned to Tenant
           content:
             application/problem+json:
               schema:
@@ -901,12 +877,6 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-        "409":
-          description: Attribute already revoked for the Tenant
           content:
             application/problem+json:
               schema:
