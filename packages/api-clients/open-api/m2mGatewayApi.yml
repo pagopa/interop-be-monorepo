@@ -7019,6 +7019,7 @@ components:
       required:
         - id
         - name
+        - prettyName
         - contentType
         - createdAt
       properties:
