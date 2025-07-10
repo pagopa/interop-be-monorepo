@@ -2,9 +2,9 @@ import { CorrelationId, generateId } from "pagopa-interop-models";
 import { logger, ReadModelRepository } from "pagopa-interop-commons";
 import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
+import { overallReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { readModelServiceBuilder } from "./services/readModelService.js";
 import { compare } from "./utils.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { config } from "./configs/config.js";
 
 const readModelRepository = ReadModelRepository.init(config);
@@ -27,7 +27,7 @@ const pool = new pg.Pool({
 
 const readModelDB = drizzle({ client: pool });
 
-const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+const readModelServiceSQL = overallReadModelServiceBuilder(readModelDB);
 
 async function main(): Promise<void> {
   // CATALOG
