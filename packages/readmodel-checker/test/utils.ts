@@ -28,7 +28,6 @@ import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
-  clientJWKKeyReadModelServiceBuilder,
   clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
