@@ -65,6 +65,8 @@ export const generateToken = (role: AuthRole): string =>
 export const signPayload = (payload: object): string =>
   jwt.sign(payload, "test-secret");
 
+export const mockTokenUserId = generateId<UserId>();
+
 export const mockTokenOrganizationId = generateId<TenantId>();
 export const mockM2MAdminClientId = generateId<ClientId>();
 export const mockM2MAdminUserId: UserId = generateId();
@@ -82,7 +84,7 @@ export function createUserPayload(
     nbf: Math.floor(Date.now() / 1000),
     iat: Math.floor(Date.now() / 1000),
     jti: "1bca86f5-e913-4fce-bc47-2803bde44d2b",
-    uid: generateId(),
+    uid: mockTokenUserId,
     name: "Mario",
     family_name: "Rossi",
     email: "Mario.rossi@psp.it",
