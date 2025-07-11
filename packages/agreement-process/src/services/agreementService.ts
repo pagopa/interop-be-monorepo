@@ -799,8 +799,12 @@ export function agreementServiceBuilder(
     },
     async cloneAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Cloning agreement ${agreementId}`);
 
       const agreementToBeCloned = await retrieveAgreement(
@@ -873,11 +877,14 @@ export function agreementServiceBuilder(
         stamps: {},
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventAgreementAdded(newAgreement, correlationId)
       );
 
-      return newAgreement;
+      return {
+        data: newAgreement,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async addConsumerDocument(
       agreementId: AgreementId,

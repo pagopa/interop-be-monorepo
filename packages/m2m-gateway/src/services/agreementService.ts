@@ -370,5 +370,23 @@ export function agreementServiceBuilder(
         logger
       );
     },
+    async cloneAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.Agreement> {
+      logger.info(`Cloning agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.cloneAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreement(polledResource.data);
+    },
   };
 }
