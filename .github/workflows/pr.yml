@@ -1,6 +1,8 @@
 name: PR validation
 on:
-  pull_request:
+  push:
+    branches:
+      - 'turborepo_cache'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
@@ -36,8 +36,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
@@ -60,8 +58,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Cache turbo setup
         uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
         with:
@@ -83,8 +79,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Create cache key
         id: cache_key
         run: |
@@ -113,8 +107,6 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
         with:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
@@ -128,8 +120,6 @@ jobs:
       packages: ${{ steps.set_packages_output.outputs.packages }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Find packages
         id: set_packages_output
         run: |
@@ -154,8 +144,6 @@ jobs:
       DOCKER_BUILD_SUMMARY: "false"
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
