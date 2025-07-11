@@ -7,7 +7,10 @@ import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { api, attributeRegistryService } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
-import { attributeDuplicateByName } from "../../src/model/domain/errors.js";
+import {
+  attributeDuplicateByName,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /verifiedAttributes authorization test", () => {
   const mockVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed = {
@@ -79,5 +82,15 @@ describe("API /verifiedAttributes authorization test", () => {
         name: "Verified Attribute",
       });
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 500 for tenant not found", async () => {
+    attributeRegistryService.createVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(generateId()));
+
+    const res = await makeRequest(generateToken(authRole.M2M_ADMIN_ROLE));
+
+    expect(res.status).toBe(500);
   });
 });
