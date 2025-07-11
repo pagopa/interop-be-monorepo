@@ -5,6 +5,9 @@ import {
   PurposeTopicConfig,
   AuthorizationTopicConfig,
   DelegationTopicConfig,
+  FileManagerConfig,
+  LoggerConfig,
+  S3Config,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -13,7 +16,10 @@ export const EventsSignerConfig = KafkaConsumerConfig.and(CatalogTopicConfig)
   .and(AuthorizationTopicConfig)
   .and(PurposeTopicConfig)
   .and(DelegationTopicConfig)
-  .and(CatalogTopicConfig);
+  .and(CatalogTopicConfig)
+  .and(FileManagerConfig)
+  .and(S3Config)
+  .and(LoggerConfig);
 
 export type EventsSignerConfig = z.infer<typeof EventsSignerConfig>;
 

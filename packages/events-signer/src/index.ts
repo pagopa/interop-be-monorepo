@@ -11,6 +11,7 @@ import {
   AuthorizationTopicConfig,
   DelegationTopicConfig,
   decodeKafkaMessage,
+  initFileManager,
 } from "pagopa-interop-commons";
 import {
   genericInternalError,
@@ -26,52 +27,72 @@ import {
 
 import { config } from "../config/config.js";
 
-// eslint-disable-next-line max-params
+import { handleCatalogMessageV2 } from "./handlers/handleCatalogMessageV2.js";
+import { handleAgreementMessageV2 } from "./handlers/handleAgreementMessageV2.js";
+import { handlePurposeMessageV2 } from "./handlers/handlePurposeMessageV2.js";
+import { handleAuthorizationMessageV2 } from "./handlers/handleAuthorizationMessageV2.js";
+import { handleDelegationMessageV2 } from "./handlers/handleDelegationMessageV2.js";
+
+const fileManager = initFileManager(config);
+
 function processMessage(
-  authorizationTopicConfig: AuthorizationTopicConfig,
+  catalogTopicConfig: CatalogTopicConfig,
   agreementTopicConfig: AgreementTopicConfig,
   purposeTopicConfig: PurposeTopicConfig,
-  delegationTopic: DelegationTopicConfig,
-  catalogTopicConfig: CatalogTopicConfig,
+  authorizationTopicConfig: AuthorizationTopicConfig,
+  delegationTopicConfig: DelegationTopicConfig
 ) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
-    const { decodedMessage } = match(messagePayload.topic)
+    const { decodedMessage, updater } = match(messagePayload.topic)
       .with(catalogTopicConfig.catalogTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          EServiceEventV2,
+          EServiceEventV2
         );
 
-        return { decodedMessage };
+        const updater = handleCatalogMessageV2.bind(null, decodedMessage);
+
+        return { decodedMessage, updater };
       })
       .with(agreementTopicConfig.agreementTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          AgreementEventV2,
+          AgreementEventV2
         );
 
-        return { decodedMessage };
+        const updater = handleAgreementMessageV2.bind(null, decodedMessage);
+
+        return { decodedMessage, updater };
       })
       .with(purposeTopicConfig.purposeTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          PurposeEventV2,
+          PurposeEventV2
         );
-        return { decodedMessage };
+
+        const updater = handlePurposeMessageV2.bind(null, decodedMessage);
+
+        return { decodedMessage, updater };
       })
       .with(authorizationTopicConfig.authorizationTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          AuthorizationEventV2,
+          AuthorizationEventV2
         );
-        return { decodedMessage };
+
+        const updater = handleAuthorizationMessageV2.bind(null, decodedMessage);
+
+        return { decodedMessage, updater };
       })
-      .with(delegationTopic.delegationTopic, () => {
+      .with(delegationTopicConfig.delegationTopic, () => {
         const decodedMessage = decodeKafkaMessage(
           messagePayload.message,
-          DelegationEventV2,
+          DelegationEventV2
         );
-        return { decodedMessage };
+
+        const updater = handleDelegationMessageV2.bind(null, decodedMessage);
+
+        return { decodedMessage, updater };
       })
       .otherwise(() => {
         throw genericInternalError(`Unknown topic: ${messagePayload.topic}`);
@@ -91,8 +112,10 @@ function processMessage(
     });
 
     loggerInstance.info(
-      `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`,
+      `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
     );
+
+    await updater(loggerInstance, fileManager);
   };
 }
 
@@ -108,7 +131,7 @@ try {
     ],
     processMessage(
       {
-        authorizationTopic: config.authorizationTopic,
+        catalogTopic: config.catalogTopic,
       },
       {
         agreementTopic: config.agreementTopic,
@@ -117,13 +140,13 @@ try {
         purposeTopic: config.purposeTopic,
       },
       {
-        delegationTopic: config.delegationTopic,
+        authorizationTopic: config.authorizationTopic,
       },
       {
-        catalogTopic: config.catalogTopic,
-      },
+        delegationTopic: config.delegationTopic,
+      }
     ),
-    "events-signer",
+    "events-signer"
   );
 } catch (e) {
   genericLogger.error(`An error occurred during initialization:\n${e}`);
