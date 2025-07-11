@@ -5,7 +5,11 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { DelegationId, emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
 import { PurposeService } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/errors.js";
