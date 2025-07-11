@@ -9,6 +9,7 @@ import {
   Delegation,
   EServiceTemplate,
   EServiceTemplateVersion,
+  EServiceTemplateVersionRef,
 } from "pagopa-interop-models";
 import { z } from "zod";
 
@@ -44,6 +45,10 @@ const ExportedCatalogDocument = Document.pick({
   checksum: true,
 } satisfies StrictPick<Document>);
 
+const ExportedEServiceTemplateVersionRef = EServiceTemplateVersionRef.pick({
+  id: true,
+});
+
 const ExportedDescriptor = Descriptor.pick({
   id: true,
   description: true,
@@ -59,6 +64,7 @@ const ExportedDescriptor = Descriptor.pick({
 } satisfies StrictPick<Descriptor>).and(
   z.object({
     interface: ExportedCatalogDocument.optional(),
+    templateVersionRef: ExportedEServiceTemplateVersionRef.optional(),
   })
 );
 export const ExportedEService = EService.pick({
@@ -69,6 +75,7 @@ export const ExportedEService = EService.pick({
   mode: true,
   createdAt: true,
   technology: true,
+  templateId: true,
 } satisfies StrictPick<EService>).and(
   z.object({
     descriptors: z.array(ExportedDescriptor),
