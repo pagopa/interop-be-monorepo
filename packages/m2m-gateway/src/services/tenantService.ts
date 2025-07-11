@@ -7,6 +7,7 @@ import {
   toM2MGatewayApiTenantCertifiedAttribute,
   toGetTenantsApiQueryParams,
   toM2MGatewayApiTenant,
+  toM2MGatewayApiTenantVerifiedAttribute,
   toM2MGatewayApiTenantDeclaredAttribute,
 } from "../api/tenantApiConverter.js";
 import {
@@ -41,6 +42,12 @@ function retrieveCertifiedAttribute(
   }
 
   return certifiedAttribute;
+}
+
+function retrieveVerifiedAttributes(
+  tenant: tenantApi.Tenant
+): tenantApi.VerifiedTenantAttribute[] {
+  return tenant.attributes.map((v) => v.verified).filter(isDefined);
 }
 
 export type TenantService = ReturnType<typeof tenantServiceBuilder>;
@@ -219,6 +226,33 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       return toM2MGatewayApiTenantCertifiedAttribute(certifiedAttribute);
+    },
+    async getVerifiedAttributes(
+      tenantId: TenantId,
+      { limit, offset }: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantVerifiedAttributes> {
+      logger.info(`Retrieving tenant ${tenantId} verified attributes`);
+
+      const { data: tenant } = await retrieveTenantById(tenantId, headers);
+
+      const verifiedAttributes = retrieveVerifiedAttributes(tenant);
+
+      const paginatedVerifiedAttributes = verifiedAttributes.slice(
+        offset,
+        offset + limit
+      );
+
+      return {
+        results: paginatedVerifiedAttributes.map(
+          toM2MGatewayApiTenantVerifiedAttribute
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: verifiedAttributes.length,
+        },
+      };
     },
   };
 }

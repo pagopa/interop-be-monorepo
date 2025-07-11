@@ -56,3 +56,12 @@ export function toM2MGatewayApiTenantCertifiedAttribute(
     revokedAt: tenantCertifiedAttribute.revocationTimestamp,
   };
 }
+
+export function toM2MGatewayApiTenantVerifiedAttribute(
+  tenantVerifiedAttribute: tenantApi.VerifiedTenantAttribute
+): m2mGatewayApi.TenantVerifiedAttribute {
+  return {
+    id: tenantVerifiedAttribute.id,
+    assignedAt: tenantVerifiedAttribute.assignmentTimestamp,
+  };
+}

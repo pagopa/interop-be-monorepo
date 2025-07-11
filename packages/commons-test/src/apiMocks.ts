@@ -331,6 +331,15 @@ export function getMockedApiCertifiedTenantAttribute({
   };
 }
 
+export function getMockedApiVerifiedTenantAttribute(): tenantApi.VerifiedTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    verifiedBy: generateMock(z.array(tenantApi.TenantVerifier)),
+    revokedBy: generateMock(z.array(tenantApi.TenantRevoker)),
+  };
+}
+
 export function getMockedApiDeclaredTenantAttribute({
   revoked = false,
 }: {
