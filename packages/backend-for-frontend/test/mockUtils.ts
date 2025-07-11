@@ -160,7 +160,7 @@ export const getMockBffApiCompactEServiceLight = (
 export const getMockBffApiProducerEServiceDescriptor =
   (): bffApi.ProducerEServiceDescriptor => ({
     id: generateId(),
-    version: generateMock(z.string()),
+    version: generateMock(z.number().int()),
     description: generateMock(z.string().optional()),
     interface: generateMock(bffApi.EServiceDoc.optional()),
     docs: generateMock(z.array(bffApi.EServiceDoc)),
@@ -213,7 +213,7 @@ export const getMockBffApiProducerEServiceDetails =
 export const getMockBffApiCatalogEServiceDescriptor =
   (): bffApi.CatalogEServiceDescriptor => ({
     id: generateId(),
-    version: generateMock(z.string()),
+    version: generateMock(z.number().int()),
     description: generateMock(z.string().optional()),
     interface: generateMock(bffApi.EServiceDoc.optional()),
     docs: generateMock(z.array(bffApi.EServiceDoc)),
@@ -290,7 +290,7 @@ export const getMockBffApiPresignedUrl = (): bffApi.PresignedUrl => ({
 export const getMockCatalogApiEServiceDescriptor =
   (): catalogApi.EServiceDescriptor & { id: DescriptorId } => ({
     id: generateId(),
-    version: generateMock(z.string()),
+    version: generateMock(z.number().int()),
     description: generateMock(z.string().optional()),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int()),

@@ -44,7 +44,7 @@ export function toM2MGatewayApiEServiceDescriptor(
 ): m2mGatewayApi.EServiceDescriptor {
   return {
     id: descriptor.id,
-    version: descriptor.version,
+    version: descriptor.version.toString(),
     description: descriptor.description,
     audience: descriptor.audience,
     voucherLifespan: descriptor.voucherLifespan,

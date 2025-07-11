@@ -47,7 +47,7 @@ export type EServiceDocument = {
 };
 
 export const consumer = z.object({
-  descriptorVersion: z.string(),
+  descriptorVersion: z.coerce.number().int(),
   descriptorState: DescriptorState,
   agreementState: AgreementState,
   consumerName: z.string(),
