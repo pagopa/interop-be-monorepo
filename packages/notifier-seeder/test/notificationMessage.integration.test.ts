@@ -44,7 +44,7 @@ import { queueWriter } from "./utils.js";
 const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
   toDescriptorV2({
     id: unsafeBrandId(descriptorId),
-    version: "1",
+    version: 1,
     description: "Questo è un e-service di test",
     docs: [],
     state: descriptorState.suspended,
