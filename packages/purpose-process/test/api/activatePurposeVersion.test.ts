@@ -28,6 +28,7 @@ import {
   purposeNotFound,
   purposeVersionNotFound,
   riskAnalysisValidationFailed,
+  tenantIsNotTheDelegatedConsumer,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", () => {
@@ -104,6 +105,13 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
     },
     {
       error: unauthorizedError(generateId()),
+      expectedStatus: 403,
+    },
+    {
+      error: tenantIsNotTheDelegatedConsumer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
       expectedStatus: 403,
     },
   ])(

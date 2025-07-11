@@ -24,6 +24,7 @@ import {
   tenantNotAllowed,
   purposeNotFound,
   purposeVersionNotFound,
+  tenantIsNotTheDelegatedProducer,
 } from "../../src/model/domain/errors.js";
 import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
 
@@ -100,6 +101,13 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
     },
     {
       error: unauthorizedError(generateId()),
+      expectedStatus: 403,
+    },
+    {
+      error: tenantIsNotTheDelegatedProducer(
+        generateId(),
+        generateId<DelegationId>()
+      ),
       expectedStatus: 403,
     },
   ])(
