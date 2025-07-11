@@ -126,8 +126,11 @@ export function readModelServiceBuilderSQL(
         agreementStates,
         name,
         attributesIds,
+        technology,
         mode,
+        isSignalHubEnabled,
         isConsumerDelegable,
+        isClientAccessDelegable,
         delegated,
         templatesIds,
       } = filters;
@@ -260,6 +263,36 @@ export function readModelServiceBuilderSQL(
               : existsValidDescriptor(readmodelDB),
             // mode filter
             mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
+            // technology filter
+            technology
+              ? eq(eserviceInReadmodelCatalog.technology, technology)
+              : undefined,
+            // isSignalHubEnabled filter
+            match(isSignalHubEnabled)
+              .with(true, () =>
+                eq(eserviceInReadmodelCatalog.isSignalHubEnabled, true)
+              )
+              .with(false, () =>
+                or(
+                  isNull(eserviceInReadmodelCatalog.isSignalHubEnabled),
+                  eq(eserviceInReadmodelCatalog.isSignalHubEnabled, false)
+                )
+              )
+              .with(undefined, () => undefined)
+              .exhaustive(),
+            // isClientAccessDelegable filter
+            match(isClientAccessDelegable)
+              .with(true, () =>
+                eq(eserviceInReadmodelCatalog.isClientAccessDelegable, true)
+              )
+              .with(false, () =>
+                or(
+                  isNull(eserviceInReadmodelCatalog.isClientAccessDelegable),
+                  eq(eserviceInReadmodelCatalog.isClientAccessDelegable, false)
+                )
+              )
+              .with(undefined, () => undefined)
+              .exhaustive(),
             // isConsumerDelegable filter
             match(isConsumerDelegable)
               .with(true, () =>

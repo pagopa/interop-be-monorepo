@@ -2909,6 +2909,36 @@ paths:
             default: []
           explode: false
         - in: query
+          name: name
+          description: Filter E-Services by name
+          schema:
+            type: string
+        - in: query
+          name: technology
+          description: Filter E-Services by technology
+          schema:
+            $ref: "#/components/schemas/EServiceTechnology"
+        - in: query
+          name: mode
+          description: Filter E-Services by mode
+          schema:
+            $ref: "#/components/schemas/EServiceMode"
+        - in: query
+          name: isSignalHubEnabled
+          description: Filter E-Services by Signal Hub enabled status
+          schema:
+            type: boolean
+        - in: query
+          name: isConsumerDelegable
+          description: Filter E-Services by consumer delegable status
+          schema:
+            type: boolean
+        - in: query
+          name: isClientAccessDelegable
+          description: Filter E-Services by client access delegable status
+          schema:
+            type: boolean
+        - in: query
           name: offset
           description: Pagination starting position
           required: true

@@ -6,13 +6,16 @@ export function toGetEServicesQueryParams(
   return {
     producersIds: params.producerIds,
     templatesIds: params.templateIds,
-    name: undefined,
+    name: params.name,
+    // technology: params.technology, // TODO: Add
     eservicesIds: [],
     attributesIds: [],
     states: [],
     agreementStates: [],
-    mode: undefined,
-    isConsumerDelegable: undefined,
+    mode: params.mode,
+    // isSignalHubEnabled: params.isSignalHubEnabled, // TODO: Add
+    isConsumerDelegable: params.isConsumerDelegable,
+    // isClientAccessDelegable: params.isClientAccessDelegable, // TODO: Add
     delegated: undefined,
     offset: params.offset,
     limit: params.limit,
