@@ -46,6 +46,7 @@ export const errorCodes = {
   tenantIsNotTheDelegatedProducer: "0028",
   purposeDelegationNotFound: "0029",
   purposeCannotBeUpdated: "0030",
+  missingDelegationId: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -354,5 +355,16 @@ export function purposeCannotBeUpdated(
     detail: `Archived purpose ${purposeId} cannot be updated`,
     code: "purposeCannotBeUpdated",
     title: "Purpose cannot be updated",
+  });
+}
+
+export function missingDelegationId(
+  purposeId: PurposeId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} is not allowed to perform the operation on purpose ${purposeId} because delegation ID is missing`,
+    code: "missingDelegationId",
+    title: "Missing delegation ID",
   });
 }

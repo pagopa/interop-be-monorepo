@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  DelegationId,
   PurposeId,
   PurposeVersionId,
   generateId,
@@ -21,6 +22,7 @@ import {
   tenantNotAllowed,
   purposeNotFound,
   purposeVersionNotFound,
+  missingDelegationId,
 } from "../../src/model/domain/errors.js";
 import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
 
@@ -42,12 +44,14 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
   const makeRequest = async (
     token: string,
     purposeId: PurposeId = mockPurpose.id,
-    versionId: PurposeVersionId = mockPurposeVersion.id
+    versionId: PurposeVersionId = mockPurposeVersion.id,
+    delegationId?: DelegationId
   ) =>
     request(api)
       .post(`/purposes/${purposeId}/versions/${versionId}/suspend`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("X-Correlation-Id", generateId())
+      .query({ delegationId });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -89,6 +93,10 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
       ),
       expectedStatus: 400,
     },
+    {
+      error: missingDelegationId(mockPurpose.id, generateId()),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -102,11 +110,12 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
   it.each([
     { purposeId: "invalid" as PurposeId },
     { versionId: "invalid" as PurposeVersionId },
+    { delegationId: "invalid" as DelegationId },
   ])(
     "Should return 400 if passed invalid data: %s",
-    async ({ purposeId, versionId }) => {
+    async ({ purposeId, versionId, delegationId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, purposeId, versionId);
+      const res = await makeRequest(token, purposeId, versionId, delegationId);
       expect(res.status).toBe(400);
     }
   );

@@ -670,6 +670,12 @@ paths:
         schema:
           type: string
           format: uuid
+      - name: delegationId
+        in: query
+        description: The identifier of the delegation to activate the agreement with
+        schema:
+          type: string
+          format: uuid
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
@@ -762,6 +768,12 @@ paths:
       - name: versionId
         in: path
         required: true
+        schema:
+          type: string
+          format: uuid
+      - name: delegationId
+        in: query
+        description: The identifier of the delegation to activate the agreement with
         schema:
           type: string
           format: uuid

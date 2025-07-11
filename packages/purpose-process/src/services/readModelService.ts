@@ -520,6 +520,14 @@ export function readModelServiceBuilder(
         "data.kind": delegationKind.delegatedConsumer,
       } satisfies ReadModelFilter<Delegation>);
     },
+    async getActiveDelegationById(
+      delegationId: DelegationId
+    ): Promise<Delegation | undefined> {
+      return getDelegation(delegations, {
+        "data.id": delegationId,
+        "data.state": delegationState.active,
+      } satisfies ReadModelFilter<Delegation>);
+    },
   };
 }
 

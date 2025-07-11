@@ -5,7 +5,7 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import { DelegationId, emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { bffApi } from "pagopa-interop-api-clients";
 import { PurposeService } from "../services/purposeService.js";
 import { makeApiProblem } from "../model/errors.js";
@@ -270,6 +270,9 @@ const purposeRouter = (
           const result = await purposeService.suspendPurposeVersion(
             unsafeBrandId(req.params.purposeId),
             unsafeBrandId(req.params.versionId),
+            req.query.delegationId
+              ? unsafeBrandId<DelegationId>(req.query.delegationId)
+              : undefined,
             ctx
           );
 
@@ -296,6 +299,9 @@ const purposeRouter = (
           const result = await purposeService.activatePurposeVersion(
             unsafeBrandId(req.params.purposeId),
             unsafeBrandId(req.params.versionId),
+            req.query.delegationId
+              ? unsafeBrandId<DelegationId>(req.query.delegationId)
+              : undefined,
             ctx
           );
 

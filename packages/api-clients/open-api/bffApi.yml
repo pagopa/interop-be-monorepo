@@ -878,6 +878,12 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: delegationId
+          in: query
+          description: The identifier of the delegation to activate the agreement with
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Agreement flagged as activated. It could still be Suspended if other parties have suspended the agreement
@@ -1784,6 +1790,12 @@ paths:
           in: path
           description: The identifier of the agreement
           required: true
+          schema:
+            type: string
+            format: uuid
+        - name: delegationId
+          in: query
+          description: The identifier of the delegation to suspend the agreement for
           schema:
             type: string
             format: uuid
@@ -9328,6 +9340,12 @@ paths:
         schema:
           type: string
           format: uuid
+      - name: delegationId
+        in: query
+        description: The identifier of the delegation to activate the agreement with
+        schema:
+          type: string
+          format: uuid
     post:
       tags:
         - purposes
@@ -9434,6 +9452,12 @@ paths:
       - name: versionId
         in: path
         required: true
+        schema:
+          type: string
+          format: uuid
+      - name: delegationId
+        in: query
+        description: The identifier of the delegation to activate the agreement with
         schema:
           type: string
           format: uuid
