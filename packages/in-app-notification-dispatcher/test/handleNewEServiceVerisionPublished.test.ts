@@ -100,7 +100,7 @@ describe("handleNewEServiceVersionPublished", async () => {
         { userId: generateId(), tenantId: consumerId },
       ];
       // eslint-disable-next-line functional/immutable-data
-      readModelService.getUserNotificationConfigsByTenantIds = vi
+      readModelService.getTenantUsersWithNotificationEnabled = vi
         .fn()
         .mockResolvedValue(users);
 
@@ -142,7 +142,7 @@ describe("handleNewEServiceVersionPublished", async () => {
     await addOneTenant(consumerTenant);
 
     // eslint-disable-next-line functional/immutable-data
-    readModelService.getUserNotificationConfigsByTenantIds = vi
+    readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([]);
 
