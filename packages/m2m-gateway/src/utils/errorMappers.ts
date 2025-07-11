@@ -123,3 +123,11 @@ export const getPurposeAgreementErrorMapper = (
   match(error.code)
     .with("purposeAgreementNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export function downloadAgreementConsumerContractErrorMapper(
+  error: ApiError<ErrorCodes>
+): number {
+  return match(error.code)
+    .with("agreementContractNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+}
