@@ -67,6 +67,7 @@ import {
 import {
   and,
   count,
+  countDistinct,
   desc,
   eq,
   exists,
@@ -135,7 +136,7 @@ export function readModelServiceBuilderSQL(
 
       const totalCountQuery = readmodelDB
         .select({
-          count: count(),
+          count: countDistinct(eserviceInReadmodelCatalog.id),
         })
         .from(eserviceInReadmodelCatalog)
         .$dynamic();
@@ -335,14 +336,16 @@ export function readModelServiceBuilderSQL(
                 : undefined
             )
           )
-          .groupBy(eserviceInReadmodelCatalog.id)
-          .orderBy(ascLower(eserviceInReadmodelCatalog.name))
           .$dynamic();
 
-      const totalCount = (await buildQuery(totalCountQuery))[0]?.count || 0;
-      const ids = (await buildQuery(idsQuery).limit(limit).offset(offset)).map(
-        (result) => result.id
-      );
+      const totalCount = (await buildQuery(totalCountQuery))[0].count;
+      const ids = (
+        await buildQuery(idsQuery)
+          .groupBy(eserviceInReadmodelCatalog.id)
+          .orderBy(ascLower(eserviceInReadmodelCatalog.name))
+          .limit(limit)
+          .offset(offset)
+      ).map((result) => result.id);
 
       const queryResult = await readmodelDB
         .select({
