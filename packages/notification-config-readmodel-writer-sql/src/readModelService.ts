@@ -10,7 +10,9 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
+  userEnabledNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
 
@@ -41,7 +43,7 @@ export function notificationConfigReadModelWriteServiceBuilder(
               tenantNotificationConfig.id
             )
           );
-        const tenantNotificationConfigSQL =
+        const { tenantNotificationConfigSQL, enabledNotificationsSQL } =
           splitTenantNotificationConfigIntoObjectsSQL(
             tenantNotificationConfig,
             metadataVersion
@@ -49,6 +51,11 @@ export function notificationConfigReadModelWriteServiceBuilder(
         await tx
           .insert(tenantNotificationConfigInReadmodelNotificationConfig)
           .values(tenantNotificationConfigSQL);
+        if (enabledNotificationsSQL.length > 0) {
+          await tx
+            .insert(tenantEnabledNotificationInReadmodelNotificationConfig)
+            .values(enabledNotificationsSQL);
+        }
       });
     },
 
@@ -74,7 +81,7 @@ export function notificationConfigReadModelWriteServiceBuilder(
               userNotificationConfig.id
             )
           );
-        const userNotificationConfigSQL =
+        const { userNotificationConfigSQL, enabledNotificationsSQL } =
           splitUserNotificationConfigIntoObjectsSQL(
             userNotificationConfig,
             metadataVersion
@@ -82,6 +89,11 @@ export function notificationConfigReadModelWriteServiceBuilder(
         await tx
           .insert(userNotificationConfigInReadmodelNotificationConfig)
           .values(userNotificationConfigSQL);
+        if (enabledNotificationsSQL.length > 0) {
+          await tx
+            .insert(userEnabledNotificationInReadmodelNotificationConfig)
+            .values(enabledNotificationsSQL);
+        }
       });
     },
   };
