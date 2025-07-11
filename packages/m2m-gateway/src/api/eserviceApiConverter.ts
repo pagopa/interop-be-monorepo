@@ -7,15 +7,15 @@ export function toGetEServicesQueryParams(
     producersIds: params.producerIds,
     templatesIds: params.templateIds,
     name: params.name,
-    // technology: params.technology, // TODO: Add
+    technology: params.technology,
     eservicesIds: [],
     attributesIds: [],
     states: [],
     agreementStates: [],
     mode: params.mode,
-    // isSignalHubEnabled: params.isSignalHubEnabled, // TODO: Add
+    isSignalHubEnabled: params.isSignalHubEnabled,
     isConsumerDelegable: params.isConsumerDelegable,
-    // isClientAccessDelegable: params.isClientAccessDelegable, // TODO: Add
+    isClientAccessDelegable: params.isClientAccessDelegable,
     delegated: undefined,
     offset: params.offset,
     limit: params.limit,
