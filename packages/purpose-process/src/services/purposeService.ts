@@ -1,5 +1,6 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
+  ActiveDelegations,
   AppContext,
   CreateEvent,
   DB,
@@ -18,6 +19,7 @@ import {
   getIpaCode,
   getLatestVersionFormRules,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  validateDelegationConstraints,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
@@ -47,7 +49,6 @@ import {
   CorrelationId,
   Delegation,
   DelegationId,
-  delegationKind,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { P, match } from "ts-pattern";
@@ -125,11 +126,7 @@ import {
   verifyRequesterIsConsumerOrDelegateConsumer,
   isClonable,
   purposeIsArchived,
-  assertRequesterIsDelegateProducer,
-  assertRequesterIsDelegateConsumer,
-  assertRequesterIsProducer,
-  assertRequesterIsConsumer,
-  validateDelegationConstraints,
+  getOrganizationRole,
 } from "./validators.js";
 import { riskAnalysisDocumentBuilder } from "./riskAnalysisDocumentBuilder.js";
 
@@ -240,16 +237,19 @@ async function retrieveTenantKind(
   return tenant.kind;
 }
 
-export const retrieveActiveDelegation = async (
-  purposeId: PurposeId,
-  delegationId: DelegationId,
+export const retrievePurposeDelegation = async (
+  purpose: Purpose,
   readModelService: ReadModelService
 ): Promise<Delegation | undefined> => {
-  const delegation = await readModelService.getActiveDelegationById(
-    delegationId
-  );
+  if (!purpose.delegationId) {
+    return undefined;
+  }
+  const delegation =
+    await readModelService.getActiveConsumerDelegationByDelegationId(
+      purpose.delegationId
+    );
   if (!delegation) {
-    throw purposeDelegationNotFound(purposeId, delegationId);
+    throw purposeDelegationNotFound(purpose.id, purpose.delegationId);
   }
   return delegation;
 };
@@ -350,12 +350,7 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        purpose.data.delegationId &&
-          (await retrieveActiveDelegation(
-            purposeId,
-            purpose.data.delegationId,
-            readModelService
-          ))
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -489,12 +484,7 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        purpose.data.delegationId &&
-          (await retrieveActiveDelegation(
-            purposeId,
-            purpose.data.delegationId,
-            readModelService
-          ))
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const event = purposeIsDraft(purpose.data)
@@ -563,12 +553,7 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        purpose.data.delegationId &&
-          (await retrieveActiveDelegation(
-            purposeId,
-            purpose.data.delegationId,
-            readModelService
-          ))
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -694,13 +679,23 @@ export function purposeServiceBuilder(
         readModelService
       );
 
-      const delegation = await validateDelegationConstraints(
+      const activeDelegations: ActiveDelegations = await Promise.all([
+        retrievePurposeDelegation(purpose.data, readModelService),
+        readModelService.getActiveProducerDelegationByEserviceId(
+          purpose.data.eserviceId
+        ),
+      ]).then((values) => ({
+        consumerDelegation: values[0],
+        producerDelegation: values[1],
+      }));
+
+      const delegation = await validateDelegationConstraints({
         delegationId,
-        purpose.data,
-        eservice.producerId,
+        consumerId: purpose.data.consumerId,
+        producerId: eservice.producerId,
         authData,
-        readModelService
-      );
+        activeDelegations,
+      });
 
       const suspender = getOrganizationRole({
         purpose: purpose.data,
@@ -799,12 +794,7 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
-        purpose.data.delegationId &&
-          (await retrieveActiveDelegation(
-            purposeId,
-            purpose.data.delegationId,
-            readModelService
-          ))
+        await retrievePurposeDelegation(purpose.data, readModelService)
       );
 
       const previousVersion = [
@@ -995,13 +985,23 @@ export function purposeServiceBuilder(
         });
       }
 
-      const delegation = await validateDelegationConstraints(
+      const activeDelegations: ActiveDelegations = await Promise.all([
+        retrievePurposeDelegation(purpose.data, readModelService),
+        readModelService.getActiveProducerDelegationByEserviceId(
+          purpose.data.eserviceId
+        ),
+      ]).then((values) => ({
+        consumerDelegation: values[0],
+        producerDelegation: values[1],
+      }));
+
+      const delegation = await validateDelegationConstraints({
         delegationId,
-        purpose.data,
-        eservice.producerId,
+        consumerId: purpose.data.consumerId,
+        producerId: eservice.producerId,
         authData,
-        readModelService
-      );
+        activeDelegations,
+      });
 
       const purposeOwnership = getOrganizationRole({
         purpose: purpose.data,
@@ -1375,12 +1375,7 @@ export function purposeServiceBuilder(
       assertRequesterCanActAsConsumer(
         purposeToClone.data,
         authData,
-        purposeToClone.data.delegationId &&
-          (await retrieveActiveDelegation(
-            purposeId,
-            purposeToClone.data.delegationId,
-            readModelService
-          ))
+        await retrievePurposeDelegation(purposeToClone.data, readModelService)
       );
 
       if (!isClonable(purposeToClone.data)) {
@@ -1537,54 +1532,6 @@ export function purposeServiceBuilder(
 
 export type PurposeService = ReturnType<typeof purposeServiceBuilder>;
 
-const getOrganizationRole = ({
-  purpose,
-  producerId,
-  delegation,
-  authData,
-}: {
-  purpose: Purpose;
-  producerId: TenantId;
-  delegation: Delegation | undefined;
-  authData: UIAuthData | M2MAdminAuthData;
-}): Ownership => {
-  if (
-    producerId === purpose.consumerId &&
-    authData.organizationId === producerId
-  ) {
-    return ownership.SELF_CONSUMER;
-  }
-
-  if (delegation) {
-    return match(delegation.kind)
-      .with(delegationKind.delegatedProducer, () => {
-        assertRequesterIsDelegateProducer(
-          { id: purpose.eserviceId, producerId },
-          authData,
-          delegation
-        );
-        return ownership.PRODUCER;
-      })
-      .with(delegationKind.delegatedConsumer, () => {
-        assertRequesterIsDelegateConsumer(purpose, authData, delegation);
-        return ownership.CONSUMER;
-      })
-      .exhaustive();
-  }
-
-  try {
-    assertRequesterIsProducer({ producerId }, authData);
-    return ownership.PRODUCER;
-  } catch {
-    try {
-      assertRequesterIsConsumer(purpose, authData);
-      return ownership.CONSUMER;
-    } catch {
-      throw tenantNotAllowed(authData.organizationId);
-    }
-  }
-};
-
 const replacePurposeVersion = (
   purpose: Purpose,
   newVersion: PurposeVersion
@@ -1659,12 +1606,7 @@ const performUpdatePurpose = async (
   assertRequesterCanActAsConsumer(
     purpose.data,
     authData,
-    purpose.data.delegationId &&
-      (await retrieveActiveDelegation(
-        purposeId,
-        purpose.data.delegationId,
-        readModelService
-      ))
+    await retrievePurposeDelegation(purpose.data, readModelService)
   );
 
   const eservice = await retrieveEService(
@@ -1748,12 +1690,7 @@ async function generateRiskAnalysisDocument({
       retrieveTenant(eservice.producerId, readModelService),
       retrieveTenant(purpose.consumerId, readModelService),
       readModelService.getActiveProducerDelegationByEserviceId(eservice.id),
-      purpose.delegationId &&
-        retrieveActiveDelegation(
-          purpose.id,
-          purpose.delegationId,
-          readModelService
-        ),
+      retrievePurposeDelegation(purpose, readModelService),
     ]);
 
   const [producerDelegate, consumerDelegate] = await Promise.all([

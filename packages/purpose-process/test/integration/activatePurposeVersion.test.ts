@@ -45,6 +45,7 @@ import {
   tenantKind,
   TenantId,
   DelegationId,
+  badRequestError,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -64,7 +65,6 @@ import {
   tenantIsNotTheConsumer,
   tenantNotAllowed,
   tenantIsNotTheDelegatedConsumer,
-  missingDelegationId,
   purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
@@ -1359,7 +1359,7 @@ describe("activatePurposeVersion", () => {
     }
   );
 
-  it("should throw missingDelegationId if the caller is neither the producer or the consumer of the purpose, nor the delegate", async () => {
+  it("should throw badRequestError if the caller is neither the producer or the consumer of the purpose, nor the delegate", async () => {
     const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
     await addOnePurpose(mockPurpose);
@@ -1378,11 +1378,13 @@ describe("activatePurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(anotherTenant.id) })
       );
     }).rejects.toThrowError(
-      missingDelegationId(mockPurpose.id, anotherTenant.id)
+      badRequestError(
+        `Tenant ${anotherTenant.id} is not allowed to perform the operation because the delegation ID is missing`
+      )
     );
   });
 
-  it("should throw missingDelegationId if the caller is the producer but the purpose e-service has an active delegation", async () => {
+  it("should throw badRequestError if the caller is the producer but the purpose e-service has an active delegation", async () => {
     await addOnePurpose(mockPurpose);
     await addOneEService(mockEService);
     await addOneAgreement(mockAgreement);
@@ -1407,7 +1409,9 @@ describe("activatePurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(mockProducer.id) })
       );
     }).rejects.toThrowError(
-      missingDelegationId(mockPurpose.id, mockProducer.id)
+      badRequestError(
+        `Tenant ${mockProducer.id} is not allowed to perform the operation because the delegation ID is missing`
+      )
     );
   });
 

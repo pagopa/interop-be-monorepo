@@ -34,6 +34,7 @@ import {
   tenantKind,
   agreementState,
   DelegationId,
+  badRequestError,
 } from "pagopa-interop-models";
 import {
   purposeNotFound,
@@ -41,7 +42,6 @@ import {
   tenantNotAllowed,
   notValidVersionState,
   tenantIsNotTheDelegatedProducer,
-  missingDelegationId,
   purposeDelegationNotFound,
 } from "../../src/model/domain/errors.js";
 import {
@@ -763,7 +763,7 @@ describe("suspendPurposeVersion", () => {
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
     );
   });
-  it("should throw missingDelegationId if the requester is not the producer nor the consumer", async () => {
+  it("should throw badRequestError if the requester is not the producer nor the consumer", async () => {
     const mockEService = getMockEService();
     const randomAuthData = getMockAuthData();
     const mockPurposeVersion: PurposeVersion = {
@@ -788,7 +788,9 @@ describe("suspendPurposeVersion", () => {
         getMockContext({ authData: randomAuthData })
       )
     ).rejects.toThrowError(
-      missingDelegationId(mockPurpose.id, randomAuthData.organizationId)
+      badRequestError(
+        `Tenant ${randomAuthData.organizationId} is not allowed to perform the operation because the delegation ID is missing`
+      )
     );
   });
   it("should throw tenantIsNotTheDelegatedProducer if the requester is not the e-service active delegation delegate", async () => {
@@ -875,7 +877,7 @@ describe("suspendPurposeVersion", () => {
       ).rejects.toThrowError(tenantNotAllowed(delegateAuthData.organizationId));
     }
   );
-  it("should throw missingDelegationId if the requester is the producer but the purpose e-service has an active delegation", async () => {
+  it("should throw badRequestError if the requester is the producer but the purpose e-service has an active delegation", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -909,7 +911,9 @@ describe("suspendPurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
-      missingDelegationId(mockPurpose.id, mockEService.producerId)
+      badRequestError(
+        `Tenant ${mockEService.producerId} is not allowed to perform the operation because the delegation ID is missing`
+      )
     );
   });
   it.each(
@@ -948,7 +952,7 @@ describe("suspendPurposeVersion", () => {
       );
     }
   );
-  it("should throw missingDelegationId when the requester is the Consumer and is suspending a purpose version created by the delegate", async () => {
+  it("should throw badRequestError when the requester is the Consumer and is suspending a purpose version created by the delegate", async () => {
     const mockEService = getMockEService();
     const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
@@ -984,7 +988,9 @@ describe("suspendPurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(
-      missingDelegationId(mockPurpose.id, mockPurpose.consumerId)
+      badRequestError(
+        `Tenant ${mockPurpose.consumerId} is not allowed to perform the operation because the delegation ID is missing`
+      )
     );
   });
 

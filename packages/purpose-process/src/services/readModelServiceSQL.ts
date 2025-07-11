@@ -426,18 +426,6 @@ export function readModelServiceBuilderSQL({
         )
       )?.data;
     },
-    async getActiveDelegationById(
-      delegationId: DelegationId
-    ): Promise<Delegation | undefined> {
-      return (
-        await delegationReadModelServiceSQL.getDelegationByFilter(
-          and(
-            eq(delegationInReadmodelDelegation.id, delegationId),
-            eq(delegationInReadmodelDelegation.state, delegationState.active)
-          )
-        )
-      )?.data;
-    },
   };
 }
 

@@ -4,8 +4,10 @@ import {
   DelegationId,
   PurposeId,
   PurposeVersionId,
+  badRequestError,
   generateId,
   purposeVersionState,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -22,7 +24,6 @@ import {
   tenantNotAllowed,
   purposeNotFound,
   purposeVersionNotFound,
-  missingDelegationId,
 } from "../../src/model/domain/errors.js";
 import { purposeVersionToApiPurposeVersion } from "../../src/model/domain/apiConverter.js";
 
@@ -94,8 +95,12 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
       expectedStatus: 400,
     },
     {
-      error: missingDelegationId(mockPurpose.id, generateId()),
+      error: badRequestError(generateId()),
       expectedStatus: 400,
+    },
+    {
+      error: unauthorizedError(generateId()),
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",

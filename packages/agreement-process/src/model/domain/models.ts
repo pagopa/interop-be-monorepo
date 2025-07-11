@@ -3,7 +3,6 @@ import {
   AgreementId,
   AgreementStamps,
   AgreementState,
-  Delegation,
   DescriptorId,
   EServiceId,
   UserId,
@@ -53,11 +52,6 @@ export const CompactEService = z.object({
   name: z.string(),
 });
 export type CompactEService = z.infer<typeof CompactEService>;
-
-export type ActiveDelegations = {
-  producerDelegation: Delegation | undefined;
-  consumerDelegation: Delegation | undefined;
-};
 
 export type AgreementContractPDFPayload = {
   todayDate: string;

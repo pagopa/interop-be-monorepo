@@ -23,6 +23,7 @@ import {
   M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -35,12 +36,12 @@ import {
   tenantNotAllowed,
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
-  missingDelegationId,
 } from "../model/domain/errors.js";
+import { Ownership, ownership } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
-  retrieveActiveDelegation,
+  retrievePurposeDelegation,
 } from "./purposeService.js";
 
 export const isRiskAnalysisFormValid = (
@@ -98,7 +99,7 @@ export const assertConsistentFreeOfCharge = (
   }
 };
 
-export const assertRequesterIsConsumer = (
+const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
   authData: Pick<UIAuthData, "organizationId">
 ): void => {
@@ -272,12 +273,7 @@ export const assertRequesterCanRetrievePurpose = async (
           assertRequesterIsDelegateConsumer(
             purpose,
             authData,
-            purpose.delegationId &&
-              (await retrieveActiveDelegation(
-                purpose.id,
-                purpose.delegationId,
-                readModelService
-              ))
+            await retrievePurposeDelegation(purpose, readModelService)
           );
         } catch {
           throw tenantNotAllowed(authData.organizationId);
@@ -287,7 +283,7 @@ export const assertRequesterCanRetrievePurpose = async (
   }
 };
 
-export const assertRequesterIsProducer = (
+const assertRequesterIsProducer = (
   eservice: Pick<EService, "producerId">,
   authData: Pick<UIAuthData, "organizationId">
 ): void => {
@@ -296,7 +292,7 @@ export const assertRequesterIsProducer = (
   }
 };
 
-export const assertRequesterIsDelegateProducer = (
+const assertRequesterIsDelegateProducer = (
   eservice: Pick<EService, "producerId" | "id">,
   authData: Pick<UIAuthData, "organizationId">,
   activeProducerDelegation: Delegation | undefined
@@ -351,7 +347,7 @@ export const assertRequesterCanActAsConsumer = (
   }
 };
 
-export const assertRequesterIsDelegateConsumer = (
+const assertRequesterIsDelegateConsumer = (
   purpose: Pick<Purpose, "consumerId" | "eserviceId" | "delegationId">,
   authData: Pick<UIAuthData, "organizationId">,
   activeConsumerDelegation: Delegation | undefined
@@ -412,74 +408,50 @@ export const verifyRequesterIsConsumerOrDelegateConsumer = async (
   }
 };
 
-const validateWithDelegationId = (
-  delegationId: DelegationId,
-  availableDelegations: Delegation[],
-  authData: UIAuthData | M2MAdminAuthData
-): Delegation => {
-  const matchingDelegation = availableDelegations.find(
-    (d) => d.id === delegationId
-  );
-  if (!matchingDelegation) {
-    throw tenantNotAllowed(authData.organizationId);
-  }
-  return matchingDelegation;
-};
-
-const validateWithoutDelegationId = (
-  availableDelegations: Delegation[],
-  purpose: Purpose,
-  producerId: TenantId,
-  { organizationId }: UIAuthData | M2MAdminAuthData
-): undefined => {
-  const isConsumer = organizationId === purpose.consumerId;
-  const isProducer = organizationId === producerId;
-
-  if (!isConsumer && !isProducer) {
-    throw missingDelegationId(purpose.id, organizationId);
+export const getOrganizationRole = ({
+  purpose,
+  producerId,
+  delegation,
+  authData,
+}: {
+  purpose: Purpose;
+  producerId: TenantId;
+  delegation: Delegation | undefined;
+  authData: UIAuthData | M2MAdminAuthData;
+}): Ownership => {
+  if (
+    producerId === purpose.consumerId &&
+    authData.organizationId === producerId
+  ) {
+    return ownership.SELF_CONSUMER;
   }
 
-  const hasDelegation = availableDelegations.some(
-    (delegation) =>
-      (isConsumer && delegation.kind === delegationKind.delegatedConsumer) ||
-      (isProducer && delegation.kind === delegationKind.delegatedProducer)
-  );
-
-  if (hasDelegation) {
-    throw missingDelegationId(purpose.id, organizationId);
+  if (delegation) {
+    return match(delegation.kind)
+      .with(delegationKind.delegatedProducer, () => {
+        assertRequesterIsDelegateProducer(
+          { id: purpose.eserviceId, producerId },
+          authData,
+          delegation
+        );
+        return ownership.PRODUCER;
+      })
+      .with(delegationKind.delegatedConsumer, () => {
+        assertRequesterIsDelegateConsumer(purpose, authData, delegation);
+        return ownership.CONSUMER;
+      })
+      .exhaustive();
   }
-  return undefined;
-};
 
-export const validateDelegationConstraints = async (
-  delegationId: DelegationId | undefined,
-  purpose: Purpose,
-  producerId: TenantId,
-  authData: UIAuthData | M2MAdminAuthData,
-  readModelService: ReadModelService
-): Promise<Delegation | undefined> => {
-  const [producerDelegation, consumerDelegation] = await Promise.all([
-    readModelService.getActiveProducerDelegationByEserviceId(
-      purpose.eserviceId
-    ),
-    purpose.delegationId &&
-      retrieveActiveDelegation(
-        purpose.id,
-        purpose.delegationId,
-        readModelService
-      ),
-  ]);
-
-  const availableDelegations = [producerDelegation, consumerDelegation].filter(
-    (d): d is Delegation => d !== undefined
-  );
-
-  return delegationId
-    ? validateWithDelegationId(delegationId, availableDelegations, authData)
-    : validateWithoutDelegationId(
-        availableDelegations,
-        purpose,
-        producerId,
-        authData
-      );
+  try {
+    assertRequesterIsProducer({ producerId }, authData);
+    return ownership.PRODUCER;
+  } catch {
+    try {
+      assertRequesterIsConsumer(purpose, authData);
+      return ownership.CONSUMER;
+    } catch {
+      throw tenantNotAllowed(authData.organizationId);
+    }
+  }
 };

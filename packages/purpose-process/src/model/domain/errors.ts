@@ -357,14 +357,3 @@ export function purposeCannotBeUpdated(
     title: "Purpose cannot be updated",
   });
 }
-
-export function missingDelegationId(
-  purposeId: PurposeId,
-  tenantId: TenantId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Tenant ${tenantId} is not allowed to perform the operation on purpose ${purposeId} because delegation ID is missing`,
-    code: "missingDelegationId",
-    title: "Missing delegation ID",
-  });
-}
