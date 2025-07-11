@@ -47,3 +47,38 @@ export function toM2MGatewayApiCertifiedAttribute({
     }
   }
 }
+
+export function toM2MGatewayApiVerifiedAttribute({
+  attribute,
+  logger,
+  mapThrownErrorsToNotFound = false,
+}: {
+  attribute: attributeRegistryApi.Attribute;
+  logger: Logger;
+  mapThrownErrorsToNotFound?: boolean;
+}): m2mGatewayApi.VerifiedAttribute {
+  try {
+    assertAttributeKindIs(
+      attribute,
+      attributeRegistryApi.AttributeKind.Values.VERIFIED
+    );
+
+    return {
+      id: attribute.id,
+      description: attribute.description,
+      name: attribute.name,
+      createdAt: attribute.creationTime,
+    };
+  } catch (error) {
+    if (mapThrownErrorsToNotFound) {
+      logger.warn(
+        `Root cause for "Attribute not found" error: unexpected error while converting attribute: ${
+          error instanceof ApiError ? error.detail : error
+        }`
+      );
+      throw attributeNotFound(attribute);
+    } else {
+      throw error;
+    }
+  }
+}

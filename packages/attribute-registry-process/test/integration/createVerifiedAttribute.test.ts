@@ -25,18 +25,20 @@ import {
 describe("verified attribute creation", () => {
   const mockAttribute = getMockAttribute();
   it("should write on event-store for the creation of a verified attribute", async () => {
-    const attribute = await attributeRegistryService.createVerifiedAttribute(
-      {
-        name: mockAttribute.name,
-        description: mockAttribute.description,
-      },
-      getMockContext({})
-    );
-    expect(attribute).toBeDefined();
+    const createVerifiedAttributeResponse =
+      await attributeRegistryService.createVerifiedAttribute(
+        {
+          name: mockAttribute.name,
+          description: mockAttribute.description,
+        },
+        getMockContext({})
+      );
 
-    const writtenEvent = await readLastAttributeEvent(attribute.id);
+    const writtenEvent = await readLastAttributeEvent(
+      createVerifiedAttributeResponse.data.id
+    );
     expect(writtenEvent).toMatchObject({
-      stream_id: attribute.id,
+      stream_id: createVerifiedAttributeResponse.data.id,
       version: "0",
       type: "AttributeAdded",
       event_version: 1,
@@ -49,14 +51,22 @@ describe("verified attribute creation", () => {
 
     const expectedAttribute: Attribute = {
       ...mockAttribute,
-      id: attribute.id,
+      id: createVerifiedAttributeResponse.data.id,
       kind: attributeKind.verified,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       creationTime: new Date(writtenPayload.attribute!.creationTime),
     };
 
     expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+    expect(writtenPayload.attribute).toEqual(
+      toAttributeV1(createVerifiedAttributeResponse.data)
+    );
+    expect(createVerifiedAttributeResponse).toEqual({
+      data: expectedAttribute,
+      metadata: {
+        version: 0,
+      },
+    });
   });
   it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
     expect(
