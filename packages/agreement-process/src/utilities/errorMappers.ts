@@ -215,7 +215,14 @@ export const archiveAgreementErrorMapper = (
 export const getAgreementErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "tenantNotAllowed",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
+      "tenantIsNotTheProducer",
+      "tenantIsNotTheDelegateProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const computeAgreementsStateErrorMapper = (
@@ -238,6 +245,21 @@ export const verifyTenantCertifiedAttributesErrorMapper = (
     .with(
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegateConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getAgreementConsumerDocumentsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantNotAllowed",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegateConsumer",
+      "tenantIsNotTheProducer",
+      "tenantIsNotTheDelegateProducer",
       () => HTTP_STATUS_FORBIDDEN
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

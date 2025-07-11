@@ -13,6 +13,10 @@ import { api, agreementService } from "../vitest.api.setup.js";
 import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js";
 import {
   agreementNotFound,
+  tenantIsNotTheConsumer,
+  tenantIsNotTheDelegateConsumer,
+  tenantIsNotTheDelegateProducer,
+  tenantIsNotTheProducer,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
@@ -72,6 +76,22 @@ describe("API GET /agreements/{agreementId} test", () => {
   it.each([
     { error: agreementNotFound(mockAgreement.id), expectedStatus: 404 },
     { error: tenantNotAllowed(generateId()), expectedStatus: 403 },
+    {
+      error: tenantIsNotTheConsumer(generateId()),
+      expectedStatus: 403,
+    },
+    {
+      error: tenantIsNotTheDelegateConsumer(generateId(), undefined),
+      expectedStatus: 403,
+    },
+    {
+      error: tenantIsNotTheProducer(generateId()),
+      expectedStatus: 403,
+    },
+    {
+      error: tenantIsNotTheDelegateProducer(generateId(), undefined),
+      expectedStatus: 403,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
