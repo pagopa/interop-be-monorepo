@@ -6,6 +6,7 @@ import {
   catalogReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
+  notificationConfigReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
@@ -24,11 +25,14 @@ const agreementReadModelServiceSQL =
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+const notificationConfigReadModelServiceSQL =
+  notificationConfigReadModelServiceBuilder(readModelDB);
 
 export const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
+  notificationConfigReadModelServiceSQL,
 });
 
 export const interopFeBaseUrl = "http://localhost/fe";
