@@ -14,6 +14,7 @@ import { AgreementService } from "../services/agreementService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   approveAgreementErrorMapper,
+  downloadAgreementConsumerContractErrorMapper,
   unsuspendAgreementErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
@@ -272,6 +273,26 @@ const agreementRouter = (
         }
       }
     )
+    .get("/agreements/:agreementId/contract", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+        const file = await agreementService.downloadAgreementConsumerContract(
+          unsafeBrandId(req.params.agreementId),
+          ctx
+        );
+
+        return sendDownloadedDocumentAsFormData(file, res);
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          downloadAgreementConsumerContractErrorMapper,
+          ctx,
+          `Error retrieving contract for agreement with id ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete(
       "/agreements/:agreementId/consumerDocuments/:documentId",
       async (req, res) => {
