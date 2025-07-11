@@ -70,5 +70,33 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         logger,
       });
     },
+    async getCertifiedAttributes(
+      { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.CertifiedAttributes> {
+      logger.info(
+        `Retrieving certified attributes with limit ${limit} and offset ${offset}`
+      );
+
+      const response = await clients.attributeProcessClient.getAttributes({
+        queries: {
+          limit,
+          offset,
+          kinds: [attributeRegistryApi.AttributeKind.Values.CERTIFIED],
+        },
+        headers,
+      });
+
+      return {
+        results: response.data.results.map((attribute) =>
+          toM2MGatewayApiCertifiedAttribute({ attribute, logger })
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: response.data.totalCount,
+        },
+      };
+    },
   };
 }
