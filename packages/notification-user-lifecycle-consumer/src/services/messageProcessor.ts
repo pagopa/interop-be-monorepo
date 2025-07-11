@@ -12,55 +12,57 @@ import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { UserServiceSQL } from "./userServiceSQL.js";
 
+export async function processUserEvent(
+  payload: UsersEventPayload,
+  readModelServiceSQL: ReadModelServiceSQL,
+  userServiceSQL: UserServiceSQL,
+  loggerInstance: ReturnType<typeof logger>
+): Promise<void> {
+  const userId = unsafeBrandId<UserId>(payload.user.userId);
+  const institutionId = unsafeBrandId<SelfcareId>(payload.institutionId);
+  const action = payload.eventType;
+  const tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(
+    institutionId
+  );
+
+  if (!tenantId) {
+    throw genericInternalError(
+      `Tenant not found for selfcareId: ${institutionId}`
+    );
+  }
+
+  const userData = {
+    userId,
+    tenantId,
+    institutionId,
+    name: payload.user.name,
+    familyName: payload.user.familyName,
+    email: payload.user.email,
+    productRole: payload.user.productRole,
+  };
+
+  await match(action)
+    .with("add", () => {
+      loggerInstance.info(`Add user id ${userId} from tenant ${tenantId}`);
+      // TODO: call internal create notification config
+      return userServiceSQL.insertUser(userData);
+    })
+    .with("update", () => {
+      loggerInstance.info(`Update user id ${userId} from tenant ${tenantId}`);
+      return userServiceSQL.updateUser(userData);
+    })
+    .with("delete", () => {
+      loggerInstance.info(`Removing admin ${userId} from tenant ${tenantId}`);
+      // TODO: call internal delete notification config
+      return userServiceSQL.deleteUser(userId);
+    })
+    .exhaustive();
+}
+
 export function messageProcessorBuilder(
   readModelServiceSQL: ReadModelServiceSQL,
   userServiceSQL: UserServiceSQL
 ): { processMessage: (payload: EachMessagePayload) => Promise<void> } {
-  async function processUserEvent(
-    payload: UsersEventPayload,
-    loggerInstance: ReturnType<typeof logger>
-  ): Promise<void> {
-    const userId = unsafeBrandId<UserId>(payload.user.userId);
-    const institutionId = unsafeBrandId<SelfcareId>(payload.institutionId);
-    const action = payload.eventType;
-    const tenantId = await readModelServiceSQL.getTenantIdBySelfcareId(
-      institutionId
-    );
-
-    if (!tenantId) {
-      throw genericInternalError(
-        `Tenant not found for selfcareId: ${institutionId}`
-      );
-    }
-
-    const userData = {
-      userId,
-      tenantId,
-      institutionId,
-      name: payload.user.name,
-      familyName: payload.user.familyName,
-      email: payload.user.email,
-      productRole: payload.user.productRole,
-    };
-
-    await match(action)
-      .with("add", () => {
-        loggerInstance.info(`Add user id ${userId} from tenant ${tenantId}`);
-        // TODO: call internal create notification config
-        return userServiceSQL.insertUser(userData);
-      })
-      .with("update", () => {
-        loggerInstance.info(`Update user id ${userId} from tenant ${tenantId}`);
-        return userServiceSQL.updateUser(userData);
-      })
-      .with("delete", () => {
-        loggerInstance.info(`Removing admin ${userId} from tenant ${tenantId}`);
-        // TODO: call internal delete notification config
-        return userServiceSQL.deleteUser(userId);
-      })
-      .exhaustive();
-  }
-
   return {
     processMessage: async ({
       message,
@@ -96,7 +98,12 @@ export function messageProcessorBuilder(
           return;
         }
 
-        await processUserEvent(userEventPayload.data, loggerInstance);
+        await processUserEvent(
+          userEventPayload.data,
+          readModelServiceSQL,
+          userServiceSQL,
+          loggerInstance
+        );
         loggerInstance.info(
           `Message in partition ${partition} with offset ${message.offset} correctly consumed. SelfcareId: ${userEventPayload.data.institutionId}`
         );
