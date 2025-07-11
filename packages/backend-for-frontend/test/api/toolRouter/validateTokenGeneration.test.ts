@@ -38,7 +38,7 @@ describe("API POST /tools/validateTokenGeneration", () => {
     eservice: {
       id: generateId(),
       descriptorId: generateId(),
-      version: "1",
+      version: 1,
       name: "My eService",
     },
   };
