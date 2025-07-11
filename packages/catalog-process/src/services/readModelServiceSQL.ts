@@ -338,7 +338,6 @@ export function readModelServiceBuilderSQL(
           )
           .$dynamic();
 
-      const totalCount = (await buildQuery(totalCountQuery))[0].count;
       const ids = (
         await buildQuery(idsQuery)
           .groupBy(eserviceInReadmodelCatalog.id)
@@ -347,84 +346,87 @@ export function readModelServiceBuilderSQL(
           .offset(offset)
       ).map((result) => result.id);
 
-      const queryResult = await readmodelDB
-        .select({
-          eservice: eserviceInReadmodelCatalog,
-          descriptor: eserviceDescriptorInReadmodelCatalog,
-          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
-          document: eserviceDescriptorDocumentInReadmodelCatalog,
-          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
-          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
-          riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateVersionRef:
-            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-        })
-        .from(eserviceInReadmodelCatalog)
-        .where(inArray(eserviceInReadmodelCatalog.id, ids))
-        .leftJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorInterfaceInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorDocumentInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorAttributeInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceRiskAnalysisInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceRiskAnalysisInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          and(
+      const [queryResult, totalCount] = await Promise.all([
+        readmodelDB
+          .select({
+            eservice: eserviceInReadmodelCatalog,
+            descriptor: eserviceDescriptorInReadmodelCatalog,
+            interface: eserviceDescriptorInterfaceInReadmodelCatalog,
+            document: eserviceDescriptorDocumentInReadmodelCatalog,
+            attribute: eserviceDescriptorAttributeInReadmodelCatalog,
+            rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
+            riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
+            riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
+            templateVersionRef:
+              eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          })
+          .from(eserviceInReadmodelCatalog)
+          .where(inArray(eserviceInReadmodelCatalog.id, ids))
+          .leftJoin(
+            eserviceDescriptorInReadmodelCatalog,
             eq(
-              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-            ),
-            eq(
-              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
-              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
+              eserviceInReadmodelCatalog.id,
+              eserviceDescriptorInReadmodelCatalog.eserviceId
             )
           )
-        )
-        .orderBy(ascLower(eserviceInReadmodelCatalog.name));
+          .leftJoin(
+            eserviceDescriptorInterfaceInReadmodelCatalog,
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
+            )
+          )
+          .leftJoin(
+            eserviceDescriptorDocumentInReadmodelCatalog,
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
+            )
+          )
+          .leftJoin(
+            eserviceDescriptorAttributeInReadmodelCatalog,
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
+            )
+          )
+          .leftJoin(
+            eserviceDescriptorRejectionReasonInReadmodelCatalog,
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
+            )
+          )
+          .leftJoin(
+            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+            )
+          )
+          .leftJoin(
+            eserviceRiskAnalysisInReadmodelCatalog,
+            eq(
+              eserviceInReadmodelCatalog.id,
+              eserviceRiskAnalysisInReadmodelCatalog.eserviceId
+            )
+          )
+          .leftJoin(
+            eserviceRiskAnalysisAnswerInReadmodelCatalog,
+            and(
+              eq(
+                eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+                eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+              ),
+              eq(
+                eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
+                eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
+              )
+            )
+          )
+          .orderBy(ascLower(eserviceInReadmodelCatalog.name)),
+        buildQuery(totalCountQuery),
+      ]);
 
       const eservices = aggregateEserviceArray(
         toEServiceAggregatorArray(queryResult)
@@ -432,7 +434,7 @@ export function readModelServiceBuilderSQL(
 
       return createListResult(
         eservices.map((e) => e.data),
-        totalCount
+        totalCount[0]?.count
       );
     },
     async isEServiceNameAvailableForProducer({
