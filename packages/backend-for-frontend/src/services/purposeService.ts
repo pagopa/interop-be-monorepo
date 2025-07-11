@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
+  DelegationId,
   EServiceId,
   PurposeId,
   PurposeVersionDocumentId,
@@ -557,6 +558,7 @@ export function purposeServiceBuilder(
     async suspendPurposeVersion(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
+      delegationId: DelegationId | undefined,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Suspending Version ${versionId} of Purpose ${purposeId}`);
@@ -567,6 +569,9 @@ export function purposeServiceBuilder(
           params: {
             purposeId,
             versionId,
+          },
+          queries: {
+            delegationId,
           },
           headers,
         }
@@ -580,6 +585,7 @@ export function purposeServiceBuilder(
     async activatePurposeVersion(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
+      delegationId: DelegationId | undefined,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
       logger.info(`Activating Version ${versionId} of Purpose ${purposeId}`);
@@ -590,6 +596,9 @@ export function purposeServiceBuilder(
           params: {
             purposeId,
             versionId,
+          },
+          queries: {
+            delegationId,
           },
           headers,
         }

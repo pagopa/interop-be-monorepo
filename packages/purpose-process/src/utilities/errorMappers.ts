@@ -126,8 +126,17 @@ export const suspendPurposeVersionErrorMapper = (
       "purposeVersionNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
-    .with("notValidVersionState", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "tenantNotAllowed",
+      "tenantIsNotTheDelegatedProducer",
+      "unauthorizedError",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "notValidVersionState",
+      "badRequestError",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createPurposeVersionErrorMapper = (
@@ -222,12 +231,15 @@ export const activatePurposeVersionErrorMapper = (
       "missingRiskAnalysis",
       "agreementNotFound",
       "riskAnalysisValidationFailed",
+      "badRequestError",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
       "tenantIsNotTheConsumer",
       "tenantIsNotTheProducer",
       "tenantNotAllowed",
+      "tenantIsNotTheDelegatedConsumer",
+      "unauthorizedError",
       () => HTTP_STATUS_FORBIDDEN
     )
     .with(
