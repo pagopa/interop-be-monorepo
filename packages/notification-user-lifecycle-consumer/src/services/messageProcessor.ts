@@ -52,11 +52,19 @@ export async function processUserEvent(
       return userServiceSQL.updateUser(userData);
     })
     .with("delete", () => {
-      loggerInstance.info(`Removing admin ${userId} from tenant ${tenantId}`);
+      loggerInstance.info(`Removing user ${userId} from tenant ${tenantId}`);
       // TODO: call internal delete notification config
       return userServiceSQL.deleteUser(userId);
     })
     .exhaustive();
+}
+
+function jsonSafeParse(json: string): unknown {
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    return {};
+  }
 }
 
 export function messageProcessorBuilder(
@@ -80,13 +88,13 @@ export function messageProcessorBuilder(
           `Consuming message for partition ${partition} with offset ${message.offset}`
         );
 
-        const userEventPayload = UsersEventPayload.safeParse(
-          JSON.parse(message?.value?.toString() ?? "")
-        );
+        const payload = jsonSafeParse(message.value?.toString() ?? "");
+
+        const userEventPayload = UsersEventPayload.safeParse(payload);
 
         if (!userEventPayload.success) {
           loggerInstance.warn(
-            `Skipping message for partition ${partition} with offset ${message.offset} - Invalid payload.`
+            `Skipping message for partition ${partition} with offset ${message.offset} - Invalid payload. ${userEventPayload.error}`
           );
           return;
         }
