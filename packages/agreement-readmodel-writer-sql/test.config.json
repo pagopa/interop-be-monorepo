@@ -1,0 +1,6 @@
+{
+  "groupName": "agreement-readmodel-writer-sql",
+  "testPaths": [
+    "test"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "groupName": "authorization-updater",
+  "testPaths": [
+    "test"
+  ]
+}

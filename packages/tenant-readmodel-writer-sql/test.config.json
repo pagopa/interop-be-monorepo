@@ -1,0 +1,6 @@
+{
+  "groupName": "tenant-readmodel-writer-sql",
+  "testPaths": [
+    "test"
+  ]
+}

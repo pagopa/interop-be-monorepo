@@ -1,0 +1,6 @@
+{
+  "groupName": "selfcare-client-users-updater",
+  "testPaths": [
+    "test"
+  ]
+}

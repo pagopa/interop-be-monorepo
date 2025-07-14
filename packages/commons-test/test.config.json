@@ -1,0 +1,6 @@
+{
+  "groupName": "commons-test",
+  "testPaths": [
+    "test"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "groupName": "purpose-process",
+  "testPaths": [
+    "test/integration",
+    "test/api"
+  ]
+}

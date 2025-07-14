@@ -1,0 +1,6 @@
+{
+  "groupName": "domains-analytics-writer",
+  "testPaths": [
+    "test"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "groupName": "authorization-process",
+  "testPaths": [
+    "test/integration",
+    "test/api"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "groupName": "datalake-interface-exporter",
+  "testPaths": [
+    "test"
+  ]
+}

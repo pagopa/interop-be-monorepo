@@ -1,0 +1,6 @@
+{
+  "groupName": "delegation-items-archiver",
+  "testPaths": [
+    "test"
+  ]
+}
