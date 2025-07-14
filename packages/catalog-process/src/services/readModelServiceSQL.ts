@@ -170,16 +170,25 @@ export function readModelServiceBuilderSQL(
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const buildQuery = <T extends PgSelect>(query: T) => {
         // eslint-disable-next-line functional/no-let
-        let q: PgSelect = query;
+        // let q: PgSelect = query;
 
-        if (agreementStates.length > 0) {
-          q = q.innerJoin(
-            agreementSubquery,
-            eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
-          );
-        }
+        // if (agreementStates.length > 0) {
+        //   q = q.innerJoin(
+        //     agreementSubquery,
+        //     eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
+        //   );
+        // }
 
-        q = q
+        // TODO rename
+        const query2 =
+          agreementStates.length > 0
+            ? query.innerJoin(
+                agreementSubquery,
+                eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
+              )
+            : query;
+
+        return query2
           .leftJoin(
             eserviceDescriptorInReadmodelCatalog,
             eq(
@@ -346,8 +355,6 @@ export function readModelServiceBuilderSQL(
             )
           )
           .$dynamic();
-
-        return q;
       };
 
       // TODO: fix type
