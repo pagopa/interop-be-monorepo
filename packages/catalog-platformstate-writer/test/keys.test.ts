@@ -1,4 +1,3 @@
-// Modifica di test per invalidazione cache isolata
 import {
   ClientId,
   DescriptorId,
