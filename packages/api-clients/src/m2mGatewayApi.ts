@@ -55,6 +55,16 @@ export type GetTenantCertifiedAttributesQueryParams = QueryParametersByAlias<
   "getCertifiedAttributes"
 >;
 
+export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
+  TenantApi,
+  "getVerifiedAttributes"
+>;
+
+export type GetTenantDeclaredAttributesQueryParams = QueryParametersByAlias<
+  TenantApi,
+  "getDeclaredAttributes"
+>;
+
 export type GetConsumerDelegationsQueryParams = QueryParametersByAlias<
   DelegationApi,
   "getConsumerDelegations"
