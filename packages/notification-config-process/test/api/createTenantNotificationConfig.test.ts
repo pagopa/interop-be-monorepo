@@ -16,25 +16,27 @@ import { api, notificationConfigService } from "../vitest.api.setup.js";
 import { tenantNotificationConfigToApiTenantNotificationConfig } from "../../src/model/domain/apiConverter.js";
 import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/errors.js";
 
-describe("API POST /internal/tenantNotificationConfigs/{tenantId} test", () => {
+describe("API POST /internal/tenantNotificationConfigs test", () => {
   const defaultTenantId: TenantId = generateId();
-  const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
-    getMockNotificationConfig();
+  const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigSeed =
+    {
+      tenantId: defaultTenantId,
+      config: getMockNotificationConfig(),
+    };
   const serviceResponse: TenantNotificationConfig = {
     ...getMockTenantNotificationConfig(),
     tenantId: defaultTenantId,
-    config: notificationConfigSeed,
+    config: notificationConfigSeed.config,
   };
   const apiResponse: notificationConfigApi.TenantNotificationConfig =
     tenantNotificationConfigToApiTenantNotificationConfig(serviceResponse);
 
   const makeRequest = async (
     token: string,
-    tenantId: TenantId = defaultTenantId,
-    body: notificationConfigApi.NotificationConfigSeed = notificationConfigSeed
+    body: notificationConfigApi.TenantNotificationConfigSeed = notificationConfigSeed
   ) =>
     request(api)
-      .post(`/internal/tenantNotificationConfigs/${tenantId}`)
+      .post("/internal/tenantNotificationConfigs")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -57,8 +59,7 @@ describe("API POST /internal/tenantNotificationConfigs/{tenantId} test", () => {
       expect(
         notificationConfigService.createTenantNotificationConfig
       ).toHaveBeenCalledWith(
-        defaultTenantId,
-        notificationConfigSeed,
+        { tenantId: defaultTenantId, config: notificationConfigSeed.config },
         expect.any(Object)
       );
     }
@@ -87,30 +88,32 @@ describe("API POST /internal/tenantNotificationConfigs/{tenantId} test", () => {
     expect(
       notificationConfigService.createTenantNotificationConfig
     ).toHaveBeenCalledWith(
-      defaultTenantId,
-      notificationConfigSeed,
+      { tenantId: defaultTenantId, config: notificationConfigSeed.config },
       expect.any(Object)
     );
   });
 
   it.each([
-    { tenantId: "invalid" as TenantId },
     { body: {} },
-    { body: { newEServiceVersionPublished: "invalid" } },
+    { body: { ...notificationConfigSeed, tenantId: undefined } },
+    { body: { ...notificationConfigSeed, config: undefined } },
+    { body: { ...notificationConfigSeed, tenantId: "invalid" as TenantId } },
+    {
+      body: {
+        ...notificationConfigSeed,
+        config: { newEServiceVersionPublished: "invalid" },
+      },
+    },
     { body: { ...notificationConfigSeed, extraField: 1 } },
-  ])(
-    "Should return 400 if passed invalid params: %s",
-    async ({ tenantId, body }) => {
-      const token = generateToken(authRole.INTERNAL_ROLE);
-      const res = await makeRequest(
-        token,
-        tenantId,
-        body as notificationConfigApi.NotificationConfigSeed
-      );
-      expect(res.status).toBe(400);
-      expect(
-        notificationConfigService.createTenantNotificationConfig
-      ).not.toHaveBeenCalledWith();
-    }
-  );
+  ])("Should return 400 if passed invalid params: %s", async ({ body }) => {
+    const token = generateToken(authRole.INTERNAL_ROLE);
+    const res = await makeRequest(
+      token,
+      body as notificationConfigApi.TenantNotificationConfigSeed
+    );
+    expect(res.status).toBe(400);
+    expect(
+      notificationConfigService.createTenantNotificationConfig
+    ).not.toHaveBeenCalledWith();
+  });
 });

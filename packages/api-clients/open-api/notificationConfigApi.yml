@@ -74,7 +74,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NotificationConfigSeed"
+              $ref: "#/components/schemas/TenantNotificationConfigUpdateSeed"
         required: true
       responses:
         "200":
@@ -107,15 +107,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/tenantNotificationConfigs/{tenantId}:
+  /internal/tenantNotificationConfigs:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - name: tenantId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
     post:
       security:
         - bearerAuth: []
@@ -124,11 +118,11 @@ paths:
       summary: Create a tenant's notification configuration
       operationId: createTenantNotificationConfig
       requestBody:
-        description: A notification config seed
+        description: A tenant notification config seed
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/NotificationConfigSeed"
+              $ref: "#/components/schemas/TenantNotificationConfigSeed"
         required: true
       responses:
         "200":
@@ -161,6 +155,15 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/tenantNotificationConfigs/tenantId/{tenantId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
     delete:
       security:
         - bearerAuth: []
@@ -242,7 +245,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserNotificationConfigSeed"
+              $ref: "#/components/schemas/UserNotificationConfigUpdateSeed"
         required: true
       responses:
         "200":
@@ -275,21 +278,9 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /internal/userNotificationConfigs/{tenantId}/{userId}:
+  /internal/userNotificationConfigs:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
-      - name: tenantId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-      - name: userId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
     post:
       security:
         - bearerAuth: []
@@ -335,6 +326,21 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/userNotificationConfigs/tenantId/{tenantId}/userId/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
     delete:
       security:
         - bearerAuth: []
@@ -454,7 +460,40 @@ components:
       properties:
         newEServiceVersionPublished:
           type: boolean
+    TenantNotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - tenantId
+        - config
+      properties:
+        tenantId:
+          type: string
+          format: uuid
+        config:
+          $ref: "#/components/schemas/NotificationConfig"
     UserNotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - tenantId
+        - inAppConfig
+        - emailConfig
+      properties:
+        userId:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        inAppConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+        emailConfig:
+          $ref: "#/components/schemas/NotificationConfig"
+    TenantNotificationConfigUpdateSeed:
+      $ref: "#/components/schemas/NotificationConfig"
+    UserNotificationConfigUpdateSeed:
       type: object
       additionalProperties: false
       required:
@@ -462,17 +501,9 @@ components:
         - emailConfig
       properties:
         inAppConfig:
-          $ref: "#/components/schemas/NotificationConfigSeed"
+          $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
-          $ref: "#/components/schemas/NotificationConfigSeed"
-    NotificationConfigSeed:
-      type: object
-      additionalProperties: false
-      required:
-        - newEServiceVersionPublished
-      properties:
-        newEServiceVersionPublished:
-          type: boolean
+          $ref: "#/components/schemas/NotificationConfig"
     Problem:
       properties:
         type:

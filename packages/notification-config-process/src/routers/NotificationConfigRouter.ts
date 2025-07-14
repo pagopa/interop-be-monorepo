@@ -143,15 +143,17 @@ const notificationConfigRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/internal/tenantNotificationConfigs/:tenantId", async (req, res) => {
+    .post("/internal/tenantNotificationConfigs", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
         validateAuthorization(ctx, [INTERNAL_ROLE]);
         const tenantNotificationConfig =
           await notificationConfigService.createTenantNotificationConfig(
-            unsafeBrandId(req.params.tenantId),
-            req.body,
+            {
+              tenantId: unsafeBrandId(req.body.tenantId),
+              config: req.body.config,
+            },
             ctx
           );
         return res
@@ -172,41 +174,41 @@ const notificationConfigRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post(
-      "/internal/userNotificationConfigs/:tenantId/:userId",
-      async (req, res) => {
-        const ctx = fromAppContext(req.ctx);
+    .post("/internal/userNotificationConfigs", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
 
-        try {
-          validateAuthorization(ctx, [INTERNAL_ROLE]);
-          const userNotificationConfig =
-            await notificationConfigService.createUserNotificationConfig(
-              unsafeBrandId(req.params.userId),
-              unsafeBrandId(req.params.tenantId),
-              req.body,
-              ctx
-            );
-          return res
-            .status(200)
-            .send(
-              notificationConfigApi.UserNotificationConfig.parse(
-                userNotificationConfigToApiUserNotificationConfig(
-                  userNotificationConfig
-                )
-              )
-            );
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            createUserNotificationConfigErrorMapper,
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+        const userNotificationConfig =
+          await notificationConfigService.createUserNotificationConfig(
+            {
+              userId: unsafeBrandId(req.body.userId),
+              tenantId: unsafeBrandId(req.body.tenantId),
+              inAppConfig: req.body.inAppConfig,
+              emailConfig: req.body.emailConfig,
+            },
             ctx
           );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res
+          .status(200)
+          .send(
+            notificationConfigApi.UserNotificationConfig.parse(
+              userNotificationConfigToApiUserNotificationConfig(
+                userNotificationConfig
+              )
+            )
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createUserNotificationConfigErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .delete(
-      "/internal/tenantNotificationConfigs/:tenantId",
+      "/internal/tenantNotificationConfigs/tenantId/:tenantId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -228,7 +230,7 @@ const notificationConfigRouter = (
       }
     )
     .delete(
-      "/internal/userNotificationConfigs/:tenantId/:userId",
+      "/internal/userNotificationConfigs/tenantId/:tenantId/userId/:userId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 

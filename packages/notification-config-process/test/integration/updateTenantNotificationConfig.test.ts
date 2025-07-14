@@ -27,10 +27,11 @@ describe("updateTenantNotificationConfig", () => {
     ...getMockTenantNotificationConfig(),
     tenantId,
   };
-  const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed = {
-    newEServiceVersionPublished:
-      !tenantNotificationConfig.config.newEServiceVersionPublished,
-  };
+  const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
+    {
+      newEServiceVersionPublished:
+        !tenantNotificationConfig.config.newEServiceVersionPublished,
+    };
 
   beforeAll(async () => {
     vi.useFakeTimers();

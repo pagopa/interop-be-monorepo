@@ -6,7 +6,7 @@ import request from "supertest";
 import { api, notificationConfigService } from "../vitest.api.setup.js";
 import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 
-describe("API DELETE /internal/tenantNotificationConfigs/{tenantId} test", () => {
+describe("API DELETE /internal/tenantNotificationConfigs/tenantId/{tenantId} test", () => {
   const defaultTenantId: TenantId = generateId();
 
   const makeRequest = async (
@@ -14,7 +14,7 @@ describe("API DELETE /internal/tenantNotificationConfigs/{tenantId} test", () =>
     tenantId: TenantId = defaultTenantId
   ) =>
     request(api)
-      .delete(`/internal/tenantNotificationConfigs/${tenantId}`)
+      .delete(`/internal/tenantNotificationConfigs/tenantId/${tenantId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 

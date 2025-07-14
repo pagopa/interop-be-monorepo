@@ -16,7 +16,7 @@ import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.
 
 describe("API POST /tenantNotificationConfigs test", () => {
   const tenantId = mockTokenOrganizationId;
-  const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
+  const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigUpdateSeed =
     getMockNotificationConfig();
   const serviceResponse: TenantNotificationConfig = {
     ...getMockTenantNotificationConfig(),
@@ -28,7 +28,7 @@ describe("API POST /tenantNotificationConfigs test", () => {
 
   const makeRequest = async (
     token: string,
-    body: notificationConfigApi.NotificationConfigSeed = notificationConfigSeed
+    body: notificationConfigApi.TenantNotificationConfigUpdateSeed = notificationConfigSeed
   ) =>
     request(api)
       .post("/tenantNotificationConfigs")
@@ -94,7 +94,7 @@ describe("API POST /tenantNotificationConfigs test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as notificationConfigApi.NotificationConfigSeed
+      body as notificationConfigApi.TenantNotificationConfigUpdateSeed
     );
     expect(res.status).toBe(400);
     expect(

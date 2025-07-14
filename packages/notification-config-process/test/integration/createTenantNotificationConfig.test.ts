@@ -4,7 +4,6 @@ import {
   getMockTenantNotificationConfig,
   getMockContextInternal,
 } from "pagopa-interop-commons-test";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   generateId,
   TenantId,
@@ -23,17 +22,19 @@ import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/er
 describe("createTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
 
+  const notificationConfigSeed = {
+    tenantId,
+    config: getMockNotificationConfig(),
+  };
+
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
   });
 
   it("should write on event-store for the creation of a tenant's notification configuration", async () => {
-    const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
-      getMockNotificationConfig();
     const serviceReturnValue =
       await notificationConfigService.createTenantNotificationConfig(
-        tenantId,
         notificationConfigSeed,
         getMockContextInternal({})
       );
@@ -51,7 +52,7 @@ describe("createTenantNotificationConfig", () => {
     const expectedTenantNotificationConfig: TenantNotificationConfig = {
       id: serviceReturnValue.id,
       tenantId,
-      config: notificationConfigSeed,
+      config: notificationConfigSeed.config,
       createdAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
@@ -66,14 +67,8 @@ describe("createTenantNotificationConfig", () => {
       tenantId,
     };
     addOneTenantNotificationConfig(tenantNotificationConfig);
-    const notificationConfigSeed: notificationConfigApi.NotificationConfigSeed =
-      {
-        newEServiceVersionPublished:
-          !tenantNotificationConfig.config.newEServiceVersionPublished,
-      };
     expect(
       notificationConfigService.createTenantNotificationConfig(
-        tenantId,
         notificationConfigSeed,
         getMockContextInternal({})
       )

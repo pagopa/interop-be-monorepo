@@ -15,6 +15,7 @@ import {
   UserNotificationConfigId,
   UserId,
   TenantId,
+  NotificationConfig,
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { NotificationConfigReadModelService } from "pagopa-interop-readmodel";
@@ -79,7 +80,7 @@ export function notificationConfigServiceBuilder(
     },
 
     async updateTenantNotificationConfig(
-      seed: notificationConfigApi.NotificationConfigSeed,
+      seed: notificationConfigApi.TenantNotificationConfigUpdateSeed,
       {
         authData: { organizationId },
         correlationId,
@@ -118,7 +119,7 @@ export function notificationConfigServiceBuilder(
     },
 
     async updateUserNotificationConfig(
-      seed: notificationConfigApi.UserNotificationConfigSeed,
+      seed: notificationConfigApi.UserNotificationConfigUpdateSeed,
       {
         authData: { userId, organizationId },
         correlationId,
@@ -160,8 +161,13 @@ export function notificationConfigServiceBuilder(
     },
 
     async createTenantNotificationConfig(
-      tenantId: TenantId,
-      seed: notificationConfigApi.NotificationConfigSeed,
+      {
+        tenantId,
+        config,
+      }: {
+        tenantId: TenantId;
+        config: NotificationConfig;
+      },
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<TenantNotificationConfig> {
       logger.info(`Creating notification configuration for tenant ${tenantId}`);
@@ -176,7 +182,7 @@ export function notificationConfigServiceBuilder(
       const tenantNotificationConfig: TenantNotificationConfig = {
         id: generateId<TenantNotificationConfigId>(),
         tenantId,
-        config: seed,
+        config,
         createdAt: new Date(),
         updatedAt: undefined,
       };
@@ -192,9 +198,17 @@ export function notificationConfigServiceBuilder(
     },
 
     async createUserNotificationConfig(
-      userId: UserId,
-      tenantId: TenantId,
-      seed: notificationConfigApi.UserNotificationConfigSeed,
+      {
+        userId,
+        tenantId,
+        inAppConfig,
+        emailConfig,
+      }: {
+        userId: UserId;
+        tenantId: TenantId;
+        inAppConfig: NotificationConfig;
+        emailConfig: NotificationConfig;
+      },
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<UserNotificationConfig> {
       logger.info(
@@ -215,8 +229,8 @@ export function notificationConfigServiceBuilder(
         id: generateId<UserNotificationConfigId>(),
         userId,
         tenantId,
-        inAppConfig: seed.inAppConfig,
-        emailConfig: seed.emailConfig,
+        inAppConfig,
+        emailConfig,
         createdAt: new Date(),
         updatedAt: undefined,
       };

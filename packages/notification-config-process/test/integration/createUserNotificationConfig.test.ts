@@ -4,7 +4,6 @@ import {
   getMockUserNotificationConfig,
   getMockContextInternal,
 } from "pagopa-interop-commons-test";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   generateId,
   UserId,
@@ -25,11 +24,12 @@ describe("createUserNotificationConfig", () => {
   const userId: UserId = generateId();
   const tenantId: TenantId = generateId();
 
-  const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigSeed =
-    {
-      inAppConfig: getMockNotificationConfig(),
-      emailConfig: getMockNotificationConfig(),
-    };
+  const userNotificationConfigSeed = {
+    userId,
+    tenantId,
+    inAppConfig: getMockNotificationConfig(),
+    emailConfig: getMockNotificationConfig(),
+  };
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -39,8 +39,6 @@ describe("createUserNotificationConfig", () => {
   it("should write on event-store for the creation of a user's notification configuration", async () => {
     const serviceReturnValue =
       await notificationConfigService.createUserNotificationConfig(
-        userId,
-        tenantId,
         userNotificationConfigSeed,
         getMockContextInternal({})
       );
@@ -78,8 +76,6 @@ describe("createUserNotificationConfig", () => {
     addOneUserNotificationConfig(userNotificationConfig);
     expect(
       notificationConfigService.createUserNotificationConfig(
-        userId,
-        tenantId,
         userNotificationConfigSeed,
         getMockContextInternal({})
       )

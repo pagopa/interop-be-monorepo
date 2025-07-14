@@ -18,7 +18,7 @@ import { userNotificationConfigNotFound } from "../../src/model/domain/errors.js
 describe("API POST /userNotificationConfigs test", () => {
   const userId = mockTokenUserId;
   const tenantId = mockTokenOrganizationId;
-  const notificationConfigSeed: notificationConfigApi.UserNotificationConfigSeed =
+  const notificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
       inAppConfig: getMockNotificationConfig(),
       emailConfig: getMockNotificationConfig(),
@@ -34,7 +34,7 @@ describe("API POST /userNotificationConfigs test", () => {
 
   const makeRequest = async (
     token: string,
-    body: notificationConfigApi.UserNotificationConfigSeed = notificationConfigSeed
+    body: notificationConfigApi.UserNotificationConfigUpdateSeed = notificationConfigSeed
   ) =>
     request(api)
       .post("/userNotificationConfigs")
@@ -110,7 +110,7 @@ describe("API POST /userNotificationConfigs test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      body as notificationConfigApi.UserNotificationConfigSeed
+      body as notificationConfigApi.UserNotificationConfigUpdateSeed
     );
     expect(res.status).toBe(400);
     expect(

@@ -31,7 +31,7 @@ describe("updateUserNotificationConfig", () => {
     userId,
     tenantId,
   };
-  const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigSeed =
+  const userNotificationConfigSeed: notificationConfigApi.UserNotificationConfigUpdateSeed =
     {
       inAppConfig: {
         newEServiceVersionPublished:
