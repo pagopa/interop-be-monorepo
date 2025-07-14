@@ -1,13 +1,9 @@
 /* eslint-disable functional/no-let */
 import { genericInternalError } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
-import { delay, EmailManagerSES, Logger, logger } from "pagopa-interop-commons";
+import { delay, EmailManagerSES, logger } from "pagopa-interop-commons";
 import Mail from "nodemailer/lib/mailer/index.js";
-import {
-  LimitExceededException,
-  SendingPausedException,
-  TooManyRequestsException,
-} from "@aws-sdk/client-sesv2";
+import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
 import { EmailNotificationPayload } from "../model/emailNotificationPayload.js";
 import { config } from "../config/config.js";
 
@@ -24,14 +20,17 @@ export function emailSenderProcessorBuilder(
       message,
       partition,
     }: EachMessagePayload): Promise<void> {
+      let loggerInstance = logger({ serviceName: "email-sender" });
+
       if (!message.value) {
-        throw genericInternalError(
+        // Log and skip message
+        loggerInstance.info(
           `Empty message for partition ${partition} with offset ${message.offset}`
         );
+        return;
       }
 
       let jsonPayload: EmailNotificationPayload;
-      let loggerInstance: Logger;
       let mailOptions: Mail.Options;
       try {
         jsonPayload = JSON.parse(message.value.toString());
@@ -49,9 +48,11 @@ export function emailSenderProcessorBuilder(
           html: jsonPayload.body,
         };
       } catch (err) {
-        throw genericInternalError(
+        // Log and skip message
+        loggerInstance.info(
           `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
         );
+        return;
       }
 
       let sent = false;
@@ -65,22 +66,19 @@ export function emailSenderProcessorBuilder(
             `Email sent for message in partition ${partition} with offset ${message.offset}.`
           );
         } catch (err) {
-          switch (true) {
-            case err instanceof LimitExceededException:
-            case err instanceof TooManyRequestsException:
-              await delay(config.retryDelayInMillis);
-              break;
-            default:
-              loggerInstance.warn(
-                `Email sending attempt failed for message in partition ${partition} with offset ${message.offset}. Reason: ${err} `
-              );
-              break;
+          if (err instanceof TooManyRequestsException) {
+            await delay(config.retryDelayInMillis);
+          } else {
+            throw genericInternalError(
+              `Email sending attempt failed for message in partition ${partition} with offset ${message.offset}. Reason: ${err} `
+            );
           }
         }
       }
 
       if (!sent) {
         // Exceeded max number of attempts
+        // Log and skip message
         loggerInstance.warn(
           `Message in partition ${partition} with offset ${message.offset} was consumed, but no email was sent. Exceeded maximum number of attempts.`
         );
