@@ -7,7 +7,10 @@ import { bffApi, selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { toApiSelfcareUser } from "../../../src/api/selfcareApiConverter.js";
-import { userNotFound } from "../../../src/model/errors.js";
+import {
+  selfcareEntityNotFilled,
+  userNotFound,
+} from "../../../src/model/errors.js";
 
 describe("API GET /users/:userId", () => {
   const mockUserResource: selfcareV2ClientApi.UserResource = {
@@ -61,5 +64,16 @@ describe("API GET /users/:userId", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest("invalid" as UserId, token);
     expect(res.status).toBe(400);
+  });
+
+  it("should return 500 if an error occurs in the service", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    services.selfcareService.getSelfcareUser = vi
+      .fn()
+      .mockRejectedValue(
+        selfcareEntityNotFilled("UserInstitutionResource", "unknown")
+      );
+    const res = await makeRequest(mockUserResource.id, token);
+    expect(res.status).toBe(500);
   });
 });

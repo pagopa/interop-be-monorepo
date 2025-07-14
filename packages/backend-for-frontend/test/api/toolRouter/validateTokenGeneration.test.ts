@@ -6,6 +6,7 @@ import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { services, api } from "../../vitest.api.setup.js";
+import { tenantNotAllowed } from "../../../src/model/errors.js";
 
 describe("API POST /tools/validateTokenGeneration", () => {
   const mockRequest: bffApi.AccessTokenRequest = {
@@ -77,5 +78,15 @@ describe("API POST /tools/validateTokenGeneration", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, body as bffApi.AccessTokenRequest);
     expect(res.status).toBe(400);
+  });
+
+  it("should return 403 if tenantNotAllowed error occurs in the service", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    services.toolsService.validateTokenGeneration = vi
+      .fn()
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      .mockRejectedValue(tenantNotAllowed(mockRequest.client_id!));
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
   });
 });

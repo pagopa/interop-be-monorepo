@@ -44,4 +44,15 @@ describe("API POST /session/saml2/tokens", () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockSessionToken);
   });
+
+  it.each([
+    { body: {} },
+    { body: { ...mockSAMLTokenRequestBody, extraField: 1 } },
+    { body: { ...mockSAMLTokenRequestBody, tenantId: "invalid" } },
+    { body: { ...mockSAMLTokenRequestBody, saml2: 123 } },
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, body as bffApi.SAMLTokenRequest);
+    expect(res.status).toBe(400);
+  });
 });

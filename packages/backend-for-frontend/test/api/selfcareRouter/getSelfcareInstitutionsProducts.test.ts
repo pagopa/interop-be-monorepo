@@ -6,6 +6,7 @@ import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { selfcareEntityNotFilled } from "../../../src/model/errors.js";
 
 describe("API GET /selfcare/institutions/products", () => {
   const mockProducts: bffApi.SelfcareProduct[] = [
@@ -33,5 +34,16 @@ describe("API GET /selfcare/institutions/products", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockProducts);
+  });
+
+  it("should return 500 if an error occurs in the service", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    services.selfcareService.getSelfcareInstitutionsProducts = vi
+      .fn()
+      .mockRejectedValue(
+        selfcareEntityNotFilled("UserInstitutionResource", "unknown")
+      );
+    const res = await makeRequest(token);
+    expect(res.status).toBe(500);
   });
 });

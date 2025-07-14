@@ -6,6 +6,7 @@ import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { api, services } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { selfcareEntityNotFilled } from "../../../src/model/errors.js";
 
 describe("GET /tenants/:tenantId/users", () => {
   const validTenantId: TenantId = generateId();
@@ -62,5 +63,16 @@ describe("GET /tenants/:tenantId/users", () => {
       query as typeof defaultQuery
     );
     expect(res.status).toBe(400);
+  });
+
+  it("should return 500 if an error occurs in the service", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    services.selfcareService.getInstitutionUsers = vi
+      .fn()
+      .mockRejectedValue(
+        selfcareEntityNotFilled("UserInstitutionResource", "unknown")
+      );
+    const res = await makeRequest(token, validTenantId);
+    expect(res.status).toBe(500);
   });
 });
