@@ -176,6 +176,9 @@ paths:
       responses:
         "200":
           description: Returns the document.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -250,6 +253,9 @@ paths:
       operationId: removeAgreementConsumerDocument
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: Document removed
         "403":
           description: Forbidden

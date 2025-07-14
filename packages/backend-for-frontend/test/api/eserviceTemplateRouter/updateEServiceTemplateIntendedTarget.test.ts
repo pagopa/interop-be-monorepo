@@ -4,10 +4,10 @@ import { EServiceTemplateId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiMockEServiceTemplateIntendedTargetUpdateSeed } from "../../mockUtils.js";
-import { EServiceTemplateIntendedTargetUpdateSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/intendedTarget/update", () => {
   const mockEServiceTemplateIntendedTargetUpdateSeed =
@@ -21,7 +21,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/intendedTarget/updat
   const makeRequest = async (
     token: string,
     eServiceTemplateId: EServiceTemplateId = generateId(),
-    body: EServiceTemplateIntendedTargetUpdateSeed = mockEServiceTemplateIntendedTargetUpdateSeed
+    body: bffApi.EServiceTemplateIntendedTargetUpdateSeed = mockEServiceTemplateIntendedTargetUpdateSeed
   ) =>
     request(api)
       .post(
@@ -53,7 +53,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/intendedTarget/updat
       const res = await makeRequest(
         token,
         eServiceTemplateId,
-        body as EServiceTemplateIntendedTargetUpdateSeed
+        body as bffApi.EServiceTemplateIntendedTargetUpdateSeed
       );
       expect(res.status).toBe(400);
     }

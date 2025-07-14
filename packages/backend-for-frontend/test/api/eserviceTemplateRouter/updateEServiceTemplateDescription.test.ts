@@ -4,10 +4,10 @@ import { EServiceTemplateId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiMockEServiceTemplateDescriptionUpdateSeed } from "../../mockUtils.js";
-import { EServiceTemplateDescriptionUpdateSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/description/update", () => {
   const mockEServiceTemplateDescriptionUpdateSeed =
@@ -22,7 +22,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/description/update",
   const makeRequest = async (
     token: string,
     eServiceTemplateId: EServiceTemplateId = generateId(),
-    body: EServiceTemplateDescriptionUpdateSeed = mockEServiceTemplateDescriptionUpdateSeed
+    body: bffApi.EServiceTemplateDescriptionUpdateSeed = mockEServiceTemplateDescriptionUpdateSeed
   ) =>
     request(api)
       .post(
@@ -54,7 +54,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/description/update",
       const res = await makeRequest(
         token,
         eServiceTemplateId,
-        body as EServiceTemplateDescriptionUpdateSeed
+        body as bffApi.EServiceTemplateDescriptionUpdateSeed
       );
       expect(res.status).toBe(400);
     }
