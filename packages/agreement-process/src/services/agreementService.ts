@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   AppContext,
   CreateEvent,
@@ -58,7 +57,6 @@ import {
   tenantIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
-  unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
   ActiveDelegations,
@@ -716,26 +714,13 @@ export function agreementServiceBuilder(
       if (newDescriptor === undefined) {
         throw publishedDescriptorNotFound(eservice.id);
       }
-      const latestDescriptorVersion = z
-        .preprocess((x) => Number(x), z.number())
-        .safeParse(newDescriptor.version);
-      if (!latestDescriptorVersion.success) {
-        throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
-      }
 
       const currentDescriptor = retrieveDescriptor(
         agreementToBeUpgraded.data.descriptorId,
         eservice
       );
 
-      const currentVersion = z
-        .preprocess((x) => Number(x), z.number())
-        .safeParse(currentDescriptor.version);
-      if (!currentVersion.success) {
-        throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
-      }
-
-      if (latestDescriptorVersion.data <= currentVersion.data) {
+      if (newDescriptor.version <= currentDescriptor.version) {
         throw noNewerDescriptor(eservice.id, currentDescriptor.id);
       }
 
@@ -1084,8 +1069,12 @@ export function agreementServiceBuilder(
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<string> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(
         `Removing consumer document ${documentId} from agreement ${agreementId}`
       );
@@ -1098,6 +1087,7 @@ export function agreementServiceBuilder(
         await readModelService.getActiveConsumerDelegationByAgreement(
           agreement.data
         );
+
       assertRequesterCanActAsConsumer(
         agreement.data.consumerId,
         agreement.data.eserviceId,
@@ -1119,7 +1109,7 @@ export function agreementServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventAgreementConsumerDocumentRemoved(
           documentId,
           updatedAgreement,
@@ -1127,7 +1117,11 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
-      return updatedAgreement.id;
+
+      return {
+        data: updatedAgreement,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async rejectAgreement(
       agreementId: AgreementId,

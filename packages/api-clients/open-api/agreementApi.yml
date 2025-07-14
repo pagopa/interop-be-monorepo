@@ -296,6 +296,9 @@ paths:
       operationId: removeAgreementConsumerDocument
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: Document removed
         "403":
           description: Forbidden

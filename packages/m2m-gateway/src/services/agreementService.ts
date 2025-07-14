@@ -26,6 +26,7 @@ import {
 import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import { agreementContractNotFound } from "../model/errors.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -370,6 +371,47 @@ export function agreementServiceBuilder(
         config.agreementConsumerDocumentsContainer,
         logger
       );
+    },
+    async downloadAgreementConsumerContract(
+      agreementId: AgreementId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(`Retrieving contract for agreement with id ${agreementId}`);
+
+      const { data: agreement } = await retrieveAgreementById(
+        headers,
+        agreementId
+      );
+
+      if (!agreement.contract) {
+        throw agreementContractNotFound(agreementId);
+      }
+
+      return downloadDocument(
+        agreement.contract,
+        fileManager,
+        config.agreementConsumerDocumentsContainer,
+        logger
+      );
+    },
+    async deleteAgreementConsumerDocument(
+      agreementId: AgreementId,
+      documentId: AgreementDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing consumer document ${documentId} for agreement with id ${agreementId}`
+      );
+      const { metadata } =
+        await clients.agreementProcessClient.removeAgreementConsumerDocument(
+          undefined,
+          {
+            params: { agreementId, documentId },
+            headers,
+          }
+        );
+
+      await pollAgreementById(agreementId, metadata, headers);
     },
   };
 }
