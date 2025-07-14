@@ -27,6 +27,9 @@ interface TopicNames {
   catalogTopic: string;
   agreementTopic: string;
   purposeTopic: string;
+  delegationTopic: string;
+  authorizationTopic: string;
+  attributeTopic: string;
 }
 
 const readModelDB = makeDrizzleConnection(config);
@@ -92,10 +95,20 @@ function processMessage(topicHandlers: TopicNames) {
 
 await runConsumer(
   config,
-  [config.catalogTopic, config.agreementTopic, config.purposeTopic],
+  [
+    config.catalogTopic,
+    config.agreementTopic,
+    config.purposeTopic,
+    config.delegationTopic,
+    config.authorizationTopic,
+    config.attributeTopic,
+  ],
   processMessage({
     catalogTopic: config.catalogTopic,
     agreementTopic: config.agreementTopic,
     purposeTopic: config.purposeTopic,
+    delegationTopic: config.delegationTopic,
+    authorizationTopic: config.authorizationTopic,
+    attributeTopic: config.attributeTopic,
   })
 );
