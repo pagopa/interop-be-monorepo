@@ -65,13 +65,14 @@ export async function handleEserviceDescriptorPublished(
     );
   }
 
-  return await Promise.all(
+  const consumers = await Promise.all(
     (agreements ?? []).map((consumer) =>
       retrieveTenant(consumer.consumerId, readModelService)
     )
-  ).then((consumers) =>
+  );
+
+  return (
     consumers
-      // Get consumer email
       .map((consumer) =>
         getLatestTenantMailOfKind(consumer.mails, tenantMailKind.ContactEmail)
       )
