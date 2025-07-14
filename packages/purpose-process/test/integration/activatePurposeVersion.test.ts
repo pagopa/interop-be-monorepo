@@ -46,6 +46,7 @@ import {
   TenantId,
   DelegationId,
   badRequestError,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -1359,7 +1360,7 @@ describe("activatePurposeVersion", () => {
     }
   );
 
-  it("should throw badRequestError if the caller is neither the producer or the consumer of the purpose, nor the delegate", async () => {
+  it("should throw unauthorizedError if the caller is neither the producer or the consumer of the purpose, nor the delegate", async () => {
     const anotherTenant: Tenant = { ...getMockTenant(), kind: "PA" };
 
     await addOnePurpose(mockPurpose);
@@ -1378,8 +1379,8 @@ describe("activatePurposeVersion", () => {
         getMockContext({ authData: getMockAuthData(anotherTenant.id) })
       );
     }).rejects.toThrowError(
-      badRequestError(
-        `Tenant ${anotherTenant.id} is not allowed to perform the operation because the delegation ID is missing`
+      unauthorizedError(
+        `Tenant ${anotherTenant.id} is not allowed to perform the operation because is neither producer/consumer nor delegate`
       )
     );
   });

@@ -99,7 +99,10 @@ const agreementRouter = (
         const { data: agreement, metadata } =
           await agreementService.activateAgreement(
             unsafeBrandId(req.params.agreementId),
-            ctx
+            ctx,
+            req.query.delegationId
+              ? unsafeBrandId<DelegationId>(req.query.delegationId)
+              : undefined
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -220,7 +223,10 @@ const agreementRouter = (
         const { data: agreement, metadata } =
           await agreementService.suspendAgreement(
             unsafeBrandId(req.params.agreementId),
-            ctx
+            ctx,
+            req.query.delegationId
+              ? unsafeBrandId<DelegationId>(req.query.delegationId)
+              : undefined
           );
 
         setMetadataVersionHeader(res, metadata);

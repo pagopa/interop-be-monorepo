@@ -1,5 +1,6 @@
 /* eslint-disable max-params */
 import {
+  ActiveDelegations,
   CreateEvent,
   M2MAdminAuthData,
   UIAuthData,
@@ -10,11 +11,13 @@ import {
   AgreementEventV2,
   AgreementState,
   CorrelationId,
+  Delegation,
   Descriptor,
   EService,
   Tenant,
   TenantId,
   agreementState,
+  delegationKind,
   genericError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -24,10 +27,7 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/agreement-validators.js";
-import {
-  ActiveDelegations,
-  UpdateAgreementSeed,
-} from "../model/domain/models.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   toCreateEventAgreementActivated,
   toCreateEventAgreementSuspendedByPlatform,
@@ -125,7 +125,7 @@ export async function createActivationEvent(
   agreementEventStoreVersion: number,
   authData: UIAuthData | M2MAdminAuthData,
   correlationId: CorrelationId,
-  activeDelegations: ActiveDelegations
+  delegation: Delegation | undefined
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
     // Pending >>> Active
@@ -162,14 +162,14 @@ export async function createActivationEvent(
       we also create the corresponding suspension/unsuspension by platform event.
     */
 
-    return match<[TenantId | undefined, AgreementState]>([
-      authData.organizationId,
-      updatedAgreement.state,
-    ])
+    return match<
+      [Delegation | undefined, TenantId | undefined, AgreementState]
+    >([delegation, authData.organizationId, updatedAgreement.state])
       .with(
-        [updatedAgreement.producerId, agreementState.active],
+        [undefined, updatedAgreement.producerId, agreementState.active],
         [
-          activeDelegations.producerDelegation?.delegateId,
+          { kind: delegationKind.delegatedProducer },
+          delegation?.delegateId,
           agreementState.active,
         ],
         () => [
@@ -181,9 +181,12 @@ export async function createActivationEvent(
         ]
       )
       .with(
-        [updatedAgreement.producerId, agreementState.suspended],
+        [undefined, updatedAgreement.producerId, agreementState.suspended],
         [
-          activeDelegations.producerDelegation?.delegateId,
+          {
+            kind: delegationKind.delegatedProducer,
+          },
+          delegation?.delegateId,
           agreementState.suspended,
         ],
         () => [
@@ -204,9 +207,12 @@ export async function createActivationEvent(
         ]
       )
       .with(
-        [updatedAgreement.consumerId, agreementState.active],
+        [undefined, updatedAgreement.consumerId, agreementState.active],
         [
-          activeDelegations.consumerDelegation?.delegateId,
+          {
+            kind: delegationKind.delegatedConsumer,
+          },
+          delegation?.delegateId,
           agreementState.active,
         ],
         () => [
@@ -218,9 +224,12 @@ export async function createActivationEvent(
         ]
       )
       .with(
-        [updatedAgreement.consumerId, agreementState.suspended],
+        [undefined, updatedAgreement.consumerId, agreementState.suspended],
         [
-          activeDelegations.consumerDelegation?.delegateId,
+          {
+            kind: delegationKind.delegatedConsumer,
+          },
+          delegation?.delegateId,
           agreementState.suspended,
         ],
         () => [

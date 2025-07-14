@@ -40,8 +40,8 @@ const validateWithoutDelegationId = (
   const isProducer = organizationId === producerId;
 
   if (!isConsumer && !isProducer) {
-    throw badRequestError(
-      `Tenant ${organizationId} is not allowed to perform the operation because the delegation ID is missing`
+    throw unauthorizedError(
+      `Tenant ${organizationId} is not allowed to perform the operation because is neither producer/consumer nor delegate`
     );
   }
 

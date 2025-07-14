@@ -1,4 +1,5 @@
 import {
+  ActiveDelegations,
   CreateEvent,
   M2MAdminAuthData,
   UIAuthData,
@@ -13,10 +14,7 @@ import {
   agreementState,
   genericError,
 } from "pagopa-interop-models";
-import {
-  ActiveDelegations,
-  UpdateAgreementSeed,
-} from "../model/domain/models.js";
+import { UpdateAgreementSeed } from "../model/domain/models.js";
 import {
   toCreateEventAgreementSuspendedByProducer,
   toCreateEventAgreementSuspendedByConsumer,

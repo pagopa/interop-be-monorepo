@@ -2,6 +2,7 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import {
+  ActiveDelegations,
   FileManager,
   Logger,
   PDFGenerator,
@@ -34,10 +35,7 @@ import {
 import { attributeNotFound } from "../model/domain/errors.js";
 import { AgreementProcessConfig } from "../config/config.js";
 import { assertStampExists } from "../model/domain/agreement-validators.js";
-import {
-  ActiveDelegations,
-  AgreementContractPDFPayload,
-} from "../model/domain/models.js";
+import { AgreementContractPDFPayload } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import { retrieveDescriptor, retrieveTenant } from "./agreementService.js";
 

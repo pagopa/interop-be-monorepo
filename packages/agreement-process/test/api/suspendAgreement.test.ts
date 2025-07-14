@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AgreementId, agreementState, generateId } from "pagopa-interop-models";
+import {
+  AgreementId,
+  agreementState,
+  badRequestError,
+  DelegationId,
+  generateId,
+  unauthorizedError,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockAgreement,
@@ -33,12 +40,14 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
 
   const makeRequest = async (
     token: string,
-    agreementId: AgreementId = mockAgreement.id
+    agreementId: AgreementId = mockAgreement.id,
+    delegationId?: DelegationId
   ) =>
     request(api)
       .post(`/agreements/${agreementId}/suspend`)
       .set("Authorization", `Bearer ${token}`)
-      .set("X-Correlation-Id", generateId());
+      .set("X-Correlation-Id", generateId())
+      .query({ delegationId });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -76,6 +85,8 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
       ),
       expectedStatus: 400,
     },
+    { error: badRequestError(generateId()), expectedStatus: 400 },
+    { error: unauthorizedError(generateId()), expectedStatus: 403 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

@@ -31,6 +31,7 @@ import {
   filterDeclaredAttributes,
   filterVerifiedAttributes,
 } from "pagopa-interop-agreement-lifecycle";
+import { match } from "ts-pattern";
 import { ReadModelService } from "../../services/readModelService.js";
 import {
   agreementActivationFailed,
@@ -50,7 +51,6 @@ import {
   tenantNotAllowed,
 } from "./errors.js";
 import {
-  ActiveDelegations,
   CertifiedAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
@@ -155,23 +155,30 @@ const assertRequesterIsProducer = (
 
 export const assertRequesterCanActAsConsumerOrProducer = (
   agreement: Agreement,
-  authData: UIAuthData | M2MAdminAuthData,
-  activeDelegations: ActiveDelegations
+  delegation: Delegation | undefined,
+  authData: UIAuthData | M2MAdminAuthData
 ): void => {
+  if (delegation) {
+    return match(delegation.kind)
+      .with(delegationKind.delegatedProducer, () => {
+        assertRequesterIsDelegateProducer(agreement, authData, delegation);
+      })
+      .with(delegationKind.delegatedConsumer, () => {
+        assertRequesterIsDelegateConsumer(
+          agreement.consumerId,
+          agreement.eserviceId,
+          authData,
+          delegation
+        );
+      })
+      .exhaustive();
+  }
+
   try {
-    assertRequesterCanActAsConsumer(
-      agreement.consumerId,
-      agreement.eserviceId,
-      authData,
-      activeDelegations.consumerDelegation
-    );
+    assertRequesterIsProducer(agreement, authData);
   } catch {
     try {
-      assertRequesterCanActAsProducer(
-        agreement,
-        authData,
-        activeDelegations.producerDelegation
-      );
+      assertRequesterIsConsumer(agreement.consumerId, authData);
     } catch {
       throw tenantNotAllowed(authData.organizationId);
     }

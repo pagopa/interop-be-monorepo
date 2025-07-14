@@ -1,4 +1,8 @@
-import { M2MAdminAuthData, UIAuthData } from "pagopa-interop-commons";
+import {
+  ActiveDelegations,
+  M2MAdminAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementStamp,
@@ -7,7 +11,6 @@ import {
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
-import { ActiveDelegations } from "../model/domain/models.js";
 
 export const createStamp = (
   authData: UIAuthData | M2MAdminAuthData,

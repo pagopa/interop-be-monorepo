@@ -684,9 +684,9 @@ export function purposeServiceBuilder(
         readModelService.getActiveProducerDelegationByEserviceId(
           purpose.data.eserviceId
         ),
-      ]).then((values) => ({
-        consumerDelegation: values[0],
-        producerDelegation: values[1],
+      ]).then((delegations) => ({
+        consumerDelegation: delegations[0],
+        producerDelegation: delegations[1],
       }));
 
       const delegation = await validateDelegationConstraints({

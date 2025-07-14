@@ -35,6 +35,7 @@ import {
   agreementState,
   DelegationId,
   badRequestError,
+  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   purposeNotFound,
@@ -763,7 +764,7 @@ describe("suspendPurposeVersion", () => {
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
     );
   });
-  it("should throw badRequestError if the requester is not the producer nor the consumer", async () => {
+  it("should throw unauthorizedError if the requester is not the producer nor the consumer", async () => {
     const mockEService = getMockEService();
     const randomAuthData = getMockAuthData();
     const mockPurposeVersion: PurposeVersion = {
@@ -788,8 +789,8 @@ describe("suspendPurposeVersion", () => {
         getMockContext({ authData: randomAuthData })
       )
     ).rejects.toThrowError(
-      badRequestError(
-        `Tenant ${randomAuthData.organizationId} is not allowed to perform the operation because the delegation ID is missing`
+      unauthorizedError(
+        `Tenant ${randomAuthData.organizationId} is not allowed to perform the operation because is neither producer/consumer nor delegate`
       )
     );
   });
