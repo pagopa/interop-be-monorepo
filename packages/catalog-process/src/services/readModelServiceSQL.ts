@@ -148,16 +148,38 @@ export function readModelServiceBuilderSQL(
         .from(eserviceInReadmodelCatalog)
         .$dynamic();
 
+      const agreementSubquery = readmodelDB
+        .selectDistinctOn([agreementInReadmodelAgreement.eserviceId], {
+          eserviceId: agreementInReadmodelAgreement.eserviceId,
+        })
+        .from(agreementInReadmodelAgreement)
+        .where(
+          //  agreement states filter
+          agreementStates.length > 0
+            ? and(
+                inArray(agreementInReadmodelAgreement.state, agreementStates),
+                eq(
+                  agreementInReadmodelAgreement.consumerId,
+                  authData.organizationId
+                )
+              )
+            : undefined
+        )
+        .as("agreementSubquery");
+
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-      const buildQuery = <T extends PgSelect>(query: T) =>
-        query
-          .leftJoin(
-            agreementInReadmodelAgreement,
-            eq(
-              eserviceInReadmodelCatalog.id,
-              agreementInReadmodelAgreement.eserviceId
-            )
-          )
+      const buildQuery = <T extends PgSelect>(query: T) => {
+        // eslint-disable-next-line functional/no-let
+        let q: PgSelect = query;
+
+        if (agreementStates.length > 0) {
+          q = q.innerJoin(
+            agreementSubquery,
+            eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
+          );
+        }
+
+        q = q
           .leftJoin(
             eserviceDescriptorInReadmodelCatalog,
             eq(
@@ -191,19 +213,6 @@ export function readModelServiceBuilderSQL(
               // ids filter
               eservicesIds.length > 0
                 ? inArray(eserviceInReadmodelCatalog.id, eservicesIds)
-                : undefined,
-              // agreement states filter
-              agreementStates.length > 0
-                ? and(
-                    inArray(
-                      agreementInReadmodelAgreement.state,
-                      agreementStates
-                    ),
-                    eq(
-                      agreementInReadmodelAgreement.consumerId,
-                      authData.organizationId
-                    )
-                  )
                 : undefined,
               // producerIds filter
               producersIds.length > 0
@@ -338,6 +347,10 @@ export function readModelServiceBuilderSQL(
           )
           .$dynamic();
 
+        return q;
+      };
+
+      // TODO: fix type
       const ids = (
         await buildQuery(idsQuery)
           .groupBy(eserviceInReadmodelCatalog.id)
