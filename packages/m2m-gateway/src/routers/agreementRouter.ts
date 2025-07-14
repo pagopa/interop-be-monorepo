@@ -304,7 +304,9 @@ const agreementRouter = (
           ctx
         );
 
-        return res.status(200).send(clonedAgreement);
+        return res
+          .status(200)
+          .send(m2mGatewayApi.Agreement.parse(clonedAgreement));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
