@@ -392,5 +392,24 @@ export function agreementServiceBuilder(
         logger
       );
     },
+    async deleteAgreementConsumerDocument(
+      agreementId: AgreementId,
+      documentId: AgreementDocumentId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Removing consumer document ${documentId} for agreement with id ${agreementId}`
+      );
+      const { metadata } =
+        await clients.agreementProcessClient.removeAgreementConsumerDocument(
+          undefined,
+          {
+            params: { agreementId, documentId },
+            headers,
+          }
+        );
+
+      await pollAgreementById(agreementId, metadata, headers);
+    },
   };
 }
