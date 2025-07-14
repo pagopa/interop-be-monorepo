@@ -424,7 +424,7 @@ describe("read-model-queries.service", () => {
       expect(result).toHaveLength(eserviceTemplatesData.length);
     });
 
-    it("should not return draft descriptors in the e-service", async () => {
+    it("should not return draft versions in the eService Template", async () => {
       const eserviceTemplatesData = [
         getMockEServiceTemplate(
           generateId<EServiceTemplateId>(),
