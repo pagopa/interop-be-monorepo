@@ -285,7 +285,7 @@ describe("clone descriptor", () => {
     };
     await addOneEService(newEService);
 
-    expect(
+    await expect(
       catalogService.cloneDescriptor(
         existentEService.id,
         descriptor.id,
@@ -330,7 +330,7 @@ describe("clone descriptor", () => {
     };
     await addOneEService(eservice2);
 
-    expect(
+    await expect(
       catalogService.cloneDescriptor(
         eservice1.id,
         descriptor.id,
@@ -371,7 +371,7 @@ describe("clone descriptor", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    expect(
+    await expect(
       catalogService.cloneDescriptor(
         eservice1.id,
         descriptor.id,
@@ -411,7 +411,7 @@ describe("clone descriptor", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    expect(
+    await expect(
       catalogService.cloneDescriptor(
         eservice1.id,
         descriptor.id,
@@ -425,8 +425,8 @@ describe("clone descriptor", () => {
       )
     );
   });
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.cloneDescriptor(
         mockEService.id,
         mockDescriptor.id,
@@ -444,7 +444,7 @@ describe("clone descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.cloneDescriptor(
         eservice.id,
         descriptor.id,
@@ -470,7 +470,7 @@ describe("clone descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.cloneDescriptor(
         eservice.id,
         descriptor.id,
@@ -486,7 +486,7 @@ describe("clone descriptor", () => {
       descriptors: [],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.cloneDescriptor(
         mockEService.id,
         mockDescriptor.id,
@@ -508,7 +508,7 @@ describe("clone descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.cloneDescriptor(
         eservice.id,
         descriptor.id,

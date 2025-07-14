@@ -183,7 +183,7 @@ describe("update Document", () => {
     }
   );
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
-    expect(
+    await expect(
       catalogService.updateDocument(
         mockEService.id,
         mockDescriptor.id,
@@ -204,7 +204,7 @@ describe("update Document", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateDocument(
         eservice.id,
         descriptor.id,
@@ -232,7 +232,7 @@ describe("update Document", () => {
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);
-    expect(
+    await expect(
       catalogService.updateDocument(
         eservice.id,
         descriptor.id,
@@ -248,7 +248,7 @@ describe("update Document", () => {
       descriptors: [],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateDocument(
         eservice.id,
         mockDescriptor.id,
@@ -278,7 +278,7 @@ describe("update Document", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.updateDocument(
           eservice.id,
           descriptor.id,
@@ -300,7 +300,7 @@ describe("update Document", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateDocument(
         eservice.id,
         descriptor.id,
@@ -332,7 +332,7 @@ describe("update Document", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateDocument(
         eservice.id,
         descriptor.id,
@@ -361,7 +361,7 @@ describe("update Document", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eService);
-    expect(
+    await expect(
       catalogService.updateDocument(
         eService.id,
         descriptor.id,

@@ -212,7 +212,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
     "should throw eServiceNotFound if the eservice doesn't exist (with signalhub flag set to %s)",
     async (signalhubFlag) => {
       const eservice = getMockEService();
-      expect(
+      await expect(
         catalogService.updateEServiceSignalHubFlag(
           eservice.id,
           signalhubFlag,
@@ -227,7 +227,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
     async (signalhubFlag) => {
       const eservice = getMockEService();
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.updateEServiceSignalHubFlag(
           eservice.id,
           signalhubFlag,
@@ -246,7 +246,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
       };
 
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.updateEServiceSignalHubFlag(
           eservice.id,
           signalhubFlag,

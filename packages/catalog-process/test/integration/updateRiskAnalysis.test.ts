@@ -294,7 +294,7 @@ describe("update risk analysis", () => {
     expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         mockEService.id,
         generateId(),
@@ -305,7 +305,7 @@ describe("update risk analysis", () => {
   });
   it("should throw operationForbidden if the requester is not the producer", async () => {
     await addOneEService(mockEService);
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         mockEService.id,
         generateId(),
@@ -324,7 +324,7 @@ describe("update risk analysis", () => {
     await addOneEService(mockEService);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         mockEService.id,
         generateId(),
@@ -345,7 +345,7 @@ describe("update risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         eservice.id,
         generateId(),
@@ -367,7 +367,7 @@ describe("update risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         eservice.id,
         generateId(),
@@ -389,7 +389,7 @@ describe("update risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         eservice.id,
         generateId(),
@@ -419,7 +419,7 @@ describe("update risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         eservice.id,
         generateId(),
@@ -453,7 +453,7 @@ describe("update risk analysis", () => {
     await addOneEService(eservice);
 
     const riskAnalysisId = generateId<RiskAnalysisId>();
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         eservice.id,
         riskAnalysisId,
@@ -502,7 +502,7 @@ describe("update risk analysis", () => {
       ...buildRiskAnalysisSeed(riskAnalysis_1),
       name: riskAnalysis_2.name.toLowerCase(),
     };
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         eservice.id,
         riskAnalysis_1.id,
@@ -561,7 +561,7 @@ describe("update risk analysis", () => {
       },
     };
 
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         eservice.id,
         riskAnalysis.id,
@@ -614,7 +614,7 @@ describe("update risk analysis", () => {
     const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed =
       buildRiskAnalysisSeed(riskAnalysis);
 
-    expect(
+    await expect(
       catalogService.updateRiskAnalysis(
         eService.id,
         riskAnalysis.id,

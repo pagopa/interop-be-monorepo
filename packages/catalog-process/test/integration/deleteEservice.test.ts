@@ -184,18 +184,18 @@ describe("delete eservice", () => {
     ).not.toContain(document.path);
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    void expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    void (await expect(
       catalogService.deleteEService(
         mockEService.id,
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
-    ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+    ).rejects.toThrowError(eServiceNotFound(mockEService.id)));
   });
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
     await addOneEService(mockEService);
-    expect(
+    await expect(
       catalogService.deleteEService(mockEService.id, getMockContext({}))
     ).rejects.toThrowError(operationForbidden);
   });
@@ -211,7 +211,7 @@ describe("delete eservice", () => {
 
       await addOneEService(mockEService);
       await addOneDelegation(delegation);
-      expect(
+      await expect(
         catalogService.deleteEService(
           mockEService.id,
           getMockContext({
@@ -235,7 +235,7 @@ describe("delete eservice", () => {
 
       await addOneEService(mockEService);
       await addOneDelegation(delegation);
-      expect(
+      await expect(
         catalogService.deleteEService(
           mockEService.id,
           getMockContext({
@@ -267,7 +267,7 @@ describe("delete eservice", () => {
       descriptors: [descriptor1, descriptor2],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.deleteEService(
         eservice.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })

@@ -244,7 +244,7 @@ describe("create risk analysis", () => {
     expect(writtenPayload.eservice).toEqual(expectedEservice);
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         mockEService.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
@@ -254,7 +254,7 @@ describe("create risk analysis", () => {
   });
   it("should throw operationForbidden if the requester is not the producer", async () => {
     await addOneEService(mockEService);
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         mockEService.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
@@ -271,7 +271,7 @@ describe("create risk analysis", () => {
 
     await addOneEService(mockEService);
     await addOneDelegation(delegation);
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         mockEService.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
@@ -291,7 +291,7 @@ describe("create risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         eservice.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
@@ -312,7 +312,7 @@ describe("create risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         eservice.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
@@ -333,7 +333,7 @@ describe("create risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         eservice.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
@@ -362,7 +362,7 @@ describe("create risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         eservice.id,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
@@ -407,7 +407,7 @@ describe("create risk analysis", () => {
       name: riskAnalysis.name.toLowerCase(),
     };
 
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         eservice.id,
         riskAnalysisSeed,
@@ -464,7 +464,7 @@ describe("create risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         eservice.id,
         invalidRiskAnalysisSeed,
@@ -512,7 +512,7 @@ describe("create risk analysis", () => {
     await addOneTenant(producer);
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.createRiskAnalysis(
         eservice.id,
         riskAnalysisSeed,

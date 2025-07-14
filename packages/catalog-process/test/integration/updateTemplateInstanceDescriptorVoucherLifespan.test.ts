@@ -97,8 +97,8 @@ describe("update descriptor", () => {
     });
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
         mockEService.id,
         mockDescriptor.id,
@@ -115,7 +115,7 @@ describe("update descriptor", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.internalUpdateTemplateInstanceDescriptorVoucherLifespan(
         mockEService.id,
         mockDescriptor.id,

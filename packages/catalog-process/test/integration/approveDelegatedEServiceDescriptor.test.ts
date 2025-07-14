@@ -242,7 +242,7 @@ describe("publish descriptor", () => {
       descriptors: [],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         mockDescriptor.id,
@@ -263,7 +263,7 @@ describe("publish descriptor", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
@@ -290,7 +290,7 @@ describe("publish descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
@@ -316,7 +316,7 @@ describe("publish descriptor", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.approveDelegatedEServiceDescriptor(
           eservice.id,
           descriptor.id,

@@ -167,13 +167,13 @@ describe("update descriptor", () => {
     }
   );
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
       {
         dailyCallsPerConsumer: mockDescriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
       };
-    expect(
+    await expect(
       catalogService.updateTemplateInstanceDescriptor(
         mockEService.id,
         mockDescriptor.id,
@@ -197,7 +197,7 @@ describe("update descriptor", () => {
         dailyCallsTotal: mockDescriptor.dailyCallsTotal + 10,
       };
 
-    expect(
+    await expect(
       catalogService.updateTemplateInstanceDescriptor(
         mockEService.id,
         mockDescriptor.id,
@@ -233,7 +233,7 @@ describe("update descriptor", () => {
           dailyCallsTotal: descriptor.dailyCallsTotal + 10,
         };
 
-      expect(
+      await expect(
         catalogService.updateTemplateInstanceDescriptor(
           eservice.id,
           descriptor.id,
@@ -261,7 +261,7 @@ describe("update descriptor", () => {
         dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
       };
-    expect(
+    await expect(
       catalogService.updateTemplateInstanceDescriptor(
         eservice.id,
         descriptor.id,
@@ -295,7 +295,7 @@ describe("update descriptor", () => {
         dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer + 10,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
       };
-    expect(
+    await expect(
       catalogService.updateTemplateInstanceDescriptor(
         eservice.id,
         descriptor.id,
@@ -324,7 +324,7 @@ describe("update descriptor", () => {
         dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
       };
-    expect(
+    await expect(
       catalogService.updateTemplateInstanceDescriptor(
         eservice.id,
         descriptor.id,
@@ -351,7 +351,7 @@ describe("update descriptor", () => {
         dailyCallsPerConsumer: descriptor.dailyCallsTotal + 11,
         dailyCallsTotal: descriptor.dailyCallsTotal + 10,
       };
-    expect(
+    await expect(
       catalogService.updateTemplateInstanceDescriptor(
         eservice.id,
         descriptor.id,

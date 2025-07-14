@@ -165,8 +165,8 @@ describe("delete risk analysis", () => {
       eservice: expectedEservice,
     });
   });
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
-    expect(
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
+    await expect(
       catalogService.deleteRiskAnalysis(
         mockEService.id,
         generateId<RiskAnalysisId>(),
@@ -184,7 +184,7 @@ describe("delete risk analysis", () => {
     await addOneEService(eservice);
 
     const riskAnalysisId = generateId<RiskAnalysisId>();
-    expect(
+    await expect(
       catalogService.deleteRiskAnalysis(
         eservice.id,
         riskAnalysisId,
@@ -209,7 +209,7 @@ describe("delete risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),
@@ -233,7 +233,7 @@ describe("delete risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),
@@ -263,7 +263,7 @@ describe("delete risk analysis", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),
@@ -282,7 +282,7 @@ describe("delete risk analysis", () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.deleteRiskAnalysis(
         eservice.id,
         generateId<RiskAnalysisId>(),

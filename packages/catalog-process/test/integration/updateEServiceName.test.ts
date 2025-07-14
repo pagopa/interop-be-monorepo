@@ -117,7 +117,7 @@ describe("update eService name on published eservice", () => {
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
-    expect(
+    await expect(
       catalogService.updateEServiceName(
         eservice.id,
         "eservice new name",
@@ -128,7 +128,7 @@ describe("update eService name on published eservice", () => {
   it("should throw operationForbidden if the requester is not the producer", async () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateEServiceName(
         eservice.id,
         "eservice new name",
@@ -145,7 +145,7 @@ describe("update eService name on published eservice", () => {
     });
     await addOneEService(eservice);
     await addOneDelegation(delegation);
-    expect(
+    await expect(
       catalogService.updateEServiceName(
         eservice.id,
         "eservice new name",
@@ -156,7 +156,7 @@ describe("update eService name on published eservice", () => {
   it("should throw eserviceWithoutValidDescriptors if the eservice doesn't have any descriptors", async () => {
     const eservice = getMockEService();
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.updateEServiceName(
         eservice.id,
         "eservice new name",
@@ -176,7 +176,7 @@ describe("update eService name on published eservice", () => {
         descriptors: [descriptor],
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.updateEServiceName(
           eservice.id,
           "eservice new name",
@@ -208,7 +208,7 @@ describe("update eService name on published eservice", () => {
     await addOneEService(eservice);
     await addOneEService(eserviceWithSameName);
 
-    expect(
+    await expect(
       catalogService.updateEServiceName(
         eservice.id,
         duplicateName,
@@ -242,7 +242,7 @@ describe("update eService name on published eservice", () => {
     await addOneEService(eserviceWithSameName);
 
     const updatedName = duplicateName;
-    expect(
+    await expect(
       catalogService.updateEServiceName(
         eservice.id,
         updatedName,
@@ -274,7 +274,7 @@ describe("update eService name on published eservice", () => {
     await addOneEService(eservice);
     await addOneEServiceTemplate(eserviceTemplateWithSameName);
 
-    expect(
+    await expect(
       catalogService.updateEServiceName(
         eservice.id,
         duplicateName,
@@ -304,7 +304,7 @@ describe("update eService name on published eservice", () => {
     await addOneEService(eservice);
     await addOneEServiceTemplate(eserviceTemplateWithSameName);
 
-    expect(
+    await expect(
       catalogService.updateEServiceName(
         eservice.id,
         duplicateName,
@@ -324,7 +324,7 @@ describe("update eService name on published eservice", () => {
       templateId,
     };
     await addOneEService(eService);
-    expect(
+    await expect(
       catalogService.updateEServiceName(
         eService.id,
         "eservice new name",

@@ -378,7 +378,7 @@ describe("create descriptor", async () => {
       };
 
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.createDescriptor(
           eservice.id,
           buildCreateDescriptorSeed(descriptor),
@@ -390,7 +390,7 @@ describe("create descriptor", async () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const mockEService = getMockEService();
-    expect(
+    await expect(
       catalogService.createDescriptor(
         mockEService.id,
         buildCreateDescriptorSeed(getMockDescriptor()),
@@ -436,7 +436,7 @@ describe("create descriptor", async () => {
       },
     };
 
-    expect(
+    await expect(
       catalogService.createDescriptor(
         eservice.id,
         descriptorSeed,
@@ -455,7 +455,7 @@ describe("create descriptor", async () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.createDescriptor(
         eservice.id,
         buildCreateDescriptorSeed(descriptor),
@@ -482,7 +482,7 @@ describe("create descriptor", async () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.createDescriptor(
         eservice.id,
         buildCreateDescriptorSeed(descriptor),
@@ -502,7 +502,7 @@ describe("create descriptor", async () => {
     };
 
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.createDescriptor(
         eservice.id,
         descriptorSeed,
@@ -522,7 +522,7 @@ describe("create descriptor", async () => {
     };
 
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.createDescriptor(
         eservice.id,
         descriptorSeed,

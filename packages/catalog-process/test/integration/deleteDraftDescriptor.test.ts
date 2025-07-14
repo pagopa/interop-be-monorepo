@@ -392,10 +392,10 @@ describe("delete draft descriptor", () => {
     );
   });
 
-  it("should throw eServiceNotFound if the eservice doesn't exist", () => {
+  it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const mockEService = getMockEService();
     const mockDescriptorId: DescriptorId = generateId();
-    expect(
+    await expect(
       catalogService.deleteDraftDescriptor(
         mockEService.id,
         mockDescriptorId,
@@ -411,7 +411,7 @@ describe("delete draft descriptor", () => {
       descriptors: [getMockDescriptor()],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.deleteDraftDescriptor(
         eservice.id,
         descriptorIdToDelete,
@@ -436,7 +436,7 @@ describe("delete draft descriptor", () => {
       descriptors: [publishedDescriptor, descriptorToDelete],
     };
     await addOneEService(eservice);
-    expect(
+    await expect(
       catalogService.deleteDraftDescriptor(
         eservice.id,
         descriptorToDelete.id,
@@ -466,7 +466,7 @@ describe("delete draft descriptor", () => {
 
     await addOneEService(eservice);
     await addOneDelegation(delegation);
-    expect(
+    await expect(
       catalogService.deleteDraftDescriptor(
         eservice.id,
         descriptorToDelete.id,
@@ -488,7 +488,7 @@ describe("delete draft descriptor", () => {
       };
       await addOneEService(eservice);
 
-      expect(
+      await expect(
         catalogService.deleteDraftDescriptor(
           eservice.id,
           descriptor.id,
@@ -516,7 +516,7 @@ describe("delete draft descriptor", () => {
       };
       await addOneEService(eservice);
 
-      expect(
+      await expect(
         catalogService.deleteDraftDescriptor(
           eservice.id,
           descriptorToDelete.id,

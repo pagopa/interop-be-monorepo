@@ -275,7 +275,7 @@ describe("create descriptor", async () => {
         dailyCallsTotal: 60,
       };
 
-      expect(
+      await expect(
         catalogService.createTemplateInstanceDescriptor(
           eservice.id,
           descriptorSeed,
@@ -319,7 +319,7 @@ describe("create descriptor", async () => {
       dailyCallsTotal: 60,
     };
 
-    expect(
+    await expect(
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
@@ -357,7 +357,7 @@ describe("create descriptor", async () => {
     await addOneEService(eservice);
     await addOneEServiceTemplate(template);
 
-    expect(
+    await expect(
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 60 },
@@ -401,7 +401,7 @@ describe("create descriptor", async () => {
     await addOneEServiceTemplate(template);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 60 },
@@ -438,7 +438,7 @@ describe("create descriptor", async () => {
     await addOneEService(eservice);
     await addOneEServiceTemplate(template);
 
-    expect(
+    await expect(
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 50 },
