@@ -1,11 +1,11 @@
 meta {
-  name: Get certified attribute
+  name: Get verified attribute
   type: http
   seq: 1
 }
 
 get {
-  url: {{host-m2m-gw}}/certifiedAttributes/:attributeId
+  url: {{host-m2m-gw}}/verifiedAttributes/:attributeId
   body: none
   auth: none
 }
@@ -19,5 +19,5 @@ headers {
 }
 
 docs {
-  Retrieves a certified attribute by its ID.
+  Retrieves a verified attribute by its ID. 
 }
