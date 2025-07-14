@@ -87,7 +87,6 @@ export function emailSenderProcessorBuilder(
       }
 
       let jsonPayload: EmailNotificationPayload;
-      let loggerInstance: Logger;
       let mailOptions: Mail.Options;
       try {
         jsonPayload = JSON.parse(message.value.toString());
@@ -105,9 +104,11 @@ export function emailSenderProcessorBuilder(
           html: jsonPayload.body,
         };
       } catch (err) {
-        throw genericInternalError(
+        // Log and skip message
+        loggerInstance.info(
           `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
         );
+        return;
       }
 
       let sent = false;
@@ -121,22 +122,19 @@ export function emailSenderProcessorBuilder(
             `Email sent for message in partition ${partition} with offset ${message.offset}.`
           );
         } catch (err) {
-          switch (true) {
-            case err instanceof LimitExceededException:
-            case err instanceof TooManyRequestsException:
-              await delay(config.retryDelayInMillis);
-              break;
-            default:
-              loggerInstance.warn(
-                `Email sending attempt failed for message in partition ${partition} with offset ${message.offset}. Reason: ${err} `
-              );
-              break;
+          if (err instanceof TooManyRequestsException) {
+            await delay(config.retryDelayInMillis);
+          } else {
+            throw genericInternalError(
+              `Email sending attempt failed for message in partition ${partition} with offset ${message.offset}. Reason: ${err} `
+            );
           }
         }
       }
 
       if (!sent) {
         // Exceeded max number of attempts
+        // Log and skip message
         loggerInstance.warn(
           `Message in partition ${partition} with offset ${message.offset} was consumed, but no email was sent. Exceeded maximum number of attempts.`
         );
