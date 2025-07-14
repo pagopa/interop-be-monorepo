@@ -9,6 +9,9 @@ import {
   ReadModelSQLDbConfig,
   KafkaProducerConfig,
   EmailSenderTopicConfig,
+  DelegationTopicConfig,
+  AttributeTopicConfig,
+  AuthorizationTopicConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -29,10 +32,13 @@ export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
   KafkaProducerConfig
 )
   .and(AgreementTopicConfig)
-  .and(AWSSesConfig)
-  .and(SESEmailSenderConfig)
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
+  .and(DelegationTopicConfig)
+  .and(AttributeTopicConfig)
+  .and(AuthorizationTopicConfig)
+  .and(AWSSesConfig)
+  .and(SESEmailSenderConfig)
   .and(FeatureFlagSQLConfig)
   .and(ReadModelSQLDbConfig)
   .and(EmailSenderTopicConfig);
