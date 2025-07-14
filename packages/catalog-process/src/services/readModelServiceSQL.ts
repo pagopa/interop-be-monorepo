@@ -169,26 +169,61 @@ export function readModelServiceBuilderSQL(
 
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const buildQuery = <T extends PgSelect>(query: T) => {
-        // eslint-disable-next-line functional/no-let
-        // let q: PgSelect = query;
+        const subqueryWithEserviceFilters = readmodelDB
+          .selectDistinctOn([eserviceInReadmodelCatalog.id], {
+            id: eserviceInReadmodelCatalog.id,
+          })
+          .from(eserviceInReadmodelCatalog)
+          .where(
+            and(
+              // name filter
+              name
+                ? ilike(
+                    eserviceInReadmodelCatalog.name,
+                    `%${escapeRegExp(name)}%`
+                  )
+                : undefined,
+              // ids filter
+              eservicesIds.length > 0
+                ? inArray(eserviceInReadmodelCatalog.id, eservicesIds)
+                : undefined,
+              // mode filter
+              mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
+              // isConsumerDelegable filter
+              match(isConsumerDelegable)
+                .with(true, () =>
+                  eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
+                )
+                .with(false, () =>
+                  or(
+                    isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
+                    eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
+                  )
+                )
+                .with(undefined, () => undefined)
+                .exhaustive(),
+              // templateIds filter
+              templatesIds.length > 0
+                ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
+                : undefined
+            )
+          )
+          .as("subqueryWithEserviceFilters");
 
-        // if (agreementStates.length > 0) {
-        //   q = q.innerJoin(
-        //     agreementSubquery,
-        //     eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
-        //   );
-        // }
+        const queryAfterEserviceFilters = query.innerJoin(
+          subqueryWithEserviceFilters,
+          eq(eserviceInReadmodelCatalog.id, subqueryWithEserviceFilters.id)
+        );
 
-        // TODO rename
-        const query2 =
+        const queryAfterAgreementFilter =
           agreementStates.length > 0
-            ? query.innerJoin(
+            ? queryAfterEserviceFilters.innerJoin(
                 agreementSubquery,
                 eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
               )
-            : query;
+            : queryAfterEserviceFilters;
 
-        return query2
+        return queryAfterAgreementFilter
           .leftJoin(
             eserviceDescriptorInReadmodelCatalog,
             eq(
@@ -212,17 +247,6 @@ export function readModelServiceBuilderSQL(
           )
           .where(
             and(
-              // name filter
-              name
-                ? ilike(
-                    eserviceInReadmodelCatalog.name,
-                    `%${escapeRegExp(name)}%`
-                  )
-                : undefined,
-              // ids filter
-              eservicesIds.length > 0
-                ? inArray(eserviceInReadmodelCatalog.id, eservicesIds)
-                : undefined,
               // producerIds filter
               producersIds.length > 0
                 ? or(
@@ -294,21 +318,6 @@ export function readModelServiceBuilderSQL(
                     )
                   )
                 : existsValidDescriptor(readmodelDB),
-              // mode filter
-              mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
-              // isConsumerDelegable filter
-              match(isConsumerDelegable)
-                .with(true, () =>
-                  eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
-                )
-                .with(false, () =>
-                  or(
-                    isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
-                    eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
-                  )
-                )
-                .with(undefined, () => undefined)
-                .exhaustive(),
               // delegated filter
               match(delegated)
                 .with(true, () =>
@@ -347,24 +356,19 @@ export function readModelServiceBuilderSQL(
                   )
                 )
                 .with(undefined, () => undefined)
-                .exhaustive(),
-              // template filter
-              templatesIds.length > 0
-                ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
-                : undefined
+                .exhaustive()
             )
           )
           .$dynamic();
       };
 
-      // TODO: fix type
-      const ids = (
-        await buildQuery(idsQuery)
-          .groupBy(eserviceInReadmodelCatalog.id)
-          .orderBy(ascLower(eserviceInReadmodelCatalog.name))
-          .limit(limit)
-          .offset(offset)
-      ).map((result) => result.id);
+      const idsSQLquery = buildQuery(idsQuery)
+        .groupBy(eserviceInReadmodelCatalog.id)
+        .orderBy(ascLower(eserviceInReadmodelCatalog.name))
+        .limit(limit)
+        .offset(offset);
+
+      const ids = (await idsSQLquery).map((result) => result.id);
 
       const [queryResult, totalCount] = await Promise.all([
         readmodelDB
