@@ -19886,7 +19886,7 @@ paths:
       tags:
         - develop
       summary: Swagger docs endpoint
-      description: Return ok
+      description:  Display the API documentation
       operationId: getDocs
       responses:
         "200":
