@@ -26,6 +26,7 @@ export const errorCodes = {
   agreementAlreadyExists: "0010",
   noNewerDescriptor: "0011",
   publishedDescriptorNotFound: "0012",
+  unexpectedVersionFormat: "0013",
   descriptorNotFound: "0014",
   stampNotFound: "0015",
   documentNotFound: "0017",
@@ -238,6 +239,17 @@ export function publishedDescriptorNotFound(
     detail: `Published descriptor not found in EService ${eserviceId}`,
     code: "publishedDescriptorNotFound",
     title: "Published descriptor not found",
+  });
+}
+
+export function unexpectedVersionFormat(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Version in not an Int for descriptor ${descriptorId} of EService ${eserviceId}`,
+    code: "unexpectedVersionFormat",
+    title: "Unexpected version format",
   });
 }
 
