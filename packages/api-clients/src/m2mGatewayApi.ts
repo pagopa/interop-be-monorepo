@@ -44,9 +44,19 @@ export type GetTenantsQueryParams = QueryParametersByAlias<
   "getTenants"
 >;
 
-export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
+export type GetTenantCertifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getCertifiedAttributes"
+>;
+
+export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
+  TenantApi,
+  "getVerifiedAttributes"
+>;
+
+export type GetTenantDeclaredAttributesQueryParams = QueryParametersByAlias<
+  TenantApi,
+  "getDeclaredAttributes"
 >;
 
 export type GetConsumerDelegationsQueryParams = QueryParametersByAlias<
@@ -67,6 +77,16 @@ export type GetEServiceTemplateVersionsQueryParams = QueryParametersByAlias<
 export type GetClientsQueryParams = QueryParametersByAlias<
   ClientApi,
   "getClients"
+>;
+
+export type GetClientPurposesQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClientPurposes"
+>;
+
+export type GetClientKeysQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClientKeys"
 >;
 
 export * from "./generated/m2mGatewayApi.js";

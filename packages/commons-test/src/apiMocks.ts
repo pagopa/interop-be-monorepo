@@ -9,9 +9,10 @@ import {
   eserviceTemplateApi,
 } from "pagopa-interop-api-clients";
 import { generateMock } from "@anatine/zod-mock";
-import { generateId } from "pagopa-interop-models";
+import { ClientId, algorithm, generateId } from "pagopa-interop-models";
 import { z } from "zod";
 import { match } from "ts-pattern";
+import { getMockClientJWKKey } from "./testUtils.js";
 
 export function getMockedApiPurposeVersion({
   state,
@@ -81,11 +82,15 @@ export function getMockedApiAgreement({
   eserviceId,
   descriptorId,
   consumerId,
+  contract,
+  consumerDocuments,
 }: {
   state?: agreementApi.AgreementState;
   eserviceId?: string;
   descriptorId?: string;
   consumerId?: string;
+  contract?: agreementApi.Document;
+  consumerDocuments?: agreementApi.Document[];
 } = {}): agreementApi.Agreement {
   return {
     id: generateId(),
@@ -96,9 +101,11 @@ export function getMockedApiAgreement({
     state: state ?? agreementApi.AgreementState.Values.ACTIVE,
     certifiedAttributes: generateMock(z.array(agreementApi.CertifiedAttribute)),
     declaredAttributes: generateMock(z.array(agreementApi.DeclaredAttribute)),
-    consumerDocuments: generateMock(z.array(agreementApi.Document)),
+    consumerDocuments:
+      consumerDocuments ?? generateMock(z.array(agreementApi.Document)),
     verifiedAttributes: generateMock(z.array(agreementApi.VerifiedAttribute)),
     createdAt: new Date().toISOString(),
+    contract,
   };
 }
 
@@ -110,10 +117,7 @@ export function getMockedApiTenant({
   return {
     id: generateId(),
     attributes: attributes ?? generateMock(z.array(tenantApi.TenantAttribute)),
-    externalId: {
-      origin: generateMock(z.string()),
-      value: generateMock(z.string()),
-    },
+    externalId: generateMock(tenantApi.ExternalId),
     name: generateMock(z.string()),
     createdAt: new Date().toISOString(),
     kind: tenantApi.TenantKind.Values.GSP,
@@ -144,10 +148,12 @@ export function getMockedApiAttribute({
   };
 }
 
-export function getMockedApiFullClient({
+export function getMockedApiConsumerFullClient({
   kind: paramKind,
+  purposes = [],
 }: {
   kind?: authorizationApi.ClientKind;
+  purposes?: string[];
 } = {}): authorizationApi.FullClient {
   const kind = paramKind ?? authorizationApi.ClientKind.Values.CONSUMER;
   return {
@@ -159,10 +165,10 @@ export function getMockedApiFullClient({
     createdAt: new Date().toISOString(),
     consumerId: generateId(),
     purposes: match(kind)
-      .with(authorizationApi.ClientKind.Values.CONSUMER, () => [
-        generateId(),
-        generateId(),
-      ])
+      .with(
+        authorizationApi.ClientKind.Values.CONSUMER,
+        () => purposes ?? [generateId(), generateId()]
+      )
       .with(authorizationApi.ClientKind.Values.API, () => [])
       .exhaustive(),
     users: [generateId(), generateId()],
@@ -173,7 +179,7 @@ export function getMockedApiFullClient({
   } satisfies authorizationApi.Client;
 }
 
-export function getMockedApiPartialClient({
+export function getMockedApiConsumerPartialClient({
   kind: paramKind,
 }: {
   kind?: authorizationApi.ClientKind;
@@ -218,7 +224,7 @@ export function getMockedApiEserviceDescriptor({
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
-    version: generateMock(z.string()),
+    version: generateMock(z.number().int()),
     description: generateMock(z.string().length(10)),
     audience: generateMock(z.array(z.string())),
     voucherLifespan: generateMock(z.number().int().min(60).max(86400)),
@@ -328,6 +334,28 @@ export function getMockedApiCertifiedTenantAttribute({
   };
 }
 
+export function getMockedApiVerifiedTenantAttribute(): tenantApi.VerifiedTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    verifiedBy: generateMock(z.array(tenantApi.TenantVerifier)),
+    revokedBy: generateMock(z.array(tenantApi.TenantRevoker)),
+  };
+}
+
+export function getMockedApiDeclaredTenantAttribute({
+  revoked = false,
+}: {
+  revoked?: boolean;
+} = {}): tenantApi.DeclaredTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    revocationTimestamp: revoked ? new Date().toISOString() : undefined,
+    delegationId: generateId(),
+  };
+}
+
 export function getMockedApiAgreementDocument({
   id = generateId(),
   name = "doc.txt",
@@ -368,5 +396,33 @@ export function getMockedApiEserviceDoc({
     path,
     checksum: "mock-checksum",
     contacts: generateMock(catalogApi.DescriptorInterfaceContacts),
+  };
+}
+
+export function getMockedApiClientJWK({
+  clientId = generateId<ClientId>(),
+}: {
+  clientId?: ClientId;
+} = {}): authorizationApi.ClientJWK {
+  const jwk = getMockClientJWKKey(clientId);
+  return {
+    jwk,
+    clientId,
+  };
+}
+
+export function getMockedApiKey({
+  kid = generateId(),
+}: {
+  kid?: string;
+} = {}): authorizationApi.Key {
+  return {
+    kid,
+    name: generateMock(z.string().length(10)),
+    createdAt: new Date().toISOString(),
+    use: authorizationApi.KeyUse.Values.SIG,
+    userId: generateId(),
+    encodedPem: generateMock(z.string().length(50)),
+    algorithm: algorithm.RS256,
   };
 }
