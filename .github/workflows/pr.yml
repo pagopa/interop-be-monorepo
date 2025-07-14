@@ -20,7 +20,7 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-formatting-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-check-formatting-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-turbo-check-formatting
       - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
@@ -44,7 +44,7 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-lint-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-lint-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-turbo-lint-
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -68,7 +68,7 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-check-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-check-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-turbo-check
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -91,7 +91,7 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-test-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-test-${{ hashFiles('**/package.json', '**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-turbo-test
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
