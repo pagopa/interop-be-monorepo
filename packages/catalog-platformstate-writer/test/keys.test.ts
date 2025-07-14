@@ -1,4 +1,3 @@
-// test
 import {
   ClientId,
   DescriptorId,
