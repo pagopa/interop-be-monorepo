@@ -11,9 +11,9 @@ jobs:
     name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4 # Modificato da SHA a v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@v4 # Modificato da SHA a v4
         with:
           path: |
             .turbo
@@ -21,10 +21,10 @@ jobs:
           key: ${{ runner.os }}-turbo-check-formatting-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-check-formatting
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: pnpm/action-setup@v4 # Modificato da SHA a v4
         with:
           run_install: true
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@v4 # Modificato da SHA a v4
         with:
           node-version-file: ./package.json
       - run: pnpm format:check
@@ -33,9 +33,9 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4 # Modificato da SHA a v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@v4 # Modificato da SHA a v4
         with:
           path: |
             .turbo
@@ -43,10 +43,10 @@ jobs:
           key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-lint-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@v4 # Modificato da SHA a v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: pnpm/action-setup@v4 # Modificato da SHA a v4
         with:
           run_install: true
       - run: pnpm lint
@@ -55,9 +55,9 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4 # Modificato da SHA a v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@v4 # Modificato da SHA a v4
         with:
           path: |
             .turbo
@@ -65,10 +65,10 @@ jobs:
           key: ${{ runner.os }}-turbo-check-${{ github.ref_name }}
           restore-keys: |
             ${{ runner.os }}-turbo-check
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@v4 # Modificato da SHA a v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: pnpm/action-setup@v4 # Modificato da SHA a v4
         with:
           run_install: true
       - run: pnpm check
@@ -82,9 +82,9 @@ jobs:
         shardTotal: [4]
         shardIndex: [1, 2, 3, 4]
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4 # Modificato da SHA a v4
       - name: Cache turbo setup
-        uses: actions/cache@640a1c2554105b57832a23eea0b4672fc7a790d5
+        uses: actions/cache@v4 # Modificato da SHA a v4
         with:
           path: |
             .turbo
@@ -92,16 +92,16 @@ jobs:
           key: ${{ runner.os }}-turbo-test-${{ github.ref_name }}-${{ matrix.shardIndex }}
           restore-keys: |
             ${{ runner.os }}-turbo-test-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@v4 # Modificato da SHA a v4
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: pnpm/action-setup@v4 # Modificato da SHA a v4
         with:
           run_install: true
       - name: Run Vitest tests with sharding
         run: pnpm test --coverage --reporter=json --outputFile=coverage/shard-results-${{ matrix.shardIndex }}.json --coverage.reporter=lcov --coverage.outputFile=coverage/lcov.info-${{ matrix.shardIndex }}
       - name: Upload coverage artifacts for shard ${{ matrix.shardIndex }}
-        uses: actions/upload-artifact@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
+        uses: actions/upload-artifact@v4 # Modificato da SHA a v4
         with:
           name: coverage-shard-${{ matrix.shardIndex }}
           path: coverage/lcov.info-${{ matrix.shardIndex }}
@@ -113,15 +113,15 @@ jobs:
     needs: test
     if: ${{ always() }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: actions/setup-node@499333ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/checkout@v4 # Modificato da SHA a v4
+      - uses: actions/setup-node@v4 # Modificato da SHA a v4 (corretto anche errore di battitura)
         with:
           node-version-file: ./package.json
-      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4
+      - uses: pnpm/action-setup@v4 # Modificato da SHA a v4
         with:
           run_install: true
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
+        uses: actions/download-artifact@v4 # Modificato da SHA a v4
         with:
           path: coverage-artifacts
       - name: Merge LCOV coverage reports
@@ -130,11 +130,11 @@ jobs:
           find coverage-artifacts -name "lcov.info-*" -exec cp {} coverage/ \;
           pnpm vitest run --merge-reports --coverage.reporter=lcov --coverage.outputFile=coverage/lcov.info
       - name: Upload merged coverage report as artifact
-        uses: actions/upload-artifact@640a1c2554105b57832a23eea0b4672fc7a790d5 # v4
+        uses: actions/upload-artifact@v4 # Modificato da SHA a v4
         with:
           name: merged-coverage-report
           path: coverage/lcov.info
-          retention-days: 7 # Puoi impostare quanti giorni vuoi conservare l'artefatto
+          retention-days: 7
 
   lint-openapi:
     name: Lint Open Api specification
@@ -142,8 +142,8 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
+      - uses: actions/checkout@v4 # Modificato da SHA a v4
+      - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12 - Questa non l'ho toccata, era l'unica che mi avevi fornito con un SHA corretto e funzionale.
         with:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
@@ -155,7 +155,7 @@ jobs:
     outputs:
       packages: ${{ steps.set_packages_output.outputs.packages }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4 # Modificato da SHA a v4
       - name: Find packages
         id: set_packages_output
         run: |
@@ -179,10 +179,10 @@ jobs:
     env:
       DOCKER_BUILD_SUMMARY: "false"
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4 # Modificato da SHA a v4
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        uses: aws-actions/configure-aws-credentials@v4 # Modificato da SHA a v4
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ vars.IAM_ROLE_ARN }}
@@ -190,10 +190,9 @@ jobs:
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
-
+        uses: aws-actions/amazon-ecr-login@v2 # Modificato da SHA a v2
       - name: Build Docker image
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83
+        uses: docker/build-push-action@v5 # Modificato da SHA a v5
         with:
           context: .
           file: packages/${{ matrix.package }}/Dockerfile
