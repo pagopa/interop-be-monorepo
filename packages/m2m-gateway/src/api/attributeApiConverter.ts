@@ -11,17 +11,36 @@ import {
 } from "../utils/validators/attributeValidators.js";
 import { attributeNotFound } from "../model/errors.js";
 
-function convertAttribute<
-  T extends
-    | m2mGatewayApi.DeclaredAttribute
-    | m2mGatewayApi.VerifiedAttribute
-    | m2mGatewayApi.CertifiedAttribute
->(
+function convertAttribute(
+  attribute: attributeRegistryApi.Attribute,
+  attributeKind: typeof attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+  logger: Logger,
+  mapThrownErrorsToNotFound?: boolean
+): m2mGatewayApi.CertifiedAttribute;
+
+function convertAttribute(
+  attribute: attributeRegistryApi.Attribute,
+  attributeKind: typeof attributeRegistryApi.AttributeKind.Values.DECLARED,
+  logger: Logger,
+  mapThrownErrorsToNotFound?: boolean
+): m2mGatewayApi.DeclaredAttribute;
+
+function convertAttribute(
+  attribute: attributeRegistryApi.Attribute,
+  attributeKind: typeof attributeRegistryApi.AttributeKind.Values.VERIFIED,
+  logger: Logger,
+  mapThrownErrorsToNotFound?: boolean
+): m2mGatewayApi.VerifiedAttribute;
+
+function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
   attributeKind: attributeRegistryApi.AttributeKind,
   logger: Logger,
   mapThrownErrorsToNotFound = false
-): T {
+):
+  | m2mGatewayApi.CertifiedAttribute
+  | m2mGatewayApi.DeclaredAttribute
+  | m2mGatewayApi.VerifiedAttribute {
   try {
     assertAttributeKindIs(attribute, attributeKind);
 
@@ -31,7 +50,6 @@ function convertAttribute<
       name: attribute.name,
       createdAt: attribute.creationTime,
     };
-
     return match(attributeKind)
       .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED, () => {
         assertAttributeOriginAndCodeAreDefined(attribute);
@@ -39,12 +57,12 @@ function convertAttribute<
           ...baseFields,
           code: attribute.code,
           origin: attribute.origin,
-        } as T;
+        };
       })
       .with(
         attributeRegistryApi.AttributeKind.Values.DECLARED,
         attributeRegistryApi.AttributeKind.Values.VERIFIED,
-        () => baseFields as T
+        () => baseFields
       )
       .exhaustive();
   } catch (error) {
@@ -70,7 +88,7 @@ export function toM2MGatewayApiCertifiedAttribute({
   logger: Logger;
   mapThrownErrorsToNotFound?: boolean;
 }): m2mGatewayApi.CertifiedAttribute {
-  return convertAttribute<m2mGatewayApi.CertifiedAttribute>(
+  return convertAttribute(
     attribute,
     attributeRegistryApi.AttributeKind.Values.CERTIFIED,
     logger,
@@ -87,7 +105,7 @@ export function toM2MGatewayApiDeclaredAttribute({
   logger: Logger;
   mapThrownErrorsToNotFound?: boolean;
 }): m2mGatewayApi.DeclaredAttribute {
-  return convertAttribute<m2mGatewayApi.DeclaredAttribute>(
+  return convertAttribute(
     attribute,
     attributeRegistryApi.AttributeKind.Values.DECLARED,
     logger,
@@ -104,7 +122,7 @@ export function toM2MGatewayApiVerifiedAttribute({
   logger: Logger;
   mapThrownErrorsToNotFound?: boolean;
 }): m2mGatewayApi.VerifiedAttribute {
-  return convertAttribute<m2mGatewayApi.VerifiedAttribute>(
+  return convertAttribute(
     attribute,
     attributeRegistryApi.AttributeKind.Values.VERIFIED,
     logger,
