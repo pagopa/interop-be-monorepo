@@ -36,12 +36,48 @@ import {
   tenantReadModelServiceBuilder,
   producerJWKKeyReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
+  splitEserviceIntoObjectsSQL,
+  splitEServiceTemplateIntoObjectsSQL,
+  splitAttributeIntoObjectsSQL,
+  splitTenantIntoObjectsSQL,
+  splitPurposeIntoObjectsSQL,
+  splitDelegationIntoObjectsSQL,
+  splitAgreementIntoObjectsSQL,
+  splitClientIntoObjectsSQL,
+  splitProducerKeychainIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import {
   DBContext,
   readModelServiceBuilderKPI,
 } from "../src/services/readModelServiceKPI.js";
+import {
+  DomainDbTable,
+  DomainDbTableReadModels,
+  DomainDbTableSchemas,
+} from "../src/model/db/index.js";
+import { z } from "zod";
+import { CatalogDbTable } from "../src/model/db/catalog.js";
+import { EserviceItemsSchema } from "../src/model/catalog/eservice.js";
+import { ColumnSet, IColumnDescriptor, IMain } from "pg-promise";
+import { EserviceTemplateDbTable } from "../src/model/db/eserviceTemplate.js";
+import { EserviceTemplateItemsSchema } from "../src/model/eserviceTemplate/eserviceTemplate.js";
+import { AttributeDbTable } from "../src/model/db/attribute.js";
+import { AttributeSchema } from "../src/model/attribute/attribute.js";
+import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
+import { TenantDbTable } from "../src/model/db/tenant.js";
+import { PurposeDbTable } from "../src/model/db/purpose.js";
+import { PurposeItemsSchema } from "../src/model/purpose/purpose.js";
+import { DelegationDbTable } from "../src/model/db/delegation.js";
+import { DelegationItemsSchema } from "../src/model/delegation/delegation.js";
+import { AgreementDbTable } from "../src/model/db/agreement.js";
+import { AgreementItemsSchema } from "../src/model/agreement/agreement.js";
+import {
+  ClientDbTable,
+  ProducerKeychainDbTable,
+} from "../src/model/db/authorization.js";
+import { ClientItemsSchema } from "../src/model/authorization/client.js";
+import { ProducerKeychainItemsSchema } from "../src/model/authorization/producerKeychain.js";
 
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(
@@ -199,3 +235,270 @@ export const addOneProducerJWKKey = async (
     producerJWKKey.metadata.version
   );
 };
+
+export function getColumnNameMapper<T extends DomainDbTable>(
+  tableName: T
+): (columnKey: string) => string {
+  const table = DomainDbTableReadModels[tableName] as unknown as Record<
+    string,
+    { name: string }
+  >;
+  return (columnKey: string) => table[columnKey]?.name ?? columnKey;
+}
+
+export function buildColumnSet<T extends DomainDbTable>(
+  pgp: IMain,
+  tableName: T,
+  schema: DomainDbTableSchemas[T]
+): ColumnSet<z.infer<DomainDbTableSchemas[T]>> {
+  const snakeCaseMapper = getColumnNameMapper(tableName);
+  const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
+
+  const columns = keys.map((prop) => ({
+    name: snakeCaseMapper(String(prop)),
+    init: ({ source }: IColumnDescriptor<z.infer<typeof schema>>) =>
+      source[prop],
+  }));
+
+  return new pgp.helpers.ColumnSet(columns, {
+    table: { table: `${tableName}` },
+  });
+}
+
+export async function writeInKpi<T extends DomainDbTable>(
+  tableName: T,
+  data: z.infer<DomainDbTableSchemas[T]>[]
+): Promise<void> {
+  const schema = DomainDbTable[tableName];
+  const cs = buildColumnSet(dbContext.pgp, tableName, schema);
+
+  await dbContext.conn.none(dbContext.pgp.helpers.insert(data, cs));
+}
+
+export const addOneEServiceKpi = async (
+  eservice: WithMetadata<EService>
+): Promise<void> => {
+  const splitResult = EserviceItemsSchema.parse(
+    splitEserviceIntoObjectsSQL(eservice.data, eservice.metadata.version)
+  );
+
+  await writeInKpi(CatalogDbTable.eservice, [splitResult.eserviceSQL]);
+  await writeInKpi(
+    CatalogDbTable.eservice_descriptor,
+    splitResult.descriptorsSQL
+  );
+  await writeInKpi(
+    CatalogDbTable.eservice_descriptor_attribute,
+    splitResult.attributesSQL
+  );
+  await writeInKpi(
+    CatalogDbTable.eservice_descriptor_document,
+    splitResult.documentsSQL
+  );
+  await writeInKpi(
+    CatalogDbTable.eservice_descriptor_interface,
+    splitResult.interfacesSQL
+  );
+  await writeInKpi(
+    CatalogDbTable.eservice_descriptor_rejection_reason,
+    splitResult.rejectionReasonsSQL
+  );
+  await writeInKpi(
+    CatalogDbTable.eservice_descriptor_template_version_ref,
+    splitResult.templateVersionRefsSQL
+  );
+  await writeInKpi(
+    CatalogDbTable.eservice_risk_analysis,
+    splitResult.riskAnalysesSQL
+  );
+  await writeInKpi(
+    CatalogDbTable.eservice_risk_analysis_answer,
+    splitResult.riskAnalysisAnswersSQL
+  );
+};
+
+export const addOneEServiceTemplateKpi = async (
+  eserviceTemplate: WithMetadata<EServiceTemplate>
+): Promise<void> => {
+  const splitResult = EserviceTemplateItemsSchema.parse(
+    splitEServiceTemplateIntoObjectsSQL(
+      eserviceTemplate.data,
+      eserviceTemplate.metadata.version
+    )
+  );
+
+  await writeInKpi(EserviceTemplateDbTable.eservice_template, [
+    splitResult.eserviceTemplateSQL,
+  ]);
+  await writeInKpi(
+    EserviceTemplateDbTable.eservice_template_version,
+    splitResult.versionsSQL
+  );
+  await writeInKpi(
+    EserviceTemplateDbTable.eservice_template_version_attribute,
+    splitResult.attributesSQL
+  );
+  await writeInKpi(
+    EserviceTemplateDbTable.eservice_template_version_document,
+    splitResult.documentsSQL
+  );
+  await writeInKpi(
+    EserviceTemplateDbTable.eservice_template_version_interface,
+    splitResult.interfacesSQL
+  );
+  await writeInKpi(
+    EserviceTemplateDbTable.eservice_template_risk_analysis,
+    splitResult.riskAnalysesSQL
+  );
+  await writeInKpi(
+    EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
+    splitResult.riskAnalysisAnswersSQL
+  );
+};
+
+export const addOneAttributeKpi = async (
+  attribute: WithMetadata<Attribute>
+): Promise<void> => {
+  const splitResult = AttributeSchema.parse(
+    splitAttributeIntoObjectsSQL(attribute.data, attribute.metadata.version)
+  );
+
+  await writeInKpi(AttributeDbTable.attribute, [splitResult]);
+};
+
+export const addOneTenantKpi = async (
+  tenant: WithMetadata<Tenant>
+): Promise<void> => {
+  const splitResult = TenantItemsSchema.parse(
+    splitTenantIntoObjectsSQL(tenant.data, tenant.metadata.version)
+  );
+
+  await writeInKpi(TenantDbTable.tenant, [splitResult.tenantSQL]);
+  await writeInKpi(TenantDbTable.tenant_mail, splitResult.mailsSQL);
+  await writeInKpi(
+    TenantDbTable.tenant_certified_attribute,
+    splitResult.certifiedAttributesSQL
+  );
+  await writeInKpi(
+    TenantDbTable.tenant_declared_attribute,
+    splitResult.declaredAttributesSQL
+  );
+  await writeInKpi(
+    TenantDbTable.tenant_verified_attribute,
+    splitResult.verifiedAttributesSQL
+  );
+  await writeInKpi(
+    TenantDbTable.tenant_verified_attribute_verifier,
+    splitResult.verifiedAttributeVerifiersSQL
+  );
+  await writeInKpi(
+    TenantDbTable.tenant_verified_attribute_revoker,
+    splitResult.verifiedAttributeRevokersSQL
+  );
+  await writeInKpi(TenantDbTable.tenant_feature, splitResult.featuresSQL);
+};
+
+export const addOnePurposeKpi = async (
+  purpose: WithMetadata<Purpose>
+): Promise<void> => {
+  const splitResult = PurposeItemsSchema.parse(
+    splitPurposeIntoObjectsSQL(purpose.data, purpose.metadata.version)
+  );
+
+  await writeInKpi(PurposeDbTable.purpose, [splitResult.purposeSQL]);
+  await writeInKpi(
+    PurposeDbTable.purpose_risk_analysis_form,
+    splitResult.riskAnalysisFormSQL ? [splitResult.riskAnalysisFormSQL] : []
+  );
+  await writeInKpi(
+    PurposeDbTable.purpose_risk_analysis_answer,
+    splitResult.riskAnalysisAnswersSQL ?? []
+  );
+  await writeInKpi(PurposeDbTable.purpose_version, splitResult.versionsSQL);
+  await writeInKpi(
+    PurposeDbTable.purpose_version_document,
+    splitResult.versionDocumentsSQL
+  );
+};
+
+export const addOneDelegationKpi = async (
+  delegation: WithMetadata<Delegation>
+): Promise<void> => {
+  const splitResult = DelegationItemsSchema.parse(
+    splitDelegationIntoObjectsSQL(delegation.data, delegation.metadata.version)
+  );
+
+  await writeInKpi(DelegationDbTable.delegation, [splitResult.delegationSQL]);
+  await writeInKpi(DelegationDbTable.delegation_stamp, splitResult.stampsSQL);
+  await writeInKpi(
+    DelegationDbTable.delegation_contract_document,
+    splitResult.contractDocumentsSQL
+  );
+};
+
+export const addOneAgreementKpi = async (
+  agreement: WithMetadata<Agreement>
+): Promise<void> => {
+  const splitResult = AgreementItemsSchema.parse(
+    splitAgreementIntoObjectsSQL(agreement.data, agreement.metadata.version)
+  );
+
+  await writeInKpi(AgreementDbTable.agreement, [splitResult.agreementSQL]);
+  await writeInKpi(AgreementDbTable.agreement_stamp, splitResult.stampsSQL);
+  await writeInKpi(
+    AgreementDbTable.agreement_attribute,
+    splitResult.attributesSQL
+  );
+  await writeInKpi(
+    AgreementDbTable.agreement_consumer_document,
+    splitResult.consumerDocumentsSQL
+  );
+  await writeInKpi(
+    AgreementDbTable.agreement_contract,
+    splitResult.contractSQL ? [splitResult.contractSQL] : []
+  );
+};
+
+export const addOneClientKpi = async (
+  client: WithMetadata<Client>
+): Promise<void> => {
+  const splitResult = ClientItemsSchema.parse(
+    splitClientIntoObjectsSQL(client.data, client.metadata.version)
+  );
+
+  await writeInKpi(ClientDbTable.client, [splitResult.clientSQL]);
+  await writeInKpi(ClientDbTable.client_user, splitResult.usersSQL);
+  await writeInKpi(ClientDbTable.client_purpose, splitResult.purposesSQL);
+  await writeInKpi(ClientDbTable.client_key, splitResult.keysSQL);
+};
+
+export const addOneProducerKeychainKpi = async (
+  producerKeychain: WithMetadata<ProducerKeychain>
+): Promise<void> => {
+  const splitResult = ProducerKeychainItemsSchema.parse(
+    splitProducerKeychainIntoObjectsSQL(
+      producerKeychain.data,
+      producerKeychain.metadata.version
+    )
+  );
+
+  await writeInKpi(ProducerKeychainDbTable.producer_keychain, [
+    splitResult.producerKeychainSQL,
+  ]);
+  await writeInKpi(
+    ProducerKeychainDbTable.producer_keychain_user,
+    splitResult.usersSQL
+  );
+  await writeInKpi(
+    ProducerKeychainDbTable.producer_keychain_eservice,
+    splitResult.eservicesSQL
+  );
+  await writeInKpi(
+    ProducerKeychainDbTable.producer_keychain_key,
+    splitResult.keysSQL
+  );
+};
+
+// TODO: addOneClientJWKKeyKpi
+
+// TODO: addOneProducerJWKKeyKpi
