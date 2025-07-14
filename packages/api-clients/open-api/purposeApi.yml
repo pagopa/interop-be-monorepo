@@ -261,6 +261,9 @@ paths:
       responses:
         "200":
           description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -515,6 +518,9 @@ paths:
       operationId: deletePurposeVersion
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: Purpose Version Deleted
         "403":
           description: Organization not allowed
@@ -1358,7 +1364,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 500
+              maxLength: 2000
         riskAnalysisId:
           type: string
           format: uuid
@@ -1379,7 +1385,7 @@ components:
             items:
               type: string
               minLength: 1
-              maxLength: 500
+              maxLength: 2000
       required:
         - version
         - answers

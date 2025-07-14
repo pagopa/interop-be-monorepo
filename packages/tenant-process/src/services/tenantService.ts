@@ -6,13 +6,13 @@ import {
   WithLogger,
   AppContext,
   CreateEvent,
+  getLatestTenantMailOfKind,
   UIAuthData,
   InternalAuthData,
   MaintenanceAuthData,
   M2MAuthData,
   isUiAuthData,
   M2MAdminAuthData,
-  getLatestTenantMailOfKind,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -584,7 +584,7 @@ export function tenantServiceBuilder(
             throw delegationNotFound(delegationId);
           }
           logger.info(
-            `Add declared attribute ${tenantAttributeSeed.id} to delegatator tenant ${delegation.delegatorId}`
+            `Add declared attribute ${tenantAttributeSeed.id} to delegator tenant ${delegation.delegatorId}`
           );
 
           if (delegation.delegateId !== authData.organizationId) {
@@ -2198,7 +2198,7 @@ function validateAddress(address: string): string {
     // eslint-disable-next-line no-useless-escape
     /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   if (!emailPattern.test(sanitizedMail)) {
-    throw notValidMailAddress(address);
+    throw notValidMailAddress();
   }
   return sanitizedMail;
 }

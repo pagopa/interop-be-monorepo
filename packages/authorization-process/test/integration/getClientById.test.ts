@@ -10,6 +10,7 @@ import {
   getMockAuthData,
   getMockClient,
   getMockContext,
+  sortClient,
 } from "pagopa-interop-commons-test";
 import { clientNotFound } from "../../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "../integrationUtils.js";
@@ -34,8 +35,9 @@ describe("getClientById", async () => {
       },
       getMockContext({ authData: getMockAuthData(organizationId) })
     );
-    expect(clientResult).toEqual({
-      data: { client: expectedClient, showUsers: true },
+
+    expect(sortClient(clientResult)).toEqual({
+      data: sortClient(expectedClient),
       metadata: { version: 0 },
     });
   });
@@ -56,8 +58,8 @@ describe("getClientById", async () => {
       },
       getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
     );
-    expect(clientResult).toEqual({
-      data: { client: expectedClient, showUsers: false },
+    expect(sortClient(clientResult)).toEqual({
+      data: sortClient(expectedClient),
       metadata: { version: 0 },
     });
   });

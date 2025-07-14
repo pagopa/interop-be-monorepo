@@ -8,10 +8,10 @@ import {
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { bffApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiUpdateEServiceTemplateVersionSeed } from "../../mockUtils.js";
-import { UpdateEServiceTemplateVersionSeed } from "../../../../api-clients/dist/bffApi.js";
 
 describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTemplateVersionId", () => {
   const mockUpdateEServiceTemplateVersionSeed =
@@ -27,7 +27,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
     token: string,
     eServiceTemplateId: EServiceTemplateId = generateId(),
     eServiceTemplateVersionId: EServiceTemplateVersionId = generateId(),
-    body: UpdateEServiceTemplateVersionSeed = mockUpdateEServiceTemplateVersionSeed
+    body: bffApi.UpdateEServiceTemplateVersionSeed = mockUpdateEServiceTemplateVersionSeed
   ) =>
     request(api)
       .post(
@@ -109,7 +109,7 @@ describe("API POST /eservices/templates/:eServiceTemplateId/versions/:eServiceTe
         token,
         eServiceTemplateId,
         eServiceTemplateVersionId,
-        body as UpdateEServiceTemplateVersionSeed
+        body as bffApi.UpdateEServiceTemplateVersionSeed
       );
       expect(res.status).toBe(400);
     }

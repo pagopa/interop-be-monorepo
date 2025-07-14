@@ -13,8 +13,8 @@ import {
   getMockAuthData,
   getMockContext,
   getMockTenant,
-  readLastEventByStreamId,
   getMockTenantMail,
+  readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
 import {
   mailAlreadyExists,
@@ -265,8 +265,6 @@ describe("addTenantMail", async () => {
           authData: getMockAuthData(mockTenant.id),
         })
       )
-    ).rejects.toThrowError(
-      notValidMailAddress(mailSeedWithStrangeCharacters.address)
-    );
+    ).rejects.toThrowError(notValidMailAddress());
   });
 });

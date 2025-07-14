@@ -42,7 +42,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -62,7 +62,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -208,7 +208,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -297,7 +297,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -325,7 +325,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -405,7 +405,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -437,7 +437,7 @@ export const private1 = {
         en: "TODO",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -469,7 +469,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -672,7 +672,7 @@ export const private1 = {
         en: "TODO",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -733,7 +733,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -791,7 +791,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,
@@ -938,7 +938,7 @@ export const private1 = {
         en: "",
       },
       validation: {
-        maxLength: 250,
+        maxLength: 2000,
       },
       defaultValue: [],
       required: true,

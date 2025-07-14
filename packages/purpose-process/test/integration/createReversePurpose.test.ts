@@ -100,11 +100,15 @@ describe("createReversePurpose", () => {
     await addOneTenant(consumer);
     await addOneAgreement(mockAgreement);
 
-    const { purpose, isRiskAnalysisValid } =
+    const createReversePurposeResponse =
       await purposeService.createReversePurpose(
         reversePurposeSeed,
         getMockContext({ authData: getMockAuthData(consumer.id) })
       );
+
+    const purpose = createReversePurposeResponse.data.purpose;
+    const isRiskAnalysisValid =
+      createReversePurposeResponse.data.isRiskAnalysisValid;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -209,11 +213,15 @@ describe("createReversePurpose", () => {
     await addOneTenant(consumer);
     await addOneAgreement(mockAgreement);
 
-    const { purpose, isRiskAnalysisValid } =
+    const createReversePurposeResponse =
       await purposeService.createReversePurpose(
         reversePurposeSeed,
         getMockContext({ authData: getMockAuthData(delegateTenant.id) })
       );
+
+    const purpose = createReversePurposeResponse.data.purpose;
+    const isRiskAnalysisValid =
+      createReversePurposeResponse.data.isRiskAnalysisValid;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -348,11 +356,15 @@ describe("createReversePurpose", () => {
     await addOneTenant(producerDelegate);
     await addOneAgreement(mockAgreement);
 
-    const { purpose, isRiskAnalysisValid } =
+    const createReversePurposeResponse =
       await purposeService.createReversePurpose(
         reversePurposeSeed,
         getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
       );
+
+    const purpose = createReversePurposeResponse.data.purpose;
+    const isRiskAnalysisValid =
+      createReversePurposeResponse.data.isRiskAnalysisValid;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -393,10 +405,16 @@ describe("createReversePurpose", () => {
       },
     };
 
+    expect(createReversePurposeResponse).toEqual({
+      data: {
+        purpose: expectedPurpose,
+        isRiskAnalysisValid,
+      },
+      metadata: { version: 0 },
+    });
     expect(sortPurpose(writtenPayload.purpose)).toEqual(
       sortPurpose(toPurposeV2(expectedPurpose))
     );
-    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });

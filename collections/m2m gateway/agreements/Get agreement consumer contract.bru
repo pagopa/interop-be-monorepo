@@ -1,0 +1,19 @@
+meta {
+  name: Get agreement consumer contract
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{host-m2m-gw}}/agreements/:agreementId/contract
+  body: none
+  auth: none
+}
+
+params:path {
+  agreementId: {{agreementId}}
+}
+
+headers {
+  Authorization: {{JWT-M2M}}
+}

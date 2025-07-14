@@ -123,14 +123,16 @@ const agreementRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const document = await agreementService.addConsumerDocument(
-          unsafeBrandId(req.params.agreementId),
-          req.body,
-          ctx
-        );
+        const { data: document, metadata } =
+          await agreementService.addConsumerDocument(
+            unsafeBrandId(req.params.agreementId),
+            req.body,
+            ctx
+          );
 
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -154,7 +156,12 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+            M2M_ROLE,
+          ]);
 
           const document = await agreementService.getAgreementConsumerDocument(
             unsafeBrandId(req.params.agreementId),
@@ -185,13 +192,17 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await agreementService.removeAgreementConsumerDocument(
-            unsafeBrandId(req.params.agreementId),
-            unsafeBrandId(req.params.documentId),
-            ctx
-          );
+          const { metadata } =
+            await agreementService.removeAgreementConsumerDocument(
+              unsafeBrandId(req.params.agreementId),
+              unsafeBrandId(req.params.documentId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
           return res.status(204).send();
         } catch (error) {
           const errorRes = makeApiProblem(

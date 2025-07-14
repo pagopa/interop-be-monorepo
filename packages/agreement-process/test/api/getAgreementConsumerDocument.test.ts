@@ -44,6 +44,8 @@ describe("API GET /agreements/{agreementId}/consumer-documents/{documentId} test
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+    authRole.M2M_ROLE,
   ];
 
   it.each(authorizedRoles)(

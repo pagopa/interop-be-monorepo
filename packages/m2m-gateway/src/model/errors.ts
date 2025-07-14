@@ -11,6 +11,7 @@ import {
   EServiceTemplateVersionId,
   makeApiProblemBuilder,
   PurposeId,
+  PurposeVersionId,
 } from "pagopa-interop-models";
 
 export const errorCodes = {
@@ -32,6 +33,10 @@ export const errorCodes = {
   eserviceTemplateVersionNotFound: "0017",
   tenantCertifiedAttributeNotFound: "0018",
   eserviceDescriptorInterfaceNotFound: "0019",
+  purposeVersionDocumentNotFound: "0020",
+  unexpectedClientKind: "0021",
+  purposeAgreementNotFound: "0022",
+  agreementContractNotFound: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -200,5 +205,45 @@ export function eserviceDescriptorInterfaceNotFound(
     detail: `Interface for descriptor ${descriptorId} not found for eservice ${eserviceId}`,
     code: "eserviceDescriptorInterfaceNotFound",
     title: "Eservice descriptor interface not found",
+  });
+}
+export function purposeVersionDocumentNotFound(
+  purposeId: PurposeId,
+  versionId: PurposeVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document for version ${versionId} of purpose ${purposeId} not found`,
+    code: "purposeVersionDocumentNotFound",
+    title: "Purpose version document not found",
+  });
+}
+
+export function unexpectedClientKind(
+  client: authorizationApi.Client
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unexpected client kind "${client.kind}" for client ${client.id}`,
+    code: "unexpectedClientKind",
+    title: "Unexpected client kind",
+  });
+}
+
+export function purposeAgreementNotFound(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No active agreement found for purpose ${purposeId}`,
+    code: "purposeAgreementNotFound",
+    title: "Agreement for purpose not found",
+  });
+}
+
+export function agreementContractNotFound(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract not found for agreement ${agreementId}`,
+    code: "agreementContractNotFound",
+    title: "Agreement contract not found",
   });
 }

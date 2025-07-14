@@ -11,18 +11,16 @@ post {
 }
 
 params:path {
-  clientId: bfb613c0-f07a-45ee-be0a-26cf9985f940
+  clientId: {{clientId}}
 }
 
 headers {
   Authorization: {{JWT}}
 }
 
-
-
 body:json {
   {
-    "purposeId": "be3505b7-98a5-4788-84de-7e4cad878f63"
+    "purposeId": "{{purposeId}}"
   }
 }
 
