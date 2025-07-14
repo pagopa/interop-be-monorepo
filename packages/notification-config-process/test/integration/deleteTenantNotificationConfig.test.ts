@@ -28,7 +28,7 @@ describe("deleteTenantNotificationConfig", () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
-    addOneTenantNotificationConfig(tenantNotificationConfig);
+    await addOneTenantNotificationConfig(tenantNotificationConfig);
     // Extra config to check that the correct one is deleted
     await addOneTenantNotificationConfig(getMockTenantNotificationConfig());
   });

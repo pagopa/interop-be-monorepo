@@ -31,7 +31,7 @@ describe("deleteUserNotificationConfig", () => {
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
-    addOneUserNotificationConfig(userNotificationConfig);
+    await addOneUserNotificationConfig(userNotificationConfig);
     // Extra config to check that the correct one is deleted
     await addOneUserNotificationConfig(getMockUserNotificationConfig());
   });

@@ -41,7 +41,7 @@ describe("updateTenantNotificationConfig", () => {
   });
 
   it("should write on event-store for the update of a tenant's existing notification configuration", async () => {
-    addOneTenantNotificationConfig(tenantNotificationConfig);
+    await addOneTenantNotificationConfig(tenantNotificationConfig);
     const serviceReturnValue =
       await notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,

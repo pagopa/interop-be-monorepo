@@ -48,7 +48,7 @@ describe("updateUserNotificationConfig", () => {
   });
 
   it("should write on event-store for the update of a user's existing notification configuration", async () => {
-    addOneUserNotificationConfig(userNotificationConfig);
+    await addOneUserNotificationConfig(userNotificationConfig);
     const serviceReturnValue =
       await notificationConfigService.updateUserNotificationConfig(
         userNotificationConfigSeed,

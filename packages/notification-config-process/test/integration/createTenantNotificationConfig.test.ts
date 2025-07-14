@@ -66,7 +66,7 @@ describe("createTenantNotificationConfig", () => {
       ...getMockTenantNotificationConfig(),
       tenantId,
     };
-    addOneTenantNotificationConfig(tenantNotificationConfig);
+    await addOneTenantNotificationConfig(tenantNotificationConfig);
     expect(
       notificationConfigService.createTenantNotificationConfig(
         notificationConfigSeed,

@@ -73,7 +73,7 @@ describe("createUserNotificationConfig", () => {
       userId,
       tenantId,
     };
-    addOneUserNotificationConfig(userNotificationConfig);
+    await addOneUserNotificationConfig(userNotificationConfig);
     expect(
       notificationConfigService.createUserNotificationConfig(
         userNotificationConfigSeed,
