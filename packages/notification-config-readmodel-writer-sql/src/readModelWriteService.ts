@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
 import {
   TenantNotificationConfig,
+  TenantNotificationConfigId,
   UserNotificationConfig,
+  UserNotificationConfigId,
 } from "pagopa-interop-models";
 import {
   checkMetadataVersion,
@@ -95,6 +97,32 @@ export function notificationConfigReadModelWriteServiceBuilder(
             .values(enabledNotificationsSQL);
         }
       });
+    },
+
+    async deleteTenantNotificationConfig(
+      tenantNotificationConfigId: TenantNotificationConfigId
+    ): Promise<void> {
+      await db
+        .delete(tenantNotificationConfigInReadmodelNotificationConfig)
+        .where(
+          eq(
+            tenantNotificationConfigInReadmodelNotificationConfig.id,
+            tenantNotificationConfigId
+          )
+        );
+    },
+
+    async deleteUserNotificationConfig(
+      userNotificationConfigId: UserNotificationConfigId
+    ): Promise<void> {
+      await db
+        .delete(userNotificationConfigInReadmodelNotificationConfig)
+        .where(
+          eq(
+            userNotificationConfigInReadmodelNotificationConfig.id,
+            userNotificationConfigId
+          )
+        );
     },
   };
 }
