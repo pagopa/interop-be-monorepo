@@ -1,7 +1,10 @@
 import { buildHTMLTemplateService, Logger } from "pagopa-interop-commons";
 import {
   AgreementEventEnvelopeV2,
+  AttributeEventEnvelope,
+  AuthorizationEventEnvelopeV2,
   CorrelationId,
+  DelegationEventEnvelopeV2,
   EmailNotificationMessagePayload,
   EServiceEventEnvelopeV2,
   generateId,
@@ -20,7 +23,10 @@ export async function handleEvent(
   decodedMessage:
     | EServiceEventEnvelopeV2
     | AgreementEventEnvelopeV2
-    | PurposeEventEnvelopeV2,
+    | PurposeEventEnvelopeV2
+    | DelegationEventEnvelopeV2
+    | AuthorizationEventEnvelopeV2
+    | AttributeEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<EmailNotificationMessagePayload[]> {
