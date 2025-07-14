@@ -28,7 +28,7 @@ describe("cloneAgreement", () => {
   );
 
   const pollingTentatives = 2;
-  const mockActivateAgreement = vi
+  const mockCloneAgreement = vi
     .fn()
     .mockResolvedValue(mockAgreementProcessResponse);
   const mockGetAgreement = vi.fn(
@@ -37,24 +37,22 @@ describe("cloneAgreement", () => {
 
   mockInteropBeClients.agreementProcessClient = {
     getAgreementById: mockGetAgreement,
-    activateAgreement: mockActivateAgreement,
+    cloneAgreement: mockCloneAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
   beforeEach(() => {
-    mockActivateAgreement.mockClear();
+    mockCloneAgreement.mockClear();
     mockGetAgreement.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-
     await agreementService.cloneAgreement(
       unsafeBrandId(mockAgreementProcessResponse.data.id),
       getMockM2MAdminAppContext()
     );
 
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
+      mockPost: mockInteropBeClients.agreementProcessClient.cloneAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
@@ -65,12 +63,11 @@ describe("cloneAgreement", () => {
     });
     expect(
       mockInteropBeClients.agreementProcessClient.getAgreementById
-    ).toHaveBeenCalledTimes(pollingTentatives + 1);
+    ).toHaveBeenCalledTimes(pollingTentatives);
   });
 
   it("Should throw missingMetadata in case the agreement returned by the clone agreement POST call has no metadata", async () => {
-    mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-    mockActivateAgreement.mockResolvedValueOnce({
+    mockCloneAgreement.mockResolvedValueOnce({
       ...mockAgreementProcessResponse,
       metadata: undefined,
     });
@@ -84,12 +81,10 @@ describe("cloneAgreement", () => {
   });
 
   it("Should throw missingMetadata in case the agreement returned by the polling GET call has no metadata", async () => {
-    mockGetAgreement
-      .mockResolvedValueOnce(mockAgreementProcessResponse)
-      .mockResolvedValueOnce({
-        ...mockAgreementProcessResponse,
-        metadata: undefined,
-      });
+    mockGetAgreement.mockResolvedValueOnce({
+      ...mockAgreementProcessResponse,
+      metadata: undefined,
+    });
 
     await expect(
       agreementService.cloneAgreement(
@@ -100,15 +95,13 @@ describe("cloneAgreement", () => {
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
-    // The activate will first get the agreement, then perform the polling
-    mockGetAgreement
-      .mockResolvedValueOnce(mockAgreementProcessResponse)
-      .mockImplementation(
-        mockPollingResponse(
-          mockAgreementProcessResponse,
-          config.defaultPollingMaxRetries + 1
-        )
-      );
+    // The clone will first get the agreement, then perform the polling
+    mockGetAgreement.mockImplementation(
+      mockPollingResponse(
+        mockAgreementProcessResponse,
+        config.defaultPollingMaxRetries + 1
+      )
+    );
 
     await expect(
       agreementService.cloneAgreement(
@@ -122,7 +115,7 @@ describe("cloneAgreement", () => {
       )
     );
     expect(mockGetAgreement).toHaveBeenCalledTimes(
-      config.defaultPollingMaxRetries + 1
+      config.defaultPollingMaxRetries
     );
   });
 });
