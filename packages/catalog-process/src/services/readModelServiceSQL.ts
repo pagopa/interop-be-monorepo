@@ -148,25 +148,6 @@ export function readModelServiceBuilderSQL(
         .from(eserviceInReadmodelCatalog)
         .$dynamic();
 
-      const agreementSubquery = readmodelDB
-        .selectDistinctOn([agreementInReadmodelAgreement.eserviceId], {
-          eserviceId: agreementInReadmodelAgreement.eserviceId,
-        })
-        .from(agreementInReadmodelAgreement)
-        .where(
-          //  agreement states filter
-          agreementStates.length > 0
-            ? and(
-                inArray(agreementInReadmodelAgreement.state, agreementStates),
-                eq(
-                  agreementInReadmodelAgreement.consumerId,
-                  authData.organizationId
-                )
-              )
-            : undefined
-        )
-        .as("agreementSubquery");
-
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const buildQuery = <T extends PgSelect>(query: T) => {
         const subqueryWithEserviceFilters = readmodelDB
@@ -214,6 +195,25 @@ export function readModelServiceBuilderSQL(
           subqueryWithEserviceFilters,
           eq(eserviceInReadmodelCatalog.id, subqueryWithEserviceFilters.id)
         );
+
+        const agreementSubquery = readmodelDB
+          .selectDistinctOn([agreementInReadmodelAgreement.eserviceId], {
+            eserviceId: agreementInReadmodelAgreement.eserviceId,
+          })
+          .from(agreementInReadmodelAgreement)
+          .where(
+            //  agreement states filter
+            agreementStates.length > 0
+              ? and(
+                  inArray(agreementInReadmodelAgreement.state, agreementStates),
+                  eq(
+                    agreementInReadmodelAgreement.consumerId,
+                    authData.organizationId
+                  )
+                )
+              : undefined
+          )
+          .as("agreementSubquery");
 
         const queryAfterAgreementFilter =
           agreementStates.length > 0
