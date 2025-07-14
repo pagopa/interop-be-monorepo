@@ -1,6 +1,5 @@
 import {
   decodeProtobufPayload,
-  getMockNotificationConfig,
   getMockUserNotificationConfig,
   getMockContextInternal,
 } from "pagopa-interop-commons-test";
@@ -11,6 +10,7 @@ import {
   UserNotificationConfigCreatedV2,
   toUserNotificationConfigV2,
   TenantId,
+  NotificationConfig,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -24,13 +24,12 @@ describe("createUserNotificationConfig", () => {
   const userId: UserId = generateId();
   const tenantId: TenantId = generateId();
 
-  const userNotificationConfigSeed = {
-    userId,
-    tenantId,
-    inAppConfig: getMockNotificationConfig(),
-    emailConfig: getMockNotificationConfig(),
+  const defaultInAppConfig: NotificationConfig = {
+    newEServiceVersionPublished: true,
   };
-
+  const defaultEmailConfig: NotificationConfig = {
+    newEServiceVersionPublished: true,
+  };
   beforeAll(async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -38,8 +37,9 @@ describe("createUserNotificationConfig", () => {
 
   it("should write on event-store for the creation of a user's notification configuration", async () => {
     const serviceReturnValue =
-      await notificationConfigService.createUserNotificationConfig(
-        userNotificationConfigSeed,
+      await notificationConfigService.createUserDefaultNotificationConfig(
+        userId,
+        tenantId,
         getMockContextInternal({})
       );
     const writtenEvent = await readLastNotificationConfigEvent(
@@ -57,8 +57,8 @@ describe("createUserNotificationConfig", () => {
       id: serviceReturnValue.id,
       userId,
       tenantId,
-      inAppConfig: userNotificationConfigSeed.inAppConfig,
-      emailConfig: userNotificationConfigSeed.emailConfig,
+      inAppConfig: defaultInAppConfig,
+      emailConfig: defaultEmailConfig,
       createdAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedUserNotificationConfig);
@@ -75,8 +75,9 @@ describe("createUserNotificationConfig", () => {
     };
     await addOneUserNotificationConfig(userNotificationConfig);
     expect(
-      notificationConfigService.createUserNotificationConfig(
-        userNotificationConfigSeed,
+      notificationConfigService.createUserDefaultNotificationConfig(
+        userId,
+        tenantId,
         getMockContextInternal({})
       )
     ).rejects.toThrowError(

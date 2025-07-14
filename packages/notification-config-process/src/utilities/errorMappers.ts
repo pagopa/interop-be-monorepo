@@ -26,14 +26,14 @@ export const getUserNotificationConfigErrorMapper = (
     .with("userNotificationConfigNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const createTenantNotificationConfigErrorMapper = (
+export const createTenantDefaultNotificationConfigErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("tenantNotificationConfigAlreadyExists", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const createUserNotificationConfigErrorMapper = (
+export const createUserDefaultNotificationConfigErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

@@ -34,6 +34,20 @@ import {
   userNotificationConfigNotFound,
 } from "../model/domain/errors.js";
 
+const defaultNotificationConfigs = {
+  tenant: {
+    newEServiceVersionPublished: true,
+  } satisfies NotificationConfig,
+  user: {
+    inApp: {
+      newEServiceVersionPublished: true,
+    } satisfies NotificationConfig,
+    email: {
+      newEServiceVersionPublished: true,
+    } satisfies NotificationConfig,
+  },
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notificationConfigServiceBuilder(
   dbInstance: DB,
@@ -160,17 +174,13 @@ export function notificationConfigServiceBuilder(
       return userNotificationConfig;
     },
 
-    async createTenantNotificationConfig(
-      {
-        tenantId,
-        config,
-      }: {
-        tenantId: TenantId;
-        config: NotificationConfig;
-      },
+    async createTenantDefaultNotificationConfig(
+      tenantId: TenantId,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<TenantNotificationConfig> {
-      logger.info(`Creating notification configuration for tenant ${tenantId}`);
+      logger.info(
+        `Creating default notification configuration for tenant ${tenantId}`
+      );
 
       const existingConfig =
         await readModelService.getTenantNotificationConfigByTenantId(tenantId);
@@ -182,7 +192,7 @@ export function notificationConfigServiceBuilder(
       const tenantNotificationConfig: TenantNotificationConfig = {
         id: generateId<TenantNotificationConfigId>(),
         tenantId,
-        config,
+        config: defaultNotificationConfigs.tenant,
         createdAt: new Date(),
         updatedAt: undefined,
       };
@@ -197,22 +207,13 @@ export function notificationConfigServiceBuilder(
       return tenantNotificationConfig;
     },
 
-    async createUserNotificationConfig(
-      {
-        userId,
-        tenantId,
-        inAppConfig,
-        emailConfig,
-      }: {
-        userId: UserId;
-        tenantId: TenantId;
-        inAppConfig: NotificationConfig;
-        emailConfig: NotificationConfig;
-      },
+    async createUserDefaultNotificationConfig(
+      userId: UserId,
+      tenantId: TenantId,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<UserNotificationConfig> {
       logger.info(
-        `Updating notification configuration for user ${userId} in tenant ${tenantId}`
+        `Updating default notification configuration for user ${userId} in tenant ${tenantId}`
       );
 
       const existingConfig =
@@ -229,8 +230,8 @@ export function notificationConfigServiceBuilder(
         id: generateId<UserNotificationConfigId>(),
         userId,
         tenantId,
-        inAppConfig,
-        emailConfig,
+        inAppConfig: defaultNotificationConfigs.user.inApp,
+        emailConfig: defaultNotificationConfigs.user.email,
         createdAt: new Date(),
         updatedAt: undefined,
       };

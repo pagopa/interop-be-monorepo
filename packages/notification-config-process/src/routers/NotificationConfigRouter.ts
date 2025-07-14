@@ -17,8 +17,8 @@ import {
   userNotificationConfigToApiUserNotificationConfig,
 } from "../model/domain/apiConverter.js";
 import {
-  createTenantNotificationConfigErrorMapper,
-  createUserNotificationConfigErrorMapper,
+  createTenantDefaultNotificationConfigErrorMapper,
+  createUserDefaultNotificationConfigErrorMapper,
   deleteTenantNotificationConfigErrorMapper,
   deleteUserNotificationConfigErrorMapper,
   getTenantNotificationConfigErrorMapper,
@@ -149,11 +149,8 @@ const notificationConfigRouter = (
       try {
         validateAuthorization(ctx, [INTERNAL_ROLE]);
         const tenantNotificationConfig =
-          await notificationConfigService.createTenantNotificationConfig(
-            {
-              tenantId: unsafeBrandId(req.body.tenantId),
-              config: req.body.config,
-            },
+          await notificationConfigService.createTenantDefaultNotificationConfig(
+            unsafeBrandId(req.body.tenantId),
             ctx
           );
         return res
@@ -168,7 +165,7 @@ const notificationConfigRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          createTenantNotificationConfigErrorMapper,
+          createTenantDefaultNotificationConfigErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
@@ -180,13 +177,9 @@ const notificationConfigRouter = (
       try {
         validateAuthorization(ctx, [INTERNAL_ROLE]);
         const userNotificationConfig =
-          await notificationConfigService.createUserNotificationConfig(
-            {
-              userId: unsafeBrandId(req.body.userId),
-              tenantId: unsafeBrandId(req.body.tenantId),
-              inAppConfig: req.body.inAppConfig,
-              emailConfig: req.body.emailConfig,
-            },
+          await notificationConfigService.createUserDefaultNotificationConfig(
+            unsafeBrandId(req.body.userId),
+            unsafeBrandId(req.body.tenantId),
             ctx
           );
         return res
@@ -201,7 +194,7 @@ const notificationConfigRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          createUserNotificationConfigErrorMapper,
+          createUserDefaultNotificationConfigErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

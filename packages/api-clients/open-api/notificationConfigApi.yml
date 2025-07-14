@@ -115,8 +115,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Create a tenant's notification configuration
-      operationId: createTenantNotificationConfig
+      summary: Create a tenant's default notification configuration
+      operationId: createTenantDefaultNotificationConfig
       requestBody:
         description: A tenant notification config seed
         content:
@@ -286,8 +286,8 @@ paths:
         - bearerAuth: []
       tags:
         - process
-      summary: Create a user's notification configuration
-      operationId: createUserNotificationConfig
+      summary: Create a user's default notification configuration
+      operationId: createUserDefaultNotificationConfig
       requestBody:
         description: A user notification config seed
         content:
@@ -465,21 +465,16 @@ components:
       additionalProperties: false
       required:
         - tenantId
-        - config
       properties:
         tenantId:
           type: string
           format: uuid
-        config:
-          $ref: "#/components/schemas/NotificationConfig"
     UserNotificationConfigSeed:
       type: object
       additionalProperties: false
       required:
         - userId
         - tenantId
-        - inAppConfig
-        - emailConfig
       properties:
         userId:
           type: string
@@ -487,10 +482,6 @@ components:
         tenantId:
           type: string
           format: uuid
-        inAppConfig:
-          $ref: "#/components/schemas/NotificationConfig"
-        emailConfig:
-          $ref: "#/components/schemas/NotificationConfig"
     TenantNotificationConfigUpdateSeed:
       $ref: "#/components/schemas/NotificationConfig"
     UserNotificationConfigUpdateSeed:

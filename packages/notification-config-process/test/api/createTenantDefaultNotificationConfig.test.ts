@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
+  NotificationConfig,
   TenantId,
   TenantNotificationConfig,
   generateId,
 } from "pagopa-interop-models";
 import {
   generateToken,
-  getMockNotificationConfig,
   getMockTenantNotificationConfig,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -18,15 +18,17 @@ import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/er
 
 describe("API POST /internal/tenantNotificationConfigs test", () => {
   const defaultTenantId: TenantId = generateId();
+  const defaultConfig: NotificationConfig = {
+    newEServiceVersionPublished: true,
+  };
   const notificationConfigSeed: notificationConfigApi.TenantNotificationConfigSeed =
     {
       tenantId: defaultTenantId,
-      config: getMockNotificationConfig(),
     };
   const serviceResponse: TenantNotificationConfig = {
     ...getMockTenantNotificationConfig(),
     tenantId: defaultTenantId,
-    config: notificationConfigSeed.config,
+    config: defaultConfig,
   };
   const apiResponse: notificationConfigApi.TenantNotificationConfig =
     tenantNotificationConfigToApiTenantNotificationConfig(serviceResponse);
@@ -42,7 +44,7 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
       .send(body);
 
   beforeEach(() => {
-    notificationConfigService.createTenantNotificationConfig = vi
+    notificationConfigService.createTenantDefaultNotificationConfig = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
@@ -57,11 +59,8 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
       expect(
-        notificationConfigService.createTenantNotificationConfig
-      ).toHaveBeenCalledWith(
-        { tenantId: defaultTenantId, config: notificationConfigSeed.config },
-        expect.any(Object)
-      );
+        notificationConfigService.createTenantDefaultNotificationConfig
+      ).toHaveBeenCalledWith(defaultTenantId, expect.any(Object));
     }
   );
 
@@ -72,12 +71,12 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(403);
     expect(
-      notificationConfigService.createTenantNotificationConfig
+      notificationConfigService.createTenantDefaultNotificationConfig
     ).not.toHaveBeenCalled();
   });
 
   it("Should return 409 for tenantNotificationConfigAlreadyExists", async () => {
-    notificationConfigService.createTenantNotificationConfig = vi
+    notificationConfigService.createTenantDefaultNotificationConfig = vi
       .fn()
       .mockRejectedValue(
         tenantNotificationConfigAlreadyExists(defaultTenantId)
@@ -86,24 +85,13 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(409);
     expect(
-      notificationConfigService.createTenantNotificationConfig
-    ).toHaveBeenCalledWith(
-      { tenantId: defaultTenantId, config: notificationConfigSeed.config },
-      expect.any(Object)
-    );
+      notificationConfigService.createTenantDefaultNotificationConfig
+    ).toHaveBeenCalledWith(defaultTenantId, expect.any(Object));
   });
 
   it.each([
     { body: {} },
-    { body: { ...notificationConfigSeed, tenantId: undefined } },
-    { body: { ...notificationConfigSeed, config: undefined } },
-    { body: { ...notificationConfigSeed, tenantId: "invalid" as TenantId } },
-    {
-      body: {
-        ...notificationConfigSeed,
-        config: { newEServiceVersionPublished: "invalid" },
-      },
-    },
+    { body: { tenantId: "invalid" as TenantId } },
     { body: { ...notificationConfigSeed, extraField: 1 } },
   ])("Should return 400 if passed invalid params: %s", async ({ body }) => {
     const token = generateToken(authRole.INTERNAL_ROLE);
@@ -113,7 +101,7 @@ describe("API POST /internal/tenantNotificationConfigs test", () => {
     );
     expect(res.status).toBe(400);
     expect(
-      notificationConfigService.createTenantNotificationConfig
+      notificationConfigService.createTenantDefaultNotificationConfig
     ).not.toHaveBeenCalledWith();
   });
 });

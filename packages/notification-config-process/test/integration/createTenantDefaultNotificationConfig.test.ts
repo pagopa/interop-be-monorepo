@@ -1,11 +1,11 @@
 import {
   decodeProtobufPayload,
-  getMockNotificationConfig,
   getMockTenantNotificationConfig,
   getMockContextInternal,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
+  NotificationConfig,
   TenantId,
   TenantNotificationConfig,
   TenantNotificationConfigCreatedV2,
@@ -22,9 +22,8 @@ import { tenantNotificationConfigAlreadyExists } from "../../src/model/domain/er
 describe("createTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();
 
-  const notificationConfigSeed = {
-    tenantId,
-    config: getMockNotificationConfig(),
+  const defaultConfig: NotificationConfig = {
+    newEServiceVersionPublished: true,
   };
 
   beforeAll(async () => {
@@ -34,8 +33,8 @@ describe("createTenantNotificationConfig", () => {
 
   it("should write on event-store for the creation of a tenant's notification configuration", async () => {
     const serviceReturnValue =
-      await notificationConfigService.createTenantNotificationConfig(
-        notificationConfigSeed,
+      await notificationConfigService.createTenantDefaultNotificationConfig(
+        tenantId,
         getMockContextInternal({})
       );
     const writtenEvent = await readLastNotificationConfigEvent(
@@ -52,7 +51,7 @@ describe("createTenantNotificationConfig", () => {
     const expectedTenantNotificationConfig: TenantNotificationConfig = {
       id: serviceReturnValue.id,
       tenantId,
-      config: notificationConfigSeed.config,
+      config: defaultConfig,
       createdAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
@@ -68,8 +67,8 @@ describe("createTenantNotificationConfig", () => {
     };
     await addOneTenantNotificationConfig(tenantNotificationConfig);
     expect(
-      notificationConfigService.createTenantNotificationConfig(
-        notificationConfigSeed,
+      notificationConfigService.createTenantDefaultNotificationConfig(
+        tenantId,
         getMockContextInternal({})
       )
     ).rejects.toThrowError(tenantNotificationConfigAlreadyExists(tenantId));
