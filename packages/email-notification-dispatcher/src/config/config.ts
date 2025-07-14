@@ -28,14 +28,13 @@ export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 export const NotificationEmailSenderConfig = KafkaConsumerConfig.and(
   KafkaProducerConfig
 )
-  .and(ReadModelDbConfig)
   .and(AgreementTopicConfig)
   .and(AWSSesConfig)
   .and(SESEmailSenderConfig)
   .and(PurposeTopicConfig)
   .and(CatalogTopicConfig)
   .and(FeatureFlagSQLConfig)
-  .and(ReadModelSQLDbConfig.optional()) // TODO: something to fix here. We keep the SQL config for sure, but did we rename it or something?
+  .and(ReadModelSQLDbConfig)
   .and(EmailSenderTopicConfig);
 
 export type NotificationEmailSenderConfig = z.infer<
