@@ -115,6 +115,7 @@ export function readModelServiceBuilderSQL(
   eserviceTemplateReadModelService: EServiceTemplateReadModelService
 ) {
   return {
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async getEServices(
       authData: UIAuthData | M2MAuthData,
       filters: ApiGetEServicesFilters,
