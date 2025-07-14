@@ -1052,8 +1052,12 @@ export function agreementServiceBuilder(
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<string> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(
         `Removing consumer document ${documentId} from agreement ${agreementId}`
       );
@@ -1066,6 +1070,7 @@ export function agreementServiceBuilder(
         await readModelService.getActiveConsumerDelegationByAgreement(
           agreement.data
         );
+
       assertRequesterCanActAsConsumer(
         agreement.data.consumerId,
         agreement.data.eserviceId,
@@ -1087,7 +1092,7 @@ export function agreementServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventAgreementConsumerDocumentRemoved(
           documentId,
           updatedAgreement,
@@ -1095,7 +1100,11 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
-      return updatedAgreement.id;
+
+      return {
+        data: updatedAgreement,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async rejectAgreement(
       agreementId: AgreementId,
