@@ -34,6 +34,7 @@ import {
   EServiceDocumentId,
   EServiceTemplateRiskAnalysis,
   RiskAnalysisForm,
+  badRequestError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
@@ -1143,6 +1144,15 @@ export function eserviceTemplateServiceBuilder(
       { logger, authData, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<EServiceTemplate> {
       logger.info(`Creating EService template with name ${seed.name}`);
+
+      /**
+       * TEMP: Remove this check when e-service template RECEIVE mode will be available
+       */
+      if (seed.mode === eserviceTemplateApi.EServiceMode.Values.RECEIVE) {
+        throw badRequestError(
+          "EService template in RECEIVE mode is not supported"
+        );
+      }
 
       if (!config.producerAllowedOrigins.includes(authData.externalId.origin)) {
         throw originNotCompliant(authData.externalId.origin);
