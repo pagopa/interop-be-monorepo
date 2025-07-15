@@ -12,6 +12,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {
+  toGetCertifiedAttributesApiQueryParams,
   toM2MGatewayApiCertifiedAttribute,
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
@@ -121,11 +122,7 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       const response = await clients.attributeProcessClient.getAttributes({
-        queries: {
-          limit,
-          offset,
-          kinds: [attributeRegistryApi.AttributeKind.Values.CERTIFIED],
-        },
+        queries: toGetCertifiedAttributesApiQueryParams({ limit, offset }),
         headers,
       });
 

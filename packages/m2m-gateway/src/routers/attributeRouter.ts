@@ -136,7 +136,7 @@ const attributeRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getCertifiedAttributeErrorMapper,
+          emptyErrorMapper,
           ctx,
           "Error retrieving certified attributes"
         );
