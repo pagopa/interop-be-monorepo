@@ -186,7 +186,7 @@ export class ReadModelRepository {
     readModelDbReplicaSet: replicaSet,
     readModelDbReadPreference: readPreference,
   }: ReadModelDbConfig) {
-    const mongoDBConnectionURI = `mongodb://${username}:${password}@${host}:${port}/replicaSet=${replicaSet}&readPreference=${readPreference}`;
+    const mongoDBConnectionURI = `mongodb://${username}:${password}@${host}:${port}/?replicaSet=${replicaSet}&readPreference=${readPreference}`;
     this.client = new MongoClient(mongoDBConnectionURI, {
       retryWrites: false,
     });
