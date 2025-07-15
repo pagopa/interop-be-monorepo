@@ -37,6 +37,7 @@ paths:
         - process
       summary: Retrieve a list of E-Service
       operationId: getEServices
+      description: Retrieves a list of E-Services with optional filters
       parameters:
         - in: query
           name: name
@@ -150,6 +151,7 @@ paths:
         - process
       summary: Create a new e-service
       operationId: createEService
+      description: Creates a new E-Service
       requestBody:
         description: An E-Service seed
         content:
@@ -186,6 +188,7 @@ paths:
         - process
       summary: Get an e-service
       operationId: getEServiceById
+      description: Retrieves an E-Service by its ID
       parameters:
         - name: eServiceId
           in: path
@@ -219,6 +222,7 @@ paths:
         - process
       summary: Updates e-service general information
       operationId: updateEServiceById
+      description: Updates the general information of the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -259,6 +263,7 @@ paths:
         - process
       summary: Deletes an e-service
       operationId: deleteEService
+      description: Deletes the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -290,6 +295,7 @@ paths:
         - process
       summary: Updates e-service template instance general information
       operationId: updateEServiceTemplateInstanceById
+      description: Updates the general information of the specified E-Service template instance
       parameters:
         - name: eServiceId
           in: path
@@ -333,6 +339,7 @@ paths:
         - process
       summary: Create a new e-service instance from a template
       operationId: createEServiceInstanceFromTemplate
+      description: Creates a new E-Service instance from a template
       parameters:
         - name: templateId
           in: path
@@ -381,6 +388,7 @@ paths:
         - process
       summary: Upgrade an instance of a template
       operationId: upgradeEServiceInstance
+      description: Upgrades an instance of a template for the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -418,6 +426,7 @@ paths:
         - process
       summary: Retrieve Consumers for an EService
       operationId: getEServiceConsumers
+      description: Retrieves the consumers of the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -470,6 +479,7 @@ paths:
         - process
       summary: Adds a descriptor to the specified e-service
       operationId: createDescriptor
+      description: Adds a descriptor to the specified e-service
       parameters:
         - name: eServiceId
           in: path
@@ -513,6 +523,7 @@ paths:
         - process
       summary: Adds a descriptor to the specified template instance e-service
       operationId: createTemplateInstanceDescriptor
+      description: Adds a descriptor to the specified template instance e-service
       parameters:
         - name: eServiceId
           in: path
@@ -556,6 +567,7 @@ paths:
         - process
       summary: Deletes a draft descriptor
       operationId: deleteDraft
+      description: Deletes a draft descriptor for the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -591,6 +603,7 @@ paths:
         - process
       summary: Updates a draft descriptor
       operationId: updateDraftDescriptor
+      description: Updates a draft descriptor for the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -638,6 +651,7 @@ paths:
         - process
       summary: Updates a draft descriptor for an eservice template instance
       operationId: updateDraftDescriptorTemplateInstance
+      description: Updates a draft descriptor for the specified E-Service template instance
       parameters:
         - name: eServiceId
           in: path
@@ -687,6 +701,7 @@ paths:
         - process
       summary: Publish the selected descriptor.
       operationId: publishDescriptor
+      description: Publishes the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -725,6 +740,7 @@ paths:
         - process
       summary: Suspend the selected descriptor.
       operationId: suspendDescriptor
+      description: Suspends the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -763,6 +779,7 @@ paths:
         - process
       summary: Activate the selected descriptor.
       operationId: activateDescriptor
+      description: Activates the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -801,6 +818,7 @@ paths:
         - process
       summary: Clones the selected descriptor.
       operationId: cloneEServiceByDescriptor
+      description: Clones an E-Service using the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -845,6 +863,7 @@ paths:
         - process
       summary: Archive the selected descriptor.
       operationId: archiveDescriptor
+      description: Archives the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -885,6 +904,7 @@ paths:
         - process
       summary: Update the selected descriptor.
       operationId: updateDescriptor
+      description: Updates the specified descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -936,6 +956,7 @@ paths:
         - process
       summary: Update agreement approval policy of published descriptor
       operationId: updateAgreementApprovalPolicy
+      description: Updates the agreement approval policy for the specified E-Service descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -999,6 +1020,7 @@ paths:
         - process
       summary: Add new e-service document
       operationId: createEServiceDocument
+      description: Adds a new document to the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1048,6 +1070,7 @@ paths:
         - process
       summary: Get an e-service document
       operationId: getEServiceDocumentById
+      description: Retrieves a document of the specified E-Service by its ID
       parameters:
         - name: eServiceId
           in: path
@@ -1096,6 +1119,7 @@ paths:
         - process
       summary: Deletes an e-service document
       operationId: deleteEServiceDocumentById
+      description: Deletes a document from the specified E-Service by its ID
       parameters:
         - name: eServiceId
           in: path
@@ -1140,6 +1164,7 @@ paths:
         - process
       summary: Updates an e-service document
       operationId: updateEServiceDocumentById
+      description: Updates a document of the specified E-Service by its ID
       parameters:
         - name: eServiceId
           in: path
@@ -1195,6 +1220,7 @@ paths:
         - process
       summary: Add EService template instance interface for REST protocol
       operationId: addEServiceTemplateInstanceInterfaceRest
+      description: Adds a REST interface to the specified E-Service template instance descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -1272,6 +1298,7 @@ paths:
         - process
       summary: Add EService template instance interface for SOAP protocol
       operationId: addEServiceTemplateInstanceInterfaceSoap
+      description: Adds a SOAP interface to the specified E-Service template instance descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -1349,6 +1376,7 @@ paths:
         - process
       summary: Create an e-service risk analysis
       operationId: createRiskAnalysis
+      description: Creates a new risk analysis for the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1395,6 +1423,7 @@ paths:
         - process
       summary: Update an e-service risk analysis
       operationId: updateRiskAnalysis
+      description: Updates the risk analysis for the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1445,6 +1474,7 @@ paths:
         - process
       summary: Delete an e-service risk analysis
       operationId: deleteRiskAnalysis
+      description: Deletes the risk analysis from the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1491,6 +1521,7 @@ paths:
         - process
       summary: Update an e-service description
       operationId: updateEServiceDescription
+      description: Updates the description of the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1541,6 +1572,7 @@ paths:
         - process
       summary: Update an e-service isConsumerDelegable and isClientAccessDelegable flags
       operationId: updateEServiceDelegationFlags
+      description: Updates the delegation flags of the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1597,6 +1629,7 @@ paths:
         - process
       summary: Update an e-service name
       operationId: updateEServiceName
+      description: Updates the name of the specified E-Service
       parameters:
         - name: eServiceId
           in: path
@@ -1703,6 +1736,7 @@ paths:
         - process
       summary: approve a delegated new e-service version
       operationId: approveDelegatedEServiceDescriptor
+      description: Approves a delegated E-Service descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -1749,6 +1783,7 @@ paths:
         - process
       summary: reject a delegated new e-service version
       operationId: rejectDelegatedEServiceDescriptor
+      description: Rejects a delegated E-Service descriptor
       requestBody:
         description: Payload containing the reason of the rejection
         content:
@@ -1802,6 +1837,7 @@ paths:
         - process
       summary: Update e-service published descriptor attributes
       operationId: updateDescriptorAttributes
+      description: Updates the attributes of the specified E-Service descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -2209,6 +2245,7 @@ paths:
         - process
       summary: Update the selected template instance descriptor.
       operationId: updateTemplateInstanceDescriptor
+      description: Updates the specified E-Service template instance descriptor
       parameters:
         - name: eServiceId
           in: path
@@ -3002,7 +3039,8 @@ components:
           type: string
           format: uuid
         version:
-          type: string
+          type: integer
+          format: int32
         description:
           type: string
         audience:

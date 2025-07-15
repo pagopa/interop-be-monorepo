@@ -261,6 +261,9 @@ paths:
       responses:
         "200":
           description: Purpose created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -515,6 +518,9 @@ paths:
       operationId: deletePurposeVersion
       responses:
         "204":
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           description: Purpose Version Deleted
         "403":
           description: Organization not allowed
@@ -546,6 +552,7 @@ paths:
       tags:
         - purpose
       summary: Get an Risk Analysis document
+      description: Retrieves a risk analysis document by id
       operationId: getRiskAnalysisDocument
       parameters:
         - name: purposeId

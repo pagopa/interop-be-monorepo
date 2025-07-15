@@ -98,6 +98,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
  * @param stagingTableName - The temporary staging table used as a source.
  * @param deleteKeysOn - Keys used to match records between the tables.
  * @param useIdAsSourceDeleteKey - Whether to always use "id" as the source key (default: true).
+ * @param physicalDelete - If true, executes a physical DELETE; otherwise, updates the `deleted` flag (default: true).
  * @param additionalsKeyToUpdate - Additional column keys to include in the UPDATE aside from `deleted`. Defaults to none.
  * @returns A MERGE SQL query string to perform a logical delete.
  */
@@ -111,7 +112,8 @@ export function generateMergeDeleteQuery<
   stagingTableName: StagingTable,
   deleteKeysOn: ColumnKeys[],
   useIdAsSourceDeleteKey: boolean = true,
-  additionalsKeyToUpdate?: ColumnKeys[]
+  physicalDelete: boolean = true,
+  additionalKeysToUpdate?: ColumnKeys[]
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
   const snakeCaseMapper = getColumnNameMapper(targetTableName);
@@ -125,22 +127,28 @@ export function generateMergeDeleteQuery<
     })
     .join(" AND ");
 
-  const fieldsToUpdate = [
-    "deleted",
-    ...(additionalsKeyToUpdate?.map(String) ?? []),
-  ];
+  if (physicalDelete) {
+    return `
+      DELETE FROM ${schemaName}.${targetTableName}
+      USING ${stagingTableName}_${config.mergeTableSuffix} AS source
+      WHERE ${onCondition};
+    `.trim();
+  } else {
+    const fieldsToUpdate = [
+      "deleted",
+      ...(additionalKeysToUpdate?.map(String) ?? []),
+    ];
+    const updateSet = fieldsToUpdate
+      .map((field) => `${field} = source.${field}`)
+      .join(",\n      ");
 
-  const updateSet = fieldsToUpdate
-    .filter((field) => !deleteKeysOn.includes(field as ColumnKeys))
-    .map((field) => `${field} = source.${quoteColumn(field)}`)
-    .join(",\n      ");
-
-  return `
-    UPDATE ${schemaName}.${targetTableName}
-    SET ${updateSet}
-    FROM ${stagingTableName}_${config.mergeTableSuffix} AS source
-    WHERE ${onCondition};
-  `.trim();
+    return `
+      UPDATE ${schemaName}.${targetTableName}
+      SET ${updateSet}
+      FROM ${stagingTableName}_${config.mergeTableSuffix} AS source
+      WHERE ${onCondition};
+    `.trim();
+  }
 }
 
 /**
@@ -160,14 +168,19 @@ export async function mergeDeletingCascadeById<
   t: ITask<unknown>,
   id: DeleteKey,
   deletingTargetTableNames: [...TargetTable],
-  deletingStagingTableName: StagingTable
+  deletingStagingTableName: StagingTable,
+  isPhysicalDelete: boolean = false
 ): Promise<void> {
+  const useIdAsSourceDeleteKey = true;
+
   for (const deletingTargetTableName of deletingTargetTableNames) {
     const mergeQuery = generateMergeDeleteQuery(
       config.dbSchemaName,
       deletingTargetTableName,
       deletingStagingTableName,
-      [id]
+      [id],
+      useIdAsSourceDeleteKey,
+      isPhysicalDelete
     );
     await t.none(mergeQuery);
   }
@@ -217,14 +230,21 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
  *
  * @param tableName - The base table name.
  * @param keyConditions - Array of column keys used to match records for deletion.
+ * @param partialTableName - Staging table name for partial upsert.
  * @returns A SQL string containing two DELETE statements to perform staging cleanup.
  */
 export function generateStagingDeleteQuery<
   T extends DomainDbTable,
   ColumnKeys extends keyof z.infer<DomainDbTableSchemas[T]>
->(tableName: T, keyConditions: ColumnKeys[]): string {
+>(
+  tableName: T,
+  keyConditions: ColumnKeys[],
+  partialTableName?: PartialDbTable
+): string {
   const snakeCaseMapper = getColumnNameMapper(tableName);
-  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${partialTableName ?? tableName}_${
+    config.mergeTableSuffix
+  }`;
 
   const whereCondition = keyConditions
     .map((key) => {
@@ -244,6 +264,48 @@ export function generateStagingDeleteQuery<
     WHERE ${whereCondition}
       AND ${stagingTableName}.metadata_version < b.metadata_version;
 `.trim();
+}
+
+/**
+ * Purge obsolete rows in target tables by deleting based on staging data.
+ *
+ * This operation deletes any row in each target table that has the same key as a staging row
+ * but a lower metadata_version, ensuring outdated records are removed.
+ *
+ * @param t - The pg-promise transaction object.
+ * @param id - The key to match rows on during the delete.
+ * @param targetTableNames - A list of target table names to apply the delete.
+ * @param stagingTableName - The name of the staging table containing columns used for deleting condition.
+ */
+export async function cleaningTargetTables<
+  TargetTable extends ReadonlyArray<DomainDbTable>,
+  StagingTable extends DomainDbTable | DeletingDbTable,
+  DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>
+>(
+  t: ITask<unknown>,
+  id: DeleteKey,
+  targetTableNames: TargetTable,
+  stagingTableName: StagingTable
+) {
+  const quoteColumn = (c: string) => `"${c}"`;
+  for (const targetTableName of targetTableNames) {
+    const snakeCaseMapper = getColumnNameMapper(targetTableName);
+
+    const whereCondition = `${
+      config.dbSchemaName
+    }.${targetTableName}.${quoteColumn(
+      snakeCaseMapper(String(id))
+    )} = source.id`;
+
+    const deleteQuery = `
+    DELETE FROM ${config.dbSchemaName}.${targetTableName}
+    USING ${stagingTableName}_${config.mergeTableSuffix} AS source
+    WHERE ${whereCondition}
+      AND ${config.dbSchemaName}.${targetTableName}.metadata_version < source.metadata_version
+    `.trim();
+
+    await t.none(deleteQuery);
+  }
 }
 
 /**

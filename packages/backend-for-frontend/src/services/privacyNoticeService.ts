@@ -176,3 +176,7 @@ async function retrieveLatestPrivacyNoticeVersion(
   }
   return latest;
 }
+
+export type PrivacyNoticeService = ReturnType<
+  typeof privacyNoticeServiceBuilder
+>;

@@ -9,6 +9,7 @@ import {
 } from "pagopa-interop-commons";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
+  ApiError,
   Descriptor,
   EService,
   EServiceTemplate,
@@ -83,7 +84,7 @@ export const toEserviceCatalogProcessMock = (
     {
       ...descriptor,
       state: "DRAFT",
-      version: "1",
+      version: 1,
       agreementApprovalPolicy: "AUTOMATIC",
       publishedAt: new Date().toISOString(),
       suspendedAt: undefined,
@@ -106,3 +107,28 @@ export const getBffMockContext = (
   },
   logger: genericLogger,
 });
+
+const catalogErrorCodes = {
+  eserviceTemplateInterfaceNotFound: "0035",
+  eserviceTemplateInterfaceDataNotValid: "0036",
+};
+export type CatalogErrorCodes = keyof typeof catalogErrorCodes;
+
+export function eserviceTemplateInterfaceNotFound(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string
+): ApiError<CatalogErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
+    code: "eserviceTemplateInterfaceNotFound",
+    title: "EService template interface document not found",
+  });
+}
+
+export function eserviceInterfaceDataNotValid(): ApiError<CatalogErrorCodes> {
+  return new ApiError({
+    detail: `EService template interface data not valid`,
+    code: "eserviceTemplateInterfaceDataNotValid",
+    title: "EService template interface data not valid",
+  });
+}

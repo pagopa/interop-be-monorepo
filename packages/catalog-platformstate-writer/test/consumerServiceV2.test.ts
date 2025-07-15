@@ -39,9 +39,10 @@ import {
   deleteDynamoDBTables,
   readAllTokenGenStatesItems,
   writeTokenGenStatesConsumerClient,
+  writePlatformCatalogEntry,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
-import { readCatalogEntry, writeCatalogEntry } from "../src/utils.js";
+import { readCatalogEntry } from "../src/utils.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { dynamoDBClient } from "./utils.js";
 
@@ -99,11 +100,7 @@ describe("integration tests V2 events", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -207,11 +204,7 @@ describe("integration tests V2 events", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -432,11 +425,7 @@ describe("integration tests V2 events", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
         eserviceId: eservice.id,
@@ -661,11 +650,7 @@ describe("integration tests V2 events", async () => {
           version: 2,
           updatedAt: new Date().toISOString(),
         };
-        await writeCatalogEntry(
-          previousStateEntry,
-          dynamoDBClient,
-          genericLogger
-        );
+        await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
         const tokenGenStatesEntryPK1 =
           makeTokenGenerationStatesClientKidPurposePK({
@@ -765,11 +750,7 @@ describe("integration tests V2 events", async () => {
           version: 2,
           updatedAt: new Date().toISOString(),
         };
-        await writeCatalogEntry(
-          previousStateEntry,
-          dynamoDBClient,
-          genericLogger
-        );
+        await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
         const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
           eserviceId: eservice.id,
           descriptorId: publishedDescriptor.id,
@@ -845,7 +826,7 @@ describe("integration tests V2 events", async () => {
           state: descriptorState.archived,
           audience: ["pagopa.it/test1", "pagopa.it/test2"],
           interface: getMockDocument(),
-          version: "1",
+          version: 1,
           publishedAt: new Date(),
           archivedAt: new Date(),
         };
@@ -855,7 +836,7 @@ describe("integration tests V2 events", async () => {
           state: descriptorState.published,
           audience: ["pagopa.it/test1", "pagopa.it/test2"],
           interface: getMockDocument(),
-          version: "2",
+          version: 2,
         };
 
         const eservice: EService = {
@@ -994,11 +975,7 @@ describe("integration tests V2 events", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -1099,11 +1076,7 @@ describe("integration tests V2 events", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -1332,11 +1305,7 @@ describe("integration tests V2 events", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -1450,11 +1419,7 @@ describe("integration tests V2 events", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -1700,11 +1665,7 @@ describe("integration tests V2 events", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -1820,11 +1781,7 @@ describe("integration tests V2 events", async () => {
         version: 2,
         updatedAt: new Date().toISOString(),
       };
-      await writeCatalogEntry(
-        previousStateEntry,
-        dynamoDBClient,
-        genericLogger
-      );
+      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =

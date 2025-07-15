@@ -24,7 +24,7 @@ import {
   updateDescriptorStateInTokenGenerationStatesTable,
   updateDescriptorVoucherLifespanInPlatformStateEntry,
   updateDescriptorVoucherLifespanInTokenGenerationStatesTable,
-  writeCatalogEntry,
+  upsertPlatformStatesCatalogEntry,
 } from "./utils.js";
 
 export async function handleMessageV2(
@@ -43,7 +43,7 @@ export async function handleMessageV2(
           message.type
         );
         const previousDescriptor = eservice.descriptors.find(
-          (d) => d.version === (Number(descriptor.version) - 1).toString()
+          (d) => d.version === descriptor.version - 1
         );
 
         // flow for current descriptor
@@ -56,22 +56,16 @@ export async function handleMessageV2(
             primaryKeyCurrent,
             dynamoDBClient
           );
-          if (existingCatalogEntryCurrent) {
-            if (existingCatalogEntryCurrent.version > msg.version) {
-              // Stops processing if the message is older than the catalog entry
-              logger.info(
-                `Skipping processing of entry ${existingCatalogEntryCurrent.PK} (the current descriptor). Reason: it already exists`
-              );
-              return Promise.resolve();
-            } else {
-              await updateDescriptorStateInPlatformStatesEntry(
-                dynamoDBClient,
-                primaryKeyCurrent,
-                descriptorStateToItemState(descriptor.state),
-                msg.version,
-                logger
-              );
-            }
+
+          if (
+            existingCatalogEntryCurrent &&
+            existingCatalogEntryCurrent.version > msg.version
+          ) {
+            // Stops processing if the message is older than the catalog entry
+            logger.info(
+              `Skipping processing of entry ${existingCatalogEntryCurrent.PK} (the current descriptor). Reason: it already exists`
+            );
+            return Promise.resolve();
           } else {
             const catalogEntry: PlatformStatesCatalogEntry = {
               PK: primaryKeyCurrent,
@@ -82,7 +76,11 @@ export async function handleMessageV2(
               updatedAt: new Date().toISOString(),
             };
 
-            await writeCatalogEntry(catalogEntry, dynamoDBClient, logger);
+            await upsertPlatformStatesCatalogEntry(
+              catalogEntry,
+              dynamoDBClient,
+              logger
+            );
           }
 
           // token-generation-states
