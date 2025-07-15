@@ -63,10 +63,12 @@ import {
   eserviceRiskAnalysisInReadmodelCatalog,
   tenantInReadmodelTenant,
   eserviceTemplateInReadmodelEserviceTemplate,
+  DrizzleTransactionType,
 } from "pagopa-interop-readmodel-models";
 import {
   and,
   count,
+  countDistinct,
   desc,
   eq,
   exists,
@@ -78,6 +80,7 @@ import {
   SQL,
 } from "drizzle-orm";
 import { match } from "ts-pattern";
+import { PgSelect } from "drizzle-orm/pg-core";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
   activeDescriptorStates,
@@ -85,7 +88,7 @@ import {
 } from "./validators.js";
 
 const existsValidDescriptor = (
-  readmodelDB: DrizzleReturnType
+  readmodelDB: DrizzleTransactionType
 ): SQL<unknown> | undefined =>
   exists(
     readmodelDB
@@ -113,6 +116,7 @@ export function readModelServiceBuilderSQL(
   eserviceTemplateReadModelService: EServiceTemplateReadModelService
 ) {
   return {
+    // eslint-disable-next-line sonarjs/cognitive-complexity
     async getEServices(
       authData: UIAuthData | M2MAuthData,
       filters: ApiGetEServicesFilters,
@@ -132,286 +136,340 @@ export function readModelServiceBuilderSQL(
         templatesIds,
       } = filters;
 
-      const subquery = readmodelDB
-        .select(
-          withTotalCount({
+      return await readmodelDB.transaction(async (tx) => {
+        const totalCountQuery = tx
+          .select({
+            count: countDistinct(eserviceInReadmodelCatalog.id),
+          })
+          .from(eserviceInReadmodelCatalog)
+          .$dynamic();
+
+        const idsQuery = tx
+          .select({
             id: eserviceInReadmodelCatalog.id,
           })
-        )
-        .from(eserviceInReadmodelCatalog)
-        .leftJoin(
-          agreementInReadmodelAgreement,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            agreementInReadmodelAgreement.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorAttributeInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          delegationInReadmodelDelegation,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            delegationInReadmodelDelegation.eserviceId
-          )
-        )
-        .where(
-          and(
-            // name filter
-            name
-              ? ilike(
-                  eserviceInReadmodelCatalog.name,
-                  `%${escapeRegExp(name)}%`
-                )
-              : undefined,
-            // ids filter
-            eservicesIds.length > 0
-              ? inArray(eserviceInReadmodelCatalog.id, eservicesIds)
-              : undefined,
-            // agreement states filter
-            agreementStates.length > 0
-              ? and(
-                  inArray(agreementInReadmodelAgreement.state, agreementStates),
-                  eq(
-                    agreementInReadmodelAgreement.consumerId,
-                    authData.organizationId
+          .from(eserviceInReadmodelCatalog)
+          .$dynamic();
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const buildQuery = <T extends PgSelect>(query: T) => {
+          const subqueryWithEserviceFilters = tx
+            .selectDistinctOn([eserviceInReadmodelCatalog.id], {
+              id: eserviceInReadmodelCatalog.id,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .where(
+              and(
+                // name filter
+                name
+                  ? ilike(
+                      eserviceInReadmodelCatalog.name,
+                      `%${escapeRegExp(name)}%`
+                    )
+                  : undefined,
+                // ids filter
+                eservicesIds.length > 0
+                  ? inArray(eserviceInReadmodelCatalog.id, eservicesIds)
+                  : undefined,
+                // mode filter
+                mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
+                // isConsumerDelegable filter
+                match(isConsumerDelegable)
+                  .with(true, () =>
+                    eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
                   )
-                )
-              : undefined,
-            // producerIds filter
-            producersIds.length > 0
-              ? or(
-                  inArray(eserviceInReadmodelCatalog.producerId, producersIds),
-                  and(
-                    inArray(
-                      delegationInReadmodelDelegation.delegateId,
-                      producersIds
-                    ),
-                    eq(
-                      delegationInReadmodelDelegation.state,
-                      delegationState.active
-                    ),
-                    eq(
-                      delegationInReadmodelDelegation.kind,
-                      delegationKind.delegatedProducer
+                  .with(false, () =>
+                    or(
+                      isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
+                      eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
                     )
                   )
-                )
-              : undefined,
-            // descriptorState filter
-            states.length > 0
-              ? inArray(eserviceDescriptorInReadmodelCatalog.state, states)
-              : undefined,
-            // attributes filter
-            attributesIds.length > 0
-              ? inArray(
-                  eserviceDescriptorAttributeInReadmodelCatalog.attributeId,
-                  attributesIds
-                )
-              : undefined,
-            // visibility filter
-            hasRoleToAccessInactiveDescriptors(authData)
-              ? or(
-                  existsValidDescriptor(readmodelDB),
-                  // the requester is the producer
+                  .with(undefined, () => undefined)
+                  .exhaustive(),
+                // templateIds filter
+                templatesIds.length > 0
+                  ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
+                  : undefined
+              )
+            )
+            .as("subqueryWithEserviceFilters");
+
+          const queryAfterEserviceFilters = query.innerJoin(
+            subqueryWithEserviceFilters,
+            eq(eserviceInReadmodelCatalog.id, subqueryWithEserviceFilters.id)
+          );
+
+          const agreementSubquery = tx
+            .selectDistinctOn([agreementInReadmodelAgreement.eserviceId], {
+              eserviceId: agreementInReadmodelAgreement.eserviceId,
+            })
+            .from(agreementInReadmodelAgreement)
+            .where(
+              //  agreement states filter
+              agreementStates.length > 0
+                ? and(
+                    inArray(
+                      agreementInReadmodelAgreement.state,
+                      agreementStates
+                    ),
+                    eq(
+                      agreementInReadmodelAgreement.consumerId,
+                      authData.organizationId
+                    )
+                  )
+                : undefined
+            )
+            .as("agreementSubquery");
+
+          const queryAfterAgreementFilter =
+            agreementStates.length > 0
+              ? queryAfterEserviceFilters.innerJoin(
+                  agreementSubquery,
                   eq(
-                    eserviceInReadmodelCatalog.producerId,
-                    authData.organizationId
-                  ),
-                  // the requester has producer delegation
-                  exists(
-                    readmodelDB
-                      .select()
-                      .from(delegationInReadmodelDelegation)
-                      .where(
-                        and(
-                          eq(
-                            delegationInReadmodelDelegation.eserviceId,
-                            eserviceInReadmodelCatalog.id
-                          ),
-                          eq(
-                            delegationInReadmodelDelegation.delegateId,
-                            authData.organizationId
-                          ),
-                          eq(
-                            delegationInReadmodelDelegation.state,
-                            delegationState.active
-                          ),
-                          eq(
-                            delegationInReadmodelDelegation.kind,
-                            delegationKind.delegatedProducer
-                          )
-                        )
-                      )
+                    eserviceInReadmodelCatalog.id,
+                    agreementSubquery.eserviceId
                   )
                 )
-              : existsValidDescriptor(readmodelDB),
-            // mode filter
-            mode ? eq(eserviceInReadmodelCatalog.mode, mode) : undefined,
-            // isConsumerDelegable filter
-            match(isConsumerDelegable)
-              .with(true, () =>
-                eq(eserviceInReadmodelCatalog.isConsumerDelegable, true)
+              : queryAfterEserviceFilters;
+
+          return queryAfterAgreementFilter
+            .leftJoin(
+              eserviceDescriptorInReadmodelCatalog,
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceDescriptorInReadmodelCatalog.eserviceId
               )
-              .with(false, () =>
-                or(
-                  isNull(eserviceInReadmodelCatalog.isConsumerDelegable),
-                  eq(eserviceInReadmodelCatalog.isConsumerDelegable, false)
-                )
+            )
+            .leftJoin(
+              eserviceDescriptorAttributeInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.id,
+                eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
               )
-              .with(undefined, () => undefined)
-              .exhaustive(),
-            // delegated filter
-            match(delegated)
-              .with(true, () =>
-                and(
-                  eq(
-                    delegationInReadmodelDelegation.kind,
-                    delegationKind.delegatedProducer
-                  ),
-                  inArray(delegationInReadmodelDelegation.state, [
-                    delegationState.active,
-                    delegationState.waitingForApproval,
-                  ])
-                )
+            )
+            .leftJoin(
+              delegationInReadmodelDelegation,
+              eq(
+                eserviceInReadmodelCatalog.id,
+                delegationInReadmodelDelegation.eserviceId
               )
-              .with(false, () =>
-                notExists(
-                  readmodelDB
-                    .select()
-                    .from(delegationInReadmodelDelegation)
-                    .where(
+            )
+            .where(
+              and(
+                // producerIds filter
+                producersIds.length > 0
+                  ? or(
+                      inArray(
+                        eserviceInReadmodelCatalog.producerId,
+                        producersIds
+                      ),
                       and(
+                        inArray(
+                          delegationInReadmodelDelegation.delegateId,
+                          producersIds
+                        ),
                         eq(
-                          delegationInReadmodelDelegation.eserviceId,
-                          eserviceInReadmodelCatalog.id
+                          delegationInReadmodelDelegation.state,
+                          delegationState.active
                         ),
                         eq(
                           delegationInReadmodelDelegation.kind,
                           delegationKind.delegatedProducer
-                        ),
-                        inArray(delegationInReadmodelDelegation.state, [
-                          delegationState.active,
-                          delegationState.waitingForApproval,
-                        ])
+                        )
                       )
                     )
+                  : undefined,
+                // descriptorState filter
+                states.length > 0
+                  ? inArray(eserviceDescriptorInReadmodelCatalog.state, states)
+                  : undefined,
+                // attributes filter
+                attributesIds.length > 0
+                  ? inArray(
+                      eserviceDescriptorAttributeInReadmodelCatalog.attributeId,
+                      attributesIds
+                    )
+                  : undefined,
+                // visibility filter
+                hasRoleToAccessInactiveDescriptors(authData)
+                  ? or(
+                      existsValidDescriptor(tx),
+                      // the requester is the producer
+                      eq(
+                        eserviceInReadmodelCatalog.producerId,
+                        authData.organizationId
+                      ),
+                      // the requester has producer delegation
+                      exists(
+                        tx
+                          .select()
+                          .from(delegationInReadmodelDelegation)
+                          .where(
+                            and(
+                              eq(
+                                delegationInReadmodelDelegation.eserviceId,
+                                eserviceInReadmodelCatalog.id
+                              ),
+                              eq(
+                                delegationInReadmodelDelegation.delegateId,
+                                authData.organizationId
+                              ),
+                              eq(
+                                delegationInReadmodelDelegation.state,
+                                delegationState.active
+                              ),
+                              eq(
+                                delegationInReadmodelDelegation.kind,
+                                delegationKind.delegatedProducer
+                              )
+                            )
+                          )
+                      )
+                    )
+                  : existsValidDescriptor(tx),
+                // delegated filter
+                match(delegated)
+                  .with(true, () =>
+                    and(
+                      eq(
+                        delegationInReadmodelDelegation.kind,
+                        delegationKind.delegatedProducer
+                      ),
+                      inArray(delegationInReadmodelDelegation.state, [
+                        delegationState.active,
+                        delegationState.waitingForApproval,
+                      ])
+                    )
+                  )
+                  .with(false, () =>
+                    notExists(
+                      tx
+                        .select()
+                        .from(delegationInReadmodelDelegation)
+                        .where(
+                          and(
+                            eq(
+                              delegationInReadmodelDelegation.eserviceId,
+                              eserviceInReadmodelCatalog.id
+                            ),
+                            eq(
+                              delegationInReadmodelDelegation.kind,
+                              delegationKind.delegatedProducer
+                            ),
+                            inArray(delegationInReadmodelDelegation.state, [
+                              delegationState.active,
+                              delegationState.waitingForApproval,
+                            ])
+                          )
+                        )
+                    )
+                  )
+                  .with(undefined, () => undefined)
+                  .exhaustive()
+              )
+            )
+            .$dynamic();
+        };
+
+        const idsSQLquery = buildQuery(idsQuery)
+          .groupBy(eserviceInReadmodelCatalog.id)
+          .orderBy(ascLower(eserviceInReadmodelCatalog.name))
+          .limit(limit)
+          .offset(offset);
+
+        const ids = (await idsSQLquery).map((result) => result.id);
+
+        const [queryResult, totalCount] = await Promise.all([
+          tx
+            .select({
+              eservice: eserviceInReadmodelCatalog,
+              descriptor: eserviceDescriptorInReadmodelCatalog,
+              interface: eserviceDescriptorInterfaceInReadmodelCatalog,
+              document: eserviceDescriptorDocumentInReadmodelCatalog,
+              attribute: eserviceDescriptorAttributeInReadmodelCatalog,
+              rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
+              riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
+              riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
+              templateVersionRef:
+                eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+            })
+            .from(eserviceInReadmodelCatalog)
+            .where(inArray(eserviceInReadmodelCatalog.id, ids))
+            .leftJoin(
+              eserviceDescriptorInReadmodelCatalog,
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceDescriptorInReadmodelCatalog.eserviceId
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorInterfaceInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.id,
+                eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorDocumentInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.id,
+                eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorAttributeInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.id,
+                eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorRejectionReasonInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.id,
+                eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.id,
+                eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+              )
+            )
+            .leftJoin(
+              eserviceRiskAnalysisInReadmodelCatalog,
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceRiskAnalysisInReadmodelCatalog.eserviceId
+              )
+            )
+            .leftJoin(
+              eserviceRiskAnalysisAnswerInReadmodelCatalog,
+              and(
+                eq(
+                  eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
+                  eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
+                ),
+                eq(
+                  eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
+                  eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
                 )
               )
-              .with(undefined, () => undefined)
-              .exhaustive(),
-            // template filter
-            templatesIds.length > 0
-              ? inArray(eserviceInReadmodelCatalog.templateId, templatesIds)
-              : undefined
-          )
-        )
-        .groupBy(eserviceInReadmodelCatalog.id)
-        .orderBy(ascLower(eserviceInReadmodelCatalog.name))
-        .limit(limit)
-        .offset(offset)
-        .as("subquery");
-
-      const queryResult = await readmodelDB
-        .select({
-          eservice: eserviceInReadmodelCatalog,
-          descriptor: eserviceDescriptorInReadmodelCatalog,
-          interface: eserviceDescriptorInterfaceInReadmodelCatalog,
-          document: eserviceDescriptorDocumentInReadmodelCatalog,
-          attribute: eserviceDescriptorAttributeInReadmodelCatalog,
-          rejection: eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          riskAnalysis: eserviceRiskAnalysisInReadmodelCatalog,
-          riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          templateVersionRef:
-            eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-          totalCount: subquery.totalCount,
-        })
-        .from(eserviceInReadmodelCatalog)
-        .innerJoin(subquery, eq(eserviceInReadmodelCatalog.id, subquery.id))
-        .leftJoin(
-          eserviceDescriptorInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceDescriptorInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorInterfaceInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorDocumentInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorDocumentInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorAttributeInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorAttributeInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorRejectionReasonInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
-          eq(
-            eserviceDescriptorInReadmodelCatalog.id,
-            eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
-          )
-        )
-        .leftJoin(
-          eserviceRiskAnalysisInReadmodelCatalog,
-          eq(
-            eserviceInReadmodelCatalog.id,
-            eserviceRiskAnalysisInReadmodelCatalog.eserviceId
-          )
-        )
-        .leftJoin(
-          eserviceRiskAnalysisAnswerInReadmodelCatalog,
-          and(
-            eq(
-              eserviceRiskAnalysisInReadmodelCatalog.riskAnalysisFormId,
-              eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId
-            ),
-            eq(
-              eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
-              eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
             )
-          )
-        )
-        .orderBy(ascLower(eserviceInReadmodelCatalog.name));
+            .orderBy(ascLower(eserviceInReadmodelCatalog.name)),
+          buildQuery(totalCountQuery),
+        ]);
 
-      const eservices = aggregateEserviceArray(
-        toEServiceAggregatorArray(queryResult)
-      );
+        const eservices = aggregateEserviceArray(
+          toEServiceAggregatorArray(queryResult)
+        );
 
-      return createListResult(
-        eservices.map((e) => e.data),
-        queryResult[0]?.totalCount
-      );
+        return createListResult(
+          eservices.map((e) => e.data),
+          totalCount[0]?.count
+        );
+      });
     },
     async isEServiceNameAvailableForProducer({
       name,
