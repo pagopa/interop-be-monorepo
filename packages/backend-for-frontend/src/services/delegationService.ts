@@ -500,6 +500,7 @@ export function delegationServiceBuilder(
                 kind: producer.kind,
                 contactMail: getLatestTenantContactEmail(producer),
               },
+              mode: eservice.mode,
             };
           })
         );

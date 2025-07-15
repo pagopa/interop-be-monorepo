@@ -14,6 +14,7 @@ import {
   DelegationState,
   EService,
   EServiceId,
+  EServiceMode,
   genericInternalError,
   ListResult,
   Tenant,
@@ -40,6 +41,7 @@ import {
   toDelegationAggregatorArray,
 } from "pagopa-interop-readmodel";
 import { and, eq, ilike, inArray } from "drizzle-orm";
+import { eserviceModeToApiEServiceMode } from "../model/domain/apiConverter.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
@@ -364,6 +366,7 @@ export function readModelServiceBuilderSQL({
             id: eserviceInReadmodelCatalog.id,
             name: eserviceInReadmodelCatalog.name,
             producerId: eserviceInReadmodelCatalog.producerId,
+            mode: eserviceInReadmodelCatalog.mode,
           })
         )
         .from(eserviceInReadmodelCatalog)
@@ -422,6 +425,7 @@ export function readModelServiceBuilderSQL({
         id: e.id,
         name: e.name,
         producerId: e.producerId,
+        mode: eserviceModeToApiEServiceMode(e.mode as EServiceMode),
       }));
 
       const result = z.array(delegationApi.CompactEService).safeParse(data);

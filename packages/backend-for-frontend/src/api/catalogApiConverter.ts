@@ -61,6 +61,7 @@ export function toBffCatalogApiEService(
       name: producerTenant.name,
     },
     isMine: isRequesterEqProducer,
+    mode: eservice.mode,
   };
 
   return {
@@ -361,6 +362,7 @@ export function toCompactEservice(
       name: producer.name,
       kind: producer.kind,
     },
+    mode: eservice.mode,
   };
 }
 
