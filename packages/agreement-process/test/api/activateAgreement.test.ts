@@ -121,11 +121,14 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
     }
   );
 
-  it.each([{ agreementId: "invalid" as AgreementId }])(
+  it.each([
+    { agreementId: "invalid" as AgreementId },
+    { agreementId: mockAgreement.id, delegationId: "invalid" as DelegationId },
+  ])(
     "Should return 400 if passed invalid data: %s",
-    async ({ agreementId }) => {
+    async ({ agreementId, delegationId }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, agreementId);
+      const res = await makeRequest(token, agreementId, delegationId);
       expect(res.status).toBe(400);
     }
   );

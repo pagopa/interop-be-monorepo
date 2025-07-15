@@ -121,9 +121,13 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
   );
 
   it.each([
-    { purposeId: "invalid" as PurposeId },
-    { versionId: "invalid" as PurposeVersionId },
-    { delegationId: "invalid" as DelegationId },
+    { purposeId: "invalid" as PurposeId, versionId: mockPurposeVersion.id },
+    { purposeId: mockPurpose.id, versionId: "invalid" as PurposeVersionId },
+    {
+      purposeId: mockPurpose.id,
+      versionId: mockPurposeVersion.id,
+      delegationId: "invalid" as DelegationId,
+    },
   ])(
     "Should return 400 if passed invalid data: %s",
     async ({ purposeId, versionId, delegationId }) => {
