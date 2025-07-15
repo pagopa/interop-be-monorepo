@@ -320,15 +320,18 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        await purposeService.deletePurposeVersion(
+        const { metadata } = await purposeService.deletePurposeVersion(
           {
             purposeId: unsafeBrandId(req.params.purposeId),
             versionId: unsafeBrandId(req.params.versionId),
           },
           ctx
         );
+
+        setMetadataVersionHeader(res, metadata);
+
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(

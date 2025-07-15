@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   ActiveDelegations,
   AppContext,
@@ -60,7 +59,6 @@ import {
   tenantIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
-  unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
   CompactEService,
@@ -717,26 +715,13 @@ export function agreementServiceBuilder(
       if (newDescriptor === undefined) {
         throw publishedDescriptorNotFound(eservice.id);
       }
-      const latestDescriptorVersion = z
-        .preprocess((x) => Number(x), z.number())
-        .safeParse(newDescriptor.version);
-      if (!latestDescriptorVersion.success) {
-        throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
-      }
 
       const currentDescriptor = retrieveDescriptor(
         agreementToBeUpgraded.data.descriptorId,
         eservice
       );
 
-      const currentVersion = z
-        .preprocess((x) => Number(x), z.number())
-        .safeParse(currentDescriptor.version);
-      if (!currentVersion.success) {
-        throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
-      }
-
-      if (latestDescriptorVersion.data <= currentVersion.data) {
+      if (newDescriptor.version <= currentDescriptor.version) {
         throw noNewerDescriptor(eservice.id, currentDescriptor.id);
       }
 
@@ -950,6 +935,30 @@ export function agreementServiceBuilder(
         metadata: { version: createdEvent.newVersion },
       };
     },
+    async getAgreementConsumerDocuments(
+      agreementId: AgreementId,
+      { offset, limit }: agreementApi.GetAgreementConsumerDocumentsQueryParams,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ListResult<AgreementDocument>> {
+      logger.info(`Retrieving consumer documents for agreement ${agreementId}`);
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      await assertRequesterCanRetrieveAgreement(
+        agreement.data,
+        authData,
+        readModelService
+      );
+
+      return readModelService.getAgreementConsumerDocuments(
+        agreementId,
+        offset,
+        limit
+      );
+    },
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
@@ -1071,8 +1080,12 @@ export function agreementServiceBuilder(
     async removeAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<string> {
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(
         `Removing consumer document ${documentId} from agreement ${agreementId}`
       );
@@ -1085,6 +1098,7 @@ export function agreementServiceBuilder(
         await readModelService.getActiveConsumerDelegationByAgreement(
           agreement.data
         );
+
       assertRequesterCanActAsConsumer(
         agreement.data.consumerId,
         agreement.data.eserviceId,
@@ -1106,7 +1120,7 @@ export function agreementServiceBuilder(
         ),
       };
 
-      await repository.createEvent(
+      const createdEvent = await repository.createEvent(
         toCreateEventAgreementConsumerDocumentRemoved(
           documentId,
           updatedAgreement,
@@ -1114,7 +1128,11 @@ export function agreementServiceBuilder(
           correlationId
         )
       );
-      return updatedAgreement.id;
+
+      return {
+        data: updatedAgreement,
+        metadata: { version: createdEvent.newVersion },
+      };
     },
     async rejectAgreement(
       agreementId: AgreementId,
