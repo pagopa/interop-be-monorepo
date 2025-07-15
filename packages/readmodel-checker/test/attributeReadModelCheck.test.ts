@@ -136,8 +136,7 @@ describe("Check attribute readmodels", () => {
   it("should detect differences if the items are different", async () => {
     const attribute1: WithMetadata<Attribute> = {
       data: {
-        ...getMockAttribute(),
-        kind: attributeKind.certified,
+        ...getMockAttribute(attributeKind.certified),
       },
       metadata: { version: 1 },
     };

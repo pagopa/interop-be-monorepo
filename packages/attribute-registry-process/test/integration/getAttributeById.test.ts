@@ -16,12 +16,8 @@ import {
 describe("getAttributeById", () => {
   it("should get the attribute if it exists", async () => {
     const attribute1: Attribute = {
-      ...getMockAttribute(),
-      id: generateId(),
-      name: "attribute 001 test",
-      kind: attributeKind.certified,
+      ...getMockAttribute(attributeKind.certified),
       origin: "IPA",
-      code: "12345A",
     };
     await addOneAttribute(attribute1);
     const attribute = await attributeRegistryService.getAttributeById(

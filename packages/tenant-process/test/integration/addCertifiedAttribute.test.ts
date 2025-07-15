@@ -59,9 +59,8 @@ describe("addCertifiedAttribute", async () => {
   };
 
   const attribute: Attribute = {
-    ...getMockAttribute(),
+    ...getMockAttribute(attributeKind.certified),
     id: unsafeBrandId(tenantAttributeSeed.id),
-    kind: attributeKind.certified,
     origin: getTenantOneCertifierFeature(requesterTenant).certifierId,
   };
 
