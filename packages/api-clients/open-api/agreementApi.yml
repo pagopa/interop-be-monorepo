@@ -158,6 +158,49 @@ paths:
           type: string
           format: uuid
         required: true
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - agreement
+      summary: Retrieve consumer Documents of an Agreement
+      description: Retrieve consumer Documents of an Agreement
+      operationId: getAgreementConsumerDocuments
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Documents retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Documents"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Resource Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -1423,6 +1466,20 @@ components:
           type: string
         path:
           type: string
+    Documents:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     Document:
       type: object
       additionalProperties: false
