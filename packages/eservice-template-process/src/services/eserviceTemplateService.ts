@@ -1145,9 +1145,6 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<EServiceTemplate> {
       logger.info(`Creating EService template with name ${seed.name}`);
 
-      /**
-       * TEMP: Remove this check when e-service template RECEIVE mode will be available
-       */
       if (seed.mode === eserviceTemplateApi.EServiceMode.Values.RECEIVE) {
         throw badRequestError(
           "EService template in RECEIVE mode is not supported"
