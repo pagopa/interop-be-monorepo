@@ -934,6 +934,30 @@ export function agreementServiceBuilder(
         metadata: { version: createdEvent.newVersion },
       };
     },
+    async getAgreementConsumerDocuments(
+      agreementId: AgreementId,
+      { offset, limit }: agreementApi.GetAgreementConsumerDocumentsQueryParams,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ListResult<AgreementDocument>> {
+      logger.info(`Retrieving consumer documents for agreement ${agreementId}`);
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      await assertRequesterCanRetrieveAgreement(
+        agreement.data,
+        authData,
+        readModelService
+      );
+
+      return readModelService.getAgreementConsumerDocuments(
+        agreementId,
+        offset,
+        limit
+      );
+    },
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
       documentId: AgreementDocumentId,
