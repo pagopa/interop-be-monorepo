@@ -10,13 +10,13 @@ export const SESEmailSenderConfig = z
     SENDER_MAIL: z.string().email(),
     SENDER_LABEL: z.string(),
     RETRY_DELAY_IN_MILLIS: z.coerce.number().int().gte(0),
-    MAX_ATTEMPTS: z.coerce.number().int().gte(0),
+    SUCCESS_DELAY_IN_MILLIS: z.coerce.number().int().gte(0),
   })
   .transform((c) => ({
     senderMail: c.SENDER_MAIL,
     senderLabel: c.SENDER_LABEL,
     retryDelayInMillis: c.RETRY_DELAY_IN_MILLIS,
-    maxAttempts: c.MAX_ATTEMPTS,
+    successDelayInMillis: c.SUCCESS_DELAY_IN_MILLIS,
   }));
 export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
