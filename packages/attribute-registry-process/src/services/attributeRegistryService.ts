@@ -7,6 +7,8 @@ import {
   M2MAuthData,
   InternalAuthData,
   M2MAdminAuthData,
+  isUiAuthData,
+  authRole,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -22,7 +24,7 @@ import {
   Tenant,
 } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
 import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import {
   tenantIsNotACertifier,
@@ -51,9 +53,9 @@ const retrieveOriginFromAuthData = async (
   readModelService: ReadModelService
 ): Promise<string> =>
   await match(authData)
-    .with({ systemRole: undefined }, ({ externalId }) => externalId.origin)
+    .with(P.when(isUiAuthData), ({ externalId }) => externalId.origin)
     .with(
-      { systemRole: "m2m-admin" },
+      { systemRole: authRole.M2M_ADMIN_ROLE },
       async ({ organizationId }) =>
         (
           await retrieveTenant(organizationId, readModelService)
@@ -210,7 +212,11 @@ export function attributeRegistryServiceBuilder(
 
     async createVerifiedAttribute(
       apiVerifiedAttributeSeed: attributeRegistryApi.AttributeSeed,
-      { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<Attribute> {
       logger.info(
         `Creating verified attribute with name ${apiVerifiedAttributeSeed.name}`

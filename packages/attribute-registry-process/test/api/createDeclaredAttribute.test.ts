@@ -40,7 +40,11 @@ describe("API /declaredAttributes authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(mockDeclaredAttributeSeed);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
