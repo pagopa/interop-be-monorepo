@@ -112,10 +112,8 @@ export function emailSenderProcessorBuilder(
       }
 
       let sent = false;
-      let attempts = 0;
-      while (!sent && attempts < config.maxAttempts) {
+      while (!sent) {
         try {
-          attempts++;
           await sesEmailManager.send(mailOptions, loggerInstance);
           sent = true;
           loggerInstance.info(
@@ -123,6 +121,9 @@ export function emailSenderProcessorBuilder(
           );
         } catch (err) {
           if (err instanceof TooManyRequestsException) {
+            loggerInstance.error(
+              `Email sending attempt failed for message in partition ${partition} with offset ${message.offset}. Reason: ${err}. Attempting retry in ${config.retryDelayInMillis}ms`
+            );
             await delay(config.retryDelayInMillis);
           } else {
             throw genericInternalError(
@@ -130,14 +131,6 @@ export function emailSenderProcessorBuilder(
             );
           }
         }
-      }
-
-      if (!sent) {
-        // Exceeded max number of attempts
-        // Log and skip message
-        loggerInstance.warn(
-          `Message in partition ${partition} with offset ${message.offset} was consumed, but no email was sent. Exceeded maximum number of attempts.`
-        );
       }
     },
   };
