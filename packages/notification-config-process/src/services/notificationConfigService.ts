@@ -199,7 +199,6 @@ export function notificationConfigServiceBuilder(
 
       const event = toCreateEventTenantNotificationConfigCreated(
         tenantNotificationConfig.id,
-        undefined,
         tenantNotificationConfig,
         correlationId
       );
@@ -238,7 +237,6 @@ export function notificationConfigServiceBuilder(
 
       const event = toCreateEventUserNotificationConfigCreated(
         userNotificationConfig.id,
-        undefined,
         userNotificationConfig,
         correlationId
       );

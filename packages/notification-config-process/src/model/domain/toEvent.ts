@@ -11,12 +11,11 @@ import {
 
 export const toCreateEventTenantNotificationConfigCreated = (
   streamId: string,
-  version: number | undefined,
   tenantNotificationConfig: TenantNotificationConfig,
   correlationId: CorrelationId
 ): CreateEvent<NotificationConfigEvent> => ({
   streamId,
-  version,
+  version: undefined,
   event: {
     type: "TenantNotificationConfigCreated",
     event_version: 2,
@@ -31,12 +30,11 @@ export const toCreateEventTenantNotificationConfigCreated = (
 
 export const toCreateEventUserNotificationConfigCreated = (
   streamId: string,
-  version: number | undefined,
   userNotificationConfig: UserNotificationConfig,
   correlationId: CorrelationId
 ): CreateEvent<NotificationConfigEvent> => ({
   streamId,
-  version,
+  version: undefined,
   event: {
     type: "UserNotificationConfigCreated",
     event_version: 2,
@@ -51,7 +49,7 @@ export const toCreateEventUserNotificationConfigCreated = (
 
 export const toCreateEventTenantNotificationConfigUpdated = (
   streamId: string,
-  version: number | undefined,
+  version: number,
   tenantNotificationConfig: TenantNotificationConfig,
   correlationId: CorrelationId
 ): CreateEvent<NotificationConfigEvent> => ({
@@ -71,7 +69,7 @@ export const toCreateEventTenantNotificationConfigUpdated = (
 
 export const toCreateEventUserNotificationConfigUpdated = (
   streamId: string,
-  version: number | undefined,
+  version: number,
   userNotificationConfig: UserNotificationConfig,
   correlationId: CorrelationId
 ): CreateEvent<NotificationConfigEvent> => ({
@@ -91,7 +89,7 @@ export const toCreateEventUserNotificationConfigUpdated = (
 
 export const toCreateEventTenantNotificationConfigDeleted = (
   streamId: string,
-  version: number | undefined,
+  version: number,
   tenantNotificationConfig: TenantNotificationConfig,
   correlationId: CorrelationId
 ): CreateEvent<NotificationConfigEvent> => ({
@@ -111,7 +109,7 @@ export const toCreateEventTenantNotificationConfigDeleted = (
 
 export const toCreateEventUserNotificationConfigDeleted = (
   streamId: string,
-  version: number | undefined,
+  version: number,
   userNotificationConfig: UserNotificationConfig,
   correlationId: CorrelationId
 ): CreateEvent<NotificationConfigEvent> => ({

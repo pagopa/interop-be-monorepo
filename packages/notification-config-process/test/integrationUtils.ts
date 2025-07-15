@@ -52,7 +52,7 @@ const writeTenantNotificationConfigInEventstore = async (
   tenantNotificationConfig: TenantNotificationConfig
 ): Promise<void> => {
   const event: NotificationConfigEvent = {
-    type: "TenantNotificationConfigUpdated",
+    type: "TenantNotificationConfigCreated",
     event_version: 2,
     data: {
       tenantNotificationConfig: toTenantNotificationConfigV2(
@@ -84,7 +84,7 @@ const writeUserNotificationConfigInEventstore = async (
   userNotificationConfig: UserNotificationConfig
 ): Promise<void> => {
   const event: NotificationConfigEvent = {
-    type: "UserNotificationConfigUpdated",
+    type: "UserNotificationConfigCreated",
     event_version: 2,
     data: {
       userNotificationConfig: toUserNotificationConfigV2(
