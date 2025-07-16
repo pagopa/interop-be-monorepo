@@ -17,6 +17,7 @@ import {
   missingMetadata,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
+import { toM2mGatewayApiPurposeVersion } from "../../../src/api/purposeApiConverter.js";
 
 describe("POST /purposes/:purposeId/versions router test", () => {
   const mockPurposeVersion = getMockedApiPurposeVersion();
@@ -44,7 +45,7 @@ describe("POST /purposes/:purposeId/versions router test", () => {
     async (role) => {
       mockPurposeService.createPurposeVersion = vi
         .fn()
-        .mockResolvedValue(mockPurposeVersion);
+        .mockResolvedValue(toM2mGatewayApiPurposeVersion(mockPurposeVersion));
 
       const token = generateToken(role);
       const res = await makeRequest(

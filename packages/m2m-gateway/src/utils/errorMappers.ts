@@ -27,9 +27,7 @@ export const unsuspendAgreementErrorMapper = (
     .with("agreementNotInSuspendedState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getCertifiedAttributeErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
+export const getAttributeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -105,3 +103,29 @@ export const unsuspendPurposeErrorMapper = (
   match(error.code)
     .with("missingPurposeVersionWithState", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const downloadPurposeVersionDocumentErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "purposeVersionNotFound",
+      "purposeVersionDocumentNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeAgreementNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export function downloadAgreementConsumerContractErrorMapper(
+  error: ApiError<ErrorCodes>
+): number {
+  return match(error.code)
+    .with("agreementContractNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+}

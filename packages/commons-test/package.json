@@ -30,7 +30,7 @@
     "@types/adm-zip": "0.5.7",
     "@types/jsonwebtoken": "9.0.10",
     "@types/pg": "8.11.11",
-    "@types/node": "20.19.3",
+    "@types/node": "20.19.4",
     "@zodios/core": "10.9.6",
     "adm-zip": "0.5.16",
     "aws-sdk-client-mock": "4.0.1",

@@ -338,8 +338,12 @@ export function purposeServiceBuilder(
         purposeId: PurposeId;
         versionId: PurposeVersionId;
       },
-      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<void> {
+      {
+        correlationId,
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Deleting Version ${versionId} in Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -364,13 +368,19 @@ export function purposeServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const event = toCreateEventWaitingForApprovalPurposeVersionDeleted({
-        purpose: updatedPurpose,
-        version: purpose.metadata.version,
-        versionId,
-        correlationId,
-      });
-      await repository.createEvent(event);
+      const event = await repository.createEvent(
+        toCreateEventWaitingForApprovalPurposeVersionDeleted({
+          purpose: updatedPurpose,
+          version: purpose.metadata.version,
+          versionId,
+          correlationId,
+        })
+      );
+
+      return {
+        data: updatedPurpose,
+        metadata: { version: event.newVersion },
+      };
     },
     async rejectPurposeVersion(
       {
@@ -464,7 +474,11 @@ export function purposeServiceBuilder(
     },
     async deletePurpose(
       purposeId: PurposeId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<void> {
       logger.info(`Deleting Purpose ${purposeId}`);
 

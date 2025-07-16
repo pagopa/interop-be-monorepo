@@ -7,10 +7,16 @@ type PurposeApi = typeof m2mGatewayApi.purposesApi.api;
 type TenantApi = typeof m2mGatewayApi.tenantsApi.api;
 type DelegationApi = typeof m2mGatewayApi.delegationsApi.api;
 type EServiceTemplateApi = typeof m2mGatewayApi.eserviceTemplatesApi.api;
+type ClientApi = typeof m2mGatewayApi.clientsApi.api;
 
 export type GetAgreementsQueryParams = QueryParametersByAlias<
   AgreementApi,
   "getAgreements"
+>;
+
+export type GetAgreementConsumerDocumentsQueryParams = QueryParametersByAlias<
+  AgreementApi,
+  "getAgreementConsumerDocuments"
 >;
 
 export type GetAgreementPurposesQueryParams = QueryParametersByAlias<
@@ -43,9 +49,19 @@ export type GetTenantsQueryParams = QueryParametersByAlias<
   "getTenants"
 >;
 
-export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
+export type GetTenantCertifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getCertifiedAttributes"
+>;
+
+export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
+  TenantApi,
+  "getVerifiedAttributes"
+>;
+
+export type GetTenantDeclaredAttributesQueryParams = QueryParametersByAlias<
+  TenantApi,
+  "getDeclaredAttributes"
 >;
 
 export type GetConsumerDelegationsQueryParams = QueryParametersByAlias<
@@ -61,6 +77,21 @@ export type GetProducerDelegationsQueryParams = QueryParametersByAlias<
 export type GetEServiceTemplateVersionsQueryParams = QueryParametersByAlias<
   EServiceTemplateApi,
   "getEServiceTemplateVersions"
+>;
+
+export type GetClientsQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClients"
+>;
+
+export type GetClientPurposesQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClientPurposes"
+>;
+
+export type GetClientKeysQueryParams = QueryParametersByAlias<
+  ClientApi,
+  "getClientKeys"
 >;
 
 export * from "./generated/m2mGatewayApi.js";
