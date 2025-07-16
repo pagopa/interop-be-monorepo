@@ -83,7 +83,7 @@ const agreementRouter = (
           error,
           emptyErrorMapper,
           ctx,
-          `Error deleting purpose with id ${req.params.agreementId}`
+          `Error deleting agreement with id ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
