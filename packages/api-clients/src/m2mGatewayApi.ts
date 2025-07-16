@@ -14,6 +14,11 @@ export type GetAgreementsQueryParams = QueryParametersByAlias<
   "getAgreements"
 >;
 
+export type GetAgreementConsumerDocumentsQueryParams = QueryParametersByAlias<
+  AgreementApi,
+  "getAgreementConsumerDocuments"
+>;
+
 export type GetAgreementPurposesQueryParams = QueryParametersByAlias<
   AgreementApi,
   "getAgreementPurposes"
@@ -44,9 +49,19 @@ export type GetTenantsQueryParams = QueryParametersByAlias<
   "getTenants"
 >;
 
-export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
+export type GetTenantCertifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getCertifiedAttributes"
+>;
+
+export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
+  TenantApi,
+  "getVerifiedAttributes"
+>;
+
+export type GetTenantDeclaredAttributesQueryParams = QueryParametersByAlias<
+  TenantApi,
+  "getDeclaredAttributes"
 >;
 
 export type GetConsumerDelegationsQueryParams = QueryParametersByAlias<
