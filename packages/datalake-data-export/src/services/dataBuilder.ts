@@ -60,7 +60,7 @@ export const buildDataToExport = (
     delegations.length,
   ],
   [
-    "eserviceTemplates",
+    "eservice-templates",
     generateNdjsonFiles(eserviceTemplates, exportTimestamp),
     eserviceTemplates.length,
   ],
