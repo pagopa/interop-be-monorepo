@@ -13,6 +13,7 @@ import {
   randomArrayItem,
   sortAgreementV2,
   getMockDescriptorPublished,
+  sortAgreement,
 } from "pagopa-interop-commons-test";
 import {
   Agreement,
@@ -569,7 +570,7 @@ describe("agreement consumer document", () => {
         consumerDocument.name
       );
 
-      const returnedAgreementId =
+      const removeAgreementConsumerDocumentResponse =
         await agreementService.removeAgreementConsumerDocument(
           agreement1.id,
           consumerDocument.id,
@@ -597,7 +598,12 @@ describe("agreement consumer document", () => {
         agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
-      expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
+      expect(sortAgreement(removeAgreementConsumerDocumentResponse)).toEqual({
+        data: sortAgreement(expectedAgreement),
+        metadata: {
+          version: 1,
+        },
+      });
     });
 
     it("should succeed on happy path when the requester is the consumer delegate", async () => {
@@ -623,7 +629,7 @@ describe("agreement consumer document", () => {
         consumerDocument.name
       );
 
-      const returnedAgreementId =
+      const removeAgreementConsumerDocumentResponse =
         await agreementService.removeAgreementConsumerDocument(
           agreement1.id,
           consumerDocument.id,
@@ -650,7 +656,12 @@ describe("agreement consumer document", () => {
         agreement: sortAgreementV2(toAgreementV2(expectedAgreement)),
         documentId: consumerDocument.id,
       });
-      expect(actualConsumerDocument.agreement?.id).toEqual(returnedAgreementId);
+      expect(sortAgreement(removeAgreementConsumerDocumentResponse)).toEqual({
+        data: sortAgreement(expectedAgreement),
+        metadata: {
+          version: 1,
+        },
+      });
     });
 
     it("should throw tenantIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {

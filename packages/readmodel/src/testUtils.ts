@@ -1,18 +1,20 @@
-import { and, eq } from "drizzle-orm";
 import {
   Agreement,
   Attribute,
   ClientJWKKey,
   EService,
+  TenantNotificationConfig,
+  UserNotificationConfig,
 } from "pagopa-interop-models";
 import {
-  agreementInReadmodelAgreement,
-  agreementStampInReadmodelAgreement,
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
-  DrizzleReturnType,
+  agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
+  clientJwkKeyInReadmodelClientJwkKey,
+  DrizzleReturnType,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -22,15 +24,50 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
-  clientJwkKeyInReadmodelClientJwkKey,
+  tenantNotificationConfigInReadmodelNotificationConfig,
+  userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
+import { and, eq } from "drizzle-orm";
+import {
+  splitTenantNotificationConfigIntoObjectsSQL,
+  splitUserNotificationConfigIntoObjectsSQL,
+} from "./notification-config/splitters.js";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import { splitClientJWKKeyIntoObjectsSQL } from "./authorization/clientJWKKeySplitters.js";
 
-// TODO: simplify the functions for tests. Maybe rename to insertX to keep it aligned with the notifications functions
+export const insertTenantNotificationConfig = async (
+  readModelDB: DrizzleReturnType,
+  tenantNotificationConfig: TenantNotificationConfig,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB
+    .insert(tenantNotificationConfigInReadmodelNotificationConfig)
+    .values(
+      splitTenantNotificationConfigIntoObjectsSQL(
+        tenantNotificationConfig,
+        metadataVersion
+      )
+    );
+};
+
+export const insertUserNotificationConfig = async (
+  readModelDB: DrizzleReturnType,
+  userNotificationConfig: UserNotificationConfig,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB
+    .insert(userNotificationConfigInReadmodelNotificationConfig)
+    .values(
+      splitUserNotificationConfigIntoObjectsSQL(
+        userNotificationConfig,
+        metadataVersion
+      )
+    );
+};
+
 export const upsertAgreement = async (
   readModelDB: DrizzleReturnType,
   agreement: Agreement,
