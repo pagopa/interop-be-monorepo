@@ -6,7 +6,7 @@ import { compare } from "../src/utils.js";
 import {
   addOnePurpose,
   purposeReadModelServiceSQL,
-  readModelService,
+  readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
 
@@ -19,12 +19,12 @@ describe("Check purpose readmodels", () => {
       metadata: { version: 1 },
     });
 
-    const collectionPurposes = await readModelService.getAllReadModelPurposes();
+    const purposes = await readModelServiceKPI.getAllPurposes();
 
     const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
-      collectionItems: collectionPurposes,
+      kpiItems: purposes,
       postgresItems: postgresPurposes,
       schema: "purpose",
       loggerInstance: genericLogger,
@@ -46,12 +46,12 @@ describe("Check purpose readmodels", () => {
       purpose.metadata.version
     );
 
-    const collectionPurposes = await readModelService.getAllReadModelPurposes();
+    const purposes = await readModelServiceKPI.getAllPurposes();
 
     const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
-      collectionItems: collectionPurposes,
+      kpiItems: purposes,
       postgresItems: postgresPurposes,
       schema: "purpose",
       loggerInstance: genericLogger,
@@ -79,12 +79,12 @@ describe("Check purpose readmodels", () => {
       purpose2.metadata.version
     );
 
-    const collectionPurposes = await readModelService.getAllReadModelPurposes();
+    const purposes = await readModelServiceKPI.getAllPurposes();
 
     const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
-      collectionItems: collectionPurposes,
+      kpiItems: purposes,
       postgresItems: postgresPurposes,
       schema: "purpose",
       loggerInstance: genericLogger,
@@ -115,12 +115,12 @@ describe("Check purpose readmodels", () => {
       purpose2.metadata.version
     );
 
-    const collectionPurposes = await readModelService.getAllReadModelPurposes();
+    const purposes = await readModelServiceKPI.getAllPurposes();
 
     const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
-      collectionItems: collectionPurposes,
+      kpiItems: purposes,
       postgresItems: postgresPurposes,
       schema: "purpose",
       loggerInstance: genericLogger,
@@ -152,12 +152,12 @@ describe("Check purpose readmodels", () => {
       purpose1InPostgresDb.metadata.version
     );
 
-    const collectionPurposes = await readModelService.getAllReadModelPurposes();
+    const purposes = await readModelServiceKPI.getAllPurposes();
 
     const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
-      collectionItems: collectionPurposes,
+      kpiItems: purposes,
       postgresItems: postgresPurposes,
       schema: "purpose",
       loggerInstance: genericLogger,
@@ -186,12 +186,12 @@ describe("Check purpose readmodels", () => {
       purpose1InPostgresDb.metadata.version
     );
 
-    const collectionPurposes = await readModelService.getAllReadModelPurposes();
+    const purposes = await readModelServiceKPI.getAllPurposes();
 
     const postgresPurposes = await readModelServiceSQL.getAllPurposes();
 
     const res = compare({
-      collectionItems: collectionPurposes,
+      kpiItems: purposes,
       postgresItems: postgresPurposes,
       schema: "purpose",
       loggerInstance: genericLogger,

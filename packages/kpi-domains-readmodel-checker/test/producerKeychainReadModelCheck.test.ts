@@ -10,7 +10,7 @@ import { compare } from "../src/utils.js";
 import {
   addOneProducerKeychain,
   producerKeychainReadModelServiceSQL,
-  readModelService,
+  readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
 
@@ -23,14 +23,14 @@ describe("Check producerKeychain readmodels", () => {
       metadata: { version: 1 },
     });
 
-    const collectionProducerKeychains =
-      await readModelService.getAllReadModelProducerKeychains();
+    const producerKeychains =
+      await readModelServiceKPI.getAllProducerKeychains();
 
     const postgresProducerKeychains =
       await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
-      collectionItems: collectionProducerKeychains,
+      kpiItems: producerKeychains,
       postgresItems: postgresProducerKeychains,
       schema: "producerKeychain",
       loggerInstance: genericLogger,
@@ -52,14 +52,14 @@ describe("Check producerKeychain readmodels", () => {
       producerKeychain.metadata.version
     );
 
-    const collectionProducerKeychains =
-      await readModelService.getAllReadModelProducerKeychains();
+    const producerKeychains =
+      await readModelServiceKPI.getAllProducerKeychains();
 
     const postgresProducerKeychains =
       await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
-      collectionItems: collectionProducerKeychains,
+      kpiItems: producerKeychains,
       postgresItems: postgresProducerKeychains,
       schema: "producerKeychain",
       loggerInstance: genericLogger,
@@ -87,14 +87,14 @@ describe("Check producerKeychain readmodels", () => {
       producerKeychain2.metadata.version
     );
 
-    const collectionProducerKeychains =
-      await readModelService.getAllReadModelProducerKeychains();
+    const producerKeychains =
+      await readModelServiceKPI.getAllProducerKeychains();
 
     const postgresProducerKeychains =
       await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
-      collectionItems: collectionProducerKeychains,
+      kpiItems: producerKeychains,
       postgresItems: postgresProducerKeychains,
       schema: "producerKeychain",
       loggerInstance: genericLogger,
@@ -125,14 +125,14 @@ describe("Check producerKeychain readmodels", () => {
       producerKeychain2.metadata.version
     );
 
-    const collectionProducerKeychains =
-      await readModelService.getAllReadModelProducerKeychains();
+    const producerKeychains =
+      await readModelServiceKPI.getAllProducerKeychains();
 
     const postgresProducerKeychains =
       await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
-      collectionItems: collectionProducerKeychains,
+      kpiItems: producerKeychains,
       postgresItems: postgresProducerKeychains,
       schema: "producerKeychain",
       loggerInstance: genericLogger,
@@ -164,14 +164,14 @@ describe("Check producerKeychain readmodels", () => {
       producerKeychain1InPostgresDb.metadata.version
     );
 
-    const collectionProducerKeychains =
-      await readModelService.getAllReadModelProducerKeychains();
+    const producerKeychains =
+      await readModelServiceKPI.getAllProducerKeychains();
 
     const postgresProducerKeychains =
       await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
-      collectionItems: collectionProducerKeychains,
+      kpiItems: producerKeychains,
       postgresItems: postgresProducerKeychains,
       schema: "producerKeychain",
       loggerInstance: genericLogger,
@@ -200,14 +200,14 @@ describe("Check producerKeychain readmodels", () => {
       producerKeychain1InPostgresDb.metadata.version
     );
 
-    const collectionProducerKeychains =
-      await readModelService.getAllReadModelProducerKeychains();
+    const producerKeychains =
+      await readModelServiceKPI.getAllProducerKeychains();
 
     const postgresProducerKeychains =
       await readModelServiceSQL.getAllProducerKeychains();
 
     const res = compare({
-      collectionItems: collectionProducerKeychains,
+      kpiItems: producerKeychains,
       postgresItems: postgresProducerKeychains,
       schema: "producerKeychain",
       loggerInstance: genericLogger,

@@ -6,7 +6,7 @@ import { compare } from "../src/utils.js";
 import {
   addOneClient,
   clientReadModelServiceSQL,
-  readModelService,
+  readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
 
@@ -19,12 +19,12 @@ describe("Check client readmodels", () => {
       metadata: { version: 1 },
     });
 
-    const collectionClients = await readModelService.getAllReadModelClients();
+    const clients = await readModelServiceKPI.getAllClients();
 
     const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
-      collectionItems: collectionClients,
+      kpiItems: clients,
       postgresItems: postgresClients,
       schema: "client",
       loggerInstance: genericLogger,
@@ -46,12 +46,12 @@ describe("Check client readmodels", () => {
       client.metadata.version
     );
 
-    const collectionClients = await readModelService.getAllReadModelClients();
+    const clients = await readModelServiceKPI.getAllClients();
 
     const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
-      collectionItems: collectionClients,
+      kpiItems: clients,
       postgresItems: postgresClients,
       schema: "client",
       loggerInstance: genericLogger,
@@ -79,12 +79,12 @@ describe("Check client readmodels", () => {
       client2.metadata.version
     );
 
-    const collectionClients = await readModelService.getAllReadModelClients();
+    const clients = await readModelServiceKPI.getAllClients();
 
     const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
-      collectionItems: collectionClients,
+      kpiItems: clients,
       postgresItems: postgresClients,
       schema: "client",
       loggerInstance: genericLogger,
@@ -115,12 +115,12 @@ describe("Check client readmodels", () => {
       client2.metadata.version
     );
 
-    const collectionClients = await readModelService.getAllReadModelClients();
+    const clients = await readModelServiceKPI.getAllClients();
 
     const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
-      collectionItems: collectionClients,
+      kpiItems: clients,
       postgresItems: postgresClients,
       schema: "client",
       loggerInstance: genericLogger,
@@ -153,12 +153,12 @@ describe("Check client readmodels", () => {
       client1InPostgresDb.metadata.version
     );
 
-    const collectionClients = await readModelService.getAllReadModelClients();
+    const clients = await readModelServiceKPI.getAllClients();
 
     const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
-      collectionItems: collectionClients,
+      kpiItems: clients,
       postgresItems: postgresClients,
       schema: "client",
       loggerInstance: genericLogger,
@@ -187,12 +187,12 @@ describe("Check client readmodels", () => {
       client1InPostgresDb.metadata.version
     );
 
-    const collectionClients = await readModelService.getAllReadModelClients();
+    const clients = await readModelServiceKPI.getAllClients();
 
     const postgresClients = await readModelServiceSQL.getAllClients();
 
     const res = compare({
-      collectionItems: collectionClients,
+      kpiItems: clients,
       postgresItems: postgresClients,
       schema: "client",
       loggerInstance: genericLogger,

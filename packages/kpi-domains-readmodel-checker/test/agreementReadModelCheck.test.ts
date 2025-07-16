@@ -6,7 +6,7 @@ import { compare } from "../src/utils.js";
 import {
   addOneAgreement,
   agreementReadModelServiceSQL,
-  readModelService,
+  readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
 
@@ -19,13 +19,12 @@ describe("Check agreement readmodels", () => {
       metadata: { version: 1 },
     });
 
-    const collectionAgreements =
-      await readModelService.getAllReadModelAgreements();
+    const agreements = await readModelServiceKPI.getAllAgreements();
 
     const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
-      collectionItems: collectionAgreements,
+      kpiItems: agreements,
       postgresItems: postgresAgreements,
       schema: "agreement",
       loggerInstance: genericLogger,
@@ -47,13 +46,12 @@ describe("Check agreement readmodels", () => {
       agreement.metadata.version
     );
 
-    const collectionAgreements =
-      await readModelService.getAllReadModelAgreements();
+    const agreements = await readModelServiceKPI.getAllAgreements();
 
     const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
-      collectionItems: collectionAgreements,
+      kpiItems: agreements,
       postgresItems: postgresAgreements,
       schema: "agreement",
       loggerInstance: genericLogger,
@@ -81,13 +79,12 @@ describe("Check agreement readmodels", () => {
       agreement2.metadata.version
     );
 
-    const collectionAgreements =
-      await readModelService.getAllReadModelAgreements();
+    const agreements = await readModelServiceKPI.getAllAgreements();
 
     const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
-      collectionItems: collectionAgreements,
+      kpiItems: agreements,
       postgresItems: postgresAgreements,
       schema: "agreement",
       loggerInstance: genericLogger,
@@ -118,13 +115,12 @@ describe("Check agreement readmodels", () => {
       agreement2.metadata.version
     );
 
-    const collectionAgreements =
-      await readModelService.getAllReadModelAgreements();
+    const agreements = await readModelServiceKPI.getAllAgreements();
 
     const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
-      collectionItems: collectionAgreements,
+      kpiItems: agreements,
       postgresItems: postgresAgreements,
       schema: "agreement",
       loggerInstance: genericLogger,
@@ -154,13 +150,12 @@ describe("Check agreement readmodels", () => {
       agreement1InPostgresDb.metadata.version
     );
 
-    const collectionAgreements =
-      await readModelService.getAllReadModelAgreements();
+    const agreements = await readModelServiceKPI.getAllAgreements();
 
     const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
-      collectionItems: collectionAgreements,
+      kpiItems: agreements,
       postgresItems: postgresAgreements,
       schema: "agreement",
       loggerInstance: genericLogger,
@@ -189,13 +184,12 @@ describe("Check agreement readmodels", () => {
       agreement1InPostgresDb.metadata.version
     );
 
-    const collectionAgreements =
-      await readModelService.getAllReadModelAgreements();
+    const agreements = await readModelServiceKPI.getAllAgreements();
 
     const postgresAgreements = await readModelServiceSQL.getAllAgreements();
 
     const res = compare({
-      collectionItems: collectionAgreements,
+      kpiItems: agreements,
       postgresItems: postgresAgreements,
       schema: "agreement",
       loggerInstance: genericLogger,

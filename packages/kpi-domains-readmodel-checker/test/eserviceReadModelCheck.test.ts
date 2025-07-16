@@ -10,7 +10,7 @@ import { compare } from "../src/utils.js";
 import {
   addOneEService,
   eserviceReadModelServiceSQL,
-  readModelService,
+  readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
 
@@ -23,13 +23,12 @@ describe("Check catalog readmodels", () => {
       metadata: { version: 1 },
     });
 
-    const collectionEServices =
-      await readModelService.getAllReadModelEServices();
+    const eServices = await readModelServiceKPI.getAllEServices();
 
     const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
-      collectionItems: collectionEServices,
+      kpiItems: eServices,
       postgresItems: postgresEServices,
       schema: "eservice",
       loggerInstance: genericLogger,
@@ -60,13 +59,12 @@ describe("Check catalog readmodels", () => {
       eservice.metadata.version
     );
 
-    const collectionEServices =
-      await readModelService.getAllReadModelEServices();
+    const eServices = await readModelServiceKPI.getAllEServices();
 
     const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
-      collectionItems: collectionEServices,
+      kpiItems: eServices,
       postgresItems: postgresEServices,
       schema: "eservice",
       loggerInstance: genericLogger,
@@ -103,13 +101,12 @@ describe("Check catalog readmodels", () => {
       eservice2.metadata.version
     );
 
-    const collectionEServices =
-      await readModelService.getAllReadModelEServices();
+    const eServices = await readModelServiceKPI.getAllEServices();
 
     const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
-      collectionItems: collectionEServices,
+      kpiItems: eServices,
       postgresItems: postgresEServices,
       schema: "eservice",
       loggerInstance: genericLogger,
@@ -149,13 +146,12 @@ describe("Check catalog readmodels", () => {
       eservice2.metadata.version
     );
 
-    const collectionEServices =
-      await readModelService.getAllReadModelEServices();
+    const eServices = await readModelServiceKPI.getAllEServices();
 
     const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
-      collectionItems: collectionEServices,
+      kpiItems: eServices,
       postgresItems: postgresEServices,
       schema: "eservice",
       loggerInstance: genericLogger,
@@ -194,13 +190,12 @@ describe("Check catalog readmodels", () => {
       eservice1InPostgresDb.metadata.version
     );
 
-    const collectionEServices =
-      await readModelService.getAllReadModelEServices();
+    const eServices = await readModelServiceKPI.getAllEServices();
 
     const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
-      collectionItems: collectionEServices,
+      kpiItems: eServices,
       postgresItems: postgresEServices,
       schema: "eservice",
       loggerInstance: genericLogger,
@@ -238,13 +233,12 @@ describe("Check catalog readmodels", () => {
       eservice1InPostgresDb.metadata.version
     );
 
-    const collectionEServices =
-      await readModelService.getAllReadModelEServices();
+    const eServices = await readModelServiceKPI.getAllEServices();
 
     const postgresEServices = await readModelServiceSQL.getAllEServices();
 
     const res = compare({
-      collectionItems: collectionEServices,
+      kpiItems: eServices,
       postgresItems: postgresEServices,
       schema: "eservice",
       loggerInstance: genericLogger,

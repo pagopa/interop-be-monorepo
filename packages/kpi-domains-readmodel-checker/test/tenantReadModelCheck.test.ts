@@ -6,7 +6,7 @@ import { compare } from "../src/utils.js";
 import {
   addOneTenant,
   tenantReadModelServiceSQL,
-  readModelService,
+  readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
 
@@ -19,12 +19,12 @@ describe("Check tenant readmodels", () => {
       metadata: { version: 1 },
     });
 
-    const collectionTenants = await readModelService.getAllReadModelTenants();
+    const tenants = await readModelServiceKPI.getAllTenants();
 
     const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
-      collectionItems: collectionTenants,
+      kpiItems: tenants,
       postgresItems: postgresTenants,
       schema: "tenant",
       loggerInstance: genericLogger,
@@ -46,12 +46,12 @@ describe("Check tenant readmodels", () => {
       tenant.metadata.version
     );
 
-    const collectionTenants = await readModelService.getAllReadModelTenants();
+    const tenants = await readModelServiceKPI.getAllTenants();
 
     const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
-      collectionItems: collectionTenants,
+      kpiItems: tenants,
       postgresItems: postgresTenants,
       schema: "tenant",
       loggerInstance: genericLogger,
@@ -79,12 +79,12 @@ describe("Check tenant readmodels", () => {
       tenant2.metadata.version
     );
 
-    const collectionTenants = await readModelService.getAllReadModelTenants();
+    const tenants = await readModelServiceKPI.getAllTenants();
 
     const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
-      collectionItems: collectionTenants,
+      kpiItems: tenants,
       postgresItems: postgresTenants,
       schema: "tenant",
       loggerInstance: genericLogger,
@@ -115,12 +115,12 @@ describe("Check tenant readmodels", () => {
       tenant2.metadata.version
     );
 
-    const collectionTenants = await readModelService.getAllReadModelTenants();
+    const tenants = await readModelServiceKPI.getAllTenants();
 
     const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
-      collectionItems: collectionTenants,
+      kpiItems: tenants,
       postgresItems: postgresTenants,
       schema: "tenant",
       loggerInstance: genericLogger,
@@ -153,12 +153,12 @@ describe("Check tenant readmodels", () => {
       tenant1InPostgresDb.metadata.version
     );
 
-    const collectionTenants = await readModelService.getAllReadModelTenants();
+    const tenants = await readModelServiceKPI.getAllTenants();
 
     const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
-      collectionItems: collectionTenants,
+      kpiItems: tenants,
       postgresItems: postgresTenants,
       schema: "tenant",
       loggerInstance: genericLogger,
@@ -187,12 +187,12 @@ describe("Check tenant readmodels", () => {
       tenant1InPostgresDb.metadata.version
     );
 
-    const collectionTenants = await readModelService.getAllReadModelTenants();
+    const tenants = await readModelServiceKPI.getAllTenants();
 
     const postgresTenants = await readModelServiceSQL.getAllTenants();
 
     const res = compare({
-      collectionItems: collectionTenants,
+      kpiItems: tenants,
       postgresItems: postgresTenants,
       schema: "tenant",
       loggerInstance: genericLogger,

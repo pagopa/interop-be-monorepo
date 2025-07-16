@@ -1,26 +1,14 @@
-import {
-  setupTestContainersVitest,
-  writeInReadmodel,
-} from "pagopa-interop-commons-test";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   Agreement,
   Attribute,
   Client,
-  ClientJWKKey,
   Delegation,
   EService,
   EServiceTemplate,
-  ProducerJWKKey,
   ProducerKeychain,
   Purpose,
   Tenant,
-  toReadModelAgreement,
-  toReadModelAttribute,
-  toReadModelClient,
-  toReadModelEService,
-  toReadModelProducerKeychain,
-  toReadModelPurpose,
-  toReadModelTenant,
   WithMetadata,
 } from "pagopa-interop-models";
 import { afterEach, inject } from "vitest";
@@ -36,16 +24,18 @@ import {
   tenantReadModelServiceBuilder,
   producerJWKKeyReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
+  splitAgreementIntoObjectsSQL,
+  splitAttributeIntoObjectsSQL,
+  splitClientIntoObjectsSQL,
+  splitDelegationIntoObjectsSQL,
   splitEserviceIntoObjectsSQL,
   splitEServiceTemplateIntoObjectsSQL,
-  splitAttributeIntoObjectsSQL,
-  splitTenantIntoObjectsSQL,
-  splitPurposeIntoObjectsSQL,
-  splitDelegationIntoObjectsSQL,
-  splitAgreementIntoObjectsSQL,
-  splitClientIntoObjectsSQL,
   splitProducerKeychainIntoObjectsSQL,
+  splitPurposeIntoObjectsSQL,
+  splitTenantIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
+import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
+import { z } from "zod";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import {
   DBContext,
@@ -56,29 +46,26 @@ import {
   DomainDbTableReadModels,
   DomainDbTableSchemas,
 } from "../src/model/db/index.js";
-import { z } from "zod";
-import { CatalogDbTable } from "../src/model/db/catalog.js";
-import { EserviceItemsSchema } from "../src/model/catalog/eservice.js";
-import { ColumnSet, IColumnDescriptor, IMain } from "pg-promise";
-import { EserviceTemplateDbTable } from "../src/model/db/eserviceTemplate.js";
-import { EserviceTemplateItemsSchema } from "../src/model/eserviceTemplate/eserviceTemplate.js";
-import { AttributeDbTable } from "../src/model/db/attribute.js";
-import { AttributeSchema } from "../src/model/attribute/attribute.js";
-import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
-import { TenantDbTable } from "../src/model/db/tenant.js";
-import { PurposeDbTable } from "../src/model/db/purpose.js";
-import { PurposeItemsSchema } from "../src/model/purpose/purpose.js";
-import { DelegationDbTable } from "../src/model/db/delegation.js";
-import { DelegationItemsSchema } from "../src/model/delegation/delegation.js";
-import { AgreementDbTable } from "../src/model/db/agreement.js";
 import { AgreementItemsSchema } from "../src/model/agreement/agreement.js";
+import { AttributeSchema } from "../src/model/attribute/attribute.js";
+import { ClientItemsSchema } from "../src/model/authorization/client.js";
+import { ProducerKeychainItemsSchema } from "../src/model/authorization/producerKeychain.js";
+import { EserviceItemsSchema } from "../src/model/catalog/eservice.js";
+import { AgreementDbTable } from "../src/model/db/agreement.js";
+import { AttributeDbTable } from "../src/model/db/attribute.js";
 import {
   ClientDbTable,
   ProducerKeychainDbTable,
 } from "../src/model/db/authorization.js";
-import { ClientItemsSchema } from "../src/model/authorization/client.js";
-import { ProducerKeychainItemsSchema } from "../src/model/authorization/producerKeychain.js";
-
+import { CatalogDbTable } from "../src/model/db/catalog.js";
+import { DelegationDbTable } from "../src/model/db/delegation.js";
+import { EserviceTemplateDbTable } from "../src/model/db/eserviceTemplate.js";
+import { PurposeDbTable } from "../src/model/db/purpose.js";
+import { TenantDbTable } from "../src/model/db/tenant.js";
+import { DelegationItemsSchema } from "../src/model/delegation/delegation.js";
+import { EserviceTemplateItemsSchema } from "../src/model/eserviceTemplate/eserviceTemplate.js";
+import { PurposeItemsSchema } from "../src/model/purpose/purpose.js";
+import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(
     undefined,
@@ -91,7 +78,10 @@ export const { cleanup, analyticsPostgresDB, readModelDB } =
     inject("analyticsSQLDbConfig")
   );
 
-afterEach(cleanup);
+afterEach(async () => {
+  await cleanup();
+  await resetTargetTables(Object.keys(DomainDbTable));
+});
 
 const connection = await analyticsPostgresDB.connect();
 
@@ -127,155 +117,6 @@ export const producerKeychainKeyReadModelServiceSQL =
   producerJWKKeyReadModelServiceBuilder(readModelDB);
 
 export const addOneEService = async (
-  eservice: WithMetadata<EService>
-): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelEService(eservice.data),
-    readModelRepository.eservices,
-    eservice.metadata.version
-  );
-};
-
-export const addOneEServiceTemplate = async (
-  eServiceTemplate: WithMetadata<EServiceTemplate>
-): Promise<void> => {
-  await writeInReadmodel(
-    eServiceTemplate.data,
-    readModelRepository.eserviceTemplates,
-    eServiceTemplate.metadata.version
-  );
-};
-
-export const addOneAttribute = async (
-  attribute: WithMetadata<Attribute>
-): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelAttribute(attribute.data),
-    readModelRepository.attributes,
-    attribute.metadata.version
-  );
-};
-
-export const addOneTenant = async (
-  tenant: WithMetadata<Tenant>
-): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelTenant(tenant.data),
-    readModelRepository.tenants,
-    tenant.metadata.version
-  );
-};
-
-export const addOnePurpose = async (
-  purpose: WithMetadata<Purpose>
-): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelPurpose(purpose.data),
-    readModelRepository.purposes,
-    purpose.metadata.version
-  );
-};
-
-export const addOneDelegation = async (
-  delegation: WithMetadata<Delegation>
-): Promise<void> => {
-  await writeInReadmodel(
-    delegation.data,
-    readModelRepository.delegations,
-    delegation.metadata.version
-  );
-};
-
-export const addOneAgreement = async (
-  agreement: WithMetadata<Agreement>
-): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelAgreement(agreement.data),
-    readModelRepository.agreements,
-    agreement.metadata.version
-  );
-};
-
-export const addOneClient = async (
-  client: WithMetadata<Client>
-): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelClient(client.data),
-    readModelRepository.clients,
-    client.metadata.version
-  );
-};
-
-export const addOneProducerKeychain = async (
-  producerKeychain: WithMetadata<ProducerKeychain>
-): Promise<void> => {
-  await writeInReadmodel(
-    toReadModelProducerKeychain(producerKeychain.data),
-    readModelRepository.producerKeychains,
-    producerKeychain.metadata.version
-  );
-};
-
-export const addOneClientJWKKey = async (
-  clientJWKKey: WithMetadata<ClientJWKKey>
-): Promise<void> => {
-  await writeInReadmodel(
-    clientJWKKey.data,
-    readModelRepository.keys,
-    clientJWKKey.metadata.version
-  );
-};
-
-export const addOneProducerJWKKey = async (
-  producerJWKKey: WithMetadata<ProducerJWKKey>
-): Promise<void> => {
-  await writeInReadmodel(
-    producerJWKKey.data,
-    readModelRepository.producerKeys,
-    producerJWKKey.metadata.version
-  );
-};
-
-export function getColumnNameMapper<T extends DomainDbTable>(
-  tableName: T
-): (columnKey: string) => string {
-  const table = DomainDbTableReadModels[tableName] as unknown as Record<
-    string,
-    { name: string }
-  >;
-  return (columnKey: string) => table[columnKey]?.name ?? columnKey;
-}
-
-export function buildColumnSet<T extends DomainDbTable>(
-  pgp: IMain,
-  tableName: T,
-  schema: DomainDbTableSchemas[T]
-): ColumnSet<z.infer<DomainDbTableSchemas[T]>> {
-  const snakeCaseMapper = getColumnNameMapper(tableName);
-  const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
-
-  const columns = keys.map((prop) => ({
-    name: snakeCaseMapper(String(prop)),
-    init: ({ source }: IColumnDescriptor<z.infer<typeof schema>>) =>
-      source[prop],
-  }));
-
-  return new pgp.helpers.ColumnSet(columns, {
-    table: { table: `${tableName}` },
-  });
-}
-
-export async function writeInKpi<T extends DomainDbTable>(
-  tableName: T,
-  data: z.infer<DomainDbTableSchemas[T]>[]
-): Promise<void> {
-  const schema = DomainDbTable[tableName];
-  const cs = buildColumnSet(dbContext.pgp, tableName, schema);
-
-  await dbContext.conn.none(dbContext.pgp.helpers.insert(data, cs));
-}
-
-export const addOneEServiceKpi = async (
   eservice: WithMetadata<EService>
 ): Promise<void> => {
   const splitResult = EserviceItemsSchema.parse(
@@ -317,7 +158,7 @@ export const addOneEServiceKpi = async (
   );
 };
 
-export const addOneEServiceTemplateKpi = async (
+export const addOneEServiceTemplate = async (
   eserviceTemplate: WithMetadata<EServiceTemplate>
 ): Promise<void> => {
   const splitResult = EserviceTemplateItemsSchema.parse(
@@ -356,7 +197,7 @@ export const addOneEServiceTemplateKpi = async (
   );
 };
 
-export const addOneAttributeKpi = async (
+export const addOneAttribute = async (
   attribute: WithMetadata<Attribute>
 ): Promise<void> => {
   const splitResult = AttributeSchema.parse(
@@ -366,7 +207,7 @@ export const addOneAttributeKpi = async (
   await writeInKpi(AttributeDbTable.attribute, [splitResult]);
 };
 
-export const addOneTenantKpi = async (
+export const addOneTenant = async (
   tenant: WithMetadata<Tenant>
 ): Promise<void> => {
   const splitResult = TenantItemsSchema.parse(
@@ -398,7 +239,7 @@ export const addOneTenantKpi = async (
   await writeInKpi(TenantDbTable.tenant_feature, splitResult.featuresSQL);
 };
 
-export const addOnePurposeKpi = async (
+export const addOnePurpose = async (
   purpose: WithMetadata<Purpose>
 ): Promise<void> => {
   const splitResult = PurposeItemsSchema.parse(
@@ -421,7 +262,7 @@ export const addOnePurposeKpi = async (
   );
 };
 
-export const addOneDelegationKpi = async (
+export const addOneDelegation = async (
   delegation: WithMetadata<Delegation>
 ): Promise<void> => {
   const splitResult = DelegationItemsSchema.parse(
@@ -436,7 +277,7 @@ export const addOneDelegationKpi = async (
   );
 };
 
-export const addOneAgreementKpi = async (
+export const addOneAgreement = async (
   agreement: WithMetadata<Agreement>
 ): Promise<void> => {
   const splitResult = AgreementItemsSchema.parse(
@@ -459,7 +300,7 @@ export const addOneAgreementKpi = async (
   );
 };
 
-export const addOneClientKpi = async (
+export const addOneClient = async (
   client: WithMetadata<Client>
 ): Promise<void> => {
   const splitResult = ClientItemsSchema.parse(
@@ -472,7 +313,7 @@ export const addOneClientKpi = async (
   await writeInKpi(ClientDbTable.client_key, splitResult.keysSQL);
 };
 
-export const addOneProducerKeychainKpi = async (
+export const addOneProducerKeychain = async (
   producerKeychain: WithMetadata<ProducerKeychain>
 ): Promise<void> => {
   const splitResult = ProducerKeychainItemsSchema.parse(
@@ -499,6 +340,49 @@ export const addOneProducerKeychainKpi = async (
   );
 };
 
-// TODO: addOneClientJWKKeyKpi
+function getColumnNameMapper<T extends DomainDbTable>(
+  tableName: T
+): (columnKey: string) => string {
+  const table = DomainDbTableReadModels[tableName] as unknown as Record<
+    string,
+    { name: string }
+  >;
+  return (columnKey: string) => table[columnKey]?.name ?? columnKey;
+}
 
-// TODO: addOneProducerJWKKeyKpi
+function buildColumnSet<T extends DomainDbTable>(
+  pgp: IMain,
+  tableName: T,
+  schema: DomainDbTableSchemas[T]
+): ColumnSet<z.infer<DomainDbTableSchemas[T]>> {
+  const snakeCaseMapper = getColumnNameMapper(tableName);
+  const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
+
+  const columns = keys.map((prop) => ({
+    name: snakeCaseMapper(String(prop)),
+    init: ({ source }: IColumnDescriptor<z.infer<typeof schema>>) =>
+      source[prop],
+  }));
+
+  return new pgp.helpers.ColumnSet(columns, {
+    table: { table: `${tableName}` },
+  });
+}
+
+async function writeInKpi<T extends DomainDbTable>(
+  tableName: T,
+  data: Array<z.infer<DomainDbTableSchemas[T]>>
+): Promise<void> {
+  if (data.length === 0) {
+    return;
+  }
+
+  const schema = DomainDbTable[tableName];
+  const cs = buildColumnSet(dbContext.pgp, tableName, schema);
+
+  await dbContext.conn.none(dbContext.pgp.helpers.insert(data, cs));
+}
+
+async function resetTargetTables(tables: string[]): Promise<void> {
+  await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
+}

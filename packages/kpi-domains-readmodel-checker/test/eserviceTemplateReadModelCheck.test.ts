@@ -14,7 +14,7 @@ import { compare } from "../src/utils.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateReadModelServiceSQL,
-  readModelService,
+  readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
 
@@ -27,14 +27,14 @@ describe("Check e-service template read models", () => {
       metadata: { version: 1 },
     });
 
-    const collectionEServiceTemplates =
-      await readModelService.getAllReadModelEServiceTemplates();
+    const eServiceTemplates =
+      await readModelServiceKPI.getAllEServiceTemplates();
 
     const postgresEServiceTemplates =
       await readModelServiceSQL.getAllEServiceTemplates();
 
     const res = compare({
-      collectionItems: collectionEServiceTemplates,
+      kpiItems: eServiceTemplates,
       postgresItems: postgresEServiceTemplates,
       schema: "eservice_template",
       loggerInstance: genericLogger,
@@ -65,14 +65,14 @@ describe("Check e-service template read models", () => {
       eserviceTemplate.metadata.version
     );
 
-    const collectionEServiceTemplates =
-      await readModelService.getAllReadModelEServiceTemplates();
+    const eServiceTemplates =
+      await readModelServiceKPI.getAllEServiceTemplates();
 
     const postgresEServiceTemplates =
       await readModelServiceSQL.getAllEServiceTemplates();
 
     const res = compare({
-      collectionItems: collectionEServiceTemplates,
+      kpiItems: eServiceTemplates,
       postgresItems: postgresEServiceTemplates,
       schema: "eservice_template",
       loggerInstance: genericLogger,
@@ -109,14 +109,14 @@ describe("Check e-service template read models", () => {
       eserviceTemplate2.metadata.version
     );
 
-    const collectionEServiceTemplates =
-      await readModelService.getAllReadModelEServiceTemplates();
+    const eServiceTemplates =
+      await readModelServiceKPI.getAllEServiceTemplates();
 
     const postgresEServiceTemplates =
       await readModelServiceSQL.getAllEServiceTemplates();
 
     const res = compare({
-      collectionItems: collectionEServiceTemplates,
+      kpiItems: eServiceTemplates,
       postgresItems: postgresEServiceTemplates,
       schema: "eservice_template",
       loggerInstance: genericLogger,
@@ -156,14 +156,14 @@ describe("Check e-service template read models", () => {
       eserviceTemplate2.metadata.version
     );
 
-    const collectionEServiceTemplates =
-      await readModelService.getAllReadModelEServiceTemplates();
+    const eServiceTemplates =
+      await readModelServiceKPI.getAllEServiceTemplates();
 
     const postgresEServiceTemplates =
       await readModelServiceSQL.getAllEServiceTemplates();
 
     const res = compare({
-      collectionItems: collectionEServiceTemplates,
+      kpiItems: eServiceTemplates,
       postgresItems: postgresEServiceTemplates,
       schema: "eservice_template",
       loggerInstance: genericLogger,
@@ -202,14 +202,14 @@ describe("Check e-service template read models", () => {
       eserviceTemplate1InPostgresDb.metadata.version
     );
 
-    const collectionEServiceTemplates =
-      await readModelService.getAllReadModelEServiceTemplates();
+    const eServiceTemplates =
+      await readModelServiceKPI.getAllEServiceTemplates();
 
     const postgresEServiceTemplates =
       await readModelServiceSQL.getAllEServiceTemplates();
 
     const res = compare({
-      collectionItems: collectionEServiceTemplates,
+      kpiItems: eServiceTemplates,
       postgresItems: postgresEServiceTemplates,
       schema: "eservice_template",
       loggerInstance: genericLogger,
@@ -247,14 +247,14 @@ describe("Check e-service template read models", () => {
       eserviceTemplate1InPostgresDb.metadata.version
     );
 
-    const collectionEServiceTemplates =
-      await readModelService.getAllReadModelEServiceTemplates();
+    const eServiceTemplates =
+      await readModelServiceKPI.getAllEServiceTemplates();
 
     const postgresEServiceTemplates =
       await readModelServiceSQL.getAllEServiceTemplates();
 
     const res = compare({
-      collectionItems: collectionEServiceTemplates,
+      kpiItems: eServiceTemplates,
       postgresItems: postgresEServiceTemplates,
       schema: "eservice_template",
       loggerInstance: genericLogger,

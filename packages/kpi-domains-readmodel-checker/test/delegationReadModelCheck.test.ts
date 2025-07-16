@@ -11,7 +11,7 @@ import { compare } from "../src/utils.js";
 import {
   addOneDelegation,
   delegationReadModelServiceSQL,
-  readModelService,
+  readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
 
@@ -26,13 +26,12 @@ describe("Check delegation readmodels", () => {
       metadata: { version: 1 },
     });
 
-    const collectionDelegations =
-      await readModelService.getAllReadModelDelegations();
+    const delegations = await readModelServiceKPI.getAllDelegations();
 
     const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
-      collectionItems: collectionDelegations,
+      kpiItems: delegations,
       postgresItems: postgresDelegations,
       schema: "delegation",
       loggerInstance: genericLogger,
@@ -54,13 +53,12 @@ describe("Check delegation readmodels", () => {
       delegation.metadata.version
     );
 
-    const collectionDelegations =
-      await readModelService.getAllReadModelDelegations();
+    const delegations = await readModelServiceKPI.getAllDelegations();
 
     const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
-      collectionItems: collectionDelegations,
+      kpiItems: delegations,
       postgresItems: postgresDelegations,
       schema: "delegation",
       loggerInstance: genericLogger,
@@ -88,13 +86,12 @@ describe("Check delegation readmodels", () => {
       delegation2.metadata.version
     );
 
-    const collectionDelegations =
-      await readModelService.getAllReadModelDelegations();
+    const delegations = await readModelServiceKPI.getAllDelegations();
 
     const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
-      collectionItems: collectionDelegations,
+      kpiItems: delegations,
       postgresItems: postgresDelegations,
       schema: "delegation",
       loggerInstance: genericLogger,
@@ -125,13 +122,12 @@ describe("Check delegation readmodels", () => {
       delegation2.metadata.version
     );
 
-    const collectionDelegations =
-      await readModelService.getAllReadModelDelegations();
+    const delegations = await readModelServiceKPI.getAllDelegations();
 
     const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
-      collectionItems: collectionDelegations,
+      kpiItems: delegations,
       postgresItems: postgresDelegations,
       schema: "delegation",
       loggerInstance: genericLogger,
@@ -161,13 +157,12 @@ describe("Check delegation readmodels", () => {
       delegation1InPostgresDb.metadata.version
     );
 
-    const collectionDelegations =
-      await readModelService.getAllReadModelDelegations();
+    const delegations = await readModelServiceKPI.getAllDelegations();
 
     const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
-      collectionItems: collectionDelegations,
+      kpiItems: delegations,
       postgresItems: postgresDelegations,
       schema: "delegation",
       loggerInstance: genericLogger,
@@ -196,13 +191,12 @@ describe("Check delegation readmodels", () => {
       delegation1InPostgresDb.metadata.version
     );
 
-    const collectionDelegations =
-      await readModelService.getAllReadModelDelegations();
+    const delegations = await readModelServiceKPI.getAllDelegations();
 
     const postgresDelegations = await readModelServiceSQL.getAllDelegations();
 
     const res = compare({
-      collectionItems: collectionDelegations,
+      kpiItems: delegations,
       postgresItems: postgresDelegations,
       schema: "delegation",
       loggerInstance: genericLogger,

@@ -6,7 +6,7 @@ import { compare } from "../src/utils.js";
 import {
   addOneAttribute,
   attributeReadModelServiceSQL,
-  readModelService,
+  readModelServiceKPI,
   readModelServiceSQL,
 } from "./utils.js";
 
@@ -19,13 +19,12 @@ describe("Check attribute readmodels", () => {
       metadata: { version: 1 },
     });
 
-    const collectionAttributes =
-      await readModelService.getAllReadModelAttributes();
+    const attributes = await readModelServiceKPI.getAllAttributes();
 
     const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
-      collectionItems: collectionAttributes,
+      kpiItems: attributes,
       postgresItems: postgresAttributes,
       schema: "attribute",
       loggerInstance: genericLogger,
@@ -47,13 +46,12 @@ describe("Check attribute readmodels", () => {
       attribute.metadata.version
     );
 
-    const collectionAttributes =
-      await readModelService.getAllReadModelAttributes();
+    const attributes = await readModelServiceKPI.getAllAttributes();
 
     const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
-      collectionItems: collectionAttributes,
+      kpiItems: attributes,
       postgresItems: postgresAttributes,
       schema: "attribute",
       loggerInstance: genericLogger,
@@ -81,13 +79,12 @@ describe("Check attribute readmodels", () => {
       attribute2.metadata.version
     );
 
-    const collectionAttributes =
-      await readModelService.getAllReadModelAttributes();
+    const attributes = await readModelServiceKPI.getAllAttributes();
 
     const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
-      collectionItems: collectionAttributes,
+      kpiItems: attributes,
       postgresItems: postgresAttributes,
       schema: "attribute",
       loggerInstance: genericLogger,
@@ -118,13 +115,12 @@ describe("Check attribute readmodels", () => {
       attribute2.metadata.version
     );
 
-    const collectionAttributes =
-      await readModelService.getAllReadModelAttributes();
+    const attributes = await readModelServiceKPI.getAllAttributes();
 
     const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
-      collectionItems: collectionAttributes,
+      kpiItems: attributes,
       postgresItems: postgresAttributes,
       schema: "attribute",
       loggerInstance: genericLogger,
@@ -157,13 +153,12 @@ describe("Check attribute readmodels", () => {
       attribute1InPostgresDb.metadata.version
     );
 
-    const collectionAttributes =
-      await readModelService.getAllReadModelAttributes();
+    const attributes = await readModelServiceKPI.getAllAttributes();
 
     const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
-      collectionItems: collectionAttributes,
+      kpiItems: attributes,
       postgresItems: postgresAttributes,
       schema: "attribute",
       loggerInstance: genericLogger,
@@ -192,13 +187,12 @@ describe("Check attribute readmodels", () => {
       attribute1InPostgresDb.metadata.version
     );
 
-    const collectionAttributes =
-      await readModelService.getAllReadModelAttributes();
+    const attributes = await readModelServiceKPI.getAllAttributes();
 
     const postgresAttributes = await readModelServiceSQL.getAllAttributes();
 
     const res = compare({
-      collectionItems: collectionAttributes,
+      kpiItems: attributes,
       postgresItems: postgresAttributes,
       schema: "attribute",
       loggerInstance: genericLogger,
