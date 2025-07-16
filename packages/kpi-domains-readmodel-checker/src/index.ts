@@ -51,7 +51,7 @@ async function main(): Promise<void> {
   const eservices = await readModelServiceKPI.getAllEServices();
   const eservicesPostgres = await readModelServiceSQL.getAllEServices();
   compare({
-    collectionItems: eservices,
+    kpiItems: eservices,
     postgresItems: eservicesPostgres,
     schema: "eservices",
     loggerInstance,
@@ -62,7 +62,7 @@ async function main(): Promise<void> {
   const eserviceTemplatesPostgres =
     await readModelServiceSQL.getAllEServiceTemplates();
   compare({
-    collectionItems: eserviceTemplates,
+    kpiItems: eserviceTemplates,
     postgresItems: eserviceTemplatesPostgres,
     schema: "eservice templates",
     loggerInstance,
@@ -72,7 +72,7 @@ async function main(): Promise<void> {
   const attributes = await readModelServiceKPI.getAllAttributes();
   const attributesPostgres = await readModelServiceSQL.getAllAttributes();
   compare({
-    collectionItems: attributes,
+    kpiItems: attributes,
     postgresItems: attributesPostgres,
     schema: "attributes",
     loggerInstance,
@@ -82,7 +82,7 @@ async function main(): Promise<void> {
   const tenants = await readModelServiceKPI.getAllTenants();
   const tenantsPostgres = await readModelServiceSQL.getAllTenants();
   compare({
-    collectionItems: tenants,
+    kpiItems: tenants,
     postgresItems: tenantsPostgres,
     schema: "tenants",
     loggerInstance,
@@ -92,7 +92,7 @@ async function main(): Promise<void> {
   const agreements = await readModelServiceKPI.getAllAgreements();
   const agreementsPostgres = await readModelServiceSQL.getAllAgreements();
   compare({
-    collectionItems: agreements,
+    kpiItems: agreements,
     postgresItems: agreementsPostgres,
     schema: "agreements",
     loggerInstance,
@@ -102,7 +102,7 @@ async function main(): Promise<void> {
   const purposes = await readModelServiceKPI.getAllPurposes();
   const purposesPostgres = await readModelServiceSQL.getAllPurposes();
   compare({
-    collectionItems: purposes,
+    kpiItems: purposes,
     postgresItems: purposesPostgres,
     schema: "purposes",
     loggerInstance,
@@ -112,7 +112,7 @@ async function main(): Promise<void> {
   const clients = await readModelServiceKPI.getAllClients();
   const clientsPostgres = await readModelServiceSQL.getAllClients();
   compare({
-    collectionItems: clients,
+    kpiItems: clients,
     postgresItems: clientsPostgres,
     schema: "clients",
     loggerInstance,
@@ -123,7 +123,7 @@ async function main(): Promise<void> {
   const producerKeychainsPostgres =
     await readModelServiceSQL.getAllProducerKeychains();
   compare({
-    collectionItems: producerKeychains,
+    kpiItems: producerKeychains,
     postgresItems: producerKeychainsPostgres,
     schema: "producer keychains",
     loggerInstance,
@@ -133,7 +133,7 @@ async function main(): Promise<void> {
   const delegations = await readModelServiceKPI.getAllDelegations();
   const delegationsPostgres = await readModelServiceSQL.getAllDelegations();
   compare({
-    collectionItems: delegations,
+    kpiItems: delegations,
     postgresItems: delegationsPostgres,
     schema: "delegations",
     loggerInstance,

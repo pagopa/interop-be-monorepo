@@ -24,12 +24,12 @@ export function zipDataById<T extends { id: string } | { kid: string }>(
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export function compare<T extends { id: string } | { kid: string }>({
-  collectionItems,
+  kpiItems,
   postgresItems,
   schema,
   loggerInstance,
 }: {
-  collectionItems: Array<WithMetadata<T>>;
+  kpiItems: Array<WithMetadata<T>>;
   postgresItems: Array<WithMetadata<T>>;
   schema: string;
   loggerInstance: Logger;
@@ -42,47 +42,39 @@ export function compare<T extends { id: string } | { kid: string }>({
     return -1;
   }
 
-  const allIds = new Set(
-    [...collectionItems, ...postgresItems].map((d) =>
-      getIdentificationKey(d.data)
-    )
-  );
-  const pairs = Array.from(allIds).map((id) => [
-    collectionItems.find((d) => getIdentificationKey(d.data) === id),
-    postgresItems.find((d) => getIdentificationKey(d.data) === id),
-  ]);
+  const pairs = zipDataById(kpiItems, postgresItems);
 
   const pairsWithDifferences = pairs.filter(([a, b]) => !isEqual(a, b));
   const itemName = schema.slice(0, -1);
 
   // eslint-disable-next-line functional/no-let
   let differencesCount = 0;
-  pairsWithDifferences.forEach(([itemFromCollection, itemFromSQL]) => {
-    if (itemFromCollection && !itemFromSQL) {
+  pairsWithDifferences.forEach(([itemFromKPI, itemFromSQL]) => {
+    if (itemFromKPI && !itemFromSQL) {
       differencesCount++;
       loggerInstance.warn(
         `${itemName} with id ${getIdentificationKey(
-          itemFromCollection.data
+          itemFromKPI.data
         )} not found in SQL readmodel`
       );
     }
-    if (!itemFromCollection && itemFromSQL) {
+    if (!itemFromKPI && itemFromSQL) {
       differencesCount++;
       loggerInstance.warn(
         `${itemName} with id ${getIdentificationKey(
           itemFromSQL.data
-        )} not found in collection`
+        )} not found in KPI readmodel`
       );
     }
-    if (itemFromCollection && itemFromSQL) {
-      const objectsDiff = diff(itemFromSQL, itemFromCollection, {
+    if (itemFromKPI && itemFromSQL) {
+      const objectsDiff = diff(itemFromSQL, itemFromKPI, {
         sort: true,
       });
       if (objectsDiff) {
         differencesCount++;
         loggerInstance.warn(
           `Differences in ${itemName} with id ${getIdentificationKey(
-            itemFromCollection.data
+            itemFromKPI.data
           )}`
         );
         loggerInstance.warn(
