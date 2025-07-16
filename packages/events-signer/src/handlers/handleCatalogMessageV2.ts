@@ -7,12 +7,12 @@ import { CatalogEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
 export const handleCatalogMessageV2 = async (
-  decodedMessage: EServiceEventV2,
+  decodedMessages: EServiceEventV2[],
   logger: Logger,
   fileManager: FileManager,
   _dbService: DbServiceBuilder
 ): Promise<void> => {
-  await match(decodedMessage)
+  await match(decodedMessages)
     .with(
       {
         type: P.union(

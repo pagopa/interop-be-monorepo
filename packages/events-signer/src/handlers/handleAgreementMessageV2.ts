@@ -7,7 +7,7 @@ import { AgreementEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
 export const handleAgreementMessageV2 = async (
-  decodedMessage: AgreementEventV2,
+  decodedMessage: AgreementEventV2[],
   logger: Logger,
   fileManager: FileManager,
   _dbService: DbServiceBuilder

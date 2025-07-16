@@ -7,7 +7,7 @@ import { AuthorizationEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
 export const handleAuthorizationMessageV2 = async (
-  decodedMessage: AuthorizationEventV2,
+  decodedMessage: AuthorizationEventV2[],
   logger: Logger,
   fileManager: FileManager,
   _dbService: DbServiceBuilder

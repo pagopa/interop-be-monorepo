@@ -12,7 +12,7 @@ import { PurposeEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
 export const handlePurposeMessageV2 = async (
-  decodedMessage: PurposeEventV2,
+  decodedMessage: PurposeEventV2[],
   logger: Logger,
   fileManager: FileManager,
   _dbService: DbServiceBuilder
@@ -27,6 +27,7 @@ export const handlePurposeMessageV2 = async (
       const eventName = event.type;
       const id = unsafeBrandId<PurposeId>(event.data.purpose.id);
       const state = PurposeStateV2.DRAFT;
+      const version = event.data.purpose?.versions[0];
 
       const dataToStore = {
         event_name: eventName,
@@ -34,7 +35,7 @@ export const handlePurposeMessageV2 = async (
         state,
       };
 
-      const documentDestinationPath = `purposes/events/${id}`;
+      const documentDestinationPath = `purposes/events/${id}/${version?.id}`;
 
       await storeEventDataInNdjson<PurposeEventData>(
         dataToStore,

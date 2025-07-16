@@ -7,7 +7,7 @@ import { DelegationEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
 export const handleDelegationMessageV2 = async (
-  decodedMessage: DelegationEventV2,
+  decodedMessage: DelegationEventV2[],
   logger: Logger,
   fileManager: FileManager,
   _dbService: DbServiceBuilder
