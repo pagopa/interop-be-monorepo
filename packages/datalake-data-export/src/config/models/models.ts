@@ -147,7 +147,7 @@ const ExportedEServiceTemplateVersion = EServiceTemplateVersion.pick({
   dailyCallsPerConsumer: true,
   dailyCallsTotal: true,
   agreementApprovalPolicy: true,
-}).and(
+} satisfies StrictPick<EServiceTemplateVersion>).and(
   z.object({
     interface: ExportedCatalogDocument.optional(),
   })
