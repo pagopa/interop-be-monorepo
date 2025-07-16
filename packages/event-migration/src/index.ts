@@ -54,8 +54,8 @@ const Config = z
     TENANT_READMODEL_DB_USERNAME: z.string(),
     TENANT_READMODEL_DB_PASSWORD: z.string(),
     TENANT_READMODEL_DB_PORT: z.coerce.number().min(1001),
-    TENANT_READMODEL_DB_READ_PREFERENCE: z.string(),
-    TENANT_READMODEL_DB_REPLICA_SET: z.string(),
+    TENANT_READMODEL_DB_READ_PREFERENCE: z.string().optional(),
+    TENANT_READMODEL_DB_REPLICA_SET: z.string().optional(),
   })
   .transform((c) => ({
     sourceDbUsername: c.SOURCE_DB_USERNAME,
