@@ -80,7 +80,7 @@ export const { cleanup, analyticsPostgresDB, readModelDB } =
 
 afterEach(async () => {
   await cleanup();
-  await resetTargetTables(Object.keys(DomainDbTable));
+  await cleanupKpi(Object.keys(DomainDbTable));
 });
 
 const connection = await analyticsPostgresDB.connect();
@@ -383,6 +383,6 @@ async function writeInKpi<T extends DomainDbTable>(
   await dbContext.conn.none(dbContext.pgp.helpers.insert(data, cs));
 }
 
-async function resetTargetTables(tables: string[]): Promise<void> {
+async function cleanupKpi(tables: string[]): Promise<void> {
   await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
 }
