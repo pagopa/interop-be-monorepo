@@ -36,6 +36,7 @@ export const errorCodes = {
   purposeVersionDocumentNotFound: "0020",
   unexpectedClientKind: "0021",
   purposeAgreementNotFound: "0022",
+  agreementContractNotFound: "0023",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -234,5 +235,15 @@ export function purposeAgreementNotFound(
     detail: `No active agreement found for purpose ${purposeId}`,
     code: "purposeAgreementNotFound",
     title: "Agreement for purpose not found",
+  });
+}
+
+export function agreementContractNotFound(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Contract not found for agreement ${agreementId}`,
+    code: "agreementContractNotFound",
+    title: "Agreement contract not found",
   });
 }

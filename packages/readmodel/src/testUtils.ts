@@ -1,17 +1,56 @@
-import { eq } from "drizzle-orm";
-import { Agreement } from "pagopa-interop-models";
 import {
-  agreementInReadmodelAgreement,
-  agreementStampInReadmodelAgreement,
+  Agreement,
+  TenantNotificationConfig,
+  UserNotificationConfig,
+} from "pagopa-interop-models";
+import {
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
+  agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   DrizzleReturnType,
+  tenantNotificationConfigInReadmodelNotificationConfig,
+  userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
+import {
+  splitTenantNotificationConfigIntoObjectsSQL,
+  splitUserNotificationConfigIntoObjectsSQL,
+} from "./notification-config/splitters.js";
+import { eq } from "drizzle-orm";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
 
-// TODO: simplify the functions for tests. Maybe rename to insertX to keep it aligned with the notifications functions
+export const insertTenantNotificationConfig = async (
+  readModelDB: DrizzleReturnType,
+  tenantNotificationConfig: TenantNotificationConfig,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB
+    .insert(tenantNotificationConfigInReadmodelNotificationConfig)
+    .values(
+      splitTenantNotificationConfigIntoObjectsSQL(
+        tenantNotificationConfig,
+        metadataVersion
+      )
+    );
+};
+
+export const insertUserNotificationConfig = async (
+  readModelDB: DrizzleReturnType,
+  userNotificationConfig: UserNotificationConfig,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB
+    .insert(userNotificationConfigInReadmodelNotificationConfig)
+    .values(
+      splitUserNotificationConfigIntoObjectsSQL(
+        userNotificationConfig,
+        metadataVersion
+      )
+    );
+};
+
 export const upsertAgreement = async (
   readModelDB: DrizzleReturnType,
   agreement: Agreement,
@@ -64,4 +103,3 @@ export const upsertAgreement = async (
         .values(contractSQL);
     }
   });
-};
