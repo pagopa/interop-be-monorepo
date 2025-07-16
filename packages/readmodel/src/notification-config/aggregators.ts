@@ -122,38 +122,16 @@ export const toTenantNotificationConfigAggregatorArray = (
   tenantNotificationConfigsSQL: TenantNotificationConfigSQL[];
   enabledNotificationsSQL: TenantEnabledNotificationSQL[];
 } => {
-  const tenantNotificationConfigIdSet = new Set<string>();
-  const tenantNotificationConfigsSQL: TenantNotificationConfigSQL[] = [];
-
-  const enabledNotificationIdSet = new Set<string>();
-  const enabledNotificationsSQL: TenantEnabledNotificationSQL[] = [];
-
-  queryRes.forEach((row) => {
-    const tenantNotificationConfigSQL = row.tenantNotificationConfig;
-    if (!tenantNotificationConfigIdSet.has(tenantNotificationConfigSQL.id)) {
-      tenantNotificationConfigIdSet.add(tenantNotificationConfigSQL.id);
-      // eslint-disable-next-line functional/immutable-data
-      tenantNotificationConfigsSQL.push(tenantNotificationConfigSQL);
-    }
-
-    const enabledNotificationSQL = row.enabledNotification;
-    const enabledNotificationPK = enabledNotificationSQL
-      ? makeUniqueKey([
-          enabledNotificationSQL.tenantNotificationConfigId,
-          enabledNotificationSQL.notificationType,
-        ])
-      : undefined;
-    if (
-      enabledNotificationSQL &&
-      enabledNotificationPK &&
-      !enabledNotificationIdSet.has(enabledNotificationPK)
-    ) {
-      enabledNotificationIdSet.add(enabledNotificationPK);
-      // eslint-disable-next-line functional/immutable-data
-      enabledNotificationsSQL.push(enabledNotificationSQL);
-    }
-  });
-
+  const tenantNotificationConfigsSQL: TenantNotificationConfigSQL[] =
+    collectUnique(
+      queryRes.map((row) => row.tenantNotificationConfig),
+      (row) => row.id
+    );
+  const enabledNotificationsSQL: TenantEnabledNotificationSQL[] = collectUnique(
+    queryRes.map((row) => row.enabledNotification),
+    (row) =>
+      makeUniqueKey([row.tenantNotificationConfigId, row.notificationType])
+  );
   return {
     tenantNotificationConfigsSQL,
     enabledNotificationsSQL,
@@ -193,61 +171,47 @@ export const toUserNotificationConfigAggregatorArray = (
   enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[];
   enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[];
 } => {
-  const userNotificationConfigIdSet = new Set<string>();
-  const userNotificationConfigsSQL: UserNotificationConfigSQL[] = [];
-
-  const enabledInAppNotificationIdSet = new Set<string>();
-  const enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] = [];
-
-  const enabledEmailNotificationIdSet = new Set<string>();
-  const enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[] = [];
-
-  queryRes.forEach((row) => {
-    const userNotificationConfigSQL = row.userNotificationConfig;
-    if (!userNotificationConfigIdSet.has(userNotificationConfigSQL.id)) {
-      userNotificationConfigIdSet.add(userNotificationConfigSQL.id);
-      // eslint-disable-next-line functional/immutable-data
-      userNotificationConfigsSQL.push(userNotificationConfigSQL);
-    }
-
-    const enabledInAppNotificationSQL = row.enabledInAppNotification;
-    const enabledInAppNotificationPK = enabledInAppNotificationSQL
-      ? makeUniqueKey([
-          enabledInAppNotificationSQL.userNotificationConfigId,
-          enabledInAppNotificationSQL.notificationType,
-        ])
-      : undefined;
-    if (
-      enabledInAppNotificationSQL &&
-      enabledInAppNotificationPK &&
-      !enabledInAppNotificationIdSet.has(enabledInAppNotificationPK)
-    ) {
-      enabledInAppNotificationIdSet.add(enabledInAppNotificationPK);
-      // eslint-disable-next-line functional/immutable-data
-      enabledInAppNotificationsSQL.push(enabledInAppNotificationSQL);
-    }
-
-    const enabledEmailNotificationSQL = row.enabledEmailNotification;
-    const enabledEmailNotificationPK = enabledEmailNotificationSQL
-      ? makeUniqueKey([
-          enabledEmailNotificationSQL.userNotificationConfigId,
-          enabledEmailNotificationSQL.notificationType,
-        ])
-      : undefined;
-    if (
-      enabledEmailNotificationSQL &&
-      enabledEmailNotificationPK &&
-      !enabledEmailNotificationIdSet.has(enabledEmailNotificationPK)
-    ) {
-      enabledEmailNotificationIdSet.add(enabledEmailNotificationPK);
-      // eslint-disable-next-line functional/immutable-data
-      enabledEmailNotificationsSQL.push(enabledEmailNotificationSQL);
-    }
-  });
+  const userNotificationConfigsSQL: UserNotificationConfigSQL[] = collectUnique(
+    queryRes.map((row) => row.userNotificationConfig),
+    (row) => row.id
+  );
+  const enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] =
+    collectUnique(
+      queryRes.map((row) => row.enabledInAppNotification),
+      (row) =>
+        makeUniqueKey([row.userNotificationConfigId, row.notificationType])
+    );
+  const enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[] =
+    collectUnique(
+      queryRes.map((row) => row.enabledEmailNotification),
+      (row) =>
+        makeUniqueKey([row.userNotificationConfigId, row.notificationType])
+    );
 
   return {
     userNotificationConfigsSQL,
     enabledInAppNotificationsSQL,
     enabledEmailNotificationsSQL,
   };
+};
+
+const collectUnique = <T>(
+  rows: Array<T | null>,
+  getId: (row: T) => string
+): T[] => {
+  const uniqueRows: T[] = [];
+  const idSet = new Set<string>();
+
+  rows.forEach((row) => {
+    if (row) {
+      const id = getId(row);
+      if (!idSet.has(id)) {
+        idSet.add(id);
+        // eslint-disable-next-line functional/immutable-data
+        uniqueRows.push(row);
+      }
+    }
+  });
+
+  return uniqueRows;
 };
