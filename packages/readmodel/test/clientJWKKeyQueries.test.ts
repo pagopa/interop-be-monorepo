@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { describe, it, expect } from "vitest";
 import { ClientId, generateId } from "pagopa-interop-models";
 import { getMockClientJWKKey } from "pagopa-interop-commons-test";
