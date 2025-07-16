@@ -1,5 +1,6 @@
 import { Buffer } from "buffer";
 import { FileManager, Logger } from "pagopa-interop-commons";
+import { generateId } from "pagopa-interop-models";
 import { StoreData } from "../models/storeData.js";
 import { EventsSignerConfig } from "../config/config.js";
 
@@ -19,21 +20,21 @@ export const storeEventDataInNdjson = async <T extends StoreData>(
     dataToStoreArray.map((data) => JSON.stringify(data)).join("\n") + "\n";
   const contentBuffer = Buffer.from(ndjsonString, "utf-8");
 
-  const documentName = `batch_events_${Date.now()}.ndjson`;
+  const documentName = `events_${Date.now()}.ndjson`;
 
   try {
     await fileManager.storeBytes(
       {
         bucket: config.s3Bucket,
         path: documentDestinationPath,
-        resourceId: dataToStoreArray[0].id, // TBD
+        resourceId: generateId(), // TBD -> we could group events by id and use it as resourceId
         name: documentName,
         content: contentBuffer,
       },
       logger
     );
     logger.info(
-      `Successfully stored ${dataToStoreArray.length} event(s) in batch file ${documentName} at path ${documentDestinationPath}`
+      `Successfully stored ${dataToStoreArray.length} events in file ${documentName} at path ${documentDestinationPath}`
     );
   } catch (error) {
     logger.error(`Failed to store batch event data: ${error}`);

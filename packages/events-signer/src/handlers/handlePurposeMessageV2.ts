@@ -114,9 +114,24 @@ export const handlePurposeMessageV2 = async (
           });
         }
       )
-      .otherwise((event) => {
-        logger.info(`Skipping unmanaged Purpose event: ${event.type}`);
-      });
+      .with(
+        {
+          type: P.union(
+            "DraftPurposeUpdated",
+            "PurposeWaitingForApproval",
+            "DraftPurposeDeleted",
+            "WaitingForApprovalPurposeDeleted",
+            "WaitingForApprovalPurposeVersionDeleted",
+            "PurposeCloned",
+            "PurposeDeletedByRevokedDelegation",
+            "PurposeVersionArchivedByRevokedDelegation"
+          ),
+        },
+        (event) => {
+          logger.info(`Skipping not relevant event type: ${event.type}`);
+        }
+      )
+      .exhaustive();
   }
 
   if (allPurposeDataToStore.length > 0) {

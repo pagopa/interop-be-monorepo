@@ -1,5 +1,5 @@
 /* eslint-disable functional/immutable-data */
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { AuthorizationEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
@@ -66,9 +66,30 @@ export const handleAuthorizationMessageV2 = async (
           id: clientId,
         });
       })
-      .otherwise((event) => {
-        logger.info(`Skipping unmanaged Authorization event: ${event.type}`);
-      });
+      .with(
+        P.union(
+          { type: "ClientAdded" },
+          { type: "ClientAdminRoleRevoked" },
+          { type: "ClientAdminRemoved" },
+          { type: "ClientUserAdded" },
+          { type: "ClientUserDeleted" },
+          { type: "ClientAdminSet" },
+          { type: "ClientPurposeAdded" },
+          { type: "ClientPurposeRemoved" },
+          { type: "ProducerKeychainAdded" },
+          { type: "ProducerKeychainDeleted" },
+          { type: "ProducerKeychainKeyAdded" },
+          { type: "ProducerKeychainKeyDeleted" },
+          { type: "ProducerKeychainUserAdded" },
+          { type: "ProducerKeychainUserDeleted" },
+          { type: "ProducerKeychainEServiceAdded" },
+          { type: "ProducerKeychainEServiceRemoved" }
+        ),
+        (event) => {
+          logger.info(`Skipping not relevant event type: ${event.type}`);
+        }
+      )
+      .exhaustive();
   }
 
   if (allAuthorizationDataToStore.length > 0) {

@@ -45,9 +45,20 @@ export const handleDelegationMessageV2 = async (
           });
         }
       )
-      .otherwise((event) => {
-        logger.info(`Skipping unmanaged Delegation event: ${event.type}`);
-      });
+      .with(
+        {
+          type: P.union(
+            "ProducerDelegationSubmitted",
+            "ProducerDelegationRejected",
+            "ConsumerDelegationSubmitted",
+            "ConsumerDelegationRejected"
+          ),
+        },
+        (event) => {
+          logger.info(`Skipping not relevant event type: ${event.type}`);
+        }
+      )
+      .exhaustive();
   }
 
   if (allDelegationDataToStore.length > 0) {

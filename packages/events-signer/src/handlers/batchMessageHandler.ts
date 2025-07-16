@@ -54,7 +54,7 @@ export async function executeTopicHandler(
       );
       for (const decoded of decodedMessages) {
         match(decoded)
-          .with({ event_version: 1 }, () => void 0)
+          .with({ event_version: 1 }, () => {})
           .with({ event_version: 2 }, (msg) => eserviceV2.push(msg))
           .exhaustive();
       }
@@ -74,7 +74,7 @@ export async function executeTopicHandler(
       );
       for (const decoded of decodedMessages) {
         match(decoded)
-          .with({ event_version: 1 }, () => void 0)
+          .with({ event_version: 1 }, () => {})
           .with({ event_version: 2 }, (msg) => agreementV2.push(msg))
           .exhaustive();
       }
@@ -94,7 +94,7 @@ export async function executeTopicHandler(
       );
       for (const decoded of decodedMessages) {
         match(decoded)
-          .with({ event_version: 1 }, () => void 0)
+          .with({ event_version: 1 }, () => {})
           .with({ event_version: 2 }, (msg) => purposeV2.push(msg))
           .exhaustive();
       }

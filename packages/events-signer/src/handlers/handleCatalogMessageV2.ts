@@ -50,9 +50,53 @@ export const handleCatalogMessageV2 = async (
           });
         }
       )
-      .otherwise((event) => {
-        logger.info(`Skipping unmanaged Catalog event: ${event.type}`);
-      });
+      .with(
+        {
+          type: P.union(
+            "EServiceAdded",
+            "DraftEServiceUpdated",
+            "EServiceDeleted",
+            "EServiceCloned",
+            "EServiceDescriptorAdded",
+            "EServiceDraftDescriptorUpdated",
+            "EServiceDescriptorQuotasUpdated",
+            "EServiceDescriptorAgreementApprovalPolicyUpdated",
+            "EServiceDraftDescriptorDeleted",
+            "EServiceDescriptorInterfaceAdded",
+            "EServiceDescriptorDocumentAdded",
+            "EServiceDescriptorInterfaceUpdated",
+            "EServiceDescriptorDocumentUpdated",
+            "EServiceDescriptorInterfaceDeleted",
+            "EServiceDescriptorDocumentDeleted",
+            "EServiceRiskAnalysisAdded",
+            "EServiceRiskAnalysisUpdated",
+            "EServiceRiskAnalysisDeleted",
+            "EServiceDescriptionUpdated",
+            "EServiceDescriptorSubmittedByDelegate",
+            "EServiceDescriptorApprovedByDelegator",
+            "EServiceDescriptorRejectedByDelegator",
+            "EServiceDescriptorAttributesUpdated",
+            "EServiceIsConsumerDelegableEnabled",
+            "EServiceIsConsumerDelegableDisabled",
+            "EServiceIsClientAccessDelegableEnabled",
+            "EServiceIsClientAccessDelegableDisabled",
+            "EServiceNameUpdated",
+            "EServiceNameUpdatedByTemplateUpdate",
+            "EServiceDescriptionUpdatedByTemplateUpdate",
+            "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+            "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+            "EServiceDescriptorDocumentAddedByTemplateUpdate",
+            "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+            "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+            "EServiceSignalHubEnabled",
+            "EServiceSignalHubDisabled"
+          ),
+        },
+        (event) => {
+          logger.info(`Skipping not relevant event type: ${event.type}`);
+        }
+      )
+      .exhaustive();
   }
 
   if (allCatalogDataToStore.length > 0) {

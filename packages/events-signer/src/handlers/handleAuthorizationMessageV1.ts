@@ -1,7 +1,7 @@
 /* eslint-disable functional/immutable-data */
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { AuthorizationEventV1 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { config } from "../config/config.js";
 import { AuthorizationEventData } from "../models/storeData.js";
@@ -45,9 +45,23 @@ export const handleAuthorizationMessageV1 = async (
           timestamp,
         });
       })
-      .otherwise(() => {
-        logger.warn(`Unhandled event type: ${message.type}`);
-      });
+      .with(
+        P.union(
+          { type: "KeyRelationshipToUserMigrated" },
+          { type: "ClientAdded" },
+          { type: "ClientDeleted" },
+          { type: "RelationshipAdded" },
+          { type: "RelationshipRemoved" },
+          { type: "UserAdded" },
+          { type: "UserRemoved" },
+          { type: "ClientPurposeAdded" },
+          { type: "ClientPurposeRemoved" }
+        ),
+        (event) => {
+          logger.info(`Skipping not relevant event type: ${event.type}`);
+        }
+      )
+      .exhaustive();
   }
 
   if (allDataToStore.length > 0) {

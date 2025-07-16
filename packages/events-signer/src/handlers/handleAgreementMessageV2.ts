@@ -52,9 +52,26 @@ export const handleAgreementMessageV2 = async (
           });
         }
       )
-      .otherwise((event) => {
-        logger.info(`Skipping unmanaged Agreement event: ${event.type}`);
-      });
+      .with(
+        {
+          type: P.union(
+            "AgreementAdded",
+            "AgreementDeleted",
+            "DraftAgreementUpdated",
+            "AgreementUpgraded",
+            "AgreementConsumerDocumentAdded",
+            "AgreementConsumerDocumentRemoved",
+            "AgreementSetDraftByPlatform",
+            "AgreementSetMissingCertifiedAttributesByPlatform",
+            "AgreementDeletedByRevokedDelegation",
+            "AgreementArchivedByRevokedDelegation"
+          ),
+        },
+        (event) => {
+          logger.info(`Skipping not relevant event type: ${event.type}`);
+        }
+      )
+      .exhaustive();
   }
 
   if (allAgreementDataToStore.length > 0) {
