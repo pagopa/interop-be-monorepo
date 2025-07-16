@@ -13,11 +13,11 @@ import {
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
+import { eq } from "drizzle-orm";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
 } from "./notification-config/splitters.js";
-import { eq } from "drizzle-orm";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
 
@@ -103,3 +103,4 @@ export const upsertAgreement = async (
         .values(contractSQL);
     }
   });
+};
