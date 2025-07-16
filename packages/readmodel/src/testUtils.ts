@@ -1,19 +1,59 @@
-import { eq } from "drizzle-orm";
-import { Agreement, Attribute } from "pagopa-interop-models";
 import {
-  agreementInReadmodelAgreement,
-  agreementStampInReadmodelAgreement,
+  Agreement,
+  Attribute,
+  TenantNotificationConfig,
+  UserNotificationConfig,
+} from "pagopa-interop-models";
+import {
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
   agreementContractInReadmodelAgreement,
-  DrizzleReturnType,
+  agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
+  DrizzleReturnType,
+  tenantNotificationConfigInReadmodelNotificationConfig,
+  userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
+import { eq } from "drizzle-orm";
+import {
+  splitTenantNotificationConfigIntoObjectsSQL,
+  splitUserNotificationConfigIntoObjectsSQL,
+} from "./notification-config/splitters.js";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 
-// TODO: simplify the functions for tests. Maybe rename to insertX to keep it aligned with the notifications functions
+export const insertTenantNotificationConfig = async (
+  readModelDB: DrizzleReturnType,
+  tenantNotificationConfig: TenantNotificationConfig,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB
+    .insert(tenantNotificationConfigInReadmodelNotificationConfig)
+    .values(
+      splitTenantNotificationConfigIntoObjectsSQL(
+        tenantNotificationConfig,
+        metadataVersion
+      )
+    );
+};
+
+export const insertUserNotificationConfig = async (
+  readModelDB: DrizzleReturnType,
+  userNotificationConfig: UserNotificationConfig,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB
+    .insert(userNotificationConfigInReadmodelNotificationConfig)
+    .values(
+      splitUserNotificationConfigIntoObjectsSQL(
+        userNotificationConfig,
+        metadataVersion
+      )
+    );
+};
+
 export const upsertAgreement = async (
   readModelDB: DrizzleReturnType,
   agreement: Agreement,
