@@ -10,12 +10,13 @@ import {
   TenantEnabledNotificationSQL,
   TenantNotificationConfigItemsSQL,
   TenantNotificationConfigSQL,
-  UserEnabledNotificationSQL,
+  UserEnabledInAppNotificationSQL,
+  UserEnabledEmailNotificationSQL,
   UserNotificationConfigItemsSQL,
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
-import { TenantNotificationType, UserNotificationType } from "./utils.js";
+import { NotificationType } from "./utils.js";
 
 export const aggregateTenantNotificationConfig = ({
   tenantNotificationConfigSQL,
@@ -26,7 +27,7 @@ export const aggregateTenantNotificationConfig = ({
   void (rest satisfies Record<string, never>);
 
   const enabledNotifications = enabledNotificationsSQL.map((r) =>
-    TenantNotificationType.parse(r.notificationType)
+    NotificationType.parse(r.notificationType)
   );
 
   const config: NotificationConfig = {
@@ -49,7 +50,8 @@ export const aggregateTenantNotificationConfig = ({
 
 export const aggregateUserNotificationConfig = ({
   userNotificationConfigSQL,
-  enabledNotificationsSQL,
+  enabledInAppNotificationsSQL,
+  enabledEmailNotificationsSQL,
 }: UserNotificationConfigItemsSQL): WithMetadata<UserNotificationConfig> => {
   const {
     id,
@@ -62,18 +64,21 @@ export const aggregateUserNotificationConfig = ({
   } = userNotificationConfigSQL;
   void (rest satisfies Record<string, never>);
 
-  const enabledNotifications = enabledNotificationsSQL.map((r) =>
-    UserNotificationType.parse(r.notificationType)
+  const enabledInAppNotifications = enabledInAppNotificationsSQL.map((r) =>
+    NotificationType.parse(r.notificationType)
+  );
+  const enabledEmailNotifications = enabledEmailNotificationsSQL.map((r) =>
+    NotificationType.parse(r.notificationType)
   );
 
   const inAppConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledNotifications.includes(
-      "newEServiceVersionPublished.inApp"
+    newEServiceVersionPublished: enabledInAppNotifications.includes(
+      "newEServiceVersionPublished"
     ),
   };
   const emailConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledNotifications.includes(
-      "newEServiceVersionPublished.email"
+    newEServiceVersionPublished: enabledEmailNotifications.includes(
+      "newEServiceVersionPublished"
     ),
   };
 
@@ -158,34 +163,44 @@ export const toTenantNotificationConfigAggregatorArray = (
 export const toUserNotificationConfigAggregator = (
   queryRes: Array<{
     userNotificationConfig: UserNotificationConfigSQL;
-    enabledNotification: UserEnabledNotificationSQL | null;
+    enabledInAppNotification: UserEnabledInAppNotificationSQL | null;
+    enabledEmailNotification: UserEnabledEmailNotificationSQL | null;
   }>
 ): UserNotificationConfigItemsSQL => {
-  const { userNotificationConfigsSQL, enabledNotificationsSQL } =
-    toUserNotificationConfigAggregatorArray(queryRes);
+  const {
+    userNotificationConfigsSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
+  } = toUserNotificationConfigAggregatorArray(queryRes);
 
   throwIfMultiple(userNotificationConfigsSQL, "user notification config");
 
   return {
     userNotificationConfigSQL: userNotificationConfigsSQL[0],
-    enabledNotificationsSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
   };
 };
 
 export const toUserNotificationConfigAggregatorArray = (
   queryRes: Array<{
     userNotificationConfig: UserNotificationConfigSQL;
-    enabledNotification: UserEnabledNotificationSQL | null;
+    enabledInAppNotification: UserEnabledInAppNotificationSQL | null;
+    enabledEmailNotification: UserEnabledEmailNotificationSQL | null;
   }>
 ): {
   userNotificationConfigsSQL: UserNotificationConfigSQL[];
-  enabledNotificationsSQL: UserEnabledNotificationSQL[];
+  enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[];
+  enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[];
 } => {
   const userNotificationConfigIdSet = new Set<string>();
   const userNotificationConfigsSQL: UserNotificationConfigSQL[] = [];
 
-  const enabledNotificationIdSet = new Set<string>();
-  const enabledNotificationsSQL: UserEnabledNotificationSQL[] = [];
+  const enabledInAppNotificationIdSet = new Set<string>();
+  const enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] = [];
+
+  const enabledEmailNotificationIdSet = new Set<string>();
+  const enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[] = [];
 
   queryRes.forEach((row) => {
     const userNotificationConfigSQL = row.userNotificationConfig;
@@ -195,26 +210,44 @@ export const toUserNotificationConfigAggregatorArray = (
       userNotificationConfigsSQL.push(userNotificationConfigSQL);
     }
 
-    const enabledNotificationSQL = row.enabledNotification;
-    const enabledNotificationPK = enabledNotificationSQL
+    const enabledInAppNotificationSQL = row.enabledInAppNotification;
+    const enabledInAppNotificationPK = enabledInAppNotificationSQL
       ? makeUniqueKey([
-          enabledNotificationSQL.userNotificationConfigId,
-          enabledNotificationSQL.notificationType,
+          enabledInAppNotificationSQL.userNotificationConfigId,
+          enabledInAppNotificationSQL.notificationType,
         ])
       : undefined;
     if (
-      enabledNotificationSQL &&
-      enabledNotificationPK &&
-      !enabledNotificationIdSet.has(enabledNotificationPK)
+      enabledInAppNotificationSQL &&
+      enabledInAppNotificationPK &&
+      !enabledInAppNotificationIdSet.has(enabledInAppNotificationPK)
     ) {
-      enabledNotificationIdSet.add(enabledNotificationPK);
+      enabledInAppNotificationIdSet.add(enabledInAppNotificationPK);
       // eslint-disable-next-line functional/immutable-data
-      enabledNotificationsSQL.push(enabledNotificationSQL);
+      enabledInAppNotificationsSQL.push(enabledInAppNotificationSQL);
+    }
+
+    const enabledEmailNotificationSQL = row.enabledEmailNotification;
+    const enabledEmailNotificationPK = enabledEmailNotificationSQL
+      ? makeUniqueKey([
+          enabledEmailNotificationSQL.userNotificationConfigId,
+          enabledEmailNotificationSQL.notificationType,
+        ])
+      : undefined;
+    if (
+      enabledEmailNotificationSQL &&
+      enabledEmailNotificationPK &&
+      !enabledEmailNotificationIdSet.has(enabledEmailNotificationPK)
+    ) {
+      enabledEmailNotificationIdSet.add(enabledEmailNotificationPK);
+      // eslint-disable-next-line functional/immutable-data
+      enabledEmailNotificationsSQL.push(enabledEmailNotificationSQL);
     }
   });
 
   return {
     userNotificationConfigsSQL,
-    enabledNotificationsSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
   };
 };

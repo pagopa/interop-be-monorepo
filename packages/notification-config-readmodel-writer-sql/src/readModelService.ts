@@ -12,7 +12,8 @@ import {
   DrizzleReturnType,
   tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
-  userEnabledNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
 
@@ -81,18 +82,26 @@ export function notificationConfigReadModelWriteServiceBuilder(
               userNotificationConfig.id
             )
           );
-        const { userNotificationConfigSQL, enabledNotificationsSQL } =
-          splitUserNotificationConfigIntoObjectsSQL(
-            userNotificationConfig,
-            metadataVersion
-          );
+        const {
+          userNotificationConfigSQL,
+          enabledInAppNotificationsSQL,
+          enabledEmailNotificationsSQL,
+        } = splitUserNotificationConfigIntoObjectsSQL(
+          userNotificationConfig,
+          metadataVersion
+        );
         await tx
           .insert(userNotificationConfigInReadmodelNotificationConfig)
           .values(userNotificationConfigSQL);
-        if (enabledNotificationsSQL.length > 0) {
+        if (enabledInAppNotificationsSQL.length > 0) {
           await tx
-            .insert(userEnabledNotificationInReadmodelNotificationConfig)
-            .values(enabledNotificationsSQL);
+            .insert(userEnabledInAppNotificationInReadmodelNotificationConfig)
+            .values(enabledInAppNotificationsSQL);
+        }
+        if (enabledEmailNotificationsSQL.length > 0) {
+          await tx
+            .insert(userEnabledEmailNotificationInReadmodelNotificationConfig)
+            .values(enabledEmailNotificationsSQL);
         }
       });
     },

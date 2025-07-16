@@ -6,7 +6,8 @@ import {
   DrizzleReturnType,
   tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
-  userEnabledNotificationInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
 import {
@@ -42,20 +43,28 @@ export const insertUserNotificationConfig = async (
   userNotificationConfig: UserNotificationConfig,
   metadataVersion: number
 ): Promise<void> => {
-  const { userNotificationConfigSQL, enabledNotificationsSQL } =
-    splitUserNotificationConfigIntoObjectsSQL(
-      userNotificationConfig,
-      metadataVersion
-    );
+  const {
+    userNotificationConfigSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
+  } = splitUserNotificationConfigIntoObjectsSQL(
+    userNotificationConfig,
+    metadataVersion
+  );
 
   await readModelDB.transaction(async (tx) => {
     await tx
       .insert(userNotificationConfigInReadmodelNotificationConfig)
       .values(userNotificationConfigSQL);
-    if (enabledNotificationsSQL.length > 0) {
+    if (enabledInAppNotificationsSQL.length > 0) {
       await tx
-        .insert(userEnabledNotificationInReadmodelNotificationConfig)
-        .values(enabledNotificationsSQL);
+        .insert(userEnabledInAppNotificationInReadmodelNotificationConfig)
+        .values(enabledInAppNotificationsSQL);
+    }
+    if (enabledEmailNotificationsSQL.length > 0) {
+      await tx
+        .insert(userEnabledEmailNotificationInReadmodelNotificationConfig)
+        .values(enabledEmailNotificationsSQL);
     }
   });
 };

@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
 import { match } from "ts-pattern";
 import {
-  NotificationConfig,
   TenantId,
   UserNotificationConfig,
   generateId,
@@ -17,6 +16,7 @@ import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
 } from "../src/testUtils.js";
+import { NotificationType } from "../src/notification-config/utils.js";
 import { notificationConfigReadModelService } from "./notificationConfigUtils.js";
 import { readModelDB } from "./utils.js";
 
@@ -128,7 +128,7 @@ describe("Notification config queries", () => {
   describe("getTenantUsersWithNotificationEnabled", () => {
     const set =
       (
-        notificationType: keyof NotificationConfig,
+        notificationType: NotificationType,
         notificationChannel: "inApp" | "email",
         enabled: boolean
       ) =>
@@ -155,7 +155,7 @@ describe("Notification config queries", () => {
       async (notificationChannel) => {
         const tenantId1 = generateId<TenantId>();
         const tenantId2 = generateId<TenantId>();
-        const notificationType = generateMock(NotificationConfig.keyof());
+        const notificationType = generateMock(NotificationType);
         const setEnabled = set(notificationType, notificationChannel, true);
         const setDisabled = set(notificationType, notificationChannel, false);
         const userNotificationConfigs = [
@@ -204,7 +204,7 @@ describe("Notification config queries", () => {
       "should return an empty array if no users have the notification enabled (%s)",
       async (notificationChannel) => {
         const tenantId = generateId<TenantId>();
-        const notificationType = generateMock(NotificationConfig.keyof());
+        const notificationType = generateMock(NotificationType);
         const setEnabled = set(notificationType, notificationChannel, true);
         const setDisabled = set(notificationType, notificationChannel, false);
         const userNotificationConfigs = [
