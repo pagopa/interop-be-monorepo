@@ -19,7 +19,16 @@ export const EventsSignerConfig = KafkaConsumerConfig.and(CatalogTopicConfig)
   .and(CatalogTopicConfig)
   .and(FileManagerConfig)
   .and(S3Config)
-  .and(LoggerConfig);
+  .and(LoggerConfig)
+  .and(
+    z
+      .object({
+        DB_TABLE_NAME: z.string(),
+      })
+      .transform((c) => ({
+        dbTableName: c.DB_TABLE_NAME,
+      }))
+  );
 
 export type EventsSignerConfig = z.infer<typeof EventsSignerConfig>;
 

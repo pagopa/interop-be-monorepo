@@ -6,14 +6,16 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { config } from "../../config/config.js";
+import { config } from "../config/config.js";
 import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
 import { PurposeEventData } from "../models/storeData.js";
+import { DbServiceBuilder } from "../services/dbService.js";
 
 export const handlePurposeMessageV2 = async (
   decodedMessage: PurposeEventV2,
   logger: Logger,
-  fileManager: FileManager
+  fileManager: FileManager,
+  _dbService: DbServiceBuilder
 ): Promise<void> => {
   await match(decodedMessage)
     .with({ type: "PurposeAdded" }, async (event) => {

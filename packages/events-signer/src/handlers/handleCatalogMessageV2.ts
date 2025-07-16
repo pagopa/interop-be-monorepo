@@ -1,14 +1,16 @@
 import { match, P } from "ts-pattern";
 import { EServiceEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { config } from "../../config/config.js";
+import { config } from "../config/config.js";
 import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
 import { CatalogEventData } from "../models/storeData.js";
+import { DbServiceBuilder } from "../services/dbService.js";
 
 export const handleCatalogMessageV2 = async (
   decodedMessage: EServiceEventV2,
   logger: Logger,
-  fileManager: FileManager
+  fileManager: FileManager,
+  _dbService: DbServiceBuilder
 ): Promise<void> => {
   await match(decodedMessage)
     .with(

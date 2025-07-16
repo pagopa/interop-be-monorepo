@@ -25,15 +25,19 @@ import {
   DelegationEventV2,
 } from "pagopa-interop-models";
 
-import { config } from "../config/config.js";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { config } from "./config/config.js";
 
 import { handleCatalogMessageV2 } from "./handlers/handleCatalogMessageV2.js";
 import { handleAgreementMessageV2 } from "./handlers/handleAgreementMessageV2.js";
 import { handlePurposeMessageV2 } from "./handlers/handlePurposeMessageV2.js";
 import { handleAuthorizationMessageV2 } from "./handlers/handleAuthorizationMessageV2.js";
 import { handleDelegationMessageV2 } from "./handlers/handleDelegationMessageV2.js";
+import { dbServiceBuilder } from "./services/dbService.js";
 
 const fileManager = initFileManager(config);
+const dynamoDBClient = new DynamoDBClient();
+const dbService = dbServiceBuilder(dynamoDBClient, genericLogger);
 
 function processMessage(
   catalogTopicConfig: CatalogTopicConfig,
@@ -115,7 +119,7 @@ function processMessage(
       `Processing ${decodedMessage.type} message - Partition number: ${messagePayload.partition} - Offset: ${messagePayload.message.offset}`
     );
 
-    await updater(loggerInstance, fileManager);
+    await updater(loggerInstance, fileManager, dbService);
   };
 }
 

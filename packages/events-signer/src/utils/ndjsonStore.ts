@@ -1,7 +1,7 @@
 import { Buffer } from "buffer";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { StoreData } from "../models/storeData.js";
-import { EventsSignerConfig } from "../../config/config.js";
+import { EventsSignerConfig } from "../config/config.js";
 
 export const storeEventDataInNdjson = async <T extends StoreData>(
   dataToStore: T,

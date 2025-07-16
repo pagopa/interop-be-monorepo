@@ -32,6 +32,8 @@
     "vitest": "1.6.1"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "3.840.0",
+    "@aws-sdk/util-dynamodb": "3.840.0",
     "@protobuf-ts/runtime": "2.9.4",
     "@zodios/core": "10.9.6",
     "axios": "1.8.2",
