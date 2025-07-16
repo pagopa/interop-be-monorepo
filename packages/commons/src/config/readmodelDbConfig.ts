@@ -7,8 +7,8 @@ export const ReadModelDbConfig = z
     READMODEL_DB_USERNAME: z.string(),
     READMODEL_DB_PASSWORD: z.string(),
     READMODEL_DB_PORT: z.coerce.number().min(1001),
-    READMODEL_DB_READ_PREFERENCE: z.string(),
-    READMODEL_DB_REPLICA_SET: z.string(),
+    READMODEL_DB_READ_PREFERENCE: z.string().optional(),
+    READMODEL_DB_REPLICA_SET: z.string().optional(),
   })
   .transform((c) => ({
     readModelDbHost: c.READMODEL_DB_HOST,
