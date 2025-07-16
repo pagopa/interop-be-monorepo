@@ -1,4 +1,4 @@
-import { ilike, inArray, or, and, eq, SQL } from "drizzle-orm";
+import { ilike, inArray, or, and, eq, SQL, asc } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -17,6 +17,10 @@ import {
   delegationState,
   agreementState,
   descriptorState,
+  AgreementDocument,
+  unsafeBrandId,
+  AgreementDocumentId,
+  stringToDate,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -816,6 +820,52 @@ export function readModelServiceBuilderSQL(
           )
         );
       return delegation?.data;
+    },
+
+    async getAgreementConsumerDocuments(
+      agreementId: AgreementId,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<AgreementDocument>> {
+      const resultsSet = await readmodelDB
+        .select(
+          withTotalCount({
+            id: agreementConsumerDocumentInReadmodelAgreement.id,
+            path: agreementConsumerDocumentInReadmodelAgreement.path,
+            name: agreementConsumerDocumentInReadmodelAgreement.name,
+            prettyName:
+              agreementConsumerDocumentInReadmodelAgreement.prettyName,
+            contentType:
+              agreementConsumerDocumentInReadmodelAgreement.contentType,
+            createdAt: agreementConsumerDocumentInReadmodelAgreement.createdAt,
+          })
+        )
+        .from(agreementConsumerDocumentInReadmodelAgreement)
+        .where(
+          eq(
+            agreementConsumerDocumentInReadmodelAgreement.agreementId,
+            agreementId
+          )
+        )
+        .orderBy(asc(agreementConsumerDocumentInReadmodelAgreement.createdAt))
+        .limit(limit)
+        .offset(offset)
+        .$dynamic();
+
+      return createListResult(
+        resultsSet.map(
+          (doc) =>
+            ({
+              id: unsafeBrandId<AgreementDocumentId>(doc.id),
+              path: doc.path,
+              name: doc.name,
+              prettyName: doc.prettyName,
+              contentType: doc.contentType,
+              createdAt: stringToDate(doc.createdAt),
+            } satisfies AgreementDocument)
+        ),
+        resultsSet[0]?.totalCount
+      );
     },
   };
 }
