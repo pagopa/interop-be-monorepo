@@ -19,7 +19,7 @@ export type ExportedCollection =
   | "agreements"
   | "purposes"
   | "delegations"
-  | "eserviceTemplates";
+  | "eservice-templates";
 
 /**
  * The pick method used to extract the fields from the original type is not
