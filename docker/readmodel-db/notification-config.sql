@@ -31,7 +31,15 @@ CREATE TABLE IF NOT EXISTS readmodel_notification_config.user_notification_confi
   CONSTRAINT user_notification_config_user_id_tenant_id_unique UNIQUE (user_id, tenant_id)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_notification_config.user_enabled_notification (
+CREATE TABLE IF NOT EXISTS readmodel_notification_config.user_enabled_in_app_notification (
+  user_notification_config_id UUID NOT NULL REFERENCES readmodel_notification_config.user_notification_config (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  notification_type VARCHAR NOT NULL,
+  PRIMARY KEY (user_notification_config_id, notification_type),
+  FOREIGN KEY (user_notification_config_id, metadata_version) REFERENCES readmodel_notification_config.user_notification_config (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_notification_config.user_enabled_email_notification (
   user_notification_config_id UUID NOT NULL REFERENCES readmodel_notification_config.user_notification_config (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   notification_type VARCHAR NOT NULL,

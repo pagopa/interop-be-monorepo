@@ -1785,9 +1785,9 @@ export const tenantEnabledNotificationInReadmodelNotificationConfig =
     ]
   );
 
-export const userEnabledNotificationInReadmodelNotificationConfig =
+export const userEnabledInAppNotificationInReadmodelNotificationConfig =
   readmodelNotificationConfig.table(
-    "user_enabled_notification",
+    "user_enabled_in_app_notification",
     {
       userNotificationConfigId: uuid("user_notification_config_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
@@ -1799,7 +1799,7 @@ export const userEnabledNotificationInReadmodelNotificationConfig =
         foreignColumns: [
           userNotificationConfigInReadmodelNotificationConfig.id,
         ],
-        name: "user_enabled_notification_user_notification_config_id_fkey",
+        name: "user_enabled_in_app_notificati_user_notification_config_id_fkey",
       }).onDelete("cascade"),
       foreignKey({
         columns: [table.userNotificationConfigId, table.metadataVersion],
@@ -1807,11 +1807,42 @@ export const userEnabledNotificationInReadmodelNotificationConfig =
           userNotificationConfigInReadmodelNotificationConfig.id,
           userNotificationConfigInReadmodelNotificationConfig.metadataVersion,
         ],
-        name: "user_enabled_notification_user_notification_config_id_meta_fkey",
+        name: "user_enabled_in_app_notificat_user_notification_config_id__fkey",
       }),
       primaryKey({
         columns: [table.userNotificationConfigId, table.notificationType],
-        name: "user_enabled_notification_pkey",
+        name: "user_enabled_in_app_notification_pkey",
+      }),
+    ]
+  );
+
+export const userEnabledEmailNotificationInReadmodelNotificationConfig =
+  readmodelNotificationConfig.table(
+    "user_enabled_email_notification",
+    {
+      userNotificationConfigId: uuid("user_notification_config_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      notificationType: varchar("notification_type").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.userNotificationConfigId],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+        ],
+        name: "user_enabled_email_notificatio_user_notification_config_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.userNotificationConfigId, table.metadataVersion],
+        foreignColumns: [
+          userNotificationConfigInReadmodelNotificationConfig.id,
+          userNotificationConfigInReadmodelNotificationConfig.metadataVersion,
+        ],
+        name: "user_enabled_email_notificati_user_notification_config_id__fkey",
+      }),
+      primaryKey({
+        columns: [table.userNotificationConfigId, table.notificationType],
+        name: "user_enabled_email_notification_pkey",
       }),
     ]
   );

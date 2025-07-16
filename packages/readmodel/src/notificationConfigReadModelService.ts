@@ -1,5 +1,5 @@
+import { match } from "ts-pattern";
 import {
-  NotificationConfig,
   TenantId,
   TenantNotificationConfig,
   UserId,
@@ -11,7 +11,8 @@ import {
   DrizzleReturnType,
   tenantEnabledNotificationInReadmodelNotificationConfig,
   tenantNotificationConfigInReadmodelNotificationConfig,
-  userEnabledNotificationInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, inArray } from "drizzle-orm";
@@ -21,7 +22,7 @@ import {
   toTenantNotificationConfigAggregator,
   toUserNotificationConfigAggregator,
 } from "./notification-config/aggregators.js";
-import { UserNotificationType } from "./notification-config/utils.js";
+import { NotificationType } from "./notification-config/utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notificationConfigReadModelServiceBuilder(
@@ -70,8 +71,10 @@ export function notificationConfigReadModelServiceBuilder(
         .select({
           userNotificationConfig:
             userNotificationConfigInReadmodelNotificationConfig,
-          enabledNotification:
-            userEnabledNotificationInReadmodelNotificationConfig,
+          enabledInAppNotification:
+            userEnabledInAppNotificationInReadmodelNotificationConfig,
+          enabledEmailNotification:
+            userEnabledEmailNotificationInReadmodelNotificationConfig,
         })
         .from(userNotificationConfigInReadmodelNotificationConfig)
         .where(
@@ -87,10 +90,17 @@ export function notificationConfigReadModelServiceBuilder(
           )
         )
         .leftJoin(
-          userEnabledNotificationInReadmodelNotificationConfig,
+          userEnabledInAppNotificationInReadmodelNotificationConfig,
           eq(
             userNotificationConfigInReadmodelNotificationConfig.id,
-            userEnabledNotificationInReadmodelNotificationConfig.userNotificationConfigId
+            userEnabledInAppNotificationInReadmodelNotificationConfig.userNotificationConfigId
+          )
+        )
+        .leftJoin(
+          userEnabledEmailNotificationInReadmodelNotificationConfig,
+          eq(
+            userNotificationConfigInReadmodelNotificationConfig.id,
+            userEnabledEmailNotificationInReadmodelNotificationConfig.userNotificationConfigId
           )
         );
 
@@ -105,10 +115,20 @@ export function notificationConfigReadModelServiceBuilder(
 
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
-      notificationType: keyof NotificationConfig,
+      notificationType: NotificationType,
       notificationChannel: "inApp" | "email"
     ): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
-      const userNotificationType: UserNotificationType = `${notificationType}.${notificationChannel}`;
+      const enabledNotificationTable = match(notificationChannel)
+        .with(
+          "inApp",
+          () => userEnabledInAppNotificationInReadmodelNotificationConfig
+        )
+        .with(
+          "email",
+          () => userEnabledEmailNotificationInReadmodelNotificationConfig
+        )
+        .exhaustive();
+
       const queryResult = await db
         .select({
           userId: userNotificationConfigInReadmodelNotificationConfig.userId,
@@ -117,10 +137,10 @@ export function notificationConfigReadModelServiceBuilder(
         })
         .from(userNotificationConfigInReadmodelNotificationConfig)
         .innerJoin(
-          userEnabledNotificationInReadmodelNotificationConfig,
+          enabledNotificationTable,
           eq(
             userNotificationConfigInReadmodelNotificationConfig.id,
-            userEnabledNotificationInReadmodelNotificationConfig.userNotificationConfigId
+            enabledNotificationTable.userNotificationConfigId
           )
         )
         .where(
@@ -129,10 +149,7 @@ export function notificationConfigReadModelServiceBuilder(
               userNotificationConfigInReadmodelNotificationConfig.tenantId,
               tenantIds
             ),
-            eq(
-              userEnabledNotificationInReadmodelNotificationConfig.notificationType,
-              userNotificationType
-            )
+            eq(enabledNotificationTable.notificationType, notificationType)
           )
         );
 

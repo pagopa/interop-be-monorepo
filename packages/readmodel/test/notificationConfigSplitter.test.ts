@@ -3,11 +3,11 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { generateMock } from "@anatine/zod-mock";
-import { NotificationConfig } from "pagopa-interop-models";
 import {
   TenantEnabledNotificationSQL,
   TenantNotificationConfigSQL,
-  UserEnabledNotificationSQL,
+  UserEnabledInAppNotificationSQL,
+  UserEnabledEmailNotificationSQL,
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
 import {
@@ -18,7 +18,6 @@ import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
 } from "../src/notification-config/splitters.js";
-import { UserNotificationType } from "../src/notification-config/utils.js";
 
 describe("Notification config splitters", () => {
   const updatedAt = generateMock(z.coerce.date());
@@ -79,8 +78,11 @@ describe("Notification config splitters", () => {
         ...getMockUserNotificationConfig(),
         updatedAt,
       };
-      const { userNotificationConfigSQL, enabledNotificationsSQL } =
-        splitUserNotificationConfigIntoObjectsSQL(userNotificationConfig, 1);
+      const {
+        userNotificationConfigSQL,
+        enabledInAppNotificationsSQL,
+        enabledEmailNotificationsSQL,
+      } = splitUserNotificationConfigIntoObjectsSQL(userNotificationConfig, 1);
 
       const expectedUserNotificationConfigSQL: UserNotificationConfigSQL = {
         id: userNotificationConfig.id,
@@ -91,35 +93,37 @@ describe("Notification config splitters", () => {
         updatedAt: expectedUpdatedAt,
       };
 
-      const expectedEnabledNotificationsSQL: UserEnabledNotificationSQL[] = (
-        ["newEServiceVersionPublished"] as const
-      )
-        .flatMap((notificationType): UserNotificationType[] => [
-          `${notificationType}.inApp`,
-          `${notificationType}.email`,
-        ])
-        .filter(
-          (n) =>
-            (n.split(".")[1] === "inApp" &&
-              userNotificationConfig.inAppConfig[
-                n.split(".")[0] as keyof NotificationConfig
-              ]) ||
-            (n.split(".")[1] === "email" &&
-              userNotificationConfig.emailConfig[
-                n.split(".")[0] as keyof NotificationConfig
-              ])
-        )
-        .map((notificationType) => ({
-          userNotificationConfigId: userNotificationConfig.id,
-          metadataVersion: 1,
-          notificationType,
-        }));
+      const expectedEnabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] =
+        (["newEServiceVersionPublished"] as const)
+          .filter(
+            (notificationType) =>
+              userNotificationConfig.inAppConfig[notificationType]
+          )
+          .map((notificationType) => ({
+            userNotificationConfigId: userNotificationConfig.id,
+            metadataVersion: 1,
+            notificationType,
+          }));
+      const expectedEnabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[] =
+        (["newEServiceVersionPublished"] as const)
+          .filter(
+            (notificationType) =>
+              userNotificationConfig.emailConfig[notificationType]
+          )
+          .map((notificationType) => ({
+            userNotificationConfigId: userNotificationConfig.id,
+            metadataVersion: 1,
+            notificationType,
+          }));
 
       expect(userNotificationConfigSQL).toStrictEqual(
         expectedUserNotificationConfigSQL
       );
-      expect(enabledNotificationsSQL).toStrictEqual(
-        expectedEnabledNotificationsSQL
+      expect(enabledInAppNotificationsSQL).toStrictEqual(
+        expectedEnabledInAppNotificationsSQL
+      );
+      expect(enabledEmailNotificationsSQL).toStrictEqual(
+        expectedEnabledEmailNotificationsSQL
       );
     }
   );

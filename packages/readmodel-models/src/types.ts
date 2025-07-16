@@ -52,7 +52,8 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   userNotificationConfigInReadmodelNotificationConfig,
   tenantEnabledNotificationInReadmodelNotificationConfig,
-  userEnabledNotificationInReadmodelNotificationConfig,
+  userEnabledInAppNotificationInReadmodelNotificationConfig,
+  userEnabledEmailNotificationInReadmodelNotificationConfig,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -281,10 +282,14 @@ export type TenantNotificationConfigItemsSQL = {
 export type UserNotificationConfigSQL = InferSelectModel<
   typeof userNotificationConfigInReadmodelNotificationConfig
 >;
-export type UserEnabledNotificationSQL = InferSelectModel<
-  typeof userEnabledNotificationInReadmodelNotificationConfig
+export type UserEnabledInAppNotificationSQL = InferSelectModel<
+  typeof userEnabledInAppNotificationInReadmodelNotificationConfig
+>;
+export type UserEnabledEmailNotificationSQL = InferSelectModel<
+  typeof userEnabledEmailNotificationInReadmodelNotificationConfig
 >;
 export type UserNotificationConfigItemsSQL = {
   userNotificationConfigSQL: UserNotificationConfigSQL;
-  enabledNotificationsSQL: UserEnabledNotificationSQL[];
+  enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[];
+  enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[];
 };

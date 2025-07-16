@@ -10,12 +10,13 @@ import {
   TenantEnabledNotificationSQL,
   TenantNotificationConfigItemsSQL,
   TenantNotificationConfigSQL,
-  UserEnabledNotificationSQL,
+  UserEnabledInAppNotificationSQL,
+  UserEnabledEmailNotificationSQL,
   UserNotificationConfigItemsSQL,
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
-import { TenantNotificationType, UserNotificationType } from "./utils.js";
+import { NotificationType } from "./utils.js";
 
 export const aggregateTenantNotificationConfig = ({
   tenantNotificationConfigSQL,
@@ -26,7 +27,7 @@ export const aggregateTenantNotificationConfig = ({
   void (rest satisfies Record<string, never>);
 
   const enabledNotifications = enabledNotificationsSQL.map((r) =>
-    TenantNotificationType.parse(r.notificationType)
+    NotificationType.parse(r.notificationType)
   );
 
   const config: NotificationConfig = {
@@ -49,7 +50,8 @@ export const aggregateTenantNotificationConfig = ({
 
 export const aggregateUserNotificationConfig = ({
   userNotificationConfigSQL,
-  enabledNotificationsSQL,
+  enabledInAppNotificationsSQL,
+  enabledEmailNotificationsSQL,
 }: UserNotificationConfigItemsSQL): WithMetadata<UserNotificationConfig> => {
   const {
     id,
@@ -62,18 +64,21 @@ export const aggregateUserNotificationConfig = ({
   } = userNotificationConfigSQL;
   void (rest satisfies Record<string, never>);
 
-  const enabledNotifications = enabledNotificationsSQL.map((r) =>
-    UserNotificationType.parse(r.notificationType)
+  const enabledInAppNotifications = enabledInAppNotificationsSQL.map((r) =>
+    NotificationType.parse(r.notificationType)
+  );
+  const enabledEmailNotifications = enabledEmailNotificationsSQL.map((r) =>
+    NotificationType.parse(r.notificationType)
   );
 
   const inAppConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledNotifications.includes(
-      "newEServiceVersionPublished.inApp"
+    newEServiceVersionPublished: enabledInAppNotifications.includes(
+      "newEServiceVersionPublished"
     ),
   };
   const emailConfig: NotificationConfig = {
-    newEServiceVersionPublished: enabledNotifications.includes(
-      "newEServiceVersionPublished.email"
+    newEServiceVersionPublished: enabledEmailNotifications.includes(
+      "newEServiceVersionPublished"
     ),
   };
 
@@ -117,38 +122,16 @@ export const toTenantNotificationConfigAggregatorArray = (
   tenantNotificationConfigsSQL: TenantNotificationConfigSQL[];
   enabledNotificationsSQL: TenantEnabledNotificationSQL[];
 } => {
-  const tenantNotificationConfigIdSet = new Set<string>();
-  const tenantNotificationConfigsSQL: TenantNotificationConfigSQL[] = [];
-
-  const enabledNotificationIdSet = new Set<string>();
-  const enabledNotificationsSQL: TenantEnabledNotificationSQL[] = [];
-
-  queryRes.forEach((row) => {
-    const tenantNotificationConfigSQL = row.tenantNotificationConfig;
-    if (!tenantNotificationConfigIdSet.has(tenantNotificationConfigSQL.id)) {
-      tenantNotificationConfigIdSet.add(tenantNotificationConfigSQL.id);
-      // eslint-disable-next-line functional/immutable-data
-      tenantNotificationConfigsSQL.push(tenantNotificationConfigSQL);
-    }
-
-    const enabledNotificationSQL = row.enabledNotification;
-    const enabledNotificationPK = enabledNotificationSQL
-      ? makeUniqueKey([
-          enabledNotificationSQL.tenantNotificationConfigId,
-          enabledNotificationSQL.notificationType,
-        ])
-      : undefined;
-    if (
-      enabledNotificationSQL &&
-      enabledNotificationPK &&
-      !enabledNotificationIdSet.has(enabledNotificationPK)
-    ) {
-      enabledNotificationIdSet.add(enabledNotificationPK);
-      // eslint-disable-next-line functional/immutable-data
-      enabledNotificationsSQL.push(enabledNotificationSQL);
-    }
-  });
-
+  const tenantNotificationConfigsSQL: TenantNotificationConfigSQL[] =
+    collectUnique(
+      queryRes.map((row) => row.tenantNotificationConfig),
+      (row) => row.id
+    );
+  const enabledNotificationsSQL: TenantEnabledNotificationSQL[] = collectUnique(
+    queryRes.map((row) => row.enabledNotification),
+    (row) =>
+      makeUniqueKey([row.tenantNotificationConfigId, row.notificationType])
+  );
   return {
     tenantNotificationConfigsSQL,
     enabledNotificationsSQL,
@@ -158,63 +141,77 @@ export const toTenantNotificationConfigAggregatorArray = (
 export const toUserNotificationConfigAggregator = (
   queryRes: Array<{
     userNotificationConfig: UserNotificationConfigSQL;
-    enabledNotification: UserEnabledNotificationSQL | null;
+    enabledInAppNotification: UserEnabledInAppNotificationSQL | null;
+    enabledEmailNotification: UserEnabledEmailNotificationSQL | null;
   }>
 ): UserNotificationConfigItemsSQL => {
-  const { userNotificationConfigsSQL, enabledNotificationsSQL } =
-    toUserNotificationConfigAggregatorArray(queryRes);
+  const {
+    userNotificationConfigsSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
+  } = toUserNotificationConfigAggregatorArray(queryRes);
 
   throwIfMultiple(userNotificationConfigsSQL, "user notification config");
 
   return {
     userNotificationConfigSQL: userNotificationConfigsSQL[0],
-    enabledNotificationsSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
   };
 };
 
 export const toUserNotificationConfigAggregatorArray = (
   queryRes: Array<{
     userNotificationConfig: UserNotificationConfigSQL;
-    enabledNotification: UserEnabledNotificationSQL | null;
+    enabledInAppNotification: UserEnabledInAppNotificationSQL | null;
+    enabledEmailNotification: UserEnabledEmailNotificationSQL | null;
   }>
 ): {
   userNotificationConfigsSQL: UserNotificationConfigSQL[];
-  enabledNotificationsSQL: UserEnabledNotificationSQL[];
+  enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[];
+  enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[];
 } => {
-  const userNotificationConfigIdSet = new Set<string>();
-  const userNotificationConfigsSQL: UserNotificationConfigSQL[] = [];
-
-  const enabledNotificationIdSet = new Set<string>();
-  const enabledNotificationsSQL: UserEnabledNotificationSQL[] = [];
-
-  queryRes.forEach((row) => {
-    const userNotificationConfigSQL = row.userNotificationConfig;
-    if (!userNotificationConfigIdSet.has(userNotificationConfigSQL.id)) {
-      userNotificationConfigIdSet.add(userNotificationConfigSQL.id);
-      // eslint-disable-next-line functional/immutable-data
-      userNotificationConfigsSQL.push(userNotificationConfigSQL);
-    }
-
-    const enabledNotificationSQL = row.enabledNotification;
-    const enabledNotificationPK = enabledNotificationSQL
-      ? makeUniqueKey([
-          enabledNotificationSQL.userNotificationConfigId,
-          enabledNotificationSQL.notificationType,
-        ])
-      : undefined;
-    if (
-      enabledNotificationSQL &&
-      enabledNotificationPK &&
-      !enabledNotificationIdSet.has(enabledNotificationPK)
-    ) {
-      enabledNotificationIdSet.add(enabledNotificationPK);
-      // eslint-disable-next-line functional/immutable-data
-      enabledNotificationsSQL.push(enabledNotificationSQL);
-    }
-  });
+  const userNotificationConfigsSQL: UserNotificationConfigSQL[] = collectUnique(
+    queryRes.map((row) => row.userNotificationConfig),
+    (row) => row.id
+  );
+  const enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[] =
+    collectUnique(
+      queryRes.map((row) => row.enabledInAppNotification),
+      (row) =>
+        makeUniqueKey([row.userNotificationConfigId, row.notificationType])
+    );
+  const enabledEmailNotificationsSQL: UserEnabledEmailNotificationSQL[] =
+    collectUnique(
+      queryRes.map((row) => row.enabledEmailNotification),
+      (row) =>
+        makeUniqueKey([row.userNotificationConfigId, row.notificationType])
+    );
 
   return {
     userNotificationConfigsSQL,
-    enabledNotificationsSQL,
+    enabledInAppNotificationsSQL,
+    enabledEmailNotificationsSQL,
   };
+};
+
+const collectUnique = <T>(
+  rows: Array<T | null>,
+  getId: (row: T) => string
+): T[] => {
+  const uniqueRows: T[] = [];
+  const idSet = new Set<string>();
+
+  rows.forEach((row) => {
+    if (row) {
+      const id = getId(row);
+      if (!idSet.has(id)) {
+        idSet.add(id);
+        // eslint-disable-next-line functional/immutable-data
+        uniqueRows.push(row);
+      }
+    }
+  });
+
+  return uniqueRows;
 };
