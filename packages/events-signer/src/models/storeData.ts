@@ -16,6 +16,7 @@ export type AuthorizationEventData = {
   id?: string;
   kid?: string;
   user_id?: string;
+  timestamp?: string;
 };
 
 export type CatalogEventData = {

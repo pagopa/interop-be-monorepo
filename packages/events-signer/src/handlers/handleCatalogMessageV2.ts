@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
 import { EServiceEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
@@ -12,46 +13,59 @@ export const handleCatalogMessageV2 = async (
   fileManager: FileManager,
   _dbService: DbServiceBuilder
 ): Promise<void> => {
-  await match(decodedMessages)
-    .with(
-      {
-        type: P.union(
-          "EServiceDescriptorActivated",
-          "EServiceDescriptorArchived",
-          "EServiceDescriptorPublished",
-          "EServiceDescriptorSuspended"
-        ),
-      },
-      async (event) => {
-        logger.info(`Processing managed Catalog event: ${event.type}`);
+  const allCatalogDataToStore: CatalogEventData[] = [];
 
-        const eventName = event.type;
-        const eserviceId = event.data.eservice?.id;
-        const descriptorId = event.data.descriptorId;
+  for (const message of decodedMessages) {
+    match(message)
+      .with(
+        {
+          type: P.union(
+            "EServiceDescriptorActivated",
+            "EServiceDescriptorArchived",
+            "EServiceDescriptorPublished",
+            "EServiceDescriptorSuspended"
+          ),
+        },
+        (event) => {
+          if (!event.data.eservice?.id || !event.data.descriptorId) {
+            logger.warn(
+              `Skipping managed Catalog event ${event.type} due to missing e-service ID or descriptor ID.`
+            );
+            return;
+          }
 
-        const state = event.data.eservice?.descriptors.find(
-          (descriptor) => descriptor.id === event.data.descriptorId
-        )?.state;
+          const eventName = event.type;
+          const eserviceId = event.data.eservice.id;
+          const descriptorId = event.data.descriptorId;
 
-        const dataToStore = {
-          event_name: eventName,
-          id: eserviceId,
-          descriptor_id: descriptorId,
-          state,
-        };
+          const state = event.data.eservice.descriptors.find(
+            (descriptor) => descriptor.id === event.data.descriptorId
+          )?.state;
 
-        const documentDestinationPath = `catalog/eservices/${eserviceId}/${descriptorId}`;
+          allCatalogDataToStore.push({
+            event_name: eventName,
+            id: eserviceId,
+            descriptor_id: descriptorId,
+            state,
+          });
+        }
+      )
+      .otherwise((event) => {
+        logger.info(`Skipping unmanaged Catalog event: ${event.type}`);
+      });
+  }
 
-        await storeEventDataInNdjson<CatalogEventData>(
-          dataToStore,
-          documentDestinationPath,
-          fileManager,
-          logger,
-          config
-        );
-      }
-    )
-    .otherwise(() => {
-      logger.info(`Skipping unmanaged Catalog event: ${decodedMessage.type}`);
-    });
+  if (allCatalogDataToStore.length > 0) {
+    const documentDestinationPath = `catalog/${new Date()}`;
+
+    await storeEventDataInNdjson<CatalogEventData>(
+      allCatalogDataToStore,
+      documentDestinationPath,
+      fileManager,
+      logger,
+      config
+    );
+  } else {
+    logger.info("No managed catalog events to store.");
+  }
 };

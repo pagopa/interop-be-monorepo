@@ -28,6 +28,7 @@ import { handleAgreementMessageV2 } from "./handleAgreementMessageV2.js";
 import { handlePurposeMessageV2 } from "./handlePurposeMessageV2.js";
 import { handleDelegationMessageV2 } from "./handleDelegationMessageV2.js";
 import { handleAuthorizationMessageV2 } from "./handleAuthorizationMessageV2.js";
+import { handleAuthorizationMessageV1 } from "./handleAuthorizationMessageV1.js";
 
 /**
  * Processes a list of Kafka messages for the specified topic by decoding each message and invoking the corresponding handler.
@@ -114,7 +115,7 @@ export async function executeTopicHandler(
           .exhaustive();
       }
       if (authV1.length > 0) {
-        await handleAuthorizationMessageV2(
+        await handleAuthorizationMessageV1(
           authV1,
           logger,
           fileManager,

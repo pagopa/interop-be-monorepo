@@ -4,34 +4,38 @@ import { StoreData } from "../models/storeData.js";
 import { EventsSignerConfig } from "../config/config.js";
 
 export const storeEventDataInNdjson = async <T extends StoreData>(
-  dataToStore: T,
+  dataToStoreArray: T[],
   documentDestinationPath: string,
   fileManager: FileManager,
   logger: Logger,
   config: EventsSignerConfig
 ): Promise<void> => {
-  const ndjsonString = JSON.stringify(dataToStore) + "\n";
+  if (dataToStoreArray.length === 0) {
+    logger.info("No data to store in NDJSON file.");
+    return;
+  }
+
+  const ndjsonString =
+    dataToStoreArray.map((data) => JSON.stringify(data)).join("\n") + "\n";
   const contentBuffer = Buffer.from(ndjsonString, "utf-8");
 
-  const documentName = `${dataToStore.event_name}_${Date.now()}.ndjson`;
+  const documentName = `batch_events_${Date.now()}.ndjson`;
 
   try {
     await fileManager.storeBytes(
       {
         bucket: config.s3Bucket,
         path: documentDestinationPath,
-        resourceId: dataToStore.id,
+        resourceId: dataToStoreArray[0].id, // TBD
         name: documentName,
         content: contentBuffer,
       },
       logger
     );
     logger.info(
-      `Successfully stored event data for resource ID ${dataToStore.id} in file ${documentName}`
+      `Successfully stored ${dataToStoreArray.length} event(s) in batch file ${documentName} at path ${documentDestinationPath}`
     );
   } catch (error) {
-    logger.error(
-      `Failed to store event data for ID ${dataToStore.id}: ${error}`
-    );
+    logger.error(`Failed to store batch event data: ${error}`);
   }
 };

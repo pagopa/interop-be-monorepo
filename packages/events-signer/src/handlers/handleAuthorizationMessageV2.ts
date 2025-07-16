@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 import { match } from "ts-pattern";
 import { AuthorizationEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
@@ -7,80 +8,80 @@ import { AuthorizationEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
 export const handleAuthorizationMessageV2 = async (
-  decodedMessage: AuthorizationEventV2[],
+  decodedMessages: AuthorizationEventV2[],
   logger: Logger,
   fileManager: FileManager,
   _dbService: DbServiceBuilder
 ): Promise<void> => {
-  await match(decodedMessage)
-    .with({ type: "ClientKeyAdded" }, async (event) => {
-      logger.info(`Processing managed Authorization event: ${event.type}`);
-      const clientId = event.data.client?.id;
-      const kid = event.data.kid;
-      const userId = JSON.stringify(event.data.client?.users);
+  const allAuthorizationDataToStore: AuthorizationEventData[] = [];
 
-      const dataToStore = {
-        event_name: event.type,
-        id: clientId,
-        user_id: userId,
-        kid,
-      };
+  for (const message of decodedMessages) {
+    match(message)
+      .with({ type: "ClientKeyAdded" }, (event) => {
+        if (!event.data.client?.id) {
+          logger.warn(
+            `Skipping ClientKeyAdded event due to missing client ID.`
+          );
+          return;
+        }
 
-      const documentDestinationPath = `authorization/events/clients/${clientId}`;
+        const clientId = event.data.client.id;
+        const kid = event.data.kid;
+        const userId = JSON.stringify(event.data.client.users);
 
-      await storeEventDataInNdjson<AuthorizationEventData>(
-        dataToStore,
-        documentDestinationPath,
-        fileManager,
-        logger,
-        config
-      );
-    })
-    .with({ type: "ClientKeyDeleted" }, async (event) => {
-      logger.info(`Processing managed Authorization event: ${event.type}`);
+        allAuthorizationDataToStore.push({
+          event_name: event.type,
+          id: clientId,
+          user_id: userId,
+          kid,
+        });
+      })
+      .with({ type: "ClientKeyDeleted" }, (event) => {
+        if (!event.data.client?.id) {
+          logger.warn(
+            `Skipping ClientKeyDeleted event due to missing client ID.`
+          );
+          return;
+        }
 
-      const clientId = event.data.client?.id;
-      const kid = event.data.kid;
+        const clientId = event.data.client.id;
+        const kid = event.data.kid;
 
-      const dataToStore = {
-        event_name: event.type,
-        id: clientId,
-        kid,
-      };
+        allAuthorizationDataToStore.push({
+          event_name: event.type,
+          id: clientId,
+          kid,
+        });
+      })
+      .with({ type: "ClientDeleted" }, (event) => {
+        if (!event.data.client?.id) {
+          logger.warn(`Skipping ClientDeleted event due to missing client ID.`);
+          return;
+        }
 
-      const documentDestinationPath = `authorization/${clientId}`;
+        const clientId = event.data.client.id;
 
-      await storeEventDataInNdjson<AuthorizationEventData>(
-        dataToStore,
-        documentDestinationPath,
-        fileManager,
-        logger,
-        config
-      );
-    })
-    .with({ type: "ClientDeleted" }, async (event) => {
-      logger.info(`Processing managed Authorization event: ${event.type}`);
+        allAuthorizationDataToStore.push({
+          event_name: event.type,
+          id: clientId,
+        });
+      })
+      .otherwise((event) => {
+        logger.info(`Skipping unmanaged Authorization event: ${event.type}`);
+      });
+  }
 
-      const clientId = event.data.client?.id;
+  if (allAuthorizationDataToStore.length > 0) {
+    const documentDestinationPath = `authorization/${new Date()}`;
 
-      const dataToStore = {
-        event_name: event.type,
-        client_id: clientId,
-      };
-
-      const documentDestinationPath = `authorization/events/${clientId}`;
-
-      await storeEventDataInNdjson<AuthorizationEventData>(
-        dataToStore,
-        documentDestinationPath,
-        fileManager,
-        logger,
-        config
-      );
-    })
-    .otherwise(() => {
-      logger.info(
-        `Skipping unmanaged Authorization event: ${decodedMessage.type}`
-      );
-    });
+    await storeEventDataInNdjson<AuthorizationEventData>(
+      allAuthorizationDataToStore,
+      documentDestinationPath,
+      fileManager,
+      logger,
+      config
+    );
+  } else {
+    logger.info("No managed authorization events to store.");
+  }
 };

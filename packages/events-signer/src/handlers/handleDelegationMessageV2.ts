@@ -1,3 +1,4 @@
+/* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
 import { DelegationEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
@@ -7,48 +8,61 @@ import { DelegationEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
 export const handleDelegationMessageV2 = async (
-  decodedMessage: DelegationEventV2[],
+  decodedMessages: DelegationEventV2[],
   logger: Logger,
   fileManager: FileManager,
   _dbService: DbServiceBuilder
 ): Promise<void> => {
-  await match(decodedMessage)
-    .with(
-      {
-        type: P.union(
-          "ProducerDelegationApproved",
-          "ProducerDelegationRevoked",
-          "ConsumerDelegationApproved",
-          "ConsumerDelegationRevoked"
-        ),
-      },
-      async (event) => {
-        logger.info(`Processing managed Delegation event: ${event.type}`);
+  const allDelegationDataToStore: DelegationEventData[] = [];
 
-        const eventName = event.type;
-        const id = event.data.delegation?.id;
-        const state = event.data.delegation?.state;
+  for (const message of decodedMessages) {
+    match(message)
+      .with(
+        {
+          type: P.union(
+            "ProducerDelegationApproved",
+            "ProducerDelegationRevoked",
+            "ConsumerDelegationApproved",
+            "ConsumerDelegationRevoked"
+          ),
+        },
+        (event) => {
+          if (!event.data.delegation?.id) {
+            logger.warn(
+              `Skipping managed Delegation event ${event.type} due to missing delegation ID.`
+            );
+            return;
+          }
 
-        const dataToStore = {
-          event_name: eventName,
-          id,
-          state,
-        };
+          const eventName = event.type;
+          const id = event.data.delegation.id;
+          const state = event.data.delegation.state;
 
-        const documentDestinationPath = `delegations/${id}`;
+          allDelegationDataToStore.push({
+            event_name: eventName,
+            id,
+            state,
+          });
+        }
+      )
+      .otherwise((event) => {
+        logger.info(`Skipping unmanaged Delegation event: ${event.type}`);
+      });
+  }
 
-        await storeEventDataInNdjson<DelegationEventData>(
-          dataToStore,
-          documentDestinationPath,
-          fileManager,
-          logger,
-          config
-        );
-      }
-    )
-    .otherwise(() => {
-      logger.info(
-        `Skipping unmanaged Delegation event: ${decodedMessage.type}`
-      );
-    });
+  if (allDelegationDataToStore.length > 0) {
+    const documentDestinationPath = `delegations/${new Date()
+      .toISOString()
+      .slice(0, 10)}`;
+
+    await storeEventDataInNdjson<DelegationEventData>(
+      allDelegationDataToStore,
+      documentDestinationPath,
+      fileManager,
+      logger,
+      config
+    );
+  } else {
+    logger.info("No managed delegation events to store.");
+  }
 };
