@@ -264,8 +264,14 @@ components:
       additionalProperties: false
       required:
         - newEServiceVersionPublished
+        - producerSuspendUnsuspendAgreement
+        - consumerSuspendUnsuspendAgreement
       properties:
         newEServiceVersionPublished:
+          type: boolean
+        producerSuspendUnsuspendAgreement:
+          type: boolean
+        consumerSuspendUnsuspendAgreement:
           type: boolean
     Problem:
       properties:
