@@ -1,4 +1,4 @@
-import { buildHTMLTemplateService, Logger } from "pagopa-interop-commons";
+import { HtmlTemplateService, Logger } from "pagopa-interop-commons";
 import {
   AgreementEventEnvelopeV2,
   AttributeEventEnvelope,
@@ -16,7 +16,6 @@ import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { config } from "../config/config.js";
 import { handleEserviceDescriptorPublished } from "./handleEServiceDescriptorPublished.js";
 
-const templateService = buildHTMLTemplateService();
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
 export async function handleEvent(
@@ -28,7 +27,8 @@ export async function handleEvent(
     | AuthorizationEventEnvelopeV2
     | AttributeEventEnvelope,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  templateService: HtmlTemplateService
 ): Promise<EmailNotificationMessagePayload[]> {
   return match(decodedMessage)
     .with(

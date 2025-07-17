@@ -1,3 +1,6 @@
+import { fileURLToPath } from "url";
+import fs from "fs";
+import path from "path";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { Agreement, EService, Purpose, Tenant } from "pagopa-interop-models";
@@ -35,6 +38,13 @@ export const readModelService = readModelServiceBuilderSQL({
 export const interopFeBaseUrl = "http://localhost/fe";
 
 export const templateService = buildHTMLTemplateService();
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const commonHeaderPath = "/resources/templates/headers/common-header.hbs";
+const commonHeaderBuffer = fs.readFileSync(
+  `${dirname}/../src${commonHeaderPath}`
+);
+templateService.registerPartial("common-header", commonHeaderBuffer.toString());
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
