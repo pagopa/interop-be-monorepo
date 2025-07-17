@@ -68,16 +68,13 @@ describe("emailSenderProcessor", () => {
     {
       eventPayload: { ...correctEventPayload, correlationId: "invalid" },
     },
-  ])(
-    "should skip and log error if message is malformed: %s",
-    async ({ eventPayload }) => {
-      const message = kafkaMessagePayloadWithValue({ eventPayload });
-      await emailSenderProcessor.processMessage(message);
-      expect(mockSESEmailManager.send).toHaveBeenCalledTimes(0);
-    }
-  );
+  ])("should skip if message is malformed: %s", async ({ eventPayload }) => {
+    const message = kafkaMessagePayloadWithValue({ eventPayload });
+    await emailSenderProcessor.processMessage(message);
+    expect(mockSESEmailManager.send).toHaveBeenCalledTimes(0);
+  });
 
-  it("should log a warn and retry to send the email when api throttles", async () => {
+  it("should attempt to send the email again when api throttles", async () => {
     const message = kafkaMessagePayload;
     // eslint-disable-next-line functional/immutable-data
     mockSESEmailManager.send = vi.fn().mockRejectedValueOnce(
