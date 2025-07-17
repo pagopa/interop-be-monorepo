@@ -812,7 +812,7 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
       riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
       kind: varchar().notNull(),
       key: varchar().notNull(),
-      value: varchar().array(),
+      value: varchar().array().notNull(),
     },
     (table) => [
       foreignKey({
