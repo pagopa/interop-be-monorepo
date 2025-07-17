@@ -34,6 +34,12 @@ export const aggregateTenantNotificationConfig = ({
     newEServiceVersionPublished: enabledNotifications.includes(
       "newEServiceVersionPublished"
     ),
+    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "producerSuspendUnsuspendAgreement"
+    ),
+    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "consumerSuspendUnsuspendAgreement"
+    ),
   };
 
   return {
@@ -75,10 +81,22 @@ export const aggregateUserNotificationConfig = ({
     newEServiceVersionPublished: enabledInAppNotifications.includes(
       "newEServiceVersionPublished"
     ),
+    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "producerSuspendUnsuspendAgreement.inApp"
+    ),
+    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "consumerSuspendUnsuspendAgreement.inApp"
+    ),
   };
   const emailConfig: NotificationConfig = {
     newEServiceVersionPublished: enabledEmailNotifications.includes(
       "newEServiceVersionPublished"
+    ),
+    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "producerSuspendUnsuspendAgreement.email"
+    ),
+    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "consumerSuspendUnsuspendAgreement.email"
     ),
   };
 
