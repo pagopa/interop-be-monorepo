@@ -105,7 +105,7 @@ export function emailSenderProcessorBuilder(
         };
       } catch (err) {
         // Log and skip message
-        loggerInstance.info(
+        loggerInstance.warn(
           `Error consuming message in partition ${partition} with offset ${message.offset}. Reason: ${err}`
         );
         return;
