@@ -1,7 +1,14 @@
 /* eslint-disable sonarjs/no-identical-functions */
+import { fileURLToPath } from "url";
+import fs from "fs";
+import path from "path";
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
-import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
+import {
+  buildHTMLTemplateService,
+  decodeKafkaMessage,
+  logger,
+} from "pagopa-interop-commons";
 import {
   AgreementEventV2,
   CorrelationId,
@@ -47,6 +54,14 @@ const readModelService = readModelServiceBuilderSQL({
 const emailNotificationDispatcherService =
   emailNotificationDispatcherServiceBuilder();
 
+const templateService = buildHTMLTemplateService();
+// Register headers and footers
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
+const commonHeaderPath = "/resources/templates/headers/common-header.hbs";
+const commonHeaderBuffer = fs.readFileSync(`${dirname}/..${commonHeaderPath}`);
+templateService.registerPartial("common-header", commonHeaderBuffer.toString());
+
 function processMessage(topicHandlers: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
     const { catalogTopic, agreementTopic, purposeTopic } = topicHandlers;
@@ -81,7 +96,8 @@ function processMessage(topicHandlers: TopicNames) {
     const emailNotificationMessagePayloads = await handleEvent(
       decodedMessage,
       loggerInstance,
-      readModelService
+      readModelService,
+      templateService
     );
 
     emailNotificationMessagePayloads.forEach((messagePayload) =>
