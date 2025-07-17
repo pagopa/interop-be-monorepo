@@ -5,6 +5,7 @@ import {
   authRole,
   ExpressContext,
   fromAppContext,
+  setMetadataVersionHeader,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -156,12 +157,14 @@ const eservicesRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-        const eservice = await catalogService.createEService(req.body, ctx);
+        const { data: eService, metadata } =
+          await catalogService.createEService(req.body, ctx);
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
-          .send(catalogApi.EService.parse(eServiceToApiEService(eservice)));
+          .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
       } catch (error) {
         const errorRes = makeApiProblem(error, createEServiceErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);

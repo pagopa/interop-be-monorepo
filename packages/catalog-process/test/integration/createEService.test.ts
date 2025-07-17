@@ -72,21 +72,23 @@ describe("create eservice", () => {
     expect(eservice).toBeDefined();
 
     const eserviceCreationEvent = await readEventByStreamIdAndVersion(
-      eservice.id,
+      eservice.data.id,
       0,
       "catalog",
       postgresDB
     );
-    const descriptorCreationEvent = await readLastEserviceEvent(eservice.id);
+    const descriptorCreationEvent = await readLastEserviceEvent(
+      eservice.data.id
+    );
 
     expect(eserviceCreationEvent).toMatchObject({
-      stream_id: eservice.id,
+      stream_id: eservice.data.id,
       version: "0",
       type: "EServiceAdded",
       event_version: 2,
     });
     expect(descriptorCreationEvent).toMatchObject({
-      stream_id: eservice.id,
+      stream_id: eservice.data.id,
       version: "1",
       type: "EServiceDescriptorAdded",
       event_version: 2,
@@ -104,7 +106,7 @@ describe("create eservice", () => {
     const expectedEservice: EService = {
       ...mockEService,
       createdAt: new Date(),
-      id: eservice.id,
+      id: eservice.data.id,
       descriptors: [],
       isSignalHubEnabled,
       isConsumerDelegable,
@@ -113,14 +115,14 @@ describe("create eservice", () => {
     const expectedEserviceWithDescriptor: EService = {
       ...mockEService,
       createdAt: new Date(),
-      id: eservice.id,
+      id: eservice.data.id,
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable,
       descriptors: [
         {
           ...mockDescriptor,
-          id: eservice.descriptors[0].id,
+          id: eservice.data.descriptors[0].id,
           createdAt: new Date(),
           serverUrls: [],
         },
@@ -150,7 +152,7 @@ describe("create eservice", () => {
     );
 
     expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
+    expect(eservice.data.isSignalHubEnabled).toBe(isSignalHubEnabled);
   });
 
   it("should assign false to isSignalhubEnabled field if signalhub whitelist feature flag is enabled but the organization is not in whitelist", async () => {
@@ -171,7 +173,7 @@ describe("create eservice", () => {
     );
 
     expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(false);
+    expect(eservice.data.isSignalHubEnabled).toBe(false);
   });
 
   it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is enabled and the organization is in whitelist", async () => {
@@ -192,7 +194,7 @@ describe("create eservice", () => {
     );
 
     expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
+    expect(eservice.data.isSignalHubEnabled).toBe(isSignalHubEnabled);
   });
 
   it("should create an eservice correctly handling isClientAccessDelegable when isConsumerDelegable is not true", async () => {
@@ -224,21 +226,23 @@ describe("create eservice", () => {
     expect(eservice).toBeDefined();
 
     const eserviceCreationEvent = await readEventByStreamIdAndVersion(
-      eservice.id,
+      eservice.data.id,
       0,
       "catalog",
       postgresDB
     );
-    const descriptorCreationEvent = await readLastEserviceEvent(eservice.id);
+    const descriptorCreationEvent = await readLastEserviceEvent(
+      eservice.data.id
+    );
 
     expect(eserviceCreationEvent).toMatchObject({
-      stream_id: eservice.id,
+      stream_id: eservice.data.id,
       version: "0",
       type: "EServiceAdded",
       event_version: 2,
     });
     expect(descriptorCreationEvent).toMatchObject({
-      stream_id: eservice.id,
+      stream_id: eservice.data.id,
       version: "1",
       type: "EServiceDescriptorAdded",
       event_version: 2,
@@ -256,7 +260,7 @@ describe("create eservice", () => {
     const expectedEservice: EService = {
       ...mockEService,
       createdAt: new Date(),
-      id: eservice.id,
+      id: eservice.data.id,
       descriptors: [],
       isSignalHubEnabled,
       isConsumerDelegable,
@@ -265,14 +269,14 @@ describe("create eservice", () => {
     const expectedEserviceWithDescriptor: EService = {
       ...mockEService,
       createdAt: new Date(),
-      id: eservice.id,
+      id: eservice.data.id,
       isSignalHubEnabled,
       isConsumerDelegable,
       isClientAccessDelegable: expectedIsClientAccessDelegable,
       descriptors: [
         {
           ...mockDescriptor,
-          id: eservice.descriptors[0].id,
+          id: eservice.data.descriptors[0].id,
           createdAt: new Date(),
           serverUrls: [],
         },
@@ -302,7 +306,7 @@ describe("create eservice", () => {
     );
 
     expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
+    expect(eservice.data.isSignalHubEnabled).toBe(isSignalHubEnabled);
   });
 
   it("should assign false to isSignalhubEnabled field if signalhub whitelist feature flag is enabled but the organization is not in whitelist", async () => {
@@ -323,7 +327,7 @@ describe("create eservice", () => {
     );
 
     expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(false);
+    expect(eservice.data.isSignalHubEnabled).toBe(false);
   });
 
   it("should assign value inherit from request to isSignalhubEnabled field if signalhub whitelist feature flag is enabled and the organization is in whitelist", async () => {
@@ -344,7 +348,7 @@ describe("create eservice", () => {
     );
 
     expect(eservice).toBeDefined();
-    expect(eservice.isSignalHubEnabled).toBe(isSignalHubEnabled);
+    expect(eservice.data.isSignalHubEnabled).toBe(isSignalHubEnabled);
   });
 
   it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists", async () => {
