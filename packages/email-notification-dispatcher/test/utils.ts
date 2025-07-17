@@ -40,16 +40,19 @@ export const interopFeBaseUrl = "http://localhost/fe";
 export const templateService = buildHTMLTemplateService();
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
-const commonHeaderPath = "/resources/templates/headers/common-header.hbs";
-const commonHeaderBuffer = fs.readFileSync(
-  `${dirname}/../src${commonHeaderPath}`
+function registerPartial(name: string, path: string): void {
+  const buffer = fs.readFileSync(`${dirname}/../src${path}`);
+  templateService.registerPartial(name, buffer.toString());
+}
+
+registerPartial(
+  "common-header",
+  "/resources/templates/headers/common-header.hbs"
 );
-templateService.registerPartial("common-header", commonHeaderBuffer.toString());
-const commonFooterPath = "/resources/templates/footers/common-footer.hbs";
-const commonFooterBuffer = fs.readFileSync(
-  `${dirname}/../src${commonFooterPath}`
+registerPartial(
+  "common-footer",
+  "/resources/templates/footers/common-footer.hbs"
 );
-templateService.registerPartial("common-footer", commonFooterBuffer.toString());
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
