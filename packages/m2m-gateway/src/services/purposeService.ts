@@ -398,6 +398,21 @@ export function purposeServiceBuilder(
 
       await pollPurposeUntilDeletion(purposeId, headers);
     },
+    async deletePurposeVersion(
+      purposeId: PurposeId,
+      versionId: PurposeVersionId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting version ${versionId} of purpose ${purposeId}`);
+
+      const { metadata } =
+        await clients.purposeProcessClient.deletePurposeVersion(undefined, {
+          params: { purposeId, versionId },
+          headers,
+        });
+
+      await pollPurposeById(purposeId, metadata, headers);
+    },
     async createReversePurpose(
       purposeSeed: m2mGatewayApi.EServicePurposeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -427,7 +442,7 @@ export function purposeServiceBuilder(
 
       return toM2MGatewayApiPurpose(polledResource.data);
     },
-    async downloadPurposeVersionDocument(
+    async downloadPurposeVersionRiskAnalysisDocument(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
