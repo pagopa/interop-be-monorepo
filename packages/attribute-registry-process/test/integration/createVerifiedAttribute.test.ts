@@ -43,13 +43,16 @@ describe("verified attribute creation", () => {
   ])(
     "should write on event-store for the creation of a verified attribute ($label)",
     async () => {
-      const attribute = await attributeRegistryService.createVerifiedAttribute(
-        {
-          name: mockAttribute.name,
-          description: mockAttribute.description,
-        },
-        getMockContext({})
-      );
+      const createVerifiedAttributeResponse =
+        await attributeRegistryService.createVerifiedAttribute(
+          {
+            name: mockAttribute.name,
+            description: mockAttribute.description,
+          },
+          getMockContext({})
+        );
+
+      const attribute = createVerifiedAttributeResponse.data;
       expect(attribute).toBeDefined();
 
       const writtenEvent = await readLastAttributeEvent(attribute.id);
@@ -76,7 +79,15 @@ describe("verified attribute creation", () => {
       expect(writtenPayload.attribute).toEqual(
         toAttributeV1(expectedAttribute)
       );
-      expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
+      expect(writtenPayload.attribute).toEqual(
+        toAttributeV1(createVerifiedAttributeResponse.data)
+      );
+      expect(createVerifiedAttributeResponse).toEqual({
+        data: expectedAttribute,
+        metadata: {
+          version: 0,
+        },
+      });
     }
   );
   it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
