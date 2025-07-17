@@ -45,6 +45,11 @@ const commonHeaderBuffer = fs.readFileSync(
   `${dirname}/../src${commonHeaderPath}`
 );
 templateService.registerPartial("common-header", commonHeaderBuffer.toString());
+const commonFooterPath = "/resources/templates/footers/common-footer.hbs";
+const commonFooterBuffer = fs.readFileSync(
+  `${dirname}/../src${commonFooterPath}`
+);
+templateService.registerPartial("common-footer", commonFooterBuffer.toString());
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await tenantReadModelServiceSQL.upsertTenant(tenant, 0);
