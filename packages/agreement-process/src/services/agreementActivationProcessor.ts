@@ -169,7 +169,7 @@ export async function createActivationEvent(
         [undefined, updatedAgreement.producerId, agreementState.active],
         [
           { kind: delegationKind.delegatedProducer },
-          delegation?.delegateId,
+          delegation?.delegateId, // The delegation is always defined here since we matched the kind
           agreementState.active,
         ],
         () => [
