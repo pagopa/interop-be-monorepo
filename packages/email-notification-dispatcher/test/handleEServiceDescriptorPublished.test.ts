@@ -163,7 +163,7 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     expect(messages[0].address).toEqual(newMail.address);
   });
 
-  it("should generate a message that contains the default header is no header is specified", async () => {
+  it("should generate a message that correctly imports the specified header and footer", async () => {
     const consumerId = generateId<TenantId>();
     const agreement = getMockAgreement(
       eservice.id,
@@ -190,5 +190,6 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     expect(messages[0].email.body).toContain("<head>");
     expect(messages[0].email.body).toContain("Nuova versione di un e-service");
     expect(messages[0].email.body).toContain("<body");
+    expect(messages[0].email.body).toContain("<!-- Footer -->");
   });
 });
