@@ -72,6 +72,8 @@ export * from "./application-audit/application-audit.js";
 export * from "./notification/notification.js";
 export * from "./notification/notificationSQLAdapter.js";
 
+export * from "./purpose-template/purposeTemplateEvents.js";
+
 // Token generation read model
 export * from "./token-generation-readmodel/platform-states-entry.js";
 export * from "./token-generation-readmodel/token-generation-states-entry.js";
