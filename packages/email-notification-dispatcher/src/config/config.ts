@@ -17,13 +17,9 @@ import { z } from "zod";
 export const SESEmailSenderConfig = z
   .object({
     INTEROP_FE_BASE_URL: z.string(),
-    SENDER_MAIL: z.string().email(),
-    SENDER_LABEL: z.string(),
   })
   .transform((c) => ({
     interopFeBaseUrl: c.INTEROP_FE_BASE_URL,
-    senderMail: c.SENDER_MAIL,
-    senderLabel: c.SENDER_LABEL,
   }));
 export type SESEmailSenderConfig = z.infer<typeof SESEmailSenderConfig>;
 
