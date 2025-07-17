@@ -19,7 +19,7 @@ import {
   approvePurposeErrorMapper,
   activatePurposeErrorMapper,
   unsuspendPurposeErrorMapper,
-  downloadPurposeVersionDocumentErrorMapper,
+  downloadPurposeVersionRiskAnalysisDocumentErrorMapper,
   getPurposeAgreementErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
@@ -270,23 +270,24 @@ const purposeRouter = (
       }
     })
     .get(
-      "/purposes/:purposeId/versions/:versionId/document",
+      "/purposes/:purposeId/versions/:versionId/riskAnalysisDocument",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
         try {
           validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
 
-          const document = await purposeService.downloadPurposeVersionDocument(
-            unsafeBrandId(req.params.purposeId),
-            unsafeBrandId(req.params.versionId),
-            ctx
-          );
+          const document =
+            await purposeService.downloadPurposeVersionRiskAnalysisDocument(
+              unsafeBrandId(req.params.purposeId),
+              unsafeBrandId(req.params.versionId),
+              ctx
+            );
 
           return sendDownloadedDocumentAsFormData(document, res);
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            downloadPurposeVersionDocumentErrorMapper,
+            downloadPurposeVersionRiskAnalysisDocumentErrorMapper,
             ctx,
             `Error retrieving document for purpose ${req.params.purposeId} with version ${req.params.versionId}`
           );
@@ -353,6 +354,28 @@ const purposeRouter = (
           getPurposeAgreementErrorMapper,
           ctx,
           `Error retrieving agreement for purpose with id ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/purposes/:purposeId/versions/:versionId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await purposeService.deletePurposeVersion(
+          unsafeBrandId(req.params.purposeId),
+          unsafeBrandId(req.params.versionId),
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getPurposeVersionErrorMapper,
+          ctx,
+          `Error deleting version ${req.params.versionId} of purpose ${req.params.purposeId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

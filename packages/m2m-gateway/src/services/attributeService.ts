@@ -11,7 +11,11 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../api/attributeApiConverter.js";
+import {
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+  toM2MGatewayApiVerifiedAttribute,
+} from "../api/attributeApiConverter.js";
 
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
 
@@ -45,6 +49,44 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       return toM2MGatewayApiCertifiedAttribute({
+        attribute: response.data,
+        logger,
+        mapThrownErrorsToNotFound: true,
+      });
+    },
+    async getDeclaredAttribute(
+      attributeId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.DeclaredAttribute> {
+      logger.info(`Retrieving declared attribute with id ${attributeId}`);
+
+      const response = await clients.attributeProcessClient.getAttributeById({
+        params: {
+          attributeId,
+        },
+        headers,
+      });
+
+      return toM2MGatewayApiDeclaredAttribute({
+        attribute: response.data,
+        logger,
+        mapThrownErrorsToNotFound: true,
+      });
+    },
+    async getVerifiedAttribute(
+      attributeId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.VerifiedAttribute> {
+      logger.info(`Retrieving verified attribute with id ${attributeId}`);
+
+      const response = await clients.attributeProcessClient.getAttributeById({
+        params: {
+          attributeId,
+        },
+        headers,
+      });
+
+      return toM2MGatewayApiVerifiedAttribute({
         attribute: response.data,
         logger,
         mapThrownErrorsToNotFound: true,
