@@ -4,6 +4,8 @@ package notification.config.v2;
 
 message NotificationConfigV2 {
   bool newEServiceVersionPublished = 1;
+  bool producerSuspendUnsuspendAgreement = 2;
+  bool consumerSuspendUnsuspendAgreement = 3;
 }
 
 message TenantNotificationConfigV2 {

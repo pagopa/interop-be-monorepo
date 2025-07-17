@@ -8,6 +8,8 @@ import {
 
 export const NotificationConfig = z.object({
   newEServiceVersionPublished: z.boolean(),
+  producerSuspendUnsuspendAgreement: z.boolean(),
+  consumerSuspendUnsuspendAgreement: z.boolean(),
 });
 export type NotificationConfig = z.infer<typeof NotificationConfig>;
 

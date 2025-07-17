@@ -11,6 +11,7 @@ import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { handleNewEServiceVersionPublished } from "./handleNewEServiceVersionPublished.js";
+import { handleAgreementSuspendUnsuspend } from "./handleAgreementSuspendUnsuspend.js";
 
 export async function handleEvent(
   decodedMessage:
@@ -26,6 +27,23 @@ export async function handleEvent(
   return match(decodedMessage)
     .with({ type: "EServiceDescriptorPublished" }, ({ data: { eservice } }) =>
       handleNewEServiceVersionPublished(eservice, logger, readModelService)
+    )
+    .with(
+      P.union(
+        { type: "AgreementSuspendedByConsumer" },
+        { type: "AgreementUnsuspendedByConsumer" },
+        { type: "AgreementSuspendedByProducer" },
+        { type: "AgreementUnsuspendedByProducer" },
+        { type: "AgreementSuspendedByPlatform" },
+        { type: "AgreementUnsuspendedByPlatform" }
+      ),
+      ({ data: { agreement }, type }) =>
+        handleAgreementSuspendUnsuspend(
+          agreement,
+          logger,
+          readModelService,
+          type
+        )
     )
     .with(
       {
@@ -78,15 +96,9 @@ export async function handleEvent(
           "AgreementAdded",
           "AgreementDeleted",
           "DraftAgreementUpdated",
-          "AgreementUnsuspendedByProducer",
-          "AgreementUnsuspendedByConsumer",
-          "AgreementUnsuspendedByPlatform",
           "AgreementArchivedByConsumer",
           "AgreementArchivedByUpgrade",
           "AgreementUpgraded",
-          "AgreementSuspendedByProducer",
-          "AgreementSuspendedByConsumer",
-          "AgreementSuspendedByPlatform",
           "AgreementConsumerDocumentAdded",
           "AgreementConsumerDocumentRemoved",
           "AgreementSetDraftByPlatform",
