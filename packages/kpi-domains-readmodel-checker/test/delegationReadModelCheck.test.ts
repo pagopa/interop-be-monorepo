@@ -100,7 +100,7 @@ describe("Check delegation readmodels", () => {
     expect(res).toEqual(1);
   });
 
-  it("should detect differences if the collection item is not present", async () => {
+  it("should detect differences if the kpi item is not present", async () => {
     const delegation1: WithMetadata<Delegation> = {
       data: getMockDelegation({ kind: delegationKind.delegatedProducer }),
       metadata: { version: 1 },

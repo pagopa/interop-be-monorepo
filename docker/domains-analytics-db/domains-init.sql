@@ -34,7 +34,7 @@ CREATE TABLE domains.eservice_descriptor (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
   metadata_version INTEGER,
-  version VARCHAR(2048) NOT NULL,
+  version INTEGER NOT NULL,
   description VARCHAR(2048),
   state VARCHAR(2048) NOT NULL,
   audience VARCHAR(65535) NOT NULL,
