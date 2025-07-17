@@ -97,7 +97,7 @@ export const toCatalogDescriptorV1 = (
 ): CatalogDescriptorV1Notification[] =>
   descriptors.map((d) => ({
     id: d.id,
-    version: d.version.toString(),
+    version: d.version,
     description: d.description,
     docs: d.docs.map(toCatalogDocumentV1),
     state: toCatalogDescriptorStateV1(d.state),
