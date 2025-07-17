@@ -91,6 +91,7 @@ export async function handleEserviceDescriptorPublished(
         email: {
           subject: `Nuova versione dell'eservice ${eservice.name} da parte dell'erogatore`,
           body: templateService.compileHtml(htmlTemplate, {
+            title: "Nuova versione di un e-service",
             interopFeUrl: `https://${interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${descriptor.id}`,
             eserviceName: eservice.name,
           }),
