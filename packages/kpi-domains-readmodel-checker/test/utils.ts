@@ -379,7 +379,3 @@ async function writeInKpi<T extends DomainDbTable>(
 
   await dbContext.conn.none(dbContext.pgp.helpers.insert(data, cs));
 }
-
-async function cleanupKpi(tables: string[]): Promise<void> {
-  await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")};`);
-}
