@@ -61,6 +61,9 @@ const dirname = path.dirname(filename);
 const commonHeaderPath = "/resources/templates/headers/common-header.hbs";
 const commonHeaderBuffer = fs.readFileSync(`${dirname}/..${commonHeaderPath}`);
 templateService.registerPartial("common-header", commonHeaderBuffer.toString());
+const commonFooterPath = "/resources/templates/footers/common-footer.hbs";
+const commonFooterBuffer = fs.readFileSync(`${dirname}/..${commonFooterPath}`);
+templateService.registerPartial("common-footer", commonFooterBuffer.toString());
 
 function processMessage(topicHandlers: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
