@@ -75,13 +75,10 @@ export const { cleanup, analyticsPostgresDB, readModelDB } =
     undefined,
     undefined,
     inject("readModelSQLConfig"),
-    inject("analyticsSQLDbConfig")
+    inject("analyticsSQLConfig")
   );
 
-afterEach(async () => {
-  await cleanup();
-  await cleanupKpi(Object.keys(DomainDbTable));
-});
+afterEach(cleanup);
 
 const connection = await analyticsPostgresDB.connect();
 
@@ -384,5 +381,5 @@ async function writeInKpi<T extends DomainDbTable>(
 }
 
 async function cleanupKpi(tables: string[]): Promise<void> {
-  await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
+  await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")};`);
 }
