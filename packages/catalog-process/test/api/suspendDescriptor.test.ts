@@ -15,7 +15,7 @@ import {
   getMockDescriptor,
   getMockEService,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole, Metadata } from "pagopa-interop-commons";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceDescriptorNotFound,
@@ -34,7 +34,11 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/suspend autho
     descriptors: [descriptor],
   };
 
-  catalogService.suspendDescriptor = vi.fn().mockResolvedValue({});
+  const metadata: Metadata = {
+    version: 0,
+  };
+
+  catalogService.suspendDescriptor = vi.fn().mockResolvedValue({ metadata });
 
   const makeRequest = async (
     token: string,
@@ -47,7 +51,11 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/suspend autho
       .set("X-Correlation-Id", generateId())
       .send();
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -55,6 +63,9 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/suspend autho
       const res = await makeRequest(token, mockEService.id, descriptor.id);
 
       expect(res.status).toBe(204);
+      expect(res.headers["x-metadata-version"]).toBe(
+        metadata.version.toString()
+      );
     }
   );
 

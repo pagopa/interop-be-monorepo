@@ -15,6 +15,10 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
+import {
+  isPolledVersionAtLeastMetadataTargetVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -56,6 +60,18 @@ export function eserviceServiceBuilder(
       metadata,
     };
   };
+
+  const pollDescriptorById = (
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    metadata: { version: number } | undefined,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<WithMaybeMetadata<catalogApi.EServiceDescriptor>> =>
+    pollResourceWithMetadata(() =>
+      retrieveEServiceDescriptorById(headers, eserviceId, descriptorId)
+    )({
+      condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
+    });
 
   return {
     async getEService(
@@ -171,6 +187,26 @@ export function eserviceServiceBuilder(
         config.eserviceDocumentsContainer,
         logger
       );
+    },
+
+    async suspendDescriptor(
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Suspending descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
+      );
+
+      const { metadata } = await clients.catalogProcessClient.suspendDescriptor(
+        undefined,
+        {
+          params: { eServiceId, descriptorId },
+          headers,
+        }
+      );
+
+      await pollDescriptorById(eServiceId, descriptorId, metadata, headers);
     },
   };
 }
