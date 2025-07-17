@@ -67,6 +67,27 @@ const agreementRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete("/agreements/:agreementId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await agreementService.deleteAgreementById(
+          unsafeBrandId(req.params.agreementId),
+          ctx
+        );
+
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting agreement with id ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/agreements/:agreementId/purposes", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
