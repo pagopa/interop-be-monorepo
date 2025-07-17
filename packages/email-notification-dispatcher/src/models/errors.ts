@@ -74,15 +74,6 @@ export function tenantNotFound(
   });
 }
 
-export function tenantDigitalAddressNotFound(
-  tenantId: TenantId
-): EmailNotificationDispatcherError {
-  return new InternalError({
-    detail: `Digital address not found for tenant ${tenantId}`,
-    code: "tenantDigitalAddressNotFound",
-  });
-}
-
 export function descriptorNotFound(
   eServiceId: EServiceId,
   descriptorId: DescriptorId
