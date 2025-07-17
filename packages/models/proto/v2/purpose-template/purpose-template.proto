@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package purpose.template.v2;
+
+enum PurposeTemplateStateV2 {
+  DRAFT = 0;
+  ACTIVE = 1;
+  SUSPENDED = 2;
+  ARCHIVED = 3;
+}
+
+// TODO: add PurposeTemplateV2 properties
+message PurposeTemplateV2 {
+  string id = 1;
+}
