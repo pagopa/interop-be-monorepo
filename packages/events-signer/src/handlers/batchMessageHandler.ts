@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+/* eslint-disable @typescript-eslint/no-empty-function */
 
 import { KafkaMessage } from "kafkajs";
 import {
@@ -35,7 +36,9 @@ import { handleAuthorizationMessageV1 } from "./handleAuthorizationMessageV1.js"
  *
  * @param {KafkaMessage[]} kafkaMessages - An array of Kafka messages belonging to the given topic.
  * @param {string} topic - The Kafka topic from which the messages originate.
- * @param {FileManager} fileManager - fileManager
+ * @param {Logger} logger - The logger instance for logging messages.
+ * @param {FileManager} fileManager - The file manager responsible for storing s3 files.
+ * @param {DbServiceBuilder} dbService - The database service builder with dynamo configs.
  * @returns {Promise<void>} A promise that resolves when all messages have been processed.
  * @throws {Error} If the topic is unknown.
  */

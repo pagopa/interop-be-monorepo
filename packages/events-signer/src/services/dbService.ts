@@ -12,19 +12,27 @@ interface SignatureReference {
   fileId: string;
   safeStorageId: string;
   createdAt: string;
+  fileKind: string;
+  fileName: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function dbServiceBuilder(client: DynamoDBClient, logger: Logger) {
-  const dynamoDBClient = client;
-
+export function dbServiceBuilder(
+  dynamoDBClient: DynamoDBClient,
+  logger: Logger
+) {
   return {
     saveSignatureReference: async (
-      reference: Omit<SignatureReference, "createdAt">
+      reference: Omit<SignatureReference, "createdAt" | "fileKind">,
+      safeStorageId: string,
+      fileName: string
     ): Promise<void> => {
       const item: SignatureReference = {
         ...reference,
+        safeStorageId,
         createdAt: new Date().toISOString(),
+        fileKind: "PLATFORM_EVENTS",
+        fileName,
       };
 
       const input: PutItemInput = {
@@ -34,6 +42,8 @@ export function dbServiceBuilder(client: DynamoDBClient, logger: Logger) {
           safeStorageId: { S: item.safeStorageId },
           createdAt: { S: item.createdAt },
           status: { S: "PENDING_SIGNATURE" },
+          fileKind: { S: item.fileKind },
+          fileName: { S: item.fileName },
         },
         ReturnValues: "NONE",
       };
