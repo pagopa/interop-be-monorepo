@@ -24,7 +24,7 @@ import {
 } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
 
-describe("downloadPurposeVersionDocument", () => {
+describe("downloadPurposeVersionRiskAnalysisDocument", () => {
   const testFileContent = `This is a mock file content for testing purposes.
 It simulates the content of a Purpose version document file.
 On multiple lines.`;
@@ -80,11 +80,12 @@ On multiple lines.`;
       ).at(0)
     ).toEqual(mockPurposeVersionDocument.path);
 
-    const result = await purposeService.downloadPurposeVersionDocument(
-      unsafeBrandId(mockPurposeProcessResponse.data.id),
-      unsafeBrandId(mockApiPurposeVersion.id),
-      getMockM2MAdminAppContext()
-    );
+    const result =
+      await purposeService.downloadPurposeVersionRiskAnalysisDocument(
+        unsafeBrandId(mockPurposeProcessResponse.data.id),
+        unsafeBrandId(mockApiPurposeVersion.id),
+        getMockM2MAdminAppContext()
+      );
 
     const expectedServiceResponse = {
       id: mockRiskAnalysisId,
@@ -104,7 +105,7 @@ On multiple lines.`;
   it("Should throw purposeVersionNotFound in case the returned purpose has no version with the given id", async () => {
     const nonExistingVersionId = generateId<PurposeVersionId>();
     await expect(
-      purposeService.downloadPurposeVersionDocument(
+      purposeService.downloadPurposeVersionRiskAnalysisDocument(
         unsafeBrandId(mockPurposeProcessResponse.data.id),
         nonExistingVersionId,
         getMockM2MAdminAppContext()
@@ -131,7 +132,7 @@ On multiple lines.`;
       },
     });
     await expect(
-      purposeService.downloadPurposeVersionDocument(
+      purposeService.downloadPurposeVersionRiskAnalysisDocument(
         unsafeBrandId(mockPurposeProcessResponse.data.id),
         unsafeBrandId(mockApiPurposeVersion.id),
         getMockM2MAdminAppContext()

@@ -5686,7 +5686,7 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
-  /purposes/{purposeId}/versions/{versionId}/document:
+  /purposes/{purposeId}/versions/{versionId}/riskAnalysisDocument:
     parameters:
       - name: purposeId
         in: path
@@ -5705,12 +5705,12 @@ paths:
     get:
       tags:
         - purposes
-      summary: Download a Purpose Document
-      description: Download the Document for the specified Purpose version
-      operationId: downloadPurposeVersionDocument
+      summary: Download a Purpose Risk Analysis Document
+      description: Download the Risk Analysis Document for the specified Purpose version
+      operationId: downloadPurposeVersionRiskAnalysisDocument
       responses:
         "200":
-          description: Purpose version document retrieved, a multipart containing the file and its metadata
+          description: Purpose version risk analysis document retrieved, a multipart containing the file and its metadata
           content:
             multipart/form-data:
               schema:
