@@ -362,7 +362,7 @@ function buildColumnSet<T extends DomainDbTable>(
   }));
 
   return new pgp.helpers.ColumnSet(columns, {
-    table: { table: `${tableName}` },
+    table: { table: tableName },
   });
 }
 
