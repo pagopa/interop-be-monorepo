@@ -8,7 +8,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { handleMessageV2 } from "./purposeConsumerServiceV2.js";
+import { handleMessageV2 } from "./consumerServiceV2.js";
 import { config } from "./config/config.js";
 import { purposeTemplateWriterServiceBuilder } from "./purposeTemplateWriterService.js";
 
