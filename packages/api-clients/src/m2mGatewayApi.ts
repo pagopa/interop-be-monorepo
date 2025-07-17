@@ -15,6 +15,11 @@ export type GetAgreementsQueryParams = QueryParametersByAlias<
   "getAgreements"
 >;
 
+export type GetAgreementConsumerDocumentsQueryParams = QueryParametersByAlias<
+  AgreementApi,
+  "getAgreementConsumerDocuments"
+>;
+
 export type GetAgreementPurposesQueryParams = QueryParametersByAlias<
   AgreementApi,
   "getAgreementPurposes"

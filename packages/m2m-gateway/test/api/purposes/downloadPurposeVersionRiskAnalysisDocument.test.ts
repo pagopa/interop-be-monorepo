@@ -25,7 +25,7 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
   ) =>
     request(api)
       .get(
-        `${appBasePath}/purposes/${purposeId}/versions/${versionId}/document`
+        `${appBasePath}/purposes/${purposeId}/versions/${versionId}/riskAnalysisDocument`
       )
       .set("Authorization", `Bearer ${token}`)
       .buffer(true)
@@ -39,7 +39,7 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockPurposeService.downloadPurposeVersionDocument = vi
+      mockPurposeService.downloadPurposeVersionRiskAnalysisDocument = vi
         .fn()
         .mockResolvedValue(mockDownloadedDocument);
 
@@ -77,7 +77,7 @@ describe("GET /purposes/:purposeId/versions/:versionId/document router test", ()
     purposeVersionNotFound(generateId(), generateId()),
     purposeVersionDocumentNotFound(generateId(), generateId()),
   ])("Should return 404 in case of $code error", async (error) => {
-    mockPurposeService.downloadPurposeVersionDocument = vi
+    mockPurposeService.downloadPurposeVersionRiskAnalysisDocument = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

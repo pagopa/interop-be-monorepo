@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   AppContext,
   CreateEvent,
@@ -57,6 +58,7 @@ import {
   tenantIsNotTheDelegateConsumer,
   publishedDescriptorNotFound,
   tenantNotFound,
+  unexpectedVersionFormat,
 } from "../model/domain/errors.js";
 import {
   ActiveDelegations,
@@ -714,13 +716,26 @@ export function agreementServiceBuilder(
       if (newDescriptor === undefined) {
         throw publishedDescriptorNotFound(eservice.id);
       }
+      const latestDescriptorVersion = z
+        .preprocess((x) => Number(x), z.number())
+        .safeParse(newDescriptor.version);
+      if (!latestDescriptorVersion.success) {
+        throw unexpectedVersionFormat(eservice.id, newDescriptor.id);
+      }
 
       const currentDescriptor = retrieveDescriptor(
         agreementToBeUpgraded.data.descriptorId,
         eservice
       );
 
-      if (newDescriptor.version <= currentDescriptor.version) {
+      const currentVersion = z
+        .preprocess((x) => Number(x), z.number())
+        .safeParse(currentDescriptor.version);
+      if (!currentVersion.success) {
+        throw unexpectedVersionFormat(eservice.id, currentDescriptor.id);
+      }
+
+      if (latestDescriptorVersion.data <= currentVersion.data) {
         throw noNewerDescriptor(eservice.id, currentDescriptor.id);
       }
 
@@ -933,6 +948,30 @@ export function agreementServiceBuilder(
         data: newDocument,
         metadata: { version: createdEvent.newVersion },
       };
+    },
+    async getAgreementConsumerDocuments(
+      agreementId: AgreementId,
+      { offset, limit }: agreementApi.GetAgreementConsumerDocumentsQueryParams,
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<M2MAdminAuthData | M2MAuthData>>
+    ): Promise<ListResult<AgreementDocument>> {
+      logger.info(`Retrieving consumer documents for agreement ${agreementId}`);
+
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      await assertRequesterCanRetrieveAgreement(
+        agreement.data,
+        authData,
+        readModelService
+      );
+
+      return readModelService.getAgreementConsumerDocuments(
+        agreementId,
+        offset,
+        limit
+      );
     },
     async getAgreementConsumerDocument(
       agreementId: AgreementId,
