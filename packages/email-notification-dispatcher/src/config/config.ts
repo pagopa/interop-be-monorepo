@@ -1,7 +1,6 @@
 import {
   AgreementTopicConfig,
   KafkaConsumerConfig,
-  ReadModelDbConfig,
   AWSSesConfig,
   PurposeTopicConfig,
   CatalogTopicConfig,
