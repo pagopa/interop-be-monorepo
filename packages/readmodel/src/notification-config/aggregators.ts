@@ -92,6 +92,12 @@ export const aggregateTenantNotificationConfig = ({
     clientKeyStatusChangedToClientUsers: enabledNotifications.includes(
       "clientKeyStatusChangedToClientUsers"
     ),
+    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "producerSuspendUnsuspendAgreement"
+    ),
+    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "consumerSuspendUnsuspendAgreement"
+    ),
   };
 
   return {
@@ -195,6 +201,12 @@ export const aggregateUserNotificationConfig = ({
     clientKeyStatusChangedToClientUsers: enabledInAppNotifications.includes(
       "clientKeyStatusChangedToClientUsers"
     ),
+    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "producerSuspendUnsuspendAgreement.inApp"
+    ),
+    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "consumerSuspendUnsuspendAgreement.inApp"
+    ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -261,6 +273,12 @@ export const aggregateUserNotificationConfig = ({
       ),
     clientKeyStatusChangedToClientUsers: enabledEmailNotifications.includes(
       "clientKeyStatusChangedToClientUsers"
+    ),
+    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "producerSuspendUnsuspendAgreement.email"
+    ),
+    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
+      "consumerSuspendUnsuspendAgreement.email"
     ),
   };
 

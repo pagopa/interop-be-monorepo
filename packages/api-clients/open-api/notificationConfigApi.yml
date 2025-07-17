@@ -551,7 +551,21 @@ components:
         inAppConfig:
           $ref: "#/components/schemas/NotificationConfig"
         emailConfig:
-          $ref: "#/components/schemas/NotificationConfig"
+          $ref: "#/components/schemas/NotificationConfigSeed"
+    NotificationConfigSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - newEServiceVersionPublished
+        - producerSuspendUnsuspendAgreement
+        - consumerSuspendUnsuspendAgreement
+      properties:
+        newEServiceVersionPublished:
+          type: boolean
+        producerSuspendUnsuspendAgreement:
+          type: boolean
+        consumerSuspendUnsuspendAgreement:
+          type: boolean
     Problem:
       properties:
         type:
