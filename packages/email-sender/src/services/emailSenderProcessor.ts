@@ -63,6 +63,7 @@ export function emailSenderProcessorBuilder(
           loggerInstance.info(
             `Email sent for message in partition ${partition} with offset ${message.offset}.`
           );
+          await delay(config.successDelayInMillis);
         } catch (err) {
           if (err instanceof TooManyRequestsException) {
             loggerInstance.error(
