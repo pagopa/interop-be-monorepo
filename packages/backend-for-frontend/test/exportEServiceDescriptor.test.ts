@@ -57,7 +57,7 @@ describe("exportEServiceDescriptor", () => {
     descriptors: [
       {
         id: descriptorId,
-        version: 1,
+        version: "1.0.0",
         audience: [],
         voucherLifespan: 1,
         dailyCallsPerConsumer: 2,
