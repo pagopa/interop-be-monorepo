@@ -31,7 +31,10 @@ import {
   Delegation,
   EServiceId,
 } from "pagopa-interop-models";
-import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertAgreement,
+  upsertEServiceTemplate,
+} from "pagopa-interop-readmodel/testUtils";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -164,8 +167,5 @@ export const addOneEServiceTemplate = async (
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eServiceTemplate);
   await writeInReadmodel(eServiceTemplate, eserviceTemplates);
-  await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
-    eServiceTemplate,
-    0
-  );
+  await upsertEServiceTemplate(readModelDB, eServiceTemplate, 0);
 };
