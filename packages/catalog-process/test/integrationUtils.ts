@@ -10,7 +10,6 @@ import { inject, afterEach } from "vitest";
 import {
   attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
-  delegationReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -31,7 +30,10 @@ import {
   Delegation,
   EServiceId,
 } from "pagopa-interop-models";
-import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertAgreement,
+  upsertDelegation,
+} from "pagopa-interop-readmodel/testUtils";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -64,8 +66,6 @@ export const eserviceTemplates = readModelRepository.eserviceTemplates;
 
 const attributeReadModelService = attributeReadModelServiceBuilder(readModelDB);
 const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const delegationReadModelServiceSQL =
-  delegationReadModelServiceBuilder(readModelDB);
 const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const eserviceTemplateReadModelServiceSQL =
   eserviceTemplateReadModelServiceBuilder(readModelDB);
@@ -151,7 +151,7 @@ export const addOneDelegation = async (
   delegation: Delegation
 ): Promise<void> => {
   await writeInReadmodel(delegation, delegations);
-  await delegationReadModelServiceSQL.upsertDelegation(delegation, 0);
+  await upsertDelegation(readModelDB, delegation, 0);
 };
 
 export const readLastEserviceEvent = async (
