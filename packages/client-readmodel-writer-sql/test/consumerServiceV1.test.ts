@@ -30,7 +30,7 @@ import {
 } from "pagopa-interop-models";
 import { expect, it } from "vitest";
 import { handleMessageV1 } from "../src/clientConsumerServiceV1.js";
-import { clientReadModelService, readModelService } from "./utils.js";
+import { clientReadModelService, clientWriterService } from "./utils.js";
 
 describe("Events V1", async () => {
   const mockClient = getMockClient();
@@ -53,7 +53,7 @@ describe("Events V1", async () => {
       data: payload,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       mockClient.id
@@ -77,7 +77,7 @@ describe("Events V1", async () => {
       data: payload,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       mockClient.id
@@ -109,7 +109,7 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       updatedClient.id
@@ -142,7 +142,7 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       client.id
@@ -179,7 +179,7 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       updatedClient.id
@@ -214,7 +214,7 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       client.id
@@ -244,7 +244,7 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       client.id
@@ -264,7 +264,7 @@ describe("Events V1", async () => {
       data: payload,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       clientId
@@ -296,7 +296,7 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       updatedClient.id
@@ -359,7 +359,7 @@ describe("Events V1", async () => {
         data: payload,
       };
 
-      await handleMessageV1(message, readModelService);
+      await handleMessageV1(message, clientWriterService);
 
       const retrievedClient = await clientReadModelService.getClientById(
         updatedClient.id
@@ -394,7 +394,7 @@ describe("Events V1", async () => {
       version: 2,
     };
 
-    await handleMessageV1(message, readModelService);
+    await handleMessageV1(message, clientWriterService);
 
     const retrievedClient = await clientReadModelService.getClientById(
       mockClient.id
