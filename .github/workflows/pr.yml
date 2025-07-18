@@ -29,14 +29,17 @@ jobs:
           node-version-file: ./package.json
       - run: pnpm format:check
 
-  lint-shard: 
+ lint-shard:
     name: Lint Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
     runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     strategy:
       fail-fast: false
       matrix:
-        shardTotal: [3] # Puoi regolare il numero di shard per il linting
-        shardIndex: [1, 2, 3] # Assicurati che questo corrisponda a shardTotal
+        shardTotal: [3] # Regola questo valore in base al numero di runner che vuoi usare
+        shardIndex: [1, 2, 3] # Deve corrispondere a shardTotal
+    outputs:
+      # Questa output non è strettamente necessaria per la sharding di lint, ma utile per debug
+      # filtered_packages: ${{ steps.filter_packages.outputs.filtered_packages }}
     steps:
       - uses: actions/checkout@v4
       - name: Cache turbo setup
@@ -54,13 +57,42 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
+
+      - name: Calculate packages for shard ${{ matrix.shardIndex }}
+        id: filter_packages
+        run: |
+          # Trova tutti i pacchetti nella monorepo che contengono un file package.json
+          # (Potresti voler filtrare ulteriormente se non tutti i 'sottocartelle' sono pacchetti TurboRepo)
+          ALL_PACKAGES=$(find packages -maxdepth 1 -mindepth 1 -type d | sed 's/packages\///g' | sort)
+          
+          # Converti la lista in un array Bash
+          readarray -t PACKAGE_ARRAY <<< "$ALL_PACKAGES"
+          
+          # Calcola la dimensione di ogni shard
+          TOTAL_PACKAGES=${#PACKAGE_ARRAY[@]}
+          SHARD_TOTAL=${{ matrix.shardTotal }}
+          SHARD_INDEX=${{ matrix.shardIndex }}
+          
+          # Calcola l'indice di inizio e fine per questo shard
+          # Usiamo awk per la precisione nel calcolo degli indici e per gestire la distribuzione
+          START_INDEX=$(awk "BEGIN { print int(($SHARD_INDEX - 1) * $TOTAL_PACKAGES / $SHARD_TOTAL) }")
+          END_INDEX=$(awk "BEGIN { print int($SHARD_INDEX * $TOTAL_PACKAGES / $SHARD_TOTAL) - 1 }")
+          
+          # Estrai i pacchetti per lo shard corrente
+          FILTERED_PACKAGES=""
+          for (( i=$START_INDEX; i<=$END_INDEX; i++ )); do
+              PACKAGE_NAME=${PACKAGE_ARRAY[$i]}
+              if [ -n "$PACKAGE_NAME" ]; then # Assicurati che il nome del pacchetto non sia vuoto
+                  FILTERED_PACKAGES+=" --filter=./packages/$PACKAGE_NAME"
+              fi
+          done
+          
+          echo "Packages for shard $SHARD_INDEX: $FILTERED_PACKAGES"
+          echo "filtered_packages=$FILTERED_PACKAGES" >> $GITHUB_OUTPUT
+
       - name: Run Lint with sharding
         run: |
-          # ATTENZIONE: Questo comando assume che il tuo script `pnpm lint` possa essere shardato.
-          # Dovrai adattare il tuo script `lint` o aggiungere logica qui per supportare lo sharding.
-          echo "Running lint for shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }}"
-          pnpm lint # <<< DEVI MODIFICARE QUESTO COMANDO PER SUPPORTARE LO SHARDING
-
+          pnpm turbo lint ${{ steps.filter_packages.outputs.filtered_packages }} -- --cache --cache-strategy content --cache-location .eslintcache
   check:
     name: Check
     runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
