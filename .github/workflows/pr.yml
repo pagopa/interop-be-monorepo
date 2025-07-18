@@ -9,7 +9,7 @@ concurrency:
 jobs:
   formatting:
     name: Check formatting
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     steps:
       - uses: actions/checkout@v4
       - name: Cache turbo setup
@@ -29,9 +29,14 @@ jobs:
           node-version-file: ./package.json
       - run: pnpm format:check
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
+  lint-shard: 
+    name: Lint Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
+    strategy:
+      fail-fast: false
+      matrix:
+        shardTotal: [3] # Puoi regolare il numero di shard per il linting
+        shardIndex: [1, 2, 3] # Assicurati che questo corrisponda a shardTotal
     steps:
       - uses: actions/checkout@v4
       - name: Cache turbo setup
@@ -40,7 +45,7 @@ jobs:
           path: |
             .turbo
             packages/*/.turbo
-          key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}
+          key: ${{ runner.os }}-turbo-lint-${{ github.ref_name }}-${{ matrix.shardIndex }}
           restore-keys: |
             ${{ runner.os }}-turbo-lint-
       - uses: actions/setup-node@v4
@@ -49,11 +54,16 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           run_install: true
-      - run: pnpm lint
+      - name: Run Lint with sharding
+        run: |
+          # ATTENZIONE: Questo comando assume che il tuo script `pnpm lint` possa essere shardato.
+          # Dovrai adattare il tuo script `lint` o aggiungere logica qui per supportare lo sharding.
+          echo "Running lint for shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }}"
+          pnpm lint # <<< DEVI MODIFICARE QUESTO COMANDO PER SUPPORTARE LO SHARDING
 
   check:
     name: Check
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     steps:
       - uses: actions/checkout@v4
       - name: Cache turbo setup
@@ -118,7 +128,7 @@ jobs:
 
   merge_test_coverage:
     name: Merge Test Coverage
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"] # Anche questa su CodeBuild
     needs: test
     if: ${{ always() }}
     steps:
@@ -147,7 +157,7 @@ jobs:
 
   lint-openapi:
     name: Lint Open Api specification
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     permissions:
       contents: read
     steps:
@@ -158,9 +168,9 @@ jobs:
 
   find_dockerfiles:
     name: Find Dockerfiles
-    needs: [formatting, lint, check, test, lint-openapi]
+    needs: [formatting, lint-shard, check, test, lint-openapi]
     if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     outputs:
       packages: ${{ steps.set_packages_output.outputs.packages }}
     steps:
@@ -175,13 +185,13 @@ jobs:
     name: Build
     needs: [find_dockerfiles]
     if: ${{ github.base_ref == 'main' }}
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     environment: ecr-ro
     permissions:
       contents: read
       id-token: write
     strategy:
-      max-parallel: 5
+      max-parallel: 5 #  aumentare questo valore se necessario per parallelizzare ulteriormente
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
@@ -213,7 +223,7 @@ jobs:
     name: Build Result
     needs: [docker_build]
     if: ${{ always() && github.base_ref == 'main' }}
-    runs-on: ubuntu-latest
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     steps:
       - name: Check build result
         run: |
