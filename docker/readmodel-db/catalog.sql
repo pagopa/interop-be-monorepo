@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  version INTEGER NOT NULL,
+  version VARCHAR NOT NULL,
   description VARCHAR,
   state VARCHAR NOT NULL,
   audience VARCHAR ARRAY NOT NULL,

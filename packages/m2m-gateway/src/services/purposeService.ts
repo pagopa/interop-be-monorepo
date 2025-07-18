@@ -442,7 +442,7 @@ export function purposeServiceBuilder(
 
       return toM2MGatewayApiPurpose(polledResource.data);
     },
-    async downloadPurposeVersionDocument(
+    async downloadPurposeVersionRiskAnalysisDocument(
       purposeId: PurposeId,
       versionId: PurposeVersionId,
       { logger, headers }: WithLogger<M2MGatewayAppContext>

@@ -16,7 +16,6 @@ import {
 import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
-  Descriptor,
   EServiceId,
   TenantId,
   agreementState,
@@ -131,15 +130,15 @@ describe("EService Descriptors Archiver", async () => {
 
     it("should call archive Descriptor when all Agreements are Archived, the Descriptor is suspended, and a newer Descriptor exists", async () => {
       const producerId: TenantId = generateId();
-      const descriptor: Descriptor = {
+      const descriptor = {
         ...getMockDescriptorPublished(),
         state: descriptorState.suspended,
-        version: 1,
+        version: "1",
       };
 
-      const newerDescriptor: Descriptor = {
+      const newerDescriptor = {
         ...getMockDescriptorPublished(),
-        version: 2,
+        version: "2",
       };
 
       const eservice = {
@@ -323,10 +322,10 @@ describe("EService Descriptors Archiver", async () => {
 
     it("should not call archive Descriptor when the Descriptor is suspended but no newer Descriptor exists", async () => {
       const producerId: TenantId = generateId();
-      const descriptor: Descriptor = {
+      const descriptor = {
         ...getMockDescriptorPublished(),
         state: descriptorState.suspended,
-        version: 1,
+        version: "1",
       };
 
       const eservice = {
