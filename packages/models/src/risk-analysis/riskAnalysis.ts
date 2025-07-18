@@ -1,9 +1,12 @@
 import { z } from "zod";
 import {
   RiskAnalysisFormId,
+  RiskAnalysisFormTemplateId,
   RiskAnalysisId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisTemplateAnnotationDocumentId,
+  RiskAnalysisTemplateAnswerAnnotationId,
 } from "../brandedIds.js";
 
 export const riskAnalysisAnswerKind = {
@@ -43,7 +46,6 @@ export const PurposeRiskAnalysisForm = RiskAnalysisForm.and(
     riskAnalysisId: RiskAnalysisId.optional(),
   })
 );
-
 export type PurposeRiskAnalysisForm = z.infer<typeof PurposeRiskAnalysisForm>;
 
 export const RiskAnalysis = z.object({
@@ -53,3 +55,47 @@ export const RiskAnalysis = z.object({
   createdAt: z.coerce.date(),
 });
 export type RiskAnalysis = z.infer<typeof RiskAnalysis>;
+
+export const RiskAnalysisTemplateAnnotationDocument = z.object({
+  id: RiskAnalysisTemplateAnnotationDocumentId,
+  name: z.string(),
+  contentType: z.string(),
+  prettyName: z.string(),
+  path: z.string(),
+  checksum: z.string(),
+  uploadDate: z.coerce.date(),
+});
+
+// TODO: move to commons if needed
+export const Link = z.object({
+  url: z.string().url(),
+  name: z.string(),
+});
+
+export const RiskAnalysisTemplateAnswerAnnotation = z.object({
+  id: RiskAnalysisTemplateAnswerAnnotationId,
+  text: z.string(),
+  docs: z.array(RiskAnalysisTemplateAnnotationDocument).optional(),
+  urls: z.array(Link).optional(),
+});
+
+export const RiskAnalysisTemplateSingleAnswer = RiskAnalysisSingleAnswer.and(
+  z.object({
+    editable: z.boolean(),
+    annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
+  })
+);
+
+export const RiskAnalysisTemplateMultiAnswer = RiskAnalysisMultiAnswer.and(
+  z.object({
+    editable: z.boolean(),
+    annotation: RiskAnalysisTemplateAnswerAnnotation.optional(),
+  })
+);
+
+export const RiskAnalysisFormTemplate = z.object({
+  id: RiskAnalysisFormTemplateId,
+  version: z.string(),
+  singleAnswers: z.array(RiskAnalysisTemplateSingleAnswer),
+  multiAnswers: z.array(RiskAnalysisTemplateMultiAnswer),
+});
