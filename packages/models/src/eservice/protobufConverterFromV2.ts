@@ -115,7 +115,7 @@ export const fromEServiceTemplateVersionRefV2 = (
 export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   ...input,
   id: unsafeBrandId(input.id),
-  version: Number(input.version),
+  version: input.version.toString(),
   attributes:
     input.attributes != null
       ? {
