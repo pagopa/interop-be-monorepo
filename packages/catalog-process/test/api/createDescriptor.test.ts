@@ -3,7 +3,6 @@ import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Attribute,
-  Descriptor,
   EService,
   EServiceId,
   generateId,
@@ -50,9 +49,9 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     },
   };
 
-  const newDescriptor: Descriptor = {
+  const newDescriptor = {
     ...mockDescriptor,
-    version: 1,
+    version: "1",
     createdAt: new Date(),
     id: mockDescriptor.id,
     serverUrls: [],

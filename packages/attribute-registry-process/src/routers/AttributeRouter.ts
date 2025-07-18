@@ -105,6 +105,7 @@ const attributeRouter = (
             SUPPORT_ROLE,
             SECURITY_ROLE,
             M2M_ROLE,
+            M2M_ADMIN_ROLE,
           ]);
 
           const { limit, offset, kinds, name, origin } = req.query;
