@@ -40,6 +40,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
+  upsertClientJWKKey,
   upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
@@ -138,7 +139,7 @@ export const writeClientInEventstore = async (
 export const addOneKey = async (key: ClientJWKKey): Promise<void> => {
   await writeInReadmodel(key, keys);
 
-  await clientJWKKeyReadModelServiceSQL.upsertClientJWKKey(key, 0);
+  await upsertClientJWKKey(readModelDB, key, 0);
 };
 
 export const addOneProducerKey = async (key: ProducerJWKKey): Promise<void> => {

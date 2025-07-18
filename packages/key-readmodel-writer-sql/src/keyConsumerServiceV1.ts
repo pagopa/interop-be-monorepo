@@ -6,11 +6,11 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { CustomReadModelService } from "./readModelService.js";
+import { ClientJWKKeyWriterService } from "./clientJWKKeyWriterService.js";
 
 export async function handleMessageV1(
   message: AuthorizationEventEnvelopeV1,
-  clientJWKKeyReadModelService: CustomReadModelService
+  clientJWKKeyWriterService: ClientJWKKeyWriterService
 ): Promise<void> {
   await match(message)
     .with({ type: "KeysAdded" }, async (message) => {
@@ -26,7 +26,7 @@ export async function handleMessageV1(
         });
       for (const key of keysToAdd) {
         if (key) {
-          await clientJWKKeyReadModelService.upsertClientJWKKey(
+          await clientJWKKeyWriterService.upsertClientJWKKey(
             keyToClientJWKKey(key, unsafeBrandId(message.data.clientId)),
             message.version
           );
@@ -34,14 +34,14 @@ export async function handleMessageV1(
       }
     })
     .with({ type: "KeyDeleted" }, async (message) => {
-      await clientJWKKeyReadModelService.deleteClientJWKKeyByClientIdAndKid(
+      await clientJWKKeyWriterService.deleteClientJWKKeyByClientIdAndKid(
         unsafeBrandId(message.data.clientId),
         message.data.keyId,
         message.version
       );
     })
     .with({ type: "ClientDeleted" }, async (message) => {
-      await clientJWKKeyReadModelService.deleteClientJWKKeysByClientId(
+      await clientJWKKeyWriterService.deleteClientJWKKeysByClientId(
         unsafeBrandId(message.data.clientId),
         message.version
       );
