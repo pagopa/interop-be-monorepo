@@ -2,12 +2,7 @@ import { inject, afterEach, expect } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { eq } from "drizzle-orm";
-import {
-  RiskAnalysis,
-  riskAnalysisAnswerKind,
-  EServiceTemplate,
-  EServiceTemplateId,
-} from "pagopa-interop-models";
+import { EServiceTemplate, EServiceTemplateId } from "pagopa-interop-models";
 import {
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateItemsSQL,
@@ -44,36 +39,6 @@ export const eserviceTemplateReadModelService =
   eserviceTemplateReadModelServiceBuilder(readModelDB);
 export const eserviceTemplateWriterService =
   eserviceTemplateWriterServiceBuilder(readModelDB);
-
-export const generateEServiceTemplateRiskAnalysisAnswersSQL = (
-  eserviceTemplateId: string,
-  riskAnalyses: RiskAnalysis[],
-  metadataVersion: number
-): EServiceTemplateRiskAnalysisAnswerSQL[] =>
-  riskAnalyses.flatMap(({ riskAnalysisForm }) => [
-    ...riskAnalysisForm.singleAnswers.map(
-      (a): EServiceTemplateRiskAnalysisAnswerSQL => ({
-        id: a.id,
-        eserviceTemplateId,
-        metadataVersion,
-        key: a.key,
-        value: a.value ? [a.value] : [],
-        riskAnalysisFormId: riskAnalysisForm.id,
-        kind: riskAnalysisAnswerKind.single,
-      })
-    ),
-    ...riskAnalysisForm.multiAnswers.map(
-      (a): EServiceTemplateRiskAnalysisAnswerSQL => ({
-        id: a.id,
-        eserviceTemplateId,
-        metadataVersion,
-        key: a.key,
-        value: a.values,
-        riskAnalysisFormId: riskAnalysisForm.id,
-        kind: riskAnalysisAnswerKind.multi,
-      })
-    ),
-  ]);
 
 export const checkCompleteEServiceTemplate = async (
   eserviceTemplate: EServiceTemplate
