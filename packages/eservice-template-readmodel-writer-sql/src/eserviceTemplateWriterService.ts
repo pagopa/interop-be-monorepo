@@ -122,7 +122,6 @@ export function eserviceTemplateWriterServiceBuilder(
     },
   };
 }
-
 export type EServiceTemplateWriterService = ReturnType<
   typeof eserviceTemplateWriterServiceBuilder
 >;
