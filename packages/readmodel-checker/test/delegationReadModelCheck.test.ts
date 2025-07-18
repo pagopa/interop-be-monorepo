@@ -11,7 +11,6 @@ import { upsertDelegation } from "pagopa-interop-readmodel/testUtils";
 import { compare } from "../src/utils.js";
 import {
   addOneDelegation,
-  delegationReadModelServiceSQL,
   readModelDB,
   readModelService,
   readModelServiceSQL,
