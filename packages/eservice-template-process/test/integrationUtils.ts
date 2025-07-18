@@ -25,6 +25,7 @@ import {
   eserviceTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { upsertEServiceTemplate } from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
@@ -105,10 +106,7 @@ export const addOneEServiceTemplate = async (
   await writeEServiceTemplateInEventstore(eserviceTemplate);
   await writeInReadmodel(eserviceTemplate, eserviceTemplates);
 
-  await eserviceTemplateReadModelServiceSQL.upsertEServiceTemplate(
-    eserviceTemplate,
-    0
-  );
+  await upsertEServiceTemplate(readModelDB, eserviceTemplate, 0);
 };
 
 export const addOneAttribute = async (attribute: Attribute): Promise<void> => {
