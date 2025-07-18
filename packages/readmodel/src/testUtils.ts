@@ -1,5 +1,6 @@
 import {
   Agreement,
+  Attribute,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -9,6 +10,7 @@ import {
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
+  attributeInReadmodelAttribute,
   DrizzleReturnType,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
@@ -20,6 +22,7 @@ import {
 } from "./notification-config/splitters.js";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
+import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -102,5 +105,35 @@ export const upsertAgreement = async (
         .insert(agreementContractInReadmodelAgreement)
         .values(contractSQL);
     }
+  });
+};
+
+export const upsertAttribute = async (
+  readModelDB: DrizzleReturnType,
+  attribute: Attribute,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      attributeInReadmodelAttribute,
+      metadataVersion,
+      attribute.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(attributeInReadmodelAttribute)
+      .where(eq(attributeInReadmodelAttribute.id, attribute.id));
+
+    const attributeSQL = splitAttributeIntoObjectsSQL(
+      attribute,
+      metadataVersion
+    );
+
+    await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
   });
 };
