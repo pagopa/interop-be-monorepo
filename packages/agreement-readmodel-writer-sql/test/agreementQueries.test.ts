@@ -10,7 +10,7 @@ import {
   getCustomMockAgreement,
   retrieveAgreementAttributesSQLByAgreementId,
   retrieveAgreementConsumerDocumentSQLByAgreementId,
-  retrieveAgreementContractQLByAgreementId,
+  retrieveAgreementContractSQLByAgreementId,
   retrieveAgreementStampsSQLByAgreementId,
 } from "./utils.js";
 
@@ -55,7 +55,7 @@ describe("Agreement queries", () => {
         await retrieveAgreementConsumerDocumentSQLByAgreementId(
           agreement.data.id
         );
-      const retrievedContract = await retrieveAgreementContractQLByAgreementId(
+      const retrievedContract = await retrieveAgreementContractSQLByAgreementId(
         agreement.data.id
       );
 
@@ -92,7 +92,7 @@ describe("Agreement queries", () => {
         await retrieveAgreementConsumerDocumentSQLByAgreementId(
           agreement.data.id
         );
-      const retrievedContract = await retrieveAgreementContractQLByAgreementId(
+      const retrievedContract = await retrieveAgreementContractSQLByAgreementId(
         agreement.data.id
       );
 
@@ -165,7 +165,7 @@ describe("Agreement queries", () => {
         await retrieveAgreementConsumerDocumentSQLByAgreementId(
           updatedAgreement.data.id
         );
-      const retrievedContract = await retrieveAgreementContractQLByAgreementId(
+      const retrievedContract = await retrieveAgreementContractSQLByAgreementId(
         updatedAgreement.data.id
       );
 
@@ -210,7 +210,7 @@ describe("Agreement queries", () => {
         await retrieveAgreementConsumerDocumentSQLByAgreementId(
           agreement.data.id
         );
-      const retrievedContract = await retrieveAgreementContractQLByAgreementId(
+      const retrievedContract = await retrieveAgreementContractSQLByAgreementId(
         agreement.data.id
       );
 
