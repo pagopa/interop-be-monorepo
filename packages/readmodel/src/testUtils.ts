@@ -1,13 +1,14 @@
 import {
-  Client,
+  Agreement,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
 import {
-  clientInReadmodelClient,
-  clientKeyInReadmodelClient,
-  clientPurposeInReadmodelClient,
-  clientUserInReadmodelClient,
+  agreementAttributeInReadmodelAgreement,
+  agreementConsumerDocumentInReadmodelAgreement,
+  agreementContractInReadmodelAgreement,
+  agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   DrizzleReturnType,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
@@ -17,8 +18,8 @@ import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
 } from "./notification-config/splitters.js";
+import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
-import { splitClientIntoObjectsSQL } from "./authorization/clientSplitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -50,17 +51,25 @@ export const insertUserNotificationConfig = async (
     );
 };
 
-export const upsertClient = async (
+export const upsertAgreement = async (
   readModelDB: DrizzleReturnType,
-  client: Client,
+  agreement: Agreement,
   metadataVersion: number
 ): Promise<void> => {
+  const {
+    agreementSQL,
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractSQL,
+  } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
+
   await readModelDB.transaction(async (tx) => {
     const shouldUpsert = await checkMetadataVersion(
       tx,
-      clientInReadmodelClient,
+      agreementInReadmodelAgreement,
       metadataVersion,
-      client.id
+      agreement.id
     );
 
     if (!shouldUpsert) {
@@ -68,27 +77,30 @@ export const upsertClient = async (
     }
 
     await tx
-      .delete(clientInReadmodelClient)
-      .where(eq(clientInReadmodelClient.id, client.id));
+      .delete(agreementInReadmodelAgreement)
+      .where(eq(agreementInReadmodelAgreement.id, agreement.id));
 
-    const { clientSQL, usersSQL, purposesSQL, keysSQL } =
-      splitClientIntoObjectsSQL(client, metadataVersion);
+    await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
 
-    await tx.insert(clientInReadmodelClient).values(clientSQL);
+    for (const stampSQL of stampsSQL) {
+      await tx.insert(agreementStampInReadmodelAgreement).values(stampSQL);
+    }
 
-    for (const userSQL of usersSQL) {
+    for (const attributeSQL of attributesSQL) {
       await tx
-        .insert(clientUserInReadmodelClient)
-        .values(userSQL)
-        .onConflictDoNothing();
+        .insert(agreementAttributeInReadmodelAgreement)
+        .values(attributeSQL);
     }
 
-    for (const purposeSQL of purposesSQL) {
-      await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+    for (const docSQL of consumerDocumentsSQL) {
+      await tx
+        .insert(agreementConsumerDocumentInReadmodelAgreement)
+        .values(docSQL);
     }
-
-    for (const keySQL of keysSQL) {
-      await tx.insert(clientKeyInReadmodelClient).values(keySQL);
+    if (contractSQL !== undefined) {
+      await tx
+        .insert(agreementContractInReadmodelAgreement)
+        .values(contractSQL);
     }
   });
 };
