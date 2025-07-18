@@ -38,7 +38,10 @@ import {
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
+import {
+  upsertAgreement,
+  upsertClient,
+} from "pagopa-interop-readmodel/testUtils";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { authorizationServiceBuilder } from "../src/services/authorizationService.js";
 import { config } from "../src/config/config.js";
@@ -148,7 +151,7 @@ export const addOneClient = async (client: Client): Promise<void> => {
   await writeClientInEventstore(client);
   await writeInReadmodel(toReadModelClient(client), clients);
 
-  await clientReadModelServiceSQL.upsertClient(client, 0);
+  await upsertClient(readModelDB, client, 0);
 };
 
 export const addOnePurpose = async (purpose: Purpose): Promise<void> => {

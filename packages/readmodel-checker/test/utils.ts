@@ -28,7 +28,6 @@ import {
   attributeReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
   clientJWKKeyReadModelServiceBuilder,
-  clientReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
   producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
@@ -69,8 +68,6 @@ export const purposeReadModelServiceSQL =
   purposeReadModelServiceBuilder(readModelDB);
 export const delegationReadModelServiceSQL =
   delegationReadModelServiceBuilder(readModelDB);
-export const clientReadModelServiceSQL =
-  clientReadModelServiceBuilder(readModelDB);
 export const producerKeychainReadModelServiceSQL =
   producerKeychainReadModelServiceBuilder(readModelDB);
 export const clientKeysReadModelServiceSQL =

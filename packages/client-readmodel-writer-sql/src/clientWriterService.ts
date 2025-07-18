@@ -8,7 +8,7 @@ import {
 } from "pagopa-interop-models";
 import {
   checkMetadataVersion,
-  ClientReadModelService,
+  splitClientIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import {
   DrizzleTransactionType,
@@ -24,10 +24,7 @@ import {
 import { and, eq, lte } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilder(
-  db: DrizzleReturnType,
-  clientReadModelService: ClientReadModelService
-) {
+export function clientWriterServiceBuilder(db: DrizzleReturnType) {
   const updateMetadataVersionInClientTables = async (
     tx: DrizzleTransactionType,
     clientId: ClientId,
@@ -55,14 +52,56 @@ export function readModelServiceBuilder(
 
   return {
     async upsertClient(client: Client, metadataVersion: number): Promise<void> {
-      return await clientReadModelService.upsertClient(client, metadataVersion);
+      await db.transaction(async (tx) => {
+        const shouldUpsert = await checkMetadataVersion(
+          tx,
+          clientInReadmodelClient,
+          metadataVersion,
+          client.id
+        );
+
+        if (!shouldUpsert) {
+          return;
+        }
+
+        await tx
+          .delete(clientInReadmodelClient)
+          .where(eq(clientInReadmodelClient.id, client.id));
+
+        const { clientSQL, usersSQL, purposesSQL, keysSQL } =
+          splitClientIntoObjectsSQL(client, metadataVersion);
+
+        await tx.insert(clientInReadmodelClient).values(clientSQL);
+
+        for (const userSQL of usersSQL) {
+          await tx
+            .insert(clientUserInReadmodelClient)
+            .values(userSQL)
+            .onConflictDoNothing();
+        }
+
+        for (const purposeSQL of purposesSQL) {
+          await tx.insert(clientPurposeInReadmodelClient).values(purposeSQL);
+        }
+
+        for (const keySQL of keysSQL) {
+          await tx.insert(clientKeyInReadmodelClient).values(keySQL);
+        }
+      });
     },
 
     async deleteClientById(
       clientId: ClientId,
       metadataVersion: number
     ): Promise<void> {
-      return clientReadModelService.deleteClientById(clientId, metadataVersion);
+      await db
+        .delete(clientInReadmodelClient)
+        .where(
+          and(
+            eq(clientInReadmodelClient.id, clientId),
+            lte(clientInReadmodelClient.metadataVersion, metadataVersion)
+          )
+        );
     },
 
     async addUser(
@@ -283,5 +322,4 @@ export function readModelServiceBuilder(
     },
   };
 }
-
-export type ReadModelService = ReturnType<typeof readModelServiceBuilder>;
+export type ClientWriterService = ReturnType<typeof clientWriterServiceBuilder>;
