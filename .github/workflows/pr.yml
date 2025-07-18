@@ -29,17 +29,14 @@ jobs:
           node-version-file: ./package.json
       - run: pnpm format:check
 
- lint-shard:
+  lint-shard:
     name: Lint Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
     runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     strategy:
       fail-fast: false
       matrix:
-        shardTotal: [3] # Regola questo valore in base al numero di runner che vuoi usare
+        shardTotal: [3] # Puoi regolare il numero di shard per il linting (es. 3, 5, 10)
         shardIndex: [1, 2, 3] # Deve corrispondere a shardTotal
-    outputs:
-      # Questa output non è strettamente necessaria per la sharding di lint, ma utile per debug
-      # filtered_packages: ${{ steps.filter_packages.outputs.filtered_packages }}
     steps:
       - uses: actions/checkout@v4
       - name: Cache turbo setup
@@ -62,37 +59,50 @@ jobs:
         id: filter_packages
         run: |
           # Trova tutti i pacchetti nella monorepo che contengono un file package.json
-          # (Potresti voler filtrare ulteriormente se non tutti i 'sottocartelle' sono pacchetti TurboRepo)
-          ALL_PACKAGES=$(find packages -maxdepth 1 -mindepth 1 -type d | sed 's/packages\///g' | sort)
-          
+          # Adattare questo comando se la struttura dei tuoi pacchetti è diversa o se non tutti i sub-directory di 'packages' sono package validi.
+          # Ad esempio, potresti leggere il campo 'workspaces' dal package.json radice o pnpm-workspace.yaml
+          ALL_PACKAGES=$(find packages -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sort)
+
+          if [ -z "$ALL_PACKAGES" ]; then
+            echo "Nessun pacchetto trovato. Verifica il percorso 'packages/'."
+            # Potresti voler fallire il job qui o saltare l'esecuzione del linting
+            exit 1
+          fi
+
           # Converti la lista in un array Bash
           readarray -t PACKAGE_ARRAY <<< "$ALL_PACKAGES"
-          
+
           # Calcola la dimensione di ogni shard
           TOTAL_PACKAGES=${#PACKAGE_ARRAY[@]}
           SHARD_TOTAL=${{ matrix.shardTotal }}
           SHARD_INDEX=${{ matrix.shardIndex }}
-          
+
           # Calcola l'indice di inizio e fine per questo shard
-          # Usiamo awk per la precisione nel calcolo degli indici e per gestire la distribuzione
           START_INDEX=$(awk "BEGIN { print int(($SHARD_INDEX - 1) * $TOTAL_PACKAGES / $SHARD_TOTAL) }")
           END_INDEX=$(awk "BEGIN { print int($SHARD_INDEX * $TOTAL_PACKAGES / $SHARD_TOTAL) - 1 }")
-          
-          # Estrai i pacchetti per lo shard corrente
+
           FILTERED_PACKAGES=""
-          for (( i=$START_INDEX; i<=$END_INDEX; i++ )); do
-              PACKAGE_NAME=${PACKAGE_ARRAY[$i]}
-              if [ -n "$PACKAGE_NAME" ]; then # Assicurati che il nome del pacchetto non sia vuoto
-                  FILTERED_PACKAGES+=" --filter=./packages/$PACKAGE_NAME"
-              fi
-          done
-          
+          # Gestione speciale per il caso in cui START_INDEX > END_INDEX (es. troppi shard per pochi pacchetti)
+          if [ "$START_INDEX" -le "$END_INDEX" ]; then
+              for (( i=$START_INDEX; i<=$END_INDEX; i++ )); do
+                  PACKAGE_NAME=${PACKAGE_ARRAY[$i]}
+                  if [ -n "$PACKAGE_NAME" ]; then
+                      FILTERED_PACKAGES+=" --filter=./packages/$PACKAGE_NAME"
+                  fi
+              done
+          else
+              echo "Lo shard ${{ matrix.shardIndex }} non ha pacchetti da elaborare."
+          fi
+
           echo "Packages for shard $SHARD_INDEX: $FILTERED_PACKAGES"
-          echo "filtered_packages=$FILTERED_PACKAGES" >> $GITHUB_OUTPUT
+          echo "filtered_packages=$FILTERED_PACKAGES" >> "$GITHUB_OUTPUT"
 
       - name: Run Lint with sharding
+        # Esegui il linting solo se ci sono pacchetti da filtrare per questo shard
+        if: ${{ steps.filter_packages.outputs.filtered_packages != '' }}
         run: |
           pnpm turbo lint ${{ steps.filter_packages.outputs.filtered_packages }} -- --cache --cache-strategy content --cache-location .eslintcache
+
   check:
     name: Check
     runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
@@ -160,7 +170,7 @@ jobs:
 
   merge_test_coverage:
     name: Merge Test Coverage
-    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"] # Anche questa su CodeBuild
+    runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     needs: test
     if: ${{ always() }}
     steps:
@@ -194,13 +204,15 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c94182a5588bf961ae8f # v0.8.12
+      - uses: stoplightio/spectral-action@577bade2d6e0eeb50528c941ae8f # v0.8.12
         with:
           file_glob: "./packages/api-clients/open-api/!(selfcareV2ClientApi.yml|authorizationManagementApi.yaml|notifierApi.yml|apiGatewayApi.yml)"
 
   find_dockerfiles:
     name: Find Dockerfiles
+    # Tutte le job di controllo preliminari devono essere completate prima di trovare i Dockerfile
     needs: [formatting, lint-shard, check, test, lint-openapi]
+    # La condizione 'if' deve essere inclusa solo se vuoi che il job sia condizionale
     if: ${{ github.base_ref == 'develop' || github.base_ref == 'main' }}
     runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     outputs:
@@ -210,20 +222,22 @@ jobs:
       - name: Find packages
         id: set_packages_output
         run: |
-          PACKAGES=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | jq -R -s -c 'split("\n")[:-1]')
+          # Questo comando è robusto e dovrebbe trovare correttamente i nomi dei pacchetti
+          PACKAGES=$(find packages -type f -path "*/Dockerfile" | awk -F'/' '{print $2}' | sort -u | jq -R -s -c 'split("\n")[:-1]')
           echo "packages=$PACKAGES" >> $GITHUB_OUTPUT
+          echo "Found Dockerfiles for packages: $PACKAGES" # Log per debug
 
   docker_build:
     name: Build
-    needs: [find_dockerfiles]
-    if: ${{ github.base_ref == 'main' }}
+    needs: [find_dockerfiles] # Dipende da find_dockerfiles per ottenere la lista dei pacchetti
+    if: ${{ github.base_ref == 'main' && needs.find_dockerfiles.outputs.packages != '[]' }} # Esegui solo se la base è 'main' E ci sono pacchetti da costruire
     runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     environment: ecr-ro
     permissions:
       contents: read
       id-token: write
     strategy:
-      max-parallel: 5 #  aumentare questo valore se necessario per parallelizzare ulteriormente
+      max-parallel: 5 # Puoi aumentare questo valore se i tuoi runner CodeBuild lo permettono
       fail-fast: false
       matrix:
         package: ${{ fromJson(needs.find_dockerfiles.outputs.packages) }}
@@ -253,11 +267,19 @@ jobs:
 
   check_build_result:
     name: Build Result
-    needs: [docker_build]
+    needs: [docker_build] # Dipende dal successo o fallimento di docker_build
+    # Esegui sempre, ma solo se github.base_ref è 'main'.
+    # Non è necessario controllare needs.docker_build.result qui, perché se docker_build non è stato eseguito,
+    # la sua 'result' sarà 'skipped' o 'cancelled', che non è 'success'.
     if: ${{ always() && github.base_ref == 'main' }}
     runs-on: ["codebuild-pagopa-interop-be-monorepo-github-runners-dev-${{ github.run_id }}-${{ github.run_attempt }}"]
     steps:
       - name: Check build result
         run: |
-          [[ ${{ needs.docker_build.result }} != 'success' ]] && exit 1
-          exit 0
+          # Questo comando fallirà il job 'check_build_result' se docker_build non è stato un successo.
+          # Questo copre anche i casi di 'skipped' o 'cancelled' per docker_build.
+          if [ "${{ needs.docker_build.result }}" != "success" ]; then
+              echo "La build Docker non è stata completata con successo o è stata saltata/cancellata."
+              exit 1
+          fi
+          echo "La build Docker è stata completata con successo."
