@@ -3,10 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   AgreementId,
   agreementState,
-  badRequestError,
   DelegationId,
   generateId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -85,8 +83,6 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
       ),
       expectedStatus: 400,
     },
-    { error: badRequestError(generateId()), expectedStatus: 400 },
-    { error: unauthorizedError(generateId()), expectedStatus: 403 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

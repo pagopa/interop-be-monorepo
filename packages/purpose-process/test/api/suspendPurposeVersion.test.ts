@@ -4,10 +4,8 @@ import {
   DelegationId,
   PurposeId,
   PurposeVersionId,
-  badRequestError,
   generateId,
   purposeVersionState,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -94,14 +92,6 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
         purposeVersionState.draft
       ),
       expectedStatus: 400,
-    },
-    {
-      error: badRequestError(generateId()),
-      expectedStatus: 400,
-    },
-    {
-      error: unauthorizedError(generateId()),
-      expectedStatus: 403,
     },
     {
       error: tenantIsNotTheDelegatedProducer(

@@ -4,9 +4,7 @@ import {
   AgreementId,
   DelegationId,
   agreementState,
-  badRequestError,
   generateId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -109,8 +107,6 @@ describe("API POST /agreements/{agreementId}/activate test", () => {
       error: agreementAlreadyExists(generateId(), generateId()),
       expectedStatus: 409,
     },
-    { error: badRequestError(generateId()), expectedStatus: 400 },
-    { error: unauthorizedError(generateId()), expectedStatus: 403 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

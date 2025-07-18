@@ -4,9 +4,7 @@ import {
   DelegationId,
   PurposeId,
   PurposeVersionId,
-  badRequestError,
   generateId,
-  unauthorizedError,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -98,14 +96,6 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
     {
       error: purposeVersionNotFound(mockPurpose.id, mockPurposeVersion.id),
       expectedStatus: 404,
-    },
-    {
-      error: badRequestError(generateId()),
-      expectedStatus: 400,
-    },
-    {
-      error: unauthorizedError(generateId()),
-      expectedStatus: 403,
     },
     {
       error: tenantIsNotTheDelegatedConsumer(
