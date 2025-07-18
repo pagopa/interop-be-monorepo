@@ -76,7 +76,7 @@ export const retrieveAgreementConsumerDocumentSQLByAgreementId = async (
       eq(agreementConsumerDocumentInReadmodelAgreement.agreementId, agreementId)
     );
 
-export const retrieveAgreementContractQLByAgreementId = async (
+export const retrieveAgreementContractSQLByAgreementId = async (
   agreementId: AgreementId
 ): Promise<AgreementContractSQL[]> =>
   await readModelDB
