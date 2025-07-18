@@ -3802,8 +3802,12 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor suspended
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"

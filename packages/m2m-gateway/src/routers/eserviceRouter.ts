@@ -154,15 +154,14 @@ const eserviceRouter = (
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
         try {
-          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          await eserviceService.suspendDescriptor(
+          const eService = await eserviceService.suspendDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-
-          return res.status(204).send();
+          return res.status(200).send(m2mGatewayApi.EService.parse(eService));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

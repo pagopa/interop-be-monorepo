@@ -1,13 +1,31 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  getMockedApiEservice,
+  getMockedApiEserviceDescriptor,
+} from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { missingMetadata } from "../../../src/model/errors.js";
+import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("POST /eservices/:eServiceId/descriptors/:descriptorId/suspend router test", () => {
+  const mockApiDescriptor: catalogApi.EServiceDescriptor = {
+    ...getMockedApiEserviceDescriptor(),
+    state: "SUSPENDED",
+  };
+
+  const mockApiEservice = getMockedApiEservice({
+    descriptors: [mockApiDescriptor],
+  });
+
+  const mockM2MEserviceResponse: m2mGatewayApi.EService =
+    toM2MGatewayApiEService(mockApiEservice);
+
   const makeRequest = async (
     token: string,
     eServiceId: string,
@@ -17,33 +35,39 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/suspend router t
       .post(
         `${appBasePath}/eservices/${eServiceId}/descriptors/${descriptorId}/suspend`
       )
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send(mockApiEservice);
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.M2M_ADMIN_ROLE,
-    authRole.M2M_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
-    "Should return 204 and perform service calls for user with role %s",
+    "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.suspendDescriptor = vi.fn();
+      mockEserviceService.suspendDescriptor = vi
+        .fn()
+        .mockResolvedValue(mockM2MEserviceResponse);
 
       const token = generateToken(role);
-      const res = await makeRequest(token, generateId(), generateId());
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id
+      );
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockM2MEserviceResponse);
     }
   );
 
   it("Should return 400 for invalid eService id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, "INVALID_ID", generateId());
+    const res = await makeRequest(token, "INVALID_ID", mockApiDescriptor.id);
     expect(res.status).toBe(400);
   });
 
   it("Should return 400 for invalid descriptor id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, generateId(), "INVALID_ID");
+    const res = await makeRequest(token, mockApiEservice.id, "INVALID_ID");
     expect(res.status).toBe(400);
   });
 
@@ -51,7 +75,11 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/suspend router t
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, generateId(), generateId());
+    const res = await makeRequest(
+      token,
+      mockApiEservice.id,
+      mockApiDescriptor.id
+    );
     expect(res.status).toBe(403);
   });
 
@@ -60,7 +88,11 @@ describe("POST /eservices/:eServiceId/descriptors/:descriptorId/suspend router t
     async (error) => {
       mockEserviceService.suspendDescriptor = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token, generateId(), generateId());
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id
+      );
 
       expect(res.status).toBe(500);
     }

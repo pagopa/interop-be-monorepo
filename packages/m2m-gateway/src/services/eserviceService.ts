@@ -193,20 +193,18 @@ export function eserviceServiceBuilder(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
+    ): Promise<m2mGatewayApi.EService> {
       logger.info(
         `Suspending descriptor with id ${descriptorId} for eservice with id ${eServiceId}`
       );
 
-      const { metadata } = await clients.catalogProcessClient.suspendDescriptor(
-        undefined,
-        {
+      const { data, metadata } =
+        await clients.catalogProcessClient.suspendDescriptor(undefined, {
           params: { eServiceId, descriptorId },
           headers,
-        }
-      );
-
+        });
       await pollDescriptorById(eServiceId, descriptorId, metadata, headers);
+      return toM2MGatewayApiEService(data);
     },
   };
 }

@@ -755,11 +755,15 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor suspended
           headers:
               X-Metadata-Version:
                 $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
         "400":
           description: Invalid input
           content:

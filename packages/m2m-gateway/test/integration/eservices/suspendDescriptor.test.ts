@@ -8,6 +8,7 @@ import {
   getMockedApiEserviceDescriptor,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -19,14 +20,21 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 
 describe("suspendDescriptor", () => {
-  const mockApiDescriptor = getMockedApiEserviceDescriptor();
+  const mockApiDescriptor: catalogApi.EServiceDescriptor = {
+    ...getMockedApiEserviceDescriptor(),
+    state: "SUSPENDED",
+  };
+
   const mockApiEservice = getMockWithMetadata(
     getMockedApiEservice({
       descriptors: [mockApiDescriptor],
     })
   );
+
+  const mockM2MEserviceResponse = toM2MGatewayApiEService(mockApiEservice.data);
 
   const mockSuspendDescriptor = vi.fn().mockResolvedValue(mockApiEservice);
   const mockGetEservice = vi.fn(mockPollingResponse(mockApiEservice, 2));
@@ -42,12 +50,13 @@ describe("suspendDescriptor", () => {
   });
 
   it("Should succeed and perform API clients calls", async () => {
-    await eserviceService.suspendDescriptor(
+    const result = await eserviceService.suspendDescriptor(
       unsafeBrandId(mockApiEservice.data.id),
       unsafeBrandId(mockApiDescriptor.id),
       getMockM2MAdminAppContext()
     );
 
+    expect(result).toEqual(mockM2MEserviceResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost: mockInteropBeClients.catalogProcessClient.suspendDescriptor,
       params: {

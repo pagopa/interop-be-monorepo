@@ -115,7 +115,7 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
 export async function assertRequesterIsDelegateProducerOrProducer(
   producerId: TenantId,
   eserviceId: EServiceId,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+  authData: UIAuthData | M2MAdminAuthData,
   readModelService: ReadModelService
 ): Promise<void> {
   // Search for active producer delegation
