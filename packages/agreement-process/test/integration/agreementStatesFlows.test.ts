@@ -83,7 +83,7 @@ describe("Agreeement states flows", () => {
         [[validDeclaredEserviceAttribute]]
         // No verified attributes required in V1
       ),
-      version: 1,
+      version: "1",
       agreementApprovalPolicy: "Automatic",
     };
 
@@ -162,7 +162,7 @@ describe("Agreeement states flows", () => {
     const descriptorV2: Descriptor = {
       ...descriptorV1,
       id: generateId(),
-      version: 2,
+      version: "2",
       attributes: {
         certified: descriptorV1.attributes.certified,
         declared: descriptorV1.attributes.declared,
@@ -308,7 +308,7 @@ describe("Agreeement states flows", () => {
         [[validDeclaredEserviceAttribute]]
         // No verified attributes required in V1
       ),
-      version: 1,
+      version: "1",
       agreementApprovalPolicy: "Automatic",
     };
 
@@ -372,7 +372,7 @@ describe("Agreeement states flows", () => {
     const descriptorV2: Descriptor = {
       ...descriptorV1,
       id: generateId(),
-      version: 2,
+      version: "2",
       attributes: {
         certified: descriptorV1.attributes.certified,
         declared: descriptorV1.attributes.declared,

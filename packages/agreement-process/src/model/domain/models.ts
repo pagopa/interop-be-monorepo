@@ -66,7 +66,7 @@ export type AgreementContractPDFPayload = {
   eserviceId: EServiceId;
   eserviceName: string;
   descriptorId: DescriptorId;
-  descriptorVersion: number;
+  descriptorVersion: string;
   producerName: string;
   producerIpaCode: string | undefined;
   consumerName: string;
