@@ -9,7 +9,7 @@ import {
 } from "./utils.js";
 
 describe("Delegation queries", () => {
-  describe("upsertDelegation", () => {
+  describe("should insert or update a delegation", () => {
     it("should add a complete (*all* fields) delegation", async () => {
       const delegation = getCustomMockDelegation({
         isDelegationComplete: true,
@@ -99,7 +99,7 @@ describe("Delegation queries", () => {
     });
   });
 
-  describe("deleteDelegationById", () => {
+  describe("should delete a delegation by id", () => {
     it("should delete a delegation", async () => {
       const delegation = getCustomMockDelegation({
         isDelegationComplete: false,
