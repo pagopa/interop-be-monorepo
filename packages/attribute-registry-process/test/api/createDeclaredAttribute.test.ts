@@ -7,7 +7,10 @@ import request from "supertest";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { api, attributeRegistryService } from "../vitest.api.setup.js";
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
-import { attributeDuplicateByName } from "../../src/model/domain/errors.js";
+import {
+  attributeDuplicateByName,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
 
 describe("API /declaredAttributes authorization test", () => {
   const mockDeclaredAttributeSeed: attributeRegistryApi.AttributeSeed = {
@@ -37,7 +40,11 @@ describe("API /declaredAttributes authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(mockDeclaredAttributeSeed);
 
-  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
 
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
@@ -80,5 +87,15 @@ describe("API /declaredAttributes authorization test", () => {
         name: "Declared Attribute",
       });
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 500 for tenant not found", async () => {
+    attributeRegistryService.createDeclaredAttribute = vi
+      .fn()
+      .mockRejectedValue(tenantNotFound(generateId()));
+
+    const res = await makeRequest(generateToken(authRole.M2M_ADMIN_ROLE));
+
+    expect(res.status).toBe(500);
   });
 });
