@@ -1,5 +1,6 @@
 import {
   Agreement,
+  Delegation,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -9,6 +10,9 @@ import {
   agreementContractInReadmodelAgreement,
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
+  delegationContractDocumentInReadmodelDelegation,
+  delegationInReadmodelDelegation,
+  delegationStampInReadmodelDelegation,
   DrizzleReturnType,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
@@ -20,6 +24,7 @@ import {
 } from "./notification-config/splitters.js";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
+import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -101,6 +106,44 @@ export const upsertAgreement = async (
       await tx
         .insert(agreementContractInReadmodelAgreement)
         .values(contractSQL);
+    }
+  });
+};
+
+export const upsertDelegation = async (
+  readModelDB: DrizzleReturnType,
+  delegation: Delegation,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      delegationInReadmodelDelegation,
+      metadataVersion,
+      delegation.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(delegationInReadmodelDelegation)
+      .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+
+    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
+      splitDelegationIntoObjectsSQL(delegation, metadataVersion);
+
+    await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
+
+    for (const stampSQL of stampsSQL) {
+      await tx.insert(delegationStampInReadmodelDelegation).values(stampSQL);
+    }
+
+    for (const docSQL of contractDocumentsSQL) {
+      await tx
+        .insert(delegationContractDocumentInReadmodelDelegation)
+        .values(docSQL);
     }
   });
 };
