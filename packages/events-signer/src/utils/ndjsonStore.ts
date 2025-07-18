@@ -4,6 +4,7 @@ import { generateId } from "pagopa-interop-models";
 import { StoreData } from "../models/storeData.js";
 import { EventsSignerConfig } from "../config/config.js";
 
+// TODO -> Change function handle zipping file
 export const storeEventDataInNdjson = async <T extends StoreData>(
   dataToStoreArray: T[],
   documentDestinationPath: string,
@@ -20,7 +21,7 @@ export const storeEventDataInNdjson = async <T extends StoreData>(
     dataToStoreArray.map((data) => JSON.stringify(data)).join("\n") + "\n";
   const contentBuffer = Buffer.from(ndjsonString, "utf-8");
 
-  const documentName = `events_${Date.now()}.ndjson`;
+  const documentName = `events_${Date.now()}.ndjson`; // TODO -> document name scope should be on handlers
 
   try {
     await fileManager.storeBytes(

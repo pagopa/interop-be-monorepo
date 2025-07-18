@@ -6,12 +6,14 @@ import { config } from "../config/config.js";
 import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
 import { CatalogEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
+import { SafeStorageService } from "../services/safeStorageService.js";
 
 export const handleCatalogMessageV2 = async (
   decodedMessages: EServiceEventV2[],
   logger: Logger,
   fileManager: FileManager,
-  _dbService: DbServiceBuilder
+  _dbService: DbServiceBuilder,
+  safeStorage: SafeStorageService
 ): Promise<void> => {
   const allCatalogDataToStore: CatalogEventData[] = [];
 
@@ -100,7 +102,9 @@ export const handleCatalogMessageV2 = async (
   }
 
   if (allCatalogDataToStore.length > 0) {
-    const documentDestinationPath = `catalog/${new Date()}`;
+    const timestamp = new Date();
+    const documentDestinationPath = `catalog/${timestamp}`;
+    const fileName = `catalog_events_${timestamp}.ndjson`; // TO DO ZIP
 
     await storeEventDataInNdjson<CatalogEventData>(
       allCatalogDataToStore,
@@ -109,6 +113,28 @@ export const handleCatalogMessageV2 = async (
       logger,
       config
     );
+
+    logger.info(`Requesting file creation in Safe Storage for ${fileName}...`);
+
+    // const fileCreationResponse = await safeStorage.createFile(null);
+    // const { uploadUrl } = fileCreationResponse;
+
+    await safeStorage.uploadFileContent(
+      "uploadUrl",
+      Buffer.from("content"),
+      "application/zip",
+      "secret",
+      "checksumValue"
+    );
+    logger.info("File uploaded to Safe Storage successfully.");
+
+    // TODO -> Check  column integrity
+    // await dbService.saveSignatureReference(
+    //   { fileId: fileCreationRequest.fileId },
+    //   fileKey,
+    //   fileNameForSafeStorage,
+    // );
+    logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No managed catalog events to store.");
   }

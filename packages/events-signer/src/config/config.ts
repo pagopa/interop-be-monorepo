@@ -31,6 +31,20 @@ export const EventsSignerConfig = CatalogTopicConfig.and(AgreementTopicConfig)
       }))
   );
 
+export const safeStorageApiConfigSchema = z
+  .object({
+    SAFE_STORAGE_BASE_URL: z.string(),
+    SAFE_STORAGE_API_KEY: z.string(),
+    SAFE_STORAGE_CLIENT_ID: z.string(),
+  })
+  .transform((c) => ({
+    safeStorageBaseUrl: c.SAFE_STORAGE_BASE_URL,
+    safeStorageApiKey: c.SAFE_STORAGE_API_KEY,
+    safeStorageClientId: c.SAFE_STORAGE_CLIENT_ID,
+  }));
+
+export type SafeStorageApiConfig = z.infer<typeof safeStorageApiConfigSchema>;
+
 export type EventsSignerConfig = z.infer<typeof EventsSignerConfig>;
 
 export const config: EventsSignerConfig = EventsSignerConfig.parse(process.env);
@@ -40,3 +54,7 @@ export const baseConsumerConfig: KafkaConsumerConfig =
 
 export const batchConsumerConfig: KafkaBatchConsumerConfig =
   KafkaBatchConsumerConfig.parse(process.env);
+
+export const safeStorageApiConfig = safeStorageApiConfigSchema.parse(
+  process.env
+);

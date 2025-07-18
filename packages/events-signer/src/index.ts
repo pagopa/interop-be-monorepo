@@ -8,14 +8,17 @@ import {
   baseConsumerConfig,
   batchConsumerConfig,
   config,
+  safeStorageApiConfig,
 } from "./config/config.js";
 
 import { dbServiceBuilder } from "./services/dbService.js";
 import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
+import { createSafeStorageApiClient } from "./services/safeStorageService.js";
 
 const fileManager = initFileManager(config);
 const dynamoDBClient = new DynamoDBClient();
 const dbService = dbServiceBuilder(dynamoDBClient, genericLogger);
+const safeStorageService = createSafeStorageApiClient(safeStorageApiConfig);
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {
   const messages: KafkaMessage[] = batch.messages;
@@ -25,7 +28,8 @@ async function processBatch({ batch }: EachBatchPayload): Promise<void> {
     batch.topic,
     genericLogger,
     fileManager,
-    dbService
+    dbService,
+    safeStorageService
   );
 
   genericLogger.info(

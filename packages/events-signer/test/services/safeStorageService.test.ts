@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import axios from "axios";
 import { createSafeStorageApiClient } from "../../src/services/safeStorageService.js";
-import { SafeStorageApiConfig } from "../../src/interfaces/safeStorageServiceInterfaces.js";
+import { SafeStorageApiConfig } from "../../src/config/config.js";
 
 vi.mock("axios");
 

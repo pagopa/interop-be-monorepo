@@ -42,9 +42,3 @@ export interface SafeStorageApiClient {
   ) => Promise<FileDownloadResponse>;
   downloadFileContent: (downloadUrl: string) => Promise<Buffer>;
 }
-
-export interface SafeStorageApiConfig {
-  safeStorageBaseUrl: string;
-  safeStorageApiKey: string;
-  safeStorageClientId: string;
-}

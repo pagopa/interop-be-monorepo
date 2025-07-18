@@ -5,8 +5,8 @@ import {
   FileCreationResponse,
   FileDownloadResponse,
   SafeStorageApiClient,
-  SafeStorageApiConfig,
 } from "../interfaces/safeStorageServiceInterfaces.js";
+import { SafeStorageApiConfig } from "../config/config.js";
 
 export function createSafeStorageApiClient(
   config: SafeStorageApiConfig
@@ -82,3 +82,5 @@ export function createSafeStorageApiClient(
     },
   };
 }
+
+export type SafeStorageService = ReturnType<typeof createSafeStorageApiClient>;
