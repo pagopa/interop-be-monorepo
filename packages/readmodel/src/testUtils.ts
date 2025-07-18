@@ -1,12 +1,14 @@
 import {
-  Delegation,
+  Agreement,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
 import {
-  delegationContractDocumentInReadmodelDelegation,
-  delegationInReadmodelDelegation,
-  delegationStampInReadmodelDelegation,
+  agreementAttributeInReadmodelAgreement,
+  agreementConsumerDocumentInReadmodelAgreement,
+  agreementContractInReadmodelAgreement,
+  agreementInReadmodelAgreement,
+  agreementStampInReadmodelAgreement,
   DrizzleReturnType,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
@@ -16,7 +18,7 @@ import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
 } from "./notification-config/splitters.js";
-import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
+import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
 
 export const insertTenantNotificationConfig = async (
@@ -49,17 +51,25 @@ export const insertUserNotificationConfig = async (
     );
 };
 
-export const upsertDelegation = async (
+export const upsertAgreement = async (
   readModelDB: DrizzleReturnType,
-  delegation: Delegation,
+  agreement: Agreement,
   metadataVersion: number
 ): Promise<void> => {
+  const {
+    agreementSQL,
+    stampsSQL,
+    attributesSQL,
+    consumerDocumentsSQL,
+    contractSQL,
+  } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
+
   await readModelDB.transaction(async (tx) => {
     const shouldUpsert = await checkMetadataVersion(
       tx,
-      delegationInReadmodelDelegation,
+      agreementInReadmodelAgreement,
       metadataVersion,
-      delegation.id
+      agreement.id
     );
 
     if (!shouldUpsert) {
@@ -67,22 +77,30 @@ export const upsertDelegation = async (
     }
 
     await tx
-      .delete(delegationInReadmodelDelegation)
-      .where(eq(delegationInReadmodelDelegation.id, delegation.id));
+      .delete(agreementInReadmodelAgreement)
+      .where(eq(agreementInReadmodelAgreement.id, agreement.id));
 
-    const { delegationSQL, stampsSQL, contractDocumentsSQL } =
-      splitDelegationIntoObjectsSQL(delegation, metadataVersion);
-
-    await tx.insert(delegationInReadmodelDelegation).values(delegationSQL);
+    await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
 
     for (const stampSQL of stampsSQL) {
-      await tx.insert(delegationStampInReadmodelDelegation).values(stampSQL);
+      await tx.insert(agreementStampInReadmodelAgreement).values(stampSQL);
     }
 
-    for (const docSQL of contractDocumentsSQL) {
+    for (const attributeSQL of attributesSQL) {
       await tx
-        .insert(delegationContractDocumentInReadmodelDelegation)
+        .insert(agreementAttributeInReadmodelAgreement)
+        .values(attributeSQL);
+    }
+
+    for (const docSQL of consumerDocumentsSQL) {
+      await tx
+        .insert(agreementConsumerDocumentInReadmodelAgreement)
         .values(docSQL);
+    }
+    if (contractSQL !== undefined) {
+      await tx
+        .insert(agreementContractInReadmodelAgreement)
+        .values(contractSQL);
     }
   });
 };
