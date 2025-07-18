@@ -2,7 +2,7 @@ export interface FileCreationRequest {
   contentType: string;
   documentType: string;
   status: string;
-  checksumValue?: string;
+  checksumValue: string;
 }
 
 export interface FileCreationResponse {

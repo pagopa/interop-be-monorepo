@@ -16,6 +16,9 @@ describe("SafeStorageApiClient", () => {
     safeStorageBaseUrl: "https://mocked-url.com",
     safeStorageApiKey: "mock-api-key",
     safeStorageClientId: "mock-client-id",
+    safeStorageDocType: "mock-doc-type",
+    safeStorageDocStatus: "mock-doc-status",
+    safeStorageHost: "mock-host",
   };
 
   const mockAxiosInstance = {

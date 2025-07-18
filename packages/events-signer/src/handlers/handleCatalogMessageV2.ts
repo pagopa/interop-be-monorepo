@@ -2,17 +2,18 @@
 import { match, P } from "ts-pattern";
 import { EServiceEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { config } from "../config/config.js";
+import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
 import { CatalogEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
+import { FileCreationRequest } from "../interfaces/safeStorageServiceInterfaces.js";
 
 export const handleCatalogMessageV2 = async (
   decodedMessages: EServiceEventV2[],
   logger: Logger,
   fileManager: FileManager,
-  _dbService: DbServiceBuilder,
+  dbService: DbServiceBuilder,
   safeStorage: SafeStorageService
 ): Promise<void> => {
   const allCatalogDataToStore: CatalogEventData[] = [];
@@ -104,9 +105,9 @@ export const handleCatalogMessageV2 = async (
   if (allCatalogDataToStore.length > 0) {
     const timestamp = new Date();
     const documentDestinationPath = `catalog/${timestamp}`;
-    const fileName = `catalog_events_${timestamp}.ndjson`; // TO DO ZIP
+    const checksum = ""; // TODO -> crypto
 
-    await storeEventDataInNdjson<CatalogEventData>(
+    const s3filePath = await storeEventDataInNdjson<CatalogEventData>(
       allCatalogDataToStore,
       documentDestinationPath,
       fileManager,
@@ -114,26 +115,40 @@ export const handleCatalogMessageV2 = async (
       config
     );
 
-    logger.info(`Requesting file creation in Safe Storage for ${fileName}...`);
+    if (!s3filePath) {
+      logger.info(`S3 storing didn't return a valid key`);
+      return;
+    }
 
-    // const fileCreationResponse = await safeStorage.createFile(null);
-    // const { uploadUrl } = fileCreationResponse;
+    logger.info(
+      `Requesting file creation in Safe Storage for ${s3filePath}...`
+    );
+
+    const safeStorageRequest: FileCreationRequest = {
+      contentType: "application/json",
+      documentType: safeStorageApiConfig.safeStorageDocType,
+      status: safeStorageApiConfig.safeStorageDocStatus,
+      checksumValue: checksum,
+    };
+    const { uploadUrl, secret, key } = await safeStorage.createFile(
+      safeStorageRequest
+    );
 
     await safeStorage.uploadFileContent(
-      "uploadUrl",
-      Buffer.from("content"),
+      uploadUrl,
+      Buffer.from(`${documentDestinationPath}/${s3filePath}`),
       "application/zip",
-      "secret",
-      "checksumValue"
+      secret,
+      checksum
     );
+
     logger.info("File uploaded to Safe Storage successfully.");
 
-    // TODO -> Check  column integrity
-    // await dbService.saveSignatureReference(
-    //   { fileId: fileCreationRequest.fileId },
-    //   fileKey,
-    //   fileNameForSafeStorage,
-    // );
+    await dbService.saveSignatureReference({
+      safeStorageId: key,
+      fileKind: "PLATFORM_EVENTS",
+      fileName: s3filePath, // TODO -> get file name
+    });
     logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No managed catalog events to store.");

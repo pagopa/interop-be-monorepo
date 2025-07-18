@@ -1,17 +1,13 @@
 import {
   DynamoDBClient,
   PutItemCommand,
-  DeleteItemCommand,
   PutItemInput,
-  DeleteItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { Logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 
 interface SignatureReference {
-  fileId: string;
   safeStorageId: string;
-  createdAt: string;
   fileKind: string;
   fileName: string;
 }
@@ -23,25 +19,15 @@ export function dbServiceBuilder(
 ) {
   return {
     saveSignatureReference: async (
-      reference: Omit<SignatureReference, "createdAt" | "fileKind">,
-      safeStorageId: string,
-      fileName: string
+      reference: SignatureReference
     ): Promise<void> => {
-      const item: SignatureReference = {
-        ...reference,
-        safeStorageId,
-        createdAt: new Date().toISOString(),
-        fileKind: "PLATFORM_EVENTS",
-        fileName,
-      };
+      const item: SignatureReference = reference;
 
       const input: PutItemInput = {
         TableName: config.dbTableName,
         Item: {
           PK: { S: item.safeStorageId },
           safeStorageId: { S: item.safeStorageId },
-          createdAt: { S: item.createdAt },
-          status: { S: "PENDING_SIGNATURE" },
           fileKind: { S: item.fileKind },
           fileName: { S: item.fileName },
         },
@@ -53,29 +39,7 @@ export function dbServiceBuilder(
       try {
         await dynamoDBClient.send(command);
       } catch (error) {
-        logger.error(`Error saving '${item.fileId}': ${error}`);
-        throw error;
-      }
-    },
-
-    removeSignatureReference: async (
-      fileId: string,
-      safeStorageId: string
-    ): Promise<void> => {
-      const input: DeleteItemInput = {
-        TableName: config.dbTableName,
-        Key: {
-          PK: { S: safeStorageId },
-        },
-        ReturnValues: "NONE",
-      };
-
-      const command = new DeleteItemCommand(input);
-
-      try {
-        await dynamoDBClient.send(command);
-      } catch (error) {
-        logger.error(`Error removing '${fileId}': ${error}`);
+        logger.error(`Error saving '${item.safeStorageId}': ${error}`);
         throw error;
       }
     },

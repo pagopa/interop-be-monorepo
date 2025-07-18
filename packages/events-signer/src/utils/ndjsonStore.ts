@@ -11,7 +11,7 @@ export const storeEventDataInNdjson = async <T extends StoreData>(
   fileManager: FileManager,
   logger: Logger,
   config: EventsSignerConfig
-): Promise<void> => {
+): Promise<string | undefined> => {
   if (dataToStoreArray.length === 0) {
     logger.info("No data to store in NDJSON file.");
     return;
@@ -24,7 +24,7 @@ export const storeEventDataInNdjson = async <T extends StoreData>(
   const documentName = `events_${Date.now()}.ndjson`; // TODO -> document name scope should be on handlers
 
   try {
-    await fileManager.storeBytes(
+    const key = await fileManager.storeBytes(
       {
         bucket: config.s3Bucket,
         path: documentDestinationPath,
@@ -37,7 +37,9 @@ export const storeEventDataInNdjson = async <T extends StoreData>(
     logger.info(
       `Successfully stored ${dataToStoreArray.length} events in file ${documentName} at path ${documentDestinationPath}`
     );
+    return key;
   } catch (error) {
     logger.error(`Failed to store batch event data: ${error}`);
+    throw error; // to do map error
   }
 };
