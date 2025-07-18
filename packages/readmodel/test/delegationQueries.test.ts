@@ -13,7 +13,7 @@ import { delegationReadModelService } from "./delegationUtils.js";
 import { readModelDB } from "./utils.js";
 
 describe("Delegation queries", () => {
-  describe("should get a delegation by id", () => {
+  describe("Get a Delegation", () => {
     it("should get a delegation by id if present", async () => {
       const delegation: WithMetadata<Delegation> = {
         data: getMockDelegation({
