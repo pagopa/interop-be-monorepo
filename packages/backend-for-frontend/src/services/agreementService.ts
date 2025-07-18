@@ -322,7 +322,7 @@ export function agreementServiceBuilder(
         }`
       );
       const agreement = await agreementProcessClient.suspendAgreement(
-        delegationId ? { delegationId } : undefined,
+        { delegationId },
         {
           params: { agreementId },
           headers: ctx.headers,
@@ -408,7 +408,7 @@ export function agreementServiceBuilder(
         }`
       );
       const agreement = await agreementProcessClient.activateAgreement(
-        delegationId ? { delegationId } : undefined,
+        { delegationId },
         {
           params: { agreementId },
           headers: ctx.headers,

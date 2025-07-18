@@ -677,14 +677,12 @@ paths:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
               type: object
               additionalProperties: false
-              required:
-                - delegationId
               properties:
                 delegationId:
                   type: string
@@ -785,14 +783,12 @@ paths:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
               type: object
               additionalProperties: false
-              required:
-                - delegationId
               properties:
                 delegationId:
                   type: string

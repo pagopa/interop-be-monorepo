@@ -101,8 +101,8 @@ const agreementRouter = (
           await agreementService.activateAgreement(
             {
               agreementId: unsafeBrandId(req.params.agreementId),
-              delegationId: req.body?.delegationId
-                ? unsafeBrandId<DelegationId>(req.body?.delegationId)
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
                 : undefined,
             },
             ctx
@@ -257,8 +257,8 @@ const agreementRouter = (
           await agreementService.suspendAgreement(
             {
               agreementId: unsafeBrandId(req.params.agreementId),
-              delegationId: req.body?.delegationId
-                ? unsafeBrandId<DelegationId>(req.body?.delegationId)
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
                 : undefined,
             },
             ctx

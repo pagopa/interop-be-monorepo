@@ -113,14 +113,12 @@ paths:
       summary: Agreement Activation
       operationId: activateAgreement
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
               type: object
               additionalProperties: false
-              required:
-                - delegationId
               properties:
                 delegationId:
                   type: string
@@ -339,14 +337,12 @@ paths:
       summary: Suspend Agreement
       operationId: suspendAgreement
       requestBody:
-        required: false
+        required: true
         content:
           application/json:
             schema:
               type: object
               additionalProperties: false
-              required:
-                - delegationId
               properties:
                 delegationId:
                   type: string

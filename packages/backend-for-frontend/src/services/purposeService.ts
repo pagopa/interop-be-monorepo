@@ -568,7 +568,7 @@ export function purposeServiceBuilder(
       );
 
       const result = await purposeProcessClient.suspendPurposeVersion(
-        delegationId ? { delegationId } : undefined,
+        { delegationId },
         {
           params: {
             purposeId,
@@ -596,7 +596,7 @@ export function purposeServiceBuilder(
       );
 
       const result = await purposeProcessClient.activatePurposeVersion(
-        delegationId ? { delegationId } : undefined,
+        { delegationId },
         {
           params: {
             purposeId,
