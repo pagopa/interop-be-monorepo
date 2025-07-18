@@ -1,7 +1,7 @@
 import {
   DelegationEventEnvelopeV2,
   fromDelegationV2,
-  genericInternalError,
+  missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelService } from "./readModelService.js";
@@ -22,7 +22,7 @@ export async function handleMessageV2(
       { type: "ConsumerDelegationRevoked" },
       async (message) => {
         if (!message.data.delegation) {
-          throw genericInternalError("Delegation not found in message");
+          throw missingKafkaMessageDataError("delegation", message.type);
         }
         await readModelService.upsertDelegation(
           fromDelegationV2(message.data.delegation),
