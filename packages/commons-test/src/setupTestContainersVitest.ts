@@ -25,6 +25,7 @@ import {
   initSesMailManager,
   ReadModelSQLDbConfig,
   AnalyticsSQLDbConfig,
+  InAppNotificationDBConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -141,6 +142,28 @@ export function setupTestContainersVitest(
   analyticsPostgresDB: DB;
   cleanup: () => Promise<void>;
 }>;
+export async function setupTestContainersVitest(
+  readModelDbConfig?: ReadModelDbConfig,
+  eventStoreConfig?: EventStoreConfig,
+  fileManagerConfig?: FileManagerConfig & S3Config,
+  emailManagerConfig?: PecEmailManagerConfigTest,
+  redisRateLimiterConfig?: RedisRateLimiterConfig,
+  awsSESConfig?: AWSSesConfig,
+  readModelSQLDbConfig?: ReadModelSQLDbConfig,
+  analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
+  inAppNotificationDbConfig?: InAppNotificationDBConfig
+): Promise<{
+  readModelRepository: ReadModelRepository;
+  postgresDB: DB;
+  fileManager: FileManager;
+  pecEmailManager: EmailManagerPEC;
+  sesEmailManager: EmailManagerSES;
+  redisRateLimiter: RateLimiter;
+  readModelDB: DrizzleReturnType;
+  analyticsPostgresDB: DB;
+  inAppNotificationDB: DrizzleReturnType;
+  cleanup: () => Promise<void>;
+}>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
 export async function setupTestContainersVitest(
   readModelDbConfig?: ReadModelDbConfig,
@@ -150,7 +173,8 @@ export async function setupTestContainersVitest(
   redisRateLimiterConfig?: RedisRateLimiterConfig,
   awsSESConfig?: AWSSesConfig,
   readModelSQLDbConfig?: ReadModelSQLDbConfig,
-  analyticsSQLDbConfig?: AnalyticsSQLDbConfig
+  analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
+  inAppNotificationDbConfig?: InAppNotificationDBConfig
 ): Promise<{
   readModelRepository?: ReadModelRepository;
   postgresDB?: DB;
@@ -160,6 +184,7 @@ export async function setupTestContainersVitest(
   redisRateLimiter?: RateLimiter;
   readModelDB?: DrizzleReturnType;
   analyticsPostgresDB?: DB;
+  inAppNotificationDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
   let readModelRepository: ReadModelRepository | undefined;
@@ -171,6 +196,7 @@ export async function setupTestContainersVitest(
   const redisRateLimiterGroup = "TEST";
   let readModelDB: DrizzleReturnType | undefined;
   let analyticsPostgresDB: DB | undefined;
+  let inAppNotificationDB: DrizzleReturnType | undefined;
   if (readModelDbConfig) {
     readModelRepository = ReadModelRepository.init(readModelDbConfig);
   }
@@ -234,6 +260,18 @@ export async function setupTestContainersVitest(
       schema: analyticsSQLDbConfig.dbSchemaName,
     });
   }
+
+  if (inAppNotificationDbConfig) {
+    const pool = new pg.Pool({
+      user: inAppNotificationDbConfig.inAppNotificationDBUsername,
+      password: inAppNotificationDbConfig.inAppNotificationDBPassword,
+      host: inAppNotificationDbConfig.inAppNotificationDBHost,
+      port: inAppNotificationDbConfig.inAppNotificationDBPort,
+      database: inAppNotificationDbConfig.inAppNotificationDBName,
+      ssl: inAppNotificationDbConfig.inAppNotificationDBUseSSL,
+    });
+    inAppNotificationDB = drizzle({ client: pool });
+  }
   return {
     readModelRepository,
     postgresDB,
@@ -243,6 +281,7 @@ export async function setupTestContainersVitest(
     redisRateLimiter,
     readModelDB,
     analyticsPostgresDB,
+    inAppNotificationDB,
     cleanup: async (): Promise<void> => {
       await readModelRepository?.agreements.deleteMany({});
       await readModelRepository?.eservices.deleteMany({});
@@ -273,6 +312,9 @@ export async function setupTestContainersVitest(
       );
       await postgresDB?.none(
         "TRUNCATE TABLE eservice_template.events RESTART IDENTITY"
+      );
+      await postgresDB?.none(
+        "TRUNCATE TABLE notification_config.events RESTART IDENTITY"
       );
 
       // CLEANUP READMODEL-SQL TABLES
@@ -309,6 +351,12 @@ export async function setupTestContainersVitest(
       await readModelDB?.execute(
         "TRUNCATE TABLE readmodel_eservice_template.eservice_template CASCADE"
       );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_notification_config.tenant_notification_config CASCADE"
+      );
+      await readModelDB?.execute(
+        "TRUNCATE TABLE readmodel_notification_config.user_notification_config CASCADE"
+      );
 
       if (fileManagerConfig && fileManager) {
         const s3OriginalBucket =
@@ -340,6 +388,12 @@ export async function setupTestContainersVitest(
 
       if (awsSESConfig?.awsSesEndpoint) {
         await axios.post(`${awsSESConfig?.awsSesEndpoint}/clear-store`);
+      }
+
+      if (inAppNotificationDB) {
+        await inAppNotificationDB.execute(
+          "TRUNCATE TABLE notification.notification CASCADE"
+        );
       }
     },
   };
