@@ -140,7 +140,7 @@ describe("suspend agreement", () => {
     const authData = getMockAuthData(requesterId);
 
     const suspendAgreementResponse = await agreementService.suspendAgreement(
-      agreement.id,
+      { agreementId: agreement.id, delegationId: undefined },
       getMockContext({ authData })
     );
 
@@ -272,7 +272,8 @@ describe("suspend agreement", () => {
     const authData = getMockAuthData(producerAndConsumerId);
 
     const suspendAgreementResponse = await agreementService.suspendAgreement(
-      agreement.id,
+      { agreementId: agreement.id, delegationId: undefined },
+
       getMockContext({ authData })
     );
 
@@ -361,7 +362,8 @@ describe("suspend agreement", () => {
     await addOneAgreement(agreement);
 
     const suspendAgreementResponse = await agreementService.suspendAgreement(
-      agreement.id,
+      { agreementId: agreement.id, delegationId: undefined },
+
       getMockContext({ authData })
     );
 
@@ -530,9 +532,8 @@ describe("suspend agreement", () => {
 
         const suspendAgreementResponse =
           await agreementService.suspendAgreement(
-            agreement.id,
-            getMockContext({ authData }),
-            delegation.id
+            { agreementId: agreement.id, delegationId: delegation.id },
+            getMockContext({ authData })
           );
 
         expect(sortAgreement(suspendAgreementResponse)).toEqual({
@@ -551,7 +552,7 @@ describe("suspend agreement", () => {
     const agreementId = generateId<AgreementId>();
     await expect(
       agreementService.suspendAgreement(
-        agreementId,
+        { agreementId, delegationId: undefined },
         getMockContext({ authData })
       )
     ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -567,7 +568,7 @@ describe("suspend agreement", () => {
     await addOneAgreement(agreement);
     await expect(
       agreementService.suspendAgreement(
-        agreement.id,
+        { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
@@ -590,7 +591,7 @@ describe("suspend agreement", () => {
     const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.suspendAgreement(
-        agreement.id,
+        { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
@@ -608,7 +609,7 @@ describe("suspend agreement", () => {
     const authData = getMockAuthData(agreement.producerId);
     await expect(
       agreementService.suspendAgreement(
-        agreement.id,
+        { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       )
     ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
@@ -637,7 +638,7 @@ describe("suspend agreement", () => {
 
     await expect(
       agreementService.suspendAgreement(
-        agreement.id,
+        { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotFound(agreement.consumerId));
@@ -663,7 +664,7 @@ describe("suspend agreement", () => {
 
     await expect(
       agreementService.suspendAgreement(
-        agreement.id,
+        { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       )
     ).rejects.toThrowError(
@@ -716,7 +717,7 @@ describe("suspend agreement", () => {
 
       await expect(
         agreementService.suspendAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
@@ -762,9 +763,8 @@ describe("suspend agreement", () => {
 
       await expect(
         agreementService.suspendAgreement(
-          agreement.id,
-          getMockContext({ authData }),
-          delegation.id
+          { agreementId: agreement.id, delegationId: delegation.id },
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         unauthorizedError(

@@ -47,7 +47,7 @@ describe("API POST /agreements/{agreementId}/suspend test", () => {
       .post(`/agreements/${agreementId}/suspend`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ delegationId });
+      .send({ delegationId });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,

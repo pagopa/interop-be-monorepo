@@ -414,8 +414,8 @@ const purposeRouter = (
               {
                 purposeId: unsafeBrandId(purposeId),
                 versionId: unsafeBrandId(versionId),
-                delegationId: req.query.delegationId
-                  ? unsafeBrandId<DelegationId>(req.query.delegationId)
+                delegationId: req.body?.delegationId
+                  ? unsafeBrandId<DelegationId>(req.body?.delegationId)
                   : undefined,
               },
               ctx
@@ -475,8 +475,8 @@ const purposeRouter = (
             {
               purposeId: unsafeBrandId(req.params.purposeId),
               versionId: unsafeBrandId(req.params.versionId),
-              delegationId: req.query.delegationId
-                ? unsafeBrandId<DelegationId>(req.query.delegationId)
+              delegationId: req.body?.delegationId
+                ? unsafeBrandId<DelegationId>(req.body?.delegationId)
                 : undefined,
             },
             ctx

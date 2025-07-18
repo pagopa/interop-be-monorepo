@@ -880,12 +880,19 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: delegationId
-          in: query
-          description: The identifier of the delegation to activate the agreement with
-          schema:
-            type: string
-            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - delegationId
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Agreement flagged as activated. It could still be Suspended if other parties have suspended the agreement
@@ -1795,12 +1802,19 @@ paths:
           schema:
             type: string
             format: uuid
-        - name: delegationId
-          in: query
-          description: The identifier of the delegation to suspend the agreement for
-          schema:
-            type: string
-            format: uuid
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - delegationId
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Agreement suspended
@@ -9342,17 +9356,24 @@ paths:
         schema:
           type: string
           format: uuid
-      - name: delegationId
-        in: query
-        description: The identifier of the delegation to activate the agreement with
-        schema:
-          type: string
-          format: uuid
     post:
       tags:
         - purposes
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - delegationId
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Purpose Version Suspended
@@ -9457,15 +9478,22 @@ paths:
         schema:
           type: string
           format: uuid
-      - name: delegationId
-        in: query
-        description: The identifier of the delegation to activate the agreement with
-        schema:
-          type: string
-          format: uuid
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - delegationId
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Purpose Version Activated

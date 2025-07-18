@@ -982,15 +982,21 @@ export function agreementServiceBuilder(
       return retrieveAgreementDocument(agreement.data, documentId);
     },
     async suspendAgreement(
-      agreementId: AgreementId,
+      {
+        agreementId,
+        delegationId,
+      }: { agreementId: AgreementId; delegationId: DelegationId | undefined },
       {
         authData,
         correlationId,
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>,
-      delegationId?: DelegationId
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Suspending agreement ${agreementId}`);
+      logger.info(
+        `Suspending agreement ${agreementId} ${
+          delegationId ? `with delegation ${delegationId}` : ""
+        }`
+      );
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
@@ -1214,15 +1220,24 @@ export function agreementServiceBuilder(
       return { data: rejectedAgreement, metadata: { version: newVersion } };
     },
     async activateAgreement(
-      agreementId: AgreementId,
+      {
+        agreementId,
+        delegationId,
+      }: {
+        agreementId: AgreementId;
+        delegationId: DelegationId | undefined;
+      },
       {
         authData,
         correlationId,
         logger,
-      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>,
-      delegationId?: DelegationId
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
-      logger.info(`Activating agreement ${agreementId}`);
+      logger.info(
+        `Activating agreement ${agreementId} ${
+          delegationId ? `with delegation ${delegationId}` : ""
+        }`
+      );
 
       const contractBuilderInstance = contractBuilder(
         readModelService,

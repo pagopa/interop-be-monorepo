@@ -109,15 +109,22 @@ paths:
         in: path
         required: true
         description: identifier of the pending agreement to be activated
-      - name: delegationId
-        in: query
-        description: The identifier of the delegation to activate the agreement with
-        schema:
-          type: string
-          format: uuid
     post:
       summary: Agreement Activation
       operationId: activateAgreement
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - delegationId
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Pending agreement activated.
@@ -328,15 +335,22 @@ paths:
         in: path
         required: true
         description: identifier of the pending agreement to be suspended
-      - name: delegationId
-        in: query
-        description: The identifier of the delegation to activate the agreement with
-        schema:
-          type: string
-          format: uuid
     post:
       summary: Suspend Agreement
       operationId: suspendAgreement
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - delegationId
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Active agreement suspended.

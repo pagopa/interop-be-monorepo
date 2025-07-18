@@ -83,6 +83,7 @@ describe("suspendPurposeVersion", () => {
         {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion1.id,
+          delegationId: undefined,
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       );
@@ -147,6 +148,7 @@ describe("suspendPurposeVersion", () => {
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
+        delegationId: undefined,
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
@@ -285,6 +287,7 @@ describe("suspendPurposeVersion", () => {
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
+        delegationId: undefined,
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
@@ -443,6 +446,7 @@ describe("suspendPurposeVersion", () => {
       {
         purposeId: mockPurpose.id,
         versionId: mockPurposeVersion1.id,
+        delegationId: undefined,
       },
       getMockContext({ authData })
     );
@@ -734,6 +738,7 @@ describe("suspendPurposeVersion", () => {
         {
           purposeId: randomPurposeId,
           versionId: randomVersionId,
+          delegationId: undefined,
         },
         getMockContext({})
       )
@@ -757,6 +762,7 @@ describe("suspendPurposeVersion", () => {
         {
           purposeId: mockPurpose.id,
           versionId: randomVersionId,
+          delegationId: undefined,
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
@@ -785,6 +791,7 @@ describe("suspendPurposeVersion", () => {
         {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
+          delegationId: undefined,
         },
         getMockContext({ authData: randomAuthData })
       )
@@ -908,6 +915,7 @@ describe("suspendPurposeVersion", () => {
         {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
+          delegationId: undefined,
         },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
@@ -943,6 +951,7 @@ describe("suspendPurposeVersion", () => {
           {
             purposeId: mockPurpose.id,
             versionId: mockPurposeVersion.id,
+            delegationId: undefined,
           },
           getMockContext({
             authData: getMockAuthData(mockPurpose.consumerId),
@@ -985,6 +994,7 @@ describe("suspendPurposeVersion", () => {
         {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
+          delegationId: undefined,
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
@@ -1018,6 +1028,7 @@ describe("suspendPurposeVersion", () => {
         {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
+          delegationId: undefined,
         },
         getMockContext({ authData })
       )

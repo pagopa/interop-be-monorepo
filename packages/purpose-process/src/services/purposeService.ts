@@ -667,7 +667,7 @@ export function purposeServiceBuilder(
       }: {
         purposeId: PurposeId;
         versionId: PurposeVersionId;
-        delegationId?: DelegationId;
+        delegationId: DelegationId | undefined;
       },
       {
         authData,
@@ -675,7 +675,11 @@ export function purposeServiceBuilder(
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
-      logger.info(`Suspending Version ${versionId} in Purpose ${purposeId}`);
+      logger.info(
+        `Suspending Version ${versionId} in Purpose ${purposeId} ${
+          delegationId ? `with delegation ${delegationId}` : ""
+        }`
+      );
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);
@@ -956,7 +960,7 @@ export function purposeServiceBuilder(
       }: {
         purposeId: PurposeId;
         versionId: PurposeVersionId;
-        delegationId?: DelegationId;
+        delegationId: DelegationId | undefined;
       },
       {
         authData,
@@ -964,7 +968,11 @@ export function purposeServiceBuilder(
         logger,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<PurposeVersion>> {
-      logger.info(`Activating Version ${versionId} in Purpose ${purposeId}`);
+      logger.info(
+        `Activating Version ${versionId} in Purpose ${purposeId} ${
+          delegationId ? `with delegation ${delegationId}` : ""
+        }`
+      );
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const purposeVersion = retrievePurposeVersion(versionId, purpose);

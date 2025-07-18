@@ -673,15 +673,22 @@ paths:
         schema:
           type: string
           format: uuid
-      - name: delegationId
-        in: query
-        description: The identifier of the delegation to activate the agreement with
-        schema:
-          type: string
-          format: uuid
     post:
       summary: Activate Purpose Version
       operationId: activatePurposeVersion
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - delegationId
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Purpose Version Activated
@@ -774,15 +781,22 @@ paths:
         schema:
           type: string
           format: uuid
-      - name: delegationId
-        in: query
-        description: The identifier of the delegation to activate the agreement with
-        schema:
-          type: string
-          format: uuid
     post:
       summary: Suspend Purpose Version
       operationId: suspendPurposeVersion
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - delegationId
+              properties:
+                delegationId:
+                  type: string
+                  format: uuid
       responses:
         "200":
           description: Purpose Version Suspended

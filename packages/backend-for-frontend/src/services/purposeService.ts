@@ -561,17 +561,18 @@ export function purposeServiceBuilder(
       delegationId: DelegationId | undefined,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
-      logger.info(`Suspending Version ${versionId} of Purpose ${purposeId}`);
+      logger.info(
+        `Suspending Version ${versionId} of Purpose ${purposeId} ${
+          delegationId ? `with Delegation ${delegationId}` : ""
+        }`
+      );
 
       const result = await purposeProcessClient.suspendPurposeVersion(
-        undefined,
+        delegationId ? { delegationId } : undefined,
         {
           params: {
             purposeId,
             versionId,
-          },
-          queries: {
-            delegationId,
           },
           headers,
         }
@@ -588,17 +589,18 @@ export function purposeServiceBuilder(
       delegationId: DelegationId | undefined,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<bffApi.PurposeVersionResource> {
-      logger.info(`Activating Version ${versionId} of Purpose ${purposeId}`);
+      logger.info(
+        `Activating Version ${versionId} of Purpose ${purposeId} ${
+          delegationId ? `with Delegation ${delegationId}` : ""
+        }`
+      );
 
       const result = await purposeProcessClient.activatePurposeVersion(
-        undefined,
+        delegationId ? { delegationId } : undefined,
         {
           params: {
             purposeId,
             versionId,
-          },
-          queries: {
-            delegationId,
           },
           headers,
         }

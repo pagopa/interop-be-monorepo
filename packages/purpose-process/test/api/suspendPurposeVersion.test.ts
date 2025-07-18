@@ -53,7 +53,7 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/suspend test", () 
       .post(`/purposes/${purposeId}/versions/${versionId}/suspend`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .query({ delegationId });
+      .send({ delegationId });
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,

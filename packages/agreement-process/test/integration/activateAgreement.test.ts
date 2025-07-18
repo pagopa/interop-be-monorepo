@@ -327,11 +327,14 @@ describe("activate agreement", () => {
 
         const activateAgreementReturnValue =
           await agreementService.activateAgreement(
-            agreement.id,
-            getMockContext({ authData }),
-            requesterIs === "DelegateProducer"
-              ? producerDelegation?.id
-              : undefined
+            {
+              agreementId: agreement.id,
+              delegationId:
+                requesterIs === "DelegateProducer"
+                  ? producerDelegation?.id
+                  : undefined,
+            },
+            getMockContext({ authData })
           );
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -564,7 +567,7 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
@@ -690,7 +693,7 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(agreementActivationFailed(agreement.id));
@@ -708,7 +711,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
@@ -736,9 +739,8 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
-          getMockContext({ authData }),
-          consumerDelegation.id
+          { agreementId: agreement.id, delegationId: consumerDelegation.id },
+          getMockContext({ authData })
         )
       ).rejects.toThrowError(
         tenantIsNotTheDelegateProducer(
@@ -771,7 +773,7 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
@@ -916,9 +918,8 @@ describe("activate agreement", () => {
 
         const activateAgreementReturnValue =
           await agreementService.activateAgreement(
-            agreement.id,
-            getMockContext({ authData }),
-            delegationId
+            { agreementId: agreement.id, delegationId },
+            getMockContext({ authData })
           );
 
         const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -1064,7 +1065,7 @@ describe("activate agreement", () => {
       const relatedAgreements = await addRelatedAgreements(agreement);
       const activateAgreementReturnValue =
         await agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         );
       const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -1183,9 +1184,8 @@ describe("activate agreement", () => {
       const relatedAgreements = await addRelatedAgreements(agreement);
       const activateAgreementReturnValue =
         await agreementService.activateAgreement(
-          agreement.id,
-          getMockContext({ authData }),
-          consumerDelegation.id
+          { agreementId: agreement.id, delegationId: consumerDelegation.id },
+          getMockContext({ authData })
         );
       const agreementEvent = await readLastAgreementEvent(agreement.id);
 
@@ -1408,9 +1408,8 @@ describe("activate agreement", () => {
 
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(
-              agreement.id,
-              getMockContext({ authData }),
-              delegationId
+              { agreementId: agreement.id, delegationId },
+              getMockContext({ authData })
             );
 
           const agreementEvent = await readLastAgreementEvent(agreement.id);
@@ -1477,9 +1476,8 @@ describe("activate agreement", () => {
 
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(
-              agreement.id,
-              getMockContext({ authData }),
-              delegationId
+              { agreementId: agreement.id, delegationId },
+              getMockContext({ authData })
             );
 
           const agreementEvent = await readAgreementEventByVersion(
@@ -1730,9 +1728,8 @@ describe("activate agreement", () => {
 
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(
-              agreement.id,
-              getMockContext({ authData }),
-              delegationId
+              { agreementId: agreement.id, delegationId },
+              getMockContext({ authData })
             );
           const agreementEvent = await readLastAgreementEvent(agreement.id);
           expect(agreementEvent).toMatchObject({
@@ -1792,9 +1789,8 @@ describe("activate agreement", () => {
 
           const activateAgreementReturnValue =
             await agreementService.activateAgreement(
-              agreement.id,
-              getMockContext({ authData }),
-              delegationId
+              { agreementId: agreement.id, delegationId },
+              getMockContext({ authData })
             );
 
           const agreementEvent = await readAgreementEventByVersion(
@@ -1868,7 +1864,7 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
@@ -1901,7 +1897,7 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
@@ -1919,7 +1915,7 @@ describe("activate agreement", () => {
       const agreementId = generateId<AgreementId>();
       await expect(
         agreementService.activateAgreement(
-          agreementId,
+          { agreementId, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(agreementNotFound(agreementId));
@@ -1955,7 +1951,7 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
@@ -1983,7 +1979,7 @@ describe("activate agreement", () => {
         await addOneAgreement(agreement);
         await expect(
           agreementService.activateAgreement(
-            agreement.id,
+            { agreementId: agreement.id, delegationId: undefined },
             getMockContext({ authData })
           )
         ).rejects.toThrowError(
@@ -2006,7 +2002,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(eServiceNotFound(agreement.eserviceId));
@@ -2034,7 +2030,7 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(
@@ -2078,7 +2074,7 @@ describe("activate agreement", () => {
 
         await expect(
           agreementService.activateAgreement(
-            agreement.id,
+            { agreementId: agreement.id, delegationId: undefined },
             getMockContext({ authData })
           )
         ).rejects.toThrowError(
@@ -2121,7 +2117,7 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(tenantNotFound(consumerId));
@@ -2158,7 +2154,7 @@ describe("activate agreement", () => {
 
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(tenantNotFound(producerId));
@@ -2201,7 +2197,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(agreementStampNotFound("submission"));
@@ -2268,7 +2264,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
       await expect(
         agreementService.activateAgreement(
-          agreement.id,
+          { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(

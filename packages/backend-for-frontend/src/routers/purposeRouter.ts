@@ -274,8 +274,8 @@ const purposeRouter = (
           const result = await purposeService.suspendPurposeVersion(
             unsafeBrandId(req.params.purposeId),
             unsafeBrandId(req.params.versionId),
-            req.query.delegationId
-              ? unsafeBrandId<DelegationId>(req.query.delegationId)
+            req.body?.delegationId
+              ? unsafeBrandId<DelegationId>(req.body.delegationId)
               : undefined,
             ctx
           );
@@ -303,8 +303,8 @@ const purposeRouter = (
           const result = await purposeService.activatePurposeVersion(
             unsafeBrandId(req.params.purposeId),
             unsafeBrandId(req.params.versionId),
-            req.query.delegationId
-              ? unsafeBrandId<DelegationId>(req.query.delegationId)
+            req.body?.delegationId
+              ? unsafeBrandId<DelegationId>(req.body.delegationId)
               : undefined,
             ctx
           );
