@@ -109,6 +109,7 @@ import {
   NotificationConfig,
   TenantNotificationConfig,
   UserNotificationConfig,
+  DelegationStamps,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -514,6 +515,9 @@ export const getMockDelegation = ({
   submitterId = generateId<UserId>(),
   activationContract,
   revocationContract,
+  rejectionReason,
+  updatedAt,
+  stamps,
 }: {
   kind: DelegationKind;
   id?: DelegationId;
@@ -524,6 +528,9 @@ export const getMockDelegation = ({
   submitterId?: UserId;
   activationContract?: DelegationContractDocument;
   revocationContract?: DelegationContractDocument;
+  rejectionReason?: string;
+  updatedAt?: Date;
+  stamps?: DelegationStamps;
 }): Delegation => {
   const creationTime = new Date();
 
@@ -534,10 +541,12 @@ export const getMockDelegation = ({
     eserviceId,
     createdAt: creationTime,
     state,
+    kind,
     ...(activationContract ? { activationContract } : {}),
     ...(revocationContract ? { revocationContract } : {}),
-    kind,
-    stamps: {
+    ...(rejectionReason ? { rejectionReason } : {}),
+    ...(updatedAt ? { updatedAt } : {}),
+    stamps: stamps ?? {
       submission: {
         who: submitterId,
         when: creationTime,
