@@ -61,6 +61,9 @@ describe("approveAgreement", () => {
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
+      body: {
+        delegationId: undefined, // TBD APIv2
+      },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.agreementProcessClient.getAgreementById,

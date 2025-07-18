@@ -46,6 +46,7 @@ export const errorCodes = {
   tenantIsNotTheDelegatedProducer: "0028",
   purposeDelegationNotFound: "0029",
   purposeCannotBeUpdated: "0030",
+  missingDelegationId: "0031",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

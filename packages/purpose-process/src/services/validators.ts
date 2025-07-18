@@ -23,6 +23,7 @@ import {
   M2MAdminAuthData,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -36,6 +37,7 @@ import {
   purposeNotInDraftState,
   riskAnalysisValidationFailed,
 } from "../model/domain/errors.js";
+import { Ownership, ownership } from "../model/domain/models.js";
 import { ReadModelService } from "./readModelService.js";
 import {
   retrieveActiveAgreement,
@@ -403,5 +405,53 @@ export const verifyRequesterIsConsumerOrDelegateConsumer = async (
     );
 
     return consumerDelegation?.id;
+  }
+};
+
+export const getOrganizationRole = ({
+  purpose,
+  producerId,
+  delegation,
+  authData,
+}: {
+  purpose: Purpose;
+  producerId: TenantId;
+  delegation: Delegation | undefined;
+  authData: UIAuthData | M2MAdminAuthData;
+}): Ownership => {
+  if (
+    producerId === purpose.consumerId &&
+    authData.organizationId === producerId
+  ) {
+    return ownership.SELF_CONSUMER;
+  }
+
+  if (delegation) {
+    return match(delegation.kind)
+      .with(delegationKind.delegatedProducer, () => {
+        assertRequesterIsDelegateProducer(
+          { id: purpose.eserviceId, producerId },
+          authData,
+          delegation
+        );
+        return ownership.PRODUCER;
+      })
+      .with(delegationKind.delegatedConsumer, () => {
+        assertRequesterIsDelegateConsumer(purpose, authData, delegation);
+        return ownership.CONSUMER;
+      })
+      .exhaustive();
+  }
+
+  try {
+    assertRequesterIsProducer({ producerId }, authData);
+    return ownership.PRODUCER;
+  } catch {
+    try {
+      assertRequesterIsConsumer(purpose, authData);
+      return ownership.CONSUMER;
+    } catch {
+      throw tenantNotAllowed(authData.organizationId);
+    }
   }
 };
