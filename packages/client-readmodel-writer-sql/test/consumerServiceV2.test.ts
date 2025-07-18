@@ -54,7 +54,7 @@ describe("Events V2", async () => {
   });
 
   it("ClientKeyAdded", async () => {
-    await clientReadModelService.upsertClient(mockClient, 1);
+    await clientWriterService.upsertClient(mockClient, 1);
 
     const key: Key = getMockKey();
     const updatedClient: Client = {
@@ -91,7 +91,7 @@ describe("Events V2", async () => {
       ...mockClient,
       keys: [key],
     };
-    await clientReadModelService.upsertClient(client, 1);
+    await clientWriterService.upsertClient(client, 1);
 
     const updatedClient = mockClient;
 
@@ -117,7 +117,7 @@ describe("Events V2", async () => {
   });
 
   it("ClientUserAdded", async () => {
-    await clientReadModelService.upsertClient(mockClient, 1);
+    await clientWriterService.upsertClient(mockClient, 1);
 
     const userId: UserId = generateId<UserId>();
     const updatedClient: Client = {
@@ -155,7 +155,7 @@ describe("Events V2", async () => {
       ...mockClient,
       users: [userId],
     };
-    await clientReadModelService.upsertClient(client, 1);
+    await clientWriterService.upsertClient(client, 1);
 
     const updatedClient = mockClient;
 
@@ -181,7 +181,7 @@ describe("Events V2", async () => {
   });
 
   it("ClientPurposeAdded", async () => {
-    await clientReadModelService.upsertClient(mockClient, 1);
+    await clientWriterService.upsertClient(mockClient, 1);
 
     const purposeId: PurposeId = generateId<PurposeId>();
     const updatedClient: Client = {
@@ -219,7 +219,7 @@ describe("Events V2", async () => {
       ...mockClient,
       purposes: [purposeId],
     };
-    await clientReadModelService.upsertClient(client, 1);
+    await clientWriterService.upsertClient(client, 1);
 
     const updatedClient = mockClient;
 
