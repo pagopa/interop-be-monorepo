@@ -381,7 +381,7 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
     id: uuid().primaryKey().notNull(),
     eserviceId: uuid("eservice_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
-    version: integer("version").notNull(),
+    version: varchar().notNull(),
     description: varchar(),
     state: varchar().notNull(),
     audience: varchar().array().notNull(),
@@ -812,7 +812,7 @@ export const purposeRiskAnalysisAnswerInReadmodelPurpose =
       riskAnalysisFormId: uuid("risk_analysis_form_id").notNull(),
       kind: varchar().notNull(),
       key: varchar().notNull(),
-      value: varchar().array(),
+      value: varchar().array().notNull(),
     },
     (table) => [
       foreignKey({

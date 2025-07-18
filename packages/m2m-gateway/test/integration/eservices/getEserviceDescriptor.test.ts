@@ -40,7 +40,7 @@ describe("getEserviceDescriptor", () => {
   it("Should succeed and perform API clients calls", async () => {
     const m2mEserviceDescriptorResponse: m2mGatewayApi.EServiceDescriptor = {
       id: mockCatalogProcessResponseDescriptor.id,
-      version: mockCatalogProcessResponseDescriptor.version.toString(),
+      version: mockCatalogProcessResponseDescriptor.version,
       description: mockCatalogProcessResponseDescriptor.description,
       audience: mockCatalogProcessResponseDescriptor.audience,
       voucherLifespan: mockCatalogProcessResponseDescriptor.voucherLifespan,

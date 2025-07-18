@@ -46,7 +46,7 @@ describe("API /templates/eservices/{eServiceId}/descriptors authorization test",
 
   const mockDescriptor: Descriptor = {
     ...getMockDescriptor(),
-    version: 1,
+    version: "1",
     state: descriptorState.published,
     interface: getMockDocument(),
     templateVersionRef: {
