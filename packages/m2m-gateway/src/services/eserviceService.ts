@@ -61,15 +61,12 @@ export function eserviceServiceBuilder(
     };
   };
 
-  const pollDescriptorById = (
+  const pollEserviceById = (
     eserviceId: EServiceId,
-    descriptorId: DescriptorId,
     metadata: { version: number } | undefined,
     headers: M2MGatewayAppContext["headers"]
-  ): Promise<WithMaybeMetadata<catalogApi.EServiceDescriptor>> =>
-    pollResourceWithMetadata(() =>
-      retrieveEServiceDescriptorById(headers, eserviceId, descriptorId)
-    )({
+  ): Promise<WithMaybeMetadata<catalogApi.EService>> =>
+    pollResourceWithMetadata(() => retrieveEServiceById(headers, eserviceId))({
       condition: isPolledVersionAtLeastMetadataTargetVersion(metadata),
     });
 
@@ -203,7 +200,7 @@ export function eserviceServiceBuilder(
           params: { eServiceId, descriptorId },
           headers,
         });
-      await pollDescriptorById(eServiceId, descriptorId, metadata, headers);
+      await pollEserviceById(eServiceId, metadata, headers);
       return toM2MGatewayApiEService(data);
     },
   };
