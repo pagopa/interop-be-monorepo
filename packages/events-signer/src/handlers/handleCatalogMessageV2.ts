@@ -3,11 +3,12 @@ import { match, P } from "ts-pattern";
 import { EServiceEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
-import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
+import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { CatalogEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
 import { FileCreationRequest } from "../interfaces/safeStorageServiceInterfaces.js";
+import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export const handleCatalogMessageV2 = async (
   decodedMessages: EServiceEventV2[],
@@ -105,9 +106,8 @@ export const handleCatalogMessageV2 = async (
   if (allCatalogDataToStore.length > 0) {
     const timestamp = new Date();
     const documentDestinationPath = `catalog/${timestamp}`;
-    const checksum = ""; // TODO -> crypto
 
-    const s3filePath = await storeEventDataInNdjson<CatalogEventData>(
+    const result = await storeNdjsonEventData<CatalogEventData>(
       allCatalogDataToStore,
       documentDestinationPath,
       fileManager,
@@ -115,10 +115,14 @@ export const handleCatalogMessageV2 = async (
       config
     );
 
-    if (!s3filePath) {
-      logger.info(`S3 storing didn't return a valid key`);
+    if (!result) {
+      logger.info(`S3 storing didn't return a valid key or content`);
       return;
     }
+
+    const { s3filePath, fileContentBuffer } = result;
+
+    const checksum = await calculateSha256Base64(fileContentBuffer);
 
     logger.info(
       `Requesting file creation in Safe Storage for ${s3filePath}...`
@@ -130,24 +134,27 @@ export const handleCatalogMessageV2 = async (
       status: safeStorageApiConfig.safeStorageDocStatus,
       checksumValue: checksum,
     };
+
     const { uploadUrl, secret, key } = await safeStorage.createFile(
       safeStorageRequest
     );
 
     await safeStorage.uploadFileContent(
       uploadUrl,
-      Buffer.from(`${documentDestinationPath}/${s3filePath}`),
-      "application/zip",
+      fileContentBuffer,
+      "application/json",
       secret,
       checksum
     );
 
     logger.info("File uploaded to Safe Storage successfully.");
 
+    const fileName = s3filePath.split("/").pop() || s3filePath;
+
     await dbService.saveSignatureReference({
       safeStorageId: key,
       fileKind: "PLATFORM_EVENTS",
-      fileName: s3filePath, // TODO -> get file name
+      fileName,
     });
     logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
