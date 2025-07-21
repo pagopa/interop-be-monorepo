@@ -12,6 +12,7 @@ import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {
+  toGetCertifiedAttributesApiQueryParams,
   toM2MGatewayApiCertifiedAttribute,
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
@@ -111,6 +112,30 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         attribute: polledResource.data,
         logger,
       });
+    },
+    async getCertifiedAttributes(
+      { limit, offset }: m2mGatewayApi.GetCertifiedAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.CertifiedAttributes> {
+      logger.info(
+        `Retrieving certified attributes with limit ${limit} and offset ${offset}`
+      );
+
+      const response = await clients.attributeProcessClient.getAttributes({
+        queries: toGetCertifiedAttributesApiQueryParams({ limit, offset }),
+        headers,
+      });
+
+      return {
+        results: response.data.results.map((attribute) =>
+          toM2MGatewayApiCertifiedAttribute({ attribute, logger })
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: response.data.totalCount,
+        },
+      };
     },
     async createDeclaredAttribute(
       seed: m2mGatewayApi.DeclaredAttributeSeed,
