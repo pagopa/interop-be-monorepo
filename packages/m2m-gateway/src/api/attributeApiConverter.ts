@@ -129,3 +129,13 @@ export function toM2MGatewayApiVerifiedAttribute({
     mapThrownErrorsToNotFound
   );
 }
+
+export function toGetCertifiedAttributesApiQueryParams(
+  params: m2mGatewayApi.GetCertifiedAttributesQueryParams
+): attributeRegistryApi.GetCertifiedAttributesQueryParams {
+  return {
+    limit: params.limit,
+    offset: params.offset,
+    kinds: [attributeRegistryApi.AttributeKind.Values.CERTIFIED],
+  };
+}
