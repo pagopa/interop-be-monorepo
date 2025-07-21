@@ -3,7 +3,7 @@ import { P, match } from "ts-pattern";
 import { AuthorizationEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
-import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
+import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { AuthorizationEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
@@ -95,7 +95,7 @@ export const handleAuthorizationMessageV2 = async (
   if (allAuthorizationDataToStore.length > 0) {
     const documentDestinationPath = `authorization/${new Date()}`;
 
-    await storeEventDataInNdjson<AuthorizationEventData>(
+    await storeNdjsonEventData<AuthorizationEventData>(
       allAuthorizationDataToStore,
       documentDestinationPath,
       fileManager,

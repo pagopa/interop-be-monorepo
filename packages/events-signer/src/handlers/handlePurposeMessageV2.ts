@@ -3,7 +3,7 @@ import { match, P } from "ts-pattern";
 import { PurposeEventV2, PurposeStateV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
-import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
+import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { PurposeEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
@@ -137,7 +137,7 @@ export const handlePurposeMessageV2 = async (
   if (allPurposeDataToStore.length > 0) {
     const documentDestinationPath = `purposes/${new Date()}`;
 
-    await storeEventDataInNdjson<PurposeEventData>(
+    await storeNdjsonEventData<PurposeEventData>(
       allPurposeDataToStore,
       documentDestinationPath,
       fileManager,

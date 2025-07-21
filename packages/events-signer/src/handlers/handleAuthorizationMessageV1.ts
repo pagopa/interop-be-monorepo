@@ -5,7 +5,7 @@ import { P, match } from "ts-pattern";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { config } from "../config/config.js";
 import { AuthorizationEventData } from "../models/storeData.js";
-import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
+import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 
 export const handleAuthorizationMessageV1 = async (
   messages: AuthorizationEventV1[],
@@ -66,7 +66,7 @@ export const handleAuthorizationMessageV1 = async (
 
   if (allDataToStore.length > 0) {
     const documentDestinationPath = `authorization/events/${new Date()}`;
-    await storeEventDataInNdjson(
+    await storeNdjsonEventData(
       allDataToStore,
       documentDestinationPath,
       fileManager,

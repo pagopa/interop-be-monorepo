@@ -3,7 +3,7 @@ import { match, P } from "ts-pattern";
 import { DelegationEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
-import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
+import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { DelegationEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 
@@ -66,7 +66,7 @@ export const handleDelegationMessageV2 = async (
       .toISOString()
       .slice(0, 10)}`;
 
-    await storeEventDataInNdjson<DelegationEventData>(
+    await storeNdjsonEventData<DelegationEventData>(
       allDelegationDataToStore,
       documentDestinationPath,
       fileManager,

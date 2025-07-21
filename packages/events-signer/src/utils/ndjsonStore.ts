@@ -2,7 +2,7 @@ import { FileManager, Logger } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { StoreData } from "../models/storeData.js";
 import { EventsSignerConfig } from "../config/config.js";
-import { compressJson } from "./compression.js"; // Assumo che compressJson ritorni una stringa base64
+import { compressJson } from "./compression.js";
 
 export const storeNdjsonEventData = async <T extends StoreData>(
   dataToStoreArray: T[],

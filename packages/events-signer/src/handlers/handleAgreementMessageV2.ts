@@ -5,7 +5,7 @@ import { FileManager, Logger } from "pagopa-interop-commons";
 import { config } from "../config/config.js";
 import { AgreementEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
-import { storeEventDataInNdjson } from "../utils/ndjsonStore.js";
+import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 
 export const handleAgreementMessageV2 = async (
   decodedMessages: AgreementEventV2[],
@@ -76,7 +76,7 @@ export const handleAgreementMessageV2 = async (
 
   if (allAgreementDataToStore.length > 0) {
     const documentDestinationPath = `agreements/${new Date()}`;
-    await storeEventDataInNdjson<AgreementEventData>(
+    await storeNdjsonEventData<AgreementEventData>(
       allAgreementDataToStore,
       documentDestinationPath,
       fileManager,
