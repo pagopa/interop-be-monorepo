@@ -7,7 +7,7 @@ import {
 import { P, match } from "ts-pattern";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { config, safeStorageApiConfig } from "../config/config.js";
-import { AuthorizationEventData } from "../models/storeData.js";
+import { AuthorizationEventData } from "../models/eventTypes.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
 import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";

@@ -2,11 +2,11 @@
 
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { generateId, genericInternalError } from "pagopa-interop-models";
-import { StoreData } from "../models/storeData.js";
 import { EventsSignerConfig } from "../config/config.js";
+import { BaseEventData } from "../models/eventTypes.js";
 import { compressJson } from "./compression.js";
 
-export const storeNdjsonEventData = async <T extends StoreData>(
+export const storeNdjsonEventData = async <T extends BaseEventData>(
   dataToStoreArray: T[],
   documentDestinationPath: string,
   fileManager: FileManager,
@@ -62,6 +62,6 @@ export const storeNdjsonEventData = async <T extends StoreData>(
     );
     return { fileContentBuffer, s3PresignedUrl, fileName };
   } catch (error) {
-    throw genericInternalError(`Failed to store batch event data: ${error}`); // to do map error
+    throw genericInternalError(`Failed to store batch event data: ${error}`);
   }
 };

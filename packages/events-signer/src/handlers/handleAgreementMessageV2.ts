@@ -1,10 +1,14 @@
 /* eslint-disable functional/immutable-data */
 
 import { match, P } from "ts-pattern";
-import { AgreementEventV2, genericInternalError } from "pagopa-interop-models";
+import {
+  AgreementEventV2,
+  fromAgreementV2,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
-import { AgreementEventData } from "../models/storeData.js";
+import { AgreementEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
 import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
@@ -45,10 +49,10 @@ export const handleAgreementMessageV2 = async (
             );
             return;
           }
-
+          const agreement = fromAgreementV2(event.data.agreement);
           const eventName = event.type;
-          const id = event.data.agreement.id;
-          const state = event.data.agreement.state;
+          const id = agreement.id;
+          const state = agreement.state;
 
           allAgreementDataToStore.push({
             event_name: eventName,

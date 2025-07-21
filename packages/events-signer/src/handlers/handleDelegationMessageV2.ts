@@ -1,10 +1,14 @@
 /* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
-import { DelegationEventV2, genericInternalError } from "pagopa-interop-models";
+import {
+  DelegationEventV2,
+  fromDelegationV2,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
-import { DelegationEventData } from "../models/storeData.js";
+import { DelegationEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
 import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
@@ -36,10 +40,10 @@ export const handleDelegationMessageV2 = async (
               `Skipping managed Delegation event ${event.type} due to missing delegation ID.`
             );
           }
-
+          const delegation = fromDelegationV2(event.data.delegation);
           const eventName = event.type;
-          const id = event.data.delegation.id;
-          const state = event.data.delegation.state;
+          const id = delegation.id;
+          const state = delegation.state;
 
           allDelegationDataToStore.push({
             event_name: eventName,

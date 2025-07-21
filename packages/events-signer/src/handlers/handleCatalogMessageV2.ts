@@ -1,10 +1,14 @@
 /* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
-import { EServiceEventV2, genericInternalError } from "pagopa-interop-models";
+import {
+  EServiceEventV2,
+  fromEServiceV2,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
-import { CatalogEventData } from "../models/storeData.js";
+import { CatalogEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
 import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
@@ -37,12 +41,12 @@ export const handleCatalogMessageV2 = async (
             );
             return;
           }
-
+          const eservice = fromEServiceV2(event.data.eservice);
           const eventName = event.type;
-          const eserviceId = event.data.eservice.id;
+          const eserviceId = eservice.id;
           const descriptorId = event.data.descriptorId;
 
-          const state = event.data.eservice.descriptors.find(
+          const state = eservice.descriptors.find(
             (descriptor) => descriptor.id === event.data.descriptorId
           )?.state;
 

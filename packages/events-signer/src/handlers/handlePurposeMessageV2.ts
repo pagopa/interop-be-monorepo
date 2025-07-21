@@ -3,6 +3,8 @@
 
 import { match, P } from "ts-pattern";
 import {
+  fromPurposeV2,
+  fromPurposeVersionStateV2,
   genericInternalError,
   PurposeEventV2,
   PurposeStateV2,
@@ -10,7 +12,7 @@ import {
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
-import { PurposeEventData } from "../models/storeData.js";
+import { PurposeEventData } from "../models/eventTypes.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
 import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
@@ -35,7 +37,7 @@ export const handlePurposeMessageV2 = async (
         }
 
         const eventName = event.type;
-        const state = PurposeStateV2.DRAFT;
+        const state = fromPurposeVersionStateV2(PurposeStateV2.DRAFT);
         const version = event.data.purpose.versions?.[0];
 
         allPurposeDataToStore.push({
@@ -53,7 +55,7 @@ export const handlePurposeMessageV2 = async (
         }
 
         const eventName = event.type;
-        const state = PurposeStateV2.ACTIVE;
+        const state = fromPurposeVersionStateV2(PurposeStateV2.ACTIVE);
         const id = event.data.purpose.id;
         const version = event.data.purpose.versions?.[0];
 
@@ -77,7 +79,7 @@ export const handlePurposeMessageV2 = async (
 
         for (const version of versions) {
           const versionId = version.id;
-          const state = PurposeStateV2.ARCHIVED;
+          const state = fromPurposeVersionStateV2(PurposeStateV2.ARCHIVED);
 
           allPurposeDataToStore.push({
             event_name: eventName,
@@ -108,11 +110,12 @@ export const handlePurposeMessageV2 = async (
             );
           }
 
+          const purpose = fromPurposeV2(event.data.purpose);
           const eventName = event.type;
-          const id = event.data.purpose.id;
+          const id = purpose.id;
           const versionId = event.data.versionId;
 
-          const relevantVersion = event.data.purpose.versions.find(
+          const relevantVersion = purpose.versions.find(
             (version) => version.id === versionId
           );
           const state = relevantVersion?.state;
