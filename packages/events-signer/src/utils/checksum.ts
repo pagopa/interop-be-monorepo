@@ -1,4 +1,5 @@
 import { Buffer } from "buffer";
+import { genericInternalError } from "pagopa-interop-models";
 
 /**
  * Calculates the SHA-256 checksum of a given Buffer, encoded in Base64.
@@ -16,6 +17,8 @@ export const calculateSha256Base64 = async (
     const hashAsBuffer = Buffer.from(hashBuffer);
     return hashAsBuffer.toString("base64");
   } catch (error) {
-    throw new Error(`Failed to calculate SHA-256 checksum: ${error}`);
+    throw genericInternalError(
+      `Failed to calculate SHA-256 checksum: ${error}`
+    );
   }
 };

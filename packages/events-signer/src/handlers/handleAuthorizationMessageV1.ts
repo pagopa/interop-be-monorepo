@@ -1,6 +1,9 @@
 /* eslint-disable functional/immutable-data */
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { AuthorizationEventV1 } from "pagopa-interop-models";
+import {
+  AuthorizationEventV1,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { config, safeStorageApiConfig } from "../config/config.js";
@@ -81,8 +84,9 @@ export const handleAuthorizationMessageV1 = async (
     );
 
     if (!result) {
-      logger.info(`S3 storing didn't return a valid key or content`);
-      return;
+      throw genericInternalError(
+        `S3 storing didn't return a valid key or content`
+      );
     }
 
     const { fileContentBuffer, s3PresignedUrl, fileName } = result;

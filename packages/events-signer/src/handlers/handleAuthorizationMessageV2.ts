@@ -1,6 +1,9 @@
 /* eslint-disable functional/immutable-data */
 import { P, match } from "ts-pattern";
-import { AuthorizationEventV2 } from "pagopa-interop-models";
+import {
+  AuthorizationEventV2,
+  genericInternalError,
+} from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
@@ -14,8 +17,8 @@ export const handleAuthorizationMessageV2 = async (
   decodedMessages: AuthorizationEventV2[],
   logger: Logger,
   fileManager: FileManager,
-  dbService: DbServiceBuilder, // Changed from _dbService to dbService
-  safeStorage: SafeStorageService // Added safeStorage parameter
+  dbService: DbServiceBuilder,
+  safeStorage: SafeStorageService
 ): Promise<void> => {
   const allAuthorizationDataToStore: AuthorizationEventData[] = [];
 
@@ -109,8 +112,9 @@ export const handleAuthorizationMessageV2 = async (
     );
 
     if (!result) {
-      logger.info(`S3 storing didn't return a valid key or content`);
-      return;
+      throw genericInternalError(
+        `S3 storing didn't return a valid key or content`
+      );
     }
 
     const { fileContentBuffer, s3PresignedUrl, fileName } = result;

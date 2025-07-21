@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
 import { match, P } from "ts-pattern";
-import { EServiceEventV2 } from "pagopa-interop-models";
+import { EServiceEventV2, genericInternalError } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
@@ -116,8 +116,9 @@ export const handleCatalogMessageV2 = async (
     );
 
     if (!result) {
-      logger.info(`S3 storing didn't return a valid key or content`);
-      return;
+      throw genericInternalError(
+        `S3 storing didn't return a valid key or content`
+      );
     }
 
     const { fileContentBuffer, s3PresignedUrl, fileName } = result;

@@ -17,7 +17,7 @@ import { createSafeStorageApiClient } from "./services/safeStorageService.js";
 
 const fileManager = initFileManager(config);
 const dynamoDBClient = new DynamoDBClient();
-const dbService = dbServiceBuilder(dynamoDBClient, genericLogger);
+const dbService = dbServiceBuilder(dynamoDBClient);
 const safeStorageService = createSafeStorageApiClient(safeStorageApiConfig);
 
 async function processBatch({ batch }: EachBatchPayload): Promise<void> {

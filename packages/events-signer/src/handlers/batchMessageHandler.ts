@@ -29,7 +29,7 @@ import { handleCatalogMessageV2 } from "./handleCatalogMessageV2.js";
 import { handleAgreementMessageV2 } from "./handleAgreementMessageV2.js";
 import { handlePurposeMessageV2 } from "./handlePurposeMessageV2.js";
 import { handleDelegationMessageV2 } from "./handleDelegationMessageV2.js";
-import { handleAuthorizationMessageV2 } from "./handleAuthorizationMessageV2.js";
+import { handleAuthorizationMessageV2 } from "./handleAuthorizationMessageV2.1.js";
 import { handleAuthorizationMessageV1 } from "./handleAuthorizationMessageV1.js";
 
 /**

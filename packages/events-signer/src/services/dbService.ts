@@ -3,7 +3,7 @@ import {
   PutItemCommand,
   PutItemInput,
 } from "@aws-sdk/client-dynamodb";
-import { Logger } from "pagopa-interop-commons";
+import { genericInternalError } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 
 interface SignatureReference {
@@ -13,10 +13,7 @@ interface SignatureReference {
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function dbServiceBuilder(
-  dynamoDBClient: DynamoDBClient,
-  logger: Logger
-) {
+export function dbServiceBuilder(dynamoDBClient: DynamoDBClient) {
   return {
     saveSignatureReference: async (
       reference: SignatureReference
@@ -39,8 +36,9 @@ export function dbServiceBuilder(
       try {
         await dynamoDBClient.send(command);
       } catch (error) {
-        logger.error(`Error saving '${item.safeStorageId}': ${error}`);
-        throw error;
+        throw genericInternalError(
+          `Error saving '${item.safeStorageId}': ${error}`
+        );
       }
     },
   };

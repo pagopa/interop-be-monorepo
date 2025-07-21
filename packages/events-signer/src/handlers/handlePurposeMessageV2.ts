@@ -2,7 +2,11 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 
 import { match, P } from "ts-pattern";
-import { PurposeEventV2, PurposeStateV2 } from "pagopa-interop-models";
+import {
+  genericInternalError,
+  PurposeEventV2,
+  PurposeStateV2,
+} from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
@@ -25,8 +29,9 @@ export const handlePurposeMessageV2 = async (
     match(message)
       .with({ type: "PurposeAdded" }, (event) => {
         if (!event.data.purpose?.id) {
-          logger.warn(`Skipping PurposeAdded event due to missing purpose ID.`);
-          return;
+          throw genericInternalError(
+            `Skipping PurposeAdded event due to missing purpose ID.`
+          );
         }
 
         const eventName = event.type;
@@ -42,7 +47,7 @@ export const handlePurposeMessageV2 = async (
       })
       .with({ type: "PurposeActivated" }, (event) => {
         if (!event.data.purpose?.id) {
-          throw new Error(
+          throw genericInternalError(
             `Skipping PurposeActivated event due to missing purpose ID.`
           );
         }
@@ -98,7 +103,7 @@ export const handlePurposeMessageV2 = async (
         },
         (event) => {
           if (!event.data.purpose?.id || !event.data.versionId) {
-            throw new Error(
+            throw genericInternalError(
               `Skipping managed Purpose Version event ${event.type} due to missing purpose ID or version ID.`
             );
           }
@@ -153,8 +158,9 @@ export const handlePurposeMessageV2 = async (
     );
 
     if (!result) {
-      logger.info(`S3 storing didn't return a valid key or content`);
-      return;
+      throw genericInternalError(
+        `S3 storing didn't return a valid key or content`
+      );
     }
 
     const { fileContentBuffer, s3PresignedUrl, fileName } = result;

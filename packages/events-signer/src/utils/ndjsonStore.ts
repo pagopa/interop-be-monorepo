@@ -1,7 +1,7 @@
 /* eslint-disable functional/immutable-data */
 
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { generateId } from "pagopa-interop-models";
+import { generateId, genericInternalError } from "pagopa-interop-models";
 import { StoreData } from "../models/storeData.js";
 import { EventsSignerConfig } from "../config/config.js";
 import { compressJson } from "./compression.js";
@@ -62,7 +62,6 @@ export const storeNdjsonEventData = async <T extends StoreData>(
     );
     return { fileContentBuffer, s3PresignedUrl, fileName };
   } catch (error) {
-    logger.error(`Failed to store batch event data: ${error}`);
-    throw error; // to do map error
+    throw genericInternalError(`Failed to store batch event data: ${error}`); // to do map error
   }
 };
