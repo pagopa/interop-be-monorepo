@@ -44,6 +44,18 @@ describe("POST /agreements/:agreementId/clone router test", () => {
     }
   );
 
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    mockAgreementService.cloneAgreement = vi
+      .fn()
+      .mockResolvedValue(mockM2MAgreementResponse);
+
+    const token = generateToken(role);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
   it("Should return 400 for incorrect value for agreement id", async () => {
     mockAgreementService.cloneAgreement = vi
       .fn()
