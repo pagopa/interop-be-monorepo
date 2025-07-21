@@ -54,6 +54,8 @@ const Config = z
     TENANT_READMODEL_DB_USERNAME: z.string(),
     TENANT_READMODEL_DB_PASSWORD: z.string(),
     TENANT_READMODEL_DB_PORT: z.coerce.number().min(1001),
+    TENANT_READMODEL_DB_READ_PREFERENCE: z.string().optional(),
+    TENANT_READMODEL_DB_REPLICA_SET: z.string().optional(),
   })
   .transform((c) => ({
     sourceDbUsername: c.SOURCE_DB_USERNAME,
@@ -77,6 +79,8 @@ const Config = z
       readModelDbUsername: c.TENANT_READMODEL_DB_USERNAME,
       readModelDbPassword: c.TENANT_READMODEL_DB_PASSWORD,
       readModelDbPort: c.TENANT_READMODEL_DB_PORT,
+      readModelDbReadPreference: c.TENANT_READMODEL_DB_READ_PREFERENCE,
+      readModelDbReplicaSet: c.TENANT_READMODEL_DB_REPLICA_SET,
     },
   }));
 export type Config = z.infer<typeof Config>;
@@ -340,6 +344,8 @@ const readModel = connectToReadModel({
   readModelDbUsername: config.tenantCollection.readModelDbUsername,
   readModelDbPassword: config.tenantCollection.readModelDbPassword,
   readModelDbName: config.tenantCollection.readModelDbName,
+  readModelDbReadPreference: config.tenantCollection.readModelDbReadPreference,
+  readModelDbReplicaSet: config.tenantCollection.readModelDbReplicaSet,
 });
 
 const tenantsIdsToInclude = new Set(

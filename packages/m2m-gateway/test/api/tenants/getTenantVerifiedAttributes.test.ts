@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
-  getMockedApiDeclaredTenantAttribute,
+  getMockedApiVerifiedTenantAttribute,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -9,25 +9,23 @@ import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { toM2MGatewayApiTenantDeclaredAttribute } from "../../../src/api/tenantApiConverter.js";
+import { toM2MGatewayApiTenantVerifiedAttribute } from "../../../src/api/tenantApiConverter.js";
 
-describe("GET /tenants/:tenantId/declaredAttributes route test", () => {
-  const mockQueryParams: m2mGatewayApi.GetTenantDeclaredAttributesQueryParams =
+describe("GET /tenants/:tenantId/verifiedAttributes route test", () => {
+  const mockQueryParams: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams =
     {
       offset: 0,
       limit: 10,
     };
 
-  const mockTenantAttribute1 = getMockedApiDeclaredTenantAttribute();
+  const mockTenantAttribute1 = getMockedApiVerifiedTenantAttribute();
 
-  const mockTenantAttribute2 = getMockedApiDeclaredTenantAttribute({
-    revoked: true,
-  });
+  const mockTenantAttribute2 = getMockedApiVerifiedTenantAttribute();
 
-  const mockResponse: m2mGatewayApi.TenantDeclaredAttributes = {
+  const mockResponse: m2mGatewayApi.TenantVerifiedAttributes = {
     results: [
-      toM2MGatewayApiTenantDeclaredAttribute(mockTenantAttribute1),
-      toM2MGatewayApiTenantDeclaredAttribute(mockTenantAttribute2),
+      toM2MGatewayApiTenantVerifiedAttribute(mockTenantAttribute1),
+      toM2MGatewayApiTenantVerifiedAttribute(mockTenantAttribute2),
     ],
     pagination: {
       limit: 10,
@@ -38,10 +36,10 @@ describe("GET /tenants/:tenantId/declaredAttributes route test", () => {
 
   const makeRequest = async (
     token: string,
-    query: m2mGatewayApi.GetTenantDeclaredAttributesQueryParams
+    query: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams
   ) =>
     request(api)
-      .get(`${appBasePath}/tenants/${generateId()}/declaredAttributes`)
+      .get(`${appBasePath}/tenants/${generateId()}/verifiedAttributes`)
       .query(query)
       .set("Authorization", `Bearer ${token}`);
 
@@ -53,7 +51,7 @@ describe("GET /tenants/:tenantId/declaredAttributes route test", () => {
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockTenantService.getDeclaredAttributes = vi
+      mockTenantService.getTenantVerifiedAttributes = vi
         .fn()
         .mockResolvedValue(mockResponse);
 
@@ -83,7 +81,7 @@ describe("GET /tenants/:tenantId/declaredAttributes route test", () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(
       token,
-      query as m2mGatewayApi.GetTenantDeclaredAttributesQueryParams
+      query as m2mGatewayApi.GetTenantVerifiedAttributesQueryParams
     );
 
     expect(res.status).toBe(400);
@@ -109,7 +107,9 @@ describe("GET /tenants/:tenantId/declaredAttributes route test", () => {
   ])(
     "Should return 500 when API model parsing fails for response",
     async (resp) => {
-      mockTenantService.getDeclaredAttributes = vi.fn().mockResolvedValue(resp);
+      mockTenantService.getTenantVerifiedAttributes = vi
+        .fn()
+        .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
       const res = await makeRequest(token, mockQueryParams);
 
