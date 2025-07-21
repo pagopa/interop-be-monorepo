@@ -9,6 +9,8 @@ import {
   toM2MGatewayApiTenant,
   toM2MGatewayApiTenantVerifiedAttribute,
   toM2MGatewayApiTenantDeclaredAttribute,
+  toM2MGatewayApiTenantVerifier,
+  toM2MGatewayApiTenantRevoker,
 } from "../api/tenantApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
@@ -251,6 +253,66 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           limit,
           offset,
           totalCount: verifiedAttributes.length,
+        },
+      };
+    },
+    async getVerifiedAttributeVerifiers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { limit, offset }: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantVerifiers> {
+      logger.info(
+        `Retrieving verifiers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.tenantProcessClient.tenant.getTenantVerifiedAttributeVerifiers(
+          {
+            params: { tenantId, attributeId },
+            queries: { limit, offset },
+            headers,
+          }
+        );
+
+      return {
+        results: results.map(toM2MGatewayApiTenantVerifier),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
+        },
+      };
+    },
+    async getVerifiedAttributeRevokers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { limit, offset }: m2mGatewayApi.GetTenantVerifiedAttributesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApi.TenantRevokers> {
+      logger.info(
+        `Retrieving revokers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.tenantProcessClient.tenant.getTenantVerifiedAttributeRevokers(
+          {
+            params: { tenantId, attributeId },
+            queries: { limit, offset },
+            headers,
+          }
+        );
+
+      return {
+        results: results.map(toM2MGatewayApiTenantRevoker),
+        pagination: {
+          limit,
+          offset,
+          totalCount,
         },
       };
     },
