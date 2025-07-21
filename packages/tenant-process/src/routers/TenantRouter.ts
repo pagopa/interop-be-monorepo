@@ -460,7 +460,58 @@ const tenantsRouter = (
         );
         return res.status(errorRes.status).send(errorRes);
       }
-    });
+    })
+    .get(
+      "/tenants/:tenantId/attributes/verified/:attributeId/verifiers",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const result =
+            await tenantService.getTenantVerifiedAttributeVerifiers(
+              unsafeBrandId(req.params.tenantId as string),
+              unsafeBrandId(req.params.attributeId as string),
+              {
+                offset: Number(req.query.offset) || 0,
+                limit: Number(req.query.limit) || 50,
+              },
+              ctx
+            );
+
+          return res.status(200).send(result);
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/tenants/:tenantId/attributes/verified/:attributeId/revokers",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const result = await tenantService.getTenantVerifiedAttributeRevokers(
+            unsafeBrandId(req.params.tenantId as string),
+            unsafeBrandId(req.params.attributeId as string),
+            {
+              offset: Number(req.query.offset) || 0,
+              limit: Number(req.query.limit) || 50,
+            },
+            ctx
+          );
+
+          return res.status(200).send(result);
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    );
 
   const m2mRouter = ctx.router(tenantApi.m2mApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,

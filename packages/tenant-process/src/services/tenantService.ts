@@ -93,6 +93,10 @@ import {
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
+  toApiTenantVerifier,
+  toApiTenantRevoker,
+} from "../model/domain/apiConverter.js";
+import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
   assertVerifiedAttributeExistsInTenant,
@@ -1834,6 +1838,75 @@ export function tenantServiceBuilder(
         )
         .with([P.nullish, P.nullish], () => Promise.resolve())
         .exhaustive();
+    },
+    async getTenantVerifiedAttributeVerifiers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<{
+      results: tenantApi.TenantVerifier[];
+      totalCount: number;
+    }> {
+      logger.info(
+        `Retrieving verifiers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      const result = await readModelService.getTenantVerifiedAttributeVerifiers(
+        tenantId,
+        attributeId,
+        { offset, limit }
+      );
+
+      return {
+        results: result.results.map((verifier) =>
+          toApiTenantVerifier({
+            id: verifier.verifierId,
+            verificationDate: verifier.verificationDate,
+            expirationDate: verifier.expirationDate,
+            extensionDate: verifier.extensionDate,
+            delegationId: verifier.delegationId,
+          })
+        ),
+        totalCount: result.totalCount,
+      };
+    },
+    async getTenantVerifiedAttributeRevokers(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<{
+      results: tenantApi.TenantRevoker[];
+      totalCount: number;
+    }> {
+      logger.info(
+        `Retrieving revokers for verified attribute ${attributeId} of tenant ${tenantId}`
+      );
+
+      const result = await readModelService.getTenantVerifiedAttributeRevokers(
+        tenantId,
+        attributeId,
+        { offset, limit }
+      );
+
+      return {
+        results: result.results.map((revoker) =>
+          toApiTenantRevoker({
+            id: revoker.revokerId,
+            verificationDate: revoker.verificationDate,
+            expirationDate: revoker.expirationDate,
+            extensionDate: revoker.extensionDate,
+            revocationDate: revoker.revocationDate,
+            delegationId: revoker.delegationId,
+          })
+        ),
+        totalCount: result.totalCount,
+      };
     },
   };
 }
