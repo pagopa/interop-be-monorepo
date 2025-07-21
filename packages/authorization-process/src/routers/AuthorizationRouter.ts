@@ -25,6 +25,7 @@ import {
   clientToApiFullVisibilityClient,
   jwkAndClientToApiKeyWithClient,
   keyToApiKey,
+  producerKeychainToApiFullVisibilityProducerKeychain,
   producerKeychainToApiProducerKeychain,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
@@ -623,20 +624,23 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { producerKeychain, showUsers } =
+        const producerKeychain =
           await authorizationService.createProducerKeychain(
             {
               producerKeychainSeed: req.body,
             },
             ctx
           );
-        return res.status(200).send(
-          authorizationApi.ProducerKeychain.parse(
-            producerKeychainToApiProducerKeychain(producerKeychain, {
-              showUsers,
-            })
-          )
-        );
+
+        return res
+          .status(200)
+          .send(
+            authorizationApi.FullProducerKeychain.parse(
+              producerKeychainToApiFullVisibilityProducerKeychain(
+                producerKeychain
+              )
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -678,10 +682,10 @@ const authorizationRouter = (
         return res.status(200).send(
           authorizationApi.ProducerKeychains.parse({
             results: producerKeychains.results.map((producerKeychain) =>
-              producerKeychainToApiProducerKeychain(producerKeychain, {
-                showUsers:
-                  ctx.authData.organizationId === producerKeychain.producerId,
-              })
+              producerKeychainToApiProducerKeychain(
+                producerKeychain,
+                ctx.authData
+              )
             ),
             totalCount: producerKeychains.totalCount,
           })
@@ -706,20 +710,24 @@ const authorizationRouter = (
           SUPPORT_ROLE,
         ]);
 
-        const { producerKeychain, showUsers } =
+        const producerKeychain =
           await authorizationService.getProducerKeychainById(
             {
               producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
             },
             ctx
           );
-        return res.status(200).send(
-          authorizationApi.ProducerKeychain.parse(
-            producerKeychainToApiProducerKeychain(producerKeychain, {
-              showUsers,
-            })
-          )
-        );
+
+        return res
+          .status(200)
+          .send(
+            authorizationApi.ProducerKeychain.parse(
+              producerKeychainToApiProducerKeychain(
+                producerKeychain,
+                ctx.authData
+              )
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -784,7 +792,7 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const { producerKeychain, showUsers } =
+        const producerKeychain =
           await authorizationService.addProducerKeychainUsers(
             {
               producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
@@ -792,13 +800,16 @@ const authorizationRouter = (
             },
             ctx
           );
-        return res.status(200).send(
-          authorizationApi.ProducerKeychain.parse(
-            producerKeychainToApiProducerKeychain(producerKeychain, {
-              showUsers,
-            })
-          )
-        );
+
+        return res
+          .status(200)
+          .send(
+            authorizationApi.FullProducerKeychain.parse(
+              producerKeychainToApiFullVisibilityProducerKeychain(
+                producerKeychain
+              )
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

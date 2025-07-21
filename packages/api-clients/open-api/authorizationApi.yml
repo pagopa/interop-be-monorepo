@@ -1122,7 +1122,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProducerKeychain"
+                $ref: "#/components/schemas/FullProducerKeychain"
         "401":
           description: Unauthorized
           content:
@@ -1348,7 +1348,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ProducerKeychain"
+                $ref: "#/components/schemas/FullProducerKeychain"
         "400":
           description: Bad Request
           content:
@@ -2191,9 +2191,25 @@ components:
       required:
         - purposeId
     ProducerKeychain:
+      description: |
+        Models a producer keychain that can be either a full producer keychain or a partial producer keychain based on the caller
+        tenant. In case the caller tenant is the producer of the keychain (i.e., the owner), the
+        full keychain is returned, otherwise a partial keychain is returned.
+      oneOf:
+        - $ref: "#/components/schemas/FullProducerKeychain"
+        - $ref: "#/components/schemas/PartialProducerKeychain"
+      discriminator:
+        propertyName: visibility
+        mapping:
+          PARTIAL: "#/components/schemas/PartialProducerKeychain"
+          FULL: "#/components/schemas/FullProducerKeychain"
+    FullProducerKeychain:
       description: Models Producer Keychain details
       type: object
       properties:
+        visibility:
+          type: string
+          enum: [FULL]
         id:
           type: string
           format: uuid
@@ -2224,6 +2240,7 @@ components:
           items:
             $ref: "#/components/schemas/Key"
       required:
+        - visibility
         - id
         - name
         - producerId
@@ -2232,6 +2249,29 @@ components:
         - createdAt
         - description
         - keys
+    PartialProducerKeychain:
+      type: object
+      description: |
+        Models a producer keychain with a reduced set of fields: only the fields that are
+        visible to any caller tenant.
+      additionalProperties: false
+      properties:
+        visibility:
+          type: string
+          enum: [PARTIAL]
+        id:
+          type: string
+          format: uuid
+        producerId:
+          description: |
+            The producerId is the identifier of the tenant that owns the keychain.
+            It is the tenant that created the keychain and has full access to it.
+          type: string
+          format: uuid
+      required:
+        - visibility
+        - id
+        - producerId
     ProducerKeychains:
       type: object
       properties:
