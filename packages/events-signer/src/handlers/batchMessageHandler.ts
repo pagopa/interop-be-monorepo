@@ -91,7 +91,8 @@ export async function executeTopicHandler(
           agreementV2,
           logger,
           fileManager,
-          dbService
+          dbService,
+          safeStorageService
         );
       }
     })
@@ -107,7 +108,13 @@ export async function executeTopicHandler(
           .exhaustive();
       }
       if (purposeV2.length > 0) {
-        await handlePurposeMessageV2(purposeV2, logger, fileManager, dbService);
+        await handlePurposeMessageV2(
+          purposeV2,
+          logger,
+          fileManager,
+          dbService,
+          safeStorageService
+        );
       }
     })
     .with(config.authorizationTopic, async () => {
@@ -127,7 +134,8 @@ export async function executeTopicHandler(
           authV1,
           logger,
           fileManager,
-          dbService
+          dbService,
+          safeStorageService
         );
       }
       if (authV2.length > 0) {
@@ -135,7 +143,8 @@ export async function executeTopicHandler(
           authV2,
           logger,
           fileManager,
-          dbService
+          dbService,
+          safeStorageService
         );
       }
     })
@@ -154,7 +163,8 @@ export async function executeTopicHandler(
           delegationV2,
           logger,
           fileManager,
-          dbService
+          dbService,
+          safeStorageService
         );
       }
     })

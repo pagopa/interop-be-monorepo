@@ -2,16 +2,20 @@
 import { match, P } from "ts-pattern";
 import { DelegationEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { config } from "../config/config.js";
+import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { DelegationEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
+import { SafeStorageService } from "../services/safeStorageService.js";
+import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
+import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export const handleDelegationMessageV2 = async (
   decodedMessages: DelegationEventV2[],
   logger: Logger,
   fileManager: FileManager,
-  _dbService: DbServiceBuilder
+  dbService: DbServiceBuilder,
+  safeStorage: SafeStorageService
 ): Promise<void> => {
   const allDelegationDataToStore: DelegationEventData[] = [];
 
@@ -62,17 +66,59 @@ export const handleDelegationMessageV2 = async (
   }
 
   if (allDelegationDataToStore.length > 0) {
-    const documentDestinationPath = `delegations/${new Date()
+    const timestamp = new Date();
+    const documentDestinationPath = `delegations/${timestamp
       .toISOString()
       .slice(0, 10)}`;
 
-    await storeNdjsonEventData<DelegationEventData>(
+    const result = await storeNdjsonEventData<DelegationEventData>(
       allDelegationDataToStore,
       documentDestinationPath,
       fileManager,
       logger,
       config
     );
+
+    if (!result) {
+      logger.info(`S3 storing didn't return a valid key or content`);
+      return;
+    }
+
+    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
+
+    const checksum = await calculateSha256Base64(fileContentBuffer);
+
+    logger.info(
+      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
+    );
+
+    const safeStorageRequest: FileCreationRequest = {
+      contentType: "application/json",
+      documentType: safeStorageApiConfig.safeStorageDocType,
+      status: safeStorageApiConfig.safeStorageDocStatus,
+      checksumValue: checksum,
+    };
+
+    const { uploadUrl, secret, key } = await safeStorage.createFile(
+      safeStorageRequest
+    );
+
+    await safeStorage.uploadFileContent(
+      uploadUrl,
+      fileContentBuffer,
+      "application/json",
+      secret,
+      checksum
+    );
+
+    logger.info("File uploaded to Safe Storage successfully.");
+
+    await dbService.saveSignatureReference({
+      safeStorageId: key,
+      fileKind: "PLATFORM_EVENTS",
+      fileName,
+    });
+    logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No managed delegation events to store.");
   }

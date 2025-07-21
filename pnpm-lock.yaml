@@ -3351,6 +3351,9 @@ importers:
       '@types/node':
         specifier: 20.19.3
         version: 20.19.3
+      adm-zip:
+        specifier: 0.5.10
+        version: 0.5.10
       pagopa-interop-commons-test:
         specifier: workspace:*
         version: link:../commons-test
@@ -3366,6 +3369,9 @@ importers:
       vitest:
         specifier: 1.6.1
         version: 1.6.1(@types/node@20.19.3)
+      zlib:
+        specifier: 1.0.5
+        version: 1.0.5
 
   packages/in-app-notification-db-models:
     dependencies:
@@ -7875,6 +7881,10 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  adm-zip@0.5.10:
+    resolution: {integrity: sha512-x0HvcHqVJNTPk/Bw8JbLWlWoo6Wwnsug0fnYYro1HBrjxZ3G7/AZk7Ahv8JwDe1uIcz8eBqvu86FuF1POiG7vQ==}
+    engines: {node: '>=6.0'}
+
   adm-zip@0.5.16:
     resolution: {integrity: sha512-TGw5yVi4saajsSEgz25grObGHEUaDrniwvA2qwSC060KfqGPdglhvPMA2lPIoxs3PQIItj2iag35fONcQqgUaQ==}
     engines: {node: '>=12.0'}
@@ -11357,6 +11367,10 @@ packages:
   zip-stream@4.1.1:
     resolution: {integrity: sha512-9qv4rlDiopXg4E69k+vMHjNN63YFMe9sZMrdlvKnCjlCRWeCBswPPMPUfx+ipsAWq1LXHe70RcbaHdJJpS6hyQ==}
     engines: {node: '>= 10'}
+
+  zlib@1.0.5:
+    resolution: {integrity: sha512-40fpE2II+Cd3k8HWTWONfeKE2jL+P42iWJ1zzps5W51qcTsOUKM5Q5m2PFb0CLxlmFAaUuUdJGc3OfZy947v0w==}
+    engines: {node: '>=0.2.0'}
 
   zod-validation-error@3.3.0:
     resolution: {integrity: sha512-Syib9oumw1NTqEv4LT0e6U83Td9aVRk9iTXPUQr1otyV1PuXQKOvOwhMNqZIq5hluzHP2pMgnOmHEo7kPdI2mw==}
@@ -14970,6 +14984,8 @@ snapshots:
   acorn@2.7.0: {}
 
   acorn@8.12.1: {}
+
+  adm-zip@0.5.10: {}
 
   adm-zip@0.5.16: {}
 
@@ -19083,6 +19099,8 @@ snapshots:
       archiver-utils: 3.0.4
       compress-commons: 4.1.2
       readable-stream: 3.6.2
+
+  zlib@1.0.5: {}
 
   zod-validation-error@3.3.0(zod@3.23.8):
     dependencies:

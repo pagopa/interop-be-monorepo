@@ -1,17 +1,22 @@
 /* eslint-disable functional/immutable-data */
+
 import { match, P } from "ts-pattern";
 import { AgreementEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { config } from "../config/config.js";
+import { config, safeStorageApiConfig } from "../config/config.js";
 import { AgreementEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
+import { SafeStorageService } from "../services/safeStorageService.js";
+import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
+import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export const handleAgreementMessageV2 = async (
   decodedMessages: AgreementEventV2[],
   logger: Logger,
   fileManager: FileManager,
-  _dbService: DbServiceBuilder
+  dbService: DbServiceBuilder,
+  safeStorage: SafeStorageService
 ): Promise<void> => {
   const allAgreementDataToStore: AgreementEventData[] = [];
 
@@ -75,14 +80,57 @@ export const handleAgreementMessageV2 = async (
   }
 
   if (allAgreementDataToStore.length > 0) {
-    const documentDestinationPath = `agreements/${new Date()}`;
-    await storeNdjsonEventData<AgreementEventData>(
+    const timestamp = new Date();
+    const documentDestinationPath = `agreements/${timestamp}`;
+
+    const result = await storeNdjsonEventData<AgreementEventData>(
       allAgreementDataToStore,
       documentDestinationPath,
       fileManager,
       logger,
       config
     );
+
+    if (!result) {
+      logger.info(`S3 storing didn't return a valid key or content`);
+      return;
+    }
+
+    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
+
+    const checksum = await calculateSha256Base64(fileContentBuffer);
+
+    logger.info(
+      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
+    );
+
+    const safeStorageRequest: FileCreationRequest = {
+      contentType: "application/json",
+      documentType: safeStorageApiConfig.safeStorageDocType,
+      status: safeStorageApiConfig.safeStorageDocStatus,
+      checksumValue: checksum,
+    };
+
+    const { uploadUrl, secret, key } = await safeStorage.createFile(
+      safeStorageRequest
+    );
+
+    await safeStorage.uploadFileContent(
+      uploadUrl,
+      fileContentBuffer,
+      "application/json",
+      secret,
+      checksum
+    );
+
+    logger.info("File uploaded to Safe Storage successfully.");
+
+    await dbService.saveSignatureReference({
+      safeStorageId: key,
+      fileKind: "PLATFORM_EVENTS",
+      fileName,
+    });
+    logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No managed agreement events to store.");
   }

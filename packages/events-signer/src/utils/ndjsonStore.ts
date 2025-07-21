@@ -1,3 +1,5 @@
+/* eslint-disable functional/immutable-data */
+
 import { FileManager, Logger } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
 import { StoreData } from "../models/storeData.js";
@@ -10,7 +12,14 @@ export const storeNdjsonEventData = async <T extends StoreData>(
   fileManager: FileManager,
   logger: Logger,
   config: EventsSignerConfig
-): Promise<{ s3filePath: string; fileContentBuffer: Buffer } | undefined> => {
+): Promise<
+  | {
+      fileContentBuffer: Buffer;
+      s3PresignedUrl: string;
+      fileName: string;
+    }
+  | undefined
+> => {
   if (dataToStoreArray.length === 0) {
     logger.info("No data to store in NDJSON file.");
     return;
@@ -37,7 +46,21 @@ export const storeNdjsonEventData = async <T extends StoreData>(
     logger.info(
       `Successfully stored ${dataToStoreArray.length} events in file ${documentName} at path ${documentDestinationPath}`
     );
-    return { s3filePath, fileContentBuffer };
+    const s3KeyParts = s3filePath.split("/");
+    const fileName = s3KeyParts.pop();
+    const s3PathWithoutFileName = s3KeyParts.join("/");
+
+    if (!fileName) {
+      throw new Error(`couldn't extract fileName`);
+    }
+
+    const s3PresignedUrl = await fileManager.generateGetPresignedUrl(
+      config.s3Bucket,
+      s3PathWithoutFileName,
+      fileName,
+      1
+    );
+    return { fileContentBuffer, s3PresignedUrl, fileName };
   } catch (error) {
     logger.error(`Failed to store batch event data: ${error}`);
     throw error; // to do map error

@@ -1,17 +1,23 @@
 /* eslint-disable functional/immutable-data */
+/* eslint-disable sonarjs/cognitive-complexity */
+
 import { match, P } from "ts-pattern";
 import { PurposeEventV2, PurposeStateV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { config } from "../config/config.js";
+import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { PurposeEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
+import { SafeStorageService } from "../services/safeStorageService.js";
+import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
+import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export const handlePurposeMessageV2 = async (
   decodedMessages: PurposeEventV2[],
   logger: Logger,
   fileManager: FileManager,
-  _dbService: DbServiceBuilder
+  dbService: DbServiceBuilder,
+  safeStorage: SafeStorageService
 ): Promise<void> => {
   const allPurposeDataToStore: PurposeEventData[] = [];
 
@@ -135,14 +141,58 @@ export const handlePurposeMessageV2 = async (
   }
 
   if (allPurposeDataToStore.length > 0) {
-    const documentDestinationPath = `purposes/${new Date()}`;
+    const timestamp = new Date();
+    const documentDestinationPath = `purposes/${timestamp}`;
 
-    await storeNdjsonEventData<PurposeEventData>(
+    const result = await storeNdjsonEventData<PurposeEventData>(
       allPurposeDataToStore,
       documentDestinationPath,
       fileManager,
       logger,
       config
     );
+
+    if (!result) {
+      logger.info(`S3 storing didn't return a valid key or content`);
+      return;
+    }
+
+    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
+
+    const checksum = await calculateSha256Base64(fileContentBuffer);
+
+    logger.info(
+      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
+    );
+
+    const safeStorageRequest: FileCreationRequest = {
+      contentType: "application/json",
+      documentType: safeStorageApiConfig.safeStorageDocType,
+      status: safeStorageApiConfig.safeStorageDocStatus,
+      checksumValue: checksum,
+    };
+
+    const { uploadUrl, secret, key } = await safeStorage.createFile(
+      safeStorageRequest
+    );
+
+    await safeStorage.uploadFileContent(
+      uploadUrl,
+      fileContentBuffer,
+      "application/json",
+      secret,
+      checksum
+    );
+
+    logger.info("File uploaded to Safe Storage successfully.");
+
+    await dbService.saveSignatureReference({
+      safeStorageId: key,
+      fileKind: "PLATFORM_EVENTS",
+      fileName,
+    });
+    logger.info("Safe Storage reference saved in DynamoDB.");
+  } else {
+    logger.info("No managed purpose events to store.");
   }
 };

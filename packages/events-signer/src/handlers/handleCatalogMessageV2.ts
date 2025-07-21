@@ -7,7 +7,7 @@ import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { CatalogEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
 import { SafeStorageService } from "../services/safeStorageService.js";
-import { FileCreationRequest } from "../interfaces/safeStorageServiceInterfaces.js";
+import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export const handleCatalogMessageV2 = async (
@@ -120,12 +120,12 @@ export const handleCatalogMessageV2 = async (
       return;
     }
 
-    const { s3filePath, fileContentBuffer } = result;
+    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
 
     const checksum = await calculateSha256Base64(fileContentBuffer);
 
     logger.info(
-      `Requesting file creation in Safe Storage for ${s3filePath}...`
+      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
     );
 
     const safeStorageRequest: FileCreationRequest = {
@@ -148,8 +148,6 @@ export const handleCatalogMessageV2 = async (
     );
 
     logger.info("File uploaded to Safe Storage successfully.");
-
-    const fileName = s3filePath.split("/").pop() || s3filePath;
 
     await dbService.saveSignatureReference({
       safeStorageId: key,

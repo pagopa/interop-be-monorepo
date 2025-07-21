@@ -2,16 +2,20 @@
 import { P, match } from "ts-pattern";
 import { AuthorizationEventV2 } from "pagopa-interop-models";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import { config } from "../config/config.js";
+import { config, safeStorageApiConfig } from "../config/config.js";
 import { storeNdjsonEventData } from "../utils/ndjsonStore.js";
 import { AuthorizationEventData } from "../models/storeData.js";
 import { DbServiceBuilder } from "../services/dbService.js";
+import { SafeStorageService } from "../services/safeStorageService.js";
+import { FileCreationRequest } from "../models/safeStorageServiceSchema.js";
+import { calculateSha256Base64 } from "../utils/checksum.js";
 
 export const handleAuthorizationMessageV2 = async (
   decodedMessages: AuthorizationEventV2[],
   logger: Logger,
   fileManager: FileManager,
-  _dbService: DbServiceBuilder
+  dbService: DbServiceBuilder, // Changed from _dbService to dbService
+  safeStorage: SafeStorageService // Added safeStorage parameter
 ): Promise<void> => {
   const allAuthorizationDataToStore: AuthorizationEventData[] = [];
 
@@ -93,15 +97,57 @@ export const handleAuthorizationMessageV2 = async (
   }
 
   if (allAuthorizationDataToStore.length > 0) {
-    const documentDestinationPath = `authorization/${new Date()}`;
+    const timestamp = new Date();
+    const documentDestinationPath = `authorization/${timestamp}`;
 
-    await storeNdjsonEventData<AuthorizationEventData>(
+    const result = await storeNdjsonEventData<AuthorizationEventData>(
       allAuthorizationDataToStore,
       documentDestinationPath,
       fileManager,
       logger,
       config
     );
+
+    if (!result) {
+      logger.info(`S3 storing didn't return a valid key or content`);
+      return;
+    }
+
+    const { fileContentBuffer, s3PresignedUrl, fileName } = result;
+
+    const checksum = await calculateSha256Base64(fileContentBuffer);
+
+    logger.info(
+      `Requesting file creation in Safe Storage for ${s3PresignedUrl}...`
+    );
+
+    const safeStorageRequest: FileCreationRequest = {
+      contentType: "application/json",
+      documentType: safeStorageApiConfig.safeStorageDocType,
+      status: safeStorageApiConfig.safeStorageDocStatus,
+      checksumValue: checksum,
+    };
+
+    const { uploadUrl, secret, key } = await safeStorage.createFile(
+      safeStorageRequest
+    );
+
+    await safeStorage.uploadFileContent(
+      uploadUrl,
+      fileContentBuffer,
+      "application/json",
+      secret,
+      checksum
+    );
+
+    logger.info("File uploaded to Safe Storage successfully.");
+
+    await dbService.saveSignatureReference({
+      safeStorageId: key,
+      fileKind: "PLATFORM_EVENTS",
+      fileName,
+    });
+    logger.info("Safe Storage reference saved in DynamoDB.");
   } else {
     logger.info("No managed authorization events to store.");
   }
