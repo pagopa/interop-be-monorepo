@@ -2,9 +2,9 @@
 import { ReadModelRepository } from "pagopa-interop-commons";
 import {
   AgreementState,
-  DelegationState,
+  delegationState,
   DescriptorState,
-  EServiceTemplateVersionState,
+  eserviceTemplateVersionState,
   PurposeVersionState,
 } from "pagopa-interop-models";
 import {
@@ -109,7 +109,7 @@ export function readModelServiceBuilder(
     async getDelegations(): Promise<ExportedDelegation[]> {
       return delegations
         .find({
-          "data.state": { $ne: "WaitingForApproval" satisfies DelegationState },
+          "data.state": { $ne: delegationState.waitingForApproval },
         })
         .map(({ data }) => ExportedDelegation.parse(data))
         .toArray();
@@ -128,10 +128,10 @@ export function readModelServiceBuilder(
                 $elemMatch: {
                   state: {
                     $in: [
-                      "Deprecated",
-                      "Published",
-                      "Suspended",
-                    ] satisfies EServiceTemplateVersionState[],
+                      eserviceTemplateVersionState.deprecated,
+                      eserviceTemplateVersionState.published,
+                      eserviceTemplateVersionState.suspended,
+                    ],
                   },
                 },
               },
@@ -142,7 +142,7 @@ export function readModelServiceBuilder(
           ExportedEServiceTemplate.parse({
             ...data,
             versions: data.versions.filter(
-              (version) => version.state !== "Draft"
+              (version) => version.state !== eserviceTemplateVersionState.draft
             ),
           })
         )
