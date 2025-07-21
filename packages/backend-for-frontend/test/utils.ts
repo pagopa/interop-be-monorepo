@@ -84,7 +84,7 @@ export const toEserviceCatalogProcessMock = (
     {
       ...descriptor,
       state: "DRAFT",
-      version: 1,
+      version: "1",
       agreementApprovalPolicy: "AUTOMATIC",
       publishedAt: new Date().toISOString(),
       suspendedAt: undefined,
