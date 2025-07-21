@@ -2,6 +2,7 @@ import {
   contextMiddleware,
   loggerMiddleware,
   zodiosCtx,
+  zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import express from "express";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
@@ -32,6 +33,7 @@ export async function createApp(service: TokenService) {
   );
   app.use(express.urlencoded({ extended: true }));
   app.use(loggerMiddleware(serviceName));
+  app.use(zodiosValidationErrorToApiProblem);
   app.use(authorizationServerRouter(zodiosCtx, service));
 
   return app;
