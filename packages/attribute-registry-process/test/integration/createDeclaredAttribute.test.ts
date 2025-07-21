@@ -22,7 +22,7 @@ import {
   addOneAttribute,
 } from "../integrationUtils.js";
 describe("declared attribute creation", () => {
-  const mockAttribute = getMockAttribute();
+  const mockAttribute = getMockAttribute(attributeKind.declared);
   it("should write on event-store for the creation of a declared attribute", async () => {
     const attribute = await attributeRegistryService.createDeclaredAttribute(
       {

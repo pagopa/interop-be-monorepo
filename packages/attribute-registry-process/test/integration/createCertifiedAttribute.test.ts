@@ -17,7 +17,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
-  attributeDuplicateByNameAndCode,
+  attributeDuplicateByCodeOriginOrName,
   tenantIsNotACertifier,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
@@ -84,12 +84,66 @@ describe("certified attribute creation", () => {
       metadata: { version: 0 },
     });
   });
-  it("should throw attributeDuplicate if an attribute with the same name and code already exists, case insensitive", async () => {
+  it("should write 2 attribute with different name and origin but same code", async () => {
+    const attributeCode = "123456ab";
+    const attributeName = `${mockAttribute.name}-test`;
+    const mockTenant2 = getMockTenant();
+
+    const tenant: Tenant = {
+      ...mockTenant,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId: randomUUID(),
+        },
+      ],
+    };
+    const tenant2: Tenant = {
+      ...mockTenant2,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId: randomUUID(),
+        },
+      ],
+    };
+    const expectedAttribute: Attribute = {
+      ...mockAttribute,
+      code: attributeCode,
+      name: attributeName,
+      id: expect.any(String),
+      kind: attributeKind.certified,
+      creationTime: expect.any(Date),
+      origin: getTenantOneCertifierFeature(tenant2).certifierId,
+    };
+    await addOneTenant(tenant);
+    await addOneTenant(tenant2);
+    await addOneAttribute({
+      ...mockAttribute,
+      code: attributeCode,
+      origin: getTenantOneCertifierFeature(tenant).certifierId,
+    });
+    const createdAttribute =
+      await attributeRegistryService.createCertifiedAttribute(
+        {
+          name: attributeName,
+          code: attributeCode,
+          description: mockAttribute.description,
+        },
+        getMockContext({ authData: getMockAuthData(tenant2.id) })
+      );
+    expect(createdAttribute).toMatchObject({
+      data: expectedAttribute,
+      metadata: { version: 0 },
+    });
+  });
+  it("should throw attributeDuplicate if an attribute with the same name OR code and origin already exists, case insensitive", async () => {
     const attribute = {
       ...mockAttribute,
-      name: mockAttribute.name.toUpperCase(),
-      code: "123456AB",
+      code: "123456ab",
     };
+    const attributeName = `${mockAttribute.name}-test`;
+    const attributeCode = "123456cd";
 
     const tenant: Tenant = {
       ...mockTenant,
@@ -102,20 +156,42 @@ describe("certified attribute creation", () => {
     };
 
     await addOneTenant(tenant);
-    await addOneAttribute(attribute);
+    await addOneAttribute({
+      ...attribute,
+      name: attribute.name.toUpperCase(),
+      code: attribute.code.toUpperCase(),
+      origin: getTenantOneCertifierFeature(tenant).certifierId,
+    });
     expect(
       attributeRegistryService.createCertifiedAttribute(
         {
-          name: attribute.name.toLowerCase(),
-          code: attribute.code.toLowerCase(),
+          name: attribute.name,
+          code: attributeCode,
           description: attribute.description,
         },
         getMockContext({ authData: getMockAuthData(tenant.id) })
       )
     ).rejects.toThrowError(
-      attributeDuplicateByNameAndCode(
-        attribute.name.toLowerCase(),
-        attribute.code.toLowerCase()
+      attributeDuplicateByCodeOriginOrName(
+        attribute.name,
+        attributeCode,
+        getTenantOneCertifierFeature(tenant).certifierId
+      )
+    );
+    expect(
+      attributeRegistryService.createCertifiedAttribute(
+        {
+          name: attributeName,
+          code: attribute.code,
+          description: attribute.description,
+        },
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toThrowError(
+      attributeDuplicateByCodeOriginOrName(
+        attributeName,
+        attribute.code,
+        getTenantOneCertifierFeature(tenant).certifierId
       )
     );
   });

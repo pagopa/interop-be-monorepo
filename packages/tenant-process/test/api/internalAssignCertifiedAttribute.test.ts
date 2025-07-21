@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import {
-  Attribute,
-  attributeKind,
-  generateId,
-  Tenant,
-} from "pagopa-interop-models";
+import { attributeKind, generateId, Tenant } from "pagopa-interop-models";
 import {
   generateToken,
   getMockAttribute,
@@ -21,12 +16,7 @@ import {
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/origin/{aOrigin}/externalId/{aExternalId} test", () => {
-  const attribute: Attribute = {
-    ...getMockAttribute(),
-    origin: "ORIGIN",
-    code: "CODE",
-    kind: attributeKind.certified,
-  };
+  const attribute = getMockAttribute(attributeKind.certified);
   const targetTenant: Tenant = {
     ...getMockTenant(),
     attributes: [],

@@ -15,7 +15,7 @@ import {
   toAttributeV1,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { attributeDuplicateByNameAndCode } from "../../src/model/domain/errors.js";
+import { attributeDuplicateByCodeOriginOrName } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   attributeRegistryService,
@@ -75,12 +75,59 @@ describe("certified attribute internal creation", () => {
     expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
     expect(writtenPayload.attribute).toEqual(toAttributeV1(attribute));
   });
-  it("should throw attributeDuplicate if an attribute with the same name and code already exists, case insensitive", async () => {
-    // This test is the same as the previous one, but with a different method
+  it("should write 2 attribute with different name and origin but same code, case insensitive", async () => {
+    const attributeCode = "123456ab";
+    const attributeName = `${mockAttribute.name}-test`;
+    const mockTenant2 = getMockTenant();
+
+    const tenant: Tenant = {
+      ...mockTenant,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId: randomUUID(),
+        },
+      ],
+    };
+    const tenant2: Tenant = {
+      ...mockTenant2,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId: randomUUID(),
+        },
+      ],
+    };
+
+    await addOneTenant(tenant);
+    await addOneTenant(tenant2);
+    await addOneAttribute({
+      ...mockAttribute,
+      code: attributeCode,
+      origin: getTenantOneCertifierFeature(tenant).certifierId,
+    });
+
+    expect(
+      attributeRegistryService.internalCreateCertifiedAttribute(
+        {
+          name: attributeName,
+          code: attributeCode.toLocaleUpperCase(),
+          description: mockAttribute.description,
+          origin: getTenantOneCertifierFeature(tenant2).certifierId,
+        },
+        getMockContextInternal({})
+      )
+    ).toBeDefined();
+  });
+  it("should throw attributeDuplicate if an attribute with the same name OR code and origin already exists, case insensitive", async () => {
     const attribute = {
       ...mockAttribute,
-      name: mockAttribute.name.toUpperCase(),
-      code: "123456AB",
+      code: "123456ab",
+    };
+    const attribute2 = {
+      ...attribute,
+      name: `${mockAttribute.name}-test`,
+      code: "123456cd",
     };
 
     const tenant: Tenant = {
@@ -94,21 +141,44 @@ describe("certified attribute internal creation", () => {
     };
 
     await addOneTenant(tenant);
-    await addOneAttribute(attribute);
+    await addOneAttribute({
+      ...attribute,
+      name: attribute.name.toUpperCase(),
+      code: attribute.code.toUpperCase(),
+      origin: getTenantOneCertifierFeature(tenant).certifierId,
+    });
     expect(
       attributeRegistryService.internalCreateCertifiedAttribute(
         {
-          name: attribute.name.toLowerCase(),
-          code: attribute.code.toLowerCase(),
-          origin: getTenantOneCertifierFeature(tenant).certifierId,
+          name: attribute.name,
+          code: attribute2.code,
           description: attribute.description,
+          origin: getTenantOneCertifierFeature(tenant).certifierId,
         },
         getMockContextInternal({})
       )
     ).rejects.toThrowError(
-      attributeDuplicateByNameAndCode(
-        attribute.name.toLowerCase(),
-        attribute.code.toLowerCase()
+      attributeDuplicateByCodeOriginOrName(
+        attribute.name,
+        attribute2.code,
+        getTenantOneCertifierFeature(tenant).certifierId
+      )
+    );
+    expect(
+      attributeRegistryService.internalCreateCertifiedAttribute(
+        {
+          name: attribute2.name,
+          code: attribute.code,
+          description: attribute.description,
+          origin: getTenantOneCertifierFeature(tenant).certifierId,
+        },
+        getMockContextInternal({})
+      )
+    ).rejects.toThrowError(
+      attributeDuplicateByCodeOriginOrName(
+        attribute2.name,
+        attribute.code,
+        getTenantOneCertifierFeature(tenant).certifierId
       )
     );
   });

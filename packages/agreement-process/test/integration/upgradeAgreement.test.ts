@@ -113,9 +113,9 @@ describe("upgrade Agreement", () => {
     async (requesterIs) => {
       const producerAndConsumerId = generateId<TenantId>();
 
-      const verifiedAttribute = getMockAttribute("Verified");
-      const declaredAttribute = getMockAttribute("Declared");
-      const certifiedAttribute = getMockAttribute("Certified");
+      const certifiedAttribute = getMockAttribute(attributeKind.certified);
+      const declaredAttribute = getMockAttribute(attributeKind.declared);
+      const verifiedAttribute = getMockAttribute(attributeKind.verified);
       await addOneAttribute(verifiedAttribute);
       await addOneAttribute(declaredAttribute);
       await addOneAttribute(certifiedAttribute);
@@ -588,9 +588,9 @@ describe("upgrade Agreement", () => {
           const consumerId = generateId<TenantId>();
           await addOneTenant(producer);
 
-          const verifiedAttribute = getMockAttribute("Verified");
-          const declaredAttribute = getMockAttribute("Declared");
-          const certifiedAttribute = getMockAttribute("Certified");
+          const certifiedAttribute = getMockAttribute(attributeKind.certified);
+          const declaredAttribute = getMockAttribute(attributeKind.declared);
+          const verifiedAttribute = getMockAttribute(attributeKind.verified);
           await addOneAttribute(verifiedAttribute);
           await addOneAttribute(declaredAttribute);
           await addOneAttribute(certifiedAttribute);

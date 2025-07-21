@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { getMockAttribute, getMockContext } from "pagopa-interop-commons-test";
 import { describe, it, expect } from "vitest";
-import { Attribute, attributeKind, generateId } from "pagopa-interop-models";
+import { Attribute, attributeKind } from "pagopa-interop-models";
 import { attributeNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -11,12 +11,8 @@ import {
 describe("getAttributeByName", () => {
   it("should get the attribute if it exists", async () => {
     const attribute1: Attribute = {
-      ...getMockAttribute(),
-      id: generateId(),
-      name: "attribute 001 test",
-      kind: attributeKind.certified,
+      ...getMockAttribute(attributeKind.certified),
       origin: "IPA",
-      code: "12345A",
     };
     await addOneAttribute(attribute1);
     const attribute = await attributeRegistryService.getAttributeByName(

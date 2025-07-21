@@ -23,9 +23,7 @@ describe("database test", async () => {
   describe("Events V1", () => {
     it("AttributeAdded - certified", async () => {
       const certifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.certified,
-        code: "123456",
+        ...getMockAttribute(attributeKind.certified),
         origin: "certifier-id",
       };
       const payload: AttributeAddedV1 = {
@@ -53,10 +51,7 @@ describe("database test", async () => {
     });
 
     it("AttributeAdded - declared", async () => {
-      const declaredAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.declared,
-      };
+      const declaredAttribute = getMockAttribute(attributeKind.declared);
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(declaredAttribute),
       };
@@ -82,10 +77,7 @@ describe("database test", async () => {
     });
 
     it("AttributeAdded - verified", async () => {
-      const verifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.verified,
-      };
+      const verifiedAttribute = getMockAttribute(attributeKind.verified);
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(verifiedAttribute),
       };
@@ -111,10 +103,7 @@ describe("database test", async () => {
     });
 
     it("AttributeDeleted", async () => {
-      const certifiedAttribute: Attribute = {
-        ...getMockAttribute(),
-        kind: attributeKind.verified,
-      };
+      const certifiedAttribute = getMockAttribute(attributeKind.verified);
       await writeInReadmodel(
         toReadModelAttribute(certifiedAttribute),
         attributes
