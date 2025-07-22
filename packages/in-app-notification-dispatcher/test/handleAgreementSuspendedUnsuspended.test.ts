@@ -19,7 +19,7 @@ import { config } from "../src/config/config.js";
 import {
   AgreementSuspendUnsuspendEventType,
   handleAgreementSuspendedUnsuspended,
-} from "../src/handlers/handleAgreementSuspendUnsuspend.js";
+} from "../src/handlers/agreements/handleAgreementSuspendUnsuspend.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
