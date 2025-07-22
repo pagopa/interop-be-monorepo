@@ -23,8 +23,6 @@ type AgreementSuspendUnsuspendEventType =
   | "AgreementUnsuspendedByPlatform";
 
 type NotificationAudience = "consumer" | "producer";
-type ActionType = "sospeso" | "riattivato";
-
 type NotificationConfig =
   | "consumptionAgreementSuspendedUnsuspended"
   | "productionAgreementSuspendedUnsuspended";
@@ -64,8 +62,7 @@ export async function handleAgreementSuspendedUnsuspended(
     getSubjectName(agreement, eventType, readModelService),
   ]);
 
-  // sospeso or riattivato
-  const action = getActionPerformed(eventType);
+  const action: "sospeso" | "riattivato" = getActionPerformed(eventType);
   const body = inAppTemplates.agreementSuspendedUnsuspended(
     action,
     subjectName,
@@ -134,8 +131,10 @@ function getAudiencesToNotify(
 
 function getActionPerformed(
   eventType: AgreementSuspendUnsuspendEventType
-): ActionType {
-  return match<AgreementSuspendUnsuspendEventType, ActionType>(eventType)
+): "sospeso" | "riattivato" {
+  return match<AgreementSuspendUnsuspendEventType, "sospeso" | "riattivato">(
+    eventType
+  )
     .with(
       "AgreementSuspendedByConsumer",
       "AgreementSuspendedByProducer",
