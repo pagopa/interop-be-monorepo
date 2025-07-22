@@ -16,7 +16,7 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { config } from "../src/config/config.js";
-import { handleAgreementSuspendUnsuspend } from "../src/handlers/handleAgreementSuspendUnsuspend.js";
+import { handleAgreementSuspendedUnsuspended } from "../src/handlers/handleAgreementSuspendUnsuspend.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
@@ -59,7 +59,7 @@ describe("handleAgreementSuspendUnsuspend", () => {
 
   it("should throw missingKafkaMessageDataError when agreement is undefined", async () => {
     await expect(() =>
-      handleAgreementSuspendUnsuspend(
+      handleAgreementSuspendedUnsuspended(
         undefined,
         logger,
         readModelService,
@@ -84,7 +84,7 @@ describe("handleAgreementSuspendUnsuspend", () => {
       .mockResolvedValue([{ userId: generateId(), tenantId: producerId }]);
 
     await expect(() =>
-      handleAgreementSuspendUnsuspend(
+      handleAgreementSuspendedUnsuspended(
         toAgreementV2(agreementWithUnknownTenant),
         logger,
         readModelService,
@@ -99,7 +99,7 @@ describe("handleAgreementSuspendUnsuspend", () => {
       .fn()
       .mockResolvedValue([]);
 
-    const notifications = await handleAgreementSuspendUnsuspend(
+    const notifications = await handleAgreementSuspendedUnsuspended(
       toAgreementV2(agreement),
       logger,
       readModelService,
@@ -167,17 +167,19 @@ describe("handleAgreementSuspendUnsuspend", () => {
       readModelService.getTenantUsersWithNotificationEnabled = vi
         .fn()
         .mockImplementation(async (_, notificationConfig) => {
-          if (notificationConfig === "producerSuspendUnsuspendAgreement") {
+          if (
+            notificationConfig === "productionAgreementSuspendedUnsuspended"
+          ) {
             return producerUsers;
           } else if (
-            notificationConfig === "consumerSuspendUnsuspendAgreement"
+            notificationConfig === "consumptionAgreementSuspendedUnsuspended"
           ) {
             return consumerUsers;
           }
           return [];
         });
 
-      const notifications = await handleAgreementSuspendUnsuspend(
+      const notifications = await handleAgreementSuspendedUnsuspended(
         toAgreementV2(agreement),
         logger,
         readModelService,
@@ -234,7 +236,7 @@ describe("handleAgreementSuspendUnsuspend", () => {
       .fn()
       .mockResolvedValue(users);
 
-    const notifications = await handleAgreementSuspendUnsuspend(
+    const notifications = await handleAgreementSuspendedUnsuspended(
       toAgreementV2(agreement),
       logger,
       readModelService,

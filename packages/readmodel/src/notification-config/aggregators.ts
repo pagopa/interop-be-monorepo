@@ -92,11 +92,11 @@ export const aggregateTenantNotificationConfig = ({
     clientKeyStatusChangedToClientUsers: enabledNotifications.includes(
       "clientKeyStatusChangedToClientUsers"
     ),
-    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "producerSuspendUnsuspendAgreement"
+    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "productionAgreementSuspendedUnsuspended"
     ),
-    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "consumerSuspendUnsuspendAgreement"
+    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "consumptionAgreementSuspendedUnsuspended"
     ),
   };
 
@@ -201,11 +201,11 @@ export const aggregateUserNotificationConfig = ({
     clientKeyStatusChangedToClientUsers: enabledInAppNotifications.includes(
       "clientKeyStatusChangedToClientUsers"
     ),
-    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "producerSuspendUnsuspendAgreement.inApp"
+    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "productionAgreementSuspendedUnsuspended.inApp"
     ),
-    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "consumerSuspendUnsuspendAgreement.inApp"
+    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "consumptionAgreementSuspendedUnsuspended.inApp"
     ),
   };
   const emailConfig: NotificationConfig = {
@@ -274,11 +274,11 @@ export const aggregateUserNotificationConfig = ({
     clientKeyStatusChangedToClientUsers: enabledEmailNotifications.includes(
       "clientKeyStatusChangedToClientUsers"
     ),
-    producerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "producerSuspendUnsuspendAgreement.email"
+    productionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "productionAgreementSuspendedUnsuspended.email"
     ),
-    consumerSuspendUnsuspendAgreement: enabledNotifications.includes(
-      "consumerSuspendUnsuspendAgreement.email"
+    consumptionAgreementSuspendedUnsuspended: enabledNotifications.includes(
+      "consumptionAgreementSuspendedUnsuspended.email"
     ),
   };
 
