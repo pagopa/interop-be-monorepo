@@ -230,9 +230,12 @@ describe("handleNewEServiceDescriptorPublished", async () => {
       correlationId: generateId<CorrelationId>(),
     });
     expect(messages.length).toBe(1);
-    expect(messages[0].email.body).toContain("<head>");
-    expect(messages[0].email.body).toContain("Nuova versione di un e-service");
-    expect(messages[0].email.body).toContain("<body");
+    expect(messages[0].email.body).toContain("<!-- Title & Main Message -->");
     expect(messages[0].email.body).toContain("<!-- Footer -->");
+    expect(messages[0].email.body).toContain("Nuova versione di un e-service");
+    expect(messages[0].email.body).toContain(
+      `https://${interopFeBaseUrl}/ui/it/fruizione/catalogo-e-service/${eservice.id}/${descriptor.id}`
+    );
+    expect(messages[0].email.body).toContain(eservice.name);
   });
 });
