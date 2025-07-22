@@ -1,7 +1,7 @@
 import {
   PurposeEventEnvelopeV1,
   fromPurposeVersionV1,
-  genericInternalError,
+  missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -33,9 +33,7 @@ export async function handleMessageV1(
       async (msg) => {
         const purposeVersionV1 = msg.data.version;
         if (!purposeVersionV1) {
-          throw genericInternalError(
-            "PurposeVersion can't be missing in the event message"
-          );
+          throw missingKafkaMessageDataError("version", msg.type);
         }
         const purposeVersion = fromPurposeVersionV1(purposeVersionV1);
 
