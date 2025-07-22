@@ -64,7 +64,7 @@ export const RiskAnalysisTemplateAnnotationDocument = z.object({
   prettyName: z.string(),
   path: z.string(),
   checksum: z.string(),
-  uploadDate: z.coerce.date(),
+  createdAt: z.coerce.date(),
 });
 
 // TODO: move to commons if needed
