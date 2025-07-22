@@ -1,6 +1,8 @@
+/* eslint-disable sonarjs/no-identical-functions */
 import {
   getMockAgreement,
   getMockContext,
+  getMockDescriptor,
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
@@ -13,10 +15,15 @@ import {
   missingKafkaMessageDataError,
   TenantId,
   toEServiceV2,
+  UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleEserviceDescriptorPublished } from "../src/handlers/handleEServiceDescriptorPublished.js";
-import { tenantNotFound } from "../src/models/errors.js";
+import {
+  agreementStampDateNotFound,
+  descriptorPublishedNotFound,
+  tenantNotFound,
+} from "../src/models/errors.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -27,11 +34,12 @@ import {
 } from "./utils.js";
 
 describe("handleNewEServiceDescriptorPublished", async () => {
+  const descriptor = getMockDescriptorPublished();
   const eservice = {
     ...getMockEService(),
-    producerId: generateId<TenantId>(),
-    descriptors: [getMockDescriptorPublished()],
+    descriptors: [descriptor],
   };
+  await addOneEService(eservice);
 
   const { logger } = getMockContext({});
 
@@ -52,19 +60,7 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     );
   });
 
-  it("should return empty array when no agreements exist for the eservice", async () => {
-    const messages = await handleEserviceDescriptorPublished({
-      eserviceV2Msg: toEServiceV2(eservice),
-      logger,
-      interopFeBaseUrl,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages).toEqual([]);
-  });
-
-  it("should throw tenantNotFound when tenant is not found", async () => {
+  it("should throw tenantNotFound when consumer is not found", async () => {
     const consumerId = generateId<TenantId>();
     const agreement = getMockAgreement(
       eservice.id,
@@ -85,6 +81,43 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     ).rejects.toThrow(tenantNotFound(consumerId));
   });
 
+  it("should throw descriptorPublishedNotFound when descriptor is not found", async () => {
+    const eservice = getMockEService();
+    await addOneEService(eservice);
+
+    const consumerTenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail()],
+    };
+    await addOneTenant(consumerTenant);
+
+    const producerTenant = {
+      ...getMockTenant(),
+      mails: [getMockTenantMail()],
+    };
+    await addOneTenant(producerTenant);
+
+    const agreement = {
+      ...getMockAgreement(),
+      stamps: { activation: { when: new Date(), who: generateId<UserId>() } },
+      producerId: producerTenant.id,
+      eserviceId: eservice.id,
+      consumerId: consumerTenant.id,
+    };
+    await addOneAgreement(agreement);
+
+    await expect(() =>
+      handleEserviceDescriptorPublished({
+        eserviceV2Msg: toEServiceV2(eservice),
+        logger,
+        interopFeBaseUrl,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(descriptorPublishedNotFound(agreement.eserviceId));
+  });
+
   it("should skip tenant when no emails exist for the tenant", async () => {
     const consumerId = generateId<TenantId>();
     const agreement = getMockAgreement(
@@ -97,6 +130,18 @@ describe("handleNewEServiceDescriptorPublished", async () => {
     const consumerTenant = getMockTenant(consumerId);
     await addOneTenant(consumerTenant);
 
+    const messages = await handleEserviceDescriptorPublished({
+      eserviceV2Msg: toEServiceV2(eservice),
+      logger,
+      interopFeBaseUrl,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+    expect(messages).toEqual([]);
+  });
+
+  it("should generate no messages when no agreements exist for the eservice", async () => {
     const messages = await handleEserviceDescriptorPublished({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
