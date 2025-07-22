@@ -1,5 +1,6 @@
 import {
   Agreement,
+  ProducerJWKKey,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -10,16 +11,18 @@ import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   DrizzleReturnType,
+  producerJwkKeyInReadmodelProducerJwkKey,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import {
   splitTenantNotificationConfigIntoObjectsSQL,
   splitUserNotificationConfigIntoObjectsSQL,
 } from "./notification-config/splitters.js";
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
-import { checkMetadataVersion } from "./utils.js";
+import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
+import { splitProducerJWKKeyIntoObjectsSQL } from "./authorization/producerJWKKeySplitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -102,5 +105,51 @@ export const upsertAgreement = async (
         .insert(agreementContractInReadmodelAgreement)
         .values(contractSQL);
     }
+  });
+};
+
+export const upsertProducerJWKKey = async (
+  readModelDB: DrizzleReturnType,
+  jwkKey: ProducerJWKKey,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersionByFilter(
+      tx,
+      producerJwkKeyInReadmodelProducerJwkKey,
+      metadataVersion,
+      and(
+        eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid),
+        eq(
+          producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+          jwkKey.producerKeychainId
+        )
+      )
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(producerJwkKeyInReadmodelProducerJwkKey)
+      .where(
+        and(
+          eq(
+            producerJwkKeyInReadmodelProducerJwkKey.producerKeychainId,
+            jwkKey.producerKeychainId
+          ),
+          eq(producerJwkKeyInReadmodelProducerJwkKey.kid, jwkKey.kid)
+        )
+      );
+
+    const producerJWKKeySQL = splitProducerJWKKeyIntoObjectsSQL(
+      jwkKey,
+      metadataVersion
+    );
+
+    await tx
+      .insert(producerJwkKeyInReadmodelProducerJwkKey)
+      .values(producerJWKKeySQL);
   });
 };
