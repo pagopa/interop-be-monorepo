@@ -1237,7 +1237,7 @@ describe("get eservices", () => {
     }
   );
 
-  it.only.each(getContextsAllowedToSeeInactiveDescriptors(organizationId2))(
+  it.each(getContextsAllowedToSeeInactiveDescriptors(organizationId2))(
     "should include eservices with no descriptors (requester is delegate, user roles: $authData.userRoles, system role: $authData.systemRole)",
     async (context) => {
       const eservice7: EService = {
