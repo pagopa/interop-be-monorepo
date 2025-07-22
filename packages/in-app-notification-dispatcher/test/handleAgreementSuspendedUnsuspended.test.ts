@@ -17,9 +17,9 @@ import {
 } from "pagopa-interop-models";
 import { config } from "../src/config/config.js";
 import {
-  AgreementSuspendUnsuspendEventType,
+  AgreementSuspendedUnsuspendedEventType,
   handleAgreementSuspendedUnsuspended,
-} from "../src/handlers/agreements/handleAgreementSuspendUnsuspend.js";
+} from "../src/handlers/agreements/handleAgreementSuspendedUnsuspended.js";
 import { tenantNotFound } from "../src/models/errors.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import {
@@ -113,7 +113,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
   });
 
   it.each<{
-    eventType: AgreementSuspendUnsuspendEventType;
+    eventType: AgreementSuspendedUnsuspendedEventType;
     expectedAudience: "consumer" | "producer" | "both";
     expectedAction: "sospeso" | "riattivato";
     expectedSubject: string;
