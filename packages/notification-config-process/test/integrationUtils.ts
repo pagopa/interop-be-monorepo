@@ -72,7 +72,7 @@ const writeTenantNotificationConfigInEventstore = async (
 export const addOneTenantNotificationConfig = async (
   tenantNotificationConfig: TenantNotificationConfig
 ): Promise<void> => {
-  writeTenantNotificationConfigInEventstore(tenantNotificationConfig);
+  await writeTenantNotificationConfigInEventstore(tenantNotificationConfig);
   await insertTenantNotificationConfig(
     readModelDB,
     tenantNotificationConfig,
@@ -104,6 +104,6 @@ const writeUserNotificationConfigInEventstore = async (
 export const addOneUserNotificationConfig = async (
   userNotificationConfig: UserNotificationConfig
 ): Promise<void> => {
-  writeUserNotificationConfigInEventstore(userNotificationConfig);
+  await writeUserNotificationConfigInEventstore(userNotificationConfig);
   await insertUserNotificationConfig(readModelDB, userNotificationConfig, 0);
 };
