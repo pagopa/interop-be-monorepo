@@ -2,7 +2,6 @@
 import {
   getMockAgreement,
   getMockContext,
-  getMockDescriptor,
   getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
@@ -20,7 +19,6 @@ import {
 import { describe, expect, it } from "vitest";
 import { handleEserviceDescriptorPublished } from "../src/handlers/handleEServiceDescriptorPublished.js";
 import {
-  agreementStampDateNotFound,
   descriptorPublishedNotFound,
   tenantNotFound,
 } from "../src/models/errors.js";
