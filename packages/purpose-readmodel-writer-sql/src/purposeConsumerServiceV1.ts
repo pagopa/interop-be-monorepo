@@ -5,12 +5,12 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { CustomReadModelService } from "./readModelService.js";
+import { PurposeWriterService } from "./purposeWriterService.js";
 import { getPurposeFromMessage } from "./utils.js";
 
 export async function handleMessageV1(
   message: PurposeEventEnvelopeV1,
-  purposeReadModelService: CustomReadModelService
+  purposeWriterService: PurposeWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -24,7 +24,7 @@ export async function handleMessageV1(
       async (msg) => {
         const purpose = getPurposeFromMessage(msg.data.purpose);
 
-        await purposeReadModelService.upsertPurpose(purpose, msg.version);
+        await purposeWriterService.upsertPurpose(purpose, msg.version);
       }
     )
     .with(
@@ -37,7 +37,7 @@ export async function handleMessageV1(
         }
         const purposeVersion = fromPurposeVersionV1(purposeVersionV1);
 
-        await purposeReadModelService.upsertPurposeVersion(
+        await purposeWriterService.upsertPurposeVersion(
           unsafeBrandId(msg.stream_id),
           purposeVersion,
           msg.version
@@ -45,13 +45,13 @@ export async function handleMessageV1(
       }
     )
     .with({ type: "PurposeDeleted" }, async (msg) => {
-      await purposeReadModelService.deletePurposeById(
+      await purposeWriterService.deletePurposeById(
         unsafeBrandId(msg.stream_id),
         msg.version
       );
     })
     .with({ type: "PurposeVersionDeleted" }, async (msg) => {
-      await purposeReadModelService.deletePurposeVersionById(
+      await purposeWriterService.deletePurposeVersionById(
         unsafeBrandId(msg.stream_id),
         unsafeBrandId(msg.data.versionId),
         msg.version

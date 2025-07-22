@@ -1,6 +1,7 @@
 import {
   Agreement,
   Attribute,
+  Purpose,
   TenantNotificationConfig,
   UserNotificationConfig,
 } from "pagopa-interop-models";
@@ -12,6 +13,11 @@ import {
   agreementStampInReadmodelAgreement,
   attributeInReadmodelAttribute,
   DrizzleReturnType,
+  purposeInReadmodelPurpose,
+  purposeRiskAnalysisAnswerInReadmodelPurpose,
+  purposeRiskAnalysisFormInReadmodelPurpose,
+  purposeVersionDocumentInReadmodelPurpose,
+  purposeVersionInReadmodelPurpose,
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
@@ -23,6 +29,7 @@ import {
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import { checkMetadataVersion } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
+import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -135,5 +142,62 @@ export const upsertAttribute = async (
     );
 
     await tx.insert(attributeInReadmodelAttribute).values(attributeSQL);
+  });
+};
+
+export const upsertPurpose = async (
+  readModelDB: DrizzleReturnType,
+  purpose: Purpose,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      purposeInReadmodelPurpose,
+      metadataVersion,
+      purpose.id
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(purposeInReadmodelPurpose)
+      .where(eq(purposeInReadmodelPurpose.id, purpose.id));
+
+    const {
+      purposeSQL,
+      riskAnalysisFormSQL,
+      riskAnalysisAnswersSQL,
+      versionsSQL,
+      versionDocumentsSQL,
+    } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
+
+    await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
+
+    if (riskAnalysisFormSQL) {
+      await tx
+        .insert(purposeRiskAnalysisFormInReadmodelPurpose)
+        .values(riskAnalysisFormSQL);
+    }
+
+    if (riskAnalysisAnswersSQL) {
+      for (const riskAnalysisAnswerSQL of riskAnalysisAnswersSQL) {
+        await tx
+          .insert(purposeRiskAnalysisAnswerInReadmodelPurpose)
+          .values(riskAnalysisAnswerSQL);
+      }
+    }
+
+    for (const versionSQL of versionsSQL) {
+      await tx.insert(purposeVersionInReadmodelPurpose).values(versionSQL);
+    }
+
+    for (const versionDocumentSQL of versionDocumentsSQL) {
+      await tx
+        .insert(purposeVersionDocumentInReadmodelPurpose)
+        .values(versionDocumentSQL);
+    }
   });
 };
