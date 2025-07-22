@@ -15,6 +15,7 @@ import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { config } from "../config/config.js";
 import { handleEserviceDescriptorPublished } from "./handleEServiceDescriptorPublished.js";
+import { handleAgreementActivated } from "./handleAgreementActivated.js";
 
 const interopFeBaseUrl = config.interopFeBaseUrl;
 
@@ -36,6 +37,20 @@ export async function handleEvent(
       async ({ correlation_id, data: { eservice } }) =>
         await handleEserviceDescriptorPublished({
           eserviceV2Msg: eservice,
+          interopFeBaseUrl,
+          logger,
+          readModelService,
+          correlationId: correlation_id
+            ? unsafeBrandId<CorrelationId>(correlation_id)
+            : generateId<CorrelationId>(),
+          templateService,
+        })
+    )
+    .with(
+      { type: "AgreementActivated" },
+      async ({ correlation_id, data: { agreement } }) =>
+        await handleAgreementActivated({
+          agreementV2Msg: agreement,
           interopFeBaseUrl,
           logger,
           readModelService,
@@ -90,7 +105,6 @@ export async function handleEvent(
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
           // Agreements
-          "AgreementActivated",
           "AgreementSubmitted",
           "AgreementRejected",
           "AgreementAdded",
