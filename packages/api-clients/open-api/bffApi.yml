@@ -20359,8 +20359,7 @@ components:
           type: string
           format: uuid
         version:
-          type: integer
-          format: int32
+          type: string
         description:
           type: string
         interface:
@@ -20647,8 +20646,7 @@ components:
           type: string
           format: uuid
         version:
-         type: integer
-         format: int32
+          type: string
         description:
           type: string
         interface:
@@ -21104,8 +21102,7 @@ components:
         state:
           $ref: "#/components/schemas/EServiceDescriptorState"
         version:
-          type: integer
-          format: int32
+          type: string
         audience:
           type: array
           items:
@@ -21424,8 +21421,7 @@ components:
         state:
           $ref: "#/components/schemas/EServiceDescriptorState"
         version:
-          type: integer
-          format: int32
+          type: string
         audience:
           type: array
           items:
@@ -22000,8 +21996,7 @@ components:
         name:
           type: string
         version:
-          type: integer
-          format: int32
+          type: string
         activeDescriptor:
           $ref: "#/components/schemas/CompactDescriptor"
       required:
@@ -22742,8 +22737,7 @@ components:
           type: string
           format: uuid
         version:
-          type: integer
-          format: int32
+          type: string
         name:
           type: string
       required:

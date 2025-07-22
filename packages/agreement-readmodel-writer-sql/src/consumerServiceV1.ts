@@ -6,11 +6,11 @@ import {
   unsafeBrandId,
   fromAgreementDocumentV1,
 } from "pagopa-interop-models";
-import { ReadModelService } from "./readModelService.js";
+import { AgreementWriterService } from "./agreementWriterService.js";
 
 export async function handleMessageV1(
   message: AgreementEventEnvelopeV1,
-  readModelService: ReadModelService
+  agreementWriterService: AgreementWriterService
 ): Promise<void> {
   await match(message)
     .with(
@@ -28,14 +28,14 @@ export async function handleMessageV1(
           );
         }
 
-        await readModelService.upsertAgreement(
+        await agreementWriterService.upsertAgreement(
           fromAgreementV1(agreementV1),
           message.version
         );
       }
     )
     .with({ type: "AgreementDeleted" }, async (msg) => {
-      await readModelService.deleteAgreementById(
+      await agreementWriterService.deleteAgreementById(
         unsafeBrandId(msg.data.agreementId),
         msg.version
       );
@@ -47,14 +47,14 @@ export async function handleMessageV1(
           "consumer document can't be missing in event message"
         );
       }
-      await readModelService.upsertConsumerDocument(
+      await agreementWriterService.upsertConsumerDocument(
         fromAgreementDocumentV1(consumerDocV1),
         unsafeBrandId(msg.data.agreementId),
         msg.version
       );
     })
     .with({ type: "AgreementConsumerDocumentRemoved" }, async (msg) => {
-      await readModelService.deleteConsumerDocument(
+      await agreementWriterService.deleteConsumerDocument(
         unsafeBrandId(msg.data.agreementId),
         unsafeBrandId(msg.data.documentId),
         msg.version
@@ -67,7 +67,7 @@ export async function handleMessageV1(
           "contract can't be missing in event message"
         );
       }
-      await readModelService.upsertContractDocument(
+      await agreementWriterService.upsertContractDocument(
         fromAgreementDocumentV1(contractV1),
         unsafeBrandId(msg.data.agreementId),
         msg.version
