@@ -421,9 +421,15 @@ describe("handleAgreementActivated", async () => {
       correlationId: generateId<CorrelationId>(),
     });
     expect(messages.length).toBe(1);
-    expect(messages[0].email.body).toContain("<head>");
-    expect(messages[0].email.body).toContain(`Nuova richiesta di fruizione`);
-    expect(messages[0].email.body).toContain("<body");
+    expect(messages[0].email.body).toContain("<!-- Title & Main Message -->");
     expect(messages[0].email.body).toContain("<!-- Footer -->");
+    expect(messages[0].email.body).toContain(`Nuova richiesta di fruizione`);
+    expect(messages[0].email.body).toContain(
+      `https://${interopFeBaseUrl}/ui/it/fruizione/richieste/${agreement.id}`
+    );
+    expect(messages[0].email.body).toContain(producerTenant.name);
+    expect(messages[0].email.body).toContain(consumerTenant.name);
+    expect(messages[0].email.body).toContain(eservice.name);
+    expect(messages[0].email.body).toContain(descriptor.version);
   });
 });
