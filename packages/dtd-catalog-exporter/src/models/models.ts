@@ -43,7 +43,7 @@ export type PublicEServiceDoc = z.infer<typeof PublicEServiceDoc>;
 const PublicEServiceDescriptor = z.object({
   id: z.string(),
   state: z.enum(["PUBLISHED", "SUSPENDED"]),
-  version: z.number().int(),
+  version: z.string(),
 });
 export type PublicEServiceDescriptor = z.infer<typeof PublicEServiceDescriptor>;
 
@@ -73,7 +73,7 @@ export const FlattenedPublicEService = z.object({
   attributes: z.string(),
   activeDescriptorId: z.string(),
   activeDescriptorState: z.enum(["PUBLISHED", "SUSPENDED"]),
-  activeDescriptorVersion: z.coerce.number().int(),
+  activeDescriptorVersion: z.string(),
 });
 export type FlattenedPublicEService = z.infer<typeof FlattenedPublicEService>;
 

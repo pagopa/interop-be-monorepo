@@ -1,4 +1,4 @@
-import { and, eq, lte, SQL } from "drizzle-orm";
+import { eq, SQL } from "drizzle-orm";
 import {
   Agreement,
   AgreementId,
@@ -13,70 +13,16 @@ import {
   agreementStampInReadmodelAgreement,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
 import {
   aggregateAgreement,
   aggregateAgreementArray,
   toAgreementAggregator,
   toAgreementAggregatorArray,
 } from "./agreement/aggregators.js";
-import { checkMetadataVersion } from "./utils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
   return {
-    async upsertAgreement(
-      agreement: Agreement,
-      metadataVersion: number
-    ): Promise<void> {
-      const {
-        agreementSQL,
-        stampsSQL,
-        attributesSQL,
-        consumerDocumentsSQL,
-        contractSQL,
-      } = splitAgreementIntoObjectsSQL(agreement, metadataVersion);
-
-      await db.transaction(async (tx) => {
-        const shouldUpsert = await checkMetadataVersion(
-          tx,
-          agreementInReadmodelAgreement,
-          metadataVersion,
-          agreement.id
-        );
-
-        if (!shouldUpsert) {
-          return;
-        }
-
-        await tx
-          .delete(agreementInReadmodelAgreement)
-          .where(eq(agreementInReadmodelAgreement.id, agreement.id));
-
-        await tx.insert(agreementInReadmodelAgreement).values(agreementSQL);
-
-        for (const stampSQL of stampsSQL) {
-          await tx.insert(agreementStampInReadmodelAgreement).values(stampSQL);
-        }
-
-        for (const attributeSQL of attributesSQL) {
-          await tx
-            .insert(agreementAttributeInReadmodelAgreement)
-            .values(attributeSQL);
-        }
-
-        for (const docSQL of consumerDocumentsSQL) {
-          await tx
-            .insert(agreementConsumerDocumentInReadmodelAgreement)
-            .values(docSQL);
-        }
-        if (contractSQL !== undefined) {
-          await tx
-            .insert(agreementContractInReadmodelAgreement)
-            .values(contractSQL);
-        }
-      });
-    },
     async getAgreementById(
       agreementId: AgreementId
     ): Promise<WithMetadata<Agreement> | undefined> {
@@ -193,22 +139,8 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
 
       return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));
     },
-    async deleteAgreementById(
-      agreementId: AgreementId,
-      metadataVersion: number
-    ): Promise<void> {
-      await db
-        .delete(agreementInReadmodelAgreement)
-        .where(
-          and(
-            eq(agreementInReadmodelAgreement.id, agreementId),
-            lte(agreementInReadmodelAgreement.metadataVersion, metadataVersion)
-          )
-        );
-    },
   };
 }
-
 export type AgreementReadModelService = ReturnType<
   typeof agreementReadModelServiceBuilder
 >;

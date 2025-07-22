@@ -32,6 +32,7 @@ import {
   delegationReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { upsertAgreement } from "pagopa-interop-readmodel/testUtils";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
@@ -163,5 +164,5 @@ export const addOneEservice = async (eservice: EService): Promise<void> => {
 export const addOneAgreement = async (agreement: Agreement): Promise<void> => {
   await writeInReadmodel(toReadModelAgreement(agreement), agreements);
 
-  await agreementReadModelServiceSQL.upsertAgreement(agreement, 0);
+  await upsertAgreement(readModelDB, agreement, 0);
 };
