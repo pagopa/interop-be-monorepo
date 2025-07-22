@@ -263,6 +263,7 @@ export function delegationServiceBuilder(
       logger,
     });
 
+    // TODO add type
     const approvedDelegation = {
       ...approvedDelegationWithoutContract,
       activationContract,
@@ -412,6 +413,7 @@ export function delegationServiceBuilder(
       logger,
     });
 
+    // TODO add type
     const revokedDelegation = {
       ...revokedDelegationWithoutContract,
       revocationContract,
