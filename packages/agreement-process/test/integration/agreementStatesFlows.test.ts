@@ -37,7 +37,7 @@ import {
   agreementService,
 } from "../integrationUtils.js";
 
-describe("Agreeement states flows", () => {
+describe("Agreement states flows", () => {
   it("agreement for descriptor V1 >> suspended by consumer >> V2 with new verified attributes >> upgrade >> producer verifies attributes and activates >> should still be SUSPENDED by consumer", async () => {
     /* Test added in https://github.com/pagopa/interop-be-monorepo/pull/619 to
     verify the fix for https://pagopa.atlassian.net/browse/IMN-587 -- before the fix,
@@ -83,7 +83,7 @@ describe("Agreeement states flows", () => {
         [[validDeclaredEserviceAttribute]]
         // No verified attributes required in V1
       ),
-      version: 1,
+      version: "1",
       agreementApprovalPolicy: "Automatic",
     };
 
@@ -162,7 +162,7 @@ describe("Agreeement states flows", () => {
     const descriptorV2: Descriptor = {
       ...descriptorV1,
       id: generateId(),
-      version: 2,
+      version: "2",
       attributes: {
         certified: descriptorV1.attributes.certified,
         declared: descriptorV1.attributes.declared,
@@ -308,7 +308,7 @@ describe("Agreeement states flows", () => {
         [[validDeclaredEserviceAttribute]]
         // No verified attributes required in V1
       ),
-      version: 1,
+      version: "1",
       agreementApprovalPolicy: "Automatic",
     };
 
@@ -372,7 +372,7 @@ describe("Agreeement states flows", () => {
     const descriptorV2: Descriptor = {
       ...descriptorV1,
       id: generateId(),
-      version: 2,
+      version: "2",
       attributes: {
         certified: descriptorV1.attributes.certified,
         declared: descriptorV1.attributes.declared,

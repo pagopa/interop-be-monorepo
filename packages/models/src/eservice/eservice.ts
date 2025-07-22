@@ -95,7 +95,7 @@ export type EServiceTemplateVersionRef = z.infer<
 
 export const Descriptor = z.object({
   id: DescriptorId,
-  version: z.number().int(),
+  version: z.string(),
   description: z.string().optional(),
   interface: Document.optional(),
   docs: z.array(Document),

@@ -38,7 +38,6 @@ import {
   AgreementSubmittedV2,
   AgreementV2,
   Attribute,
-  Descriptor,
   DescriptorId,
   DescriptorState,
   EServiceId,
@@ -590,7 +589,7 @@ describe("submit agreement", () => {
       ],
     };
 
-    const oldDescriptor: Descriptor = {
+    const oldDescriptor = {
       ...getMockDescriptor(),
       id: descriptorId,
       state: randomArrayItem(
@@ -600,10 +599,10 @@ describe("submit agreement", () => {
             state !== descriptorState.waitingForApproval
         )
       ),
-      version: 1,
+      version: "1",
     };
 
-    const newDescriptor: Descriptor = {
+    const newDescriptor = {
       ...getMockDescriptor(),
       state: randomArrayItem(
         Object.values(descriptorState).filter(
@@ -612,7 +611,7 @@ describe("submit agreement", () => {
             state !== descriptorState.waitingForApproval
         )
       ),
-      version: 2,
+      version: "2",
     };
     const eservice = getMockEService(generateId<EServiceId>(), producer.id, [
       oldDescriptor,
